@@ -1,0 +1,8 @@
+# 当前文件记录编译出最终 YAML 所需要的文件，给平台侧使用，不建议修改和重命名，未来会和 ci-test 中的 settings.yaml 部分合并
+kcl_cli_configs:
+  file:
+    - ${KCL_MOD}/base/pkg/kusion_models/kube/metadata/metadata.k
+    - ../base/base.k
+    - main.k
+    - ${KCL_MOD}/base/pkg/kusion_models/kube/render/render.k
+  disable_none: false
