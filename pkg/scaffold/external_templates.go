@@ -27,9 +27,9 @@ import (
 // `ldflag` at build time, if necessary.
 var (
 	// The Git URL for Kusion program templates
-	KusionTemplateGitRepository = "https://github.com/howieyuen/kusion-templates"
+	KusionTemplateGitRepository = "https://github.com/KusionStack/kusion-templates"
 	// The branch name for the template repository
-	kusionTemplateBranch = "master"
+	kusionTemplateBranch = "main"
 )
 
 // TemplateRepository represents a repository of templates.
