@@ -12,8 +12,8 @@ import (
 	"os"
 	"path/filepath"
 
-	kclvm_py "kusionstack.io/KCLVM/kclvm"
-	plugins "kusionstack.io/kcl_plugins"
+	plugins "kusionstack.io/kcl-plugin"
+	kclvm_py "kusionstack.io/kclvm"
 )
 
 var (

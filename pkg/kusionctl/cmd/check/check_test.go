@@ -5,7 +5,7 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/compile"
 )

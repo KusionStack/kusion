@@ -11,14 +11,16 @@ import (
 	"time"
 
 	goversion "github.com/hashicorp/go-version"
-	_ "kusionstack.io/KCLVM"
-	_ "kusionstack.io/kcl_plugins"
+	"gopkg.in/yaml.v3"
+	_ "kusionstack.io/kcl-plugin"
+	_ "kusionstack.io/kclvm-go"
+
 	git "kusionstack.io/kusion/pkg/util/gitutil"
 )
 
 const (
-	KclvmModulePath      = "kusionstack.io/KCLVM"
-	KclPluginsModulePath = "kusionstack.io/kcl_plugins"
+	KclvmModulePath      = "kusionstack.io/kclvm-go"
+	KclPluginsModulePath = "kusionstack.io/kcl-plugin"
 )
 
 var info = NewMainOrDefaultVersionInfo()
