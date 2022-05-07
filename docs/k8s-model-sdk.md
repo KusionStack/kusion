@@ -1,11 +1,4 @@
----
-title: "K8S 资源模型 SDK"
-linkTitle: "K8S 资源模型 SDK"
-date: 2020-02-17
-weight: 5
-description: >
-  为了避免用户从零开发 KCL 语言代码，Kusion 提供了与 OpenAPI Spec 表达含义完全一致的资源模型。
----
+# K8S 资源模型 SDK
 
 为了避免用户从零开发 KCL 语言代码，Kusion 提供了与 OpenAPI Spec 表达含义完全一致的资源模型，并在这些模型的基础之上进行了再一次的封装，使其更接近用户的直观感受。
 Kusion 不仅参考 OAM 对 SDK 进行了扩展以方便用户编写代码，还额外提供了 builder、mixin 等多种编程模式，优化执行机制的体验，方便用户以任意的方式对资源进行组装。
