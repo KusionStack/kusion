@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"

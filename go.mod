@@ -28,7 +28,6 @@ require (
 	github.com/gonvenience/text v1.0.5
 	github.com/gonvenience/wrap v1.1.0
 	github.com/gonvenience/ytbx v1.3.0
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/gookit/goutil v0.5.1
 	github.com/hashicorp/go-version v1.4.0
@@ -41,7 +40,6 @@ require (
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
-	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/pkg/errors v0.9.1
@@ -54,8 +52,6 @@ require (
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/zclconf/go-cty v1.10.0
-	kusionstack.io/KCLVM v0.4.1-alpha.2
-	kusionstack.io/kcl_plugins v0.2.20
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
@@ -65,7 +61,6 @@ require (
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210420162539-3c870d7478d2 // indirect
-	google.golang.org/grpc v1.45.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -76,6 +71,8 @@ require (
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/component-base v0.21.2
 	k8s.io/kubectl v0.0.0
+	kusionstack.io/kcl-plugin v0.0.0-20220507081057-cdf25ec529ef
+	kusionstack.io/kclvm-go v0.0.0-20220506032622-8c01c64e800e
 	sigs.k8s.io/kustomize/api v0.8.11
 	sigs.k8s.io/kustomize/kustomize/v4 v4.1.2
 	sigs.k8s.io/kustomize/kyaml v0.11.0
@@ -87,7 +84,6 @@ replace (
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.2
 	k8s.io/apiserver => k8s.io/apiserver v0.21.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go => k8s.io/client-go v0.21.2
 	k8s.io/cloud-provider => k8s.io/cloud-provider v0.21.2
 	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.21.2

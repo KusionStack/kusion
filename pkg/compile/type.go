@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/util/yaml"
 )

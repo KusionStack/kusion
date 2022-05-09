@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	"gopkg.in/yaml.v3"
+	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/engine/manifest"
 	"kusionstack.io/kusion/pkg/engine/states"

@@ -8,9 +8,9 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
-	k2 "kusionstack.io/KCLVM/kclvm-go/pkg/kcl"
-	"kusionstack.io/KCLVM/kclvm-go/pkg/spec/gpyrpc"
+	kcl "kusionstack.io/kclvm-go"
+	k2 "kusionstack.io/kclvm-go/pkg/kcl"
+	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/compile/rest"
 )
