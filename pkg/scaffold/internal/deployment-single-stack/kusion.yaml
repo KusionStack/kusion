@@ -1,0 +1,36 @@
+projectName: my-app
+description: A minimal kusion project of single stack
+quickstart: kusion compile main.k -Y ci-test/settings.yaml
+common:
+  # base/base.k
+  - name: ServiceName
+    description: service name
+    type: string
+    default: frontend-svc
+  - name: NodePort
+    description: node port
+    type: int
+    default: 30000
+  # project.yaml
+  - name: ProjectName
+    description: project name
+    type: string
+    default: my-app
+stacks:
+  - name: dev
+    fields:
+      # stack/ci-test/settings.yaml
+      - name: Stack
+        description: stack env. One of dev,test,stable,pre,sim,gray,prod.
+        type: string
+        default: dev
+      # stack/main.k
+      - name: Image
+        description: The Image Address. Default to 'gcr.io/google-samples/gb-frontend:v4'
+        type: string
+        default: gcr.io/google-samples/gb-frontend:v4
+      # stack/stack.yaml
+      - name: ClusterName
+        description: The Cluster Name. Default to 'kubernetes-dev'
+        type: string
+        default: kubernetes-dev

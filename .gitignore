@@ -1,0 +1,53 @@
+# Mac OS X files
+.DS_Store
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+*.log
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# graph a
+*.dot
+*.png
+*.jpeg
+
+# ide
+.idea/
+*.iml
+
+vendor/
+
+# build
+_build*
+build/
+build/bundles/
+build/yamls/
+build/charts/
+kclvm_build/
+kclvm_build/build/
+
+__kclcache__/
+__pycache__/
+_python37_home_/
+
+# kusion
+/kusion
+/kclvm
+/VERSION
+/kclopenapi
+.kclvm/
+
+# Vscode
+__debug_bin
+.vscode/

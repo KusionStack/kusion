@@ -1,0 +1,108 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    # 使用 ldflags="-s -w" 去掉符号表和调试信息，以减少发布包的大小
+    ldflags:
+      - -s -w
+    # upx 在部分 Mac 系统中会出现 killed 的报错，二进制无法正常工作，暂时不使用
+    # hooks:
+    #   post:
+    #    - upx -9 "{{ .Path }}"
+    # upx 在 windows amd64 上会报错，暂时不用
+    # ignore:
+    #   - goos: windows
+    #     goarch: arm64
+    main: ./cmd/kusionctl
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: desc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+release:
+  github:
+    owner: KusionStack
+    name: kusion
+  draft: false
+  footer: |
+    ## Docker Images
+    * `KusionStack/kusion:{{ .Tag }}`
+    * `KusionStack/kusion:{{ .Tag }}-arm64`
+
+    ## Thanks!
+
+dockers:
+- image_templates:
+  - 'KusionStack/{{ .ProjectName }}:{{ .Tag }}'
+  - 'KusionStack/{{ .ProjectName }}:latest'
+  # - 'ghcr.io/KusionStack/{{ .ProjectName }}:{{ .Tag }}'
+  # - 'ghcr.io/KusionStack/{{ .ProjectName }}:latest'
+  dockerfile: Dockerfile
+  use: docker
+  build_flag_templates:
+  - "--pull"
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.name={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.source={{.GitURL}}"
+  - "--platform=linux/amd64"
+- image_templates:
+  - 'KusionStack/{{ .ProjectName }}:{{ .Tag }}-arm64'
+  # - 'ghcr.io/KusionStack/{{ .ProjectName }}:{{ .Tag }}-arm64'
+  dockerfile: Dockerfile
+  use: docker
+  build_flag_templates:
+  - "--pull"
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.name={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.source={{.GitURL}}"
+  - "--platform=linux/arm64"
+  goarch: arm64
+
+brews:
+  - tap:
+      owner: KusionStack
+      name: homebrew-tap
+      # token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+
+    url_template: "https://github.com/KusionStack/kusion/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    download_strategy: CurlDownloadStrategy
+
+    # Git author used to commit to the repository.
+    # Defaults are shown.
+    commit_author:
+      name: GoReleaser Bot
+      email: goreleaser@carlosbecker.com
+
+    folder: HomebrewFormula
+    homepage: "https://github.com/KusionStack/kusion"
+    description: ""
+    license: "Apache License"
+    skip_upload: false
+    test: |
+      system "#{bin}/kusion -V"
