@@ -27,21 +27,25 @@ func LinkRefNodes(graph *dag.AcyclicGraph, refNodeKeys []string, resourceIndex m
 
 		switch defaultAction {
 		case Delete:
-			// if parentNode is delete node, graph add parentnode and connect childNode to parentNode
-			// else parentNode not delete, manifestGraph exist parentNode, so connect parentNode to childNode
+			// if the parent node is a deleteNode, we will add an edge from child node to parent node.
+			// if parent node is not a deleteNode and manifestGraph contains parent node,
+			// we will add an edge from parent node to child node
 			if manifestGraphMap[parentKey] == nil {
 				if graph.HasVertex(parentNode) {
+					parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
 					graph.Connect(dag.BasicEdge(rn, parentNode))
 				} else {
 					graph.Add(parentNode)
 					graph.Connect(dag.BasicEdge(rn, parentNode))
 				}
 			} else {
+				parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
 				graph.Connect(dag.BasicEdge(parentNode, rn))
 			}
 		default:
 			hasParent := graph.HasVertex(parentNode)
 			if hasParent {
+				parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
 				graph.Connect(dag.BasicEdge(parentNode, rn))
 			} else {
 				graph.Add(parentNode)
@@ -63,4 +67,14 @@ func Deduplicate(refNodeKeys []string) []string {
 		}
 	}
 	return res
+}
+
+func GetVertex(g *dag.AcyclicGraph, nv dag.NamedVertex) interface{} {
+	vertices := g.Vertices()
+	for i, vertex := range vertices {
+		if vertex.(dag.NamedVertex).Name() == nv.Name() {
+			return vertices[i]
+		}
+	}
+	return nil
 }
