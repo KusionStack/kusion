@@ -1,48 +1,63 @@
-# Kusion
+## Introduction
 
-![license](https://img.shields.io/badge/license-Apache--2.0-green.svg)
+[![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/KusionStack/kusion/total.svg)](https://github.com/KusionStack/kusion/releases)
+[![docker pulls](https://img.shields.io/docker/pulls/KusionStack/kusion)](https://hub.docker.com/r/KusionStack/kusion)
+[![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
+[![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
 
-TODO: logo...
+> KusionStack provides the definition and best practice for the native ecology of the cloud, provides high level dynamic configuration language and tool support, and provides **Compile to Cloud** technology stack outside the business mirror. Kusion is written in Golang and has attributes of crossing Unix-Like platform.
 
-## 概述
+## 📜 Language
 
-Kusion 提供面向云原生生态的定义及最佳实践，提供高级动态配置语言及工具支持，
-在业务镜像外提供 **Compile to Cloud** 的技术栈。Kusion 使用 Golang 语言编写，
-并具有跨 Unix-like 平台属性。
+[English](https://github.com/KusionStack/kusion/blob/main/README.md) | [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
 
-## 设计理念
+## ✨ Functional Overview
+Kusion's many functions are completed in the form of subcommands. Among them, the more commonly used subcommands include `apply`,`init`, `destroy`,` ls`, `preview`, etc.
 
-Kusion 项目主要由 3 大模块构成：
-- [KCL 语言](docs/kcl.md)
-- [K8S 资源模型 SDK](docs/k8s-model-sdk.md)
-- [资源状态白盒化框架](docs/white-box.md)
+- `kusion apply`: Accept the code file written by the KCL language as the input. The output can be YAML files, JSON files, or even execute directly to the K8S Runtime
+- `kusion init`: Initialize KCL file structure and base codes for a new project
+- `kusion destroy`: Destroy a configuration stack to resource(s) by work directory
+- `kusion ls`: List all project and stack information
+- `kusion preview`: Preview a series of resource changes within the stack
 
-KCL 语言作为面向用户的编程界面，对用户输入的代码进行语义上的解析和执行。
-但一般来说，用户不会从零开始编写 KCL 语言代码，而是利用封装好的 K8S 资源模型 SDK 来实现对资源的快速部署。
-为了让资源部署这一原本不透明的状态过程变得可视化，Kusion 项目又引入了资源状态白盒化框架。
+For a complete command function description, please refer to the [Kusion Command](docs/cmd/en/kusion.md)。
 
-## 功能概述
+## 🛠️ Installation
 
-Kusion 的众多功能采用子命令的形式完成，其中较为常用的子命令包括 `apply`、`init`、`destroy`、`ls`、`preview` 等。
+### Binary (Cross-platform: windows, linux, mac ...)
 
-- `kusion apply`：接受 KCL 语言编写的代码文件作为输入，其输出可以是 Yaml 文件、Json 文件，甚至可以直接执行到 K8S Runtime；
-- `kusion init`：可以帮助用户快速新建一个 Kusion 项目；
-- `kusion destroy`：可以删除由 KCL 创建的 K8S 资源；
-- `kusion ls`：列出当前目录或指定目录中的所有 Project 和 Stack 信息；
-- `kusion preview`：预览 Stack 中的一系列资源更改；
+To get the binary just download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
 
-完整的命令功能说明，详见[Kusion 命令](docs/cmd/en/kusion.md)。
+### Homebrew
 
-## 快速开始
+The `KusionStack/tap` has macOS and GNU/Linux pre-built binaries available:
 
-访问[快速开始](docs/getting-started.md)了解如何快速创建并应用一个 Kusion 项目。
+```
+brew install KusionStack/tap/kusion
+```
 
-## 贡献指南
+### Build from Source
 
-Kusion 仍处在初级阶段，有很多能力需要补全，所以我们欢迎所有人参与进来与我们一起共建。
-访问[贡献指南](docs/contributing.md)了解如何参与到贡献 Kusion 项目中。
-如有任何疑问欢迎[提交 Issue](https://github.com/KusionStack/kusion/issues)。
+Starting with Go 1.16+, you can install `kusion` from source using go install:
 
-## License
+```
+go install github.com/KusionStack/kusion/cmd/kusionctl@latest
+```
 
-Apache License Version 2.0
+### Docker
+
+Docker users can use the following commands to pull the latest image of the `kusion`:
+
+```
+docker pull KusionStack/kusion
+```
+
+## ⚡ Quick Start
+
+Visit [Quick Start](docs/getting-started.md) to understand how to quickly create and apply a KusionStack project.
+
+## 🎖︎ Contribution Guide
+
+Kusion is still in the initial stage, and there are many capabilities that need to be made up, so we welcome everyone to participate in construction with us. Visit the [Contribution Guide](docs/contributing.md) to understand how to participate in the contribution KusionStack project. If you have any questions, please [Submit the Issue](https://github.com/KusionStack/kusion/issues).
