@@ -70,7 +70,7 @@ require (
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/component-base v0.21.2
-	k8s.io/kubectl v0.0.0
+	k8s.io/kubectl v0.21.2
 	kusionstack.io/kcl-plugin v0.4.1-alpha1
 	kusionstack.io/kclvm-go v0.4.1-alpha1
 	sigs.k8s.io/kustomize/api v0.8.11
@@ -96,7 +96,6 @@ replace (
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.21.2
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.21.2
 	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.21.2
-	k8s.io/kubectl => k8s.io/kubectl v0.21.2
 	k8s.io/kubelet => k8s.io/kubelet v0.21.2
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.21.2
 	k8s.io/mount-utils => k8s.io/mount-utils v0.21.2
