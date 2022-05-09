@@ -59,7 +59,7 @@ func TestOperation_Apply(t *testing.T) {
 		CtxResourceIndex        map[string]*states.ResourceState
 		PriorStateResourceIndex map[string]*states.ResourceState
 		StateResourceIndex      map[string]*states.ResourceState
-		ChangeStepMap           map[string]*ChangeStep
+		Order                   *ChangeOrder
 		Runtime                 runtime.Runtime
 		MsgCh                   chan Message
 		resultState             *states.State
@@ -137,14 +137,14 @@ func TestOperation_Apply(t *testing.T) {
 				CtxResourceIndex:        tt.fields.CtxResourceIndex,
 				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
 				StateResourceIndex:      tt.fields.StateResourceIndex,
-				ChangeStepMap:           tt.fields.ChangeStepMap,
+				Order:                   tt.fields.Order,
 				Runtime:                 tt.fields.Runtime,
 				MsgCh:                   tt.fields.MsgCh,
 				resultState:             tt.fields.resultState,
 				lock:                    tt.fields.lock,
 			}
 
-			monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation Operation) status.Status {
+			monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
 				o.resultState = rs
 				return nil
 			})

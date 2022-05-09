@@ -22,7 +22,7 @@ type PreviewRequest struct {
 }
 
 type PreviewResponse struct {
-	ChangeSteps map[string]*ChangeStep
+	Order *ChangeOrder
 }
 
 func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *PreviewResponse, s status.Status) {
@@ -77,20 +77,20 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 			CtxResourceIndex:        map[string]*states.ResourceState{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
-			ChangeStepMap:           o.ChangeStepMap,
+			Order:                   o.Order,
 			resultState:             resultState,
 			lock:                    &sync.Mutex{},
 		},
 	}
 
-	w := dag.Walker{Callback: previewOperation.previewWalkFun}
+	w := &dag.Walker{Callback: previewOperation.previewWalkFun}
 	w.Update(graph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
 		return nil, status.NewErrorStatus(diags.Err())
 	}
 
-	return &PreviewResponse{ChangeSteps: previewOperation.ChangeStepMap}, nil
+	return &PreviewResponse{Order: previewOperation.Order}, nil
 }
 
 func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
@@ -116,7 +116,7 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 	}()
 
 	if node, ok := v.(ExecutableNode); ok {
-		s = node.Execute(po.Operation)
+		s = node.Execute(&po.Operation)
 		if status.IsErr(s) {
 			diags = diags.Append(fmt.Errorf("node execute failed, status: %v", s))
 			return diags

@@ -24,11 +24,12 @@ type Operation struct {
 	PriorStateResourceIndex map[string]*states.ResourceState
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
 	StateResourceIndex map[string]*states.ResourceState
-	ChangeStepMap      map[string]*ChangeStep
-	Runtime            runtime.Runtime
-	MsgCh              chan Message
-	resultState        *states.State
-	lock               *sync.Mutex
+	// Order contains id to action of resource node in preview order
+	Order       *ChangeOrder
+	Runtime     runtime.Runtime
+	MsgCh       chan Message
+	resultState *states.State
+	lock        *sync.Mutex
 }
 
 type Message struct {
