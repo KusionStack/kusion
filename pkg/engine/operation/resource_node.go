@@ -56,7 +56,6 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 
 	// 4. apply
 	if operation.OperationType == Preview {
-		log.Infof("operation type is Preview. Skip this resource")
 		return nil
 	}
 	switch rn.Action {

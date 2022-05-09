@@ -50,6 +50,8 @@ func (m *ManifestParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
 			graph.Add(rn)
 			graph.Connect(dag.BasicEdge(root, rn))
 		} else {
+			// always get the latest vertex in this graph otherwise you will get subtle mistake in walking this graph
+			rn = GetVertex(graph, rn).(*ResourceNode)
 			graph.Connect(dag.BasicEdge(root, rn))
 		}
 		// handle explicate dependency

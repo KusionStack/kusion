@@ -45,6 +45,7 @@ func NewApplyGraph(m *manifest.Manifest, priorState *states.State) (*dag.Acyclic
 }
 
 func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.Status) {
+	log.Infof("engine Apply start!")
 	defer func() {
 		close(o.MsgCh)
 		if e := recover(); e != nil {
@@ -73,6 +74,7 @@ func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.
 	if status.IsErr(s) {
 		return nil, s
 	}
+	log.Infof("Apply Graph:%s", graph.String())
 
 	applyOperation := &ApplyOperation{
 		Operation: Operation{
@@ -89,7 +91,7 @@ func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.
 		},
 	}
 
-	w := dag.Walker{Callback: applyOperation.applyWalkFun}
+	w := &dag.Walker{Callback: applyOperation.applyWalkFun}
 	w.Update(graph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {

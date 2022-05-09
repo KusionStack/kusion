@@ -53,8 +53,7 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 
 		if !graph.HasVertex(rn) && manifestGraphMap[rnId] == nil {
 			log.Infof("resource:%v not found in manifest. Mark as delete node", key)
-			// check delete node dependson, if exist node dependson delete node,
-			// cannot delete the node
+			// we cannot delete this node if any node dependsOn this node
 			for _, v := range priorDependsOn[rnId] {
 				if manifestGraphMap[v] != nil {
 					msg := fmt.Sprintf("%s dependson %s, cannot delete resource %s", v, rnId, rnId)
@@ -65,6 +64,8 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 			graph.Connect(dag.BasicEdge(root, rn))
 		}
 
+		// always get the latest vertex in the graph.
+		rn = GetVertex(graph, rn).(*ResourceNode)
 		s = LinkRefNodes(graph, resource.DependsOn, resourceIndex, rn, Delete, manifestGraphMap)
 		if status.IsErr(s) {
 			return s
