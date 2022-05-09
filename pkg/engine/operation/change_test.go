@@ -14,6 +14,7 @@ var (
 	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil)
 	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil)
 	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil)
+	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
 		"test-key-2": TestChangeStepOpDelete,
@@ -196,45 +197,11 @@ func TestNewChangeStep(t *testing.T) {
 	}
 }
 
-func TestNewChanges(t *testing.T) {
-	type args struct {
-		p     *projectstack.Project
-		s     *projectstack.Stack
-		steps map[string]*ChangeStep
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Changes
-	}{
-		{
-			name: "t1",
-			args: args{
-				p:     nil,
-				s:     nil,
-				steps: map[string]*ChangeStep{},
-			},
-			want: &Changes{
-				ChangeSteps: map[string]*ChangeStep{},
-				project:     nil,
-				stack:       nil,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewChanges(tt.args.p, tt.args.s, tt.args.steps); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewChanges() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestChanges_Get(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	type args struct {
 		key string
@@ -248,8 +215,10 @@ func TestChanges_Get(t *testing.T) {
 		{
 			name: "t1",
 			fields: fields{
-				ChangeSteps: map[string]*ChangeStep{
-					"test-key": TestChangeStepOpCreate,
+				order: &ChangeOrder{
+					ChangeSteps: map[string]*ChangeStep{
+						"test-key": TestChangeStepOpCreate,
+					},
 				},
 			},
 			args: args{
@@ -261,7 +230,7 @@ func TestChanges_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: tt.fields.order,
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
@@ -274,9 +243,9 @@ func TestChanges_Get(t *testing.T) {
 
 func TestChanges_Values(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	type args struct {
 		filters []ChangeStepFilterFunc
@@ -290,7 +259,10 @@ func TestChanges_Values(t *testing.T) {
 		{
 			name: "filter-opcreate",
 			fields: fields{
-				ChangeSteps: TestChangeSteps,
+				order: &ChangeOrder{
+					StepKeys:    TestStepKeys,
+					ChangeSteps: TestChangeSteps,
+				},
 			},
 			args: args{
 				filters: []ChangeStepFilterFunc{CreateChangeStepFilter},
@@ -300,7 +272,10 @@ func TestChanges_Values(t *testing.T) {
 		{
 			name: "filter-opdelete",
 			fields: fields{
-				ChangeSteps: TestChangeSteps,
+				order: &ChangeOrder{
+					StepKeys:    TestStepKeys,
+					ChangeSteps: TestChangeSteps,
+				},
 			},
 			args: args{
 				filters: []ChangeStepFilterFunc{DeleteChangeStepFilter},
@@ -310,7 +285,10 @@ func TestChanges_Values(t *testing.T) {
 		{
 			name: "filter-opupdate",
 			fields: fields{
-				ChangeSteps: TestChangeSteps,
+				order: &ChangeOrder{
+					StepKeys:    TestStepKeys,
+					ChangeSteps: TestChangeSteps,
+				},
 			},
 			args: args{
 				filters: []ChangeStepFilterFunc{UpdateChangeStepFilter},
@@ -320,7 +298,10 @@ func TestChanges_Values(t *testing.T) {
 		{
 			name: "filter-opunchange",
 			fields: fields{
-				ChangeSteps: TestChangeSteps,
+				order: &ChangeOrder{
+					StepKeys:    TestStepKeys,
+					ChangeSteps: TestChangeSteps,
+				},
 			},
 			args: args{
 				filters: []ChangeStepFilterFunc{UnChangeChangeStepFilter},
@@ -331,7 +312,7 @@ func TestChanges_Values(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: tt.fields.order,
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
@@ -344,9 +325,9 @@ func TestChanges_Values(t *testing.T) {
 
 func TestChanges_Stack(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -356,8 +337,8 @@ func TestChanges_Stack(t *testing.T) {
 		{
 			name: "t1",
 			fields: fields{
-				ChangeSteps: map[string]*ChangeStep{},
-				project:     &projectstack.Project{},
+				order:   &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
+				project: &projectstack.Project{},
 				stack: &projectstack.Stack{
 					StackConfiguration: projectstack.StackConfiguration{
 						Name: "test-name",
@@ -376,7 +357,7 @@ func TestChanges_Stack(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: tt.fields.order,
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
@@ -389,9 +370,9 @@ func TestChanges_Stack(t *testing.T) {
 
 func TestChanges_Project(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -421,7 +402,7 @@ func TestChanges_Project(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
@@ -434,9 +415,9 @@ func TestChanges_Project(t *testing.T) {
 
 func TestChanges_Diffs(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -446,8 +427,11 @@ func TestChanges_Diffs(t *testing.T) {
 		{
 			name: "t1",
 			fields: fields{
-				ChangeSteps: map[string]*ChangeStep{
-					"test-key": TestChangeStepOpCreate,
+				order: &ChangeOrder{
+					StepKeys: []string{"test-key"},
+					ChangeSteps: map[string]*ChangeStep{
+						"test-key": TestChangeStepOpCreate,
+					},
 				},
 			},
 			want: `[32;1m[32;1mID: [0m[0m[32mid[0m
@@ -460,7 +444,7 @@ func TestChanges_Diffs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: tt.fields.order,
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
@@ -473,9 +457,9 @@ func TestChanges_Diffs(t *testing.T) {
 
 func TestChanges_Preview(t *testing.T) {
 	type fields struct {
-		ChangeSteps map[string]*ChangeStep
-		project     *projectstack.Project
-		stack       *projectstack.Stack
+		order   *ChangeOrder
+		project *projectstack.Project
+		stack   *projectstack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -484,8 +468,11 @@ func TestChanges_Preview(t *testing.T) {
 		{
 			name: "t1",
 			fields: fields{
-				ChangeSteps: map[string]*ChangeStep{
-					"test-key": TestChangeStepOpCreate,
+				order: &ChangeOrder{
+					StepKeys: []string{"test-key"},
+					ChangeSteps: map[string]*ChangeStep{
+						"test-key": TestChangeStepOpCreate,
+					},
 				},
 				stack: &projectstack.Stack{
 					StackConfiguration: projectstack.StackConfiguration{
@@ -498,7 +485,7 @@ func TestChanges_Preview(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Changes{
-				ChangeSteps: tt.fields.ChangeSteps,
+				ChangeOrder: tt.fields.order,
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}

@@ -20,7 +20,7 @@ type ResourceNode struct {
 
 var _ ExecutableNode = (*ResourceNode)(nil)
 
-func (rn *ResourceNode) Execute(operation Operation) status.Status {
+func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	log.Debugf("execute node:%s", rn.ID)
 	// 1. prepare planedState
 	planedState := rn.state
@@ -52,13 +52,12 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 	} else {
 		rn.Action = Update
 	}
-	fillResponseChangeSteps(operation, rn, priorState, planedState)
 
-	// 4. apply
 	if operation.OperationType == Preview {
+		fillResponseChangeSteps(operation, rn, priorState, planedState)
 		return nil
 	}
-
+	// 4. apply
 	switch rn.Action {
 	case Create, Delete, Update:
 		s := rn.applyResource(operation, priorState, planedState)
@@ -73,7 +72,7 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) applyResource(operation Operation, priorState *states.ResourceState, planedState *states.ResourceState) status.Status {
+func (rn *ResourceNode) applyResource(operation *Operation, priorState *states.ResourceState, planedState *states.ResourceState) status.Status {
 	log.Infof("PriorAttributes and PlanAttributes are not equal. operation:%v, prior:%v, plan:%v", rn.Action,
 		jsonUtil.Marshal2String(priorState), jsonUtil.Marshal2String(planedState))
 
@@ -122,14 +121,22 @@ func NewResourceNode(key string, state *states.ResourceState, action ActionType)
 	return &ResourceNode{BaseNode: BaseNode{ID: key}, Action: action, state: state}
 }
 
-func fillResponseChangeSteps(operation Operation, rn *ResourceNode, prior, plan interface{}) {
+func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan interface{}) {
 	defer operation.lock.Unlock()
 	operation.lock.Lock()
 
-	if operation.ChangeStepMap == nil {
-		operation.ChangeStepMap = make(map[string]*ChangeStep)
+	order := operation.Order
+	if order == nil {
+		order = &ChangeOrder{
+			StepKeys:    []string{},
+			ChangeSteps: make(map[string]*ChangeStep),
+		}
 	}
-	operation.ChangeStepMap[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan)
+	if order.ChangeSteps == nil {
+		order.ChangeSteps = make(map[string]*ChangeStep)
+	}
+	order.StepKeys = append(order.StepKeys, rn.ID)
+	order.ChangeSteps[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan)
 }
 
 var ImplicitReplaceFun = func(resourceIndex map[string]*states.ResourceState, refPath string) (reflect.Value, status.Status) {
