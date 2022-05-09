@@ -1,5 +1,7 @@
 # Kusion
 
+![license](https://img.shields.io/badge/license-Apache--2.0-green.svg)
+
 TODO: logo...
 
 ## 概述
@@ -40,3 +42,7 @@ Kusion 的众多功能采用子命令的形式完成，其中较为常用的子�
 Kusion 仍处在初级阶段，有很多能力需要补全，所以我们欢迎所有人参与进来与我们一起共建。
 访问[贡献指南](docs/contributing.md)了解如何参与到贡献 Kusion 项目中。
 如有任何疑问欢迎[提交 Issue](https://github.com/KusionStack/kusion/issues)。
+
+## License
+
+Apache License Version 2.0
