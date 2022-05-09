@@ -117,7 +117,7 @@ func liveDiffWithStdin() error {
 
 	ignorePaths := []string{
 		"/metadata/annotations/helm.sh~1hook", "/metadata/annotations/helm.sh~1hook-weight",
-		"/metadata/annotations/cafe.sofastack.io~1upgrade-confirmed", "/spec/strategy/groupSerials", "/spec/strategy/partitions", "/spec/replicas",
+		"/spec/strategy/groupSerials", "/spec/strategy/partitions", "/spec/replicas",
 	}
 
 	ignoreNormalizer, err := diff.NewDefaultIgnoreNormalizer(ignorePaths)
@@ -171,7 +171,7 @@ func liveDiffWithFile(fromLocation, toLocation string) error {
 
 	ignorePaths := []string{
 		"/metadata/annotations/helm.sh~1hook", "/metadata/annotations/helm.sh~1hook-weight",
-		"/metadata/annotations/cafe.sofastack.io~1upgrade-confirmed", "/spec/strategy/groupSerials", "/spec/strategy/partitions", "/spec/replicas",
+		"/spec/strategy/groupSerials", "/spec/strategy/partitions", "/spec/replicas",
 	}
 
 	ignoreNormalizer, err := diff.NewDefaultIgnoreNormalizer(ignorePaths)
