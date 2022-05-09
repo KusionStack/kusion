@@ -48,7 +48,7 @@ func TestOperation_Destroy(t *testing.T) {
 
 	t.Run("destroy success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation Operation) status.Status {
+		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
 			return nil
 		})
 		o.MsgCh = make(chan Message, 1)
@@ -59,7 +59,7 @@ func TestOperation_Destroy(t *testing.T) {
 
 	t.Run("destroy failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation Operation) status.Status {
+		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
 		})
 

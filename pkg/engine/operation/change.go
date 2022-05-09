@@ -77,27 +77,33 @@ var (
 )
 
 type Changes struct {
-	ChangeSteps map[string]*ChangeStep
-	project     *projectstack.Project // the project of current changes
-	stack       *projectstack.Stack   // the stack of current changes
+	*ChangeOrder
+	project *projectstack.Project // the project of current changes
+	stack   *projectstack.Stack   // the stack of current changes
 }
 
-func NewChanges(p *projectstack.Project, s *projectstack.Stack, steps map[string]*ChangeStep) *Changes {
+type ChangeOrder struct {
+	StepKeys    []string
+	ChangeSteps map[string]*ChangeStep
+}
+
+func NewChanges(p *projectstack.Project, s *projectstack.Stack, order *ChangeOrder) *Changes {
 	return &Changes{
-		ChangeSteps: steps,
+		ChangeOrder: order,
 		project:     p,
 		stack:       s,
 	}
 }
 
-func (p *Changes) Get(key string) *ChangeStep {
-	return p.ChangeSteps[key]
+func (o *ChangeOrder) Get(key string) *ChangeStep {
+	return o.ChangeSteps[key]
 }
 
-func (p *Changes) Values(filters ...ChangeStepFilterFunc) []*ChangeStep {
+func (o *ChangeOrder) Values(filters ...ChangeStepFilterFunc) []*ChangeStep {
 	var result []*ChangeStep
 
-	for _, v := range p.ChangeSteps {
+	for _, key := range o.StepKeys {
+		v := o.ChangeSteps[key]
 		// Deal filters
 		var i int
 		for i = 0; i < len(filters); i++ {
@@ -124,10 +130,11 @@ func (p *Changes) Project() *projectstack.Project {
 	return p.project
 }
 
-func (p *Changes) Diffs() string {
+func (o *ChangeOrder) Diffs() string {
 	buf := bytes.NewBufferString("")
 
-	for _, step := range p.ChangeSteps {
+	for _, key := range o.StepKeys {
+		step := o.ChangeSteps[key]
 		// Generate diff report
 		diffString, err := step.Diff()
 		if err != nil {
@@ -148,7 +155,7 @@ func (p *Changes) Summary() {
 
 	for i, step := range p.Values() {
 		itemPrefix := " * ├─"
-		if i == len(p.ChangeSteps)-1 {
+		if i == len(p.StepKeys)-1 {
 			itemPrefix = " * └─"
 		}
 
@@ -158,19 +165,20 @@ func (p *Changes) Summary() {
 	pterm.DefaultTable.WithHasHeader().
 		// WithBoxed(true).
 		WithHeaderStyle(&pterm.ThemeDefault.TableHeaderStyle).
-		WithRightAlignment(true).
+		WithLeftAlignment(true).
 		WithSeparator("  ").
 		WithData(tableData).
 		Render()
 	pterm.Println() // Blank line
 }
 
-func (p *Changes) PromptDetails() (string, error) {
+func (o *ChangeOrder) PromptDetails() (string, error) {
 	// Prepare the selects
 	options := []string{"all"}
 	optionMaps := map[string]string{"all": "all"}
 
-	for _, cs := range p.ChangeSteps {
+	for _, key := range o.StepKeys {
+		cs := o.ChangeSteps[key]
 		humanKeyAndOp := pterm.Sprintf("%s %s", cs.ID, pretty.Gray(cs.Action.String()))
 		options = append(options, humanKeyAndOp)
 		optionMaps[humanKeyAndOp] = cs.ID
@@ -194,13 +202,13 @@ func (p *Changes) PromptDetails() (string, error) {
 	return optionMaps[input], nil
 }
 
-func (p *Changes) OutputDiff(target string) {
+func (o *ChangeOrder) OutputDiff(target string) {
 	switch target {
 	case "all":
-		fmt.Println(p.Diffs())
+		fmt.Println(o.Diffs())
 	default:
 		rinID := target
-		if cs, ok := p.ChangeSteps[rinID]; ok {
+		if cs, ok := o.ChangeSteps[rinID]; ok {
 			diffString, err := cs.Diff()
 			if err != nil {
 				log.Error("failed to output specify diff with rinID: %s, err: %v", rinID, err)

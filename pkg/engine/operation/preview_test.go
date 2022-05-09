@@ -38,7 +38,7 @@ func TestOperation_Preview(t *testing.T) {
 		CtxResourceIndex        map[string]*states.ResourceState
 		PriorStateResourceIndex map[string]*states.ResourceState
 		StateResourceIndex      map[string]*states.ResourceState
-		ChangeStepMap           map[string]*ChangeStep
+		Order                   *ChangeOrder
 		Runtime                 runtime.Runtime
 		MsgCh                   chan Message
 		resultState             *states.State
@@ -58,9 +58,9 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-apply",
 			fields: fields{
-				Runtime:       &runtime.KubernetesRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				ChangeStepMap: map[string]*ChangeStep{},
+				Runtime:      &runtime.KubernetesRuntime{},
+				StateStorage: &states.FileSystemState{Path: states.KusionState},
+				Order:        &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -79,12 +79,15 @@ func TestOperation_Preview(t *testing.T) {
 				operation: Apply,
 			},
 			wantRsp: &PreviewResponse{
-				ChangeSteps: map[string]*ChangeStep{
-					"fake-id": {
-						ID:     "fake-id",
-						Action: Create,
-						Old:    (*states.ResourceState)(nil),
-						New:    &FakeResourceState,
+				Order: &ChangeOrder{
+					StepKeys: []string{"fake-id"},
+					ChangeSteps: map[string]*ChangeStep{
+						"fake-id": {
+							ID:     "fake-id",
+							Action: Create,
+							Old:    (*states.ResourceState)(nil),
+							New:    &FakeResourceState,
+						},
 					},
 				},
 			},
@@ -93,9 +96,9 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				Runtime:       &runtime.KubernetesRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				ChangeStepMap: map[string]*ChangeStep{},
+				Runtime:      &runtime.KubernetesRuntime{},
+				StateStorage: &states.FileSystemState{Path: states.KusionState},
+				Order:        &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -114,12 +117,15 @@ func TestOperation_Preview(t *testing.T) {
 				operation: Destroy,
 			},
 			wantRsp: &PreviewResponse{
-				ChangeSteps: map[string]*ChangeStep{
-					"fake-id": {
-						ID:     "fake-id",
-						Action: Delete,
-						Old:    &FakeResourceState,
-						New:    (*states.ResourceState)(nil),
+				Order: &ChangeOrder{
+					StepKeys: []string{"fake-id"},
+					ChangeSteps: map[string]*ChangeStep{
+						"fake-id": {
+							ID:     "fake-id",
+							Action: Delete,
+							Old:    &FakeResourceState,
+							New:    (*states.ResourceState)(nil),
+						},
 					},
 				},
 			},
@@ -128,9 +134,9 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-empty-manifest",
 			fields: fields{
-				Runtime:       &runtime.KubernetesRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				ChangeStepMap: map[string]*ChangeStep{},
+				Runtime:      &runtime.KubernetesRuntime{},
+				StateStorage: &states.FileSystemState{Path: states.KusionState},
+				Order:        &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -146,9 +152,9 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				Runtime:       &runtime.KubernetesRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				ChangeStepMap: map[string]*ChangeStep{},
+				Runtime:      &runtime.KubernetesRuntime{},
+				StateStorage: &states.FileSystemState{Path: states.KusionState},
+				Order:        &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -183,7 +189,7 @@ func TestOperation_Preview(t *testing.T) {
 				CtxResourceIndex:        tt.fields.CtxResourceIndex,
 				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
 				StateResourceIndex:      tt.fields.StateResourceIndex,
-				ChangeStepMap:           tt.fields.ChangeStepMap,
+				Order:                   tt.fields.Order,
 				Runtime:                 tt.fields.Runtime,
 				MsgCh:                   tt.fields.MsgCh,
 				resultState:             tt.fields.resultState,

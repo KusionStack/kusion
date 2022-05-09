@@ -71,7 +71,6 @@ func (o *Operation) Destroy(request *DestroyRequest) (st status.Status) {
 			CtxResourceIndex:        map[string]*states.ResourceState{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
-			ChangeStepMap:           o.ChangeStepMap,
 			Runtime:                 o.Runtime,
 			MsgCh:                   o.MsgCh,
 			resultState:             resultState,
@@ -79,7 +78,7 @@ func (o *Operation) Destroy(request *DestroyRequest) (st status.Status) {
 		},
 	}
 
-	w := dag.Walker{Callback: do.applyWalkFun}
+	w := &dag.Walker{Callback: do.applyWalkFun}
 	w.Update(graph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {

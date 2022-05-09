@@ -126,9 +126,9 @@ func (o *DestroyOptions) preview(planResources *manifest.Manifest,
 
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			ChangeStepMap: map[string]*operation.ChangeStep{},
+			Runtime:      kubernetesRuntime,
+			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Order:        &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
 		},
 	}
 
@@ -147,7 +147,7 @@ func (o *DestroyOptions) preview(planResources *manifest.Manifest,
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}
 
-	return operation.NewChanges(project, stack, rsp.ChangeSteps), nil
+	return operation.NewChanges(project, stack, rsp.Order), nil
 }
 
 func (o *DestroyOptions) destroy(planResources *manifest.Manifest, changes *operation.Changes) error {
@@ -159,10 +159,9 @@ func (o *DestroyOptions) destroy(planResources *manifest.Manifest, changes *oper
 
 	do := &operation.DestroyOperation{
 		Operation: operation.Operation{
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			MsgCh:         make(chan operation.Message),
-			ChangeStepMap: map[string]*operation.ChangeStep{},
+			Runtime:      kubernetesRuntime,
+			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			MsgCh:        make(chan operation.Message),
 		},
 	}
 
@@ -170,7 +169,7 @@ func (o *DestroyOptions) destroy(planResources *manifest.Manifest, changes *oper
 	var deleted int
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.ChangeSteps)).Start()
+	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).Start()
 	if err != nil {
 		return err
 	}

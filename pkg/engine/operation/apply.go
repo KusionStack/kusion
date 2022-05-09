@@ -83,7 +83,6 @@ func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.
 			CtxResourceIndex:        map[string]*states.ResourceState{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
-			ChangeStepMap:           o.ChangeStepMap,
 			Runtime:                 o.Runtime,
 			MsgCh:                   o.MsgCh,
 			resultState:             resultState,
@@ -127,14 +126,14 @@ func (o *Operation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
 		if rn, ok2 := v.(*ResourceNode); ok2 {
 			o.MsgCh <- Message{rn.Hashcode().(string), "", nil}
 
-			s = node.Execute(*o)
+			s = node.Execute(o)
 			if status.IsErr(s) {
 				o.MsgCh <- Message{rn.Hashcode().(string), Failed, fmt.Errorf("node execte failed, status: %v", s)}
 			} else {
 				o.MsgCh <- Message{rn.Hashcode().(string), Success, nil}
 			}
 		} else {
-			s = node.Execute(*o)
+			s = node.Execute(o)
 		}
 	}
 	if s != nil {
