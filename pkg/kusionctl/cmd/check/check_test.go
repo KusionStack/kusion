@@ -1,12 +1,11 @@
 package check
 
 import (
+	kcl "kusionstack.io/kclvm-go"
 	"testing"
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
-
 	"kusionstack.io/kusion/pkg/compile"
 )
 

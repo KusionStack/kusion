@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	_ "kusionstack.io/KCLVM"
-	_ "kusionstack.io/kcl_plugins"
+	_ "kusionstack.io/kcl-plugin"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/version"
 )

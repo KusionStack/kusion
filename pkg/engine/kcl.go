@@ -2,9 +2,10 @@ package engine
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 
 	"github.com/pkg/errors"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/engine/manifest"
 	"kusionstack.io/kusion/pkg/engine/states"

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/pterm/pterm"
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
-	"kusionstack.io/KCLVM/kclvm-go/pkg/spec/gpyrpc"
+	kcl "kusionstack.io/kclvm-go"
+	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/compile/rest"
 	"kusionstack.io/kusion/pkg/engine"

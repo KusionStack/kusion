@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"kusionstack.io/KCLVM/kclvm-go/api/kcl"
+	kcl "kusionstack.io/kclvm-go"
 )
 
 func TestCompileResult_YAMLString(t *testing.T) {

@@ -21,6 +21,7 @@ type ResourceNode struct {
 var _ ExecutableNode = (*ResourceNode)(nil)
 
 func (rn *ResourceNode) Execute(operation Operation) status.Status {
+	log.Debugf("execute node:%s", rn.ID)
 	// 1. prepare planedState
 	planedState := rn.state
 	if rn.Action != Delete {
@@ -80,10 +81,15 @@ func (rn *ResourceNode) applyResource(operation Operation, priorState *states.Re
 	switch rn.Action {
 	case Create, Update:
 		res, s = operation.Runtime.Apply(context.Background(), priorState, planedState)
-		log.Debugf("applyResult: %v, status: %v", jsonUtil.Marshal2String(res), jsonUtil.Marshal2String(s))
+		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonUtil.Marshal2String(res))
+		if s != nil {
+			log.Debugf("apply status: %v", s.String())
+		}
 	case Delete:
 		s = operation.Runtime.Delete(context.Background(), priorState)
-		log.Debugf("status: %v", jsonUtil.Marshal2String(s))
+		if s != nil {
+			log.Debugf("delete state: %v", s.String())
+		}
 	}
 	if status.IsErr(s) {
 		return s

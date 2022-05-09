@@ -6,19 +6,19 @@ package version
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"runtime"
 	"runtime/debug"
 	"time"
 
 	goversion "github.com/hashicorp/go-version"
-	_ "kusionstack.io/KCLVM"
-	_ "kusionstack.io/kcl_plugins"
+	_ "kusionstack.io/kcl-plugin"
 	git "kusionstack.io/kusion/pkg/util/gitutil"
 )
 
 const (
 	KclvmModulePath      = "kusionstack.io/KCLVM"
-	KclPluginsModulePath = "kusionstack.io/kcl_plugins"
+	KclPluginsModulePath = "kusionstack.io/kcl-plugin"
 )
 
 var info = NewMainOrDefaultVersionInfo()

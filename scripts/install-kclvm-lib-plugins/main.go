@@ -12,8 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	kclvm_py "kusionstack.io/KCLVM/kclvm"
-	plugins "kusionstack.io/kcl_plugins"
+	plugins "kusionstack.io/kcl-plugin"
 )
 
 var (
@@ -58,11 +57,11 @@ func main() {
 	os.RemoveAll(kclvmLibPath)
 	os.RemoveAll(kclvmPluginsPath)
 
-	if err := kclvm_py.InstallKclvmLibs(kclvmLibPath); err != nil {
-		fmt.Println("failed")
-		fmt.Println("InstallKclvmLibs failed:", err)
-		os.Exit(1)
-	}
+	//if err := kclvm_py.InstallKclvmLibs(kclvmLibPath); err != nil {
+	//	fmt.Println("failed")
+	//	fmt.Println("InstallKclvmLibs failed:", err)
+	//	os.Exit(1)
+	//}
 	if err := plugins.InstallPlugins(kclvmPluginsPath); err != nil {
 		fmt.Println("InstallPlugins failed:", err)
 		os.Exit(1)
