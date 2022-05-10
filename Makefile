@@ -1,5 +1,3 @@
-include ./build-env.inc
-
 SHELL = /bin/bash
 PWD:=$(shell pwd)
 
