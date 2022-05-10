@@ -14,7 +14,7 @@
 [English](https://github.com/KusionStack/kusion/blob/main/README.md) | [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
 
 ## ✨ Functional Overview
-Kusion's many functions are completed in the form of subcommands. Among them, the more commonly used subcommands include `apply`,`init`, `destroy`,` ls`, `preview`, etc.
+Kusion's many functions are completed in the form of subcommands. Among them, the more commonly used subcommands include `apply`,`init`, `destroy`,`ls`, `preview`, etc.
 
 - `kusion apply`: Accept the code file written by the KCL language as the input. The output can be YAML files, JSON files, or even execute directly to the K8S Runtime
 - `kusion init`: Initialize KCL file structure and base codes for a new project
