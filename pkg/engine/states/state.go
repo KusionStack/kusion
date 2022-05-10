@@ -36,12 +36,12 @@ type State struct {
 	Stack         string    `json:"stack"`
 	Project       string    `json:"project"`
 	Version       int       `json:"version"`
-	KusionVersion string    `json:"kusion_version"`
+	KusionVersion string    `json:"kusionVersion"`
 	Serial        uint64    `json:"serial"`
 	Operator      string    `json:"operator"`
 	Resources     Resources `json:"resources"`
-	GmtCreate     time.Time `json:"gmt_create"`
-	GmtModified   time.Time `json:"gmt_modified,omitempty"`
+	CreatTime     time.Time `json:"creatTime"`
+	ModifiedTime  time.Time `json:"modifiedTime,omitempty"`
 }
 
 func NewState() *State {
