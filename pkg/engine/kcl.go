@@ -3,7 +3,8 @@ package engine
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v2"
+	yamlv2 "gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/pkg/errors"
 	kcl "kusionstack.io/kclvm-go"
@@ -26,14 +27,14 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 			msg = msg[0:MaxLogLength]
 		}
 		log.Infof("convertKCLResult2Resources resource:%v", msg)
-		yamlByte, err := yaml.Marshal(resourcesYamlMap)
+		yamlByte, err := yamlv2.Marshal(resourcesYamlMap)
 		if err != nil {
 			return nil, fmt.Errorf("yaml marshal failed. %v,%w", jsonUtil.MustMarshal2String(resourcesYamlMap), err)
 		}
 
 		// Parse yaml string as Resource
 		item := &states.ResourceState{}
-		err = yaml.Unmarshal(yamlByte, item)
+		err = yamlv3.Unmarshal(yamlByte, item)
 		if err != nil {
 			return nil, err
 		}
