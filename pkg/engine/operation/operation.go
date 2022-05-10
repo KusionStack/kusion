@@ -6,13 +6,13 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/manifest"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/util/kdump"
 
 	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
-	jsonUtil "kusionstack.io/kusion/pkg/util/json"
 )
 
 type Operation struct {
@@ -80,9 +80,9 @@ func initStates(storage states.StateStorage, request *Request) (*states.State, *
 			Project: request.Project,
 		},
 	)
-	util.CheckNotError(err, fmt.Sprintf("GetLatestState failed. Request: %v", jsonUtil.MustMarshal2String(request)))
+	util.CheckNotError(err, fmt.Sprintf("GetLatestState failed with request: %v", kdump.FormatN(request)))
 	if latestState == nil {
-		log.Infof("can't find states by request: %v.", jsonUtil.MustMarshal2String(request))
+		log.Infof("can't find states with request: %v", kdump.FormatN(request))
 		latestState = states.NewState()
 	}
 	resultState := states.NewState()
