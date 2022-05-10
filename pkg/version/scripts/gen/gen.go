@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	_ "kusionstack.io/kcl-plugin"
+	_ "kusionstack.io/kclvm-go"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/version"
 )
