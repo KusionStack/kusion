@@ -19,7 +19,8 @@ COVER_FILE			?= cover.out
 SOURCE_PATHS		?= ./pkg/...
 
 # TODO: fix mirrors
-KCLVM_URL_BASE_MIRRORS:=http://127.0.0.1:8000/downloads
+# KCLVM_URL_BASE_MIRRORS:=http://127.0.0.1:8000/downloads
+KCLVM_URL_BASE_MIRRORS:=http://antsys-kusion-dev.cn-hangzhou-alipay-b.oss-cdn.aliyun-inc.com/KCLVM
 
 .DEFAULT_GOAL := help
 
