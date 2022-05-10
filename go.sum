@@ -172,8 +172,8 @@ github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 h1:HD4PLRzjuCV
 github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1/go.mod h1:/iP1qXHoty45bqomnu2LM+VVyAEdWN+vtSHGlQgyxbw=
 github.com/chai2010/jsonv v1.1.3 h1:gBIHXn/5mdEPTuWZfjC54fn/yUSRR8OGobXobcc6now=
 github.com/chai2010/jsonv v1.1.3/go.mod h1:mEoT1dQ9qVF4oP9peVTl0UymTmJwXoTDOh+sNA6+XII=
-github.com/chai2010/protorpc v1.1.3 h1:VJK5hIoZn0XCGol0GmbxZkUG6FbTI5LP2Lam6RVd15w=
-github.com/chai2010/protorpc v1.1.3/go.mod h1:/wO0kiyVdu7ug8dCMrA2yDr2vLfyhsLEuzLa9J2HJ+I=
+github.com/chai2010/protorpc v1.1.4 h1:CTtFUhzXRoeuR7FtgQ2b2vdT/KgWVpCM+sIus8zJjHs=
+github.com/chai2010/protorpc v1.1.4/go.mod h1:/wO0kiyVdu7ug8dCMrA2yDr2vLfyhsLEuzLa9J2HJ+I=
 github.com/cheggaaa/pb v1.0.18/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/cheggaaa/pb v1.0.27 h1:wIkZHkNfC7R6GI5w7l/PdAdzXzlrbcI3p8OAlnkTsnc=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
@@ -1388,8 +1388,8 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920 h1:CbnUZsM497iRC5QMVkHwyl8s2tB3g
 k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kusionstack.io/kcl-plugin v0.4.1-alpha1 h1:C3qCW4UnhOorrzDwWqSEIswgfkI9wNf5UW4z7TIdiMM=
 kusionstack.io/kcl-plugin v0.4.1-alpha1/go.mod h1:VgB7qXVbDGWFOh/qb/yXf75+UrliP5EPXOQUDqBCdAQ=
-kusionstack.io/kclvm-go v0.4.1-alpha1 h1:ZXvcBhMtNC4kmvtVH6/zX2dw0inCVpl1kchvt4spASc=
-kusionstack.io/kclvm-go v0.4.1-alpha1/go.mod h1:kDOldhZRxA/qeYcVkcDR4kGE4N4JKZtPOJsbHmAlsaQ=
+kusionstack.io/kclvm-go v0.4.1-alpha2 h1:VrYk7+qi1NRj0431+83L1JPr/+IrfXFL7Gmrz9MbmC4=
+kusionstack.io/kclvm-go v0.4.1-alpha2/go.mod h1:0Wh3ZqtXrmFNKS+AqTNUnRQ+9V12FP8kg+PVGMR36fs=
 pgregory.net/rapid v0.4.7/go.mod h1:UYpPVyjFHzYBGHIxLFoupi8vwk6rXNzRY9OMvVxFIOU=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
