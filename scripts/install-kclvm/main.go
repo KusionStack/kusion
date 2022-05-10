@@ -11,7 +11,7 @@ import (
 
 var (
 	flagTriple = flag.String("triple", "", "set kclvm triple")
-	flagOutdir = flag.String("outdor", "", "set output dir")
+	flagOutdir = flag.String("outdir", "", "set output dir")
 
 	flagMirrors = flag.String("mirrors", "", "set mirror url")
 )
