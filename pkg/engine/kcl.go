@@ -27,6 +27,9 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 			msg = msg[0:MaxLogLength]
 		}
 		log.Infof("convertKCLResult2Resources resource:%v", msg)
+		// Use yamlv3.Marshal, and then yamlv3.Unmarshal, something will report an error:
+		// "did not find expected '-' indicator"
+		// So, use yamlv2.Marshal and yamlv3.Unmarshal.
 		yamlByte, err := yamlv2.Marshal(resourcesYamlMap)
 		if err != nil {
 			return nil, fmt.Errorf("yaml marshal failed. %v,%w", jsonUtil.MustMarshal2String(resourcesYamlMap), err)
@@ -38,6 +41,7 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 		if err != nil {
 			return nil, err
 		}
+
 		// TODO: any other better judgement here?
 		if item.Attributes == nil {
 			item, _, err = NewRequestResourceForKubernetes(resourcesYamlMap)
