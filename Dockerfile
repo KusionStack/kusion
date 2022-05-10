@@ -12,7 +12,7 @@ RUN chmod +x /kusion/bin/kusion \
 &&  chmod +x /kusion/kclvm/bin/kcl-fmt \
 &&  chmod +x /kusion/kclvm/bin/kcl-vet \
 &&  chmod +x /kusion/kclvm/bin/kcl-go \
-&&  chmod +x /kusion/kclvm/bin/kclvmx-cli
+&&  chmod +x /kusion/kclvm/bin/kclvm_cli
 
 # Install dependency
 RUN yum install -y wget git gcc

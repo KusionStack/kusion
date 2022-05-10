@@ -124,7 +124,7 @@ build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for 
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-fmt
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-vet
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvmx-cli
+	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvm_cli
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/tools/clang/bin/clang
 
 	# Copy docs
@@ -180,7 +180,7 @@ build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl too
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-fmt
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-vet
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvmx-cli
+	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvm_cli
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/tools/clang/bin/clang
 
 	# Copy docs
@@ -242,7 +242,7 @@ build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for l
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kcl-fmt
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kcl-vet
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kclvmx-cli
+	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kclvm_cli
 	# linux use native clang and need not chmod
 
 	# Copy docs
