@@ -80,8 +80,8 @@ func (f *FileSystemState) GetLatestState(query *StateQuery) (*State, error) {
 
 func (f *FileSystemState) Apply(state *State) error {
 	now := time.Now()
-	state.GmtCreate = now
-	state.GmtModified = now
+	state.CreatTime = now
+	state.ModifiedTime = now
 	jsonByte, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return err
