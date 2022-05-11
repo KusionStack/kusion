@@ -143,7 +143,7 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, resourceState *states.Re
 
 	// Delete resource
 	err = resource.Delete(ctx, obj.GetName(), metav1.DeleteOptions{})
-	if err != nil {
+	if err != nil && err.(*k8serrors.StatusError).ErrStatus.Code != 404 {
 		return status.NewErrorStatus(err)
 	}
 
