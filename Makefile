@@ -54,11 +54,6 @@ doc:  ## Start the documentation server with godoc
 	@which godoc > /dev/null || (echo "Installing godoc@latest ..."; go install golang.org/x/tools/cmd/godoc@latest && echo -e "Installation complete!\n")
 	godoc -http=:6060
 
-build-changelog:  ## Build the changelog with git-chglog
-	@which git-chglog > /dev/null || (echo "Installing git-chglog@v0.15.1 ..."; go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1 && echo -e "Installation complete!\n")
-	mkdir -p ./build
-	git-chglog -o ./_build/CHANGELOG.md
-
 upload:  ## Upload kusion bundles to OSS
 	# 执行前先配置 OSS 环境变量 OSS_ACCESS_KEY_ID OSS_ACCESS_KEY_SECRET
 	go run ./scripts/oss-upload/main.go
