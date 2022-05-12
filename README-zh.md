@@ -1,8 +1,7 @@
 ## 简介
 
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
-[![Github All Releases](https://img.shields.io/github/downloads/KusionStack/kusion/total.svg)](https://github.com/KusionStack/kusion/releases)
-[![docker pulls](https://img.shields.io/docker/pulls/KusionStack/kusion)](https://hub.docker.com/r/KusionStack/kusion)
+[![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
