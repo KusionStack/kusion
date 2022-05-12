@@ -8,7 +8,7 @@ k8s 使用者在提交变更后往往需要了解模型的调和步骤，逐步�
 ## 状态可视化
 
 ### 模型变更的 live diff
-Kusion 支持实时地显示模型状态变化之间的差异，这种差异可以以 Json 或是 Yaml 的差异对比（diff）的方式展现出来。其背后的逻辑等同于 kubectl 的 diff 子命令。
+Kusion 支持实时地显示模型状态变化之间的差异，这种差异可以以 JSON 或是 Yaml 的差异对比（diff）的方式展现出来。其背后的逻辑等同于 kubectl 的 diff 子命令。
 
 ### 关键资源状态可视化
 Kusion 支持实时地显示模型当前状态，这些状态信息通过 kusion 内部 monitor 不断监控 k8s runtime 获取。

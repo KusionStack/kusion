@@ -171,7 +171,7 @@ func retrieveURLTemplates(rawurl string, online bool) (TemplateRepository, error
 
 	var fullPath string
 	if fullPath, err = workspace.RetrieveGitFolder(rawurl, temp); err != nil {
-		return TemplateRepository{}, fmt.Errorf("Failed to retrieve git folder: %w", err)
+		return TemplateRepository{}, fmt.Errorf("failed to retrieve git folder: %w", err)
 	}
 
 	return TemplateRepository{
@@ -270,12 +270,13 @@ func cleanupLegacyTemplateDir() error {
 
 	// The template directory is a Git repository. We want to make sure that it has the same remote as the one that
 	// we want to pull from. If it doesn't have the same remote, we'll delete it, so that the clone later succeeds.
-	var url string
-	url = KusionTemplateGitRepository
+	url := KusionTemplateGitRepository
+
 	remotes, err := repo.Remotes()
 	if err != nil {
 		return fmt.Errorf("getting template repo remotes: %w", err)
 	}
+
 	// If the repo exists, and it doesn't have exactly one remote that matches our URL, wipe the templates' directory.
 	if len(remotes) != 1 || remotes[0] == nil || !strings.Contains(remotes[0].String(), url) {
 		return os.RemoveAll(templateDir)
@@ -297,11 +298,15 @@ func GetTemplateDir(subDir string) (string, error) {
 // that would be overwritten.
 func newExistingFilesError(existing []string) error {
 	contract.Assert(len(existing) > 0)
+
 	message := "creating this template will make changes to existing files:\n"
+
 	for _, file := range existing {
-		message = message + fmt.Sprintf("  overwrite   %s\n", file)
+		message += fmt.Sprintf("  overwrite   %s\n", file)
 	}
-	message = message + "\nrerun the command and pass --force to accept and create"
+
+	message += "\nrerun the command and pass --force to accept and create"
+
 	return errors.New(message)
 }
 
@@ -330,9 +335,9 @@ func newTemplateNotFoundError(templateDir string, templateName string) error {
 
 	// Build-up error message with suggestions.
 	if len(suggestions) > 0 {
-		message = message + "\n\nDid you mean this?\n"
+		message += "\n\nDid you mean this?\n"
 		for _, suggestion := range suggestions {
-			message = message + fmt.Sprintf("\t%s\n", suggestion)
+			message += fmt.Sprintf("\t%s\n", suggestion)
 		}
 	}
 
@@ -368,7 +373,8 @@ func ValidateProjectName(s string) error {
 func CopyTemplateFiles(
 	sourceDir, destDir string, force bool,
 	projectName string, projectConfigs map[string]interface{},
-	stack2Configs map[string]map[string]interface{}) error {
+	stack2Configs map[string]map[string]interface{},
+) error {
 	// Create the destination directory.
 	err := mkdirWithForce(destDir, force)
 	if err != nil {
@@ -535,9 +541,9 @@ func mkdirWithForce(path string, force bool) error {
 func writeAllBytes(filename string, bytes []byte, overwrite bool, mode os.FileMode) error {
 	flag := os.O_WRONLY | os.O_CREATE
 	if overwrite {
-		flag = flag | os.O_TRUNC
+		flag |= os.O_TRUNC
 	} else {
-		flag = flag | os.O_EXCL
+		flag |= os.O_EXCL
 	}
 
 	f, err := os.OpenFile(filename, flag, mode)

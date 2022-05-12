@@ -13,22 +13,22 @@ import (
 	"kusionstack.io/kusion/pkg/scaffold"
 )
 
-func patch_chooseTemplate() {
+func patchChooseTemplate() {
 	monkey.Patch(chooseTemplate, func(templates []scaffold.Template) (scaffold.Template, error) {
 		return templates[0], nil
 	})
 }
 
-func patch_promptValue() {
+func patchPromptValue() {
 	monkey.Patch(promptValue, func(valueType, description, defaultValue string, isValidFn func(value string) error) (string, error) {
 		return defaultValue, nil
 	})
 }
 
-func Test_Run(t *testing.T) {
+func TestRun(t *testing.T) {
 	t.Run("init from official url", func(t *testing.T) {
-		patch_chooseTemplate()
-		patch_promptValue()
+		patchChooseTemplate()
+		patchPromptValue()
 		defer monkey.UnpatchAll()
 
 		o := &InitOptions{
@@ -42,7 +42,7 @@ func Test_Run(t *testing.T) {
 	})
 }
 
-func Test_chooseTemplate(t *testing.T) {
+func TestChooseTemplate(t *testing.T) {
 	t.Run("choose first", func(t *testing.T) {
 		// survey.AskOne
 		monkey.Patch(
@@ -68,7 +68,7 @@ func Test_chooseTemplate(t *testing.T) {
 	})
 }
 
-func Test_templatesToOptionArrayAndMap(t *testing.T) {
+func TestTemplatesToOptionArrayAndMap(t *testing.T) {
 	testTpl := scaffold.Template{
 		Dir:          "test",
 		Name:         "test",
@@ -111,7 +111,7 @@ func Test_templatesToOptionArrayAndMap(t *testing.T) {
 	}
 }
 
-func Test_promptValue(t *testing.T) {
+func TestPromptValue(t *testing.T) {
 	valueType := "project-name"
 	defaultValue := "foo"
 	description := "project name"

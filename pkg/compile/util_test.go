@@ -10,15 +10,15 @@ import (
 )
 
 func TestGetKclPath(t *testing.T) {
-	os.Setenv(KUSION_KCL_PATH_ENV, "kcl-custom-path")
+	os.Setenv(KusionKclPathEnv, "kcl-custom-path")
 	tAssert(t, getKclPath() == "kcl-custom-path")
 
-	os.Setenv(KUSION_KCL_PATH_ENV, "")
+	os.Setenv(KusionKclPathEnv, "")
 
-	os.MkdirAll("./kclvm/bin", 0o777)
+	_ = os.MkdirAll("./kclvm/bin", 0o777)
 
 	kclData := fmt.Sprintf("# kcl-test shell, %d", time.Now().Unix())
-	ioutil.WriteFile("./kclvm/bin/kcl", []byte(kclData), 0o777)
+	_ = ioutil.WriteFile("./kclvm/bin/kcl", []byte(kclData), 0o777)
 	defer os.RemoveAll("./kclvm")
 
 	kcl := getKclPath()
@@ -26,7 +26,7 @@ func TestGetKclPath(t *testing.T) {
 	if len(kclDataGot) > 50 {
 		kclDataGot = kclDataGot[:50]
 	}
-	tAssert(t, string(kclData) == string(kclDataGot), string(kclData), string(kclDataGot))
+	tAssert(t, kclData == string(kclDataGot), kclData, string(kclDataGot))
 	os.RemoveAll("./kclvm")
 
 	if s, _ := exec.LookPath("kcl"); s != "" {

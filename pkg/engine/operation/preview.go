@@ -53,6 +53,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 
 	// 1. init & build Indexes
 	priorState, resultState = initStates(o.StateStorage, &request.Request)
+
 	switch operation {
 	case Apply:
 		priorStateResourceIndex = priorState.Resources.Index()
@@ -100,6 +101,7 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 	defer func() {
 		if e := recover(); e != nil {
 			log.Errorf("previewWalkFun panic:%v", e)
+
 			var err error
 			switch x := e.(type) {
 			case string:

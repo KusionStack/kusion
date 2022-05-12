@@ -108,7 +108,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		_, err := o.preview(&manifest.Manifest{[]states.ResourceState{sa1}}, project, stack)
+		_, err := o.preview(&manifest.Manifest{Resources: []states.ResourceState{sa1}}, project, stack)
 		assert.Nil(t, err)
 	})
 }

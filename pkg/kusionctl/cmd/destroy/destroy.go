@@ -43,15 +43,15 @@ func NewCmdDestroy() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
+	cmd.Flags().StringVarP(&o.CompileOptions.WorkDir, "workdir", "w", "",
 		i18n.T("Specify the work directory"))
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
-	cmd.Flags().StringSliceVarP(&o.Arguments, "argument", "D", []string{},
+	cmd.Flags().StringSliceVarP(&o.CompileOptions.Arguments, "argument", "D", []string{},
 		i18n.T("Specify the arguments for compile KCL"))
-	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
+	cmd.Flags().StringSliceVarP(&o.CompileOptions.Settings, "setting", "Y", []string{},
 		i18n.T("Specify the command line setting files"))
-	cmd.Flags().StringSliceVarP(&o.Overrides, "overrides", "O", []string{},
+	cmd.Flags().StringSliceVarP(&o.CompileOptions.Overrides, "overrides", "O", []string{},
 		i18n.T("Specify the configuration override path and value"))
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))

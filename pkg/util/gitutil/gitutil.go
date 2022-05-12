@@ -12,7 +12,7 @@ import (
 var ErrEmptyGitTag = errors.New("empty tag")
 
 // get remote url
-func GetRemoteUrl() (string, error) {
+func GetRemoteURL() (string, error) {
 	stdout, err := exec.Command(
 		"git", "config", "--get", "remote.origin.url",
 	).CombinedOutput()
@@ -34,14 +34,14 @@ func GetLatestTag() (string, error) {
 // the fitting git clone depth is 1
 func GetLatestTagFromRemote() (tag string, err error) {
 	// get remote url
-	remoteUrl, err := GetRemoteUrl()
+	remoteURL, err := GetRemoteURL()
 	if err != nil {
 		return "", err
 	}
 
 	// get latest tag from remote
 	stdout, err := exec.Command(
-		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteUrl+` | tail -n1 | sed 's/.*\///; s/\^{}//'`,
+		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteURL+` | tail -n1 | sed 's/.*\///; s/\^{}//'`,
 	).CombinedOutput()
 	if err != nil {
 		return "", err
@@ -77,11 +77,11 @@ func GetTagList() (tags []string, err error) {
 	return
 }
 
-func GetTagListFromRemote(remoteUrl string, reverse bool) (tags []string, err error) {
+func GetTagListFromRemote(remoteURL string, reverse bool) (tags []string, err error) {
 	tmpTags := []string{}
 	// Get all tags from remote
 	stdout, err := exec.Command(
-		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteUrl+` | sed 's/.*\///; s/\^{}//'`,
+		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteURL+` | sed 's/.*\///; s/\^{}//'`,
 	).CombinedOutput()
 	if err != nil {
 		return nil, err
@@ -171,16 +171,18 @@ func GetTagCommitShaFromLocal(tag string) (sha string, err error) {
 // the fitting git clone depth is 1
 func GetTagCommitShaFromRemote(_ string) (string, error) {
 	// get remote url
-	remoteUrl, err := GetRemoteUrl()
+	remoteURL, err := GetRemoteURL()
 	if err != nil {
 		return "", err
 	}
+
 	stdout, err := exec.Command(
-		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteUrl+` | tail -n1 | awk '{print $1}'`,
+		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteURL+` | tail -n1 | awk '{print $1}'`,
 	).CombinedOutput()
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(string(stdout)), nil
 }
 

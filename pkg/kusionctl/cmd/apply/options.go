@@ -57,13 +57,13 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	project, stack, err := projectstack.DetectProjectAndStack(o.CompileOptions.WorkDir)
 	if err != nil {
 		return err
 	}
 
 	// Get compile result
-	planResources, sp, err := compile.CompileWithSpinner(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, stack)
+	planResources, sp, err := compile.CompileWithSpinner(o.CompileOptions.WorkDir, o.CompileOptions.Filenames, o.CompileOptions.Settings, o.CompileOptions.Arguments, o.Overrides, stack)
 	if err != nil {
 		sp.Fail()
 		return err
@@ -106,10 +106,10 @@ func (o *ApplyOptions) Run() error {
 					return err
 				}
 				changes.OutputDiff(target)
-			} else {
-				fmt.Println("Operation apply canceled")
-				return nil
 			}
+
+			fmt.Println("Operation apply canceled")
+			return nil
 		}
 	}
 
@@ -142,7 +142,7 @@ func preview(o *ApplyOptions, planResources *manifest.Manifest,
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
 			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
 			ChangeStepMap: map[string]*operation.ChangeStep{},
 		},
 	}
@@ -175,7 +175,7 @@ func apply(o *ApplyOptions, planResources *manifest.Manifest, changes *operation
 	ac := &operation.ApplyOperation{
 		Operation: operation.Operation{
 			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
 			MsgCh:         make(chan operation.Message),
 			ChangeStepMap: map[string]*operation.ChangeStep{},
 		},

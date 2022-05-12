@@ -12,7 +12,7 @@ func TestNewCmdVersion(t *testing.T) {
 	_, err := version.NewInfo()
 	assert.Nil(t, err)
 
-	t.Run("ExportJson", func(t *testing.T) {
+	t.Run("ExportJSON", func(t *testing.T) {
 		cmd := NewCmdVersion()
 		err := cmd.Flags().Set("json", "true")
 		assert.Nil(t, err)

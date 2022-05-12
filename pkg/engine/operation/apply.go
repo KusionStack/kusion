@@ -46,10 +46,13 @@ func NewApplyGraph(m *manifest.Manifest, priorState *states.State) (*dag.Acyclic
 
 func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.Status) {
 	log.Infof("engine Apply start!")
+
 	defer func() {
 		close(o.MsgCh)
+
 		if e := recover(); e != nil {
 			log.Error("apply panic:%v", e)
+
 			switch x := e.(type) {
 			case string:
 				st = status.NewErrorStatus(fmt.Errorf("apply panic:%s", e))
@@ -107,9 +110,11 @@ func (o *Operation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
 	if v == nil {
 		return nil
 	}
+
 	defer func() {
 		if e := recover(); e != nil {
 			log.Errorf("applyWalkFun panic:%v", e)
+
 			var err error
 			switch x := e.(type) {
 			case string:

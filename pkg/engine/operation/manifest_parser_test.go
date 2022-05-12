@@ -11,7 +11,6 @@ import (
 )
 
 func TestManifestParser_Parse(t *testing.T) {
-
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
@@ -56,7 +55,6 @@ func TestManifestParser_Parse(t *testing.T) {
 	if actual != expected {
 		t.Errorf("wrong result\ngot:\n%s\n\nwant:\n%s", actual, expected)
 	}
-
 }
 
 const testGraphTransReductionMultipleRootsStr = `

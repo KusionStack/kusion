@@ -24,7 +24,7 @@ func TestKusionVersionNormal(t *testing.T) {
 	mockTime()
 	mockRuntime()
 
-	versionJson := `{
+	versionJSON := `{
 		"releaseVersion": "v0.3.11-alpha",
 		"gitInfo": {
 			"latestTag": "v0.3.11-alpha",
@@ -46,9 +46,9 @@ func TestKusionVersionNormal(t *testing.T) {
 	}`
 
 	var want Info
-	err := json.Unmarshal([]byte(versionJson), &want)
+	err := json.Unmarshal([]byte(versionJSON), &want)
 	if err != nil {
-		t.Fatal("unmarshal versionJson failed", err)
+		t.Fatal("unmarshal versionJSON failed", err)
 	}
 	version, _ := NewInfo()
 	assert.Equal(t, want.JSON(), version.JSON())
@@ -143,7 +143,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		return false, nil
 	})
 
-	versionJson := `{
+	versionJSON := `{
 	"releaseVersion": "v0.3.11-alpha-af79cd23",
 	"gitInfo": {
 		"latestTag": "v0.3.11-alpha",
@@ -165,9 +165,9 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 }`
 
 	var want Info
-	err := json.Unmarshal([]byte(versionJson), &want)
+	err := json.Unmarshal([]byte(versionJSON), &want)
 	if err != nil {
-		t.Fatal("unmarshal versionJson failed", err)
+		t.Fatal("unmarshal versionJSON failed", err)
 	}
 	version, _ := NewInfo()
 	assert.Equal(t, want.JSON(), version.JSON())

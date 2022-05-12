@@ -2,9 +2,10 @@ package operation
 
 import (
 	"fmt"
-	"kusionstack.io/kusion/pkg/engine/manifest"
 	"reflect"
 	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/manifest"
 
 	"github.com/gonvenience/ytbx"
 	"github.com/stretchr/testify/assert"
@@ -18,14 +19,14 @@ func TestDiff(t *testing.T) {
 	plan := "{\n  \"attributes\": {\n    \"attach\": false,\n    \"bridge\": \"\",\n    \"capabilities\": [\n\n    ],\n    \"command\": [\n      \"nginx\",\n      \"-g\",\n      \"daemon on;\"\n    ],\n    \"container_logs\": null,\n    \"cpu_set\": \"\",\n    \"cpu_shares\": 0,\n    \"destroy_grace_seconds\": null,\n    \"devices\": [\n\n    ],\n    \"dns\": [\n\n    ],\n    \"dns_opts\": [\n\n    ],\n    \"dns_search\": [\n\n    ],\n    \"domainname\": \"\",\n    \"entrypoint\": [\n      \"/docker-entrypoint.sh\"\n    ],\n    \"env\": [\n\n    ],\n    \"exit_code\": null,\n    \"gateway\": \"172.17.0.1\",\n    \"group_add\": [\n\n    ],\n    \"healthcheck\": [\n\n    ],\n    \"hostname\": \"3691b2061977\",\n    \"id\": \"3691b2061977e80b263485845cc0aec6c2b3f83705e5550e02ed699aac0b0033\",\n    \"image\": \"sha256:4f380adfc10f4cd34f775ae57a17d2835385efd5251d6dfe0f246b0018fb0399\",\n    \"init\": false,\n    \"ip_address\": \"172.17.0.2\",\n    \"ip_prefix_length\": 16,\n    \"ipc_mode\": \"private\",\n    \"labels\": [\n\n    ],\n    \"links\": [\n\n    ],\n    \"log_driver\": \"json-file\",\n    \"log_opts\": {\n    },\n    \"logs\": false,\n    \"max_retry_count\": 0,\n    \"memory\": 0,\n    \"memory_swap\": 0,\n    \"mounts\": [\n\n    ],\n    \"must_run\": true,\n    \"name\": \"tutorial\",\n    \"network_alias\": null,\n    \"network_data\": [\n      {\n        \"gateway\": \"172.17.0.1\",\n        \"global_ipv6_address\": \"\",\n        \"global_ipv6_prefix_length\": 0,\n        \"ip_address\": \"172.17.0.2\",\n        \"ip_prefix_length\": 16,\n        \"ipv6_gateway\": \"\",\n        \"network_name\": \"bridge\"\n      }\n    ],\n    \"network_mode\": \"default\",\n    \"networks\": null,\n    \"networks_advanced\": [\n\n    ],\n    \"pid_mode\": \"\",\n    \"ports\": [\n      {\n        \"external\": 8000,\n        \"internal\": 86,\n        \"ip\": \"0.0.0.0\",\n        \"protocol\": \"tcp\"\n      }\n    ],\n    \"privileged\": false,\n    \"publish_all_ports\": false,\n    \"read_only\": false,\n    \"remove_volumes\": true,\n    \"restart\": \"no\",\n    \"rm\": false,\n    \"security_opts\": [\n\n    ],\n    \"shm_size\": 64,\n    \"start\": true,\n    \"stdin_open\": false,\n    \"sysctls\": {\n    },\n    \"tmpfs\": {\n    },\n    \"tty\": false,\n    \"ulimit\": [\n\n    ],\n    \"upload\": [\n\n    ],\n    \"user\": \"\",\n    \"userns_mode\": \"\",\n    \"volumes\": [\n\n    ],\n    \"working_dir\": \"\"\n  },\n  \"sensitive_attributes\": [\n\n  ],\n  \"private\": {\n    \"schema_version\": 2\n  }\n}"
 	// plan := "attributes:\n  attach: false\n  bridge: ''\n  capabilities: []\n  command:\n  - nginx\n  - \"-g\"\n  - daemon off;\n  container_logs:\n  cpu_set: ''\n  cpu_shares: 0\n  destroy_grace_seconds:\n  devices: []\n  dns: []\n  dns_opts: []\n  dns_search: []\n  domainname: ''\n  entrypoint:\n  - \"/docker-entrypoint.sh\"\n  env: []\n  exit_code:\n  gateway: 172.17.0.1\n  group_add: []\n  healthcheck: []\n  host: []\n  hostname: 3691b2061977\n  id: 3691b2061977e80b263485845cc0aec6c2b3f83705e5550e02ed699aac0b0033\n  image: sha256:4f380adfc10f4cd34f775ae57a17d2835385efd5251d6dfe0f246b0018fb0399\n  init: false\n  ip_address: 172.17.0.2\n  ip_prefix_length: 16\n  ipc_mode: private\n  labels: []\n  links: []\n  log_driver: json-file\n  log_opts: {}\n  logs: false\n  max_retry_count: 0\n  memory: 0\n  memory_swap: 0\n  mounts: []\n  must_run: true\n  name: tutorial\n  network_alias:\n  network_data:\n  - gateway: 172.17.0.1\n    global_ipv6_address: ''\n    global_ipv6_prefix_length: 0\n    ip_address: 172.17.0.2\n    ip_prefix_length: 16\n    ipv6_gateway: ''\n    network_name: bridge\n  network_mode: default\n  networks:\n  networks_advanced: []\n  pid_mode: ''\n  ports:\n  - external: 8000\n    internal: 86\n    ip: 0.0.0.0\n    protocol: tcp\n  privileged: false\n  publish_all_ports: false\n  read_only: false\n  remove_volumes: true\n  restart: 'no'\n  rm: false\n  security_opts: []\n  shm_size: 64\n  start: true\n  stdin_open: false\n  sysctls: {}\n  tmpfs: {}\n  tty: false\n  ulimit: []\n  upload: []\n  user: ''\n  userns_mode: ''\n  volumes: []\n  working_dir: ''\nsensitive_attributes: []\nprivate:\n  schema_version: 2"
 
-	report, err := diff_for_test(prior, plan)
+	report, err := diffForTest(prior, plan)
 	assert.NoError(t, err)
 	assert.NotNil(t, report)
 	assert.Equal(t, 0, len(report.Diffs))
 
 	prior = "{\n  \"attributes\": {\n    \"attach\": false,\n    \"bridge\": \"\",\n    \"capabilities\": [\n\n    ],\n    \"command\": [\n      \"nginx\",\n      \"-g\",\n      \"daemon on;\"\n    ],\n    \"container_logs\": null,\n    \"cpu_set\": \"\",\n    \"cpu_shares\": 0,\n    \"destroy_grace_seconds\": null,\n    \"devices\": [\n\n    ],\n    \"dns\": [\n\n    ],\n    \"dns_opts\": [\n\n    ],\n    \"dns_search\": [\n\n    ],\n    \"domainname\": \"\",\n    \"entrypoint\": [\n      \"/docker-entrypoint.sh\"\n    ],\n    \"env\": [\n\n    ],\n    \"exit_code\": null,\n    \"gateway\": \"172.17.0.1\",\n    \"group_add\": [\n\n    ],\n    \"healthcheck\": [\n\n    ],\n    \"hostname\": \"3691b2061977\",\n    \"id\": \"3691b2061977e80b263485845cc0aec6c2b3f83705e5550e02ed699aac0b0033\",\n    \"image\": \"sha256:4f380adfc10f4cd34f775ae57a17d2835385efd5251d6dfe0f246b0018fb0399\",\n    \"init\": false,\n    \"ip_address\": \"172.17.0.2\",\n    \"ip_prefix_length\": 16,\n    \"ipc_mode\": \"private\",\n    \"labels\": [\n\n    ],\n    \"links\": [\n\n    ],\n    \"log_driver\": \"json-file\",\n    \"log_opts\": {\n    },\n    \"logs\": false,\n    \"max_retry_count\": 0,\n    \"memory\": 0,\n    \"memory_swap\": 0,\n    \"mounts\": [\n\n    ],\n    \"must_run\": true,\n    \"name\": \"tutorial\",\n    \"network_alias\": null,\n    \"network_data\": [\n      {\n        \"gateway\": \"172.17.0.1\",\n        \"global_ipv6_address\": \"\",\n        \"global_ipv6_prefix_length\": 0,\n        \"ip_address\": \"172.17.0.2\",\n        \"ip_prefix_length\": 16,\n        \"ipv6_gateway\": \"\",\n        \"network_name\": \"bridge\"\n      }\n    ],\n    \"network_mode\": \"default\",\n    \"networks\": null,\n    \"networks_advanced\": [\n\n    ],\n    \"pid_mode\": \"\",\n    \"ports\": [\n      {\n        \"external\": 8000,\n        \"internal\": 86,\n        \"ip\": \"0.0.0.0\",\n        \"protocol\": \"tcp\"\n      }\n    ],\n    \"privileged\": false,\n    \"publish_all_ports\": false,\n    \"read_only\": false,\n    \"remove_volumes\": true,\n    \"restart\": \"no\",\n    \"rm\": false,\n    \"security_opts\": [\n\n    ],\n    \"shm_size\": 64,\n    \"start\": true,\n    \"stdin_open\": false,\n    \"sysctls\": {\n    },\n    \"tmpfs\": {\n    },\n    \"tty\": false,\n    \"ulimit\": [\n\n    ],\n    \"upload\": [\n\n    ],\n    \"user\": \"\",\n    \"userns_mode\": \"\",\n    \"volumes\": [\n\n    ],\n    \"working_dir\": \"\"\n  },\n  \"sensitive_attributes\": [\n\n  ],\n  \"private\": {\n    \"schema_version\": 2\n  }\n}"
 	plan = "attributes:\n  attach: false\n  bridge: ''\n  capabilities: []\n  command:\n  - nginx\n  - \"-g\"\n  - daemon off;\n  container_logs:\n  cpu_set: ''\n  cpu_shares: 0\n  destroy_grace_seconds:\n  devices: []\n  dns: []\n  dns_opts: []\n  dns_search: []\n  domainname: ''\n  entrypoint:\n  - \"/docker-entrypoint.sh\"\n  env: []\n  exit_code:\n  gateway: 172.17.0.1\n  group_add: []\n  healthcheck: []\n  host: []\n  hostname: 3691b2061977\n  id: 3691b2061977e80b263485845cc0aec6c2b3f83705e5550e02ed699aac0b0033\n  image: sha256:4f380adfc10f4cd34f775ae57a17d2835385efd5251d6dfe0f246b0018fb0399\n  init: false\n  ip_address: 172.17.0.2\n  ip_prefix_length: 16\n  ipc_mode: private\n  labels: []\n  links: []\n  log_driver: json-file\n  log_opts: {}\n  logs: false\n  max_retry_count: 0\n  memory: 0\n  memory_swap: 0\n  mounts: []\n  must_run: true\n  name: tutorial\n  network_alias:\n  network_data:\n  - gateway: 172.17.0.1\n    global_ipv6_address: ''\n    global_ipv6_prefix_length: 0\n    ip_address: 172.17.0.2\n    ip_prefix_length: 16\n    ipv6_gateway: ''\n    network_name: bridge\n  network_mode: default\n  networks:\n  networks_advanced: []\n  pid_mode: ''\n  ports:\n  - external: 8000\n    internal: 86\n    ip: 0.0.0.0\n    protocol: tcp\n  privileged: false\n  publish_all_ports: false\n  read_only: false\n  remove_volumes: true\n  restart: 'no'\n  rm: false\n  security_opts: []\n  shm_size: 64\n  start: true\n  stdin_open: false\n  sysctls: {}\n  tmpfs: {}\n  tty: false\n  ulimit: []\n  upload: []\n  user: ''\n  userns_mode: ''\n  volumes: []\n  working_dir: ''\nsensitive_attributes: []\nprivate:\n  schema_version: 2"
-	report, err = diff_for_test(prior, plan)
+	report, err = diffForTest(prior, plan)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(report.Diffs))
 }
@@ -39,7 +40,7 @@ func TestDiffReport(t *testing.T) {
 	fmt.Println(s)
 }
 
-func diff_for_test(prior, plan string) (*dyff.Report, error) {
+func diffForTest(prior, plan string) (*dyff.Report, error) {
 	to, err := LoadFile(prior, "Last State")
 	if err != nil {
 		return nil, err
@@ -53,14 +54,14 @@ func diff_for_test(prior, plan string) (*dyff.Report, error) {
 	return &report, err
 }
 
-//func TestDiff2ReleaseDiff(t *testing.T) {
-//	request := SetUp(t)
-//	marshal := jsonUtil.MustMarshal2String(request)
-//	println(marshal)
-//	diff, err := Diff(request)
-//	assert.NoError(t, err)
-//	fmt.Println(diff)
-//}
+// func TestDiff2ReleaseDiff(t *testing.T) {
+// 	request := SetUp(t)
+// 	marshal := jsonUtil.MustMarshal2String(request)
+// 	println(marshal)
+// 	diff, err := Diff(request)
+// 	assert.NoError(t, err)
+// 	fmt.Println(diff)
+// }
 
 func TestDiff_Diff(t *testing.T) {
 	type fields struct {

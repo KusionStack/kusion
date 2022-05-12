@@ -48,13 +48,16 @@ func Insert(db *sql.DB, data []map[string]interface{}) (int64, error) {
 	if nil == db {
 		return 0, errors.New("sql.DB is nil")
 	}
+
 	cond, values, err := builder.BuildInsert("state", data)
 	if nil != err {
 		return 0, err
 	}
+
 	result, err := db.Exec(cond, values...)
 	if nil != err || nil == result {
 		return 0, err
 	}
+
 	return result.LastInsertId()
 }

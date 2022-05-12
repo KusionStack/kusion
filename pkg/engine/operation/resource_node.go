@@ -58,6 +58,7 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 	if operation.OperationType == Preview {
 		return nil
 	}
+
 	switch rn.Action {
 	case Create, Delete, Update:
 		s := rn.applyResource(operation, priorState, planedState)
@@ -75,8 +76,10 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 func (rn *ResourceNode) applyResource(operation Operation, priorState *states.ResourceState, planedState *states.ResourceState) status.Status {
 	log.Infof("PriorAttributes and PlanAttributes are not equal. operation:%v, prior:%v, plan:%v", rn.Action,
 		jsonUtil.Marshal2String(priorState), jsonUtil.Marshal2String(planedState))
+
 	var res *states.ResourceState
 	var s status.Status
+
 	switch rn.Action {
 	case Create, Update:
 		res, s = operation.Runtime.Apply(context.Background(), priorState, planedState)

@@ -49,7 +49,7 @@ func NewCmdEnv() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&o.envJson, "json", "", false, i18n.T("print the environment in JSON format"))
+	cmd.Flags().BoolVarP(&o.envJSON, "json", "", false, i18n.T("print the environment in JSON format"))
 
 	return cmd
 }

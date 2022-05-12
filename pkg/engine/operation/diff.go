@@ -29,6 +29,7 @@ type DiffRequest struct {
 
 func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	log.Infof("invoke Diff")
+
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error("Diff panic:%v", err)
@@ -41,12 +42,12 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	// Get plan state resources
 	plan := request.Manifest
 	// ignore id & privates
-	//for _, resourceState := range plan {
-	//	for _, instance := range resourceState.Instances {
-	//		instance.Private = nil
-	//		instance.Attributes["id"] = ""
-	//	}
-	//}
+	// for _, resourceState := range plan {
+	// 	for _, instance := range resourceState.Instances {
+	// 		instance.Private = nil
+	// 		instance.Attributes["id"] = ""
+	// 	}
+	// }
 
 	// Get the latest state resources
 	latestState, err := d.StateStorage.GetLatestState(
@@ -74,13 +75,13 @@ func DiffWithRequestResourceAndState(plan *manifest.Manifest, latest *states.Sta
 		latestResources := latest.Resources
 		// ignore id & privates
 		// TODO: use diff PathsToIgnoreAddition option
-		//for i, resourceState := range latestResources {
-		//	for ii := range resourceState.Instances {
-		//		instance := &latestResources[i].Instances[ii]
-		//		instance.Private = nil
-		//		instance.Attributes["id"] = ""
-		//	}
-		//}
+		// for i, resourceState := range latestResources {
+		// 	for ii := range resourceState.Instances {
+		// 		instance := &latestResources[i].Instances[ii]
+		// 		instance.Private = nil
+		// 		instance.Attributes["id"] = ""
+		// 	}
+		// }
 		priorString := jsonUtil.MustMarshal2String(latestResources)
 		return DiffReport(priorString, planString, diff.OutputHuman)
 	}

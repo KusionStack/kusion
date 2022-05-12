@@ -26,7 +26,7 @@ func TestRecoverErr(t *testing.T) {
 func TestCheckErr(t *testing.T) {
 	t.Run("check error", func(t *testing.T) {
 		defer func() {
-			recover()
+			_ = recover()
 		}()
 		err := errors.New("error")
 		CheckErr(err)

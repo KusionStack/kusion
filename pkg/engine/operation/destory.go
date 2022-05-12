@@ -37,6 +37,7 @@ func (o *Operation) Destroy(request *DestroyRequest) (st status.Status) {
 		close(o.MsgCh)
 		if e := recover(); e != nil {
 			log.Error("destroy panic:%v", e)
+
 			switch x := e.(type) {
 			case string:
 				st = status.NewErrorStatus(fmt.Errorf("destroy panic:%s", e))

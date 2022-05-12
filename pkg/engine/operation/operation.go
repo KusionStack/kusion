@@ -32,7 +32,7 @@ type Operation struct {
 }
 
 type Message struct {
-	RinID    string   // ResourceInstanceNode.Id()
+	RinID    string   // ResourceInstanceNode.ID()
 	OpResult OpResult // Success/Failed/Skip
 	OpErr    error    // Operate error detail
 }
@@ -99,9 +99,10 @@ func (o *Operation) UpdateState(resourceIndex map[string]*states.ResourceState) 
 	defer o.lock.Unlock()
 
 	state := o.resultState
-	state.Serial = state.Serial + 1
+	state.Serial += 1
 	state.Resources = nil
-	var res []states.ResourceState
+
+	res := []states.ResourceState{}
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {
@@ -109,6 +110,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*states.ResourceState) 
 		}
 		res = append(res, *resourceIndex[key])
 	}
+
 	state.Resources = res
 	err := o.StateStorage.Apply(state)
 	if err != nil {

@@ -14,9 +14,7 @@ import (
 )
 
 func init() {
-	AddToBackends("local", func() StateStorage {
-		return NewFileSystemState()
-	})
+	AddToBackends("local", NewFileSystemState)
 }
 
 type FileSystemState struct {

@@ -5,25 +5,23 @@ import (
 	"reflect"
 )
 
-var (
-	CustomComparatorMap = map[string]Comparator{
-		"/spec/template/metadata/annotations/pod.beta1.sigma.ali/alloc-spec":           JsonStrComparator,
-		"/spec/template/metadata/annotations/pod.beta1.sigma.ali/container-state-spec": JsonStrComparator,
-	}
-)
+var CustomComparatorMap = map[string]Comparator{
+	"/spec/template/metadata/annotations/pod.beta1.sigma.ali/alloc-spec":           JSONStrComparator,
+	"/spec/template/metadata/annotations/pod.beta1.sigma.ali/container-state-spec": JSONStrComparator,
+}
 
 type Comparator func(from, to string) bool
 
-func JsonStrComparator(from, to string) bool {
-	fromJson := make(map[string]interface{})
-	err := json.Unmarshal([]byte(from), &fromJson)
+func JSONStrComparator(from, to string) bool {
+	fromJSON := make(map[string]interface{})
+	err := json.Unmarshal([]byte(from), &fromJSON)
 	if err != nil {
 		return false
 	}
-	toJson := make(map[string]interface{})
-	err = json.Unmarshal([]byte(to), &toJson)
+	toJSON := make(map[string]interface{})
+	err = json.Unmarshal([]byte(to), &toJSON)
 	if err != nil {
 		return false
 	}
-	return reflect.DeepEqual(fromJson, toJson)
+	return reflect.DeepEqual(fromJSON, toJSON)
 }

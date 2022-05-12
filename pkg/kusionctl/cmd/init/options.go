@@ -90,10 +90,10 @@ func (o *InitOptions) Run() error {
 	var template scaffold.Template
 	if len(templates) == 0 {
 		return errors.New("no templates")
-	} else {
-		if template, err = chooseTemplate(templates); err != nil {
-			return err
-		}
+	}
+
+	if template, err = chooseTemplate(templates); err != nil {
+		return err
 	}
 
 	// Show instructions, if we're going to use interactive mode
@@ -140,7 +140,7 @@ func (o *InitOptions) Run() error {
 			return err
 		}
 		// restore field type
-		actual, err := f.RestoreActualValue(input)
+		actual, _ := f.RestoreActualValue(input)
 		projectConfigs[f.Name] = actual
 	}
 
@@ -164,7 +164,7 @@ func (o *InitOptions) Run() error {
 				return err
 			}
 			// restore f type
-			actual, err := f.RestoreActualValue(input)
+			actual, _ := f.RestoreActualValue(input)
 			configs[f.Name] = actual
 		}
 		stack2Configs[stack.Name] = configs
@@ -206,6 +206,7 @@ func chooseTemplate(templates []scaffold.Template) (scaffold.Template, error) {
 	var selectedOption scaffold.Template
 	var has bool
 	var option string
+
 	for {
 		err := survey.AskOne(prompt, &option)
 		if err != nil {
@@ -232,7 +233,7 @@ func templatesToOptionArrayAndMap(templates []scaffold.Template) ([]string, map[
 	}
 
 	// Build the array and map.
-	var options []string
+	options := []string{}
 	nameToTemplateMap := make(map[string]scaffold.Template)
 	for _, template := range templates {
 		// Create the option string that combines the name, padding, and description.
@@ -270,6 +271,7 @@ func promptValue(valueType string, description string, defaultValue string, isVa
 				continue
 			}
 		}
+
 		break
 	}
 	return value, nil
