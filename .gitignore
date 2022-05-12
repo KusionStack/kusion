@@ -36,6 +36,7 @@ build/yamls/
 build/charts/
 kclvm_build/
 kclvm_build/build/
+dist/
 
 __kclcache__/
 __pycache__/
