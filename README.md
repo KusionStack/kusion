@@ -29,12 +29,13 @@ For a complete command function description, please refer to the [Kusion Command
 
 To get the binary just download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
 
-### Homebrew
+### Kusinoup
 
-The `KusionStack/tap` has macOS and GNU/Linux pre-built binaries available:
+You can install multiple versions of `kusion` with `kusionup`, and the latest version is installed by default.
 
 ```
-brew install KusionStack/tap/kusion
+brew install KusionStack/tap/kusionup
+kusionup install
 ```
 
 ### Build from Source
