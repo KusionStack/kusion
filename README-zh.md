@@ -32,12 +32,13 @@ Kusion 的众多功能采用子命令的形式完成，其中较为常用的子�
 
 从二进制安装，只需从 `kusion` 的 [发布页面](https://github.com/KusionStack/kusion/releases) 下载对应平台的二进制文件，然后将二进制文件放在命令行能访问到的目录中即可。
 
-### Homebrew
+### Kusinoup
 
-`KusionStack/tap` 有 MacOS 和 GNU/Linux 的预编译二进制版本可用：
+你可以通过 `kusionup` 安装多个 `kusion` 版本，默认会安装最新版。
 
 ```
-brew install KusionStack/tap/kusion
+brew install KusionStack/tap/kusionup
+kusionup install
 ```
 
 ### 从源码构建
