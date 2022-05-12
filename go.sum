@@ -1387,10 +1387,8 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920 h1:CbnUZsM497iRC5QMVkHwyl8s2tB3g
 k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kusionstack.io/kcl-plugin v0.4.1-alpha1 h1:C3qCW4UnhOorrzDwWqSEIswgfkI9wNf5UW4z7TIdiMM=
 kusionstack.io/kcl-plugin v0.4.1-alpha1/go.mod h1:VgB7qXVbDGWFOh/qb/yXf75+UrliP5EPXOQUDqBCdAQ=
-kusionstack.io/kclvm-go v0.4.1-alpha4 h1:KhgcsprjX0j9xoFgibBpjBG03XI2ImH4yPRT+JpjJE4=
-kusionstack.io/kclvm-go v0.4.1-alpha4/go.mod h1:H0mWVy+ZgT80iL2QUAaMg8NbSvvqdIDyRkoDW4twPJQ=
-kusionstack.io/kclvm-go v0.4.1-alpha5 h1:43sd0brvn1tuDq0e33HxQ0Xrk3LoK7CVuV2NPk96+hU=
-kusionstack.io/kclvm-go v0.4.1-alpha5/go.mod h1:H0mWVy+ZgT80iL2QUAaMg8NbSvvqdIDyRkoDW4twPJQ=
+kusionstack.io/kclvm-go v0.4.1-alpha7 h1:dQVCXNSYGkJGqgJrLiHGZ3Ab7hxWcocovyCPKuEBQc4=
+kusionstack.io/kclvm-go v0.4.1-alpha7/go.mod h1:H0mWVy+ZgT80iL2QUAaMg8NbSvvqdIDyRkoDW4twPJQ=
 pgregory.net/rapid v0.4.7/go.mod h1:UYpPVyjFHzYBGHIxLFoupi8vwk6rXNzRY9OMvVxFIOU=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
