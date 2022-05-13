@@ -125,6 +125,7 @@ func DBStateSetUp(t *testing.T) *DBState {
 	})
 
 	stateDo := &mapper.StateDO{GlobalTenant: "test_global_tenant", Project: "test_project", Env: "test_env"}
+
 	monkey.Patch(mapper.GetOne, func(db *sql.DB, where map[string]interface{}) (*mapper.StateDO, error) {
 		return stateDo, nil
 	})
@@ -132,6 +133,7 @@ func DBStateSetUp(t *testing.T) *DBState {
 	monkey.Patch(mapper.Insert, func(db *sql.DB, data []map[string]interface{}) (int64, error) {
 		return 1, nil
 	})
+
 	return &DBState{DB: &sql.DB{}}
 }
 

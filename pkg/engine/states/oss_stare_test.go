@@ -18,7 +18,6 @@ func SetUp(t *testing.T) *OssState {
 
 	monkey.Patch(oss.New, func(endpoint, accessKeyID, accessKeySecret string, options ...oss.ClientOption) (*oss.Client, error) {
 		return &oss.Client{}, nil
-
 	})
 
 	monkey.Patch(oss.Bucket.PutObject, func(b oss.Bucket, objectKey string, reader io.Reader, options ...oss.Option) error {

@@ -53,14 +53,21 @@ func TestGetPostPutDelete(t *testing.T) {
 		client := newClient(http.DefaultClient)
 		mockDo(client)
 		defer monkey.UnpatchAll()
-		_, err := client.Get("/", &struct{ Data string }{})
+		resp1, err := client.Get("/", &struct{ Data string }{})
 		assert.Nil(t, err)
-		_, err = client.Post("/", &struct{ Data string }{}, &struct{ Data string }{})
+		defer resp1.Body.Close()
+
+		resp2, err := client.Post("/", &struct{ Data string }{}, &struct{ Data string }{})
 		assert.Nil(t, err)
-		_, err = client.Put("/", &struct{ Data string }{}, &struct{ Data string }{})
+		defer resp2.Body.Close()
+
+		resp3, err := client.Put("/", &struct{ Data string }{}, &struct{ Data string }{})
 		assert.Nil(t, err)
-		_, err = client.Delete("/", &struct{ Data string }{}, &struct{ Data string }{})
+		defer resp3.Body.Close()
+
+		resp4, err := client.Delete("/", &struct{ Data string }{}, &struct{ Data string }{})
 		assert.Nil(t, err)
+		defer resp4.Body.Close()
 	})
 }
 

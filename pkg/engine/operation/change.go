@@ -58,12 +58,12 @@ func (cs *ChangeStep) Diff() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChangeStep(id string, op ActionType, old, new interface{}) *ChangeStep {
+func NewChangeStep(id string, op ActionType, oldData, newData interface{}) *ChangeStep {
 	return &ChangeStep{
 		ID:     id,
 		Action: op,
-		Old:    old,
-		New:    new,
+		Old:    oldData,
+		New:    newData,
 	}
 }
 
@@ -95,7 +95,7 @@ func (p *Changes) Get(key string) *ChangeStep {
 }
 
 func (p *Changes) Values(filters ...ChangeStepFilterFunc) []*ChangeStep {
-	var result []*ChangeStep
+	result := []*ChangeStep{}
 
 	for _, v := range p.ChangeSteps {
 		// Deal filters
@@ -225,13 +225,13 @@ func buildResourceStateMap(rs []*states.ResourceState) map[string]*states.Resour
 	return rMap
 }
 
-func diffToReport(old, new interface{}) (*dyff.Report, error) {
-	from, err := LoadFile(yaml.MergeToOneYAML(old), "Old item")
+func diffToReport(oldData, newData interface{}) (*dyff.Report, error) {
+	from, err := LoadFile(yaml.MergeToOneYAML(oldData), "Old item")
 	if err != nil {
 		return nil, err
 	}
 
-	to, err := LoadFile(yaml.MergeToOneYAML(new), "New item")
+	to, err := LoadFile(yaml.MergeToOneYAML(newData), "New item")
 	if err != nil {
 		return nil, err
 	}

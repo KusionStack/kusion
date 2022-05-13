@@ -23,17 +23,13 @@ import (
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
 )
 
-var (
-	restClient *rest.Client
-	enableRest bool
-)
+var enableRest bool
 
 func Init() error {
-	c, err := rest.New()
+	_, err := rest.New()
 	if err != nil {
 		return err
 	}
-	restClient = c
 	enableRest = true
 	return nil
 }
@@ -85,7 +81,7 @@ func Compile(workDir string, filenames, settings, arguments, overrides []string,
 }
 
 func buildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
-	var optList []kcl.Option
+	optList := []kcl.Option{}
 	// build settings option
 	for _, setting := range settings {
 		if workDir != "" {
@@ -95,6 +91,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
+
 		optList = append(optList, opt)
 	}
 
@@ -104,6 +101,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
+
 		optList = append(optList, opt)
 	}
 
@@ -112,6 +110,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
+
 	optList = append(optList, opt)
 
 	// build disable none option
@@ -119,6 +118,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
+
 	optList = append(optList, opt)
 
 	// open PrintOverride option
@@ -126,6 +126,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
+
 	optList = append(optList, opt)
 
 	// build workDir option
@@ -148,15 +149,18 @@ func normResult(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
 	if err := json.Unmarshal([]byte(resp.JsonResult), &mList); err != nil {
 		return nil, err
 	}
+
 	if len(mList) == 0 {
 		return nil, fmt.Errorf("normResult: invalid result: %s", resp.JsonResult)
 	}
+
 	var kclResults []kcl.KCLResult
 	for _, m := range mList {
 		if len(m) != 0 {
 			kclResults = append(kclResults, m)
 		}
 	}
+
 	return &CompileResult{
 		Documents: kclResults,
 	}, nil

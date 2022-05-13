@@ -1,8 +1,9 @@
 package check
 
 import (
-	kcl "kusionstack.io/kclvm-go"
 	"testing"
+
+	kcl "kusionstack.io/kclvm-go"
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"

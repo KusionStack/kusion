@@ -10,7 +10,7 @@ import (
 )
 
 type EnvOptions struct {
-	envJson bool
+	envJSON bool
 }
 
 func NewEnvOptions() *EnvOptions {
@@ -28,7 +28,7 @@ func (o *EnvOptions) Run() error {
 		{Name: "KUSION_PATH", Value: os.Getenv("KUSION_PATH")},
 	}
 
-	if o.envJson {
+	if o.envJSON {
 		return printEnvAsJSON(env)
 	}
 

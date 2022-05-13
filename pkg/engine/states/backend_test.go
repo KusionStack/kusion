@@ -14,10 +14,8 @@ func TestAddToBackends(t *testing.T) {
 		{
 			name: "t1",
 			args: args{
-				name: "test",
-				storage: func() StateStorage {
-					return NewFileSystemState()
-				},
+				name:    "test",
+				storage: NewFileSystemState,
 			},
 		},
 	}

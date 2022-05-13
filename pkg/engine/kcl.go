@@ -18,7 +18,7 @@ import (
 const MaxLogLength = 3751
 
 func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manifest, error) {
-	var resources []states.ResourceState
+	resources := []states.ResourceState{}
 
 	for _, resourcesYamlMap := range resourceYAMLs {
 		// Convert kcl result to yaml string
@@ -26,6 +26,7 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 		if len(msg) > MaxLogLength {
 			msg = msg[0:MaxLogLength]
 		}
+
 		log.Infof("convertKCLResult2Resources resource:%v", msg)
 		// Use yamlv3.Marshal, and then yamlv3.Unmarshal, something will report an error:
 		// "did not find expected '-' indicator"
@@ -53,5 +54,5 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 		resources = append(resources, *item)
 	}
 
-	return &manifest.Manifest{resources}, nil
+	return &manifest.Manifest{Resources: resources}, nil
 }

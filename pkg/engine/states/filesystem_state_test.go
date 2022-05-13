@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 	stateFile = filepath.Join(currentDir, "testdata", "kusion_state.json")
 
 	m.Run()
+	os.Exit(0)
 }
 
 func TestNewFileSystemState(t *testing.T) {
@@ -155,7 +156,6 @@ func TestFileSystemState_GetLatestState(t *testing.T) {
 }
 
 func FileSystemStateSetUp(t *testing.T) *FileSystemState {
-
 	monkey.Patch(os.WriteFile, func(filename string, data []byte, perm fs.FileMode) error {
 		return nil
 	})
@@ -176,5 +176,4 @@ func TestFileSystemState(t *testing.T) {
 
 	err = fileSystemState.Delete("kusion_state_filesystem.json")
 	assert.NoError(t, err)
-
 }

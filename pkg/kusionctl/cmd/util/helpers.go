@@ -12,7 +12,7 @@ func RecoverErr(err *error) {
 		case error:
 			*err = x
 		default:
-			*err = errors.New("Unknow panic")
+			*err = errors.New("unknow panic")
 		}
 	}
 }

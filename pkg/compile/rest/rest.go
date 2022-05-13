@@ -34,6 +34,7 @@ func newClient(client *http.Client) *Client {
 func New() (*Client, error) {
 	c := newClient(http.DefaultClient)
 	var e error
+
 	for i := 0; i < 10; i++ {
 		if err := Ping(c); err != nil {
 			log.Errorf(err.Error())
@@ -41,22 +42,29 @@ func New() (*Client, error) {
 		} else {
 			return c, nil
 		}
+
 		time.Sleep(time.Second)
 	}
+
 	return nil, e
 }
 
-func Ping(c *Client) error {
+func Ping(c *Client) (err error) {
 	res := new(PingResponse)
 	req := gpyrpc.Ping_Args{
 		Value: "",
 	}
-	if _, err := c.Post(defaultPingURL, req, res); err != nil {
+
+	resp, err := c.Post(defaultPingURL, req, res)
+	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
+
 	if len(res.Error) > 0 {
 		return errors.New(res.Error)
 	}
+
 	return nil
 }
 
@@ -89,8 +97,8 @@ func (c *Client) do(method string, url string, input interface{}, output interfa
 	if err != nil {
 		return nil, err
 	}
-	setJsonContentType(req)
-	// setJsonAcceptType(req)
+	setJSONContentType(req)
+	// setJSONAcceptType(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -110,22 +118,26 @@ func withTimeOut(req *http.Request, timeout time.Duration) *http.Request {
 	time.AfterFunc(timeout, func() {
 		cancel()
 	})
+
 	return req.WithContext(ctx)
 }
 
-func setJsonContentType(req *http.Request) {
+func setJSONContentType(req *http.Request) {
 	req.Header.Set("Content-Type", "accept/json")
 }
 
-func setJsonAcceptType(req *http.Request) {
-	req.Header.Set("Accept", "application/json")
-}
+// func setJSONAcceptType(req *http.Request) {
+// 	req.Header.Set("Accept", "application/json")
+// }
 
 func (c *Client) Compile(req *gpyrpc.ExecProgram_Args) (*Result, error) {
 	res := new(Result)
-	_, err := c.Post(defaultCompileURL, req, res)
+
+	resp, err := c.Post(defaultCompileURL, req, res)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	return res, nil
 }

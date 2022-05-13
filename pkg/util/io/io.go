@@ -7,9 +7,9 @@ import (
 	"io"
 	"os"
 
-	"sigs.k8s.io/kustomize/api/filesys"
 	"sigs.k8s.io/kustomize/api/krusty"
 	"sigs.k8s.io/kustomize/kustomize/v4/commands/build"
+	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
 // Generate yaml with kustomize build
@@ -43,6 +43,7 @@ func ReadStdinInput() (string, error) {
 	// read content from stdin until EOF is encountered
 	input := bufio.NewReader(os.Stdin)
 	output := bytes.NewBuffer([]byte{})
+
 	for {
 		b, err := input.ReadByte()
 		if err == io.EOF {

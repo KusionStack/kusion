@@ -116,7 +116,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewApplyOptions()
-		_, err := preview(o, &manifest.Manifest{[]states.ResourceState{sa1, sa2, sa3}}, project, stack)
+		_, err := preview(o, &manifest.Manifest{Resources: []states.ResourceState{sa1, sa2, sa3}}, project, stack)
 		assert.Nil(t, err)
 	})
 }

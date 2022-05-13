@@ -57,7 +57,7 @@ type Mode string
 
 const (
 	Managed Mode = "managed"
-	Drifted      = "drifted"
+	Drifted Mode = "drifted"
 )
 
 type Resources []ResourceState

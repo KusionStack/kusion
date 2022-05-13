@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
+	"sort"
+
 	"github.com/didi/gendry/scanner"
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
@@ -12,8 +15,6 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"net/url"
-	"sort"
 
 	"github.com/didi/gendry/manager"
 	_ "github.com/go-sql-driver/mysql"
@@ -21,9 +22,7 @@ import (
 )
 
 func init() {
-	AddToBackends("db", func() StateStorage {
-		return NewDBState()
-	})
+	AddToBackends("db", NewDBState)
 }
 
 func NewDBState() StateStorage {

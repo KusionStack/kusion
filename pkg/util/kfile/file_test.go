@@ -59,7 +59,7 @@ func TestFileExists(t *testing.T) {
 
 func TestKusionDataFolder(t *testing.T) {
 	// Mock data
-	os.Setenv(ENV_KUSION_PATH, "")
+	os.Setenv(EnvKusionPath, "")
 	mockUserCurrent()
 	mockMkdirall()
 	defer monkey.UnpatchAll()

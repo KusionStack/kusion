@@ -11,22 +11,22 @@ type (
 
 const (
 	Error   Kind = "ERROR"
-	Warning      = "WARNING"
-	Info         = "INFO"
+	Warning Kind = "WARNING"
+	Info    Kind = "INFO"
 )
 
 const (
 	Unknown          Code = "UNKNOWN"
-	Unavailable           = "UNAVAILABLE"
-	Unimplemented         = "UNIMPLEMENTED"
-	Canceled              = "CANCELED"
-	InvalidArgument       = "INVALID_ARGUMENT"
-	NotFound              = "NOTFOUND"
-	AlreadyExists         = "ALREADY_EXISTS"
-	PermissionDenied      = "PERMISSION_DENIED"
-	Internal              = "INTERNAL"
-	Unauthenticated       = "UNAUTHENTICATED"
-	IllegalManifest       = "ILLEGAL_MANIFEST"
+	Unavailable      Code = "UNAVAILABLE"
+	Unimplemented    Code = "UNIMPLEMENTED"
+	Canceled         Code = "CANCELED"
+	InvalidArgument  Code = "INVALID_ARGUMENT"
+	NotFound         Code = "NOTFOUND"
+	AlreadyExists    Code = "ALREADY_EXISTS"
+	PermissionDenied Code = "PERMISSION_DENIED"
+	Internal         Code = "INTERNAL"
+	Unauthenticated  Code = "UNAUTHENTICATED"
+	IllegalManifest  Code = "ILLEGAL_MANIFEST"
 )
 
 type Status interface {

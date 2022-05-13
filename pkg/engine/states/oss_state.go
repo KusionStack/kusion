@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/google/uuid"
@@ -17,10 +18,10 @@ type OssState struct {
 	bucket *oss.Bucket
 }
 
-func NewOSSState(endPoint, accessKeyId, accessKeySecret, bucketName string) (*OssState, error) {
+func NewOSSState(endPoint, accessKeyID, accessKeySecret, bucketName string) (*OssState, error) {
 	var ossClient *oss.Client
 	var err error
-	ossClient, err = oss.New(endPoint, accessKeyId, accessKeySecret)
+	ossClient, err = oss.New(endPoint, accessKeyID, accessKeySecret)
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +63,14 @@ func (s *OssState) GetLatestState(query *StateQuery) (*State, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var result *oss.ObjectProperties
-	for _, obj := range objects.Objects {
-		if result == nil || result.LastModified.UnixNano() < obj.LastModified.UnixNano() {
-			result = &obj
+	for i := 0; i < len(objects.Objects); i++ {
+		if result == nil || result.LastModified.UnixNano() < objects.Objects[i].LastModified.UnixNano() {
+			result = &objects.Objects[i]
 		}
 	}
+
 	if result == nil {
 		return nil, ErrOSSNoExist
 	}

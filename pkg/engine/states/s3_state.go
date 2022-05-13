@@ -20,9 +20,9 @@ type S3State struct {
 	bucketName string
 }
 
-func NewS3State(endPoint, accessKeyId, accessKeySecret, bucketName string, region string) (*S3State, error) {
+func NewS3State(endPoint, accessKeyID, accessKeySecret, bucketName string, region string) (*S3State, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Credentials:      credentials.NewStaticCredentials(accessKeyId, accessKeySecret, ""),
+		Credentials:      credentials.NewStaticCredentials(accessKeyID, accessKeySecret, ""),
 		Endpoint:         aws.String(endPoint),
 		Region:           aws.String(region),
 		DisableSSL:       aws.Bool(true),

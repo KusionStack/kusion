@@ -188,26 +188,26 @@ func mockRunFiles(mockErr error) {
 	})
 }
 
-func mockRestCompile(client *rest.Client) {
-	monkey.PatchInstanceMethod(reflect.TypeOf(client), "Compile", func(_ *rest.Client, req *gpyrpc.ExecProgram_Args) (*rest.Result, error) {
-		return new(rest.Result), nil
-	})
-}
+// func mockRestCompile(client *rest.Client) {
+// 	monkey.PatchInstanceMethod(reflect.TypeOf(client), "Compile", func(_ *rest.Client, req *gpyrpc.ExecProgram_Args) (*rest.Result, error) {
+// 		return new(rest.Result), nil
+// 	})
+// }
 
-func mockBuildOptions() {
-	monkey.Patch(buildOptions, func(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
-		return []kcl.Option{}, nil
-	})
-}
+// func mockBuildOptions() {
+// 	monkey.Patch(buildOptions, func(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
+// 		return []kcl.Option{}, nil
+// 	})
+// }
 
-func mockParseArgs() {
-	monkey.Patch(k2.ParseArgs, func(pathList []string, opts ...kcl.Option) (kcl.Option, error) {
-		return kcl.Option{}, nil
-	})
-}
+// func mockParseArgs() {
+// 	monkey.Patch(k2.ParseArgs, func(pathList []string, opts ...kcl.Option) (kcl.Option, error) {
+// 		return kcl.Option{}, nil
+// 	})
+// }
 
-func mockNormResult() {
-	monkey.Patch(normResult, func(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
-		return &CompileResult{}, nil
-	})
-}
+// func mockNormResult() {
+// 	monkey.Patch(normResult, func(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
+// 		return &CompileResult{}, nil
+// 	})
+// }

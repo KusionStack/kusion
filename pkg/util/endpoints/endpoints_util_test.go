@@ -9,7 +9,7 @@ import (
 )
 
 func TestSortSubsets(t *testing.T) {
-	subsetsJson := `	
+	subsetsJSON := `	
 		[
           	{
 				"addresses" : [{"ip": "10.12.1.1"}, {"ip": "10.11.2.2"}, {"ip": "10.10.3.3"}],
@@ -26,12 +26,12 @@ func TestSortSubsets(t *testing.T) {
          ]
     `
 	var subsets []v1.EndpointSubset
-	err := json.Unmarshal([]byte(subsetsJson), &subsets)
+	err := json.Unmarshal([]byte(subsetsJSON), &subsets)
 	if err != nil {
 		t.Fatal("TestSortSubsets failed", err)
 	}
 	SortSubsets(subsets)
-	wantJson := `	
+	wantJSON := `	
 		[
 			{
 				"addresses" : [{"ip": "10.10.3.3"}, {"ip": "10.11.2.2"}, {"ip": "10.12.1.1"}],
@@ -48,7 +48,7 @@ func TestSortSubsets(t *testing.T) {
 		]
 	`
 	var wantSubsets []v1.EndpointSubset
-	err = json.Unmarshal([]byte(wantJson), &wantSubsets)
+	err = json.Unmarshal([]byte(wantJSON), &wantSubsets)
 	if err != nil {
 		t.Fatal("TestSortSubsets failed", err)
 	}
