@@ -10,12 +10,12 @@ import (
 
 func Test_CmdInit(t *testing.T) {
 	// patch human interact
-	patch_chooseTemplate()
-	patch_promptValue()
+	patchChooseTemplate()
+	patchPromptValue()
 	defer monkey.UnpatchAll()
 
 	cmd := NewCmdInit()
-	cmd.Flags().Set("project-name", "test")
+	_ = cmd.Flags().Set("project-name", "test")
 	// clean data
 	defer os.RemoveAll("test")
 

@@ -8,14 +8,13 @@ import (
 	"kusionstack.io/kusion/pkg/util/io"
 )
 
-const KUSION_KCL_PATH_ENV = "KUSION_KCL_PATH"
+const KusionKclPathEnv = "KUSION_KCL_PATH"
 
 var kclAppPath = getKclPath()
 
 func getKclPath() string {
-	// 1. try ${KUSION_KCL_PATH_ENV}
-
-	if kclPath := os.Getenv(KUSION_KCL_PATH_ENV); kclPath != "" {
+	// 1. try ${KusionKclPathEnv}
+	if kclPath := os.Getenv(KusionKclPathEnv); kclPath != "" {
 		return kclPath
 	}
 

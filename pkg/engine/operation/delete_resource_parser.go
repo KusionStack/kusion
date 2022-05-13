@@ -49,14 +49,14 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 
 	for key, resource := range resourceIndex {
 		rn := NewResourceNode(key, resourceIndex[key], Delete)
-		rnId := rn.Hashcode().(string)
+		rnID := rn.Hashcode().(string)
 
-		if !graph.HasVertex(rn) && manifestGraphMap[rnId] == nil {
+		if !graph.HasVertex(rn) && manifestGraphMap[rnID] == nil {
 			log.Infof("resource:%v not found in manifest. Mark as delete node", key)
 			// we cannot delete this node if any node dependsOn this node
-			for _, v := range priorDependsOn[rnId] {
+			for _, v := range priorDependsOn[rnID] {
 				if manifestGraphMap[v] != nil {
-					msg := fmt.Sprintf("%s dependson %s, cannot delete resource %s", v, rnId, rnId)
+					msg := fmt.Sprintf("%s dependson %s, cannot delete resource %s", v, rnID, rnID)
 					return status.NewErrorStatusWithMsg(status.Internal, msg)
 				}
 			}

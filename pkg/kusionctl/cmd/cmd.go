@@ -50,7 +50,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 	//
 	// TODO: Consider adding a flag or file preference for setting
 	// the language, instead of just loading from the LANG env. variable.
-	i18n.LoadTranslations("kusion", nil)
+	_ = i18n.LoadTranslations("kusion", nil)
 
 	// Parent command to which all subcommands are added.
 	cmds := &cobra.Command{
@@ -59,7 +59,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 		Long:          templates.LongDesc(i18n.T(rootLong)),
 		SilenceErrors: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			_ = cmd.Help()
 		},
 	}
 

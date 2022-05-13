@@ -33,13 +33,13 @@ func Test_zapLogger(t *testing.T) {
 	})
 	t.Run("log panic", func(t *testing.T) {
 		defer func() {
-			recover()
+			_ = recover()
 		}()
 		Panic("foo")
 	})
 	t.Run("log panicf", func(t *testing.T) {
 		defer func() {
-			recover()
+			_ = recover()
 		}()
 		Panicf("%s", "foo")
 	})

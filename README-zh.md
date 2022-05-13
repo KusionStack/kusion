@@ -18,7 +18,7 @@
 
 Kusion 的众多功能采用子命令的形式完成，其中较为常用的子命令包括 `apply`、`init`、`destroy`、`ls`、`preview` 等。
 
-- `kusion apply`：接受 KCL 语言编写的代码文件作为输入，其输出可以是 Yaml 文件、Json 文件，甚至可以直接执行到 K8S Runtime；
+- `kusion apply`：接受 KCL 语言编写的代码文件作为输入，其输出可以是 Yaml 文件、JSON 文件，甚至可以直接执行到 K8S Runtime；
 - `kusion init`：可以帮助用户快速新建一个 Kusion 项目；
 - `kusion destroy`：可以删除由 KCL 创建的 K8S 资源；
 - `kusion ls`：列出当前目录或指定目录中的所有 Project 和 Stack 信息；

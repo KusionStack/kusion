@@ -51,13 +51,13 @@ func (o *DestroyOptions) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	project, stack, err := projectstack.DetectProjectAndStack(o.CompileOptions.WorkDir)
 	if err != nil {
 		return err
 	}
 
 	// Get compile result
-	planResources, sp, err := compile.CompileWithSpinner(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, stack)
+	planResources, sp, err := compile.CompileWithSpinner(o.CompileOptions.WorkDir, o.CompileOptions.Filenames, o.CompileOptions.Settings, o.CompileOptions.Arguments, o.Overrides, stack)
 	if err != nil {
 		sp.Fail()
 		return err
@@ -91,6 +91,7 @@ func (o *DestroyOptions) Run() error {
 			if err != nil {
 				return err
 			}
+
 			if input == "yes" {
 				break
 			} else if input == "details" {
@@ -127,7 +128,7 @@ func (o *DestroyOptions) preview(planResources *manifest.Manifest,
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
 			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
 			ChangeStepMap: map[string]*operation.ChangeStep{},
 		},
 	}
@@ -160,7 +161,7 @@ func (o *DestroyOptions) destroy(planResources *manifest.Manifest, changes *oper
 	do := &operation.DestroyOperation{
 		Operation: operation.Operation{
 			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
 			MsgCh:         make(chan operation.Message),
 			ChangeStepMap: map[string]*operation.ChangeStep{},
 		},

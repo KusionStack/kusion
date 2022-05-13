@@ -85,11 +85,13 @@ func (m *ManifestParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
 }
 
 func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*states.ResourceState,
-	replaceFun func(resourceIndex map[string]*states.ResourceState, refPath string) (reflect.Value, status.Status)) ([]string, reflect.Value, status.Status) {
+	replaceFun func(resourceIndex map[string]*states.ResourceState, refPath string) (reflect.Value, status.Status),
+) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {
 		return nil, v, status.NewErrorStatusWithMsg(status.InvalidArgument, "invalid implicit reference")
 	}
+
 	switch v.Type().Kind() {
 	case reflect.Ptr, reflect.Interface:
 		if v.IsNil() {
@@ -116,7 +118,9 @@ func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*states.Resource
 		if v.Len() == 0 {
 			return nil, v, nil
 		}
+
 		vs := reflect.MakeSlice(v.Type(), 0, 0)
+
 		for i := 0; i < v.Len(); i++ {
 			ref, tv, s := ParseImplicitRef(v.Index(i), resourceIndex, replaceFun)
 			if status.IsErr(s) {
@@ -133,6 +137,7 @@ func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*states.Resource
 			return nil, v, nil
 		}
 		makeMap := reflect.MakeMap(v.Type())
+
 		iter := v.MapRange()
 		for iter.Next() {
 			ref, tv, s := ParseImplicitRef(iter.Value(), resourceIndex, replaceFun)

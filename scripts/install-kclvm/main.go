@@ -28,7 +28,7 @@ func main() {
 		for _, s := range strings.Split(s, ",") {
 			s := strings.TrimSpace(s)
 			if s != "" {
-				scripts.KclvmDownloadUrlBase_mirrors = append(scripts.KclvmDownloadUrlBase_mirrors, s)
+				scripts.KclvmDownloadURLBase_mirrors = append(scripts.KclvmDownloadURLBase_mirrors, s)
 			}
 		}
 	}

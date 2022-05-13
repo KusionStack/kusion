@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ENV_KUSION_PATH = "KUSION_PATH"
+	EnvKusionPath = "KUSION_PATH"
 )
 
 func Stat(filename string) (fileInfo os.FileInfo, err error) {
@@ -61,7 +61,7 @@ func FileExists(filename string) (bool, error) {
 func KusionDataFolder() (string, error) {
 	var kusionDataFolder string
 
-	if kusionPath := os.Getenv(ENV_KUSION_PATH); kusionPath != "" {
+	if kusionPath := os.Getenv(EnvKusionPath); kusionPath != "" {
 		kusionDataFolder = kusionPath
 	} else {
 		usr, err := user.Current()
