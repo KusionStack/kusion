@@ -15,7 +15,7 @@ GOFORMATER			?= gofumpt
 GOFORMATER_VERSION	?= v0.2.0
 GOLINTER			?= golangci-lint
 GOLINTER_VERSION	?= v1.41.0
-COVER_FILE			?= cover.out
+COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 
 # TODO: fix mirrors
