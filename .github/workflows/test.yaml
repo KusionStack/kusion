@@ -10,39 +10,38 @@ on:
     - main
 
 jobs:
-  test:
+  Test:
     name: Unit tests with coverage
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
-    - name: Set up Go 1.16
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16
-      id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@master
-    - name: Running go tests with coverage
-      env:
-        GO111MODULE: on
-      run: make cover
-    - name: Send coverage
-      uses: shogo82148/actions-goveralls@v1
-      with:
-        path-to-profile: coverage.out
-  lint:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Running go tests with coverage
+        env:
+          GO111MODULE: on
+        run: make cover
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: coverage.out
+  Lint:
     name: Lint checks
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.16
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
-        id: go
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@master
+          go-version: 1.17
       - name: Download golangci-lint
         run: |
           wget https://github.com/golangci/golangci-lint/releases/download/v1.41.0/golangci-lint-1.41.0-linux-amd64.tar.gz

@@ -8,8 +8,50 @@ on:
 permissions:
   contents: write
 jobs:
-  goreleaser:
+  Test:
+    name: Unit tests with coverage
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Running go tests with coverage
+        env:
+          GO111MODULE: on
+        run: make cover
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: coverage.out
+  Lint:
+    name: Lint checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Download golangci-lint
+        run: |
+          wget https://github.com/golangci/golangci-lint/releases/download/v1.41.0/golangci-lint-1.41.0-linux-amd64.tar.gz
+          tar -xvf ./golangci-lint-1.41.0-linux-amd64.tar.gz
+      - name: Running golangci-lint
+        env:
+          GO111MODULE: on
+          GOPATH: /home/runner/work/
+        run: GOLINTER=./golangci-lint-1.41.0-linux-amd64/golangci-lint make lint
+  Publish: # Pack and publish image to Docker Hub and Github Release
+    runs-on: ubuntu-latest
+    needs: [Test, Lint]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -18,29 +60,31 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
+      - name: Pack kusion big packages for multiple platforms
+        env:
+          GO111MODULE: on
+        run: make build-all
+      # <--- Login, build and push image to Docker Hub --->
       - name: Login to Docker Hub
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # - name: Login to GitHub Container Registry
-      #   if: startsWith(github.ref, 'refs/tags/v')
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      # TODO: default GITHUB_TOKEN insufficient permissions
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+      - name: Build and push image to Docker Hub
+        uses: docker/build-push-action@v3
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro'
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          push: true
+          tags: kusionstack/kusion:latest
+      # <--- Push kusion big packages for multiple platforms to Github Release --->
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./_build/bundles/kusion-linux.tgz
+            ./_build/bundles/kusion-darwin.tgz
+            ./_build/bundles/kusion-darwin-arm64.tgz
+            ./_build/bundles/kusion-linux.tgz.md5.txt
+            ./_build/bundles/kusion-darwin.tgz.md5.txt
+            ./_build/bundles/kusion-darwin-arm64.tgz.md5.txt
+      # <--- End --->
