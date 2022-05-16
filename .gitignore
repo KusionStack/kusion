@@ -17,7 +17,7 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-# graph a
+# graph
 *.dot
 *.png
 *.jpeg
