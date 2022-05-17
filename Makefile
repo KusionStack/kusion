@@ -19,7 +19,7 @@ COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 
 # TODO: fix mirrors
-KCLVM_URL_BASE_MIRRORS:=http://127.0.0.1:8000/downloads 
+KCLVM_URL_BASE_MIRRORS:=
 
 .DEFAULT_GOAL := help
 
@@ -63,7 +63,8 @@ clean:  ## Clean build bundles
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles
 
-build-all: build-local-darwin-all build-local-darwin-arm64-all build-local-linux-all ## build-local-windows-all ## Build all platforms (darwin, linux, windows)
+# todo: fix macOS-arm64 and windows build
+build-all: build-local-darwin-all build-local-linux-all ## build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-kusion-darwin:  ## Build kusionctl only for macOS
 	# Delete old artifacts
@@ -104,7 +105,7 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for macOS
 	# Install kclvm darwin
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-Darwin \
+		--triple=Darwin \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-darwin/kclvm
 
@@ -160,7 +161,7 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl tool chain for macOS arm64
 	# Install kclvm darwin
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-Darwin-arm64 \
+		--triple=Darwin-arm64 \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-darwin-arm64/kclvm
 
@@ -222,7 +223,7 @@ build-local-linux:  ## Build kusion tool chain for linux
 build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for linux
 	# Install kclvm linux
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-ubuntu \
+		--triple=ubuntu \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-linux/kclvm
 
@@ -278,7 +279,7 @@ build-local-windows:  ## Build kusion tool chain for windows
 build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain for windows
 	# Install kclvm windows
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-windows \
+		--triple=windows \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-windows/kclvm
 

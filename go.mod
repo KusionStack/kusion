@@ -73,7 +73,7 @@ require (
 	k8s.io/component-base v0.21.2
 	k8s.io/kubectl v0.21.2
 	kusionstack.io/kcl-plugin v0.4.1-alpha2
-	kusionstack.io/kclvm-go v0.4.1-alpha9
+	kusionstack.io/kclvm-go v0.4.2-alpha1
 	sigs.k8s.io/kustomize/api v0.8.11
 	sigs.k8s.io/kustomize/kustomize/v4 v4.1.2
 	sigs.k8s.io/kustomize/kyaml v0.11.0

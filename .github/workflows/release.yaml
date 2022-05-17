@@ -83,8 +83,11 @@ jobs:
           files: |
             ./_build/bundles/kusion-linux.tgz
             ./_build/bundles/kusion-darwin.tgz
-            ./_build/bundles/kusion-darwin-arm64.tgz
             ./_build/bundles/kusion-linux.tgz.md5.txt
             ./_build/bundles/kusion-darwin.tgz.md5.txt
-            ./_build/bundles/kusion-darwin-arm64.tgz.md5.txt
+
+      # todo:
+      #     ./_build/bundles/kusion-darwin-arm64.tgz
+      #     ./_build/bundles/kusion-darwin-arm64.tgz.md5.txt
+
       # <--- End --->
