@@ -74,6 +74,7 @@ jobs:
       - name: Build and push image to Docker Hub
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           tags: kusionstack/kusion:latest
       # <--- Push kusion big packages for multiple platforms to Github Release --->
