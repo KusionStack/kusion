@@ -13,7 +13,8 @@ var (
 	DebugT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.DebugMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "#",
+			Style: &pterm.ThemeDefault.DebugMessageStyle,
+			Text:  "#",
 		},
 		Debugger: true,
 	}
@@ -22,7 +23,8 @@ var (
 	InfoT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.SuccessMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "»",
+			Style: &pterm.ThemeDefault.SuccessMessageStyle,
+			Text:  "»",
 		},
 	}
 
@@ -30,24 +32,27 @@ var (
 	WarningT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.WarningMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "!",
+			Style: &pterm.ThemeDefault.WarningMessageStyle,
+			Text:  "!",
 		},
 	}
 
-	// Error returns a PrefixPrinter, which can be used to print text with an "error" Prefix.
+	// ErrorT returns a PrefixPrinter, which can be used to print text with an "error" Prefix.
 	ErrorT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.ErrorMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "×",
+			Style: &pterm.ThemeDefault.ErrorMessageStyle,
+			Text:  "✘",
 		},
 	}
 
-	// Fatal returns a PrefixPrinter, which can be used to print text with an "fatal" Prefix.
+	// FatalT returns a PrefixPrinter, which can be used to print text with an "fatal" Prefix.
 	// NOTICE: Fatal terminates the application immediately!
 	FatalT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.FatalMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "☒",
+			Style: &pterm.ThemeDefault.FatalMessageStyle,
+			Text:  "☒",
 		},
 		Fatal: true,
 	}
@@ -56,11 +61,12 @@ var (
 	FatalNT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.FatalMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "☒",
+			Style: &pterm.ThemeDefault.FatalMessageStyle,
+			Text:  "☒",
 		},
 	}
 
-	// Success returns a PrefixPrinter, which can be used to print text with a "success" Prefix.
+	// SuccessT returns a PrefixPrinter, which can be used to print text with a "success" Prefix.
 	SuccessT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.SuccessMessageStyle,
 		Prefix: pterm.Prefix{
@@ -69,11 +75,12 @@ var (
 		},
 	}
 
-	// Check returns a PrefixPrinter, which can be used to print text with a "mark check" Prefix.
+	// CheckT returns a PrefixPrinter, which can be used to print text with a "mark check" Prefix.
 	CheckT = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.SuccessMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "☑",
+			Style: &pterm.ThemeDefault.SuccessMessageStyle,
+			Text:  "☑",
 		},
 	}
 )
