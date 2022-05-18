@@ -25,9 +25,6 @@ RUN scl enable llvm-toolset-7.0 bash
 ENV LD_LIBRARY_PATH="/opt/rh/llvm-toolset-7.0/root/usr/lib64:${LD_LIBRARY_PATH}"
 ENV PATH="/opt/rh/llvm-toolset-7.0/root/usr/bin:${PATH}"
 
-# Install ossutil
-RUN wget -q -P /usr/local/bin http://gosspublic.alicdn.com/ossutil/1.7.5/ossutil64 \
-&& chmod 755 /usr/local/bin/ossutil64
-
 ENV PATH="/kusion/bin:/kusion/kclvm/bin:${PATH}"
+ENV KUSION_PATH=="/kusion"
 ENV LANG=en_US.utf8
