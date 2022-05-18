@@ -77,7 +77,7 @@ jobs:
         id: get_version
         run: |
           echo "::set-output name=kusion_version::$(./_build/bundles/kusion-linux/bin/kusion version -s | cut -d ';' -f 1)"
-          echo "::set-output name=kclvmgo_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclvmVersion | cut -d ':' -f 2 | awk '$1=$1')"
+          echo "::set-output name=kclvmgo_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclvmgoVersion | cut -d ':' -f 2 | awk '$1=$1')"
           echo "::set-output name=kclplugin_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')"
       # <--- Login, build and push image to Docker Hub --->
       - name: Login to Docker Hub
