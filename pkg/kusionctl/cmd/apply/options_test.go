@@ -151,24 +151,27 @@ func mockOperationPreview() {
 	monkey.Patch((*operation.Operation).Preview,
 		func(*operation.Operation, *operation.PreviewRequest, operation.Type) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
-				ChangeSteps: map[string]*operation.ChangeStep{
-					sa1.ID: {
-						ID:     sa1.ID,
-						Action: operation.Create,
-						Old:    nil,
-						New:    &sa1,
-					},
-					sa2.ID: {
-						ID:     sa2.ID,
-						Action: operation.UnChange,
-						Old:    &sa2,
-						New:    &sa2,
-					},
-					sa3.ID: {
-						ID:     sa3.ID,
-						Action: operation.Undefined,
-						Old:    &sa3,
-						New:    &sa1,
+				Order: &operation.ChangeOrder{
+					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
+					ChangeSteps: map[string]*operation.ChangeStep{
+						sa1.ID: {
+							ID:     sa1.ID,
+							Action: operation.Create,
+							Old:    nil,
+							New:    &sa1,
+						},
+						sa2.ID: {
+							ID:     sa2.ID,
+							Action: operation.UnChange,
+							Old:    &sa2,
+							New:    &sa2,
+						},
+						sa3.ID: {
+							ID:     sa3.ID,
+							Action: operation.Undefined,
+							Old:    &sa3,
+							New:    &sa1,
+						},
 					},
 				},
 			}, nil
@@ -209,15 +212,18 @@ func Test_apply(t *testing.T) {
 		mockNewKubernetesRuntime()
 
 		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1}}
-		changeSteps := map[string]*operation.ChangeStep{
-			sa1.ID: {
-				ID:     sa1.ID,
-				Action: operation.Create,
-				Old:    nil,
-				New:    sa1,
+		order := &operation.ChangeOrder{
+			StepKeys: []string{sa1.ID},
+			ChangeSteps: map[string]*operation.ChangeStep{
+				sa1.ID: {
+					ID:     sa1.ID,
+					Action: operation.Create,
+					Old:    nil,
+					New:    sa1,
+				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, changeSteps)
+		changes := operation.NewChanges(project, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
 		err := apply(o, planResources, changes)
@@ -230,21 +236,24 @@ func Test_apply(t *testing.T) {
 
 		o := NewApplyOptions()
 		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1, sa2}}
-		changeSteps := map[string]*operation.ChangeStep{
-			sa1.ID: {
-				ID:     sa1.ID,
-				Action: operation.Create,
-				Old:    nil,
-				New:    &sa1,
-			},
-			sa2.ID: {
-				ID:     sa2.ID,
-				Action: operation.UnChange,
-				Old:    &sa2,
-				New:    &sa2,
+		order := &operation.ChangeOrder{
+			StepKeys: []string{sa1.ID, sa2.ID},
+			ChangeSteps: map[string]*operation.ChangeStep{
+				sa1.ID: {
+					ID:     sa1.ID,
+					Action: operation.Create,
+					Old:    nil,
+					New:    &sa1,
+				},
+				sa2.ID: {
+					ID:     sa2.ID,
+					Action: operation.UnChange,
+					Old:    &sa2,
+					New:    &sa2,
+				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, changeSteps)
+		changes := operation.NewChanges(project, stack, order)
 
 		err := apply(o, planResources, changes)
 		assert.Nil(t, err)
@@ -256,15 +265,18 @@ func Test_apply(t *testing.T) {
 
 		o := NewApplyOptions()
 		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1}}
-		changeSteps := map[string]*operation.ChangeStep{
-			sa1.ID: {
-				ID:     sa1.ID,
-				Action: operation.Create,
-				Old:    nil,
-				New:    &sa1,
+		order := &operation.ChangeOrder{
+			StepKeys: []string{sa1.ID},
+			ChangeSteps: map[string]*operation.ChangeStep{
+				sa1.ID: {
+					ID:     sa1.ID,
+					Action: operation.Create,
+					Old:    nil,
+					New:    &sa1,
+				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, changeSteps)
+		changes := operation.NewChanges(project, stack, order)
 
 		err := apply(o, planResources, changes)
 		assert.NotNil(t, err)
