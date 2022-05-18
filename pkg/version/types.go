@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	KclvmModulePath      = "kusionstack.io/kclvm-go"
+	KclvmgoModulePath    = "kusionstack.io/kclvm-go"
 	KclPluginsModulePath = "kusionstack.io/kcl-plugin"
 )
 
@@ -58,7 +58,7 @@ func NewDefaultVersionInfo() *Info {
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
 		Dependency: &DependencyVersion{
-			KclvmVersion:     "",
+			KclvmgoVersion:   "",
 			KclPluginVersion: "",
 		},
 	}
@@ -99,7 +99,7 @@ type BuildInfo struct {
 }
 
 type DependencyVersion struct {
-	KclvmVersion     string `json:"kclvmVersion,omitempty" yaml:"kclvmVersion,omitempty"`
+	KclvmgoVersion   string `json:"kclvmgoVersion,omitempty" yaml:"kclvmgoVersion,omitempty"`
 	KclPluginVersion string `json:"kclPluginVersion,omitempty" yaml:"kclPluginVersion,omitempty"`
 }
 
@@ -111,7 +111,7 @@ func NewInfo() (*Info, error) {
 		latestTag         string
 		gitVersion        *goversion.Version
 		releaseVersion    string
-		kclvmVersion      string
+		kclvmgoVersion    string
 		kclPluginsVersion string
 		isDirty           bool
 		gitTreeState      string
@@ -160,10 +160,10 @@ func NewInfo() (*Info, error) {
 	// Get dependency version
 	if bi, ok := debug.ReadBuildInfo(); ok {
 		for _, v := range bi.Deps {
-			if v.Path == KclvmModulePath {
-				kclvmVersion = v.Version
+			if v.Path == KclvmgoModulePath {
+				kclvmgoVersion = v.Version
 				if v.Replace != nil {
-					kclvmVersion = v.Replace.Version
+					kclvmgoVersion = v.Replace.Version
 				}
 			} else if v.Path == KclPluginsModulePath {
 				kclPluginsVersion = v.Version
@@ -190,7 +190,7 @@ func NewInfo() (*Info, error) {
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
 		Dependency: &DependencyVersion{
-			KclvmVersion:     kclvmVersion,
+			KclvmgoVersion:   kclvmgoVersion,
 			KclPluginVersion: kclPluginsVersion,
 		},
 	}, nil
