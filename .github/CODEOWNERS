@@ -30,7 +30,7 @@
 # directory at the root of the repository and any of its
 # subdirectories.
 # /build/logs/ @doctocat
-/.github/ @elliotxx @howieyuen
+/.github/ @elliotxx @howieyuen @SparkYuan @markliby
 /pkg/engine/ @SparkYuan @markliby
 
 # The `docs/*` pattern will match files like
