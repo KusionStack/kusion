@@ -370,7 +370,6 @@ func TestChanges_Stack(t *testing.T) {
 
 func TestChanges_Project(t *testing.T) {
 	type fields struct {
-		order   *ChangeOrder
 		project *projectstack.Project
 		stack   *projectstack.Stack
 	}
