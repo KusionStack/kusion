@@ -6,9 +6,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
 
-> KusionStack 提供面向云原生生态的定义及最佳实践，提供高级动态配置语言及工具支持，
-在业务镜像外提供 **Compile to Cloud** 的技术栈。Kusion 使用 Golang 语言编写，
-并具有跨 Unix-like 平台属性。
+> KusionStack 提供面向云原生生态的定义及最佳实践，提供静态类型配置语言及工具支持，在业务镜像外提供 **Compile to Cloud** 的技术栈。Kusion 使用 Golang 语言编写，并具有跨 Unix-like 平台属性。
 
 ## 📜 语言
 
@@ -24,7 +22,7 @@ Kusion 的众多功能采用子命令的形式完成，其中较为常用的子�
 - `kusion ls`：列出当前目录或指定目录中的所有 Project 和 Stack 信息；
 - `kusion preview`：预览 Stack 中的一系列资源更改；
 
-完整的命令功能说明，详见[Kusion 命令](docs/cmd/en/kusion.md)。
+完整的命令功能说明，详见 [Kusion 命令](docs/cmd/en/kusion.md)。
 
 ## 🛠️ 安装
 
@@ -43,10 +41,18 @@ kusionup install
 
 ### 从源码构建
 
-使用 Go 1.16+ 版本，你可以通过 `go install` 直接从源码安装 `kusion`：
+使用 Go 1.16+ 版本，你可以通过 `make` 指令从源码构建适应于不同平台的完整 `kusion` 发布包：
 
 ```
-go install github.com/KusionStack/kusion/cmd/kusionctl@latest
+# Build all platforms (darwin, linux, windows)
+make build-all
+
+# Build kusion & kcl tool chain for macOS
+# make build-local-darwin-all
+# Build kusion & kcl tool chain for linux
+# make build-local-linux-all
+# Build kusion & kcl tool chain for windows
+# make build-local-windows-all
 ```
 
 ### Docker

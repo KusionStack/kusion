@@ -6,13 +6,14 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
 
-> KusionStack provides the definition and best practice for the native ecology of the cloud, provides high level dynamic configuration language and tool support, and provides **Compile to Cloud** technology stack outside the business mirror. Kusion is written in Golang and has attributes of crossing Unix-Like platform.
+> KusionStack provides the definition and best practice for the native ecology of the cloud, provides the statically typed language and tool support, and provides **Compile to Cloud** technology stack outside the business mirror. Kusion is written in Golang and has attributes of crossing Unix-Like platform.
 
 ## 📜 Language
 
 [English](https://github.com/KusionStack/kusion/blob/main/README.md) | [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
 
 ## ✨ Functional Overview
+
 Kusion's many functions are completed in the form of subcommands. Among them, the more commonly used subcommands include `apply`,`init`, `destroy`,`ls`, `preview`, etc.
 
 - `kusion apply`: Accept the code file written by the KCL language as the input. The output can be YAML files, JSON files, or even execute directly to the K8S Runtime
@@ -40,10 +41,18 @@ kusionup install
 
 ### Build from Source
 
-Starting with Go 1.16+, you can install `kusion` from source using go install:
+Starting with Go 1.16+, you can use the `make` command to build a complete `kusion` distribution package suitable for different platforms from the source code.
 
 ```
-go install github.com/KusionStack/kusion/cmd/kusionctl@latest
+# Build all platforms (darwin, linux, windows)
+make build-all
+
+# Build kusion & kcl tool chain for macOS
+# make build-local-darwin-all
+# Build kusion & kcl tool chain for linux
+# make build-local-linux-all
+# Build kusion & kcl tool chain for windows
+# make build-local-windows-all
 ```
 
 ### Docker
