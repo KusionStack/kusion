@@ -401,11 +401,7 @@ func TestChanges_Project(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Changes{
-				ChangeOrder: &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
-				project:     tt.fields.project,
-				stack:       tt.fields.stack,
-			}
+			p := NewChanges(tt.fields.project, tt.fields.stack, tt.fields.order)
 			if got := p.Project(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Changes.Project() = %v, want %v", got, tt.want)
 			}

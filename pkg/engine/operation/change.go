@@ -100,7 +100,7 @@ func (o *ChangeOrder) Get(key string) *ChangeStep {
 }
 
 func (o *ChangeOrder) Values(filters ...ChangeStepFilterFunc) []*ChangeStep {
-	var result []*ChangeStep
+	result := []*ChangeStep{}
 
 	for _, key := range o.StepKeys {
 		v := o.ChangeSteps[key]
