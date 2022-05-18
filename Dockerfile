@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM ubuntu:20.04
 
 COPY _build/bundles/kusion-linux/ /kusion/
 
@@ -15,16 +15,12 @@ RUN chmod +x /kusion/bin/kusion \
 &&  chmod +x /kusion/kclvm/bin/kclvm_cli
 
 # Install dependency
-RUN yum install -y wget git gcc
-
-# KCLVMx Install dependency
-RUN yum -y install centos-release-scl
-RUN yum-config-manager --enable rhel-server-rhscl-7-rpms
-RUN yum -y install llvm-toolset-7.0
-RUN scl enable llvm-toolset-7.0 bash
-ENV LD_LIBRARY_PATH="/opt/rh/llvm-toolset-7.0/root/usr/lib64:${LD_LIBRARY_PATH}"
-ENV PATH="/opt/rh/llvm-toolset-7.0/root/usr/bin:${PATH}"
+RUN apt-get update -y
+RUN apt-get install -y clang-12 lld-12 --no-install-recommends
+RUN apt-get clean all
+RUN ln -sf /usr/bin/clang-12   /usr/bin/clang
+RUN ln -sf /usr/bin/wasm-ld-12 /usr/bin/wasm-ld
 
 ENV PATH="/kusion/bin:/kusion/kclvm/bin:${PATH}"
-ENV KUSION_PATH=="/kusion"
+ENV KUSION_PATH="/kusion"
 ENV LANG=en_US.utf8
