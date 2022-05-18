@@ -12,7 +12,8 @@ var (
 	Info = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.InfoMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "ℹ️ ",
+			Style: &pterm.ThemeDefault.InfoMessageStyle,
+			Text:  "ℹ️",
 		},
 	}
 
@@ -20,7 +21,8 @@ var (
 	Warning = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.WarningMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "❗",
+			Style: &pterm.ThemeDefault.WarningMessageStyle,
+			Text:  "❗",
 		},
 	}
 
@@ -37,7 +39,8 @@ var (
 	Error = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.ErrorMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "❌",
+			Style: &pterm.ThemeDefault.ErrorMessageStyle,
+			Text:  "❌",
 		},
 	}
 
@@ -46,7 +49,8 @@ var (
 	Fatal = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.FatalMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "💣",
+			Style: &pterm.ThemeDefault.FatalMessageStyle,
+			Text:  "💣",
 		},
 		Fatal: true,
 	}
@@ -55,16 +59,18 @@ var (
 	FatalN = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.FatalMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "💣",
+			Style: &pterm.ThemeDefault.FatalMessageStyle,
+			Text:  "💣",
 		},
 	}
 
-	// Debug Prints debug messages. By default it will only print if PrintDebugMessages is true.
+	// Debug Prints debug messages. By default, it will only print if PrintDebugMessages is true.
 	// You can change PrintDebugMessages with EnableDebugMessages and DisableDebugMessages, or by setting the variable itself.
 	Debug = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.DebugMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "⭕",
+			Style: &pterm.ThemeDefault.DebugMessageStyle,
+			Text:  "⭕",
 		},
 		Debugger: true,
 	}
@@ -73,7 +79,8 @@ var (
 	Check = pterm.PrefixPrinter{
 		MessageStyle: &pterm.ThemeDefault.SuccessMessageStyle,
 		Prefix: pterm.Prefix{
-			Text: "✅",
+			Style: &pterm.ThemeDefault.SuccessMessageStyle,
+			Text:  "✅",
 		},
 	}
 )
