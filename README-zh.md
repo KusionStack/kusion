@@ -54,7 +54,7 @@ go install github.com/KusionStack/kusion/cmd/kusionctl@latest
 Docker 用户可以用以下命令拉取 `kusion` 的镜像：
 
 ```
-docker pull KusionStack/kusion
+docker pull kusionstack/kusion:latest
 ```
 
 ## ⚡ 快速开始

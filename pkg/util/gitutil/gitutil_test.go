@@ -85,11 +85,6 @@ func TestGetTagList(t *testing.T) {
 		_, err := GetTagList()
 		assert.NotNil(t, err)
 	})
-	t.Run("get tag list from local", func(t *testing.T) {
-		tags, err := GetTagList()
-		assert.Nil(t, err)
-		fmt.Println("local tags: ", tags)
-	})
 }
 
 func TestGetHeadHash(t *testing.T) {
@@ -147,10 +142,6 @@ func TestGetTagCommitShaFromLocal(t *testing.T) {
 		defer monkey.UnpatchAll()
 		_, err := GetTagCommitShaFromLocal("")
 		assert.NotNil(t, err)
-	})
-	t.Run("get local commit sha", func(t *testing.T) {
-		_, err := GetTagCommitShaFromLocal(localTag)
-		assert.Nil(t, err)
 	})
 }
 

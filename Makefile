@@ -15,11 +15,11 @@ GOFORMATER			?= gofumpt
 GOFORMATER_VERSION	?= v0.2.0
 GOLINTER			?= golangci-lint
 GOLINTER_VERSION	?= v1.41.0
-COVER_FILE			?= cover.out
+COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 
 # TODO: fix mirrors
-KCLVM_URL_BASE_MIRRORS:=http://127.0.0.1:8000/downloads 
+KCLVM_URL_BASE_MIRRORS:=
 
 .DEFAULT_GOAL := help
 
@@ -63,7 +63,8 @@ clean:  ## Clean build bundles
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles
 
-build-all: build-local-darwin-all build-local-darwin-arm64-all build-local-linux-all ## build-local-windows-all ## Build all platforms (darwin, linux, windows)
+# todo: fix macOS-arm64 and windows build
+build-all: build-local-darwin-all build-local-linux-all ## build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-kusion-darwin:  ## Build kusionctl only for macOS
 	# Delete old artifacts
@@ -97,20 +98,20 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 		go build -o ${PWD}/_build/bundles/kusion-darwin/kclvm/bin/kcl-go \
 		./cmd/kcl-go
 
-	# Build kcl-openapi
-	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
+	# # Build kcl-openapi
+	# cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
+	# 	go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
 
 build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for macOS
 	# Install kclvm darwin
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-Darwin \
+		--triple=Darwin \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-darwin/kclvm
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-darwin/bin/kusion
-	-chmod +x ./_build/bundles/kusion-darwin/bin/kcl-openapi
+	# -chmod +x ./_build/bundles/kusion-darwin/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-plugin
@@ -154,19 +155,19 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
+	# cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+	# 	go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
 
 build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl tool chain for macOS arm64
 	# Install kclvm darwin
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-Darwin-arm64 \
+		--triple=Darwin-arm64 \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-darwin-arm64/kclvm
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kusion
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
+	# -chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-plugin
@@ -215,20 +216,20 @@ build-local-linux:  ## Build kusion tool chain for linux
 		go build -o ${PWD}/_build/bundles/kusion-linux/kclvm/bin/kcl-go \
 		./cmd/kcl-go
 
-	# Build kcl-openapi
-	cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-linux/bin/kcl-openapi
+	# # Build kcl-openapi
+	# cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+	# 	go build -o ${PWD}/_build/bundles/kusion-linux/bin/kcl-openapi
 
 build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for linux
 	# Install kclvm linux
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-ubuntu \
+		--triple=ubuntu \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-linux/kclvm
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-linux/bin/kusion
-	-chmod +x ./_build/bundles/kusion-linux/bin/kcl-openapi
+	# -chmod +x ./_build/bundles/kusion-linux/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-linux/kclvm/bin/kcl-plugin
@@ -271,14 +272,14 @@ build-local-windows:  ## Build kusion tool chain for windows
 		go build -o ${PWD}/_build/bundles/kusion-windows/kclvm/bin/kcl-go \
 		./cmd/kcl-go
 
-	# Build kcl-openapi
-	cd ./cmd/kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-windows/bin/kcl-openapi
+	# # Build kcl-openapi
+	# cd ./cmd/kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+	# 	go build -o ${PWD}/_build/bundles/kusion-windows/bin/kcl-openapi
 
 build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain for windows
 	# Install kclvm windows
 	go run ./scripts/install-kclvm \
-		--triple=kclvm-windows \
+		--triple=windows \
 		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
 		--outdir=./_build/bundles/kusion-windows/kclvm
 

@@ -22,13 +22,17 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	if !isValidTriple(*flagTriple) {
+		fmt.Println("Invalid triple: %q (%v)", *flagTriple, scripts.KclvmTripleList)
+		os.Exit(1)
+	}
 
-	scripts.DefaultKclvmTriple = *flagTriple
+	scripts.DefaultKclvmTriple = scripts.KclvmTripleType(*flagTriple)
 	if s := *flagMirrors; s != "" {
 		for _, s := range strings.Split(s, ",") {
 			s := strings.TrimSpace(s)
 			if s != "" {
-				scripts.KclvmDownloadURLBase_mirrors = append(scripts.KclvmDownloadURLBase_mirrors, s)
+				scripts.KclvmDownloadUrlBase_mirrors = append(scripts.KclvmDownloadUrlBase_mirrors, s)
 			}
 		}
 	}
@@ -38,4 +42,13 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func isValidTriple(triple string) bool {
+	for _, s := range scripts.KclvmTripleList {
+		if s == scripts.KclvmTripleType(triple) {
+			return true
+		}
+	}
+	return false
 }

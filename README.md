@@ -51,7 +51,7 @@ go install github.com/KusionStack/kusion/cmd/kusionctl@latest
 Docker users can use the following commands to pull the latest image of the `kusion`:
 
 ```
-docker pull KusionStack/kusion
+docker pull kusionstack/kusion:latest
 ```
 
 ## ⚡ Quick Start
