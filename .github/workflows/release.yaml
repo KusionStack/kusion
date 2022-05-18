@@ -20,6 +20,12 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
+
+      - run: make build-local-linux-all
+      - run: echo "${PWD}/_build/bundles/kusion-linux/kclvm/bin" >> $GITHUB_PATH
+      - run: which kclvm
+      - run: go run ./cmd/kcl-go kcl
+
       - name: Running go tests with coverage
         env:
           GO111MODULE: on
@@ -61,10 +67,18 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
-      - name: Pack kusion big packages for multiple platforms
+      # <--- Build and Package --->
+      - name: Pack kusion release packages for multiple platforms
         env:
           GO111MODULE: on
         run: make build-all
+      # <--- Get version informations --->
+      - name: Get version
+        id: get_version
+        run: |
+          echo "::set-output name=kusion_version::$(./_build/bundles/kusion-linux/bin/kusion version -s | cut -d ';' -f 1)"
+          echo "::set-output name=kclvmgo_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclvmVersion | cut -d ':' -f 2 | awk '$1=$1')"
+          echo "::set-output name=kclplugin_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')"
       # <--- Login, build and push image to Docker Hub --->
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -76,19 +90,19 @@ jobs:
         with:
           context: .
           push: true
-          tags: kusionstack/kusion:latest
+          tags: kusionstack/kusion:latest,kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}
       # <--- Push kusion big packages for multiple platforms to Github Release --->
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            ./_build/bundles/kusion-linux.tgz
-            ./_build/bundles/kusion-darwin.tgz
-            ./_build/bundles/kusion-linux.tgz.md5.txt
-            ./_build/bundles/kusion-darwin.tgz.md5.txt
+          generate_release_notes: true
+          files: ./_build/bundles/*.tgz*
+          append_body: true
+          body: |
+            ### Docker Images
+            * `kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}`
 
-      # todo:
-      #     ./_build/bundles/kusion-darwin-arm64.tgz
-      #     ./_build/bundles/kusion-darwin-arm64.tgz.md5.txt
-
+            ### Dependent version
+            * [kclvm-go](https://github.com/KusionStack/kclvm-go): `${{ steps.get_version.outputs.kclvmgo_version }}`
+            * [kcl-plugin](https://github.com/KusionStack/kcl-plugin): `${{ steps.get_version.outputs.kclplugin_version }}`
       # <--- End --->
