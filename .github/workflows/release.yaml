@@ -99,10 +99,10 @@ jobs:
           files: ./_build/bundles/*.tgz*
           append_body: true
           body: |
-            ### Docker Images
+            ## Docker Images
             * `kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}`
 
-            ### Dependent version
+            ## Dependent version
             * [kclvm-go](https://github.com/KusionStack/kclvm-go): `${{ steps.get_version.outputs.kclvmgo_version }}`
             * [kcl-plugin](https://github.com/KusionStack/kcl-plugin): `${{ steps.get_version.outputs.kclplugin_version }}`
       # <--- End --->
