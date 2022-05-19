@@ -60,7 +60,7 @@ func (o *CompileOptions) Run() error {
 		}
 
 		// Output
-		yaml := compileResult.YAMLString()
+		yaml := compileResult.RawYAML()
 		if o.Output == "" {
 			fmt.Print(yaml)
 		} else {
