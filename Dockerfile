@@ -16,7 +16,7 @@ RUN chmod +x /kusion/bin/kusion \
 
 # Install dependency
 RUN apt-get update -y
-RUN apt-get install -y clang-12 lld-12 --no-install-recommends
+RUN apt-get install -y clang-12 lld-12 libssl-dev --no-install-recommends
 RUN apt-get clean all
 RUN ln -sf /usr/bin/clang-12   /usr/bin/clang
 RUN ln -sf /usr/bin/wasm-ld-12 /usr/bin/wasm-ld
