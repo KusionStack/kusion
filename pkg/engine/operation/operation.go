@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/util/kdump"
 
@@ -19,11 +19,11 @@ type Operation struct {
 	OperationType Type
 	StateStorage  states.StateStorage
 	// CtxResourceIndex represents resources updated by func apply
-	CtxResourceIndex map[string]*states.ResourceState
+	CtxResourceIndex map[string]*models.Resource
 	// PriorStateResourceIndex represents prior states.StateStorage state
-	PriorStateResourceIndex map[string]*states.ResourceState
+	PriorStateResourceIndex map[string]*models.Resource
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
-	StateResourceIndex map[string]*states.ResourceState
+	StateResourceIndex map[string]*models.Resource
 	// Order contains id to action of resource node in preview order
 	Order       *ChangeOrder
 	Runtime     runtime.Runtime
@@ -39,11 +39,11 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string             `json:"tenant"`
-	Stack    string             `json:"stack"`
-	Project  string             `json:"project"`
-	Operator string             `json:"operator"`
-	Manifest *manifest.Manifest `json:"manifest"`
+	Tenant   string       `json:"tenant"`
+	Stack    string       `json:"stack"`
+	Project  string       `json:"project"`
+	Operator string       `json:"operator"`
+	Manifest *models.Spec `json:"models"`
 }
 
 type OpResult string
@@ -56,7 +56,7 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *states.ResourceState, actionType ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType ActionType) error {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
@@ -95,7 +95,7 @@ func initStates(storage states.StateStorage, request *Request) (*states.State, *
 	return latestState, resultState
 }
 
-func (o *Operation) UpdateState(resourceIndex map[string]*states.ResourceState) error {
+func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
@@ -103,7 +103,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*states.ResourceState) 
 	state.Serial += 1
 	state.Resources = nil
 
-	res := []states.ResourceState{}
+	res := []models.Resource{}
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {

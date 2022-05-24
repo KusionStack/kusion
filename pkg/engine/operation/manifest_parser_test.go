@@ -4,36 +4,34 @@ import (
 	"strings"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
-	"kusionstack.io/kusion/pkg/engine/states"
-
 	"github.com/hashicorp/terraform/dag"
+	"kusionstack.io/kusion/pkg/engine/models"
 )
 
 func TestManifestParser_Parse(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &manifest.Manifest{Resources: []states.ResourceState{
+	mf := &models.Spec{Resources: []models.Resource{
 		{
-			ID:   Pony,
-			Mode: states.Managed,
+			ID: Pony,
+
 			Attributes: map[string]interface{}{
 				"c": "d",
 			},
 			DependsOn: []string{Jack},
 		},
 		{
-			ID:   Eric,
-			Mode: states.Managed,
+			ID: Eric,
+
 			Attributes: map[string]interface{}{
 				"a": ImplicitRefPrefix + "jack.a",
 			},
 			DependsOn: []string{Pony},
 		},
 		{
-			ID:   Jack,
-			Mode: states.Managed,
+			ID: Jack,
+
 			Attributes: map[string]interface{}{
 				"a": "b",
 			},

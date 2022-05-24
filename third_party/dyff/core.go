@@ -105,7 +105,6 @@ func CompareInputFiles(from ytbx.InputFile, to ytbx.InputFile, compareOptions ..
 			from.Documents[idx],
 			to.Documents[idx],
 		)
-
 		if err != nil {
 			return Report{}, err
 		}
@@ -204,7 +203,6 @@ func (compare *compare) mappingNodes(path ytbx.Path, from *yamlv3.Node, to *yaml
 				followAlias(fromItem),
 				followAlias(toItem),
 			)
-
 			if err != nil {
 				return nil, err
 			}
@@ -316,7 +314,6 @@ func (compare *compare) simpleLists(path ytbx.Path, from *yamlv3.Node, to *yamlv
 		if _, ok := toLookup[hash]; !ok {
 			// `from` entry does not exist in `to` list
 			removals = append(removals, from.Content[idxPos])
-
 		} else {
 			fromNames = append(fromNames, hash)
 		}
@@ -328,7 +325,6 @@ func (compare *compare) simpleLists(path ytbx.Path, from *yamlv3.Node, to *yamlv
 		if _, ok := fromLookup[hash]; !ok {
 			// `to` entry does not exist in `from` list
 			additions = append(additions, to.Content[idxPos])
-
 		} else {
 			toNames = append(toNames, hash)
 		}
@@ -390,7 +386,6 @@ func (compare *compare) namedEntryLists(path ytbx.Path, identifier string, from 
 		if _, ok := getEntryFromNamedList(from, identifier, name.Value); ok {
 			// `to` and `from` have the same entry idenfified by identifier and name (comparison already covered by previous range)
 			toNames = append(toNames, name.Value)
-
 		} else {
 			// `to` has an entry (identified by identifier and name), but `from` does not -> addition
 			additions = append(additions, toEntry)
@@ -836,7 +831,6 @@ func ChangeRoot(inputFile *ytbx.InputFile, path string, useGoPatchPaths bool, tr
 	if translateListToDocuments && isList(obj) {
 		// Change root of input file main document to a new list of documents based on the the list that was found
 		inputFile.Documents = wrapInDocumentNodes(obj.Content)
-
 	} else {
 		// Change root of input file main document to the object that was found
 		inputFile.Documents = wrapInDocumentNodes([]*yamlv3.Node{obj})
@@ -857,7 +851,6 @@ func pathToString(path ytbx.Path, useGoPatchPaths bool, showDocumentIdx bool) st
 
 	if useGoPatchPaths {
 		result = styledGoPatchPath(path)
-
 	} else {
 		result = styledDotStylePath(path)
 	}

@@ -20,7 +20,8 @@ func TestNewCmdCompile(t *testing.T) {
 			func(workDir string,
 				filenames, settings, arguments, overrides []string,
 				disableNone bool,
-				overrideAST bool) (*compile.CompileResult, error) {
+				overrideAST bool,
+			) (*compile.CompileResult, error) {
 				return &compile.CompileResult{
 					Documents: []kcl.KCLResult{
 						map[string]interface{}{

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	"github.com/hashicorp/terraform/dag"
 	"github.com/hashicorp/terraform/tfdiags"
 
@@ -47,7 +49,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 
 	var (
 		priorState, resultState *states.State
-		priorStateResourceIndex map[string]*states.ResourceState
+		priorStateResourceIndex map[string]*models.Resource
 		graph                   *dag.AcyclicGraph
 	)
 
@@ -74,7 +76,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 		Operation: Operation{
 			OperationType:           Preview,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*states.ResourceState{},
+			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			Order:                   o.Order,

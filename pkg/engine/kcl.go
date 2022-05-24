@@ -9,16 +9,15 @@ import (
 	"github.com/pkg/errors"
 	kcl "kusionstack.io/kclvm-go"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
 )
 
 const MaxLogLength = 3751
 
-func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manifest, error) {
-	resources := []states.ResourceState{}
+func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*models.Spec, error) {
+	resources := []models.Resource{}
 
 	for _, resourcesYamlMap := range resourceYAMLs {
 		// Convert kcl result to yaml string
@@ -37,7 +36,7 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 		}
 
 		// Parse yaml string as Resource
-		item := &states.ResourceState{}
+		item := &models.Resource{}
 		err = yamlv3.Unmarshal(yamlByte, item)
 		if err != nil {
 			return nil, err
@@ -54,5 +53,5 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*manifest.Manife
 		resources = append(resources, *item)
 	}
 
-	return &manifest.Manifest{Resources: resources}, nil
+	return &models.Spec{Resources: resources}, nil
 }

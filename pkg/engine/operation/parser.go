@@ -3,7 +3,8 @@ package operation
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	"kusionstack.io/kusion/pkg/status"
 
 	"github.com/hashicorp/terraform/dag"
@@ -13,15 +14,16 @@ type Parser interface {
 	Parse(dag *dag.AcyclicGraph) status.Status
 }
 
-func LinkRefNodes(graph *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*states.ResourceState,
-	rn dag.Vertex, defaultAction ActionType, manifestGraphMap map[string]interface{}) status.Status {
+func LinkRefNodes(graph *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
+	rn dag.Vertex, defaultAction ActionType, manifestGraphMap map[string]interface{},
+) status.Status {
 	if len(refNodeKeys) == 0 {
 		return nil
 	}
 	for _, parentKey := range refNodeKeys {
 		if resourceIndex[parentKey] == nil {
 			return status.NewErrorStatusWithMsg(status.IllegalManifest,
-				fmt.Sprintf("can't find resource by key:%s in manifest or state.", parentKey))
+				fmt.Sprintf("can't find resource by key:%s in models or state.", parentKey))
 		}
 		parentNode := NewResourceNode(parentKey, resourceIndex[parentKey], defaultAction)
 

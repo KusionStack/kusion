@@ -291,7 +291,6 @@ func compare(from *yamlv3.Node, to *yamlv3.Node, compareOptions ...CompareOption
 		ytbx.InputFile{Documents: []*yamlv3.Node{to}},
 		compareOptions...,
 	)
-
 	if err != nil {
 		return nil, err
 	}

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	"github.com/hashicorp/terraform/dag"
 
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -20,7 +21,7 @@ type DestroyRequest struct {
 	Request `json:",inline" yaml:",inline"`
 }
 
-func NewDestroyGraph(resource states.Resources) (*dag.AcyclicGraph, status.Status) {
+func NewDestroyGraph(resource models.Resources) (*dag.AcyclicGraph, status.Status) {
 	graph := &dag.AcyclicGraph{}
 	graph.Add(&RootNode{})
 	deleteResourceParser := NewDeleteResourceParser(resource)
@@ -55,7 +56,7 @@ func (o *Operation) Destroy(request *DestroyRequest) (st status.Status) {
 
 	// 1. init & build Indexes
 	_, resultState := initStates(o.StateStorage, &request.Request)
-	// replace priorState.Resources with manifest.Resources, so we do Delete in all nodes
+	// replace priorState.Resources with models.Resources, so we do Delete in all nodes
 	resources := request.Request.Manifest.Resources
 	priorStateResourceIndex := resources.Index()
 
@@ -69,7 +70,7 @@ func (o *Operation) Destroy(request *DestroyRequest) (st status.Status) {
 		Operation: Operation{
 			OperationType:           Destroy,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*states.ResourceState{},
+			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			Runtime:                 o.Runtime,

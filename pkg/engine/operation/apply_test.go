@@ -13,7 +13,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/status"
@@ -34,13 +34,13 @@ func Test_validateRequest(t *testing.T) {
 				request: &Request{},
 			},
 			want: status.NewErrorStatusWithMsg(status.InvalidArgument,
-				"request.Manifest is empty. If you want to delete all resources, please use command 'destroy'"),
+				"request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "t2",
 			args: args{
 				request: &Request{
-					Manifest: &manifest.Manifest{Resources: []states.ResourceState{}},
+					Manifest: &models.Spec{Resources: []models.Resource{}},
 				},
 			},
 			want: nil,
@@ -59,9 +59,9 @@ func TestOperation_Apply(t *testing.T) {
 	type fields struct {
 		OperationType           Type
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*states.ResourceState
-		PriorStateResourceIndex map[string]*states.ResourceState
-		StateResourceIndex      map[string]*states.ResourceState
+		CtxResourceIndex        map[string]*models.Resource
+		PriorStateResourceIndex map[string]*models.Resource
+		StateResourceIndex      map[string]*models.Resource
 		Order                   *ChangeOrder
 		Runtime                 runtime.Runtime
 		MsgCh                   chan Message
@@ -73,10 +73,9 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	const Jack = "jack"
-	mf := &manifest.Manifest{Resources: []states.ResourceState{
+	mf := &models.Spec{Resources: []models.Resource{
 		{
-			ID:   Jack,
-			Mode: states.Managed,
+			ID: Jack,
 			Attributes: map[string]interface{}{
 				"a": "b",
 			},
@@ -93,10 +92,9 @@ func TestOperation_Apply(t *testing.T) {
 		KusionVersion: "",
 		Serial:        1,
 		Operator:      "faker",
-		Resources: []states.ResourceState{
+		Resources: []models.Resource{
 			{
-				ID:   Jack,
-				Mode: states.Managed,
+				ID: Jack,
 				Attributes: map[string]interface{}{
 					"a": "b",
 				},
