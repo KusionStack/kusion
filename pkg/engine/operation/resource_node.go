@@ -3,10 +3,10 @@ package operation
 import (
 	"context"
 	"fmt"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
@@ -15,7 +15,7 @@ import (
 type ResourceNode struct {
 	BaseNode
 	Action ActionType
-	state  *states.ResourceState
+	state  *models.Resource
 }
 
 var _ ExecutableNode = (*ResourceNode)(nil)
@@ -73,11 +73,11 @@ func (rn *ResourceNode) Execute(operation Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) applyResource(operation Operation, priorState *states.ResourceState, planedState *states.ResourceState) status.Status {
+func (rn *ResourceNode) applyResource(operation Operation, priorState *models.Resource, planedState *models.Resource) status.Status {
 	log.Infof("PriorAttributes and PlanAttributes are not equal. operation:%v, prior:%v, plan:%v", rn.Action,
 		jsonUtil.Marshal2String(priorState), jsonUtil.Marshal2String(planedState))
 
-	var res *states.ResourceState
+	var res *models.Resource
 	var s status.Status
 
 	switch rn.Action {
@@ -114,11 +114,11 @@ func (rn *ResourceNode) applyResource(operation Operation, priorState *states.Re
 	return nil
 }
 
-func (rn *ResourceNode) State() *states.ResourceState {
+func (rn *ResourceNode) State() *models.Resource {
 	return rn.state
 }
 
-func NewResourceNode(key string, state *states.ResourceState, action ActionType) *ResourceNode {
+func NewResourceNode(key string, state *models.Resource, action ActionType) *ResourceNode {
 	return &ResourceNode{BaseNode: BaseNode{ID: key}, Action: action, state: state}
 }
 
@@ -132,7 +132,7 @@ func fillResponseChangeSteps(operation Operation, rn *ResourceNode, prior, plan 
 	operation.ChangeStepMap[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan)
 }
 
-var ImplicitReplaceFun = func(resourceIndex map[string]*states.ResourceState, refPath string) (reflect.Value, status.Status) {
+var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
 	const Sep = "."
 	split := strings.Split(refPath, Sep)
 	key := split[0]

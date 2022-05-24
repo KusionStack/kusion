@@ -3,6 +3,7 @@ package operation
 import (
 	"errors"
 	"fmt"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"sync"
 
 	"github.com/hashicorp/terraform/dag"
@@ -47,7 +48,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 
 	var (
 		priorState, resultState *states.State
-		priorStateResourceIndex map[string]*states.ResourceState
+		priorStateResourceIndex map[string]*models.Resource
 		graph                   *dag.AcyclicGraph
 	)
 
@@ -74,7 +75,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 		Operation: Operation{
 			OperationType:           Preview,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*states.ResourceState{},
+			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			ChangeStepMap:           o.ChangeStepMap,

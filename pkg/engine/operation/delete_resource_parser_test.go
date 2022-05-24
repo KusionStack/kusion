@@ -1,12 +1,11 @@
 package operation
 
 import (
+	"kusionstack.io/kusion/pkg/engine/models"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/dag"
-
-	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 func TestDeleteResourceParser_Parse(t *testing.T) {
@@ -14,34 +13,34 @@ func TestDeleteResourceParser_Parse(t *testing.T) {
 	const VSwitch = "vswitch"
 	const VSecutiry = "vsecurity"
 	const Instance = "instance"
-	resources := []states.ResourceState{
+	resources := []models.Resource{
 		{
-			ID:   VPC,
-			Mode: states.Managed,
+			ID: VPC,
+
 			Attributes: map[string]interface{}{
 				"c": "d",
 			},
 			DependsOn: nil,
 		},
 		{
-			ID:   VSwitch,
-			Mode: states.Managed,
+			ID: VSwitch,
+
 			Attributes: map[string]interface{}{
 				"a": "c",
 			},
 			DependsOn: []string{VPC},
 		},
 		{
-			ID:   VSecutiry,
-			Mode: states.Managed,
+			ID: VSecutiry,
+
 			Attributes: map[string]interface{}{
 				"a": "b",
 			},
 			DependsOn: []string{VSwitch},
 		},
 		{
-			ID:   Instance,
-			Mode: states.Managed,
+			ID: Instance,
+
 			Attributes: map[string]interface{}{
 				"a": "b",
 			},

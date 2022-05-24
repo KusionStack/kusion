@@ -10,7 +10,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/compile"
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
@@ -115,7 +115,7 @@ func (o *DestroyOptions) Run() error {
 	return nil
 }
 
-func (o *DestroyOptions) preview(planResources *manifest.Manifest,
+func (o *DestroyOptions) preview(planResources *models.Spec,
 	project *projectstack.Project, stack *projectstack.Stack,
 ) (*operation.Changes, error) {
 	log.Info("Start compute preview changes ...")
@@ -151,7 +151,7 @@ func (o *DestroyOptions) preview(planResources *manifest.Manifest,
 	return operation.NewChanges(project, stack, rsp.ChangeSteps), nil
 }
 
-func (o *DestroyOptions) destroy(planResources *manifest.Manifest, changes *operation.Changes) error {
+func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.Changes) error {
 	// Build apply operation
 	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
 	if err != nil {

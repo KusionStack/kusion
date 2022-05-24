@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/dag"
 	"github.com/hashicorp/terraform/tfdiags"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -26,7 +26,7 @@ type ApplyResponse struct {
 	State *states.State
 }
 
-func NewApplyGraph(m *manifest.Manifest, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
+func NewApplyGraph(m *models.Spec, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
 	manifestParser := NewManifestParser(m)
 	graph := &dag.AcyclicGraph{}
 	graph.Add(&RootNode{})
@@ -83,7 +83,7 @@ func (o *Operation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.
 		Operation: Operation{
 			OperationType:           Apply,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*states.ResourceState{},
+			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			ChangeStepMap:           o.ChangeStepMap,
@@ -156,7 +156,7 @@ func validateRequest(request *Request) status.Status {
 	}
 	if request.Manifest == nil {
 		return status.NewErrorStatusWithMsg(status.InvalidArgument,
-			"request.Manifest is empty. If you want to delete all resources, please use command 'destroy'")
+			"request.Spec is empty. If you want to delete all resources, please use command 'destroy'")
 	}
 	resourceKeyMap := make(map[string]bool)
 

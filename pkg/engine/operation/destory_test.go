@@ -9,7 +9,7 @@ import (
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/status"
@@ -22,15 +22,15 @@ func TestOperation_Destroy(t *testing.T) {
 		project  = "project_name"
 		operator = "foo_user"
 	)
-	resourceState := states.ResourceState{
-		ID:   "id1",
-		Mode: states.Managed,
+	resourceState := models.Resource{
+		ID: "id1",
+
 		Attributes: map[string]interface{}{
 			"foo": "bar",
 		},
 		DependsOn: nil,
 	}
-	mf := &manifest.Manifest{Resources: []states.ResourceState{resourceState}}
+	mf := &models.Spec{Resources: []models.Resource{resourceState}}
 	o := &Operation{
 		OperationType: Destroy,
 		StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},

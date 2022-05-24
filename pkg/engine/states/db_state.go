@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"net/url"
 	"sort"
 
@@ -128,7 +129,7 @@ func (s *DBState) GetLatestState(q *StateQuery) (*State, error) {
 }
 
 func do2Bo(dbState *mapper.StateDO) *State {
-	var resStateList []ResourceState
+	var resStateList []models.Resource
 
 	// JSON is a subset of YAML. Please check FileSystemState.GetLatestState for detail explanation
 	parseErr := yaml.Unmarshal([]byte(dbState.Resources), &resStateList)

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/dag"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/status"
@@ -20,7 +20,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	type fields struct {
 		BaseNode BaseNode
 		Action   ActionType
-		state    *states.ResourceState
+		state    *models.Resource
 	}
 	type args struct {
 		operation Operation
@@ -29,26 +29,26 @@ func TestResourceNode_Execute(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &manifest.Manifest{Resources: []states.ResourceState{
+	mf := &models.Spec{Resources: []models.Resource{
 		{
-			ID:   Pony,
-			Mode: states.Managed,
+			ID: Pony,
+
 			Attributes: map[string]interface{}{
 				"c": "d",
 			},
 			DependsOn: []string{Jack},
 		},
 		{
-			ID:   Eric,
-			Mode: states.Managed,
+			ID: Eric,
+
 			Attributes: map[string]interface{}{
 				"a": ImplicitRefPrefix + "jack.a.b",
 			},
 			DependsOn: []string{Pony},
 		},
 		{
-			ID:   Jack,
-			Mode: states.Managed,
+			ID: Jack,
+
 			Attributes: map[string]interface{}{
 				"a": map[string]interface{}{
 					"b": "c",
@@ -58,23 +58,23 @@ func TestResourceNode_Execute(t *testing.T) {
 		},
 	}}
 
-	priorStateResourceIndex := map[string]*states.ResourceState{}
+	priorStateResourceIndex := map[string]*models.Resource{}
 	for i, resource := range mf.Resources {
 		priorStateResourceIndex[resource.ResourceKey()] = &mf.Resources[i]
 	}
 
-	newResourceState := &states.ResourceState{
-		ID:   Eric,
-		Mode: states.Managed,
+	newResourceState := &models.Resource{
+		ID: Eric,
+
 		Attributes: map[string]interface{}{
 			"a": ImplicitRefPrefix + "jack.a.b",
 		},
 		DependsOn: []string{Pony},
 	}
 
-	illegalResourceState := &states.ResourceState{
-		ID:   Eric,
-		Mode: states.Managed,
+	illegalResourceState := &models.Resource{
+		ID: Eric,
+
 		Attributes: map[string]interface{}{
 			"a": ImplicitRefPrefix + "jack.notExist",
 		},
@@ -159,13 +159,13 @@ func TestResourceNode_Execute(t *testing.T) {
 				state:    tt.fields.state,
 			}
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Apply",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState, planState *states.ResourceState) (*states.ResourceState, status.Status) {
+				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
 					mockState := *newResourceState
 					mockState.Attributes["a"] = "c"
 					return &mockState, nil
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Delete",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState *states.ResourceState) status.Status {
+				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState *models.Resource) status.Status {
 					return nil
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",

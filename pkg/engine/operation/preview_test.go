@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/status"
@@ -20,13 +20,12 @@ var (
 			"name":      "apple-service",
 			"namespace": "http-echo",
 		},
-		"spec": map[string]interface{}{
+		"models": map[string]interface{}{
 			"type": "NodePort",
 		},
 	}
-	FakeResourceState = states.ResourceState{
+	FakeResourceState = models.Resource{
 		ID:         "fake-id",
-		Mode:       states.Managed,
 		Attributes: FakeService,
 	}
 )
@@ -35,9 +34,9 @@ func TestOperation_Preview(t *testing.T) {
 	type fields struct {
 		OperationType           Type
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*states.ResourceState
-		PriorStateResourceIndex map[string]*states.ResourceState
-		StateResourceIndex      map[string]*states.ResourceState
+		CtxResourceIndex        map[string]*models.Resource
+		PriorStateResourceIndex map[string]*models.Resource
+		StateResourceIndex      map[string]*models.Resource
 		ChangeStepMap           map[string]*ChangeStep
 		Runtime                 runtime.Runtime
 		MsgCh                   chan Message
@@ -69,8 +68,8 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &manifest.Manifest{
-							Resources: []states.ResourceState{
+						Manifest: &models.Spec{
+							Resources: []models.Resource{
 								FakeResourceState,
 							},
 						},
@@ -83,7 +82,7 @@ func TestOperation_Preview(t *testing.T) {
 					"fake-id": {
 						ID:     "fake-id",
 						Action: Create,
-						Old:    (*states.ResourceState)(nil),
+						Old:    (*models.Resource)(nil),
 						New:    &FakeResourceState,
 					},
 				},
@@ -104,8 +103,8 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &manifest.Manifest{
-							Resources: []states.ResourceState{
+						Manifest: &models.Spec{
+							Resources: []models.Resource{
 								FakeResourceState,
 							},
 						},
@@ -119,14 +118,14 @@ func TestOperation_Preview(t *testing.T) {
 						ID:     "fake-id",
 						Action: Delete,
 						Old:    &FakeResourceState,
-						New:    (*states.ResourceState)(nil),
+						New:    (*models.Resource)(nil),
 					},
 				},
 			},
 			wantS: nil,
 		},
 		{
-			name: "fail-because-empty-manifest",
+			name: "fail-because-empty-models",
 			fields: fields{
 				Runtime:       &runtime.KubernetesRuntime{},
 				StateStorage:  &states.FileSystemState{Path: states.KusionState},
@@ -141,7 +140,7 @@ func TestOperation_Preview(t *testing.T) {
 				operation: Apply,
 			},
 			wantRsp: nil,
-			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Manifest is empty. If you want to delete all resources, please use command 'destroy'"),
+			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "fail-because-nonexistent-id",
@@ -157,11 +156,11 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &manifest.Manifest{
-							Resources: []states.ResourceState{
+						Manifest: &models.Spec{
+							Resources: []models.Resource{
 								{
-									ID:         "fake-id",
-									Mode:       states.Managed,
+									ID: "fake-id",
+
 									Attributes: FakeService,
 									DependsOn:  []string{"nonexistent-id"},
 								},
@@ -172,7 +171,7 @@ func TestOperation_Preview(t *testing.T) {
 				operation: Apply,
 			},
 			wantRsp: nil,
-			wantS:   status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find resource by key:nonexistent-id in manifest or state."),
+			wantS:   status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find resource by key:nonexistent-id in models or state."),
 		},
 	}
 	for _, tt := range tests {

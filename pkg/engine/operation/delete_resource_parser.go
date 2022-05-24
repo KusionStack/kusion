@@ -2,8 +2,8 @@ package operation
 
 import (
 	"fmt"
+	"kusionstack.io/kusion/pkg/engine/models"
 
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
@@ -13,10 +13,10 @@ import (
 )
 
 type DeleteResourceParser struct {
-	resources states.Resources
+	resources models.Resources
 }
 
-func NewDeleteResourceParser(resources states.Resources) *DeleteResourceParser {
+func NewDeleteResourceParser(resources models.Resources) *DeleteResourceParser {
 	return &DeleteResourceParser{resources: resources}
 }
 
@@ -52,7 +52,7 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 		rnID := rn.Hashcode().(string)
 
 		if !graph.HasVertex(rn) && manifestGraphMap[rnID] == nil {
-			log.Infof("resource:%v not found in manifest. Mark as delete node", key)
+			log.Infof("resource:%v not found in models. Mark as delete node", key)
 			// we cannot delete this node if any node dependsOn this node
 			for _, v := range priorDependsOn[rnID] {
 				if manifestGraphMap[v] != nil {
@@ -72,7 +72,7 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 		}
 	}
 	if err = graph.Validate(); err != nil {
-		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in manifest."+err.Error())
+		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in models."+err.Error())
 	}
 	graph.TransitiveReduction()
 	return s

@@ -15,10 +15,9 @@ import (
 
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -98,14 +97,14 @@ func mockDetectProjectAndStack() {
 func mockCompileWithSpinner() {
 	monkey.Patch(compile.CompileWithSpinner,
 		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
-		) (*manifest.Manifest, *pterm.SpinnerPrinter, error) {
+		) (*models.Spec, *pterm.SpinnerPrinter, error) {
 			sp := pterm.DefaultSpinner.
 				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
 				WithDelay(time.Millisecond * 100)
 
 			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
 
-			return &manifest.Manifest{Resources: []states.ResourceState{sa1, sa2, sa3}}, sp, nil
+			return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, sp, nil
 		})
 }
 
@@ -116,7 +115,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewApplyOptions()
-		_, err := preview(o, &manifest.Manifest{Resources: []states.ResourceState{sa1, sa2, sa3}}, project, stack)
+		_, err := preview(o, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
 		assert.Nil(t, err)
 	})
 }
@@ -131,19 +130,19 @@ var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
 	return planState, nil
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	return resourceState, nil
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, resourceState *states.ResourceState) status.Status {
+func (f *fakerRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	return resourceState, nil
 }
 
@@ -188,10 +187,10 @@ var (
 	sa3 = newSA("sa3")
 )
 
-func newSA(name string) states.ResourceState {
-	return states.ResourceState{
-		ID:   engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
-		Mode: "managed",
+func newSA(name string) models.Resource {
+	return models.Resource{
+		ID: engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
+
 		Attributes: map[string]interface{}{
 			"apiVersion": apiVersion,
 			"kind":       kind,
@@ -208,7 +207,7 @@ func Test_apply(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
 
-		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		changeSteps := map[string]*operation.ChangeStep{
 			sa1.ID: {
 				ID:     sa1.ID,
@@ -229,7 +228,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(operation.Success)
 
 		o := NewApplyOptions()
-		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1, sa2}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1, sa2}}
 		changeSteps := map[string]*operation.ChangeStep{
 			sa1.ID: {
 				ID:     sa1.ID,
@@ -255,7 +254,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(operation.Failed)
 
 		o := NewApplyOptions()
-		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		changeSteps := map[string]*operation.ChangeStep{
 			sa1.ID: {
 				ID:     sa1.ID,

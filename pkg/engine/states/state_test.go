@@ -1,6 +1,7 @@
 package states
 
 import (
+	"kusionstack.io/kusion/pkg/engine/models"
 	"reflect"
 	"testing"
 
@@ -17,7 +18,7 @@ func TestNewState(t *testing.T) {
 			want: &State{
 				KusionVersion: version.ReleaseVersion(),
 				Version:       1,
-				Resources:     []ResourceState{},
+				Resources:     []models.Resource{},
 			},
 		},
 	}
@@ -34,14 +35,13 @@ func TestResourceKey(t *testing.T) {
 	tests := []struct {
 		name          string
 		want          string
-		resourceState *ResourceState
+		resourceState *models.Resource
 	}{
 		{
 			name: "t1",
 			want: "kusion_test",
-			resourceState: &ResourceState{
+			resourceState: &models.Resource{
 				ID:         "kusion_test",
-				Mode:       "managed",
 				Attributes: nil,
 			},
 		},
@@ -59,21 +59,20 @@ func TestResourceKey(t *testing.T) {
 func TestResources_Index(t *testing.T) {
 	tests := []struct {
 		name string
-		rs   Resources
-		want map[string]*ResourceState
+		rs   models.Resources
+		want map[string]*models.Resource
 	}{
 		{
 			name: "t1",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "managed",
-					ID:   "a",
+					ID: "a",
 				},
 			},
-			want: map[string]*ResourceState{
+			want: map[string]*models.Resource{
 				"a": {
-					Mode: "managed",
-					ID:   "a",
+
+					ID: "a",
 				},
 			},
 		},
@@ -91,15 +90,14 @@ func TestResources_Index(t *testing.T) {
 func TestResources_Len(t *testing.T) {
 	tests := []struct {
 		name string
-		rs   Resources
+		rs   models.Resources
 		want int
 	}{
 		{
 			name: "t1",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "a",
-					ID:   "c",
+					ID: "c",
 				},
 			},
 			want: 1,
@@ -108,7 +106,7 @@ func TestResources_Len(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.rs.Len(); got != tt.want {
-				t.Errorf("manifest.Len() = %v, want %v", got, tt.want)
+				t.Errorf("models.Len() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -121,15 +119,14 @@ func TestResources_Swap(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		rs   Resources
+		rs   models.Resources
 		args args
 	}{
 		{
 			name: "t1",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "test",
-					ID:   "test",
+					ID: "test",
 				},
 			},
 			args: args{},
@@ -149,20 +146,20 @@ func TestResources_Less(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		rs   Resources
+		rs   models.Resources
 		args args
 		want bool
 	}{
 		{
 			name: "t1",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "managed",
-					ID:   "a",
+
+					ID: "a",
 				},
 				{
-					Mode: "managed",
-					ID:   "b",
+
+					ID: "b",
 				},
 			},
 			args: args{0, 1},
@@ -170,14 +167,12 @@ func TestResources_Less(t *testing.T) {
 		},
 		{
 			name: "t2",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "a",
-					ID:   "a",
+					ID: "a",
 				},
 				{
-					Mode: "b",
-					ID:   "b",
+					ID: "b",
 				},
 			},
 			args: args{0, 1},
@@ -185,14 +180,12 @@ func TestResources_Less(t *testing.T) {
 		},
 		{
 			name: "t3",
-			rs: []ResourceState{
+			rs: []models.Resource{
 				{
-					Mode: "a",
-					ID:   "a",
+					ID: "a",
 				},
 				{
-					Mode: "a",
-					ID:   "a",
+					ID: "a",
 				},
 			},
 			args: args{0, 1},
@@ -202,7 +195,7 @@ func TestResources_Less(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.rs.Less(tt.args.i, tt.args.j); got != tt.want {
-				t.Errorf("manifest.Less() = %v, want %v", got, tt.want)
+				t.Errorf("models.Less() = %v, want %v", got, tt.want)
 			}
 		})
 	}
