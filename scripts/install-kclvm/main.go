@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	kcl_plugin "kusionstack.io/kcl-plugin"
 	"kusionstack.io/kclvm-go/scripts"
 )
 
@@ -23,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 	if !isValidTriple(*flagTriple) {
-		fmt.Println("Invalid triple: %q (%v)", *flagTriple, scripts.KclvmTripleList)
+		fmt.Printf("Invalid triple: %q (%v)\n", *flagTriple, scripts.KclvmTripleList)
 		os.Exit(1)
 	}
 
@@ -38,6 +40,12 @@ func main() {
 	}
 
 	err := scripts.SetupKclvm(*flagOutdir)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	err = kcl_plugin.InstallPlugins(filepath.Join(*flagOutdir, "plugins"))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
