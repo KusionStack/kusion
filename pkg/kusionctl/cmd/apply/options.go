@@ -141,9 +141,9 @@ func preview(o *ApplyOptions, planResources *models.Spec,
 
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
-			ChangeStepMap: map[string]*operation.ChangeStep{},
+			Runtime:      kubernetesRuntime,
+			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Order:        &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
 		},
 	}
 
@@ -162,7 +162,7 @@ func preview(o *ApplyOptions, planResources *models.Spec,
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 
-	return operation.NewChanges(project, stack, rsp.ChangeSteps), nil
+	return operation.NewChanges(project, stack, rsp.Order), nil
 }
 
 func apply(o *ApplyOptions, planResources *models.Spec, changes *operation.Changes) error {
@@ -174,10 +174,9 @@ func apply(o *ApplyOptions, planResources *models.Spec, changes *operation.Chang
 
 	ac := &operation.ApplyOperation{
 		Operation: operation.Operation{
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.CompileOptions.WorkDir, states.KusionState)},
-			MsgCh:         make(chan operation.Message),
-			ChangeStepMap: map[string]*operation.ChangeStep{},
+			Runtime:      kubernetesRuntime,
+			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			MsgCh:        make(chan operation.Message),
 		},
 	}
 
@@ -185,7 +184,7 @@ func apply(o *ApplyOptions, planResources *models.Spec, changes *operation.Chang
 	var ls lineSummary
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.ChangeSteps)).Start()
+	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).Start()
 	if err != nil {
 		return err
 	}

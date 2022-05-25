@@ -1,3 +1,6 @@
+//go:build !arm64
+// +build !arm64
+
 package destroy
 
 import (
@@ -142,12 +145,15 @@ func mockOperationPreview() {
 	monkey.Patch((*operation.Operation).Preview,
 		func(*operation.Operation, *operation.PreviewRequest, operation.Type) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
-				ChangeSteps: map[string]*operation.ChangeStep{
-					sa1.ID: {
-						ID:     sa1.ID,
-						Action: operation.Delete,
-						Old:    &sa1,
-						New:    nil,
+				Order: &operation.ChangeOrder{
+					StepKeys: []string{sa1.ID},
+					ChangeSteps: map[string]*operation.ChangeStep{
+						sa1.ID: {
+							ID:     sa1.ID,
+							Action: operation.Delete,
+							Old:    &sa1,
+							New:    nil,
+						},
 					},
 				},
 			}, nil
@@ -189,21 +195,24 @@ func Test_destroy(t *testing.T) {
 
 		o := NewDestroyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa2}}
-		changeSteps := map[string]*operation.ChangeStep{
-			sa1.ID: {
-				ID:     sa1.ID,
-				Action: operation.Delete,
-				Old:    &sa1,
-				New:    nil,
-			},
-			sa2.ID: {
-				ID:     sa2.ID,
-				Action: operation.UnChange,
-				Old:    &sa2,
-				New:    &sa2,
+		order := &operation.ChangeOrder{
+			StepKeys: []string{sa1.ID, sa2.ID},
+			ChangeSteps: map[string]*operation.ChangeStep{
+				sa1.ID: {
+					ID:     sa1.ID,
+					Action: operation.Delete,
+					Old:    &sa1,
+					New:    nil,
+				},
+				sa2.ID: {
+					ID:     sa2.ID,
+					Action: operation.UnChange,
+					Old:    &sa2,
+					New:    &sa2,
+				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, changeSteps)
+		changes := operation.NewChanges(project, stack, order)
 
 		err := o.destroy(planResources, changes)
 		assert.Nil(t, err)
@@ -215,15 +224,18 @@ func Test_destroy(t *testing.T) {
 
 		o := NewDestroyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
-		changeSteps := map[string]*operation.ChangeStep{
-			sa1.ID: {
-				ID:     sa1.ID,
-				Action: operation.Delete,
-				Old:    &sa1,
-				New:    nil,
+		order := &operation.ChangeOrder{
+			StepKeys: []string{sa1.ID},
+			ChangeSteps: map[string]*operation.ChangeStep{
+				sa1.ID: {
+					ID:     sa1.ID,
+					Action: operation.Delete,
+					Old:    &sa1,
+					New:    nil,
+				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, changeSteps)
+		changes := operation.NewChanges(project, stack, order)
 
 		err := o.destroy(planResources, changes)
 		assert.NotNil(t, err)

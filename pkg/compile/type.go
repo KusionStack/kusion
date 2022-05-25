@@ -2,19 +2,19 @@ package compile
 
 import (
 	kcl "kusionstack.io/kclvm-go"
-
-	"kusionstack.io/kusion/pkg/util/yaml"
 )
 
 // The result of a KCL compilation
 type CompileResult struct {
-	Documents []kcl.KCLResult
+	Documents     []kcl.KCLResult
+	RawYAMLResult string
 }
 
 // New a CompileResult by KCLResultList
 func NewCompileResult(k *kcl.KCLResultList) *CompileResult {
 	return &CompileResult{
-		Documents: k.Slice(),
+		Documents:     k.Slice(),
+		RawYAMLResult: k.GetRawYamlResult(),
 	}
 }
 
@@ -29,10 +29,6 @@ func NewCompileResultByMapList(mapList []map[string]interface{}) *CompileResult 
 	}
 }
 
-func (c *CompileResult) YAMLString() string {
-	documentList := []interface{}{}
-	for _, document := range c.Documents {
-		documentList = append(documentList, document)
-	}
-	return yaml.MergeToOneYAML(documentList...)
+func (c *CompileResult) RawYAML() string {
+	return c.RawYAMLResult
 }

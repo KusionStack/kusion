@@ -8,9 +8,10 @@ import (
 	kcl "kusionstack.io/kclvm-go"
 )
 
-func TestCompileResult_YAMLString(t *testing.T) {
+func TestCompileResult_RawYAML(t *testing.T) {
 	type fields struct {
-		Documents []kcl.KCLResult
+		Documents     []kcl.KCLResult
+		RawYAMLResult string
 	}
 	tests := []struct {
 		name   string
@@ -20,7 +21,8 @@ func TestCompileResult_YAMLString(t *testing.T) {
 		{
 			name: "t1",
 			fields: fields{
-				Documents: []kcl.KCLResult{{"a": "b"}},
+				Documents:     []kcl.KCLResult{{"a": "b"}},
+				RawYAMLResult: "a: b",
 			},
 			want: "a: b",
 		},
@@ -28,10 +30,11 @@ func TestCompileResult_YAMLString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &CompileResult{
-				Documents: tt.fields.Documents,
+				Documents:     tt.fields.Documents,
+				RawYAMLResult: tt.fields.RawYAMLResult,
 			}
-			if got := strings.TrimSpace(c.YAMLString()); got != tt.want {
-				t.Errorf("CompileResult.YAMLString() = %v, want %v", got, tt.want)
+			if got := strings.TrimSpace(c.RawYAML()); got != tt.want {
+				t.Errorf("CompileResult.RawYAML() = %v, want %v", got, tt.want)
 			}
 		})
 	}

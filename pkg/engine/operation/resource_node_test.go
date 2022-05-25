@@ -1,3 +1,6 @@
+//go:build !arm64
+// +build !arm64
+
 package operation
 
 import (
@@ -174,7 +177,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				})
 			defer monkey.UnpatchAll()
 
-			assert.Equalf(t, tt.want, rn.Execute(tt.args.operation), "Execute(%v)", tt.args.operation)
+			assert.Equalf(t, tt.want, rn.Execute(&tt.args.operation), "Execute(%v)", tt.args.operation)
 		})
 	}
 }

@@ -1,3 +1,6 @@
+//go:build !arm64
+// +build !arm64
+
 package version
 
 import (
@@ -40,7 +43,7 @@ func TestKusionVersionNormal(t *testing.T) {
 			"buildTime": "2006-01-02 15:04:05"
 		},
 		"dependency": {
-			"kclvmVersion": "stable",
+			"kclvmgoVersion": "stable",
 			"kclPluginVersion": "stable"
 		}
 	}`
@@ -159,7 +162,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		"buildTime": "2006-01-02 15:04:05"
 	},
 	"dependency": {
-		"kclvmVersion": "stable",
+		"kclvmgoVersion": "stable",
 		"kclPluginVersion": "stable"
 	}
 }`
@@ -202,7 +205,7 @@ func mockGit() {
 
 func mockDependency() {
 	monkey.Patch(debug.ReadBuildInfo, func() (*debug.BuildInfo, bool) {
-		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclvmModulePath, Version: "stable"}, {Path: KclPluginsModulePath, Version: "stable"}}}, true
+		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclvmgoModulePath, Version: "stable"}, {Path: KclPluginsModulePath, Version: "stable"}}}, true
 	})
 }
 

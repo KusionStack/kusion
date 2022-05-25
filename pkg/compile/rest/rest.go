@@ -51,7 +51,7 @@ func New() (*Client, error) {
 
 func Ping(c *Client) (err error) {
 	res := new(PingResponse)
-	req := gpyrpc.Ping_Args{
+	req := &gpyrpc.Ping_Args{
 		Value: "",
 	}
 
@@ -59,7 +59,9 @@ func Ping(c *Client) (err error) {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 
 	if len(res.Error) > 0 {
 		return errors.New(res.Error)
@@ -137,7 +139,9 @@ func (c *Client) Compile(req *gpyrpc.ExecProgram_Args) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 
 	return res, nil
 }

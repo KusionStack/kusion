@@ -11,6 +11,7 @@ import (
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/apply"
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/check"
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/deps"
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/destroy"
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/env"
 	cmdinit "kusionstack.io/kusion/pkg/kusionctl/cmd/init"
@@ -74,6 +75,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 				compile.NewCmdCompile(),
 				check.NewCmdCheck(),
 				ls.NewCmdLs(),
+				deps.NewCmdDeps(),
 			},
 		},
 		{

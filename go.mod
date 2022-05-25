@@ -65,15 +65,15 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
 	honnef.co/go/tools v0.3.0 // indirect
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v10.0.0+incompatible
 	k8s.io/component-base v0.21.2
 	k8s.io/kubectl v0.21.2
-	kusionstack.io/kcl-plugin v0.4.1-alpha1
-	kusionstack.io/kclvm-go v0.4.1-alpha7
+	kusionstack.io/kcl-plugin v0.4.1-alpha2
+	kusionstack.io/kclvm-go v0.4.2-alpha4
 	sigs.k8s.io/kustomize/api v0.8.11
 	sigs.k8s.io/kustomize/kustomize/v4 v4.1.2
 	sigs.k8s.io/kustomize/kyaml v0.11.0
@@ -85,7 +85,6 @@ replace (
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.2
 	k8s.io/apiserver => k8s.io/apiserver v0.21.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go => k8s.io/client-go v0.21.2
 	k8s.io/cloud-provider => k8s.io/cloud-provider v0.21.2
 	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.21.2

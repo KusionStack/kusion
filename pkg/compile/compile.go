@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/pterm/pterm"
 	kcl "kusionstack.io/kclvm-go"
@@ -21,6 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 var enableRest bool
@@ -42,9 +42,7 @@ func CompileWithSpinner(workDir string, filenames, settings, arguments, override
 	stack *projectstack.Stack,
 ) (*models.Spec, *pterm.SpinnerPrinter, error) {
 	// Spinner
-	sp := pterm.DefaultSpinner.
-		WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
-		WithDelay(time.Millisecond * 100)
+	sp := &pretty.SpinnerT
 
 	sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
 

@@ -1,3 +1,6 @@
+//go:build !arm64
+// +build !arm64
+
 // Provide general KCL compilation method
 package compile
 
