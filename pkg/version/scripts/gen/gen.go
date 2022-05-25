@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	_ "kusionstack.io/kcl-plugin"
 	_ "kusionstack.io/kclvm-go"
@@ -10,7 +12,15 @@ import (
 	"kusionstack.io/kusion/pkg/version"
 )
 
+var flagOutFile = flag.String("o", "z_update_version.go", "set output failed")
+
 func main() {
+	flag.Parse()
+	if *flagOutFile == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	versionInfo, err := version.NewInfo()
 	if err != nil {
 		log.Fatal(err)
@@ -18,7 +28,7 @@ func main() {
 
 	data := makeUpdateVersionGoFile(versionInfo)
 
-	err = ioutil.WriteFile("../z_update_version.go", []byte(data), 0o666)
+	err = ioutil.WriteFile(*flagOutFile, []byte(data), 0o666)
 	if err != nil {
 		log.Fatalf("ioutil.WriteFile: err = %v", err)
 	}

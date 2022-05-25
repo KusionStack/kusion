@@ -1,4 +1,4 @@
-//go:generate go run gen.go
+//go:generate go run scripts/gen/gen.go -o z_update_version.go
 //go:generate go fmt
 
 package version

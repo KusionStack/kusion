@@ -27,6 +27,9 @@ jobs:
       - run: which kclvm
       - run: go run ./cmd/kcl-go kcl
 
+      - run: go build ./...
+      - run: go vet ./...
+
       - name: Running go tests with coverage
         env:
           GO111MODULE: on

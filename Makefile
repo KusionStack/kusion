@@ -64,14 +64,14 @@ clean:  ## Clean build bundles
 	-rm -rf ./_build/bundles
 
 # todo: fix macOS-arm64 and windows build
-build-all: build-local-darwin-all build-local-linux-all ## build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
+build-all: build-local-darwin-all build-local-linux-all build-local-darwin-arm64-all ## build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-kusion-darwin:  ## Build kusionctl only for macOS
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-darwin/bin/kusion
 	# Update version
-	cd pkg/version/scripts && go run gen/gen.go
+	go generate ./pkg/version
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
@@ -85,7 +85,7 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 	mkdir -p ./_build/bundles/kusion-darwin/bin
 	mkdir -p ./_build/bundles/kusion-darwin/kclvm/bin
 	# Update version
-	cd pkg/version/scripts && go run gen/gen.go
+	go generate ./pkg/version
 
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
@@ -141,7 +141,7 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 	mkdir -p ./_build/bundles/kusion-darwin-arm64/kclvm/bin
 
 	# Update version
-	cd pkg/version/scripts && go run gen/gen.go
+	go generate ./pkg/version
 
 	# Build kusion
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
@@ -203,7 +203,7 @@ build-local-linux:  ## Build kusion tool chain for linux
 	mkdir -p ./_build/bundles/kusion-linux/kclvm/bin
 
 	# Update version
-	cd pkg/version/scripts && go run gen/gen.go
+	go generate ./pkg/version
 
 	# Build kusion
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
@@ -259,7 +259,7 @@ build-local-windows:  ## Build kusion tool chain for windows
 	mkdir -p ./_build/bundles/kusion-windows/kclvm/bin
 	
 	# Update version
-	cd pkg/version/scripts && go run gen/gen.go
+	go generate ./pkg/version
 
 	# Build kusion
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
