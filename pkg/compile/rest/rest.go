@@ -51,7 +51,7 @@ func New() (*Client, error) {
 
 func Ping(c *Client) (err error) {
 	res := new(PingResponse)
-	req := gpyrpc.Ping_Args{
+	req := &gpyrpc.Ping_Args{
 		Value: "",
 	}
 
