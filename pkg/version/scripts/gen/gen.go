@@ -12,9 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/version"
 )
 
-var (
-	flagOutFile = flag.String("o", "z_update_version.go", "set output faile")
-)
+var flagOutFile = flag.String("o", "z_update_version.go", "set output failed")
 
 func main() {
 	flag.Parse()
