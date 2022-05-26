@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -492,19 +493,19 @@ func TestChanges_Preview(t *testing.T) {
 
 func Test_buildResourceStateMap(t *testing.T) {
 	type args struct {
-		rs []*states.ResourceState
+		rs []*models.Resource
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]*states.ResourceState
+		want map[string]*models.Resource
 	}{
 		{
 			name: "t1",
 			args: args{
-				rs: []*states.ResourceState{},
+				rs: []*models.Resource{},
 			},
-			want: map[string]*states.ResourceState{},
+			want: map[string]*models.Resource{},
 		},
 	}
 	for _, tt := range tests {

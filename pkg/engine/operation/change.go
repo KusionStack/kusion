@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/diff"
@@ -219,8 +220,8 @@ func (o *ChangeOrder) OutputDiff(target string) {
 	}
 }
 
-func buildResourceStateMap(rs []*states.ResourceState) map[string]*states.ResourceState {
-	rMap := make(map[string]*states.ResourceState)
+func buildResourceStateMap(rs []*models.Resource) map[string]*models.Resource {
+	rMap := make(map[string]*models.Resource)
 	if len(rs) == 0 {
 		return rMap
 	}

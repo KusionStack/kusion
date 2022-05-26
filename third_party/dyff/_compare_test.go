@@ -713,7 +713,7 @@ listY: [ Yo, Yo, Yo ]
 				Expect(report).NotTo(BeNil())
 				Expect(report.Diffs).NotTo(BeNil())
 
-				var orderChangeDiffs = 0
+				orderChangeDiffs := 0
 				for _, diff := range report.Diffs {
 					for _, detail := range diff.Details {
 						if detail.Kind == ORDERCHANGE {

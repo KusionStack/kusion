@@ -16,7 +16,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/compile/rest"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
@@ -40,7 +40,7 @@ func EnableRPC() bool {
 
 func CompileWithSpinner(workDir string, filenames, settings, arguments, overrides []string,
 	stack *projectstack.Stack,
-) (*manifest.Manifest, *pterm.SpinnerPrinter, error) {
+) (*models.Spec, *pterm.SpinnerPrinter, error) {
 	// Spinner
 	sp := &pretty.SpinnerT
 

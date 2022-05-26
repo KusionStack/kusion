@@ -5,8 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/engine/manifest"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
@@ -16,10 +15,10 @@ import (
 )
 
 type ManifestParser struct {
-	manifest *manifest.Manifest
+	manifest *models.Spec
 }
 
-func NewManifestParser(manifest *manifest.Manifest) *ManifestParser {
+func NewManifestParser(manifest *models.Spec) *ManifestParser {
 	return &ManifestParser{manifest: manifest}
 }
 
@@ -32,9 +31,9 @@ const (
 func (m *ManifestParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(graph, "dag is nil")
 	mf := m.manifest
-	util.CheckNotNil(mf, "manifest is nil")
+	util.CheckNotNil(mf, "models is nil")
 	if mf.Resources == nil {
-		sprintf := fmt.Sprintf("no resources in manifest:%s", json.Marshal2String(mf))
+		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(mf))
 		return status.NewBaseStatus(status.Warning, status.NotFound, sprintf)
 	}
 
@@ -59,7 +58,7 @@ func (m *ManifestParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
 
 		// handle implicit dependency
 		v := reflect.ValueOf(resourceState.Attributes)
-		implicitRefKeys, _, s := ParseImplicitRef(v, nil, func(map[string]*states.ResourceState, string) (reflect.Value, status.Status) {
+		implicitRefKeys, _, s := ParseImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
 			return v, nil
 		})
 		if status.IsErr(s) {
@@ -78,14 +77,14 @@ func (m *ManifestParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
 	}
 
 	if err = graph.Validate(); err != nil {
-		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in manifest:"+err.Error())
+		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in models:"+err.Error())
 	}
 	graph.TransitiveReduction()
 	return s
 }
 
-func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*states.ResourceState,
-	replaceFun func(resourceIndex map[string]*states.ResourceState, refPath string) (reflect.Value, status.Status),
+func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource,
+	replaceFun func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status),
 ) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {

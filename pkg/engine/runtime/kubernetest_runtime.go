@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"kusionstack.io/kusion/pkg/engine/models"
+
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +19,6 @@ import (
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/kube/config"
@@ -45,7 +46,7 @@ func NewKubernetesRuntime() (Runtime, error) {
 }
 
 // Apply kubernetes resource by client-go
-func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
 	// Don`t consider delete case, so plan state must be not empty
 	if planState == nil {
 		return nil, status.NewErrorStatus(errors.New("plan state is nil"))
@@ -93,16 +94,15 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *st
 		return nil, status.NewErrorStatus(err)
 	}
 
-	return &states.ResourceState{
+	return &models.Resource{
 		ID:         planState.ResourceKey(),
-		Mode:       states.Managed,
 		Attributes: obj.Object,
 		DependsOn:  planState.DependsOn,
 	}, nil
 }
 
 // Read kubernetes resource by client-go
-func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	// Validate
 	if resourceState == nil {
 		return nil, status.NewErrorStatus(errors.New("resourceState is nil"))
@@ -120,16 +120,15 @@ func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *states.Reso
 		return nil, status.NewErrorStatus(err)
 	}
 
-	return &states.ResourceState{
+	return &models.Resource{
 		ID:         resourceState.ResourceKey(),
-		Mode:       states.Managed,
 		Attributes: v.Object,
 		DependsOn:  resourceState.DependsOn,
 	}, nil
 }
 
 // Delete kubernetes resource by client-go
-func (k *KubernetesRuntime) Delete(ctx context.Context, resourceState *states.ResourceState) status.Status {
+func (k *KubernetesRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
 	// Validate
 	if resourceState == nil {
 		return status.NewErrorStatus(errors.New("resourceState is nil"))
@@ -155,7 +154,7 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, resourceState *states.Re
 }
 
 // Watch kubernetes resource by client-go
-func (k *KubernetesRuntime) Watch(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (k *KubernetesRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	panic("need implement")
 }
 
@@ -185,7 +184,7 @@ func getKubernetesClient() (dynamic.Interface, *restmapper.DeferredDiscoveryREST
 }
 
 // buildKubernetesResourceByState get resource by attribute
-func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *states.ResourceState) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
+func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
 	// Convert interface{} to unstructured
 	attribute := resourceState.Attributes
 	rYaml := yaml.MergeToOneYAML(attribute)

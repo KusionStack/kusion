@@ -18,10 +18,9 @@ import (
 
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/manifest"
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -93,14 +92,14 @@ func mockDetectProjectAndStack() {
 func mockCompileWithSpinner() {
 	monkey.Patch(compile.CompileWithSpinner,
 		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
-		) (*manifest.Manifest, *pterm.SpinnerPrinter, error) {
+		) (*models.Spec, *pterm.SpinnerPrinter, error) {
 			sp := pterm.DefaultSpinner.
 				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
 				WithDelay(time.Millisecond * 100)
 
 			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
 
-			return &manifest.Manifest{Resources: []states.ResourceState{sa1}}, sp, nil
+			return &models.Spec{Resources: []models.Resource{sa1}}, sp, nil
 		})
 }
 
@@ -111,7 +110,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		_, err := o.preview(&manifest.Manifest{Resources: []states.ResourceState{sa1}}, project, stack)
+		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack)
 		assert.Nil(t, err)
 	})
 }
@@ -126,19 +125,19 @@ var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
 	return planState, nil
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	return resourceState, nil
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, resourceState *states.ResourceState) status.Status {
+func (f *fakerRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, resourceState *states.ResourceState) (*states.ResourceState, status.Status) {
+func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
 	return resourceState, nil
 }
 
@@ -173,10 +172,10 @@ var (
 	sa2 = newSA("sa2")
 )
 
-func newSA(name string) states.ResourceState {
-	return states.ResourceState{
-		ID:   engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
-		Mode: "managed",
+func newSA(name string) models.Resource {
+	return models.Resource{
+		ID: engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
+
 		Attributes: map[string]interface{}{
 			"apiVersion": apiVersion,
 			"kind":       kind,
@@ -195,7 +194,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(operation.Success)
 
 		o := NewDestroyOptions()
-		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa2}}
+		planResources := &models.Spec{Resources: []models.Resource{sa2}}
 		order := &operation.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
@@ -224,7 +223,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(operation.Failed)
 
 		o := NewDestroyOptions()
-		planResources := &manifest.Manifest{Resources: []states.ResourceState{sa1}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &operation.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
