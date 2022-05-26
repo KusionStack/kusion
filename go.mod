@@ -63,7 +63,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
+	gopkg.in/yaml.v3 v3.0.0
 	honnef.co/go/tools v0.3.0 // indirect
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
