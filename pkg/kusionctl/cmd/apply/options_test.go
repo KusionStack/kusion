@@ -157,22 +157,22 @@ func mockOperationPreview() {
 					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
 					ChangeSteps: map[string]*operation.ChangeStep{
 						sa1.ID: {
-							ID:     sa1.ID,
-							Action: operation.Create,
-							Old:    nil,
-							New:    &sa1,
+							ID:       sa1.ID,
+							Action:   operation.Create,
+							Original: nil,
+							Modified: &sa1,
 						},
 						sa2.ID: {
-							ID:     sa2.ID,
-							Action: operation.UnChange,
-							Old:    &sa2,
-							New:    &sa2,
+							ID:       sa2.ID,
+							Action:   operation.UnChange,
+							Original: &sa2,
+							Modified: &sa2,
 						},
 						sa3.ID: {
-							ID:     sa3.ID,
-							Action: operation.Undefined,
-							Old:    &sa3,
-							New:    &sa1,
+							ID:       sa3.ID,
+							Action:   operation.Undefined,
+							Original: &sa3,
+							Modified: &sa1,
 						},
 					},
 				},
@@ -218,10 +218,10 @@ func Test_apply(t *testing.T) {
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    sa1,
+					ID:       sa1.ID,
+					Action:   operation.Create,
+					Original: nil,
+					Modified: sa1,
 				},
 			},
 		}
@@ -242,16 +242,16 @@ func Test_apply(t *testing.T) {
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    &sa1,
+					ID:       sa1.ID,
+					Action:   operation.Create,
+					Original: nil,
+					Modified: &sa1,
 				},
 				sa2.ID: {
-					ID:     sa2.ID,
-					Action: operation.UnChange,
-					Old:    &sa2,
-					New:    &sa2,
+					ID:       sa2.ID,
+					Action:   operation.UnChange,
+					Original: &sa2,
+					Modified: &sa2,
 				},
 			},
 		}
@@ -271,10 +271,10 @@ func Test_apply(t *testing.T) {
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    &sa1,
+					ID:       sa1.ID,
+					Action:   operation.Create,
+					Original: nil,
+					Modified: &sa1,
 				},
 			},
 		}

@@ -149,10 +149,10 @@ func mockOperationPreview() {
 					StepKeys: []string{sa1.ID},
 					ChangeSteps: map[string]*operation.ChangeStep{
 						sa1.ID: {
-							ID:     sa1.ID,
-							Action: operation.Delete,
-							Old:    &sa1,
-							New:    nil,
+							ID:       sa1.ID,
+							Action:   operation.Delete,
+							Original: &sa1,
+							Modified: nil,
 						},
 					},
 				},
@@ -199,16 +199,16 @@ func Test_destroy(t *testing.T) {
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Delete,
-					Old:    &sa1,
-					New:    nil,
+					ID:       sa1.ID,
+					Action:   operation.Delete,
+					Original: &sa1,
+					Modified: nil,
 				},
 				sa2.ID: {
-					ID:     sa2.ID,
-					Action: operation.UnChange,
-					Old:    &sa2,
-					New:    &sa2,
+					ID:       sa2.ID,
+					Action:   operation.UnChange,
+					Original: &sa2,
+					Modified: &sa2,
 				},
 			},
 		}
@@ -228,10 +228,10 @@ func Test_destroy(t *testing.T) {
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*operation.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Delete,
-					Old:    &sa1,
-					New:    nil,
+					ID:       sa1.ID,
+					Action:   operation.Delete,
+					Original: &sa1,
+					Modified: nil,
 				},
 			},
 		}

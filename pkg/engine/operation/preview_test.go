@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"context"
 	"reflect"
 	"sync"
 	"testing"
@@ -30,6 +31,26 @@ var (
 	}
 )
 
+var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
+
+type fakePreviewRuntime struct{}
+
+func (f *fakePreviewRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
+	return planState, nil
+}
+
+func (f *fakePreviewRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+	return resourceState, nil
+}
+
+func (f *fakePreviewRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+	return nil
+}
+
+func (f *fakePreviewRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+	return resourceState, nil
+}
+
 func TestOperation_Preview(t *testing.T) {
 	type fields struct {
 		OperationType           Type
@@ -57,14 +78,14 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-apply",
 			fields: fields{
-				Runtime:      &runtime.KubernetesRuntime{},
+				Runtime:      &fakePreviewRuntime{},
 				StateStorage: &states.FileSystemState{Path: states.KusionState},
 				Order:        &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
 			},
 			args: args{
 				request: &PreviewRequest{
 					Request: Request{
-						Tenant:   "fake-tennat",
+						Tenant:   "fake-tenant",
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
@@ -82,10 +103,11 @@ func TestOperation_Preview(t *testing.T) {
 					StepKeys: []string{"fake-id"},
 					ChangeSteps: map[string]*ChangeStep{
 						"fake-id": {
-							ID:     "fake-id",
-							Action: Create,
-							Old:    (*models.Resource)(nil),
-							New:    &FakeResourceState,
+							ID:       "fake-id",
+							Action:   Create,
+							Original: (*models.Resource)(nil),
+							Modified: &FakeResourceState,
+							Current:  (*models.Resource)(nil),
 						},
 					},
 				},
@@ -95,14 +117,14 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				Runtime:      &runtime.KubernetesRuntime{},
+				Runtime:      &fakePreviewRuntime{},
 				StateStorage: &states.FileSystemState{Path: states.KusionState},
 				Order:        &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
 					Request: Request{
-						Tenant:   "fake-tennat",
+						Tenant:   "fake-tenant",
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
@@ -120,10 +142,11 @@ func TestOperation_Preview(t *testing.T) {
 					StepKeys: []string{"fake-id"},
 					ChangeSteps: map[string]*ChangeStep{
 						"fake-id": {
-							ID:     "fake-id",
-							Action: Delete,
-							Old:    &FakeResourceState,
-							New:    (*models.Resource)(nil),
+							ID:       "fake-id",
+							Action:   Delete,
+							Original: &FakeResourceState,
+							Modified: (*models.Resource)(nil),
+							Current:  &FakeResourceState,
 						},
 					},
 				},
@@ -133,7 +156,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-empty-models",
 			fields: fields{
-				Runtime:      &runtime.KubernetesRuntime{},
+				Runtime:      &fakePreviewRuntime{},
 				StateStorage: &states.FileSystemState{Path: states.KusionState},
 				Order:        &ChangeOrder{},
 			},
@@ -151,7 +174,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				Runtime:      &runtime.KubernetesRuntime{},
+				Runtime:      &fakePreviewRuntime{},
 				StateStorage: &states.FileSystemState{Path: states.KusionState},
 				Order:        &ChangeOrder{},
 			},

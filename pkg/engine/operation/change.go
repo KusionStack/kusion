@@ -19,15 +19,17 @@ import (
 )
 
 type ChangeStep struct {
-	ID     string      // the resource id
-	Action ActionType  // the operation performed by this step.
-	Old    interface{} // the state of the resource before performing this step.
-	New    interface{} // the state of the resource after performing this step.
+	ID       string      // the resource id
+	Action   ActionType  // the operation performed by this step.
+	Original interface{} // local stored resource
+	Modified interface{} // planed resource
+	Current  interface{} // live resource
 }
 
+// TODO: 3-way diff
 func (cs *ChangeStep) Diff() (string, error) {
 	// Generate diff report
-	diffReport, err := diffToReport(cs.Old, cs.New)
+	diffReport, err := diffToReport(cs.Original, cs.Modified)
 	if err != nil {
 		log.Errorf("failed to compute diff with ChangeStep ID: %s", cs.ID)
 		return "", err
@@ -59,12 +61,13 @@ func (cs *ChangeStep) Diff() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChangeStep(id string, op ActionType, oldData, newData interface{}) *ChangeStep {
+func NewChangeStep(id string, op ActionType, original, modified, current interface{}) *ChangeStep {
 	return &ChangeStep{
-		ID:     id,
-		Action: op,
-		Old:    oldData,
-		New:    newData,
+		ID:       id,
+		Action:   op,
+		Original: original,
+		Modified: modified,
+		Current:  current,
 	}
 }
 

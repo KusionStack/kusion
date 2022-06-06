@@ -171,6 +171,10 @@ func TestResourceNode_Execute(t *testing.T) {
 				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState *models.Resource) status.Status {
 					return nil
 				})
+			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Read",
+				func(k *runtime.KubernetesRuntime, ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+					return resourceState, nil
+				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
 				func(f *states.FileSystemState, state *states.State) error {
 					return nil
