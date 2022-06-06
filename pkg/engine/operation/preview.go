@@ -80,6 +80,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			Order:                   o.Order,
+			Runtime:                 o.Runtime, // preview need get the latest manifest from runtime
 			resultState:             resultState,
 			lock:                    &sync.Mutex{},
 		},

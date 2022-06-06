@@ -39,22 +39,29 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 		planedState = nil
 	}
 
-	// 2. get State
+	// 2. get prior state which is stored in kusion_state.json
 	key := rn.state.ResourceKey()
 	priorState := operation.PriorStateResourceIndex[key]
 
-	// 3. compute ActionType of current resource node
-	if priorState == nil {
+	// get the latest resource from runtime
+	liveState, s := operation.Runtime.Read(context.Background(), planedState)
+	if status.IsErr(s) {
+		return s
+	}
+
+	// 3. compute ActionType of current resource node between planState and liveState
+	if liveState == nil {
 		rn.Action = Create
 	} else if planedState == nil {
 		rn.Action = Delete
-	} else if reflect.DeepEqual(priorState, planedState) {
+	} else if reflect.DeepEqual(liveState, planedState) {
 		rn.Action = UnChange
 	} else {
 		rn.Action = Update
 	}
 
 	if operation.OperationType == Preview {
+		// TODO: shall we store the prior,plan and live state to do 3-way diff?
 		fillResponseChangeSteps(operation, rn, priorState, planedState)
 		return nil
 	}
@@ -73,8 +80,8 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) applyResource(operation *Operation, priorState *models.Resource, planedState *models.Resource) status.Status {
-	log.Infof("PriorAttributes and PlanAttributes are not equal. operation:%v, prior:%v, plan:%v", rn.Action,
+func (rn *ResourceNode) applyResource(operation *Operation, priorState, planedState *models.Resource) status.Status {
+	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action,
 		jsonUtil.Marshal2String(priorState), jsonUtil.Marshal2String(planedState))
 
 	var res *models.Resource
@@ -122,6 +129,7 @@ func NewResourceNode(key string, state *models.Resource, action ActionType) *Res
 	return &ResourceNode{BaseNode: BaseNode{ID: key}, Action: action, state: state}
 }
 
+// save change steps in DAG walking order so that we can preview a full applying list
 func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan interface{}) {
 	defer operation.lock.Unlock()
 	operation.lock.Lock()
