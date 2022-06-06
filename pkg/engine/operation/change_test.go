@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	TestChangeStepOpCreate   = NewChangeStep("id", Create, nil, nil)
-	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil)
-	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil)
-	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil)
+	TestChangeStepOpCreate   = NewChangeStep("id", Create, nil, nil, nil)
+	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil, nil)
+	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil, nil)
+	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil, nil)
 	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
@@ -128,10 +128,10 @@ func TestChangeStep_Diff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cs := &ChangeStep{
-				ID:     tt.fields.ID,
-				Action: tt.fields.Op,
-				Old:    tt.fields.Old,
-				New:    tt.fields.New,
+				ID:       tt.fields.ID,
+				Action:   tt.fields.Op,
+				Original: tt.fields.Old,
+				Modified: tt.fields.New,
 			}
 			got, err := cs.Diff()
 			if (err != nil) != tt.wantErr {
@@ -140,59 +140,6 @@ func TestChangeStep_Diff(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("ChangeStep.Diff() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNewChangeStep(t *testing.T) {
-	type args struct {
-		id  string
-		op  ActionType
-		old interface{}
-		new interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want *ChangeStep
-	}{
-		{
-			name: "t1",
-			args: args{
-				id:  "id",
-				op:  Create,
-				old: nil,
-				new: nil,
-			},
-			want: &ChangeStep{
-				ID:     "id",
-				Action: Create,
-				Old:    nil,
-				New:    nil,
-			},
-		},
-		{
-			name: "t2",
-			args: args{
-				id:  "id[0]",
-				op:  Create,
-				old: nil,
-				new: nil,
-			},
-			want: &ChangeStep{
-				ID:     "id[0]",
-				Action: Create,
-				Old:    nil,
-				New:    nil,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewChangeStep(tt.args.id, tt.args.op, tt.args.old, tt.args.new); !reflect.DeepEqual(got,
-				tt.want) {
-				t.Errorf("NewChangeStep() = %v, want %v", got, tt.want)
 			}
 		})
 	}

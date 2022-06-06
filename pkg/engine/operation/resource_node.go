@@ -44,7 +44,7 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	priorState := operation.PriorStateResourceIndex[key]
 
 	// get the latest resource from runtime
-	liveState, s := operation.Runtime.Read(context.Background(), planedState)
+	liveState, s := operation.Runtime.Read(context.Background(), priorState)
 	if status.IsErr(s) {
 		return s
 	}
@@ -61,8 +61,7 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	}
 
 	if operation.OperationType == Preview {
-		// TODO: shall we store the prior,plan and live state to do 3-way diff?
-		fillResponseChangeSteps(operation, rn, priorState, planedState)
+		fillResponseChangeSteps(operation, rn, priorState, planedState, liveState)
 		return nil
 	}
 	// 4. apply
@@ -130,7 +129,7 @@ func NewResourceNode(key string, state *models.Resource, action ActionType) *Res
 }
 
 // save change steps in DAG walking order so that we can preview a full applying list
-func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan interface{}) {
+func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan, live interface{}) {
 	defer operation.lock.Unlock()
 	operation.lock.Lock()
 
@@ -145,7 +144,7 @@ func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan
 		order.ChangeSteps = make(map[string]*ChangeStep)
 	}
 	order.StepKeys = append(order.StepKeys, rn.ID)
-	order.ChangeSteps[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan)
+	order.ChangeSteps[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan, live)
 }
 
 var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
