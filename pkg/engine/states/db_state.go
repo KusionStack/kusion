@@ -27,6 +27,8 @@ func init() {
 	AddToBackends("db", NewDBState)
 }
 
+var _ StateStorage = &DBState{}
+
 func NewDBState() StateStorage {
 	result := &DBState{}
 	return result

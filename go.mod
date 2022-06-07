@@ -41,7 +41,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/pterm/pterm v0.12.41
+	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
 	github.com/pulumi/pulumi/sdk/v3 v3.24.0
 	github.com/sergi/go-diff v1.2.0
 	github.com/spf13/cobra v1.1.1

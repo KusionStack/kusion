@@ -11,9 +11,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
+	"github.com/zclconf/go-cty/cty"
 )
 
 var ErrS3NoExist = errors.New("s3: key not exist")
+
+var _ StateStorage = &S3State{}
 
 type S3State struct {
 	sess       *session.Session
@@ -36,6 +39,18 @@ func NewS3State(endPoint, accessKeyID, accessKeySecret, bucketName string, regio
 		bucketName: bucketName,
 	}
 	return s3State, nil
+}
+
+// ConfigSchema returns a description of the expected configuration
+// structure for the receiving backend.
+func (s *S3State) ConfigSchema() cty.Type {
+	return cty.Type{}
+}
+
+// Configure uses the provided configuration to set configuration fields
+// within the S3State backend.
+func (s *S3State) Configure(obj cty.Value) error {
+	return nil
 }
 
 func (s *S3State) Apply(state *State) error {

@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -21,6 +23,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -112,13 +115,14 @@ func mockCompileWithSpinner() {
 }
 
 func Test_preview(t *testing.T) {
+	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
 	t.Run("preview success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
 		o := NewApplyOptions()
-		_, err := preview(o, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
+		_, err := Preview(o, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack, os.Stdout)
 		assert.Nil(t, err)
 	})
 }
@@ -209,6 +213,7 @@ func newSA(name string) models.Resource {
 }
 
 func Test_apply(t *testing.T) {
+	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
 	t.Run("dry run", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
@@ -228,7 +233,7 @@ func Test_apply(t *testing.T) {
 		changes := operation.NewChanges(project, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
-		err := apply(o, planResources, changes)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply success", func(t *testing.T) {
@@ -257,7 +262,7 @@ func Test_apply(t *testing.T) {
 		}
 		changes := operation.NewChanges(project, stack, order)
 
-		err := apply(o, planResources, changes)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply failed", func(t *testing.T) {
@@ -280,7 +285,7 @@ func Test_apply(t *testing.T) {
 		}
 		changes := operation.NewChanges(project, stack, order)
 
-		err := apply(o, planResources, changes)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }
