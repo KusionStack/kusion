@@ -141,9 +141,10 @@ func preview(o *ApplyOptions, planResources *models.Spec,
 
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
-			Runtime:      kubernetesRuntime,
-			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			Order:        &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
+			OperationType: operation.ApplyPreview,
+			Runtime:       kubernetesRuntime,
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Order:         &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
 		},
 	}
 
@@ -157,7 +158,7 @@ func preview(o *ApplyOptions, planResources *models.Spec,
 			Stack:    stack.Name,
 			Manifest: planResources,
 		},
-	}, operation.Apply)
+	})
 	if status.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}

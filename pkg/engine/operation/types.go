@@ -6,6 +6,7 @@ type Type int64
 const (
 	UndefinedOperation Type = iota // invalidate value
 	Apply
-	Preview
+	ApplyPreview
 	Destroy
+	DestroyPreview
 )

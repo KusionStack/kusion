@@ -143,7 +143,7 @@ func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource
 
 func mockOperationPreview() {
 	monkey.Patch((*operation.Operation).Preview,
-		func(*operation.Operation, *operation.PreviewRequest, operation.Type) (rsp *operation.PreviewResponse, s status.Status) {
+		func(*operation.Operation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
 				Order: &operation.ChangeOrder{
 					StepKeys: []string{sa1.ID},

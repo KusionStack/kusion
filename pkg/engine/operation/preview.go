@@ -27,7 +27,7 @@ type PreviewResponse struct {
 	Order *ChangeOrder
 }
 
-func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *PreviewResponse, s status.Status) {
+func (o *Operation) Preview(request *PreviewRequest) (rsp *PreviewResponse, s status.Status) {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Error("preview panic:%v", e)
@@ -56,11 +56,11 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 	// 1. init & build Indexes
 	priorState, resultState = initStates(o.StateStorage, &request.Request)
 
-	switch operation {
-	case Apply:
+	switch o.OperationType {
+	case ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
 		graph, s = NewApplyGraph(request.Manifest, priorState)
-	case Destroy:
+	case DestroyPreview:
 		resources := request.Request.Manifest.Resources
 		priorStateResourceIndex = resources.Index()
 		graph, s = NewDestroyGraph(resources)
@@ -74,7 +74,7 @@ func (o *Operation) Preview(request *PreviewRequest, operation Type) (rsp *Previ
 
 	previewOperation := &PreviewOperation{
 		Operation: Operation{
-			OperationType:           Preview,
+			OperationType:           o.OperationType,
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
