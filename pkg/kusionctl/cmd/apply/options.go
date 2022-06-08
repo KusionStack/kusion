@@ -106,10 +106,10 @@ func (o *ApplyOptions) Run() error {
 					return err
 				}
 				changes.OutputDiff(target)
+			} else {
+				fmt.Println("Operation apply canceled")
+				return nil
 			}
-
-			fmt.Println("Operation apply canceled")
-			return nil
 		}
 	}
 
