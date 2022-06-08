@@ -11,16 +11,16 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/third_party/pulumi/gitutil"
+	"kusionstack.io/kusion/third_party/pulumi/workspace"
 )
 
 // These are variables instead of constants in order that they can be set using the `-X`
@@ -238,7 +238,7 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 			if os.IsNotExist(err) {
 				return TemplateRepository{}, newTemplateNotFoundError(templateDir, templateName)
 			}
-			contract.IgnoreError(err)
+			log.Warnf("Explicitly ignoring and discarding error: %v", err)
 		}
 	}
 
@@ -297,7 +297,9 @@ func GetTemplateDir(subDir string) (string, error) {
 // newExistingFilesError returns a new error from a list of existing file names
 // that would be overwritten.
 func newExistingFilesError(existing []string) error {
-	contract.Assert(len(existing) > 0)
+	if len(existing) == 0 {
+		return errors.New("no existing files")
+	}
 
 	message := "creating this template will make changes to existing files:\n"
 
@@ -318,7 +320,7 @@ func newTemplateNotFoundError(templateDir string, templateName string) error {
 	// Attempt to read the directory to offer suggestions.
 	infos, err := ioutil.ReadDir(templateDir)
 	if err != nil {
-		contract.IgnoreError(err)
+		log.Errorf("ioutil.ReadDir(%s) error: %v", templateDir, err)
 		return errors.New(message)
 	}
 
@@ -431,8 +433,12 @@ func CopyTemplateFiles(
 // walkFiles is a helper that walks the directories/files in a source directory
 // and performs an action for each item.
 func walkFiles(sourceDir string, destDir string, force bool, configMap map[string]interface{}) error {
-	contract.Require(sourceDir != "", "sourceDir")
-	contract.Require(destDir != "", "destDir")
+	if sourceDir == "" {
+		return errors.New("sourceDir cannot be empty")
+	}
+	if destDir == "" {
+		return errors.New("destDir cannot be empty")
+	}
 
 	// sub dir, eg: template/prod
 	if err := mkdirWithForce(destDir, force); err != nil {
@@ -550,8 +556,11 @@ func writeAllBytes(filename string, bytes []byte, overwrite bool, mode os.FileMo
 	if err != nil {
 		return err
 	}
-	defer contract.IgnoreClose(f)
-
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Warnf("Explicitly ignoring and discarding error: %v", err)
+		}
+	}()
 	_, err = f.Write(bytes)
 	return err
 }

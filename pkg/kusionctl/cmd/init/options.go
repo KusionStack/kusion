@@ -9,8 +9,8 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
-	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/scaffold"
 )
 
@@ -77,7 +77,9 @@ func (o *InitOptions) Run() error {
 		return err
 	}
 	defer func() {
-		contract.IgnoreError(repo.Delete())
+		if err := repo.Delete(); err != nil {
+			log.Warnf("Explicitly ignoring and discarding error: %v", err)
+		}
 	}()
 
 	// List the templates from the repo.
