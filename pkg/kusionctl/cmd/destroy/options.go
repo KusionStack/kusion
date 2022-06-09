@@ -127,9 +127,10 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
-			Runtime:      kubernetesRuntime,
-			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			Order:        &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
+			OperationType: operation.DestroyPreview,
+			Runtime:       kubernetesRuntime,
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Order:         &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
 		},
 	}
 
@@ -143,7 +144,7 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 			Stack:    stack.Name,
 			Manifest: planResources,
 		},
-	}, operation.Destroy)
+	})
 	if status.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}

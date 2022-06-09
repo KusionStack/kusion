@@ -29,7 +29,7 @@ type ChangeStep struct {
 // TODO: 3-way diff
 func (cs *ChangeStep) Diff() (string, error) {
 	// Generate diff report
-	diffReport, err := diffToReport(cs.Original, cs.Modified)
+	diffReport, err := diffToReport(cs.Current, cs.Modified)
 	if err != nil {
 		log.Errorf("failed to compute diff with ChangeStep ID: %s", cs.ID)
 		return "", err

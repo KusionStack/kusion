@@ -29,6 +29,10 @@ var (
 		ID:         "fake-id",
 		Attributes: FakeService,
 	}
+	FakeResourceState2 = models.Resource{
+		ID:         "fake-id-2",
+		Attributes: FakeService,
+	}
 )
 
 var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
@@ -40,6 +44,9 @@ func (f *fakePreviewRuntime) Apply(ctx context.Context, priorState, planState *m
 }
 
 func (f *fakePreviewRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+	if resourceState.ResourceKey() == "fake-id" {
+		return nil, nil
+	}
 	return resourceState, nil
 }
 
@@ -65,8 +72,7 @@ func TestOperation_Preview(t *testing.T) {
 		lock                    *sync.Mutex
 	}
 	type args struct {
-		request   *PreviewRequest
-		operation Type
+		request *PreviewRequest
 	}
 	tests := []struct {
 		name    string
@@ -78,9 +84,10 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-apply",
 			fields: fields{
-				Runtime:      &fakePreviewRuntime{},
-				StateStorage: &states.FileSystemState{Path: states.KusionState},
-				Order:        &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
+				OperationType: ApplyPreview,
+				Runtime:       &fakePreviewRuntime{},
+				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				Order:         &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -96,7 +103,6 @@ func TestOperation_Preview(t *testing.T) {
 						},
 					},
 				},
-				operation: Apply,
 			},
 			wantRsp: &PreviewResponse{
 				Order: &ChangeOrder{
@@ -117,9 +123,10 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				Runtime:      &fakePreviewRuntime{},
-				StateStorage: &states.FileSystemState{Path: states.KusionState},
-				Order:        &ChangeOrder{},
+				OperationType: DestroyPreview,
+				Runtime:       &fakePreviewRuntime{},
+				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				Order:         &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -130,23 +137,22 @@ func TestOperation_Preview(t *testing.T) {
 						Operator: "fake-operator",
 						Manifest: &models.Spec{
 							Resources: []models.Resource{
-								FakeResourceState,
+								FakeResourceState2,
 							},
 						},
 					},
 				},
-				operation: Destroy,
 			},
 			wantRsp: &PreviewResponse{
 				Order: &ChangeOrder{
-					StepKeys: []string{"fake-id"},
+					StepKeys: []string{"fake-id-2"},
 					ChangeSteps: map[string]*ChangeStep{
-						"fake-id": {
-							ID:       "fake-id",
+						"fake-id-2": {
+							ID:       "fake-id-2",
 							Action:   Delete,
-							Original: &FakeResourceState,
-							Modified: (*models.Resource)(nil),
-							Current:  &FakeResourceState,
+							Original: &FakeResourceState2,
+							Modified: &FakeResourceState2,
+							Current:  &FakeResourceState2,
 						},
 					},
 				},
@@ -156,9 +162,10 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-empty-models",
 			fields: fields{
-				Runtime:      &fakePreviewRuntime{},
-				StateStorage: &states.FileSystemState{Path: states.KusionState},
-				Order:        &ChangeOrder{},
+				OperationType: ApplyPreview,
+				Runtime:       &fakePreviewRuntime{},
+				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				Order:         &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -166,7 +173,6 @@ func TestOperation_Preview(t *testing.T) {
 						Manifest: nil,
 					},
 				},
-				operation: Apply,
 			},
 			wantRsp: nil,
 			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
@@ -174,9 +180,10 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				Runtime:      &fakePreviewRuntime{},
-				StateStorage: &states.FileSystemState{Path: states.KusionState},
-				Order:        &ChangeOrder{},
+				OperationType: ApplyPreview,
+				Runtime:       &fakePreviewRuntime{},
+				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				Order:         &ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
@@ -197,7 +204,6 @@ func TestOperation_Preview(t *testing.T) {
 						},
 					},
 				},
-				operation: Apply,
 			},
 			wantRsp: nil,
 			wantS:   status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find resource by key:nonexistent-id in models or state."),
@@ -217,7 +223,7 @@ func TestOperation_Preview(t *testing.T) {
 				resultState:             tt.fields.resultState,
 				lock:                    tt.fields.lock,
 			}
-			gotRsp, gotS := o.Preview(tt.args.request, tt.args.operation)
+			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
 				t.Errorf("Operation.Preview() gotRsp = %v, want %v", kdump.FormatN(gotRsp), kdump.FormatN(tt.wantRsp))
 			}

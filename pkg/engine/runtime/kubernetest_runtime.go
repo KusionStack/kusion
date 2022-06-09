@@ -21,6 +21,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
 	"kusionstack.io/kusion/pkg/util/yaml"
 )
@@ -57,34 +58,41 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *mo
 	if err != nil {
 		return nil, status.NewErrorStatus(err)
 	}
+	// Get live state
+	liveState, s := k.Read(ctx, planState)
+	if status.IsErr(s) {
+		return nil, s
+	}
 
-	// original equals to last-applied from annotation, kusion store it in kusion_state.json
-	original := yaml.MergeToOneYAML(priorState.Attributes)
-	// modified equals input content
-	modified := yaml.MergeToOneYAML(planState.Attributes)
-	// get live state
-	liveState, err := resource.Get(ctx, planObj.GetName(), metav1.GetOptions{})
-	if err != nil {
-		return nil, status.NewErrorStatus(err)
-	}
-	// current equals live manifest
-	current := yaml.MergeToOneYAML(liveState.Object)
-	// 3-way json merge patch
-	patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
-	if err != nil {
-		return nil, status.NewErrorStatus(err)
-	}
-	// apply patch
-	patchedObj, err := resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patch, metav1.PatchOptions{
-		FieldManager: "kusion",
-	})
-	if err != nil {
-		return nil, status.NewErrorStatus(err)
+	// LiveState is nil, fall back to create planObj directly
+	if liveState == nil {
+		if _, err = resource.Create(ctx, planObj, metav1.CreateOptions{}); err != nil {
+			return nil, status.NewErrorStatus(err)
+		}
+	} else {
+		// Original equals to last-applied from annotation, kusion store it in kusion_state.json
+		original := ""
+		if priorState != nil {
+			original = json.MustMarshal2String(priorState.Attributes)
+		}
+		// Modified equals input content
+		modified := json.MustMarshal2String(planState.Attributes)
+		// Current equals live manifest
+		current := json.MustMarshal2String(liveState.Attributes)
+		// 3-way json merge patch
+		patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
+		if err != nil {
+			return nil, status.NewErrorStatus(err)
+		}
+		// Apply patch
+		if _, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patch, metav1.PatchOptions{FieldManager: "kusion"}); err != nil {
+			return nil, status.NewErrorStatus(err)
+		}
 	}
 
 	return &models.Resource{
 		ID:         planState.ResourceKey(),
-		Attributes: patchedObj.Object,
+		Attributes: planObj.Object,
 		DependsOn:  planState.DependsOn,
 	}, nil
 }
@@ -105,6 +113,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *models.Reso
 	// Read resource
 	v, err := resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			log.Infof("%s not found, ignore", resourceState.ResourceKey())
+			return nil, nil
+		}
 		return nil, status.NewErrorStatus(err)
 	}
 
