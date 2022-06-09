@@ -6,7 +6,7 @@
 # @global-owner1 and @global-owner2 will be requested for
 # review when someone opens a pull request.
 # * @global-owner1 @global-owner2
-* @elliotxx @howieyuen @SparkYuan @markliby @adohe @chai2010 @ldxdl
+* @elliotxx @howieyuen @SparkYuan @markliby @adohe @KusionStack/go-reviewer
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
