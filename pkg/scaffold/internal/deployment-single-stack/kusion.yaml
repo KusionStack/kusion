@@ -1,7 +1,7 @@
 projectName: my-app
 description: A minimal kusion project of single stack
 quickstart: kusion compile main.k -Y ci-test/settings.yaml
-common:
+projectFields:
   # base/base.k
   - name: ServiceName
     description: service name
