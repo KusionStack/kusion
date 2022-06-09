@@ -23,59 +23,67 @@ var _ ExecutableNode = (*ResourceNode)(nil)
 
 func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	log.Debugf("execute node:%s", rn.ID)
+	if operation.OperationType == Apply {
+		// replace implicit references
+		value := reflect.ValueOf(rn.state.Attributes)
+		_, implicitValue, s := ParseImplicitRef(value, operation.CtxResourceIndex, ImplicitReplaceFun)
+		if status.IsErr(s) {
+			return s
+		}
+		rn.state.Attributes = implicitValue.Interface().(map[string]interface{})
+	}
+
 	// 1. prepare planedState
 	planedState := rn.state
-	if rn.Action != Delete {
-		if operation.OperationType != Preview {
-			// replace implicit references
-			value := reflect.ValueOf(rn.state.Attributes)
-			_, implicitValue, s := ParseImplicitRef(value, operation.CtxResourceIndex, ImplicitReplaceFun)
-			if status.IsErr(s) {
-				return s
-			}
-			rn.state.Attributes = implicitValue.Interface().(map[string]interface{})
-		}
-	} else {
-		planedState = nil
-	}
 
 	// 2. get prior state which is stored in kusion_state.json
 	key := rn.state.ResourceKey()
 	priorState := operation.PriorStateResourceIndex[key]
 
-	// get the latest resource from runtime
-	liveState, s := operation.Runtime.Read(context.Background(), priorState)
+	// 3. get the latest resource from runtime
+	liveState, s := operation.Runtime.Read(context.Background(), planedState)
 	if status.IsErr(s) {
 		return s
 	}
 
-	// 3. compute ActionType of current resource node between planState and liveState
-	if liveState == nil {
-		rn.Action = Create
-	} else if planedState == nil {
+	// 4. compute ActionType of current resource node between planState and liveState
+	switch operation.OperationType {
+	case Destroy, DestroyPreview:
 		rn.Action = Delete
-	} else if reflect.DeepEqual(liveState, planedState) {
-		rn.Action = UnChange
-	} else {
-		rn.Action = Update
+	case Apply, ApplyPreview:
+		if liveState == nil {
+			rn.Action = Create
+		} else if planedState == nil {
+			rn.Action = Delete
+		} else if reflect.DeepEqual(liveState, planedState) { // TODO: need a better comparable func
+			rn.Action = UnChange
+		} else {
+			rn.Action = Update
+		}
+	default:
+		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
 	}
 
-	if operation.OperationType == Preview {
+	// 5. apply or return
+	switch operation.OperationType {
+	case ApplyPreview, DestroyPreview:
 		fillResponseChangeSteps(operation, rn, priorState, planedState, liveState)
-		return nil
-	}
-	// 4. apply
-	switch rn.Action {
-	case Create, Delete, Update:
-		s := rn.applyResource(operation, priorState, planedState)
-		if status.IsErr(s) {
-			return s
+	case Apply, Destroy:
+		switch rn.Action {
+		case Create, Delete, Update:
+			s := rn.applyResource(operation, priorState, planedState)
+			if status.IsErr(s) {
+				return s
+			}
+		case UnChange:
+			log.Infof("PriorAttributes and PlanAttributes are equal.")
+		default:
+			return status.NewErrorStatus(fmt.Errorf("unknown action:%s", rn.Action.PrettyString()))
 		}
-	case UnChange:
-		log.Infof("PriorAttributes and PlanAttributes are equal.")
 	default:
-		return status.NewErrorStatus(fmt.Errorf("unknown op:%s", rn.Action.PrettyString()))
+		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
 	}
+
 	return nil
 }
 
