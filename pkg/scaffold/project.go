@@ -1,6 +1,9 @@
 package scaffold
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // ProjectTemplate is a Kusion project template manifest.
 type ProjectTemplate struct {
@@ -16,13 +19,15 @@ type ProjectTemplate struct {
 	StackTemplates []*StackTemplate `json:"stacks,omitempty" yaml:"stacks,omitempty"`
 }
 
+// StackTemplates contains configuration in stack level
 type StackTemplate struct {
 	// Name is stack name
 	Name string `json:"name" yaml:"name"`
-	// Fields contains all fields wait to be prompt
+	// Fields contains all stack fields definition
 	Fields []*FieldTemplate `json:"fields,omitempty" yaml:"fields,omitempty"`
 }
 
+// FieldTemplate can describe all kinds of type, including primitive and composite.
 type FieldTemplate struct {
 	// Name represents the field name, required
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
@@ -42,6 +47,7 @@ type FieldTemplate struct {
 	Fields []*FieldTemplate `json:"fields,omitempty" yaml:"fields,omitempty"`
 }
 
+// FieldType includes field type that can be unmarshalled directly
 type FieldType string
 
 const (
@@ -55,11 +61,16 @@ const (
 	AnyField    FieldType = "any" // AnyField equal to interface{}
 )
 
+// IsPrimitive indicate the give field is one of StringField, IntField, FloatField, BoolField or not
 func (f FieldType) IsPrimitive() bool {
-	return f == "" || f == StringField || f == IntField || f == FloatField || f == BoolField
+	return f == StringField || f == IntField || f == FloatField || f == BoolField
 }
 
+// RestoreActualValue help to transfer input to actual value according to its type
 func (f *FieldTemplate) RestoreActualValue(input string) (actual interface{}, err error) {
+	if f.Type == "" {
+		return nil, fmt.Errorf("field %s miss type definition", f.Name)
+	}
 	switch f.Type {
 	case IntField:
 		actual, err = strconv.Atoi(input)

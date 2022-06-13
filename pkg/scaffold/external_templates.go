@@ -117,11 +117,7 @@ func LoadTemplate(path string) (Template, error) {
 		Name: filepath.Base(path),
 	}
 	if proj != nil {
-		t.ProjectName = proj.ProjectName
-		t.Description = proj.Description
-		t.Quickstart = proj.Quickstart
-		t.ProjectConfigs = proj.ProjectFields
-		t.StackConfigs = proj.StackTemplates
+		t.ProjectTemplate = proj
 	}
 
 	return t, nil
@@ -132,14 +128,10 @@ type Template struct {
 	Dir  string // The directory containing kusion.yaml.
 	Name string // The name of the template.
 
-	// following fields come from ProjectTemplate
-	ProjectName    string           // The name of the project.
-	Description    string           // Description of the template.
-	Quickstart     string           // Optional text to be displayed after template creation.
-	ProjectConfigs []*FieldTemplate // ProjectConfigs contains configuration in project level
-	StackConfigs   []*StackTemplate // StackConfigs contains configuration in stack level
+	*ProjectTemplate
 }
 
+// RetrieveTemplates retrieves a "template repository" based on the specified name, path, or URL.
 func RetrieveTemplates(templateNamePathOrURL string, online bool) (TemplateRepository, error) {
 	if IsTemplateURL(templateNamePathOrURL) {
 		return retrieveURLTemplates(templateNamePathOrURL, online)
@@ -369,12 +361,18 @@ func ValidateProjectName(s string) error {
 	return nil
 }
 
+// TemplateConfig contains all config items to render the chosen project
+type TemplateConfig struct {
+	// ProjectName is project name, as well as root dir name
+	ProjectName string `json:"projectName"`
+	// ProjectConfig contains configuration in project level
+	ProjectConfig map[string]interface{} `json:"projectConfig,omitempty"`
+	// StacksConfig contains configuration in stack level, can be multi-stack or single-stack
+	StacksConfig map[string]map[string]interface{} `json:"stacksConfig,omitempty"`
+}
+
 // CopyTemplateFiles does the actual copy operation to a destination directory.
-func CopyTemplateFiles(
-	sourceDir, destDir string, force bool,
-	projectName string, projectConfigs map[string]interface{},
-	stack2Configs map[string]map[string]interface{},
-) error {
+func CopyTemplateFiles(sourceDir, destDir string, force bool, tc *TemplateConfig) error {
 	// Create the destination directory.
 	err := mkdirWithForce(destDir, force)
 	if err != nil {
@@ -392,12 +390,12 @@ func CopyTemplateFiles(
 		if info.IsDir() {
 			// base dir or stack dir
 			// stack config can override project config, use project configs as default
-			configs := make(map[string]interface{}, len(projectConfigs))
-			for k, v := range projectConfigs {
+			configs := make(map[string]interface{}, len(tc.ProjectConfig))
+			for k, v := range tc.ProjectConfig {
 				configs[k] = v
 			}
 			if projectstack.IsStack(source) {
-				for stackName, stackConfigs := range stack2Configs {
+				for stackName, stackConfigs := range tc.StacksConfig {
 					dest = filepath.Join(destDir, stackName)
 					// merge and override project config
 					for k, v := range stackConfigs {
@@ -409,17 +407,17 @@ func CopyTemplateFiles(
 				}
 			} else {
 				if projectstack.IsProject(source) {
-					dest = filepath.Join(destDir, projectName)
+					dest = filepath.Join(destDir, tc.ProjectName)
 				}
 				// stack dir nested in 3rd level or even deeper
 				// eg: meta_app/deployed_unit/stack_dir
-				if err = CopyTemplateFiles(source, dest, force, projectName, projectConfigs, stack2Configs); err != nil {
+				if err = CopyTemplateFiles(source, dest, force, tc); err != nil {
 					return err
 				}
 			}
 		} else {
 			// project files. eg: project.yaml, README.md
-			err = doTemplate(info, source, dest, force, projectConfigs)
+			err = doTemplate(info, source, dest, force, tc.ProjectConfig)
 			if err != nil {
 				return err
 			}

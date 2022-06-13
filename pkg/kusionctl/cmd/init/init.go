@@ -58,5 +58,8 @@ func NewCmdInit() *cobra.Command {
 	cmd.Flags().BoolVar(
 		&o.Yes, "yes", false,
 		i18n.T("Skip prompts and proceed with default values"))
+	cmd.Flags().StringVar(
+		&o.CustomParamsJSON, "custom-params", "",
+		i18n.T("Custom params in JSON string; if not empty, kusion will skip prompt process and use it as template default value"))
 	return cmd
 }
