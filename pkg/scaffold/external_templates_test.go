@@ -34,7 +34,7 @@ var (
 		ProjectName: "my-app",
 		Description: "A minimal kusion project of single stack",
 		Quickstart:  "kusion compile main.k -Y ci-test/settings.yaml",
-		CommonConfigs: []*FieldTemplate{
+		ProjectConfigs: []*FieldTemplate{
 			{
 				Name:        "ServiceName",
 				Description: "service name",
@@ -252,7 +252,7 @@ func TestCopyTemplateFiles(t *testing.T) {
 	}()
 	// projectConfigs
 	projectConfigs := make(map[string]interface{})
-	for _, f := range localTemplate.CommonConfigs {
+	for _, f := range localTemplate.ProjectConfigs {
 		projectConfigs[f.Name] = f.Default
 	}
 	// stack2Configs

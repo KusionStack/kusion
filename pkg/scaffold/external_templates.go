@@ -120,7 +120,7 @@ func LoadTemplate(path string) (Template, error) {
 		t.ProjectName = proj.ProjectName
 		t.Description = proj.Description
 		t.Quickstart = proj.Quickstart
-		t.CommonConfigs = proj.CommonTemplates
+		t.ProjectConfigs = proj.ProjectFields
 		t.StackConfigs = proj.StackTemplates
 	}
 
@@ -133,11 +133,11 @@ type Template struct {
 	Name string // The name of the template.
 
 	// following fields come from ProjectTemplate
-	ProjectName   string           // The name of the project.
-	Description   string           // Description of the template.
-	Quickstart    string           // Optional text to be displayed after template creation.
-	CommonConfigs []*FieldTemplate // CommonConfigs contains configuration in stack level
-	StackConfigs  []*StackTemplate // StackConfigs contains configuration in stack level
+	ProjectName    string           // The name of the project.
+	Description    string           // Description of the template.
+	Quickstart     string           // Optional text to be displayed after template creation.
+	ProjectConfigs []*FieldTemplate // ProjectConfigs contains configuration in project level
+	StackConfigs   []*StackTemplate // StackConfigs contains configuration in stack level
 }
 
 func RetrieveTemplates(templateNamePathOrURL string, online bool) (TemplateRepository, error) {

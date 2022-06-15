@@ -128,7 +128,7 @@ func (o *InitOptions) Run() error {
 
 	projectConfigs := map[string]interface{}{}
 	// prompt user-defined common configs which is project level
-	for _, f := range template.CommonConfigs {
+	for _, f := range template.ProjectConfigs {
 		projectConfigs[f.Name] = f.Default
 		// we don't prompt non-primitive types, such as: array and struct
 		if !f.Type.IsPrimitive() || o.Yes {
