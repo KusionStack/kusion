@@ -10,9 +10,12 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/google/uuid"
+	"github.com/zclconf/go-cty/cty"
 )
 
 var ErrOSSNoExist = errors.New("oss: key not exist")
+
+var _ StateStorage = &OssState{}
 
 type OssState struct {
 	bucket *oss.Bucket
@@ -34,6 +37,18 @@ func NewOSSState(endPoint, accessKeyID, accessKeySecret, bucketName string) (*Os
 		bucket: ossBucket,
 	}
 	return ossState, nil
+}
+
+// ConfigSchema returns a description of the expected configuration
+// structure for the receiving backend.
+func (s *OssState) ConfigSchema() cty.Type {
+	return cty.Type{}
+}
+
+// Configure uses the provided configuration to set configuration fields
+// within the OssState backend.
+func (s *OssState) Configure(obj cty.Value) error {
+	return nil
 }
 
 func (s *OssState) Apply(state *State) error {
