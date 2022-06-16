@@ -1,8 +1,10 @@
-package operation
+package models
 
 import (
 	"reflect"
 	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
@@ -11,10 +13,10 @@ import (
 )
 
 var (
-	TestChangeStepOpCreate   = NewChangeStep("id", Create, nil, nil)
-	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil)
-	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil)
-	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil)
+	TestChangeStepOpCreate   = NewChangeStep("id", types.Create, nil, nil, nil)
+	TestChangeStepOpDelete   = NewChangeStep("id", types.Delete, nil, nil, nil)
+	TestChangeStepOpUpdate   = NewChangeStep("id", types.Update, nil, nil, nil)
+	TestChangeStepOpUnChange = NewChangeStep("id", types.UnChange, nil, nil, nil)
 	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
@@ -27,27 +29,27 @@ var (
 func TestOpType_Ing(t *testing.T) {
 	tests := []struct {
 		name string
-		op   ActionType
+		op   types.ActionType
 		want string
 	}{
 		{
 			name: "t1",
-			op:   Create,
+			op:   types.Create,
 			want: "Creating",
 		},
 		{
 			name: "t2",
-			op:   Delete,
+			op:   types.Delete,
 			want: "Deleting",
 		},
 		{
 			name: "t3",
-			op:   Update,
+			op:   types.Update,
 			want: "Updating",
 		},
 		{
 			name: "t4",
-			op:   UnChange,
+			op:   types.UnChange,
 			want: "Unchanged",
 		},
 	}
@@ -63,28 +65,28 @@ func TestOpType_Ing(t *testing.T) {
 func TestOpType_PrettyString(t *testing.T) {
 	tests := []struct {
 		name string
-		op   ActionType
+		op   types.ActionType
 		want string
 	}{
 		{
 			name: "t1",
-			op:   Create,
-			want: pretty.Green(Create.Ing()),
+			op:   types.Create,
+			want: pretty.Green(types.Create.Ing()),
 		},
 		{
 			name: "t2",
-			op:   Delete,
-			want: pretty.Red(Delete.Ing()),
+			op:   types.Delete,
+			want: pretty.Red(types.Delete.Ing()),
 		},
 		{
 			name: "t3",
-			op:   Update,
-			want: pretty.Blue(Update.Ing()),
+			op:   types.Update,
+			want: pretty.Blue(types.Update.Ing()),
 		},
 		{
 			name: "t4",
-			op:   UnChange,
-			want: pretty.Gray(UnChange.Ing()),
+			op:   types.UnChange,
+			want: pretty.Gray(types.UnChange.Ing()),
 		},
 	}
 	for _, tt := range tests {
@@ -99,7 +101,7 @@ func TestOpType_PrettyString(t *testing.T) {
 func TestChangeStep_Diff(t *testing.T) {
 	type fields struct {
 		ID  string
-		Op  ActionType
+		Op  types.ActionType
 		Old interface{}
 		New interface{}
 	}
@@ -113,7 +115,7 @@ func TestChangeStep_Diff(t *testing.T) {
 			name: "t1",
 			fields: fields{
 				ID:  "id",
-				Op:  Create,
+				Op:  types.Create,
 				Old: nil,
 				New: nil,
 			},
@@ -128,10 +130,10 @@ func TestChangeStep_Diff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cs := &ChangeStep{
-				ID:     tt.fields.ID,
-				Action: tt.fields.Op,
-				Old:    tt.fields.Old,
-				New:    tt.fields.New,
+				ID:       tt.fields.ID,
+				Action:   tt.fields.Op,
+				Original: tt.fields.Old,
+				Modified: tt.fields.New,
 			}
 			got, err := cs.Diff()
 			if (err != nil) != tt.wantErr {
@@ -140,59 +142,6 @@ func TestChangeStep_Diff(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("ChangeStep.Diff() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNewChangeStep(t *testing.T) {
-	type args struct {
-		id  string
-		op  ActionType
-		old interface{}
-		new interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want *ChangeStep
-	}{
-		{
-			name: "t1",
-			args: args{
-				id:  "id",
-				op:  Create,
-				old: nil,
-				new: nil,
-			},
-			want: &ChangeStep{
-				ID:     "id",
-				Action: Create,
-				Old:    nil,
-				New:    nil,
-			},
-		},
-		{
-			name: "t2",
-			args: args{
-				id:  "id[0]",
-				op:  Create,
-				old: nil,
-				new: nil,
-			},
-			want: &ChangeStep{
-				ID:     "id[0]",
-				Action: Create,
-				Old:    nil,
-				New:    nil,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewChangeStep(tt.args.id, tt.args.op, tt.args.old, tt.args.new); !reflect.DeepEqual(got,
-				tt.want) {
-				t.Errorf("NewChangeStep() = %v, want %v", got, tt.want)
 			}
 		})
 	}

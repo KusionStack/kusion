@@ -9,6 +9,11 @@ import (
 	"sync"
 	"testing"
 
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"bou.ke/monkey"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +26,7 @@ import (
 
 func Test_validateRequest(t *testing.T) {
 	type args struct {
-		request *Request
+		request *opsmodels.Request
 	}
 	tests := []struct {
 		name string
@@ -31,7 +36,7 @@ func Test_validateRequest(t *testing.T) {
 		{
 			name: "t1",
 			args: args{
-				request: &Request{},
+				request: &opsmodels.Request{},
 			},
 			want: status.NewErrorStatusWithMsg(status.InvalidArgument,
 				"request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
@@ -39,8 +44,8 @@ func Test_validateRequest(t *testing.T) {
 		{
 			name: "t2",
 			args: args{
-				request: &Request{
-					Manifest: &models.Spec{Resources: []models.Resource{}},
+				request: &opsmodels.Request{
+					Spec: &models.Spec{Resources: []models.Resource{}},
 				},
 			},
 			want: nil,
@@ -57,14 +62,14 @@ func Test_validateRequest(t *testing.T) {
 
 func TestOperation_Apply(t *testing.T) {
 	type fields struct {
-		OperationType           Type
+		OperationType           types.OperationType
 		StateStorage            states.StateStorage
 		CtxResourceIndex        map[string]*models.Resource
 		PriorStateResourceIndex map[string]*models.Resource
 		StateResourceIndex      map[string]*models.Resource
-		Order                   *ChangeOrder
+		Order                   *opsmodels.ChangeOrder
 		Runtime                 runtime.Runtime
-		MsgCh                   chan Message
+		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
 	}
@@ -113,17 +118,17 @@ func TestOperation_Apply(t *testing.T) {
 		{
 			name: "apply test",
 			fields: fields{
-				OperationType: Apply,
+				OperationType: types.Apply,
 				StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
 				Runtime:       &runtime.KubernetesRuntime{},
-				MsgCh:         make(chan Message, 5),
+				MsgCh:         make(chan opsmodels.Message, 5),
 			},
-			args: args{applyRequest: &ApplyRequest{Request{
+			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
 				Tenant:   "fakeTenant",
 				Stack:    "fakeStack",
 				Project:  "fakeProject",
 				Operator: "faker",
-				Manifest: mf,
+				Spec:     mf,
 			}}},
 			wantRsp: &ApplyResponse{rs},
 			wantSt:  nil,
@@ -132,25 +137,28 @@ func TestOperation_Apply(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o := &Operation{
+			o := &opsmodels.Operation{
 				OperationType:           tt.fields.OperationType,
 				StateStorage:            tt.fields.StateStorage,
 				CtxResourceIndex:        tt.fields.CtxResourceIndex,
 				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
 				StateResourceIndex:      tt.fields.StateResourceIndex,
-				Order:                   tt.fields.Order,
+				ChangeOrder:             tt.fields.Order,
 				Runtime:                 tt.fields.Runtime,
 				MsgCh:                   tt.fields.MsgCh,
-				resultState:             tt.fields.resultState,
-				lock:                    tt.fields.lock,
+				ResultState:             tt.fields.resultState,
+				Lock:                    tt.fields.lock,
+			}
+			ao := &ApplyOperation{
+				Operation: *o,
 			}
 
-			monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
-				o.resultState = rs
+			monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+				o.ResultState = rs
 				return nil
 			})
 
-			gotRsp, gotSt := o.Apply(tt.args.applyRequest)
+			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)
 			assert.Equalf(t, tt.wantRsp.State.Stack, gotRsp.State.Stack, "Apply(%v)", tt.args.applyRequest)
 			assert.Equalf(t, tt.wantSt, gotSt, "Apply(%v)", tt.args.applyRequest)
 		})

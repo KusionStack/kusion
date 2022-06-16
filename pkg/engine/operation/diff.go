@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"kusionstack.io/kusion/pkg/engine/operation/utils"
+
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
 	"github.com/gonvenience/wrap"
-	"github.com/gonvenience/ytbx"
 	"github.com/pkg/errors"
 	yamlv3 "gopkg.in/yaml.v3"
 
@@ -15,7 +18,7 @@ import (
 	"kusionstack.io/kusion/pkg/kusionctl/cmd/diff"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
-	jsonUtil "kusionstack.io/kusion/pkg/util/json"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/third_party/dyff"
 )
 
@@ -24,7 +27,7 @@ type Diff struct {
 }
 
 type DiffRequest struct {
-	Request
+	opsmodels.Request
 }
 
 func (d *Diff) Diff(request *DiffRequest) (string, error) {
@@ -37,10 +40,10 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	}()
 
 	util.CheckNotNil(request, "request is nil")
-	util.CheckNotNil(request.Manifest, "resource is nil")
+	util.CheckNotNil(request.Spec, "resource is nil")
 
 	// Get plan state resources
-	plan := request.Manifest
+	plan := request.Spec
 
 	// Get the latest state resources
 	latestState, err := d.StateStorage.GetLatestState(
@@ -54,29 +57,29 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 		return "", errors.Wrap(err, "GetLatestState failed")
 	}
 	if latestState == nil {
-		log.Infof("can't find states by request: %v.", jsonUtil.MustMarshal2String(request))
+		log.Infof("can't find states by request: %v.", jsonutil.MustMarshal2String(request))
 	}
 	// Get diff result
 	return DiffWithRequestResourceAndState(plan, latestState)
 }
 
 func DiffWithRequestResourceAndState(plan *models.Spec, latest *states.State) (string, error) {
-	planString := jsonUtil.MustMarshal2String(plan.Resources)
+	planString := jsonutil.MustMarshal2String(plan.Resources)
 	if latest == nil {
 		return DiffReport("", planString, diff.OutputHuman)
 	} else {
 		latestResources := latest.Resources
-		priorString := jsonUtil.MustMarshal2String(latestResources)
+		priorString := jsonutil.MustMarshal2String(latestResources)
 		return DiffReport(priorString, planString, diff.OutputHuman)
 	}
 }
 
 func DiffReport(prior, plan, mode string) (string, error) {
-	from, err := LoadFile(prior, "Last State")
+	from, err := utils.LoadFile(prior, "Last State")
 	if err != nil {
 		return "", err
 	}
-	to, err := LoadFile(plan, "Request State")
+	to, err := utils.LoadFile(plan, "Request State")
 	if err != nil {
 		return "", err
 	}
@@ -105,26 +108,6 @@ func buildReport(mode string, report dyff.Report) (string, error) {
 	default:
 		return "", fmt.Errorf("invalid output style `%s`", mode)
 	}
-}
-
-// LoadFile processes the provided input location to load it as one of the
-// supported document formats, or plain text if nothing else works.
-func LoadFile(yaml, location string) (ytbx.InputFile, error) {
-	var (
-		documents []*yamlv3.Node
-		data      []byte
-		err       error
-	)
-
-	data = []byte(yaml)
-	if documents, err = ytbx.LoadDocuments(data); err != nil {
-		return ytbx.InputFile{}, wrap.Errorf(err, "unable to parse data %v", data)
-	}
-
-	return ytbx.InputFile{
-		Location:  location,
-		Documents: documents,
-	}, nil
 }
 
 // WriteReport writes a human-readable report to the provided writer

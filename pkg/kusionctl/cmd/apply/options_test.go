@@ -11,6 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
@@ -19,7 +24,6 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -65,7 +69,7 @@ func TestApplyOptions_Run(t *testing.T) {
 		mockCompileWithSpinner()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
-		mockOperationApply(operation.Success)
+		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
 		o.DryRun = true
@@ -150,29 +154,29 @@ func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource
 }
 
 func mockOperationPreview() {
-	monkey.Patch((*operation.Operation).Preview,
-		func(*operation.Operation, *operation.PreviewRequest, operation.Type) (rsp *operation.PreviewResponse, s status.Status) {
+	monkey.Patch((*operation.PreviewOperation).Preview,
+		func(*operation.PreviewOperation, *operation.PreviewRequest, types.OperationType) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
-				Order: &operation.ChangeOrder{
+				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-					ChangeSteps: map[string]*operation.ChangeStep{
+					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						sa1.ID: {
-							ID:     sa1.ID,
-							Action: operation.Create,
-							Old:    nil,
-							New:    &sa1,
+							ID:       sa1.ID,
+							Action:   types.Create,
+							Original: nil,
+							Modified: &sa1,
 						},
 						sa2.ID: {
-							ID:     sa2.ID,
-							Action: operation.UnChange,
-							Old:    &sa2,
-							New:    &sa2,
+							ID:       sa2.ID,
+							Action:   types.UnChange,
+							Original: &sa2,
+							Modified: &sa2,
 						},
 						sa3.ID: {
-							ID:     sa3.ID,
-							Action: operation.Undefined,
-							Old:    &sa3,
-							New:    &sa1,
+							ID:       sa3.ID,
+							Action:   types.Undefined,
+							Original: &sa3,
+							Modified: &sa1,
 						},
 					},
 				},
@@ -214,18 +218,18 @@ func Test_apply(t *testing.T) {
 		mockNewKubernetesRuntime()
 
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
-		order := &operation.ChangeOrder{
+		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*operation.ChangeStep{
+			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    sa1,
+					ID:       sa1.ID,
+					Action:   types.Create,
+					Original: nil,
+					Modified: sa1,
 				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(project, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
 		err := apply(o, planResources, changes)
@@ -234,28 +238,28 @@ func Test_apply(t *testing.T) {
 	t.Run("apply success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
-		mockOperationApply(operation.Success)
+		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa1, sa2}}
-		order := &operation.ChangeOrder{
+		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
-			ChangeSteps: map[string]*operation.ChangeStep{
+			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    &sa1,
+					ID:       sa1.ID,
+					Action:   types.Create,
+					Original: nil,
+					Modified: &sa1,
 				},
 				sa2.ID: {
-					ID:     sa2.ID,
-					Action: operation.UnChange,
-					Old:    &sa2,
-					New:    &sa2,
+					ID:       sa2.ID,
+					Action:   types.UnChange,
+					Original: &sa2,
+					Modified: &sa2,
 				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(project, stack, order)
 
 		err := apply(o, planResources, changes)
 		assert.Nil(t, err)
@@ -263,50 +267,50 @@ func Test_apply(t *testing.T) {
 	t.Run("apply failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
-		mockOperationApply(operation.Failed)
+		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
-		order := &operation.ChangeOrder{
+		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*operation.ChangeStep{
+			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
-					ID:     sa1.ID,
-					Action: operation.Create,
-					Old:    nil,
-					New:    &sa1,
+					ID:       sa1.ID,
+					Action:   types.Create,
+					Original: nil,
+					Modified: &sa1,
 				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(project, stack, order)
 
 		err := apply(o, planResources, changes)
 		assert.NotNil(t, err)
 	})
 }
 
-func mockOperationApply(res operation.OpResult) {
-	monkey.Patch((*operation.Operation).Apply,
-		func(o *operation.Operation, request *operation.ApplyRequest) (*operation.ApplyResponse, status.Status) {
+func mockOperationApply(res opsmodels.OpResult) {
+	monkey.Patch((*operation.ApplyOperation).Apply,
+		func(o *operation.ApplyOperation, request *operation.ApplyRequest) (*operation.ApplyResponse, status.Status) {
 			var err error
-			if res == operation.Failed {
+			if res == opsmodels.Failed {
 				err = errors.New("mock error")
 			}
-			for _, r := range request.Manifest.Resources {
+			for _, r := range request.Spec.Resources {
 				// ing -> $res
-				o.MsgCh <- operation.Message{
+				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   "",
 					OpErr:      nil,
 				}
-				o.MsgCh <- operation.Message{
+				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   res,
 					OpErr:      err,
 				}
 			}
 			close(o.MsgCh)
-			if res == operation.Failed {
+			if res == opsmodels.Failed {
 				return nil, status.NewErrorStatus(err)
 			}
 			return &operation.ApplyResponse{}, nil

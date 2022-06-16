@@ -1,7 +1,11 @@
-package operation
+package parser
 
 import (
 	"fmt"
+
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
@@ -21,16 +25,16 @@ func NewDeleteResourceParser(resources models.Resources) *DeleteResourceParser {
 	return &DeleteResourceParser{resources: resources}
 }
 
-func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) {
-	util.CheckNotNil(graph, "graph is nil")
-	if len(graph.Vertices()) == 0 {
-		log.Infof("no vertices in dag when parsing deleted resources. dag:%s", json.Marshal2String(graph))
+func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
+	util.CheckNotNil(g, "graph is nil")
+	if len(g.Vertices()) == 0 {
+		log.Infof("no vertices in dag when parsing deleted resources. dag:%s", json.Marshal2String(g))
 		return status.NewErrorStatusWithMsg(status.InvalidArgument, "no vertices in dag when parsing deleted resources")
 	}
 
 	manifestGraphMap := make(map[string]interface{})
-	for _, v := range graph.Vertices() {
-		if rn, ok := v.(*ResourceNode); ok {
+	for _, v := range g.Vertices() {
+		if rn, ok := v.(*graph.ResourceNode); ok {
 			id := rn.Hashcode().(string)
 			manifestGraphMap[id] = v
 		}
@@ -38,8 +42,8 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 
 	// diff resources to delete
 	resourceIndex := d.resources.Index()
-	root, err := graph.Root()
-	util.CheckNotError(err, "root get error")
+	root, err := g.Root()
+	util.CheckNotError(err, "get dag root error")
 
 	priorDependsOn := make(map[string][]string)
 	for key, v := range resourceIndex {
@@ -49,10 +53,13 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 	}
 
 	for key, resource := range resourceIndex {
-		rn := NewResourceNode(key, resourceIndex[key], Delete)
+		rn, s := graph.NewResourceNode(key, resourceIndex[key], types.Delete)
+		if status.IsErr(s) {
+			return s
+		}
 		rnID := rn.Hashcode().(string)
 
-		if !graph.HasVertex(rn) && manifestGraphMap[rnID] == nil {
+		if !g.HasVertex(rn) && manifestGraphMap[rnID] == nil {
 			log.Infof("resource:%v not found in models. Mark as delete node", key)
 			// we cannot delete this node if any node dependsOn this node
 			for _, v := range priorDependsOn[rnID] {
@@ -61,20 +68,20 @@ func (d *DeleteResourceParser) Parse(graph *dag.AcyclicGraph) (s status.Status) 
 					return status.NewErrorStatusWithMsg(status.Internal, msg)
 				}
 			}
-			graph.Add(rn)
-			graph.Connect(dag.BasicEdge(root, rn))
+			g.Add(rn)
+			g.Connect(dag.BasicEdge(root, rn))
 		}
 
-		// always get the latest vertex in the graph.
-		rn = GetVertex(graph, rn).(*ResourceNode)
-		s = LinkRefNodes(graph, resource.DependsOn, resourceIndex, rn, Delete, manifestGraphMap)
+		// always get the latest vertex in the g.
+		rn = GetVertex(g, rn).(*graph.ResourceNode)
+		s = LinkRefNodes(g, resource.DependsOn, resourceIndex, rn, types.Delete, manifestGraphMap)
 		if status.IsErr(s) {
 			return s
 		}
 	}
-	if err = graph.Validate(); err != nil {
+	if err = g.Validate(); err != nil {
 		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in models."+err.Error())
 	}
-	graph.TransitiveReduction()
+	g.TransitiveReduction()
 	return s
 }

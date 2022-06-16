@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"kusionstack.io/kusion/pkg/engine/models"
-
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,14 +11,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
 	"kusionstack.io/kusion/pkg/util/yaml"
 )
@@ -52,51 +53,46 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *mo
 		return nil, status.NewErrorStatus(errors.New("plan state is nil"))
 	}
 
-	// Get kubernetes resource from plan state
-	obj, resource, err := k.buildKubernetesResourceByState(planState)
+	// Get kubernetes resource interface from plan state
+	planObj, resource, err := k.buildKubernetesResourceByState(planState)
 	if err != nil {
 		return nil, status.NewErrorStatus(err)
 	}
+	// Get live state
+	liveState, s := k.Read(ctx, planState)
+	if status.IsErr(s) {
+		return nil, s
+	}
 
-	// Create or Update resource
-	if priorState == nil {
-		// Create
-		if _, err = resource.Get(ctx, obj.GetName(), metav1.GetOptions{}); err != nil {
-			// Create the resource if not exists
-			if !k8serrors.IsNotFound(err) {
-				return nil, status.NewErrorStatus(err)
-			}
-
-			log.Infof("Create the resource %s/%s/%s because it doesn't exist", obj.GetKind(), obj.GetNamespace(), obj.GetName())
-			_, err = resource.Create(ctx, obj, metav1.CreateOptions{})
-		} else {
-			// Patch the resource because already exists
-			log.Infof("Patch the resource %s/%s/%s because it already exists", obj.GetKind(), obj.GetNamespace(), obj.GetName())
-
-			var objJSON []byte
-			objJSON, err = obj.MarshalJSON()
-			if err != nil {
-				return nil, status.NewErrorStatus(err)
-			}
-
-			_, err = resource.Patch(ctx, obj.GetName(), types.MergePatchType, objJSON, metav1.PatchOptions{
-				FieldManager: "kusion",
-			})
+	// LiveState is nil, fall back to create planObj directly
+	if liveState == nil {
+		if _, err = resource.Create(ctx, planObj, metav1.CreateOptions{}); err != nil {
+			return nil, status.NewErrorStatus(err)
 		}
 	} else {
-		// Update
-		_, err = resource.Update(ctx, obj, metav1.UpdateOptions{
-			FieldManager: "kusion",
-		})
-	}
-
-	if err != nil {
-		return nil, status.NewErrorStatus(err)
+		// Original equals to last-applied from annotation, kusion store it in kusion_state.json
+		original := ""
+		if priorState != nil {
+			original = json.MustMarshal2String(priorState.Attributes)
+		}
+		// Modified equals input content
+		modified := json.MustMarshal2String(planState.Attributes)
+		// Current equals live manifest
+		current := json.MustMarshal2String(liveState.Attributes)
+		// 3-way json merge patch
+		patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
+		if err != nil {
+			return nil, status.NewErrorStatus(err)
+		}
+		// Apply patch
+		if _, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patch, metav1.PatchOptions{FieldManager: "kusion"}); err != nil {
+			return nil, status.NewErrorStatus(err)
+		}
 	}
 
 	return &models.Resource{
 		ID:         planState.ResourceKey(),
-		Attributes: obj.Object,
+		Attributes: planObj.Object,
 		DependsOn:  planState.DependsOn,
 	}, nil
 }
@@ -117,6 +113,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *models.Reso
 	// Read resource
 	v, err := resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			log.Infof("%s not found, ignore", resourceState.ResourceKey())
+			return nil, nil
+		}
 		return nil, status.NewErrorStatus(err)
 	}
 

@@ -1,14 +1,16 @@
-package operation
+package parser
 
 import (
 	"strings"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+
 	"github.com/hashicorp/terraform/dag"
 	"kusionstack.io/kusion/pkg/engine/models"
 )
 
-func TestManifestParser_Parse(t *testing.T) {
+func TestSpecParser_Parse(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
@@ -25,7 +27,7 @@ func TestManifestParser_Parse(t *testing.T) {
 			ID: Eric,
 
 			Attributes: map[string]interface{}{
-				"a": ImplicitRefPrefix + "jack.a",
+				"a": graph.ImplicitRefPrefix + "jack.a",
 			},
 			DependsOn: []string{Pony},
 		},
@@ -39,15 +41,15 @@ func TestManifestParser_Parse(t *testing.T) {
 		},
 	}}
 
-	graph := &dag.AcyclicGraph{}
-	graph.Add(&RootNode{})
+	ag := &dag.AcyclicGraph{}
+	ag.Add(&graph.RootNode{})
 
-	manifest := &ManifestParser{
-		manifest: mf,
+	spec := &SpecParser{
+		spec: mf,
 	}
 
-	_ = manifest.Parse(graph)
-	actual := strings.TrimSpace(graph.String())
+	_ = spec.Parse(ag)
+	actual := strings.TrimSpace(ag.String())
 	expected := strings.TrimSpace(testGraphTransReductionMultipleRootsStr)
 
 	if actual != expected {

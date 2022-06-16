@@ -15,10 +15,10 @@ type Resource struct {
 	Attributes map[string]interface{} `json:"attributes"`
 
 	// DependsOn contains all resources this resource depends on
-	DependsOn []string `json:"dependsOn,omitempty" yaml:"dependsOn,omitempty"`
+	DependsOn []string `json:"dependsOn,omitempty"`
 
 	// Extensions specifies arbitrary metadata of this resource
-	Extensions map[string]interface{} `json:"extensions"`
+	Extensions map[string]interface{} `json:"extensions,omitempty"`
 }
 
 func (r *Resource) ResourceKey() string {

@@ -6,12 +6,16 @@ import (
 	"strings"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
@@ -117,7 +121,7 @@ func (o *DestroyOptions) Run() error {
 
 func (o *DestroyOptions) preview(planResources *models.Spec,
 	project *projectstack.Project, stack *projectstack.Stack,
-) (*operation.Changes, error) {
+) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
 	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
@@ -126,32 +130,33 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 	}
 
 	pc := &operation.PreviewOperation{
-		Operation: operation.Operation{
-			Runtime:      kubernetesRuntime,
-			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			Order:        &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
+		Operation: opsmodels.Operation{
+			OperationType: types.DestroyPreview,
+			Runtime:       kubernetesRuntime,
+			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}
 
 	log.Info("Start call pc.Preview() ...")
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
-		Request: operation.Request{
+		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
 			Project:  project.Name,
 			Operator: o.Operator,
 			Stack:    stack.Name,
-			Manifest: planResources,
+			Spec:     planResources,
 		},
-	}, operation.Destroy)
+	})
 	if status.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}
 
-	return operation.NewChanges(project, stack, rsp.Order), nil
+	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.Changes) error {
+func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes) error {
 	// Build apply operation
 	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
 	if err != nil {
@@ -159,10 +164,10 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.
 	}
 
 	do := &operation.DestroyOperation{
-		Operation: operation.Operation{
+		Operation: opsmodels.Operation{
 			Runtime:      kubernetesRuntime,
 			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
-			MsgCh:        make(chan operation.Message),
+			MsgCh:        make(chan opsmodels.Message),
 		},
 	}
 
@@ -195,13 +200,13 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.
 				changeStep := changes.Get(msg.ResourceID)
 
 				switch msg.OpResult {
-				case operation.Success, operation.Skip:
+				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == operation.UnChange {
+					if changeStep.Action == types.UnChange {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(operation.Skip)),
+							strings.ToLower(string(opsmodels.Skip)),
 						)
 					} else {
 						title = fmt.Sprintf("%s %s %s",
@@ -214,7 +219,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					deleted++
-				case operation.Failed:
+				case opsmodels.Failed:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.String(),
 						pterm.Bold.Sprint(changeStep.ID),
@@ -234,12 +239,12 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *operation.
 	}()
 
 	st := do.Destroy(&operation.DestroyRequest{
-		Request: operation.Request{
+		Request: opsmodels.Request{
 			Tenant:   changes.Project().Tenant,
 			Project:  changes.Project().Name,
 			Operator: o.Operator,
 			Stack:    changes.Stack().Name,
-			Manifest: planResources,
+			Spec:     planResources,
 		},
 	})
 	if status.IsErr(st) {
