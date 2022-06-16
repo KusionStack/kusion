@@ -22,6 +22,7 @@ import (
 	"kusionstack.io/kusion/pkg/status"
 )
 
+// ApplyOptions defines flags for the `apply` command
 type ApplyOptions struct {
 	compilecmd.CompileOptions
 	Operator    string
@@ -32,6 +33,7 @@ type ApplyOptions struct {
 	OnlyPreview bool
 }
 
+// NewApplyOptions returns a new ApplyOptions instance
 func NewApplyOptions() *ApplyOptions {
 	return &ApplyOptions{
 		CompileOptions: compilecmd.CompileOptions{
@@ -75,7 +77,12 @@ func (o *ApplyOptions) Run() error {
 
 	// Compute changes for preview
 	stateStorage := &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)}
-	changes, err := Preview(o, stateStorage, planResources, project, stack, os.Stdout)
+	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+	if err != nil {
+		return err
+	}
+
+	changes, err := Preview(o, kubernetesRuntime, stateStorage, planResources, project, stack, os.Stdout)
 	if err != nil {
 		return err
 	}
@@ -118,7 +125,7 @@ func (o *ApplyOptions) Run() error {
 
 	if !o.OnlyPreview {
 		fmt.Println("Start applying diffs ...")
-		if err := Apply(o, stateStorage, planResources, changes, os.Stdout); err != nil {
+		if err := Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 
@@ -131,9 +138,29 @@ func (o *ApplyOptions) Run() error {
 	return nil
 }
 
-// The preview function will preview for all resources changes
+// The Preview function calculates the upcoming actions of each resource
+// through the execution Kusion Engine, and you can customize the
+// runtime of engine and the state storage through `runtime` and
+// `storage` parameters.
+//
+// Example:
+//   o := NewApplyOptions()
+//   stateStorage := &states.FileSystemState{
+//       Path: filepath.Join(o.WorkDir, states.KusionState)
+//   }
+//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//   if err != nil {
+//       return err
+//   }
+//
+//   changes, err := Preview(o, kubernetesRuntime, stateStorage,
+//       planResources, project, stack, os.Stdout)
+//   if err != nil {
+//       return err
+//   }
 func Preview(
 	o *ApplyOptions,
+	runtime runtime.Runtime,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	project *projectstack.Project,
@@ -142,16 +169,12 @@ func Preview(
 ) (*operation.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return nil, err
-	}
-
+	// Construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: operation.Operation{
 			OperationType: operation.ApplyPreview,
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Runtime:       runtime,
+			StateStorage:  storage,
 			Order:         &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
 		},
 	}
@@ -174,24 +197,39 @@ func Preview(
 	return operation.NewChanges(project, stack, rsp.Order), nil
 }
 
-// The apply function will apply the resources changes,
-// and will save the state to specified storage.
+// The Apply function will apply the resources changes
+// through the execution Kusion Engine, and will save
+// the state to specified storage.
+//
+// You can customize the runtime of engine and the state
+// storage through `runtime` and `storage` parameters.
+//
+// Example:
+//   o := NewApplyOptions()
+//   stateStorage := &states.FileSystemState{
+//       Path: filepath.Join(o.WorkDir, states.KusionState)
+//   }
+//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//   if err != nil {
+//       return err
+//   }
+//
+//   err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
+//   if err != nil {
+//       return err
+//   }
 func Apply(
 	o *ApplyOptions,
+	runtime runtime.Runtime,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	changes *operation.Changes,
 	out io.Writer,
 ) error {
-	// Build apply operation
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return err
-	}
-
+	// Construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: operation.Operation{
-			Runtime:      kubernetesRuntime,
+			Runtime:      runtime,
 			StateStorage: storage,
 			MsgCh:        make(chan operation.Message),
 		},
