@@ -8,12 +8,16 @@ import (
 	"strings"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
@@ -158,6 +162,7 @@ func (o *ApplyOptions) Run() error {
 //   if err != nil {
 //       return err
 //   }
+// todo @elliotxx io.Writer is not used now
 func Preview(
 	o *ApplyOptions,
 	runtime runtime.Runtime,
@@ -166,35 +171,35 @@ func Preview(
 	project *projectstack.Project,
 	stack *projectstack.Stack,
 	out io.Writer,
-) (*operation.Changes, error) {
+) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
 	// Construct the preview operation
 	pc := &operation.PreviewOperation{
-		Operation: operation.Operation{
-			OperationType: operation.ApplyPreview,
+		Operation: opsmodels.Operation{
+			OperationType: types.ApplyPreview,
 			Runtime:       runtime,
 			StateStorage:  storage,
-			Order:         &operation.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*operation.ChangeStep{}},
+			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}
 
 	log.Info("Start call pc.Preview() ...")
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
-		Request: operation.Request{
+		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
 			Project:  project.Name,
 			Operator: o.Operator,
 			Stack:    stack.Name,
-			Manifest: planResources,
+			Spec:     planResources,
 		},
 	})
 	if status.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 
-	return operation.NewChanges(project, stack, rsp.Order), nil
+	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
 // The Apply function will apply the resources changes
@@ -223,15 +228,15 @@ func Apply(
 	runtime runtime.Runtime,
 	storage states.StateStorage,
 	planResources *models.Spec,
-	changes *operation.Changes,
+	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
 	// Construct the apply operation
 	ac := &operation.ApplyOperation{
-		Operation: operation.Operation{
+		Operation: opsmodels.Operation{
 			Runtime:      runtime,
 			StateStorage: storage,
-			MsgCh:        make(chan operation.Message),
+			MsgCh:        make(chan opsmodels.Message),
 		},
 	}
 
@@ -264,13 +269,13 @@ func Apply(
 				changeStep := changes.Get(msg.ResourceID)
 
 				switch msg.OpResult {
-				case operation.Success, operation.Skip:
+				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == operation.UnChange {
+					if changeStep.Action == types.UnChange {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(operation.Skip)),
+							strings.ToLower(string(opsmodels.Skip)),
 						)
 					} else {
 						title = fmt.Sprintf("%s %s %s",
@@ -283,7 +288,7 @@ func Apply(
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					ls.Count(changeStep.Action)
-				case operation.Failed:
+				case opsmodels.Failed:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.String(),
 						pterm.Bold.Sprint(changeStep.ID),
@@ -304,21 +309,21 @@ func Apply(
 
 	if o.DryRun {
 		for _, r := range planResources.Resources {
-			ac.MsgCh <- operation.Message{
+			ac.MsgCh <- opsmodels.Message{
 				ResourceID: r.ResourceKey(),
-				OpResult:   operation.Success,
+				OpResult:   opsmodels.Success,
 				OpErr:      nil,
 			}
 		}
 		close(ac.MsgCh)
 	} else {
 		_, st := ac.Apply(&operation.ApplyRequest{
-			Request: operation.Request{
+			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
 				Project:  changes.Project().Name,
 				Operator: o.Operator,
 				Stack:    changes.Stack().Name,
-				Manifest: planResources,
+				Spec:     planResources,
 			},
 		})
 		if status.IsErr(st) {
@@ -338,20 +343,20 @@ type lineSummary struct {
 	created, updated, deleted int
 }
 
-func (ls *lineSummary) Count(op operation.ActionType) {
+func (ls *lineSummary) Count(op types.ActionType) {
 	switch op {
-	case operation.Create:
+	case types.Create:
 		ls.created++
-	case operation.Update:
+	case types.Update:
 		ls.updated++
-	case operation.Delete:
+	case types.Delete:
 		ls.deleted++
 	}
 }
 
-func allUnChange(changes *operation.Changes) bool {
+func allUnChange(changes *opsmodels.Changes) bool {
 	for _, v := range changes.ChangeSteps {
-		if v.Action != operation.UnChange {
+		if v.Action != types.UnChange {
 			return false
 		}
 	}

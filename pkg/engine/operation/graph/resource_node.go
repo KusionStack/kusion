@@ -1,4 +1,4 @@
-package operation
+package graph
 
 import (
 	"context"
@@ -6,24 +6,34 @@ import (
 	"reflect"
 	"strings"
 
+	"kusionstack.io/kusion/pkg/util"
+
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
-	jsonUtil "kusionstack.io/kusion/pkg/util/json"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 type ResourceNode struct {
-	BaseNode
-	Action ActionType
+	*baseNode
+	Action types.ActionType
 	state  *models.Resource
 }
 
 var _ ExecutableNode = (*ResourceNode)(nil)
 
-func (rn *ResourceNode) Execute(operation *Operation) status.Status {
+const (
+	ImplicitRefPrefix = "$kusion_path."
+)
+
+func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	log.Debugf("execute node:%s", rn.ID)
-	if operation.OperationType == Apply {
+	if operation.OperationType == types.Apply {
 		// replace implicit references
 		value := reflect.ValueOf(rn.state.Attributes)
 		_, implicitValue, s := ParseImplicitRef(value, operation.CtxResourceIndex, ImplicitReplaceFun)
@@ -48,17 +58,17 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 
 	// 4. compute ActionType of current resource node between planState and liveState
 	switch operation.OperationType {
-	case Destroy, DestroyPreview:
-		rn.Action = Delete
-	case Apply, ApplyPreview:
+	case types.Destroy, types.DestroyPreview:
+		rn.Action = types.Delete
+	case types.Apply, types.ApplyPreview:
 		if liveState == nil {
-			rn.Action = Create
+			rn.Action = types.Create
 		} else if planedState == nil {
-			rn.Action = Delete
+			rn.Action = types.Delete
 		} else if reflect.DeepEqual(liveState, planedState) { // TODO: need a better comparable func
-			rn.Action = UnChange
+			rn.Action = types.UnChange
 		} else {
-			rn.Action = Update
+			rn.Action = types.Update
 		}
 	default:
 		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
@@ -66,16 +76,16 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 
 	// 5. apply or return
 	switch operation.OperationType {
-	case ApplyPreview, DestroyPreview:
+	case types.ApplyPreview, types.DestroyPreview:
 		fillResponseChangeSteps(operation, rn, priorState, planedState, liveState)
-	case Apply, Destroy:
+	case types.Apply, types.Destroy:
 		switch rn.Action {
-		case Create, Delete, Update:
+		case types.Create, types.Delete, types.Update:
 			s := rn.applyResource(operation, priorState, planedState)
 			if status.IsErr(s) {
 				return s
 			}
-		case UnChange:
+		case types.UnChange:
 			log.Infof("PriorAttributes and PlanAttributes are equal.")
 		default:
 			return status.NewErrorStatus(fmt.Errorf("unknown action:%s", rn.Action.PrettyString()))
@@ -87,21 +97,21 @@ func (rn *ResourceNode) Execute(operation *Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) applyResource(operation *Operation, priorState, planedState *models.Resource) status.Status {
-	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action,
-		jsonUtil.Marshal2String(priorState), jsonUtil.Marshal2String(planedState))
+func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState, planedState *models.Resource) status.Status {
+	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(priorState),
+		jsonutil.Marshal2String(planedState))
 
 	var res *models.Resource
 	var s status.Status
 
 	switch rn.Action {
-	case Create, Update:
+	case types.Create, types.Update:
 		res, s = operation.Runtime.Apply(context.Background(), priorState, planedState)
-		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonUtil.Marshal2String(res))
+		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonutil.Marshal2String(res))
 		if s != nil {
 			log.Debugf("apply status: %v", s.String())
 		}
-	case Delete:
+	case types.Delete:
 		s = operation.Runtime.Delete(context.Background(), priorState)
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())
@@ -132,27 +142,31 @@ func (rn *ResourceNode) State() *models.Resource {
 	return rn.state
 }
 
-func NewResourceNode(key string, state *models.Resource, action ActionType) *ResourceNode {
-	return &ResourceNode{BaseNode: BaseNode{ID: key}, Action: action, state: state}
+func NewResourceNode(key string, state *models.Resource, action types.ActionType) (*ResourceNode, status.Status) {
+	node, s := NewBaseNode(key)
+	if status.IsErr(s) {
+		return nil, s
+	}
+	return &ResourceNode{baseNode: node, Action: action, state: state}, nil
 }
 
 // save change steps in DAG walking order so that we can preview a full applying list
-func fillResponseChangeSteps(operation *Operation, rn *ResourceNode, prior, plan, live interface{}) {
-	defer operation.lock.Unlock()
-	operation.lock.Lock()
+func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, prior, plan, live interface{}) {
+	defer ops.Lock.Unlock()
+	ops.Lock.Lock()
 
-	order := operation.Order
+	order := ops.ChangeOrder
 	if order == nil {
-		order = &ChangeOrder{
+		order = &opsmodels.ChangeOrder{
 			StepKeys:    []string{},
-			ChangeSteps: make(map[string]*ChangeStep),
+			ChangeSteps: make(map[string]*opsmodels.ChangeStep),
 		}
 	}
 	if order.ChangeSteps == nil {
-		order.ChangeSteps = make(map[string]*ChangeStep)
+		order.ChangeSteps = make(map[string]*opsmodels.ChangeStep)
 	}
 	order.StepKeys = append(order.StepKeys, rn.ID)
-	order.ChangeSteps[rn.ID] = NewChangeStep(rn.ID, rn.Action, prior, plan, live)
+	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, prior, plan, live)
 }
 
 var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
@@ -182,4 +196,74 @@ var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath
 		}
 	}
 	return reflect.ValueOf(valueMap), nil
+}
+
+func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource,
+	replaceFun func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status),
+) ([]string, reflect.Value, status.Status) {
+	var result []string
+	if !v.IsValid() {
+		return nil, v, status.NewErrorStatusWithMsg(status.InvalidArgument, "invalid implicit reference")
+	}
+
+	switch v.Type().Kind() {
+	case reflect.Ptr, reflect.Interface:
+		if v.IsNil() {
+			return nil, v, nil
+		}
+		return ParseImplicitRef(v.Elem(), resourceIndex, replaceFun)
+	case reflect.String:
+		vStr := v.String()
+		if strings.HasPrefix(vStr, ImplicitRefPrefix) {
+			ref := strings.TrimPrefix(vStr, ImplicitRefPrefix)
+			util.CheckArgument(len(ref) > 0,
+				fmt.Sprintf("illegal implicit ref:%s. Implicit ref format: %sresourceKey.attribute", ref, ImplicitRefPrefix))
+			split := strings.Split(ref, ".")
+			result = append(result, split[0])
+			log.Infof("add implicit ref:%s", split[0])
+			// replace v with output
+			tv, s := replaceFun(resourceIndex, ref)
+			if status.IsErr(s) {
+				return nil, v, s
+			}
+			v = tv
+		}
+	case reflect.Slice, reflect.Array:
+		if v.Len() == 0 {
+			return nil, v, nil
+		}
+
+		vs := reflect.MakeSlice(v.Type(), 0, 0)
+
+		for i := 0; i < v.Len(); i++ {
+			ref, tv, s := ParseImplicitRef(v.Index(i), resourceIndex, replaceFun)
+			if status.IsErr(s) {
+				return nil, tv, s
+			}
+			vs = reflect.Append(vs, tv)
+			if ref != nil {
+				result = append(result, ref...)
+			}
+		}
+		v = vs
+	case reflect.Map:
+		if v.Len() == 0 {
+			return nil, v, nil
+		}
+		makeMap := reflect.MakeMap(v.Type())
+
+		iter := v.MapRange()
+		for iter.Next() {
+			ref, tv, s := ParseImplicitRef(iter.Value(), resourceIndex, replaceFun)
+			if status.IsErr(s) {
+				return nil, tv, s
+			}
+			if ref != nil {
+				result = append(result, ref...)
+			}
+			makeMap.SetMapIndex(iter.Key(), tv)
+		}
+		v = makeMap
+	}
+	return result, v, nil
 }

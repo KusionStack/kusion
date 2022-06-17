@@ -9,6 +9,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
@@ -34,27 +39,29 @@ func TestOperation_Destroy(t *testing.T) {
 		DependsOn: nil,
 	}
 	mf := &models.Spec{Resources: []models.Resource{resourceState}}
-	o := &Operation{
-		OperationType: Destroy,
-		StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
-		Runtime:       &runtime.KubernetesRuntime{},
+	o := &DestroyOperation{
+		opsmodels.Operation{
+			OperationType: types.Destroy,
+			StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
+			Runtime:       &runtime.KubernetesRuntime{},
+		},
 	}
 	r := &DestroyRequest{
-		Request{
+		opsmodels.Request{
 			Tenant:   tenant,
 			Stack:    stack,
 			Project:  project,
 			Operator: operator,
-			Manifest: mf,
+			Spec:     mf,
 		},
 	}
 
 	t.Run("destroy success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
+		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
 		})
-		o.MsgCh = make(chan Message, 1)
+		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)
 		st := o.Destroy(r)
 		assert.Nil(t, st)
@@ -62,18 +69,18 @@ func TestOperation_Destroy(t *testing.T) {
 
 	t.Run("destroy failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*ResourceNode).Execute, func(rn *ResourceNode, operation *Operation) status.Status {
+		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
 		})
 
-		o.MsgCh = make(chan Message, 1)
+		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)
 		st := o.Destroy(r)
 		assert.True(t, status.IsErr(st))
 	})
 }
 
-func readMsgCh(ch chan Message) {
+func readMsgCh(ch chan opsmodels.Message) {
 	for {
 		select {
 		case msg, ok := <-ch:

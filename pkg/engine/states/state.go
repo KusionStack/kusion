@@ -32,19 +32,31 @@ type StateQuery struct {
 	Project string `json:"project"`
 }
 
-// State represent all resources state in one apply operation.
+// State is a record of an operation's result. It is a mapping between resources in KCL and the actual infra resource and often used as a
+// datasource for 3-way merge/diff in operations like Apply or Preview.
 type State struct {
-	ID            int64            `json:"id"`
-	Tenant        string           `json:"tenant"`
-	Stack         string           `json:"stack"`
-	Project       string           `json:"project"`
-	Version       int              `json:"version"`
-	KusionVersion string           `json:"kusionVersion"`
-	Serial        uint64           `json:"serial"`
-	Operator      string           `json:"operator"`
-	Resources     models.Resources `json:"resources"`
-	CreatTime     time.Time        `json:"creatTime"`
-	ModifiedTime  time.Time        `json:"modifiedTime,omitempty"`
+	// State ID
+	ID int64 `json:"id"`
+	// Tenant is designed for multi-tenant scenario
+	Tenant string `json:"tenant,omitempty"`
+	// Stack name
+	Stack string `json:"stack"`
+	// Project name
+	Project string `json:"project"`
+	// State version
+	Version int `json:"version"`
+	// KusionVersion represents the Kusion's version when this State is created
+	KusionVersion string `json:"kusionVersion"`
+	// Serial is an auto-increase number that represents how many times this State is modified
+	Serial uint64 `json:"serial"`
+	// Operator represents the person who triggered this operation
+	Operator string `json:"operator,omitempty"`
+	// Resources records all resources in this operation
+	Resources models.Resources `json:"resources"`
+	// CreatTime is the time State is created
+	CreatTime time.Time `json:"creatTime"`
+	// ModifiedTime is the time State is modified each time
+	ModifiedTime time.Time `json:"modifiedTime,omitempty"`
 }
 
 func NewState() *State {

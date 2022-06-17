@@ -1,13 +1,17 @@
 //go:build !arm64
 // +build !arm64
 
-package operation
+package graph
 
 import (
 	"context"
 	"reflect"
 	"sync"
 	"testing"
+
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"bou.ke/monkey"
 	"github.com/hashicorp/terraform/dag"
@@ -21,12 +25,12 @@ import (
 
 func TestResourceNode_Execute(t *testing.T) {
 	type fields struct {
-		BaseNode BaseNode
-		Action   ActionType
+		BaseNode baseNode
+		Action   types.ActionType
 		state    *models.Resource
 	}
 	type args struct {
-		operation Operation
+		operation opsmodels.Operation
 	}
 
 	const Jack = "jack"
@@ -96,19 +100,19 @@ func TestResourceNode_Execute(t *testing.T) {
 		{
 			name: "update",
 			fields: fields{
-				BaseNode: BaseNode{ID: Jack},
-				Action:   Update,
+				BaseNode: baseNode{ID: Jack},
+				Action:   types.Update,
 				state:    newResourceState,
 			},
-			args: args{operation: Operation{
-				OperationType:           Apply,
+			args: args{operation: opsmodels.Operation{
+				OperationType:           types.Apply,
 				StateStorage:            states.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
-				MsgCh:                   make(chan Message),
-				resultState:             states.NewState(),
-				lock:                    &sync.Mutex{},
+				MsgCh:                   make(chan opsmodels.Message),
+				ResultState:             states.NewState(),
+				Lock:                    &sync.Mutex{},
 				Runtime:                 &runtime.KubernetesRuntime{},
 			}},
 			want: nil,
@@ -116,19 +120,19 @@ func TestResourceNode_Execute(t *testing.T) {
 		{
 			name: "delete",
 			fields: fields{
-				BaseNode: BaseNode{ID: Jack},
-				Action:   Delete,
+				BaseNode: baseNode{ID: Jack},
+				Action:   types.Delete,
 				state:    newResourceState,
 			},
-			args: args{operation: Operation{
-				OperationType:           Apply,
+			args: args{operation: opsmodels.Operation{
+				OperationType:           types.Apply,
 				StateStorage:            states.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
-				MsgCh:                   make(chan Message),
-				resultState:             states.NewState(),
-				lock:                    &sync.Mutex{},
+				MsgCh:                   make(chan opsmodels.Message),
+				ResultState:             states.NewState(),
+				Lock:                    &sync.Mutex{},
 				Runtime:                 &runtime.KubernetesRuntime{},
 			}},
 			want: nil,
@@ -136,19 +140,19 @@ func TestResourceNode_Execute(t *testing.T) {
 		{
 			name: "illegalRef",
 			fields: fields{
-				BaseNode: BaseNode{ID: Jack},
-				Action:   Update,
+				BaseNode: baseNode{ID: Jack},
+				Action:   types.Update,
 				state:    illegalResourceState,
 			},
-			args: args{operation: Operation{
-				OperationType:           Apply,
+			args: args{operation: opsmodels.Operation{
+				OperationType:           types.Apply,
 				StateStorage:            states.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
-				MsgCh:                   make(chan Message),
-				resultState:             states.NewState(),
-				lock:                    &sync.Mutex{},
+				MsgCh:                   make(chan opsmodels.Message),
+				ResultState:             states.NewState(),
+				Lock:                    &sync.Mutex{},
 				Runtime:                 &runtime.KubernetesRuntime{},
 			}},
 			want: status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find specified value in resource:jack by ref:jack.notExist"),
@@ -157,7 +161,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rn := &ResourceNode{
-				BaseNode: tt.fields.BaseNode,
+				baseNode: &tt.fields.BaseNode,
 				Action:   tt.fields.Action,
 				state:    tt.fields.state,
 			}

@@ -1,8 +1,10 @@
-package operation
+package models
 
 import (
 	"fmt"
 	"sync"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -15,21 +17,38 @@ import (
 	"kusionstack.io/kusion/pkg/util"
 )
 
+// Operation is the base model for all operations
 type Operation struct {
-	OperationType Type
-	StateStorage  states.StateStorage
-	// CtxResourceIndex represents resources updated by func apply
+	// OperationType represents the OperationType of this operation
+	OperationType types.OperationType
+
+	// StateStorage represents the storage where state will be saved during this operation
+	StateStorage states.StateStorage
+
+	// CtxResourceIndex represents resources updated by this operation
 	CtxResourceIndex map[string]*models.Resource
-	// PriorStateResourceIndex represents prior states.StateStorage state
+
+	// PriorStateResourceIndex represents resource state saved during the last operation
 	PriorStateResourceIndex map[string]*models.Resource
+
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
 	StateResourceIndex map[string]*models.Resource
-	// Order contains id to action of resource node in preview order
-	Order       *ChangeOrder
-	Runtime     runtime.Runtime
-	MsgCh       chan Message
-	resultState *states.State
-	lock        *sync.Mutex
+
+	// ChangeOrder is resources' change order during this operation
+	ChangeOrder *ChangeOrder
+
+	// Runtime is the resource infrastructure runtime of this operation
+	Runtime runtime.Runtime
+
+	// MsgCh is used to send operation status like Success, Failed or Skip to Kusion CTl,
+	// and this message will be displayed in the terminal
+	MsgCh chan Message
+
+	// Lock is the operation-wide mutex
+	Lock *sync.Mutex
+
+	// ResultState is the final State build by this operation, and this State will be saved in the StateStorage
+	ResultState *states.State
 }
 
 type Message struct {
@@ -43,7 +62,7 @@ type Request struct {
 	Stack    string       `json:"stack"`
 	Project  string       `json:"project"`
 	Operator string       `json:"operator"`
-	Manifest *models.Spec `json:"models"`
+	Spec     *models.Spec `json:"spec"`
 }
 
 type OpResult string
@@ -56,15 +75,15 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType ActionType) error {
-	o.lock.Lock()
-	defer o.lock.Unlock()
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType types.ActionType) error {
+	o.Lock.Lock()
+	defer o.Lock.Unlock()
 
 	switch actionType {
-	case Delete:
+	case types.Delete:
 		o.CtxResourceIndex[resourceKey] = nil
 		o.StateResourceIndex[resourceKey] = nil
-	case Create, Update:
+	case types.Create, types.Update:
 		o.CtxResourceIndex[resourceKey] = resource
 		o.StateResourceIndex[resourceKey] = resource
 	default:
@@ -73,8 +92,8 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Re
 	return nil
 }
 
-func initStates(storage states.StateStorage, request *Request) (*states.State, *states.State) {
-	latestState, err := storage.GetLatestState(
+func (o *Operation) InitStates(request *Request) (*states.State, *states.State) {
+	latestState, err := o.StateStorage.GetLatestState(
 		&states.StateQuery{
 			Tenant:  request.Tenant,
 			Stack:   request.Stack,
@@ -89,21 +108,21 @@ func initStates(storage states.StateStorage, request *Request) (*states.State, *
 	resultState := states.NewState()
 	resultState.Serial = latestState.Serial
 	err = copier.Copy(resultState, request)
-	util.CheckNotError(err, "Copy request to resultState, request")
+	util.CheckNotError(err, "Copy request to ResultState, request")
 	resultState.Resources = nil
 
 	return latestState, resultState
 }
 
 func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error {
-	o.lock.Lock()
-	defer o.lock.Unlock()
+	o.Lock.Lock()
+	defer o.Lock.Unlock()
 
-	state := o.resultState
+	state := o.ResultState
 	state.Serial += 1
 	state.Resources = nil
 
-	res := []models.Resource{}
+	res := make([]models.Resource, 0, len(resourceIndex))
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {

@@ -6,6 +6,10 @@ import (
 	"sync"
 	"testing"
 
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
@@ -60,14 +64,14 @@ func (f *fakePreviewRuntime) Watch(ctx context.Context, resourceState *models.Re
 
 func TestOperation_Preview(t *testing.T) {
 	type fields struct {
-		OperationType           Type
+		OperationType           types.OperationType
 		StateStorage            states.StateStorage
 		CtxResourceIndex        map[string]*models.Resource
 		PriorStateResourceIndex map[string]*models.Resource
 		StateResourceIndex      map[string]*models.Resource
-		Order                   *ChangeOrder
+		Order                   *opsmodels.ChangeOrder
 		Runtime                 runtime.Runtime
-		MsgCh                   chan Message
+		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
 	}
@@ -84,19 +88,19 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-apply",
 			fields: fields{
-				OperationType: ApplyPreview,
+				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				Order:         &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
+				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
 			args: args{
 				request: &PreviewRequest{
-					Request: Request{
+					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &models.Spec{
+						Spec: &models.Spec{
 							Resources: []models.Resource{
 								FakeResourceState,
 							},
@@ -105,12 +109,12 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			},
 			wantRsp: &PreviewResponse{
-				Order: &ChangeOrder{
+				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{"fake-id"},
-					ChangeSteps: map[string]*ChangeStep{
+					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id": {
 							ID:       "fake-id",
-							Action:   Create,
+							Action:   types.Create,
 							Original: (*models.Resource)(nil),
 							Modified: &FakeResourceState,
 							Current:  (*models.Resource)(nil),
@@ -123,19 +127,19 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				OperationType: DestroyPreview,
+				OperationType: types.DestroyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				Order:         &ChangeOrder{},
+				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
-					Request: Request{
+					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &models.Spec{
+						Spec: &models.Spec{
 							Resources: []models.Resource{
 								FakeResourceState2,
 							},
@@ -144,12 +148,12 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			},
 			wantRsp: &PreviewResponse{
-				Order: &ChangeOrder{
+				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{"fake-id-2"},
-					ChangeSteps: map[string]*ChangeStep{
+					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id-2": {
 							ID:       "fake-id-2",
-							Action:   Delete,
+							Action:   types.Delete,
 							Original: &FakeResourceState2,
 							Modified: &FakeResourceState2,
 							Current:  &FakeResourceState2,
@@ -162,15 +166,15 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-empty-models",
 			fields: fields{
-				OperationType: ApplyPreview,
+				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				Order:         &ChangeOrder{},
+				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
-					Request: Request{
-						Manifest: nil,
+					Request: opsmodels.Request{
+						Spec: nil,
 					},
 				},
 			},
@@ -180,19 +184,19 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				OperationType: ApplyPreview,
+				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &states.FileSystemState{Path: states.KusionState},
-				Order:         &ChangeOrder{},
+				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
 				request: &PreviewRequest{
-					Request: Request{
+					Request: opsmodels.Request{
 						Tenant:   "fake-tennat",
 						Stack:    "fake-stack",
 						Project:  "fake-project",
 						Operator: "fake-operator",
-						Manifest: &models.Spec{
+						Spec: &models.Spec{
 							Resources: []models.Resource{
 								{
 									ID: "fake-id",
@@ -211,17 +215,19 @@ func TestOperation_Preview(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o := &Operation{
-				OperationType:           tt.fields.OperationType,
-				StateStorage:            tt.fields.StateStorage,
-				CtxResourceIndex:        tt.fields.CtxResourceIndex,
-				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
-				StateResourceIndex:      tt.fields.StateResourceIndex,
-				Order:                   tt.fields.Order,
-				Runtime:                 tt.fields.Runtime,
-				MsgCh:                   tt.fields.MsgCh,
-				resultState:             tt.fields.resultState,
-				lock:                    tt.fields.lock,
+			o := &PreviewOperation{
+				Operation: opsmodels.Operation{
+					OperationType:           tt.fields.OperationType,
+					StateStorage:            tt.fields.StateStorage,
+					CtxResourceIndex:        tt.fields.CtxResourceIndex,
+					PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
+					StateResourceIndex:      tt.fields.StateResourceIndex,
+					ChangeOrder:             tt.fields.Order,
+					Runtime:                 tt.fields.Runtime,
+					MsgCh:                   tt.fields.MsgCh,
+					ResultState:             tt.fields.resultState,
+					Lock:                    tt.fields.lock,
+				},
 			}
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {

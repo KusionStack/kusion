@@ -1,4 +1,4 @@
-package operation
+package types
 
 import "kusionstack.io/kusion/pkg/util/pretty"
 

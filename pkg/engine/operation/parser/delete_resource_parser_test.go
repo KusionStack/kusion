@@ -1,8 +1,10 @@
-package operation
+package parser
 
 import (
 	"strings"
 	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
@@ -49,15 +51,15 @@ func TestDeleteResourceParser_Parse(t *testing.T) {
 		},
 	}
 
-	graph := &dag.AcyclicGraph{}
-	graph.Add(&RootNode{})
+	ag := &dag.AcyclicGraph{}
+	ag.Add(&graph.RootNode{})
 
 	deleteResourceParser := &DeleteResourceParser{
 		resources: resources,
 	}
 
-	_ = deleteResourceParser.Parse(graph)
-	actual := strings.TrimSpace(graph.String())
+	_ = deleteResourceParser.Parse(ag)
+	actual := strings.TrimSpace(ag.String())
 	expected := strings.TrimSpace(testGraphTransReductionMultiple)
 
 	if actual != expected {

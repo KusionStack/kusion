@@ -1,9 +1,13 @@
-package operation
+package models
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
+
+	"kusionstack.io/kusion/pkg/engine/operation/utils"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
@@ -19,11 +23,11 @@ import (
 )
 
 type ChangeStep struct {
-	ID       string      // the resource id
-	Action   ActionType  // the operation performed by this step.
-	Original interface{} // local stored resource
-	Modified interface{} // planed resource
-	Current  interface{} // live resource
+	ID       string           // the resource id
+	Action   types.ActionType // the operation performed by this step.
+	Original interface{}      // local stored resource
+	Modified interface{}      // planed resource
+	Current  interface{}      // live resource
 }
 
 // TODO: 3-way diff
@@ -47,12 +51,12 @@ func (cs *ChangeStep) Diff() (string, error) {
 		buf.WriteString(pretty.GreenBold("ID: "))
 		buf.WriteString(pretty.Green("%s\n", cs.ID))
 	}
-	if cs.Action != Undefined {
+	if cs.Action != types.Undefined {
 		buf.WriteString(pretty.GreenBold("Plan: "))
 		buf.WriteString(pterm.Sprintf("%s\n", cs.Action.PrettyString()))
 	}
 	buf.WriteString(pretty.GreenBold("Diff: "))
-	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChange {
+	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == types.UnChange {
 		buf.WriteString(pretty.Gray("<EMPTY>"))
 	} else {
 		buf.WriteString("\n" + strings.TrimSpace(reportString))
@@ -61,7 +65,7 @@ func (cs *ChangeStep) Diff() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChangeStep(id string, op ActionType, original, modified, current interface{}) *ChangeStep {
+func NewChangeStep(id string, op types.ActionType, original, modified, current interface{}) *ChangeStep {
 	return &ChangeStep{
 		ID:       id,
 		Action:   op,
@@ -74,10 +78,10 @@ func NewChangeStep(id string, op ActionType, original, modified, current interfa
 type ChangeStepFilterFunc func(*ChangeStep) bool
 
 var (
-	CreateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Create }
-	UpdateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Update }
-	DeleteChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Delete }
-	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == UnChange }
+	CreateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Create }
+	UpdateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Update }
+	DeleteChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Delete }
+	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == types.UnChange }
 )
 
 type Changes struct {
@@ -238,12 +242,12 @@ func buildResourceStateMap(rs []*models.Resource) map[string]*models.Resource {
 }
 
 func diffToReport(oldData, newData interface{}) (*dyff.Report, error) {
-	from, err := LoadFile(yaml.MergeToOneYAML(oldData), "Old item")
+	from, err := utils.LoadFile(yaml.MergeToOneYAML(oldData), "Old item")
 	if err != nil {
 		return nil, err
 	}
 
-	to, err := LoadFile(yaml.MergeToOneYAML(newData), "New item")
+	to, err := utils.LoadFile(yaml.MergeToOneYAML(newData), "New item")
 	if err != nil {
 		return nil, err
 	}

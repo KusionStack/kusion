@@ -1,7 +1,11 @@
-package operation
+package parser
 
 import (
 	"fmt"
+
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
@@ -14,8 +18,8 @@ type Parser interface {
 	Parse(dag *dag.AcyclicGraph) status.Status
 }
 
-func LinkRefNodes(graph *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
-	rn dag.Vertex, defaultAction ActionType, manifestGraphMap map[string]interface{},
+func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
+	rn dag.Vertex, defaultAction types.ActionType, manifestGraphMap map[string]interface{},
 ) status.Status {
 	if len(refNodeKeys) == 0 {
 		return nil
@@ -25,33 +29,40 @@ func LinkRefNodes(graph *dag.AcyclicGraph, refNodeKeys []string, resourceIndex m
 			return status.NewErrorStatusWithMsg(status.IllegalManifest,
 				fmt.Sprintf("can't find resource by key:%s in models or state.", parentKey))
 		}
-		parentNode := NewResourceNode(parentKey, resourceIndex[parentKey], defaultAction)
+		parentNode, s := graph.NewResourceNode(parentKey, resourceIndex[parentKey], defaultAction)
+		if status.IsErr(s) {
+			return s
+		}
+		baseNode, s := graph.NewBaseNode(parentKey)
+		if status.IsErr(s) {
+			return s
+		}
 
 		switch defaultAction {
-		case Delete:
+		case types.Delete:
 			// if the parent node is a deleteNode, we will add an edge from child node to parent node.
 			// if parent node is not a deleteNode and manifestGraph contains parent node,
 			// we will add an edge from parent node to child node
 			if manifestGraphMap[parentKey] == nil {
-				if graph.HasVertex(parentNode) {
-					parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
-					graph.Connect(dag.BasicEdge(rn, parentNode))
+				if ag.HasVertex(parentNode) {
+					parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
+					ag.Connect(dag.BasicEdge(rn, parentNode))
 				} else {
-					graph.Add(parentNode)
-					graph.Connect(dag.BasicEdge(rn, parentNode))
+					ag.Add(parentNode)
+					ag.Connect(dag.BasicEdge(rn, parentNode))
 				}
 			} else {
-				parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
-				graph.Connect(dag.BasicEdge(parentNode, rn))
+				parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			}
 		default:
-			hasParent := graph.HasVertex(parentNode)
+			hasParent := ag.HasVertex(parentNode)
 			if hasParent {
-				parentNode = GetVertex(graph, &BaseNode{ID: parentKey}).(*ResourceNode)
-				graph.Connect(dag.BasicEdge(parentNode, rn))
+				parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			} else {
-				graph.Add(parentNode)
-				graph.Connect(dag.BasicEdge(parentNode, rn))
+				ag.Add(parentNode)
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			}
 		}
 	}

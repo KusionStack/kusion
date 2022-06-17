@@ -11,6 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
@@ -19,7 +24,6 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -58,7 +62,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 		mockCompileWithSpinner()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
-		mockOperationDestroy(operation.Success)
+		mockOperationDestroy(opsmodels.Success)
 
 		o := NewDestroyOptions()
 		mockPromptOutput("yes")
@@ -142,15 +146,15 @@ func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource
 }
 
 func mockOperationPreview() {
-	monkey.Patch((*operation.Operation).Preview,
-		func(*operation.Operation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+	monkey.Patch((*operation.PreviewOperation).Preview,
+		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
-				Order: &operation.ChangeOrder{
+				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{sa1.ID},
-					ChangeSteps: map[string]*operation.ChangeStep{
+					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						sa1.ID: {
 							ID:       sa1.ID,
-							Action:   operation.Delete,
+							Action:   types.Delete,
 							Original: &sa1,
 							Modified: nil,
 						},
@@ -191,28 +195,28 @@ func Test_destroy(t *testing.T) {
 	t.Run("destroy success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
-		mockOperationDestroy(operation.Success)
+		mockOperationDestroy(opsmodels.Success)
 
 		o := NewDestroyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa2}}
-		order := &operation.ChangeOrder{
+		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
-			ChangeSteps: map[string]*operation.ChangeStep{
+			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
 					ID:       sa1.ID,
-					Action:   operation.Delete,
+					Action:   types.Delete,
 					Original: &sa1,
 					Modified: nil,
 				},
 				sa2.ID: {
 					ID:       sa2.ID,
-					Action:   operation.UnChange,
+					Action:   types.UnChange,
 					Original: &sa2,
 					Modified: &sa2,
 				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(project, stack, order)
 
 		err := o.destroy(planResources, changes)
 		assert.Nil(t, err)
@@ -220,50 +224,50 @@ func Test_destroy(t *testing.T) {
 	t.Run("destroy failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockNewKubernetesRuntime()
-		mockOperationDestroy(operation.Failed)
+		mockOperationDestroy(opsmodels.Failed)
 
 		o := NewDestroyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
-		order := &operation.ChangeOrder{
+		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*operation.ChangeStep{
+			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
 					ID:       sa1.ID,
-					Action:   operation.Delete,
+					Action:   types.Delete,
 					Original: &sa1,
 					Modified: nil,
 				},
 			},
 		}
-		changes := operation.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(project, stack, order)
 
 		err := o.destroy(planResources, changes)
 		assert.NotNil(t, err)
 	})
 }
 
-func mockOperationDestroy(res operation.OpResult) {
-	monkey.Patch((*operation.Operation).Destroy,
-		func(o *operation.Operation, request *operation.DestroyRequest) status.Status {
+func mockOperationDestroy(res opsmodels.OpResult) {
+	monkey.Patch((*operation.DestroyOperation).Destroy,
+		func(o *operation.DestroyOperation, request *operation.DestroyRequest) status.Status {
 			var err error
-			if res == operation.Failed {
+			if res == opsmodels.Failed {
 				err = errors.New("mock error")
 			}
-			for _, r := range request.Manifest.Resources {
+			for _, r := range request.Spec.Resources {
 				// ing -> $res
-				o.MsgCh <- operation.Message{
+				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   "",
 					OpErr:      nil,
 				}
-				o.MsgCh <- operation.Message{
+				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   res,
 					OpErr:      err,
 				}
 			}
 			close(o.MsgCh)
-			if res == operation.Failed {
+			if res == opsmodels.Failed {
 				return status.NewErrorStatus(err)
 			}
 			return nil
