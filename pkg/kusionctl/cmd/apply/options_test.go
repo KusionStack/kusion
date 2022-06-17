@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -25,6 +27,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -116,13 +119,13 @@ func mockCompileWithSpinner() {
 }
 
 func Test_preview(t *testing.T) {
+	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
 	t.Run("preview success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
 		o := NewApplyOptions()
-		_, err := preview(o, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
+		_, err := Preview(o, &fakerRuntime{}, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack, os.Stdout)
 		assert.Nil(t, err)
 	})
 }
@@ -155,7 +158,7 @@ func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource
 
 func mockOperationPreview() {
 	monkey.Patch((*operation.PreviewOperation).Preview,
-		func(*operation.PreviewOperation, *operation.PreviewRequest, types.OperationType) (rsp *operation.PreviewResponse, s status.Status) {
+		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
 				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
@@ -213,9 +216,9 @@ func newSA(name string) models.Resource {
 }
 
 func Test_apply(t *testing.T) {
+	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
 	t.Run("dry run", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		mockNewKubernetesRuntime()
 
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
@@ -232,12 +235,11 @@ func Test_apply(t *testing.T) {
 		changes := opsmodels.NewChanges(project, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
-		err := apply(o, planResources, changes)
+		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		mockNewKubernetesRuntime()
 		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
@@ -261,12 +263,11 @@ func Test_apply(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := apply(o, planResources, changes)
+		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		mockNewKubernetesRuntime()
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
@@ -284,7 +285,7 @@ func Test_apply(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := apply(o, planResources, changes)
+		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }

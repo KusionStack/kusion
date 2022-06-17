@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
+	"github.com/jinzhu/copier"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -33,7 +34,7 @@ var (
 		ProjectName: "my-app",
 		Description: "A minimal kusion project of single stack",
 		Quickstart:  "kusion compile main.k -Y ci-test/settings.yaml",
-		CommonConfigs: []*FieldTemplate{
+		ProjectConfigs: []*FieldTemplate{
 			{
 				Name:        "ServiceName",
 				Description: "service name",
@@ -107,15 +108,12 @@ func TestTemplateRepository_Templates(t *testing.T) {
 	})
 
 	t.Run("read from subdir", func(t *testing.T) {
-		originalSubDir := localTemplateRepo.SubDirectory
-		defer func() {
-			localTemplateRepo.SubDirectory = originalSubDir
-		}()
-
-		localTemplateRepo.SubDirectory = localTemplateRepo.Root
-		templates, err := localTemplateRepo.Templates()
+		subRepo := TemplateRepository{}
+		copier.Copy(&subRepo, &localTemplateRepo)
+		subRepo.SubDirectory = localTemplateRepo.Root
+		templates, err := subRepo.Templates()
 		assert.Nil(t, err)
-		assert.Equal(t, []Template{localTemplate}, templates)
+		assert.Contains(t, templates, localTemplate)
 	})
 }
 
@@ -254,7 +252,7 @@ func TestCopyTemplateFiles(t *testing.T) {
 	}()
 	// projectConfigs
 	projectConfigs := make(map[string]interface{})
-	for _, f := range localTemplate.CommonConfigs {
+	for _, f := range localTemplate.ProjectConfigs {
 		projectConfigs[f.Name] = f.Default
 	}
 	// stack2Configs
@@ -266,8 +264,6 @@ func TestCopyTemplateFiles(t *testing.T) {
 		}
 		stack2Configs[stack.Name] = configs
 	}
-	// project name
-	projectName := localTemplate.ProjectName
-	err = CopyTemplateFiles(localRoot, tmp, true, projectName, projectConfigs, stack2Configs)
+	err = CopyTemplateFiles(localTemplate.Dir, tmp, true, localTemplate.ProjectName, projectConfigs, stack2Configs)
 	assert.Nil(t, err)
 }

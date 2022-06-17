@@ -2,6 +2,8 @@ package apply
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -24,6 +26,7 @@ import (
 	"kusionstack.io/kusion/pkg/status"
 )
 
+// ApplyOptions defines flags for the `apply` command
 type ApplyOptions struct {
 	compilecmd.CompileOptions
 	Operator    string
@@ -34,6 +37,7 @@ type ApplyOptions struct {
 	OnlyPreview bool
 }
 
+// NewApplyOptions returns a new ApplyOptions instance
 func NewApplyOptions() *ApplyOptions {
 	return &ApplyOptions{
 		CompileOptions: compilecmd.CompileOptions{
@@ -76,7 +80,13 @@ func (o *ApplyOptions) Run() error {
 	pterm.Println()
 
 	// Compute changes for preview
-	changes, err := preview(o, planResources, project, stack)
+	stateStorage := &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)}
+	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+	if err != nil {
+		return err
+	}
+
+	changes, err := Preview(o, kubernetesRuntime, stateStorage, planResources, project, stack, os.Stdout)
 	if err != nil {
 		return err
 	}
@@ -118,13 +128,12 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	if !o.OnlyPreview {
-		// Apply
 		fmt.Println("Start applying diffs ...")
-		if err := apply(o, planResources, changes); err != nil {
+		if err := Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 
-		// Dry run hint
+		// If dry run, print the hint
 		if o.DryRun {
 			fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
 		}
@@ -133,21 +142,44 @@ func (o *ApplyOptions) Run() error {
 	return nil
 }
 
-func preview(o *ApplyOptions, planResources *models.Spec,
-	project *projectstack.Project, stack *projectstack.Stack,
+// The Preview function calculates the upcoming actions of each resource
+// through the execution Kusion Engine, and you can customize the
+// runtime of engine and the state storage through `runtime` and
+// `storage` parameters.
+//
+// Example:
+//   o := NewApplyOptions()
+//   stateStorage := &states.FileSystemState{
+//       Path: filepath.Join(o.WorkDir, states.KusionState)
+//   }
+//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//   if err != nil {
+//       return err
+//   }
+//
+//   changes, err := Preview(o, kubernetesRuntime, stateStorage,
+//       planResources, project, stack, os.Stdout)
+//   if err != nil {
+//       return err
+//   }
+// todo @elliotxx io.Writer is not used now
+func Preview(
+	o *ApplyOptions,
+	runtime runtime.Runtime,
+	storage states.StateStorage,
+	planResources *models.Spec,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	out io.Writer,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return nil, err
-	}
-
+	// Construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
 			OperationType: types.ApplyPreview,
-			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Runtime:       runtime,
+			StateStorage:  storage,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}
@@ -170,32 +202,55 @@ func preview(o *ApplyOptions, planResources *models.Spec,
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func apply(o *ApplyOptions, planResources *models.Spec, changes *opsmodels.Changes) error {
-	// Build apply operation
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return err
-	}
-
+// The Apply function will apply the resources changes
+// through the execution Kusion Engine, and will save
+// the state to specified storage.
+//
+// You can customize the runtime of engine and the state
+// storage through `runtime` and `storage` parameters.
+//
+// Example:
+//   o := NewApplyOptions()
+//   stateStorage := &states.FileSystemState{
+//       Path: filepath.Join(o.WorkDir, states.KusionState)
+//   }
+//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//   if err != nil {
+//       return err
+//   }
+//
+//   err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
+//   if err != nil {
+//       return err
+//   }
+func Apply(
+	o *ApplyOptions,
+	runtime runtime.Runtime,
+	storage states.StateStorage,
+	planResources *models.Spec,
+	changes *opsmodels.Changes,
+	out io.Writer,
+) error {
+	// Construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: opsmodels.Operation{
-			Runtime:      kubernetesRuntime,
-			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			Runtime:      runtime,
+			StateStorage: storage,
 			MsgCh:        make(chan opsmodels.Message),
 		},
 	}
 
-	// line summary
+	// Line summary
 	var ls lineSummary
 
-	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).Start()
+	// Progress bar, print dag walk detail
+	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).WithWriter(out).Start()
 	if err != nil {
 		return err
 	}
-	// wait msgCh close
+	// Wait msgCh close
 	var wg sync.WaitGroup
-	// receive msg and print detail
+	// Receive msg and print detail
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
@@ -229,7 +284,7 @@ func apply(o *ApplyOptions, planResources *models.Spec, changes *opsmodels.Chang
 							strings.ToLower(string(msg.OpResult)),
 						)
 					}
-					pterm.Success.Println(title)
+					pterm.Success.WithWriter(out).Println(title)
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					ls.Count(changeStep.Action)
@@ -239,7 +294,7 @@ func apply(o *ApplyOptions, planResources *models.Spec, changes *opsmodels.Chang
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pterm.Error.Printf("%s, %v\n", title, msg.OpErr)
+					pterm.Error.WithWriter(out).Printf("%s, %v\n", title, msg.OpErr)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),
@@ -276,11 +331,11 @@ func apply(o *ApplyOptions, planResources *models.Spec, changes *opsmodels.Chang
 		}
 	}
 
-	// wait for msgCh closed
+	// Wait for msgCh closed
 	wg.Wait()
 	// Print summary
-	pterm.Println()
-	pterm.Printf("Apply complete! Resources: %d created, %d updated, %d deleted.\n", ls.created, ls.updated, ls.deleted)
+	pterm.Fprintln(out)
+	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return nil
 }
 

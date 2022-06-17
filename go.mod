@@ -41,7 +41,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/pterm/pterm v0.12.41
+	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
 	github.com/pulumi/pulumi/sdk/v3 v3.24.0
 	github.com/sergi/go-diff v1.2.0
 	github.com/spf13/cobra v1.1.1
@@ -63,7 +63,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
+	gopkg.in/yaml.v3 v3.0.0
 	honnef.co/go/tools v0.3.0 // indirect
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2

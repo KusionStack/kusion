@@ -17,6 +17,8 @@ func init() {
 	AddToBackends("local", NewFileSystemState)
 }
 
+var _ StateStorage = &FileSystemState{}
+
 type FileSystemState struct {
 	// state Path is in the same dir where command line is invoked
 	Path string
