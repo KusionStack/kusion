@@ -30,52 +30,54 @@ var (
 		SubDirectory: filepath.Join(localRoot, templateName),
 	}
 	localTemplate = Template{
-		Dir:         filepath.Join(localRoot, templateName),
-		Name:        "deployment-single-stack",
-		ProjectName: "my-app",
-		Description: "A minimal kusion project of single stack",
-		Quickstart:  "kusion compile main.k -Y ci-test/settings.yaml",
-		ProjectConfigs: []*FieldTemplate{
-			{
-				Name:        "ServiceName",
-				Description: "service name",
-				Type:        StringField,
-				Default:     "frontend-svc",
+		Dir:  filepath.Join(localRoot, templateName),
+		Name: "deployment-single-stack",
+		ProjectTemplate: &ProjectTemplate{
+			ProjectName: "my-app",
+			Description: "A minimal kusion project of single stack",
+			Quickstart:  "kusion compile main.k -Y ci-test/settings.yaml",
+			ProjectFields: []*FieldTemplate{
+				{
+					Name:        "ServiceName",
+					Description: "service name",
+					Type:        StringField,
+					Default:     "frontend-svc",
+				},
+				{
+					Name:        "NodePort",
+					Description: "node port",
+					Type:        IntField,
+					Default:     30000,
+				},
+				{
+					Name:        "ProjectName",
+					Description: "project name",
+					Type:        StringField,
+					Default:     "my-app",
+				},
 			},
-			{
-				Name:        "NodePort",
-				Description: "node port",
-				Type:        IntField,
-				Default:     30000,
-			},
-			{
-				Name:        "ProjectName",
-				Description: "project name",
-				Type:        StringField,
-				Default:     "my-app",
-			},
-		},
-		StackConfigs: []*StackTemplate{
-			{
-				Name: "dev",
-				Fields: []*FieldTemplate{
-					{
-						Name:        "Stack",
-						Description: "stack env. One of dev,test,stable,pre,sim,gray,prod.",
-						Type:        StringField,
-						Default:     "dev",
-					},
-					{
-						Name:        "Image",
-						Description: "The Image Address. Default to 'gcr.io/google-samples/gb-frontend:v4'",
-						Type:        StringField,
-						Default:     "gcr.io/google-samples/gb-frontend:v4",
-					},
-					{
-						Name:        "ClusterName",
-						Description: "The Cluster Name. Default to 'kubernetes-dev'",
-						Type:        StringField,
-						Default:     "kubernetes-dev",
+			StackTemplates: []*StackTemplate{
+				{
+					Name: "dev",
+					Fields: []*FieldTemplate{
+						{
+							Name:        "Stack",
+							Description: "stack env. One of dev,test,stable,pre,sim,gray,prod.",
+							Type:        StringField,
+							Default:     "dev",
+						},
+						{
+							Name:        "Image",
+							Description: "The Image Address. Default to 'gcr.io/google-samples/gb-frontend:v4'",
+							Type:        StringField,
+							Default:     "gcr.io/google-samples/gb-frontend:v4",
+						},
+						{
+							Name:        "ClusterName",
+							Description: "The Cluster Name. Default to 'kubernetes-dev'",
+							Type:        StringField,
+							Default:     "kubernetes-dev",
+						},
 					},
 				},
 			},
@@ -253,18 +255,22 @@ func TestCopyTemplateFiles(t *testing.T) {
 	}()
 	// projectConfigs
 	projectConfigs := make(map[string]interface{})
-	for _, f := range localTemplate.ProjectConfigs {
+	for _, f := range localTemplate.ProjectFields {
 		projectConfigs[f.Name] = f.Default
 	}
 	// stack2Configs
 	stack2Configs := make(map[string]map[string]interface{})
-	for _, stack := range localTemplate.StackConfigs {
+	for _, stack := range localTemplate.StackTemplates {
 		configs := make(map[string]interface{})
 		for _, f := range stack.Fields {
 			configs[f.Name] = f.Default
 		}
 		stack2Configs[stack.Name] = configs
 	}
-	err = CopyTemplateFiles(localTemplate.Dir, tmp, true, localTemplate.ProjectName, projectConfigs, stack2Configs)
+	err = CopyTemplateFiles(localTemplate.Dir, tmp, true, &TemplateConfig{
+		ProjectName:   localTemplate.ProjectName,
+		ProjectConfig: projectConfigs,
+		StacksConfig:  stack2Configs,
+	})
 	assert.Nil(t, err)
 }

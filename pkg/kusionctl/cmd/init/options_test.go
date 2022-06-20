@@ -59,8 +59,8 @@ func TestChooseTemplate(t *testing.T) {
 
 		// test data
 		templates := []scaffold.Template{
-			{Name: "foo1"},
-			{Name: "foo2"},
+			{Name: "foo1", ProjectTemplate: &scaffold.ProjectTemplate{}},
+			{Name: "foo2", ProjectTemplate: &scaffold.ProjectTemplate{}},
 		}
 		chosen, err := chooseTemplate(templates)
 		if err != nil {
@@ -73,11 +73,13 @@ func TestChooseTemplate(t *testing.T) {
 
 func TestTemplatesToOptionArrayAndMap(t *testing.T) {
 	testTpl := scaffold.Template{
-		Dir:          "test",
-		Name:         "test",
-		Description:  "test",
-		Quickstart:   "test",
-		StackConfigs: []*scaffold.StackTemplate{},
+		Dir:  "test",
+		Name: "test",
+		ProjectTemplate: &scaffold.ProjectTemplate{
+			Description:    "test",
+			Quickstart:     "test",
+			StackTemplates: []*scaffold.StackTemplate{},
+		},
 	}
 	type args struct {
 		templates []scaffold.Template

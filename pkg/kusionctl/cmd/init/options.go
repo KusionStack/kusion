@@ -1,6 +1,7 @@
 package init
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -20,6 +21,7 @@ type InitOptions struct {
 	ProjectName       string
 	Force             bool
 	Yes               bool
+	CustomParamsJSON  string
 }
 
 func NewInitOptions() *InitOptions {
@@ -87,19 +89,32 @@ func (o *InitOptions) Run() error {
 	if err != nil {
 		return err
 	}
-
-	// choose template
-	var template scaffold.Template
 	if len(templates) == 0 {
 		return errors.New("no templates")
 	}
 
+	// Choose template
+	var template scaffold.Template
 	if template, err = chooseTemplate(templates); err != nil {
 		return err
 	}
 
+	// Parse customParams if not empty
+	var tc scaffold.TemplateConfig
+	if o.CustomParamsJSON != "" {
+		if err := json.Unmarshal([]byte(o.CustomParamsJSON), &tc); err != nil {
+			return err
+		}
+		if tc.ProjectName == "" {
+			return errors.New("`ProjectName` is missing in custom params")
+		}
+
+		o.ProjectName = tc.ProjectName
+		pterm.Bold.Println("Use custom params to render template...")
+	}
+
 	// Show instructions, if we're going to use interactive mode
-	if !o.Yes {
+	if !o.Yes && o.CustomParamsJSON == "" {
 		pterm.Println("This command will walk you through creating a new kusion project.")
 		pterm.Println()
 		pterm.Printfln("Enter a value or leave blank to accept the (default), and press %s.",
@@ -108,6 +123,7 @@ func (o *InitOptions) Run() error {
 		pterm.Println()
 		pterm.Bold.Println("Project Config:")
 	}
+
 	// o.ProjectName is used to make root directory
 	if o.ProjectName != "" {
 		if err := scaffold.ValidateProjectName(o.ProjectName); err != nil {
@@ -128,48 +144,45 @@ func (o *InitOptions) Run() error {
 		}
 	}
 
-	projectConfigs := map[string]interface{}{}
-	// prompt user-defined common configs which is project level
-	for _, f := range template.ProjectConfigs {
-		projectConfigs[f.Name] = f.Default
-		// we don't prompt non-primitive types, such as: array and struct
-		if !f.Type.IsPrimitive() || o.Yes {
-			continue
-		}
-		// prompt always return string value, must restore field type
-		input, err := promptValue(f.Name, f.Description, fmt.Sprintf("%v", f.Default), nil)
-		if err != nil {
-			return err
-		}
-		// restore field type
-		actual, _ := f.RestoreActualValue(input)
-		projectConfigs[f.Name] = actual
-	}
-
-	stack2Configs := make(map[string]map[string]interface{})
-	// prompt user-defined stack configs
-	for i := range template.StackConfigs {
-		stack := template.StackConfigs[i]
-		if !o.Yes {
-			pterm.Bold.Printfln("Stack Config: %s", pterm.Cyan(stack.Name))
-		}
-		configs := make(map[string]interface{})
-		for _, f := range stack.Fields {
-			configs[f.Name] = f.Default
-			// we don't prompt non-primitive types, such as: array and struct
+	if o.CustomParamsJSON == "" {
+		// Prompt project configs from kusion.yaml
+		tc.ProjectConfig = make(map[string]interface{})
+		for _, f := range template.ProjectFields {
+			tc.ProjectConfig[f.Name] = f.Default
+			// We don't prompt non-primitive types, such as: array and struct
 			if !f.Type.IsPrimitive() || o.Yes {
 				continue
 			}
-			// prompt always return string value, must restore f type
-			input, err := promptValue(f.Name, f.Description, fmt.Sprintf("%v", f.Default), nil)
+			// Prompt and restore actual value
+			actual, err := promptAndRestore(f)
 			if err != nil {
 				return err
 			}
-			// restore f type
-			actual, _ := f.RestoreActualValue(input)
-			configs[f.Name] = actual
+			tc.ProjectConfig[f.Name] = actual
 		}
-		stack2Configs[stack.Name] = configs
+
+		// Prompt stack configs from kusion.yaml
+		tc.StacksConfig = make(map[string]map[string]interface{})
+		for _, stack := range template.StackTemplates {
+			if !o.Yes {
+				pterm.Bold.Printfln("Stack Config: %s", pterm.Cyan(stack.Name))
+			}
+			configs := make(map[string]interface{})
+			for _, f := range stack.Fields {
+				configs[f.Name] = f.Default
+				// We don't prompt non-primitive types, such as: array and struct
+				if !f.Type.IsPrimitive() || o.Yes {
+					continue
+				}
+				// Prompt and restore actual value
+				actual, err := promptAndRestore(f)
+				if err != nil {
+					return err
+				}
+				configs[f.Name] = actual
+			}
+			tc.StacksConfig[stack.Name] = configs
+		}
 	}
 
 	// Get the current working directory.
@@ -177,11 +190,11 @@ func (o *InitOptions) Run() error {
 	if err != nil {
 		return fmt.Errorf("getting the working directory: %w", err)
 	}
-	// make a directory of project name
+	// Make dest directory with project name
 	desDir := filepath.Join(cwd, o.ProjectName)
 
 	// Actually copy the files.
-	if err = scaffold.CopyTemplateFiles(template.Dir, desDir, o.Force, o.ProjectName, projectConfigs, stack2Configs); err != nil {
+	if err = scaffold.CopyTemplateFiles(template.Dir, desDir, o.Force, &tc); err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("template '%s' not found: %w", template.Name, err)
 		}
@@ -248,6 +261,21 @@ func templatesToOptionArrayAndMap(templates []scaffold.Template) ([]string, map[
 	sort.Strings(options)
 
 	return options, nameToTemplateMap
+}
+
+// promptAndRestore will prompt f.Value first and restore its actual value based on f.Type
+func promptAndRestore(f *scaffold.FieldTemplate) (interface{}, error) {
+	// Prompt always return string value, must restore f type
+	input, err := promptValue(f.Name, f.Description, fmt.Sprintf("%v", f.Default), nil)
+	if err != nil {
+		return nil, err
+	}
+	// Restore f type
+	actual, err := f.RestoreActualValue(input)
+	if err != nil {
+		return nil, err
+	}
+	return actual, nil
 }
 
 func promptValue(valueType string, description string, defaultValue string, isValidFn func(value string) error) (value string, err error) {
