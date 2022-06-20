@@ -21,7 +21,6 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-yaml v1.8.9
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gonvenience/bunt v1.1.1
 	github.com/gonvenience/neat v1.3.0
 	github.com/gonvenience/term v1.0.0
@@ -38,11 +37,12 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mattn/go-colorable v0.1.11 // indirect
+	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
-	github.com/pulumi/pulumi/sdk/v3 v3.24.0
 	github.com/sergi/go-diff v1.2.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/objx v0.3.0 // indirect
