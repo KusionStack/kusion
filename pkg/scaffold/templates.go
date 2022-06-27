@@ -3,6 +3,7 @@ package scaffold
 import (
 	"bytes"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,13 +12,13 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
 	"kusionstack.io/kusion/third_party/pulumi/gitutil"
 	"kusionstack.io/kusion/third_party/pulumi/workspace"
@@ -35,7 +36,7 @@ var (
 // TemplateRepository represents a repository of templates.
 type TemplateRepository struct {
 	Root         string // The full path to the root directory of the repository.
-	SubDirectory string // The full path to the sub directory within the repository.
+	SubDirectory string // The full path to the subdirectory within the repository.
 	ShouldDelete bool   // Whether the root directory should be deleted.
 }
 
@@ -206,7 +207,7 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 	}
 
 	// Ensure the template directory exists.
-	if err := os.MkdirAll(templateDir, 0o700); err != nil {
+	if err := os.MkdirAll(templateDir, DefaultDirectoryPermission); err != nil {
 		return TemplateRepository{}, err
 	}
 
@@ -373,53 +374,115 @@ type TemplateConfig struct {
 	StacksConfig map[string]map[string]interface{} `json:"stacksConfig,omitempty"`
 }
 
-// CopyTemplateFiles does the actual copy operation to a destination directory.
-func CopyTemplateFiles(sourceDir, destDir string, force bool, tc *TemplateConfig) error {
-	// Create the destination directory.
-	err := mkdirWithForce(destDir, force)
+var (
+	// file flag, create or upate
+	CreateOrUpdate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	// default directory permission, 700
+	DefaultDirectoryPermission os.FileMode = 0o700
+	// default file permission, 600
+	DefaultFilePermission os.FileMode = 0o600
+)
+
+// RenderLocalTemplate does the actual copy operation from source directory to a destination directory.
+func RenderLocalTemplate(sourceDir, destDir string, force bool, tc *TemplateConfig) error {
+	// Source FS
+	srcFS := afero.NewMemMapFs()
+	if err := ReadTemplate(sourceDir, srcFS); err != nil {
+		return err
+	}
+	// Destination FS
+	destFS := afero.NewMemMapFs()
+	if err := RenderFSTemplate(srcFS, sourceDir, destFS, destDir, tc); err != nil {
+		return err
+	}
+	// Write into disk
+	return WriteToDisk(destFS, destDir, force)
+}
+
+// Read files' content from local dir into file system
+func ReadTemplate(dir string, fs afero.Fs) error {
+	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
+	}
+	for _, fileInfo := range fileInfos {
+		path := filepath.Join(dir, fileInfo.Name())
+		if fileInfo.IsDir() {
+			if err = fs.MkdirAll(path, DefaultDirectoryPermission); err != nil {
+				return err
+			}
+			if err = ReadTemplate(path, fs); err != nil {
+				return err
+			}
+		} else {
+			// Read source file content
+			content, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			// Create or Update
+			writer, err := fs.OpenFile(path, CreateOrUpdate, DefaultFilePermission)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if closeErr := writer.Close(); err == nil && closeErr != nil {
+					err = closeErr
+				}
+			}()
+			// Write into FS
+			if _, err := writer.Write(content); err != nil {
+				return err
+			}
+		}
 	}
 
-	infos, err := ioutil.ReadDir(sourceDir)
+	return nil
+}
+
+// RenderFSTemplate does the actual copy operation from source FS to destination FS.
+func RenderFSTemplate(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir string, tc *TemplateConfig) error {
+	// Read all sub dirs and files under srcDir
+	fileInfos, err := afero.ReadDir(srcFS, srcDir)
 	if err != nil {
 		return err
 	}
-	for _, info := range infos {
-		name := info.Name()
-		source := filepath.Join(sourceDir, name)
-		dest := filepath.Join(destDir, name)
-		if info.IsDir() {
-			// base dir or stack dir
-			// stack config can override project config, use project configs as default
-			configs := make(map[string]interface{}, len(tc.ProjectConfig))
-			for k, v := range tc.ProjectConfig {
-				configs[k] = v
-			}
-			if projectstack.IsStack(source) {
+	for _, d := range fileInfos {
+		src := filepath.Join(srcDir, d.Name())
+		dest := filepath.Join(destDir, d.Name())
+		if d.IsDir() {
+			// Base dir or stack dir
+			fileInfo, err := srcFS.Stat(filepath.Join(src, projectstack.StackFile))
+			if err == nil && fileInfo.Mode().IsRegular() {
+				// Project config can be overridden
+				configs := make(map[string]interface{}, len(tc.ProjectConfig))
+				for k, v := range tc.ProjectConfig {
+					configs[k] = v
+				}
+				// Walk each stack
 				for stackName, stackConfigs := range tc.StacksConfig {
+					// Use stack name as sub dir
 					dest = filepath.Join(destDir, stackName)
-					// merge and override project config
+					// Merge and override project config
 					for k, v := range stackConfigs {
 						configs[k] = v
 					}
-					if err = walkFiles(source, dest, force, configs); err != nil {
+					// Walk stack dir with merged configs
+					err = walkFiles(srcFS, src, destFS, dest, configs)
+					if err != nil {
 						return err
 					}
 				}
 			} else {
-				if projectstack.IsProject(source) {
-					dest = filepath.Join(destDir, tc.ProjectName)
-				}
-				// stack dir nested in 3rd level or even deeper
-				// eg: meta_app/deployed_unit/stack_dir
-				if err = CopyTemplateFiles(source, dest, force, tc); err != nil {
+				// Stack dir nested in 3rd level or even deeper, eg: meta_app/deployed_unit/stack_dir
+				err = RenderFSTemplate(srcFS, src, destFS, dest, tc)
+				if err != nil {
 					return err
 				}
 			}
 		} else {
 			// project files. eg: project.yaml, README.md
-			err = doTemplate(info, source, dest, force, tc.ProjectConfig)
+			err = doFile(srcFS, src, destFS, dest, d.Name(), tc.ProjectConfig)
 			if err != nil {
 				return err
 			}
@@ -429,93 +492,78 @@ func CopyTemplateFiles(sourceDir, destDir string, force bool, tc *TemplateConfig
 }
 
 // walkFiles is a helper that walks the directories/files in a source directory
-// and performs an action for each item.
-func walkFiles(sourceDir string, destDir string, force bool, configMap map[string]interface{}) error {
-	if sourceDir == "" {
-		return errors.New("sourceDir cannot be empty")
-	}
-	if destDir == "" {
-		return errors.New("destDir cannot be empty")
-	}
-
-	// sub dir, eg: template/prod
-	if err := mkdirWithForce(destDir, force); err != nil {
-		return err
-	}
-
-	infos, err := ioutil.ReadDir(sourceDir)
+// and performs render for each item.
+func walkFiles(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir string, config map[string]interface{}) error {
+	// Create dest directory first
+	err := destFS.MkdirAll(destDir, DefaultDirectoryPermission)
 	if err != nil {
 		return err
 	}
-	for _, info := range infos {
-		name := info.Name()
-		source := filepath.Join(sourceDir, name)
-		dest := filepath.Join(destDir, name)
 
-		if info.IsDir() {
-			// Ignore the .git directory.
-			if name == GitDir {
+	// Read files and dirs under srcDir
+	dirs, err := afero.ReadDir(srcFS, srcDir)
+	if err != nil {
+		return err
+	}
+	for _, d := range dirs {
+		src := filepath.Join(srcDir, d.Name())
+		dest := filepath.Join(destDir, d.Name())
+		if d.IsDir() {
+			// Ignore the .git directory
+			if d.Name() == GitDir {
 				continue
 			}
-
-			// walk subdir, eg: template/prod/ci
-			if err = walkFiles(source, dest, force, configMap); err != nil {
+			// Walk sub dir, eg: template/prod/ci
+			err = walkFiles(srcFS, src, destFS, dest, config)
+			if err != nil {
 				return err
 			}
 		} else {
-			// render files, eg: project.yaml
-			err = doTemplate(info, source, dest, force, configMap)
+			// render files, eg: base.k
+			err = doFile(srcFS, src, destFS, dest, d.Name(), config)
 			if err != nil {
 				return err
 			}
 		}
 	}
-
 	return nil
 }
 
-func doTemplate(info os.FileInfo, source string, dest string, force bool, config map[string]interface{}) error {
-	if info.Name() == KusionYaml {
-		// skip
+// doFile render template file content and save it in destination file system
+func doFile(srcFS afero.Fs, srcPath string, destFS afero.Fs, destPath, fileName string, config map[string]interface{}) error {
+	// Read template
+	srcContent, err := afero.ReadFile(srcFS, srcPath)
+	if err != nil {
+		return err
+	}
+
+	// Skip kusion.yaml
+	if fileName == KusionYaml {
 		return nil
 	}
-	// Read the source file.
-	b, err := ioutil.ReadFile(source)
+
+	// Render template file
+	destContent, err := render(fileName, string(srcContent), config)
 	if err != nil {
 		return err
 	}
 
-	// Transform only if it is kusion.yaml file
-	// or render with go tmpl
-	result := b
-	if !io.IsBinary(b) {
-		result, err = render(info.Name(), string(b), config)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Originally we just wrote in 0600 mode, but
-	// this does not preserve the executable bit.
-	// With the new logic below, we try to be at
-	// least as permissive as 0600 and whatever
-	// permissions the source file or symlink had.
-	var mode os.FileMode
-	sourceStat, err := os.Lstat(source)
+	// Create or truncate the file
+	writer, err := destFS.OpenFile(destPath, CreateOrUpdate, DefaultFilePermission)
 	if err != nil {
 		return err
 	}
-	mode = sourceStat.Mode().Perm() | 0o600
-
-	// Write to the destination file.
-	err = writeAllBytes(dest, result, force, mode)
-	if err != nil {
-		// An existing file has shown up in between the dry run and the actual copy operation.
-		if os.IsExist(err) {
-			return newExistingFilesError([]string{filepath.Base(dest)})
+	defer func() {
+		if closeErr := writer.Close(); err == nil && closeErr != nil {
+			err = closeErr
 		}
+	}()
+
+	// Write into destFS
+	if _, err := writer.Write(destContent); err != nil {
+		return err
 	}
-	return err
+	return nil
 }
 
 // render parse content(string) with configMap(map[string]string) with go tmpl
@@ -531,6 +579,32 @@ func render(name string, content string, configMap map[string]interface{}) ([]by
 		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+// Walk destination file system and persist each file to local disk
+func WriteToDisk(destFS afero.Fs, root string, force bool) error {
+	return afero.Walk(destFS, root, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return mkdirWithForce(path, force)
+		} else {
+			content, err := afero.ReadFile(destFS, path)
+			if err != nil {
+				return err
+			}
+			err = writeAllBytes(path, content, force, DefaultFilePermission)
+			if err != nil {
+				// An existing file has shown up in between the dry run and the actual copy operation.
+				if os.IsExist(err) {
+					return newExistingFilesError([]string{filepath.Base(path)})
+				}
+				return err
+			}
+			return nil
+		}
+	})
 }
 
 // mkdirWithForce will ignore dir exists error when force is true

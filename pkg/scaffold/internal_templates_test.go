@@ -1,10 +1,12 @@
 package scaffold
 
 import (
+	"io/fs"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,4 +59,40 @@ func TestGenInternalTemplates(t *testing.T) {
 	// check files tree
 	err = checkFiles(srcDir, targetDir)
 	assert.Nil(t, err)
+}
+
+func TestInternalSchemas(t *testing.T) {
+	schemas := InternalTemplateNameToPath()
+	path, ok := schemas[templateName]
+	assert.True(t, ok)
+	assert.Equal(t, path, filepath.Join(templateDir, templateName))
+}
+
+func Test_readIntoFS(t *testing.T) {
+	local := afero.NewMemMapFs()
+	err := ReadTemplate(internalDir, local)
+	assert.Nil(t, err)
+
+	got := []string{}
+	err = afero.Walk(local, filepath.Join(templateDir, templateName), func(path string, info fs.FileInfo, err error) error {
+		got = append(got, path)
+		return nil
+	})
+	assert.Nil(t, err)
+
+	want := []string{
+		"internal/deployment-single-stack",
+		"internal/deployment-single-stack/README.md",
+		"internal/deployment-single-stack/base",
+		"internal/deployment-single-stack/base/base.k",
+		"internal/deployment-single-stack/kusion.yaml",
+		"internal/deployment-single-stack/project.yaml",
+		"internal/deployment-single-stack/stack",
+		"internal/deployment-single-stack/stack/ci-test",
+		"internal/deployment-single-stack/stack/ci-test/settings.yaml",
+		"internal/deployment-single-stack/stack/kcl.yaml",
+		"internal/deployment-single-stack/stack/main.k",
+		"internal/deployment-single-stack/stack/stack.yaml",
+	}
+	assert.Equal(t, want, got)
 }

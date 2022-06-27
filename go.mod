@@ -44,6 +44,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
 	github.com/sergi/go-diff v1.2.0
+	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.1

@@ -12,6 +12,7 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 
@@ -245,7 +246,7 @@ func TestValidateProjectName(t *testing.T) {
 	}
 }
 
-func TestCopyTemplateFiles(t *testing.T) {
+func TestRenderTemplateFiles(t *testing.T) {
 	// dest dir
 	tmp, err := ioutil.TempDir("", "tmp-dir-for-test")
 	assert.Nil(t, err)
@@ -267,10 +268,38 @@ func TestCopyTemplateFiles(t *testing.T) {
 		}
 		stack2Configs[stack.Name] = configs
 	}
-	err = CopyTemplateFiles(localTemplate.Dir, tmp, true, &TemplateConfig{
+	err = RenderLocalTemplate(localTemplate.Dir, tmp, true, &TemplateConfig{
 		ProjectName:   localTemplate.ProjectName,
 		ProjectConfig: projectConfigs,
 		StacksConfig:  stack2Configs,
 	})
+	assert.Nil(t, err)
+}
+
+func Test_RenderMemTemplateFiles(t *testing.T) {
+	memMapFs := afero.NewMemMapFs()
+	prj := "test-proj"
+	srcFS, _ := Transfer(GetInternalTemplates())
+	err := RenderFSTemplate(
+		srcFS, "internal/deployment-single-stack",
+		memMapFs, prj,
+		&TemplateConfig{
+			ProjectName: prj,
+			ProjectConfig: map[string]interface{}{
+				"ServiceName": "frontend-svc",
+				"NodePort":    30000,
+				"ProjectName": prj,
+			},
+			StacksConfig: map[string]map[string]interface{}{
+				"dev": {
+					"Stack":       "dev",
+					"Image":       "foo/bar:v1",
+					"ClusterName": "minikube",
+				},
+			},
+		})
+	assert.Nil(t, err)
+	err = WriteToDisk(memMapFs, prj, true)
+	defer os.RemoveAll(prj)
 	assert.Nil(t, err)
 }

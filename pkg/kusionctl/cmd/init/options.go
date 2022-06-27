@@ -33,9 +33,6 @@ func (o *InitOptions) Complete(args []string) error {
 		if len(args) > 0 {
 			// user-specified link
 			o.TemplateNameOrURL = args[0]
-		} else {
-			// official link
-			o.TemplateNameOrURL = scaffold.KusionTemplateGitRepository
 		}
 	} else { // use offline templates, internal templates or user-specified local dir
 		if len(args) > 0 {
@@ -194,7 +191,7 @@ func (o *InitOptions) Run() error {
 	desDir := filepath.Join(cwd, o.ProjectName)
 
 	// Actually copy the files.
-	if err = scaffold.CopyTemplateFiles(template.Dir, desDir, o.Force, &tc); err != nil {
+	if err = scaffold.RenderLocalTemplate(template.Dir, desDir, o.Force, &tc); err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("template '%s' not found: %w", template.Name, err)
 		}
