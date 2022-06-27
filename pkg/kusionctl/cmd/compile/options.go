@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"kusionstack.io/kusion/pkg/compile"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -20,6 +21,7 @@ type CompileOptions struct {
 	DisableNone bool
 	OverrideAST bool
 	Overrides   []string
+	LogToStderr bool
 }
 
 func NewCompileOptions() *CompileOptions {
@@ -32,6 +34,9 @@ func NewCompileOptions() *CompileOptions {
 func (o *CompileOptions) Complete(args []string) {
 	o.Filenames = args
 	o.PreSet(projectstack.IsStack)
+	if o.LogToStderr {
+		log.SetOutput(os.Stderr)
+	}
 }
 
 func (o *CompileOptions) Validate() error {

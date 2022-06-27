@@ -1351,8 +1351,6 @@ kusionstack.io/kcl-plugin v0.4.1-alpha2 h1:m43JJhpJSjl/Q3FqghJf5dRIwdXsrJeKxrHhg
 kusionstack.io/kcl-plugin v0.4.1-alpha2/go.mod h1:VgB7qXVbDGWFOh/qb/yXf75+UrliP5EPXOQUDqBCdAQ=
 kusionstack.io/kclvm-go v0.4.2-alpha.9 h1:c4mDJFlKuP3CbGTtEkFEQidxcsJpGHNCDBtv7eexlH8=
 kusionstack.io/kclvm-go v0.4.2-alpha.9/go.mod h1:LKGVud6Ch0dLLACwPqZQyU4E+NkLAXzveJFQWVb5Pbk=
-kusionstack.io/kclvm-go v0.4.2-alpha4 h1:HL8dElxruBHcPbPl3MsfoojFhfeHDH/GHeUryuekrho=
-kusionstack.io/kclvm-go v0.4.2-alpha4/go.mod h1:LKGVud6Ch0dLLACwPqZQyU4E+NkLAXzveJFQWVb5Pbk=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=

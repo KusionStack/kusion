@@ -70,6 +70,8 @@ func NewCmdCompile() *cobra.Command {
 		i18n.T("Specify the override option"))
 	cmd.Flags().StringSliceVarP(&o.Overrides, "overrides", "O", []string{},
 		i18n.T("Specify the configuration override path and value"))
+	cmd.Flags().BoolVarP(&o.LogToStderr, "log-to-stderr", "s", false,
+		i18n.T("log to standard error instead of files"))
 
 	return cmd
 }
