@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/states/local"
+
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -19,7 +21,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -42,7 +43,7 @@ func TestOperation_Destroy(t *testing.T) {
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: types.Destroy,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
+			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
 			Runtime:       &runtime.KubernetesRuntime{},
 		},
 	}

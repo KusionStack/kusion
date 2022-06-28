@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/states/local"
+
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
@@ -106,7 +108,7 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: opsmodels.Operation{
 				OperationType:           types.Apply,
-				StateStorage:            states.NewFileSystemState(),
+				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
@@ -126,7 +128,7 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: opsmodels.Operation{
 				OperationType:           types.Apply,
-				StateStorage:            states.NewFileSystemState(),
+				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
@@ -146,7 +148,7 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: opsmodels.Operation{
 				OperationType:           types.Apply,
-				StateStorage:            states.NewFileSystemState(),
+				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
@@ -180,7 +182,7 @@ func TestResourceNode_Execute(t *testing.T) {
 					return resourceState, nil
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
-				func(f *states.FileSystemState, state *states.State) error {
+				func(f *local.FileSystemState, state *states.State) error {
 					return nil
 				})
 			defer monkey.UnpatchAll()

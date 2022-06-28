@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/states/local"
+
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
@@ -80,7 +82,7 @@ func (o *ApplyOptions) Run() error {
 	pterm.Println()
 
 	// Compute changes for preview
-	stateStorage := &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
 	if err != nil {
 		return err

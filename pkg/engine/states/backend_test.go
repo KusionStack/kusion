@@ -1,6 +1,10 @@
 package states
 
-import "testing"
+import (
+	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/states/local"
+)
 
 func TestAddToBackends(t *testing.T) {
 	type args struct {
@@ -15,7 +19,7 @@ func TestAddToBackends(t *testing.T) {
 			name: "t1",
 			args: args{
 				name:    "test",
-				storage: NewFileSystemState,
+				storage: local.NewFileSystemState,
 			},
 		},
 	}
