@@ -6,13 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/kdump"
 )
@@ -90,7 +89,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
 			args: args{
@@ -129,7 +128,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: types.DestroyPreview,
 				Runtime:       &fakePreviewRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
@@ -168,7 +167,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
@@ -186,7 +185,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: types.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
-				StateStorage:  &states.FileSystemState{Path: states.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{

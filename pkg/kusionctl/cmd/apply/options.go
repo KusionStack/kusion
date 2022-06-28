@@ -8,18 +8,17 @@ import (
 	"strings"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -80,7 +79,7 @@ func (o *ApplyOptions) Run() error {
 	pterm.Println()
 
 	// Compute changes for preview
-	stateStorage := &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
 	if err != nil {
 		return err

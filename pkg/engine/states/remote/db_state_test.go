@@ -1,7 +1,7 @@
 //go:build !arm64
 // +build !arm64
 
-package states
+package remote
 
 import (
 	"database/sql"
@@ -14,13 +14,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
+
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 func TestNewDBState(t *testing.T) {
 	tests := []struct {
 		name string
-		want StateStorage
+		want states.StateStorage
 	}{
 		{
 			name: "t1",
@@ -82,7 +84,7 @@ func TestDBState_do2Bo(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   *State
+		want   *states.State
 	}{
 		{
 			name: "t1",
@@ -102,7 +104,7 @@ func TestDBState_do2Bo(t *testing.T) {
 					Resources:     "",
 				},
 			},
-			want: &State{
+			want: &states.State{
 				ID:            1,
 				Project:       "testProject",
 				Version:       1,
@@ -155,10 +157,10 @@ func TestDBState(t *testing.T) {
 	err := dbState.Configure(ctyValue)
 	assert.NoError(t, err)
 
-	_, err = dbState.GetLatestState(&StateQuery{Tenant: "test_global_tenant", Stack: "test_env", Project: "test_project"})
+	_, err = dbState.GetLatestState(&states.StateQuery{Tenant: "test_global_tenant", Stack: "test_env", Project: "test_project"})
 	assert.NoError(t, err)
 
-	state := &State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
+	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 	err = dbState.Apply(state)
 	assert.NoError(t, err)
 

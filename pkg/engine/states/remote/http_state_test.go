@@ -1,4 +1,4 @@
-package states
+package remote
 
 import (
 	"errors"
@@ -10,6 +10,8 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 	json_util "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -25,10 +27,10 @@ func TestHTTPState_Apply(t *testing.T) {
 		getLatestURLFormat string
 	}
 	type args struct {
-		state *State
+		state *states.State
 	}
 
-	state := NewState()
+	state := states.NewState()
 	state.Tenant = "t"
 	state.Project = "p"
 	state.Stack = "s"
@@ -99,15 +101,15 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 		getLatestURLFormat string
 	}
 	type args struct {
-		query *StateQuery
+		query *states.StateQuery
 	}
 
-	state := NewState()
+	state := states.NewState()
 	state.Tenant = "t"
 	state.Project = "p"
 	state.Stack = "s"
 
-	query := &StateQuery{
+	query := &states.StateQuery{
 		Tenant:  "t",
 		Project: "p",
 		Stack:   "s",
@@ -117,7 +119,7 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 		name     string
 		fields   fields
 		args     args
-		want     *State
+		want     *states.State
 		wantErr  assert.ErrorAssertionFunc
 		mockFunc interface{}
 	}{

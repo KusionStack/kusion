@@ -9,17 +9,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -42,7 +40,7 @@ func TestOperation_Destroy(t *testing.T) {
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: types.Destroy,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
+			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
 			Runtime:       &runtime.KubernetesRuntime{},
 		},
 	}

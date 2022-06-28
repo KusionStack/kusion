@@ -1,4 +1,4 @@
-package states
+package remote
 
 import (
 	"database/sql"
@@ -8,28 +8,28 @@ import (
 	"net/url"
 	"sort"
 
-	"kusionstack.io/kusion/pkg/engine/models"
-
+	"github.com/didi/gendry/manager"
 	"github.com/didi/gendry/scanner"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/copier"
+	"github.com/zclconf/go-cty/cty"
 	"gopkg.in/yaml.v3"
+
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
+	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
-	"github.com/didi/gendry/manager"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/zclconf/go-cty/cty"
 )
 
 func init() {
-	AddToBackends("db", NewDBState)
+	states.AddToBackends("db", NewDBState)
 }
 
-var _ StateStorage = &DBState{}
+var _ states.StateStorage = &DBState{}
 
-func NewDBState() StateStorage {
+func NewDBState() states.StateStorage {
 	result := &DBState{}
 	return result
 }
@@ -82,7 +82,7 @@ func (s *DBState) Configure(obj cty.Value) error {
 }
 
 // Apply save state in DB by add-only strategy.
-func (s *DBState) Apply(state *State) error {
+func (s *DBState) Apply(state *states.State) error {
 	m := make(map[string]interface{})
 	sort.Stable(state.Resources)
 	marshal, err := json.Marshal(state)
@@ -101,7 +101,7 @@ func (s *DBState) Delete(id string) error {
 	panic("implement me")
 }
 
-func (s *DBState) GetLatestState(q *StateQuery) (*State, error) {
+func (s *DBState) GetLatestState(q *states.StateQuery) (*states.State, error) {
 	where := make(map[string]interface{})
 
 	if len(q.Tenant) == 0 {
@@ -131,13 +131,13 @@ func (s *DBState) GetLatestState(q *StateQuery) (*State, error) {
 	return res, err
 }
 
-func do2Bo(dbState *mapper.StateDO) *State {
+func do2Bo(dbState *mapper.StateDO) *states.State {
 	var resStateList []models.Resource
 
 	// JSON is a subset of YAML. Please check FileSystemState.GetLatestState for detail explanation
 	parseErr := yaml.Unmarshal([]byte(dbState.Resources), &resStateList)
 	util.CheckNotError(parseErr, fmt.Sprintf("marshall stateDO.resources failed:%v", dbState.Resources))
-	res := NewState()
+	res := states.NewState()
 	e := copier.Copy(res, dbState)
 	util.CheckNotError(e,
 		fmt.Sprintf("copy db_state to State failed. db_state:%v", jsonutil.MustMarshal2String(dbState)))

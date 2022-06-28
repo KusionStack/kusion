@@ -13,11 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
@@ -26,8 +21,11 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -119,7 +117,7 @@ func mockCompileWithSpinner() {
 }
 
 func Test_preview(t *testing.T) {
-	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	t.Run("preview success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockOperationPreview()
@@ -216,7 +214,7 @@ func newSA(name string) models.Resource {
 }
 
 func Test_apply(t *testing.T) {
-	stateStorage := &states.FileSystemState{Path: filepath.Join("", states.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	t.Run("dry run", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 
