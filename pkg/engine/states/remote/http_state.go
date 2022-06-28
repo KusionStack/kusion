@@ -1,4 +1,4 @@
-package states
+package remote
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
@@ -100,7 +102,7 @@ func (s *HTTPState) Configure(obj cty.Value) error {
 }
 
 // GetLatestState is an implementation of StateStorage.GetLatestState
-func (s *HTTPState) GetLatestState(query *StateQuery) (*State, error) {
+func (s *HTTPState) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	url := fmt.Sprintf("%s"+s.getLatestURLFormat, s.urlPrefix, query.Tenant, query.Project, query.Stack)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -120,7 +122,7 @@ func (s *HTTPState) GetLatestState(query *StateQuery) (*State, error) {
 		return nil, fmt.Errorf("get the latest state failed. StatusCode:%v, Status:%s", res.StatusCode, res.Status)
 	}
 
-	state := &State{}
+	state := &states.State{}
 	resBody, _ := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(resBody, state)
 	if err != nil {
@@ -130,7 +132,7 @@ func (s *HTTPState) GetLatestState(query *StateQuery) (*State, error) {
 }
 
 // Apply is an implementation of StateStorage.Apply
-func (s *HTTPState) Apply(state *State) error {
+func (s *HTTPState) Apply(state *states.State) error {
 	jsonState, err := json.Marshal(state)
 	if err != nil {
 		return err

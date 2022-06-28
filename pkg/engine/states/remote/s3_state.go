@@ -1,10 +1,12 @@
-package states
+package remote
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -16,7 +18,7 @@ import (
 
 var ErrS3NoExist = errors.New("s3: key not exist")
 
-var _ StateStorage = &S3State{}
+var _ states.StateStorage = &S3State{}
 
 type S3State struct {
 	sess       *session.Session
@@ -53,7 +55,7 @@ func (s *S3State) Configure(obj cty.Value) error {
 	return nil
 }
 
-func (s *S3State) Apply(state *State) error {
+func (s *S3State) Apply(state *states.State) error {
 	u, err := uuid.NewUUID()
 	if err != nil {
 		return err
@@ -80,7 +82,7 @@ func (s *S3State) Delete(id string) error {
 	panic("implement me")
 }
 
-func (s *S3State) GetLatestState(query *StateQuery) (*State, error) {
+func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack
 	svc := s3.New(s.sess)
 
@@ -122,7 +124,7 @@ func (s *S3State) GetLatestState(query *StateQuery) (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	state := &State{}
+	state := &states.State{}
 	err = json.Unmarshal(data, state)
 	if err != nil {
 		return nil, err

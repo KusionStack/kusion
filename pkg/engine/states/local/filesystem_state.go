@@ -1,4 +1,4 @@
-package states
+package local
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"kusionstack.io/kusion/pkg/engine/states"
+
 	"gopkg.in/yaml.v3"
 
 	"github.com/zclconf/go-cty/cty"
@@ -14,17 +16,17 @@ import (
 )
 
 func init() {
-	AddToBackends("local", NewFileSystemState)
+	states.AddToBackends("local", NewFileSystemState)
 }
 
-var _ StateStorage = &FileSystemState{}
+var _ states.StateStorage = &FileSystemState{}
 
 type FileSystemState struct {
 	// state Path is in the same dir where command line is invoked
 	Path string
 }
 
-func NewFileSystemState() StateStorage {
+func NewFileSystemState() states.StateStorage {
 	return &FileSystemState{}
 }
 
@@ -47,7 +49,7 @@ func (f *FileSystemState) Configure(obj cty.Value) error {
 	return nil
 }
 
-func (f *FileSystemState) GetLatestState(query *StateQuery) (*State, error) {
+func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	// parse state
 	file, err := os.OpenFile(f.Path, os.O_RDWR|os.O_CREATE, fs.ModePerm)
 	if err != nil {
@@ -61,7 +63,7 @@ func (f *FileSystemState) GetLatestState(query *StateQuery) (*State, error) {
 	}
 
 	if len(jsonFile) != 0 {
-		state := &State{}
+		state := &states.State{}
 		// JSON is a subset of YAML.
 		// We are using yaml.Unmarshal here (instead of json.Unmarshal) because the
 		// Go JSON library doesn't try to pick the right number type (int, float,
@@ -78,7 +80,7 @@ func (f *FileSystemState) GetLatestState(query *StateQuery) (*State, error) {
 	}
 }
 
-func (f *FileSystemState) Apply(state *State) error {
+func (f *FileSystemState) Apply(state *states.State) error {
 	now := time.Now()
 	state.CreatTime = now
 	state.ModifiedTime = now

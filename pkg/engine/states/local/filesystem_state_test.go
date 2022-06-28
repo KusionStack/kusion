@@ -1,7 +1,7 @@
 //go:build !arm64
 // +build !arm64
 
-package states
+package local
 
 import (
 	"io/fs"
@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +31,7 @@ func TestMain(m *testing.M) {
 func TestNewFileSystemState(t *testing.T) {
 	tests := []struct {
 		name string
-		want StateStorage
+		want states.StateStorage
 	}{
 		{
 			name: "t1",
@@ -120,13 +122,13 @@ func TestFileSystemState_GetLatestState(t *testing.T) {
 		Path string
 	}
 	type args struct {
-		query *StateQuery
+		query *states.StateQuery
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *State
+		want    *states.State
 		wantErr bool
 	}{
 		{
@@ -135,7 +137,7 @@ func TestFileSystemState_GetLatestState(t *testing.T) {
 				Path: stateFile,
 			},
 			args: args{
-				query: &StateQuery{},
+				query: &states.StateQuery{},
 			},
 			want:    nil,
 			wantErr: false,
@@ -173,7 +175,7 @@ func TestFileSystemState(t *testing.T) {
 	defer monkey.UnpatchAll()
 	fileSystemState := FileSystemStateSetUp(t)
 
-	state := &State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
+	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 	err := fileSystemState.Apply(state)
 	assert.NoError(t, err)
 
