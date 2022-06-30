@@ -85,14 +85,14 @@ func Test_readIntoFS(t *testing.T) {
 		"internal/deployment-single-stack/README.md",
 		"internal/deployment-single-stack/base",
 		"internal/deployment-single-stack/base/base.k",
+		"internal/deployment-single-stack/dev",
+		"internal/deployment-single-stack/dev/ci-test",
+		"internal/deployment-single-stack/dev/ci-test/settings.yaml",
+		"internal/deployment-single-stack/dev/kcl.yaml",
+		"internal/deployment-single-stack/dev/main.k",
+		"internal/deployment-single-stack/dev/stack.yaml",
 		"internal/deployment-single-stack/kusion.yaml",
 		"internal/deployment-single-stack/project.yaml",
-		"internal/deployment-single-stack/stack",
-		"internal/deployment-single-stack/stack/ci-test",
-		"internal/deployment-single-stack/stack/ci-test/settings.yaml",
-		"internal/deployment-single-stack/stack/kcl.yaml",
-		"internal/deployment-single-stack/stack/main.k",
-		"internal/deployment-single-stack/stack/stack.yaml",
 	}
 	assert.Equal(t, want, got)
 }

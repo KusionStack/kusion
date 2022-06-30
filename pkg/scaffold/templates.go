@@ -459,19 +459,19 @@ func RenderFSTemplate(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir st
 				for k, v := range tc.ProjectConfig {
 					configs[k] = v
 				}
-				// Walk each stack
-				for stackName, stackConfigs := range tc.StacksConfig {
-					// Use stack name as sub dir
-					dest = filepath.Join(destDir, stackName)
-					// Merge and override project config
-					for k, v := range stackConfigs {
-						configs[k] = v
-					}
-					// Walk stack dir with merged configs
-					err = walkFiles(srcFS, src, destFS, dest, configs)
-					if err != nil {
-						return err
-					}
+				// Skip if stackConfigs are not provided
+				stackConfigs, exits := tc.StacksConfig[fileInfo.Name()]
+				if !exits {
+					continue
+				}
+				// Merge and override project config
+				for k, v := range stackConfigs {
+					configs[k] = v
+				}
+				// Walk stack dir with merged configs
+				err = walkFiles(srcFS, src, destFS, dest, configs)
+				if err != nil {
+					return err
 				}
 			} else {
 				// Stack dir nested in 3rd level or even deeper, eg: meta_app/deployed_unit/stack_dir
