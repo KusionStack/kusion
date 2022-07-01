@@ -1,6 +1,8 @@
 package log
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -28,6 +30,7 @@ type zapLogger struct {
 	debugLevel    zap.AtomicLevel
 	defaultLevel  zap.AtomicLevel
 	errorLevel    zap.AtomicLevel
+	out           io.Writer
 }
 
 func TimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -72,50 +75,98 @@ func newZapLogger() (Logger, error) {
 }
 
 func (l *zapLogger) Debug(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Debug(args...)
 }
 
 func (l *zapLogger) Debugf(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Debugf(format, args...)
 }
 
 func (l *zapLogger) Infof(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Infof(format, args...)
 }
 
 func (l *zapLogger) Info(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Info(args...)
 }
 
 func (l *zapLogger) Warnf(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Warnf(format, args...)
 }
 
 func (l *zapLogger) Warn(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Warn(args...)
 }
 
 func (l *zapLogger) Errorf(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Errorf(format, args...)
 }
 
 func (l *zapLogger) Error(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Error(args...)
 }
 
 func (l *zapLogger) Panicf(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Panicf(format, args...)
 }
 
 func (l *zapLogger) Panic(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Panic(args...)
 }
 
 func (l *zapLogger) Fatalf(format string, args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprintf(format, args...)))
+		return
+	}
 	l.sugaredLogger.Fatalf(format, args...)
 }
 
 func (l *zapLogger) Fatal(args ...interface{}) {
+	if l.out != nil {
+		l.out.Write([]byte(fmt.Sprint(args...)))
+		return
+	}
 	l.sugaredLogger.Fatal(args...)
 }
 
@@ -138,6 +189,10 @@ func (l *zapLogger) GetLogDir() LogDir {
 func (l *zapLogger) With(args ...interface{}) Logger {
 	curLogger := l.sugaredLogger.With(args...)
 	return &zapLogger{sugaredLogger: curLogger, defaultLevel: l.defaultLevel, debugLevel: l.debugLevel, errorLevel: l.errorLevel}
+}
+
+func (l *zapLogger) SetOutput(output io.Writer) {
+	l.out = output
 }
 
 func getZapLevel(level Level) zapcore.Level {

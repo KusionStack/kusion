@@ -1,5 +1,7 @@
 package log
 
+import "io"
+
 type Level uint8
 
 const (
@@ -26,4 +28,5 @@ type Logger interface {
 	SetLevel(level Level)
 	GetLogDir() LogDir
 	With(args ...interface{}) Logger
+	SetOutput(out io.Writer)
 }
