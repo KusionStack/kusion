@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/states/local"
+
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
@@ -17,7 +19,6 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -133,7 +134,7 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 		Operation: opsmodels.Operation{
 			OperationType: types.DestroyPreview,
 			Runtime:       kubernetesRuntime,
-			StateStorage:  &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage:  &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)},
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}
@@ -166,7 +167,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Runtime:      kubernetesRuntime,
-			StateStorage: &states.FileSystemState{Path: filepath.Join(o.WorkDir, states.KusionState)},
+			StateStorage: &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)},
 			MsgCh:        make(chan opsmodels.Message),
 		},
 	}

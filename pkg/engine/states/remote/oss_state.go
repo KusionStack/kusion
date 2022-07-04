@@ -1,10 +1,12 @@
-package states
+package remote
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"gopkg.in/yaml.v3"
 
@@ -15,7 +17,7 @@ import (
 
 var ErrOSSNoExist = errors.New("oss: key not exist")
 
-var _ StateStorage = &OssState{}
+var _ states.StateStorage = &OssState{}
 
 type OssState struct {
 	bucket *oss.Bucket
@@ -51,7 +53,7 @@ func (s *OssState) Configure(obj cty.Value) error {
 	return nil
 }
 
-func (s *OssState) Apply(state *State) error {
+func (s *OssState) Apply(state *states.State) error {
 	u, err := uuid.NewUUID()
 	if err != nil {
 		return err
@@ -72,7 +74,7 @@ func (s *OssState) Delete(id string) error {
 	panic("implement me")
 }
 
-func (s *OssState) GetLatestState(query *StateQuery) (*State, error) {
+func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack
 	objects, err := s.bucket.ListObjects(oss.Delimiter("/"), oss.Prefix(prefix))
 	if err != nil {
@@ -100,7 +102,7 @@ func (s *OssState) GetLatestState(query *StateQuery) (*State, error) {
 	if err != nil {
 		return nil, err
 	}
-	state := &State{}
+	state := &states.State{}
 	// JSON is a subset of YAML. Please check FileSystemState.GetLatestState for detail explanation
 	err = yaml.Unmarshal(data, state)
 	if err != nil {

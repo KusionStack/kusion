@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/states/local"
+
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -119,7 +121,7 @@ func TestOperation_Apply(t *testing.T) {
 			name: "apply test",
 			fields: fields{
 				OperationType: types.Apply,
-				StateStorage:  &states.FileSystemState{Path: filepath.Join("test_data", states.KusionState)},
+				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
 				Runtime:       &runtime.KubernetesRuntime{},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},

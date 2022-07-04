@@ -1,13 +1,15 @@
 //go:build !arm64
 // +build !arm64
 
-package states
+package remote
 
 import (
 	"encoding/json"
 	"io"
 	"testing"
 	"time"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"bou.ke/monkey"
 
@@ -29,7 +31,7 @@ func SetUp(t *testing.T) *OssState {
 	monkey.Patch(oss.Bucket.ListObjects, func(b oss.Bucket, options ...oss.Option) (oss.ListObjectsResult, error) {
 		return oss.ListObjectsResult{Objects: []oss.ObjectProperties{{LastModified: time.Now()}}}, nil
 	})
-	state := &State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
+	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 	jsonByte, _ := json.MarshalIndent(state, "", "  ")
 	monkey.Patch(oss.Bucket.GetObject, func(b oss.Bucket, objectKey string, options ...oss.Option) (io.ReadCloser, error) {
 		return mocks.NewBody(string(jsonByte)), nil
@@ -43,10 +45,10 @@ func TestOssState(t *testing.T) {
 	ossState := SetUp(t)
 	_, err := NewOSSState("test_endpoint", "test_access_id", "test_access_secret", "testbucket")
 	assert.NoError(t, err)
-	state := &State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
+	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 	err = ossState.Apply(state)
 	assert.NoError(t, err)
-	query := &StateQuery{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
+	query := &states.StateQuery{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 	latestState, err := ossState.GetLatestState(query)
 	assert.NoError(t, err)
 	assert.Equal(t, state, latestState)

@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
@@ -117,7 +117,6 @@ func parseGistURL(u *url.URL) (string, error) {
 
 	resultURL := u.Scheme + "://" + u.Host + "/" + id
 	return resultURL, nil
-
 }
 
 // ParseGitRepoURL returns the URL to the Git repository and path from a raw URL.
@@ -173,8 +172,8 @@ var gitSHARegex = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 // GetGitReferenceNameOrHashAndSubDirectory returns the reference name or hash, and sub directory path.
 // The sub directory path always uses "/" as the separator.
 func GetGitReferenceNameOrHashAndSubDirectory(url string, urlPath string) (
-	plumbing.ReferenceName, plumbing.Hash, string, error) {
-
+	plumbing.ReferenceName, plumbing.Hash, string, error,
+) {
 	// If path is empty, use HEAD.
 	if urlPath == "" {
 		return plumbing.HEAD, plumbing.ZeroHash, "", nil
