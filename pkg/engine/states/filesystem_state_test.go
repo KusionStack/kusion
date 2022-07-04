@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/states"
+
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"

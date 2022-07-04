@@ -129,20 +129,32 @@ var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
-	return planState, nil
+func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+	return &runtime.ApplyResponse{
+		Resource: request.PlanResource,
+		Status:   nil,
+	}
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+	if request.Resource.ResourceKey() == "fake-id" {
+		return &runtime.ReadResponse{
+			Resource: nil,
+			Status:   nil,
+		}
+	}
+	return &runtime.ReadResponse{
+		Resource: request.Resource,
+		Status:   nil,
+	}
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+func (f *fakerRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+	return nil
 }
 
 func mockOperationPreview() {
