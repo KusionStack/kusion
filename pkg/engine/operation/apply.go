@@ -89,7 +89,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	if status.IsErr(s) {
 		return nil, s
 	}
-	log.Infof("Apply Graph:%s", applyGraph.String())
+	log.Infof("Apply Graph:\n%s", applyGraph.String())
 
 	applyOperation := &ApplyOperation{
 		Operation: opsmodels.Operation{
