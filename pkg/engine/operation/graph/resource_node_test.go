@@ -168,18 +168,20 @@ func TestResourceNode_Execute(t *testing.T) {
 				state:    tt.fields.state,
 			}
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Apply",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
+				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 					mockState := *newResourceState
 					mockState.Attributes["a"] = "c"
-					return &mockState, nil
+					return &runtime.ApplyResponse{
+						Resource: &mockState,
+					}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Delete",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, priorState *models.Resource) status.Status {
+				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 					return nil
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Read",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-					return resourceState, nil
+				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+					return &runtime.ReadResponse{Resource: request.Resource}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
 				func(f *local.FileSystemState, state *states.State) error {

@@ -45,23 +45,32 @@ var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
 
 type fakePreviewRuntime struct{}
 
-func (f *fakePreviewRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
-	return planState, nil
-}
-
-func (f *fakePreviewRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	if resourceState.ResourceKey() == "fake-id" {
-		return nil, nil
+func (f *fakePreviewRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+	return &runtime.ApplyResponse{
+		Resource: request.PlanResource,
+		Status:   nil,
 	}
-	return resourceState, nil
 }
 
-func (f *fakePreviewRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+func (f *fakePreviewRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+	if request.Resource.ResourceKey() == "fake-id" {
+		return &runtime.ReadResponse{
+			Resource: nil,
+			Status:   nil,
+		}
+	}
+	return &runtime.ReadResponse{
+		Resource: request.Resource,
+		Status:   nil,
+	}
+}
+
+func (f *fakePreviewRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakePreviewRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *fakePreviewRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+	return nil
 }
 
 func TestOperation_Preview(t *testing.T) {
