@@ -5,11 +5,12 @@ package local
 
 import (
 	"io/fs"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
