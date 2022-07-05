@@ -46,28 +46,33 @@ func NewKubernetesRuntime() (Runtime, error) {
 	}, nil
 }
 
-// Apply kubernetes resource by client-go
-func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
+// Apply kubernetes Resource by client-go
+func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *ApplyResponse {
+	planState := request.PlanResource
+	priorState := request.PriorResource
+
 	// Don`t consider delete case, so plan state must be not empty
 	if planState == nil {
-		return nil, status.NewErrorStatus(errors.New("plan state is nil"))
+		return &ApplyResponse{nil, status.NewErrorStatus(errors.New("plan state is nil"))}
 	}
 
-	// Get kubernetes resource interface from plan state
+	// Get kubernetes Resource interface from plan state
 	planObj, resource, err := k.buildKubernetesResourceByState(planState)
 	if err != nil {
-		return nil, status.NewErrorStatus(err)
+		return &ApplyResponse{nil, status.NewErrorStatus(err)}
 	}
 	// Get live state
-	liveState, s := k.Read(ctx, planState)
+	response := k.Read(ctx, &ReadRequest{planState})
+	liveState := response.Resource
+	s := response.Status
 	if status.IsErr(s) {
-		return nil, s
+		return &ApplyResponse{nil, s}
 	}
 
 	// LiveState is nil, fall back to create planObj directly
 	if liveState == nil {
 		if _, err = resource.Create(ctx, planObj, metav1.CreateOptions{}); err != nil {
-			return nil, status.NewErrorStatus(err)
+			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
 	} else {
 		// Original equals to last-applied from annotation, kusion store it in kusion_state.json
@@ -82,79 +87,81 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, priorState, planState *mo
 		// 3-way json merge patch
 		patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 		if err != nil {
-			return nil, status.NewErrorStatus(err)
+			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
 		// Apply patch
 		if _, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patch, metav1.PatchOptions{FieldManager: "kusion"}); err != nil {
-			return nil, status.NewErrorStatus(err)
+			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
 	}
 
-	return &models.Resource{
+	return &ApplyResponse{&models.Resource{
 		ID:         planState.ResourceKey(),
 		Attributes: planObj.Object,
 		DependsOn:  planState.DependsOn,
-	}, nil
+	}, nil}
 }
 
-// Read kubernetes resource by client-go
-func (k *KubernetesRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+// Read kubernetes Resource by client-go
+func (k *KubernetesRuntime) Read(ctx context.Context, request *ReadRequest) *ReadResponse {
+	requestResource := request.Resource
 	// Validate
-	if resourceState == nil {
-		return nil, status.NewErrorStatus(errors.New("resourceState is nil"))
+	if requestResource == nil {
+		return &ReadResponse{nil, status.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
 	// Get resource by attribute
-	obj, resource, err := k.buildKubernetesResourceByState(resourceState)
+	obj, resource, err := k.buildKubernetesResourceByState(requestResource)
 	if err != nil {
-		return nil, status.NewErrorStatus(err)
+		return &ReadResponse{nil, status.NewErrorStatus(err)}
 	}
 
 	// Read resource
 	v, err := resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			log.Infof("%s not found, ignore", resourceState.ResourceKey())
-			return nil, nil
+			log.Infof("%s not found, ignore", requestResource.ResourceKey())
+			return &ReadResponse{nil, nil}
 		}
-		return nil, status.NewErrorStatus(err)
+		return &ReadResponse{nil, status.NewErrorStatus(err)}
 	}
 
-	return &models.Resource{
-		ID:         resourceState.ResourceKey(),
+	return &ReadResponse{&models.Resource{
+		ID:         requestResource.ResourceKey(),
 		Attributes: v.Object,
-		DependsOn:  resourceState.DependsOn,
-	}, nil
+		DependsOn:  requestResource.DependsOn,
+	}, nil}
 }
 
-// Delete kubernetes resource by client-go
-func (k *KubernetesRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+// Delete kubernetes Resource by client-go
+func (k *KubernetesRuntime) Delete(ctx context.Context, request *DeleteRequest) *DeleteResponse {
+	requestResource := request.Resource
 	// Validate
-	if resourceState == nil {
-		return status.NewErrorStatus(errors.New("resourceState is nil"))
+	if requestResource == nil {
+		return &DeleteResponse{status.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
-	// Get resource by attribute
-	obj, resource, err := k.buildKubernetesResourceByState(resourceState)
+	// Get Resource by attribute
+	obj, resource, err := k.buildKubernetesResourceByState(requestResource)
 	if err != nil {
-		return status.NewErrorStatus(err)
+		return &DeleteResponse{status.NewErrorStatus(err)}
 	}
 
-	// Delete resource
+	// Delete Resource
 	err = resource.Delete(ctx, obj.GetName(), metav1.DeleteOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			log.Infof("%s not found, ignore", resourceState.ResourceKey())
-			return nil
+			log.Infof("%s not found, ignore", requestResource.ResourceKey())
+			return &DeleteResponse{nil}
 		}
-		return status.NewErrorStatus(err)
+		return &DeleteResponse{status.NewErrorStatus(err)}
 	}
 
-	return nil
+	return &DeleteResponse{nil}
 }
 
 // Watch kubernetes resource by client-go
-func (k *KubernetesRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
+func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *WatchResponse {
 	panic("need implement")
 }
 

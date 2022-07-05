@@ -11,11 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
@@ -24,6 +19,9 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -121,28 +119,40 @@ func Test_preview(t *testing.T) {
 
 func mockNewKubernetesRuntime() {
 	monkey.Patch(runtime.NewKubernetesRuntime, func() (runtime.Runtime, error) {
-		return &fakerRuntime{}, nil
+		return &dummyRuntime{}, nil
 	})
 }
 
-var _ runtime.Runtime = (*fakerRuntime)(nil)
+var _ runtime.Runtime = (*dummyRuntime)(nil)
 
-type fakerRuntime struct{}
+type dummyRuntime struct{}
 
-func (f *fakerRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
-	return planState, nil
+func (f *dummyRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+	return &runtime.ApplyResponse{
+		Resource: request.PlanResource,
+		Status:   nil,
+	}
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *dummyRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+	if request.Resource.ResourceKey() == "fake-id" {
+		return &runtime.ReadResponse{
+			Resource: nil,
+			Status:   nil,
+		}
+	}
+	return &runtime.ReadResponse{
+		Resource: request.Resource,
+		Status:   nil,
+	}
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+func (f *dummyRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *dummyRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+	return nil
 }
 
 func mockOperationPreview() {

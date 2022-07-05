@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
+	"github.com/hashicorp/terraform/dag"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
-
-	"github.com/hashicorp/terraform/dag"
 )
 
 type SpecParser struct {
@@ -28,17 +26,17 @@ var _ Parser = (*SpecParser)(nil)
 
 func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(g, "dag is nil")
-	mf := m.spec
-	util.CheckNotNil(mf, "models is nil")
-	if mf.Resources == nil {
-		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(mf))
+	sp := m.spec
+	util.CheckNotNil(sp, "models is nil")
+	if sp.Resources == nil {
+		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(sp))
 		return status.NewBaseStatus(status.Warning, status.NotFound, sprintf)
 	}
 
 	root, err := g.Root()
 	util.CheckNotError(err, "get dag root error")
 	util.CheckNotNil(root, fmt.Sprintf("No root in this DAG:%s", json.Marshal2String(g)))
-	resourceIndex := mf.Resources.Index()
+	resourceIndex := sp.Resources.Index()
 	for key, resourceState := range resourceIndex {
 		rn, s := graph.NewResourceNode(key, resourceIndex[key], types.Update)
 		if status.IsErr(s) {

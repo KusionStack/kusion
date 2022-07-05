@@ -6,16 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/util"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -51,7 +48,9 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	priorState := operation.PriorStateResourceIndex[key]
 
 	// 3. get the latest resource from runtime
-	liveState, s := operation.Runtime.Read(context.Background(), planedState)
+	response := operation.Runtime.Read(context.Background(), &runtime.ReadRequest{Resource: planedState})
+	liveState := response.Resource
+	s := response.Status
 	if status.IsErr(s) {
 		return s
 	}
@@ -106,13 +105,16 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 
 	switch rn.Action {
 	case types.Create, types.Update:
-		res, s = operation.Runtime.Apply(context.Background(), priorState, planedState)
+		response := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: priorState, PlanResource: planedState})
+		res = response.Resource
+		s = response.Status
 		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonutil.Marshal2String(res))
 		if s != nil {
 			log.Debugf("apply status: %v", s.String())
 		}
 	case types.Delete:
-		s = operation.Runtime.Delete(context.Background(), priorState)
+		response := operation.Runtime.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState})
+		s = response.Status
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())
 		}

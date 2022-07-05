@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/engine/operation/parser"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"github.com/hashicorp/terraform/dag"
 	"github.com/hashicorp/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/parser"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -89,7 +87,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	if status.IsErr(s) {
 		return nil, s
 	}
-	log.Infof("Apply Graph:%s", applyGraph.String())
+	log.Infof("Apply Graph:\n%s", applyGraph.String())
 
 	applyOperation := &ApplyOperation{
 		Operation: opsmodels.Operation{

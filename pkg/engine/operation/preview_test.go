@@ -6,15 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states/local"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/kdump"
 )
@@ -41,27 +38,36 @@ var (
 	}
 )
 
-var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
+var _ runtime.Runtime = (*dummyPreviewRuntime)(nil)
 
-type fakePreviewRuntime struct{}
+type dummyPreviewRuntime struct{}
 
-func (f *fakePreviewRuntime) Apply(ctx context.Context, priorState, planState *models.Resource) (*models.Resource, status.Status) {
-	return planState, nil
-}
-
-func (f *fakePreviewRuntime) Read(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	if resourceState.ResourceKey() == "fake-id" {
-		return nil, nil
+func (f *dummyPreviewRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+	return &runtime.ApplyResponse{
+		Resource: request.PlanResource,
+		Status:   nil,
 	}
-	return resourceState, nil
 }
 
-func (f *fakePreviewRuntime) Delete(ctx context.Context, resourceState *models.Resource) status.Status {
+func (f *dummyPreviewRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+	if request.Resource.ResourceKey() == "fake-id" {
+		return &runtime.ReadResponse{
+			Resource: nil,
+			Status:   nil,
+		}
+	}
+	return &runtime.ReadResponse{
+		Resource: request.Resource,
+		Status:   nil,
+	}
+}
+
+func (f *dummyPreviewRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakePreviewRuntime) Watch(ctx context.Context, resourceState *models.Resource) (*models.Resource, status.Status) {
-	return resourceState, nil
+func (f *dummyPreviewRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+	return nil
 }
 
 func TestOperation_Preview(t *testing.T) {
@@ -91,7 +97,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-apply",
 			fields: fields{
 				OperationType: types.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				Runtime:       &dummyPreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
@@ -130,7 +136,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-destroy",
 			fields: fields{
 				OperationType: types.DestroyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				Runtime:       &dummyPreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -169,7 +175,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-empty-models",
 			fields: fields{
 				OperationType: types.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				Runtime:       &dummyPreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -187,7 +193,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-nonexistent-id",
 			fields: fields{
 				OperationType: types.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				Runtime:       &dummyPreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
