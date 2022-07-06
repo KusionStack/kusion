@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,12 +50,6 @@ func (o *DepsOptions) Validate() error {
 		return fmt.Errorf("invalid focus paths. cannot be empty")
 	}
 
-	for _, focus := range o.Focus {
-		if _, err := os.Stat(filepath.Join(o.workDir, focus)); err != nil {
-			return fmt.Errorf("invalid focus path. need to be valid relative path from the workdir: %s", err)
-		}
-	}
-
 	for _, ignore := range o.Ignore {
 		if _, err := os.Stat(filepath.Join(o.workDir, ignore)); err != nil {
 			return fmt.Errorf("invalid ignore path. need to be valid relative path from the workdir: %s", err)
@@ -71,7 +66,7 @@ func (o *DepsOptions) Run() error {
 	o.workDir = workDir
 	switch o.Direct {
 	case "up":
-		depsFiles, err := list.ListUpStreamFiles(o.workDir, &list.DepOption{Files: o.Focus})
+		depsFiles, err := list.ListUpStreamFiles(o.workDir, &list.DepOptions{Files: o.Focus})
 		if err != nil {
 			return err
 		}
@@ -80,6 +75,13 @@ func (o *DepsOptions) Run() error {
 		}
 		return nil
 	case "down":
+		var notExistFiles []string
+		for _, focus := range o.Focus {
+			if _, err := os.Stat(filepath.Join(o.workDir, focus)); errors.Is(err, os.ErrNotExist) {
+				// the focus file does not exist. check if the file is deleted files under some stack/project
+				notExistFiles = append(notExistFiles, focus)
+			}
+		}
 		projects, err := projectstack.FindAllProjectsFrom(o.workDir)
 		if err != nil {
 			return err
@@ -96,10 +98,20 @@ func (o *DepsOptions) Run() error {
 			if err != nil {
 				return err
 			}
+			for _, file := range notExistFiles {
+				if isSubPath(relProjPath, file) {
+					file2ProjMap[file] = append(file2ProjMap[file], relProjPath)
+				}
+			}
 			for _, stack := range project.Stacks {
 				relStackPath, err := filepath.Rel(o.workDir, stack.GetPath())
 				if err != nil {
 					return err
+				}
+				for _, file := range notExistFiles {
+					if isSubPath(relProjPath, file) {
+						file2StackMap[file] = append(file2StackMap[file], relStackPath)
+					}
 				}
 				opt := kcl.WithSettings(filepath.Join(stack.GetPath(), projectstack.KclFile))
 				for _, entranceFile := range opt.KFilenameList {
@@ -127,9 +139,9 @@ func (o *DepsOptions) Run() error {
 				}
 			}
 		}
-		affectedFiles, err := kcl.ListDownStreamFiles(o.workDir, &list.DepOption{
-			Files:        entranceFiles,
-			ChangedPaths: o.Focus,
+		affectedFiles, err := kcl.ListDownStreamFiles(o.workDir, &list.DepOptions{
+			Files:     entranceFiles,
+			UpStreams: o.Focus,
 		})
 		if err != nil {
 			return err
@@ -179,4 +191,22 @@ func listFiles(root string, resursive bool) ([]string, error) {
 		}
 	}
 	return files, nil
+}
+
+func isSubPath(parent string, sub string) bool {
+	parent = filepath.Clean(parent)
+	outer := filepath.Dir(sub)
+
+	for outer != "." && outer != "/" {
+		if outer == parent {
+			return true
+		} else {
+			tmpOuter := filepath.Dir(outer)
+			if tmpOuter == outer {
+				break
+			}
+			outer = tmpOuter
+		}
+	}
+	return false
 }
