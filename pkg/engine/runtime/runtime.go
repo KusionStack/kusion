@@ -18,7 +18,7 @@ type Runtime interface {
 	// like the Kubernetes Runtime, you can directly invoke this method without any conversion.
 	// PlanResource and priorState are given in this method for the runtime which would make a
 	// three-way-merge (planState,priorState and live state) when implementing this interface
-	Apply(ctx context.Context, applyStruct *ApplyRequest) *ApplyResponse
+	Apply(ctx context.Context, request *ApplyRequest) *ApplyResponse
 
 	// Read the latest state of this Resource
 	Read(ctx context.Context, request *ReadRequest) *ReadResponse
