@@ -11,11 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
@@ -24,6 +19,9 @@ import (
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -165,10 +163,9 @@ func mockOperationPreview() {
 					StepKeys: []string{sa1.ID},
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						sa1.ID: {
-							ID:       sa1.ID,
-							Action:   types.Delete,
-							Original: &sa1,
-							Modified: nil,
+							ID:     sa1.ID,
+							Action: types.Delete,
+							From:   nil,
 						},
 					},
 				},
@@ -215,16 +212,14 @@ func Test_destroy(t *testing.T) {
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
-					ID:       sa1.ID,
-					Action:   types.Delete,
-					Original: &sa1,
-					Modified: nil,
+					ID:     sa1.ID,
+					Action: types.Delete,
+					From:   nil,
 				},
 				sa2.ID: {
-					ID:       sa2.ID,
-					Action:   types.UnChange,
-					Original: &sa2,
-					Modified: &sa2,
+					ID:     sa2.ID,
+					Action: types.UnChange,
+					From:   &sa2,
 				},
 			},
 		}
@@ -244,10 +239,9 @@ func Test_destroy(t *testing.T) {
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
 				sa1.ID: {
-					ID:       sa1.ID,
-					Action:   types.Delete,
-					Original: &sa1,
-					Modified: nil,
+					ID:     sa1.ID,
+					Action: types.Delete,
+					From:   nil,
 				},
 			},
 		}

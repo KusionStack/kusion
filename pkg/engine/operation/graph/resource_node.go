@@ -6,18 +6,14 @@ import (
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/engine/runtime"
-
-	"kusionstack.io/kusion/pkg/util"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util"
+	"kusionstack.io/kusion/pkg/util/diff"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -47,6 +43,8 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 1. prepare planedState
 	planedState := rn.state
+	// predictableState represents dry-run result
+	predictableState := planedState
 
 	// 2. get prior state which is stored in kusion_state.json
 	key := rn.state.ResourceKey()
@@ -69,10 +67,26 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 			rn.Action = types.Create
 		} else if planedState == nil {
 			rn.Action = types.Delete
-		} else if reflect.DeepEqual(liveState, planedState) { // TODO: need a better comparable func
-			rn.Action = types.UnChange
 		} else {
-			rn.Action = types.Update
+			// Dry run to fetch predictable state
+			dryRunResp := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
+				PriorResource: priorState,
+				PlanResource:  planedState,
+				DryRun:        true,
+			})
+			if status.IsErr(dryRunResp.Status) {
+				return dryRunResp.Status
+			}
+			predictableState = dryRunResp.Resource
+			report, err := diff.ToReport(liveState, predictableState)
+			if err != nil {
+				return status.NewErrorStatus(err)
+			}
+			if len(report.Diffs) == 0 {
+				rn.Action = types.UnChange
+			} else {
+				rn.Action = types.Update
+			}
 		}
 	default:
 		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
@@ -81,7 +95,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	// 5. apply or return
 	switch operation.OperationType {
 	case types.ApplyPreview, types.DestroyPreview:
-		fillResponseChangeSteps(operation, rn, priorState, planedState, liveState)
+		fillResponseChangeSteps(operation, rn, liveState, predictableState)
 	case types.Apply, types.Destroy:
 		switch rn.Action {
 		case types.Create, types.Delete, types.Update:
@@ -158,7 +172,7 @@ func NewResourceNode(key string, state *models.Resource, action types.ActionType
 }
 
 // save change steps in DAG walking order so that we can preview a full applying list
-func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, prior, plan, live interface{}) {
+func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, plan, live interface{}) {
 	defer ops.Lock.Unlock()
 	ops.Lock.Lock()
 
@@ -173,7 +187,7 @@ func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, prior, 
 		order.ChangeSteps = make(map[string]*opsmodels.ChangeStep)
 	}
 	order.StepKeys = append(order.StepKeys, rn.ID)
-	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, prior, plan, live)
+	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, plan, live)
 }
 
 var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
