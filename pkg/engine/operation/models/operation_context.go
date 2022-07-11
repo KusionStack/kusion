@@ -59,8 +59,9 @@ type Message struct {
 
 type Request struct {
 	Tenant   string       `json:"tenant"`
-	Stack    string       `json:"stack"`
 	Project  string       `json:"project"`
+	Stack    string       `json:"stack"`
+	Cluster  string       `json:"cluster"`
 	Operator string       `json:"operator"`
 	Spec     *models.Spec `json:"spec"`
 }
@@ -98,6 +99,7 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 			Tenant:  request.Tenant,
 			Stack:   request.Stack,
 			Project: request.Project,
+			Cluster: request.Cluster,
 		},
 	)
 	util.CheckNotError(err, fmt.Sprintf("GetLatestState failed with request: %v", kdump.FormatN(request)))
