@@ -2,19 +2,17 @@ package operation
 
 import (
 	"context"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states/local"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/kdump"
 )
@@ -74,6 +72,7 @@ func (f *fakePreviewRuntime) Watch(ctx context.Context, request *runtime.WatchRe
 }
 
 func TestOperation_Preview(t *testing.T) {
+	defer os.Remove("kusion_state.json")
 	type fields struct {
 		OperationType           types.OperationType
 		StateStorage            states.StateStorage
@@ -124,11 +123,10 @@ func TestOperation_Preview(t *testing.T) {
 					StepKeys: []string{"fake-id"},
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id": {
-							ID:       "fake-id",
-							Action:   types.Create,
-							Original: (*models.Resource)(nil),
-							Modified: &FakeResourceState,
-							Current:  (*models.Resource)(nil),
+							ID:     "fake-id",
+							Action: types.Create,
+							From:   (*models.Resource)(nil),
+							To:     &FakeResourceState,
 						},
 					},
 				},
@@ -163,11 +161,10 @@ func TestOperation_Preview(t *testing.T) {
 					StepKeys: []string{"fake-id-2"},
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id-2": {
-							ID:       "fake-id-2",
-							Action:   types.Delete,
-							Original: &FakeResourceState2,
-							Modified: &FakeResourceState2,
-							Current:  &FakeResourceState2,
+							ID:     "fake-id-2",
+							Action: types.Delete,
+							From:   &FakeResourceState2,
+							To:     &FakeResourceState2,
 						},
 					},
 				},
@@ -210,8 +207,7 @@ func TestOperation_Preview(t *testing.T) {
 						Spec: &models.Spec{
 							Resources: []models.Resource{
 								{
-									ID: "fake-id",
-
+									ID:         "fake-id",
 									Attributes: FakeService,
 									DependsOn:  []string{"nonexistent-id"},
 								},

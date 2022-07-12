@@ -120,7 +120,8 @@ func MergeToOneYAML(yamlList ...interface{}) string {
 	var result bytes.Buffer
 	e := yamlv3.NewEncoder(&result)
 	for _, y := range yamlList {
-		if y == nil || reflect.ValueOf(y).IsNil() {
+		// compatible with basic type
+		if y == nil || reflect.ValueOf(y).IsZero() {
 			y = nil
 		}
 		e.SetIndent(2)

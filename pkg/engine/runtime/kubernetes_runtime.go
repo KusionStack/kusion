@@ -71,8 +71,17 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 
 	// LiveState is nil, fall back to create planObj directly
 	if liveState == nil {
-		if _, err = resource.Create(ctx, planObj, metav1.CreateOptions{}); err != nil {
+		// Patch options
+		createOptions := metav1.CreateOptions{}
+		if request.DryRun {
+			createOptions.DryRun = []string{metav1.DryRunAll}
+		}
+		createdObj, err := resource.Create(ctx, planObj, createOptions)
+		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
+		}
+		if request.DryRun {
+			planObj = createdObj
 		}
 	} else {
 		// Original equals to last-applied from annotation, kusion store it in kusion_state.json
@@ -85,13 +94,24 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 		// Current equals live manifest
 		current := json.MustMarshal2String(liveState.Attributes)
 		// 3-way json merge patch
-		patch, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
+		patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
+		// Patch options
+		patchOptions := metav1.PatchOptions{
+			FieldManager: "kusion",
+		}
+		if request.DryRun {
+			patchOptions.DryRun = []string{metav1.DryRunAll}
+		}
 		// Apply patch
-		if _, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patch, metav1.PatchOptions{FieldManager: "kusion"}); err != nil {
+		patchedObj, err := resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, patchOptions)
+		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
+		}
+		if request.DryRun {
+			planObj = patchedObj
 		}
 	}
 

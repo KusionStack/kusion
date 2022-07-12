@@ -5,35 +5,29 @@ import (
 	"fmt"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/engine/operation/utils"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
-	"kusionstack.io/kusion/pkg/engine/models"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
+	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"
-	"kusionstack.io/kusion/pkg/util/yaml"
-	"kusionstack.io/kusion/third_party/dyff"
 )
 
 type ChangeStep struct {
-	ID       string           // the resource id
-	Action   types.ActionType // the operation performed by this step.
-	Original interface{}      // local stored resource
-	Modified interface{}      // planed resource
-	Current  interface{}      // live resource
+	ID     string           // the resource id
+	Action types.ActionType // the operation performed by this step.
+	From   interface{}      // old data
+	To     interface{}      // new data
 }
 
-// TODO: 3-way diff
+// Diff compares objects(from and to) which stores in ChangeStep,
+// and return a human-readable string report.
 func (cs *ChangeStep) Diff() (string, error) {
 	// Generate diff report
-	diffReport, err := diffToReport(cs.Current, cs.Modified)
+	diffReport, err := diff.ToReport(cs.From, cs.To)
 	if err != nil {
 		log.Errorf("failed to compute diff with ChangeStep ID: %s", cs.ID)
 		return "", err
@@ -65,13 +59,12 @@ func (cs *ChangeStep) Diff() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChangeStep(id string, op types.ActionType, original, modified, current interface{}) *ChangeStep {
+func NewChangeStep(id string, op types.ActionType, from, to interface{}) *ChangeStep {
 	return &ChangeStep{
-		ID:       id,
-		Action:   op,
-		Original: original,
-		Modified: modified,
-		Current:  current,
+		ID:     id,
+		Action: op,
+		From:   from,
+		To:     to,
 	}
 }
 
@@ -239,22 +232,4 @@ func buildResourceStateMap(rs []*models.Resource) map[string]*models.Resource {
 	}
 
 	return rMap
-}
-
-func diffToReport(oldData, newData interface{}) (*dyff.Report, error) {
-	from, err := utils.LoadFile(yaml.MergeToOneYAML(oldData), "Old item")
-	if err != nil {
-		return nil, err
-	}
-
-	to, err := utils.LoadFile(yaml.MergeToOneYAML(newData), "New item")
-	if err != nil {
-		return nil, err
-	}
-
-	report, err := dyff.CompareInputFiles(from, to, dyff.IgnoreOrderChanges(true))
-	if err != nil {
-		return nil, err
-	}
-	return &report, nil
 }

@@ -4,19 +4,17 @@ import (
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 var (
-	TestChangeStepOpCreate   = NewChangeStep("id", types.Create, nil, nil, nil)
-	TestChangeStepOpDelete   = NewChangeStep("id", types.Delete, nil, nil, nil)
-	TestChangeStepOpUpdate   = NewChangeStep("id", types.Update, nil, nil, nil)
-	TestChangeStepOpUnChange = NewChangeStep("id", types.UnChange, nil, nil, nil)
+	TestChangeStepOpCreate   = NewChangeStep("id", types.Create, nil, nil)
+	TestChangeStepOpDelete   = NewChangeStep("id", types.Delete, nil, nil)
+	TestChangeStepOpUpdate   = NewChangeStep("id", types.Update, nil, nil)
+	TestChangeStepOpUnChange = NewChangeStep("id", types.UnChange, nil, nil)
 	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
@@ -130,10 +128,9 @@ func TestChangeStep_Diff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cs := &ChangeStep{
-				ID:       tt.fields.ID,
-				Action:   tt.fields.Op,
-				Original: tt.fields.Old,
-				Modified: tt.fields.New,
+				ID:     tt.fields.ID,
+				Action: tt.fields.Op,
+				From:   tt.fields.New,
 			}
 			got, err := cs.Diff()
 			if (err != nil) != tt.wantErr {
