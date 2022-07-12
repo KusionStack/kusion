@@ -1,14 +1,14 @@
 package deps
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-
 	kcl "kusionstack.io/kclvm-go"
 	"kusionstack.io/kclvm-go/pkg/tools/list"
 	"kusionstack.io/kusion/pkg/projectstack"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 )
 
 type DepsOptions struct {
@@ -17,6 +17,35 @@ type DepsOptions struct {
 	Focus   []string
 	Only    string
 	Ignore  []string
+}
+
+// stringSet is a simple string set implementation by map
+type stringSet map[string]bool
+
+// emptyStringSet creates a string set with an empty value list
+func emptyStringSet() stringSet {
+	return make(stringSet)
+}
+
+// add a string value to the stringSet s
+func (s stringSet) add(value string) {
+	s[value] = true
+}
+
+// contains checks if the stringSet s contains certain string value
+func (s stringSet) contains(value string) bool {
+	_, ok := s[value]
+	return ok
+}
+
+// toSlice generates a string slice containing all the string values in the stringSet s
+func (s stringSet) toSlice() []string {
+	var result []string
+	for value := range s {
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result
 }
 
 func NewDepsOptions() *DepsOptions {
@@ -58,13 +87,14 @@ func (o *DepsOptions) Validate() error {
 	return nil
 }
 
-func (o *DepsOptions) Run() error {
+func (o *DepsOptions) Run() (err error) {
 	workDir, err := filepath.Abs(o.workDir)
 	if err != nil {
 		return err
 	}
 	o.workDir = workDir
 	switch o.Direct {
+	// list upstream files of the focus files
 	case "up":
 		depsFiles, err := list.ListUpStreamFiles(o.workDir, &list.DepOptions{Files: o.Focus})
 		if err != nil {
@@ -74,97 +104,99 @@ func (o *DepsOptions) Run() error {
 			fmt.Println(v)
 		}
 		return nil
+	// list downstream files of the focus files
 	case "down":
-		var notExistFiles []string
-		for _, focus := range o.Focus {
-			if _, err := os.Stat(filepath.Join(o.workDir, focus)); errors.Is(err, os.ErrNotExist) {
-				// the focus file does not exist. check if the file is deleted files under some stack/project
-				notExistFiles = append(notExistFiles, focus)
-			}
+		var projectOnly bool
+		switch o.Only {
+		case "project":
+			projectOnly = true
+		case "stack":
+			projectOnly = false
+		default:
+			return fmt.Errorf("invalid output downstream type. supported types: project, stack")
 		}
-		projects, err := projectstack.FindAllProjectsFrom(o.workDir)
-		if err != nil {
+
+		// 1. index the paths that should be ignored and the paths that need to list downstream stacks/projects on.
+		shouldIgnore := toSet(o.Ignore)
+		focusPaths := toSet(o.Focus)
+
+		entrances := emptyStringSet()                // all the entrance files in the work directory
+		entranceIndex := map[string][]string{}       // entrance file index to the corresponding projects/stacks
+		downstreamProjectOrStack := emptyStringSet() // might be downstream projects or downstream stacks, according to the user option
+
+		// 2. find all projects from work directory. for each project/stack, check if there are files changed in it or collect all the entrance files in them
+		// To list downstream stacks/projects, wee need to go through all the entrance files under each project/stack,
+		// then filter out the ones that are downstream of the focus files
+		var projects []*projectstack.Project
+		if projects, err = projectstack.FindAllProjectsFrom(o.workDir); err != nil {
 			return err
 		}
-		file2StackMap := map[string][]string{}
-		file2ProjMap := map[string][]string{}
-		entranceFiles := []string{}
-		ignoreMap := map[string]bool{}
-		for _, ignore := range o.Ignore {
-			ignoreMap[ignore] = true
-		}
 		for _, project := range projects {
-			relProjPath, err := filepath.Rel(o.workDir, project.GetPath())
-			if err != nil {
-				return err
-			}
-			for _, file := range notExistFiles {
-				if isSubPath(relProjPath, file) {
-					file2ProjMap[file] = append(file2ProjMap[file], relProjPath)
-				}
-			}
+			projectRelative, _ := filepath.Rel(o.workDir, project.GetPath())
 			for _, stack := range project.Stacks {
-				relStackPath, err := filepath.Rel(o.workDir, stack.GetPath())
-				if err != nil {
-					return err
+				// 2.1 get the relative path of project/stack
+				stackRelative, _ := filepath.Rel(o.workDir, stack.GetPath())
+				var stackProjectPath string
+				if projectOnly {
+					stackProjectPath = projectRelative
+				} else {
+					stackProjectPath = stackRelative
 				}
-				for _, file := range notExistFiles {
-					if isSubPath(relProjPath, file) {
-						file2StackMap[file] = append(file2StackMap[file], relStackPath)
+				// 2.2 in order to save time, cut off the focus paths which are exactly under some stacks/projects directory
+				// so that:
+				// a. the corresponding stacks/projects can be directly marked as downstream
+				// b. those focus paths will be skipped to call the ListDownStreamFiles API
+				isDownstream := false
+				// iterate all the focus files and check if the dir path is changed, and delete files which is under the dir path
+				for f := range focusPaths {
+					if strings.HasPrefix(f, stackRelative) {
+						// skip those focus paths that are under the stack directory
+						delete(focusPaths, f)
+						if _, ok := shouldIgnore[f]; !ok {
+							isDownstream = true
+						}
 					}
 				}
-				opt := kcl.WithSettings(filepath.Join(stack.GetPath(), projectstack.KclFile))
+				if isDownstream {
+					// mark the stack/project as downstream
+					downstreamProjectOrStack.add(stackProjectPath)
+					continue
+				}
+				// 2.3 collect and index all the entrance files of the stack by loading the settings file
+				settingsPath := filepath.Join(stack.GetPath(), projectstack.KclFile)
+				opt := kcl.WithSettings(settingsPath)
+				if opt.Err != nil {
+					// the stack settings is invalid
+					return fmt.Errorf("invalid settings file(%s), %v", settingsPath, err)
+				}
 				for _, entranceFile := range opt.KFilenameList {
-					relPath, err := filepath.Rel(o.workDir, entranceFile)
-					if err != nil {
-						return err
-					}
-					if _, ok := ignoreMap[relPath]; ok {
-						continue
-					}
-					file2StackMap[relPath] = append(file2StackMap[relPath], relStackPath)
-					file2ProjMap[relPath] = append(file2ProjMap[relPath], relProjPath)
-					entranceFiles = append(entranceFiles, relPath)
-				}
-				sFiles, err := listFiles(stack.GetPath(), true)
-				if err != nil {
-					return err
-				}
-				for _, file := range sFiles {
-					rel, _ := filepath.Rel(o.workDir, file)
-					if _, ok := file2StackMap[rel]; !ok {
-						file2StackMap[rel] = append(file2StackMap[rel], relStackPath)
-						file2ProjMap[rel] = append(file2ProjMap[rel], relProjPath)
-					}
+					entranceRel, _ := filepath.Rel(o.workDir, entranceFile)
+					entranceIndex[entranceRel] = append(entranceIndex[entranceRel], stackProjectPath)
+					entrances.add(entranceRel)
 				}
 			}
 		}
-		affectedFiles, err := kcl.ListDownStreamFiles(o.workDir, &list.DepOptions{
-			Files:     entranceFiles,
-			UpStreams: o.Focus,
+
+		// 3. call the ListDownStreamFiles API
+		downstreamFiles, err := kcl.ListDownStreamFiles(o.workDir, &list.DepOptions{
+			Files:     entrances.toSlice(),
+			UpStreams: focusPaths.toSlice(),
 		})
 		if err != nil {
 			return err
 		}
-		var fileMap map[string][]string
-		switch o.Only {
-		case "project":
-			fileMap = file2ProjMap
-		case "stack":
-			fileMap = file2StackMap
-		default:
-			return fmt.Errorf("invalid output downstream type. supported types: project, stack")
-		}
-		affected := map[string]bool{}
-		for _, affect := range affectedFiles {
-			// filter
-			if stacks, ok := fileMap[affect]; ok {
-				for _, stack := range stacks {
-					affected[stack] = true
+
+		// 4. for each downstream file, check if it belongs to some stacks/projects, and mark those stacks/projects as downstream
+		for _, file := range downstreamFiles {
+			if stacksOrProjs, ok := entranceIndex[filepath.Join(o.workDir, file)]; ok {
+				for _, v := range stacksOrProjs {
+					downstreamProjectOrStack.add(v)
 				}
 			}
 		}
-		for name := range affected {
+
+		// 5. output the result
+		for name := range downstreamProjectOrStack {
 			fmt.Println(name)
 		}
 		return nil
@@ -173,40 +205,10 @@ func (o *DepsOptions) Run() error {
 	}
 }
 
-func listFiles(root string, resursive bool) ([]string, error) {
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return nil, err
+func toSet(list []string) stringSet {
+	result := emptyStringSet()
+	for _, item := range list {
+		result.add(item)
 	}
-	files := []string{}
-	for _, file := range entries {
-		if !file.IsDir() {
-			files = append(files, filepath.Join(root, file.Name()))
-		} else if resursive {
-			subFiles, err := listFiles(filepath.Join(root, file.Name()), resursive)
-			if err != nil {
-				return nil, err
-			}
-			files = append(files, subFiles...)
-		}
-	}
-	return files, nil
-}
-
-func isSubPath(parent string, sub string) bool {
-	parent = filepath.Clean(parent)
-	outer := filepath.Dir(sub)
-
-	for outer != "." && outer != "/" {
-		if outer == parent {
-			return true
-		} else {
-			tmpOuter := filepath.Dir(outer)
-			if tmpOuter == outer {
-				break
-			}
-			outer = tmpOuter
-		}
-	}
-	return false
+	return result
 }
