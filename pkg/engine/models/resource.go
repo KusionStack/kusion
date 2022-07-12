@@ -5,7 +5,8 @@ type Type string
 type Resources []Resource
 
 type Resource struct {
-	// ID is the unique key of this resource in the whole State. ApiVersion:Kind:Namespace:Name is an idiomatic way of Kubernetes resources.
+	// ID is the unique key of this resource in the whole State.
+	// ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
 	ID string `json:"id" yaml:"id"`
 
 	// Type represents all Runtimes we supported

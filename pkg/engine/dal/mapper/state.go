@@ -11,16 +11,17 @@ import (
 
 type StateDO struct {
 	ID            int64     `json:"id"`
-	GlobalTenant  string    `json:"global_tenant"`
-	Env           string    `json:"env"`
+	Tenant        string    `json:"tenant"`
 	Project       string    `json:"project"`
+	Stack         string    `json:"stack"`
+	Cluster       string    `json:"cluster,omitempty"`
 	Version       int       `json:"version"`
 	KusionVersion string    `json:"kusion_version"`
 	Serial        uint64    `json:"serial"`
 	Operator      string    `json:"operator"`
 	Resources     string    `json:"resources"`
-	GmtCreate     time.Time `json:"gmt_create"`
-	GmtModified   time.Time `json:"gmt_modified"`
+	CreateTime    time.Time `json:"create_time"`
+	ModifiedTime  time.Time `json:"modified_time"`
 }
 
 // GetOne gets one record from table build_task by condition "where"

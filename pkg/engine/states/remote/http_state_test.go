@@ -1,7 +1,6 @@
 package remote
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,12 +11,13 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
+
 	json_util "kusionstack.io/kusion/pkg/util/json"
 )
 
 const (
 	prefix = "https://kusionstack.io"
-	format = "/apis/v1/tenants/%s/projects/%s/stacks/%s/states/"
+	format = "/apis/v1/tenants/%s/projects/%s/stacks/%s/cluster/%s/states/"
 )
 
 func TestHTTPState_Apply(t *testing.T) {
@@ -34,6 +34,7 @@ func TestHTTPState_Apply(t *testing.T) {
 	state.Tenant = "t"
 	state.Project = "p"
 	state.Stack = "s"
+	state.Cluster = "c"
 
 	tests := []struct {
 		name     string
@@ -70,7 +71,7 @@ func TestHTTPState_Apply(t *testing.T) {
 			},
 			args: args{state: state},
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return err == nil && strings.Contains(err.Error(), "apply state failed")
+				return err != nil && strings.Contains(err.Error(), "apply state failed")
 			},
 			mockFunc: func(c *http.Client, req *http.Request) (*http.Response, error) {
 				return &http.Response{
@@ -89,7 +90,10 @@ func TestHTTPState_Apply(t *testing.T) {
 				getLatestURLFormat: tt.fields.getLatestURLFormat,
 			}
 			monkey.Patch((*http.Client).Do, tt.mockFunc)
-			tt.wantErr(t, s.Apply(tt.args.state), fmt.Sprintf("Apply(%v)", tt.args.state))
+			err := s.Apply(tt.args.state)
+			if !tt.wantErr(t, err, fmt.Sprintf("Apply(%v)", tt.args.state)) {
+				t.Errorf("wantErrFuncFailed:%v", err)
+			}
 		})
 	}
 }
@@ -108,11 +112,13 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 	state.Tenant = "t"
 	state.Project = "p"
 	state.Stack = "s"
+	state.Cluster = "c"
 
 	query := &states.StateQuery{
 		Tenant:  "t",
 		Project: "p",
 		Stack:   "s",
+		Cluster: "c",
 	}
 
 	tests := []struct {
@@ -175,7 +181,7 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 
 			got, err := s.GetLatestState(tt.args.query)
 			if !tt.wantErr(t, err, fmt.Sprintf("GetLatestState(%v)", tt.args.query)) {
-				return
+				t.Errorf("wantErrFuncFailed:%v", err)
 			}
 			assert.Equalf(t, tt.want, got, "GetLatestState(%v)", tt.args.query)
 		})
@@ -221,7 +227,7 @@ func TestNewHTTPState(t *testing.T) {
 			},
 			want: nil,
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return err == errors.New("urlPrefix can not be empty")
+				return strings.Contains(err.Error(), "urlPrefix can not be empty")
 			},
 		},
 		{
@@ -235,7 +241,8 @@ func TestNewHTTPState(t *testing.T) {
 			},
 			want: nil,
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return err == errors.New("applyURLFormat must contains 3 \"%s\" placeholders for tenant, project, stack. Current format:invalidate_format")
+				return strings.Contains(err.Error(), "applyURLFormat must contains 4 \"%s\" placeholders for tenant, project, "+
+					"stack and cluster")
 			},
 		},
 	}
@@ -243,7 +250,7 @@ func TestNewHTTPState(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewHTTPState(tt.args.params)
 			if !tt.wantErr(t, err, fmt.Sprintf("NewHTTPState(%v)", tt.args.params)) {
-				return
+				t.Errorf("wantErrFuncFailed:%v", err)
 			}
 			assert.Equalf(t, tt.want, got, "NewHTTPState(%v)", tt.args.params)
 		})

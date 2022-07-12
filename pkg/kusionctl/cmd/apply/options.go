@@ -329,7 +329,7 @@ func Apply(
 			},
 		})
 		if status.IsErr(st) {
-			return fmt.Errorf("apply failed, status: %v", st)
+			return fmt.Errorf("apply failed, status:\n%v", st)
 		}
 	}
 

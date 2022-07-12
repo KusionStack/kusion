@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/zclconf/go-cty/cty"
+
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -82,7 +83,7 @@ func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.Stat
 
 func (f *FileSystemState) Apply(state *states.State) error {
 	now := time.Now()
-	state.CreatTime = now
+	state.CreateTime = now
 	state.ModifiedTime = now
 	jsonByte, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {

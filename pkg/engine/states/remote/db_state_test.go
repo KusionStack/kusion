@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
+
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
 )
 
@@ -94,9 +95,10 @@ func TestDBState_do2Bo(t *testing.T) {
 			args: args{
 				&mapper.StateDO{
 					ID:            1,
-					GlobalTenant:  "testTenant",
-					Env:           "testEnv",
+					Tenant:        "testTenant",
 					Project:       "testProject",
+					Stack:         "testEnv",
+					Cluster:       "testCluster",
 					Version:       1,
 					KusionVersion: "test",
 					Serial:        1,
@@ -106,7 +108,10 @@ func TestDBState_do2Bo(t *testing.T) {
 			},
 			want: &states.State{
 				ID:            1,
+				Tenant:        "testTenant",
 				Project:       "testProject",
+				Stack:         "testEnv",
+				Cluster:       "testCluster",
 				Version:       1,
 				KusionVersion: "test",
 				Serial:        1,
@@ -129,7 +134,7 @@ func DBStateSetUp(t *testing.T) *DBState {
 		return &sql.DB{}, nil
 	})
 
-	stateDo := &mapper.StateDO{GlobalTenant: "test_global_tenant", Project: "test_project", Env: "test_env"}
+	stateDo := &mapper.StateDO{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 
 	monkey.Patch(mapper.GetOne, func(db *sql.DB, where map[string]interface{}) (*mapper.StateDO, error) {
 		return stateDo, nil

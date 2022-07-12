@@ -146,7 +146,10 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 
 			s = node.Execute(o)
 			if status.IsErr(s) {
-				o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Failed, OpErr: fmt.Errorf("node execte failed, status: %v", s)}
+				o.MsgCh <- opsmodels.Message{
+					ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Failed,
+					OpErr: fmt.Errorf("node execte failed, status:\n%v", s),
+				}
 			} else {
 				o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Success}
 			}
@@ -155,7 +158,7 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 		}
 	}
 	if s != nil {
-		diags = diags.Append(fmt.Errorf("node execte failed, status: %v", s))
+		diags = diags.Append(fmt.Errorf("node execte failed, status:\n%v", s))
 	}
 	return diags
 }
