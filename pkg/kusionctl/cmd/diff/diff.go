@@ -15,15 +15,10 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 	"sigs.k8s.io/yaml"
 
+	diffutil "kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/third_party/diff"
 	"kusionstack.io/kusion/third_party/dyff"
-)
-
-// Supported output option values
-const (
-	OutputHuman = "human"
-	OutputRaw   = "raw"
 )
 
 var (
@@ -78,7 +73,7 @@ func NewCmdDiff() *cobra.Command {
 	cmd.Flags().StringVar(&o.diffMode, "diff-mode", "normal",
 		i18n.T(fmt.Sprintf("Diff mode. One of %s and %s. The default is normal", DiffModeNormal, DiffModeIgnoreAdded)))
 	cmd.Flags().StringVarP(&o.outStyle, "output", "o", "human",
-		i18n.T(fmt.Sprintf("Specify the output style. One of %s and %s. The default is human", OutputHuman, OutputRaw)))
+		i18n.T(fmt.Sprintf("Specify the output style. One of %s and %s. The default is human", diffutil.OutputHuman, diffutil.OutputRaw)))
 	cmd.Flags().BoolVarP(&o.ignoreOrderChanges, "ignore-order-changes", "i", false,
 		i18n.T("Ignore order changes in lists. The default is false"))
 	cmd.Flags().BoolVarP(&o.omitHeader, "omit-header", "b", false,
