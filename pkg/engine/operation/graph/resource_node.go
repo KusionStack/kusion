@@ -145,6 +145,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 	// compatible with delete action
 	if res != nil {
 		res.DependsOn = planedState.DependsOn
+		res.Extensions = planedState.Extensions
 	}
 	key := rn.state.ResourceKey()
 	if e := operation.RefreshResourceIndex(key, res, rn.Action); e != nil {

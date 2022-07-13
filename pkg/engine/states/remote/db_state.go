@@ -14,7 +14,7 @@ import (
 
 	"github.com/didi/gendry/scanner"
 	"github.com/jinzhu/copier"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
 	"kusionstack.io/kusion/pkg/log"

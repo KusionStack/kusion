@@ -188,13 +188,15 @@ func Preview(
 
 	log.Info("Start call pc.Preview() ...")
 
+	cluster := parseCluster(planResources)
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
 			Project:  project.Name,
-			Operator: o.Operator,
 			Stack:    stack.Name,
+			Operator: o.Operator,
 			Spec:     planResources,
+			Cluster:  cluster,
 		},
 	})
 	if status.IsErr(s) {
@@ -202,6 +204,17 @@ func Preview(
 	}
 
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
+}
+
+// parseCluster try to parse Cluster from resource extensions.
+// All resources in one compile MUST have the same Cluster and this constraint will be guaranteed by KCL compile logic
+func parseCluster(planResources *models.Spec) string {
+	resources := planResources.Resources
+	var cluster string
+	if len(resources) != 0 && resources[0].Extensions != nil && resources[0].Extensions["Cluster"] != nil {
+		cluster = resources[0].Extensions["Cluster"].(string)
+	}
+	return cluster
 }
 
 // The Apply function will apply the resources changes
@@ -319,12 +332,14 @@ func Apply(
 		}
 		close(ac.MsgCh)
 	} else {
+		cluster := parseCluster(planResources)
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
 				Project:  changes.Project().Name,
-				Operator: o.Operator,
 				Stack:    changes.Stack().Name,
+				Cluster:  cluster,
+				Operator: o.Operator,
 				Spec:     planResources,
 			},
 		})
