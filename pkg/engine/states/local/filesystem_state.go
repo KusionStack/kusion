@@ -9,7 +9,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/states"
 
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	"github.com/zclconf/go-cty/cty"
 
