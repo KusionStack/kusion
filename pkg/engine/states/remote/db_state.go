@@ -8,22 +8,19 @@ import (
 	"net/url"
 	"sort"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
-	"kusionstack.io/kusion/pkg/engine/models"
-
+	"github.com/didi/gendry/manager"
 	"github.com/didi/gendry/scanner"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/copier"
-	"gopkg.in/yaml.v2"
+	"github.com/zclconf/go-cty/cty"
+	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
+	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
-	"github.com/didi/gendry/manager"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/zclconf/go-cty/cty"
 )
 
 func init() {
