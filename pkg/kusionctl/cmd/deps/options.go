@@ -2,13 +2,14 @@ package deps
 
 import (
 	"fmt"
-	kcl "kusionstack.io/kclvm-go"
-	"kusionstack.io/kclvm-go/pkg/tools/list"
-	"kusionstack.io/kusion/pkg/projectstack"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	kcl "kusionstack.io/kclvm-go"
+	"kusionstack.io/kclvm-go/pkg/tools/list"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 type DepsOptions struct {
@@ -32,6 +33,11 @@ func (s stringSet) add(value string) {
 	s[value] = true
 }
 
+// remove a string value from the stringSet s
+func (s stringSet) remove(value string) {
+	delete(s, value)
+}
+
 // contains checks if the stringSet s contains certain string value
 func (s stringSet) contains(value string) bool {
 	_, ok := s[value]
@@ -40,7 +46,7 @@ func (s stringSet) contains(value string) bool {
 
 // toSlice generates a string slice containing all the string values in the stringSet s
 func (s stringSet) toSlice() []string {
-	var result []string
+	result := make([]string, 0, len(s))
 	for value := range s {
 		result = append(result, value)
 	}
@@ -90,22 +96,23 @@ func (o *DepsOptions) Validate() error {
 func (o *DepsOptions) Run() (err error) {
 	workDir, err := filepath.Abs(o.workDir)
 	if err != nil {
-		return err
+		return
 	}
 	o.workDir = workDir
 	switch o.Direct {
 	// list upstream files of the focus files
 	case "up":
-		depsFiles, err := list.ListUpStreamFiles(o.workDir, &list.DepOptions{Files: o.Focus})
+		upstreamFiles, err := list.ListUpStreamFiles(o.workDir, &list.DepOptions{Files: o.Focus})
 		if err != nil {
 			return err
 		}
-		for _, v := range depsFiles {
-			fmt.Println(v)
+		for f := range upstreamFiles {
+			fmt.Println(f)
 		}
 		return nil
 	// list downstream files of the focus files
 	case "down":
+		// 1. check which are wanted: downstream projects or downstream stacks
 		var projectOnly bool
 		switch o.Only {
 		case "project":
@@ -116,93 +123,140 @@ func (o *DepsOptions) Run() (err error) {
 			return fmt.Errorf("invalid output downstream type. supported types: project, stack")
 		}
 
-		// 1. index the paths that should be ignored and the paths that need to list downstream stacks/projects on.
+		// 2. index the paths that should be ignored and the paths that need to list downstream stacks/projects on.
 		shouldIgnore := toSet(o.Ignore)
 		focusPaths := toSet(o.Focus)
 
-		entrances := emptyStringSet()                // all the entrance files in the work directory
-		entranceIndex := map[string][]string{}       // entrance file index to the corresponding projects/stacks
-		downstreamProjectOrStack := emptyStringSet() // might be downstream projects or downstream stacks, according to the user option
-
-		// 2. find all projects from work directory. for each project/stack, check if there are files changed in it or collect all the entrance files in them
-		// To list downstream stacks/projects, wee need to go through all the entrance files under each project/stack,
-		// then filter out the ones that are downstream of the focus files
+		// 3. find all the projects under the workdir
 		var projects []*projectstack.Project
-		if projects, err = projectstack.FindAllProjectsFrom(o.workDir); err != nil {
-			return err
-		}
-		for _, project := range projects {
-			projectRelative, _ := filepath.Rel(o.workDir, project.GetPath())
-			for _, stack := range project.Stacks {
-				// 2.1 get the relative path of project/stack
-				stackRelative, _ := filepath.Rel(o.workDir, stack.GetPath())
-				var stackProjectPath string
-				if projectOnly {
-					stackProjectPath = projectRelative
-				} else {
-					stackProjectPath = stackRelative
-				}
-				// 2.2 in order to save time, cut off the focus paths which are exactly under some stacks/projects directory
-				// so that:
-				// a. the corresponding stacks/projects can be directly marked as downstream
-				// b. those focus paths will be skipped to call the ListDownStreamFiles API
-				isDownstream := false
-				// iterate all the focus files and check if the dir path is changed, and delete files which is under the dir path
-				for f := range focusPaths {
-					if strings.HasPrefix(f, stackRelative) {
-						// skip those focus paths that are under the stack directory
-						delete(focusPaths, f)
-						if _, ok := shouldIgnore[f]; !ok {
-							isDownstream = true
-						}
-					}
-				}
-				if isDownstream {
-					// mark the stack/project as downstream
-					downstreamProjectOrStack.add(stackProjectPath)
-					continue
-				}
-				// 2.3 collect and index all the entrance files of the stack by loading the settings file
-				settingsPath := filepath.Join(stack.GetPath(), projectstack.KclFile)
-				opt := kcl.WithSettings(settingsPath)
-				if opt.Err != nil {
-					// the stack settings is invalid
-					return fmt.Errorf("invalid settings file(%s), %v", settingsPath, err)
-				}
-				for _, entranceFile := range opt.KFilenameList {
-					entranceRel, _ := filepath.Rel(o.workDir, entranceFile)
-					entranceIndex[entranceRel] = append(entranceIndex[entranceRel], stackProjectPath)
-					entrances.add(entranceRel)
-				}
-			}
+		if projects, err = projectstack.FindAllProjectsFrom(workDir); err != nil {
+			return
 		}
 
-		// 3. call the ListDownStreamFiles API
-		downstreamFiles, err := kcl.ListDownStreamFiles(o.workDir, &list.DepOptions{
-			Files:     entrances.toSlice(),
-			UpStreams: focusPaths.toSlice(),
-		})
+		// 4. filter the downstream stacks/projects of the focusPaths
+		downstreams, err := findDownStreams(o.workDir, projects, focusPaths, shouldIgnore, projectOnly)
 		if err != nil {
 			return err
 		}
 
-		// 4. for each downstream file, check if it belongs to some stacks/projects, and mark those stacks/projects as downstream
-		for _, file := range downstreamFiles {
-			if stacksOrProjs, ok := entranceIndex[filepath.Join(o.workDir, file)]; ok {
-				for _, v := range stacksOrProjs {
-					downstreamProjectOrStack.add(v)
-				}
-			}
-		}
-
 		// 5. output the result
-		for name := range downstreamProjectOrStack {
+		for name := range downstreams {
 			fmt.Println(name)
 		}
 		return nil
 	default:
-		return fmt.Errorf("unsupport diretion")
+		return fmt.Errorf("unsupport diretion of deps")
 	}
+}
+
+// findDownStreams finds all the downstream projects/stacks of the focusPaths in the given workDir.
+// DownStreams can be downstream projects or downstream stacks, up to the projectOnly parameter.
+// By downstream stacks, it means that either the entrances files of those stacks are downstream files of the focus paths or
+// the files under those stacks' directories appear in the focus paths list.
+// By downstream projects, it means that each of those projects contains one or more downstream stacks of the focus paths.
+//
+// Parameters
+//
+// the workDir should be a valid absolute path of the root path of the KCL program directory.
+// the focusPaths and shouldIgnore should be valid relative file paths under the workDir.
+// the value of the projectOnly decides whether the downstream projects(projectOnly is true) or stacks(projectOnly is false) will be filtered.
+//
+// Usage Caution
+//
+// This is a very time-consuming function based on the FindAllProjectsFrom API of kusion and the ListDownStreamFiles API of kcl.
+// Do not call this function with high frequency and please ensure at least 10 seconds interval when calling.
+func findDownStreams(workDir string, projects []*projectstack.Project, focusPaths, shouldIgnore stringSet, projectOnly bool) (downStreams stringSet, err error) {
+	entrances := emptyStringSet()               // all the entrance files in the work directory
+	entranceIndex := make(map[string]stringSet) // entrance file index to the corresponding projects/stacks
+	downStreams = emptyStringSet()              // might be downstream projects or downstream stacks, according to the projectOnly option
+
+	// 1. for each project/stack, check if there are files changed in it or collect all the entrance files in them
+	// To list downstream stacks/projects, wee need to go through all the entrance files under each project/stack,
+	// then filter out the ones that are downstream of the focus files
+	for _, project := range projects {
+		projectRel, _ := filepath.Rel(workDir, project.GetPath())
+		for _, stack := range project.Stacks {
+			// 1.1 get the relative path of project/stack
+			stackRel, _ := filepath.Rel(workDir, stack.GetPath())
+			var stackProjectPath string
+			if projectOnly {
+				stackProjectPath = projectRel
+			} else {
+				stackProjectPath = stackRel
+			}
+			// 1.2 in order to save time, cut off the focus paths which are exactly under some stacks/projects directory
+			// so that:
+			// a. the corresponding stacks/projects can be directly marked as downstream
+			// b. those focus paths will be skipped to call the ListDownStreamFiles API
+			isDownstream := false
+			// iterate all the focus files and check if there appear some files under that stack, and delete those files from the focus paths
+			for f := range focusPaths {
+				if strings.HasPrefix(f, stackRel) {
+					// skip those focus paths that are under the stack directory
+					focusPaths.remove(f)
+					if !shouldIgnore.contains(f) {
+						isDownstream = true
+					}
+				}
+			}
+			if isDownstream {
+				// mark the stack/project as downstream
+				downStreams.add(stackProjectPath)
+				continue
+			}
+			// 1.3 collect and index all the entrance files of the stack by loading the settings file
+			settingsPath := filepath.Join(stack.GetPath(), projectstack.KclFile)
+			opt := kcl.WithSettings(settingsPath)
+			if opt.Err != nil {
+				// the stack settings is invalid
+				err = fmt.Errorf("invalid settings file(%s), %v", settingsPath, err)
+				return
+			}
+			var entranceRels []string
+			for _, entranceFile := range opt.KFilenameList {
+				entranceRel, _ := filepath.Rel(workDir, entranceFile)
+				if shouldIgnore.contains(entranceRel) {
+					// skip recording entrance files that should be ignored
+					continue
+				}
+				entranceRels = append(entranceRels, entranceRel)
+				if focusPaths.contains(entranceRel) {
+					// as long as one entrance file appears in the focus paths is enough to mark the stack/project as downstream
+					isDownstream = true
+				}
+			}
+			if isDownstream {
+				downStreams.add(stackProjectPath)
+				continue
+			}
+			for _, entranceRel := range entranceRels {
+				entrances.add(entranceRel)
+				if _, ok := entranceIndex[entranceRel]; !ok {
+					entranceIndex[entranceRel] = emptyStringSet()
+				}
+				entranceIndex[entranceRel].add(stackProjectPath)
+			}
+		}
+	}
+
+	// 2. call the ListDownStreamFiles API
+	downstreamFiles, err := kcl.ListDownStreamFiles(workDir, &list.DepOptions{
+		Files:     entrances.toSlice(),
+		UpStreams: focusPaths.toSlice(),
+	})
+	if err != nil {
+		return
+	}
+
+	// 3. for each downstream file, check if it belongs to some stacks/projects, and mark those stacks/projects as downstream
+	for _, file := range downstreamFiles {
+		if stacksOrProjs, ok := entranceIndex[file]; ok {
+			for v := range stacksOrProjs {
+				downStreams.add(v)
+			}
+		}
+	}
+	return
 }
 
 func toSet(list []string) stringSet {
