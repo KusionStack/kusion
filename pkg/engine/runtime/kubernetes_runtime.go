@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	jsonpatch "github.com/evanphx/json-patch"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -98,20 +99,23 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
-		// Patch options
-		patchOptions := metav1.PatchOptions{
-			FieldManager: "kusion",
-		}
 		if request.DryRun {
-			patchOptions.DryRun = []string{metav1.DryRunAll}
-		}
-		// Apply patch
-		patchedObj, err := resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, patchOptions)
-		if err != nil {
-			return &ApplyResponse{nil, status.NewErrorStatus(err)}
-		}
-		if request.DryRun {
-			planObj = patchedObj
+			// Use client dry-run here to be compatible with server dry-run not supported
+			mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
+			if err != nil {
+				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+			}
+			dryRunObj := &unstructured.Unstructured{}
+			if err = dryRunObj.UnmarshalJSON(mergedPatch); err != nil {
+				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+			}
+			planObj = dryRunObj
+		} else {
+			// Apply patch
+			_, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, metav1.PatchOptions{FieldManager: "kusion"})
+			if err != nil {
+				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+			}
 		}
 	}
 
