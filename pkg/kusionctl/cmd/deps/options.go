@@ -106,7 +106,7 @@ func (o *DepsOptions) Run() (err error) {
 		if err != nil {
 			return err
 		}
-		for f := range upstreamFiles {
+		for _, f := range upstreamFiles {
 			fmt.Println(f)
 		}
 		return nil
