@@ -123,7 +123,6 @@ func TestDepsOptions_Complete(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestDepsOptions_Run(t *testing.T) {
