@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	jsonpatch "github.com/evanphx/json-patch"
+	yamlv2 "gopkg.in/yaml.v2"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +25,6 @@ import (
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
-	"kusionstack.io/kusion/pkg/util/yaml"
 )
 
 var _ Runtime = (*KubernetesRuntime)(nil)
@@ -62,66 +62,63 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 	if err != nil {
 		return &ApplyResponse{nil, status.NewErrorStatus(err)}
 	}
+
 	// Get live state
 	response := k.Read(ctx, &ReadRequest{planState})
+	if status.IsErr(response.Status) {
+		return &ApplyResponse{nil, response.Status}
+	}
 	liveState := response.Resource
-	s := response.Status
-	if status.IsErr(s) {
-		return &ApplyResponse{nil, s}
+
+	// Original equals to last-applied from annotation, kusion store it in kusion_state.json
+	original := ""
+	if priorState != nil {
+		original = json.MustMarshal2String(priorState.Attributes)
+	}
+	// Modified equals to input content
+	modified := json.MustMarshal2String(planState.Attributes)
+	// Current equals to live manifest
+	current := ""
+	if liveState != nil {
+		current = json.MustMarshal2String(liveState.Attributes)
 	}
 
-	// LiveState is nil, fall back to create planObj directly
-	if liveState == nil {
-		// Patch options
-		createOptions := metav1.CreateOptions{}
-		if request.DryRun {
-			createOptions.DryRun = []string{metav1.DryRunAll}
-		}
-		createdObj, err := resource.Create(ctx, planObj, createOptions)
+	// Create patch body
+	patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
+	if err != nil {
+		return &ApplyResponse{nil, status.NewErrorStatus(err)}
+	}
+
+	// Final result, dry-run to diff, otherwise to save in states
+	var res *unstructured.Unstructured
+	if request.DryRun {
+		// Use client dry-run here to be compatible with server dry-run not supported
+		mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
 		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
-		if request.DryRun {
-			planObj = createdObj
+		res = &unstructured.Unstructured{}
+		if err = res.UnmarshalJSON(mergedPatch); err != nil {
+			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
 	} else {
-		// Original equals to last-applied from annotation, kusion store it in kusion_state.json
-		original := ""
-		if priorState != nil {
-			original = json.MustMarshal2String(priorState.Attributes)
+		if liveState == nil {
+			// LiveState is nil, fall back to create planObj
+			_, err = resource.Create(ctx, planObj, metav1.CreateOptions{})
+		} else {
+			// LiveState isn't nil, continue to patch liveObj
+			_, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, metav1.PatchOptions{FieldManager: "kusion"})
 		}
-		// Modified equals input content
-		modified := json.MustMarshal2String(planState.Attributes)
-		// Current equals live manifest
-		current := json.MustMarshal2String(liveState.Attributes)
-		// 3-way json merge patch
-		patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 		if err != nil {
 			return &ApplyResponse{nil, status.NewErrorStatus(err)}
 		}
-		if request.DryRun {
-			// Use client dry-run here to be compatible with server dry-run not supported
-			mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
-			if err != nil {
-				return &ApplyResponse{nil, status.NewErrorStatus(err)}
-			}
-			dryRunObj := &unstructured.Unstructured{}
-			if err = dryRunObj.UnmarshalJSON(mergedPatch); err != nil {
-				return &ApplyResponse{nil, status.NewErrorStatus(err)}
-			}
-			planObj = dryRunObj
-		} else {
-			// Apply patch
-			_, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, metav1.PatchOptions{FieldManager: "kusion"})
-			if err != nil {
-				return &ApplyResponse{nil, status.NewErrorStatus(err)}
-			}
-		}
+		// Save modified
+		res = planObj
 	}
 
 	return &ApplyResponse{&models.Resource{
 		ID:         planState.ResourceKey(),
-		Attributes: planObj.Object,
+		Attributes: res.Object,
 		DependsOn:  planState.DependsOn,
 	}, nil}
 }
@@ -217,10 +214,12 @@ func getKubernetesClient() (dynamic.Interface, *restmapper.DeferredDiscoveryREST
 // buildKubernetesResourceByState get resource by attribute
 func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
 	// Convert interface{} to unstructured
-	attribute := resourceState.Attributes
-	rYaml := yaml.MergeToOneYAML(attribute)
+	rYaml, err := yamlv2.Marshal(resourceState.Attributes)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	obj, gvk, err := convertString2Unstructured([]byte(rYaml))
+	obj, gvk, err := convertString2Unstructured(rYaml)
 	if err != nil {
 		return nil, nil, err
 	}

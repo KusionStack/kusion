@@ -7,12 +7,10 @@ import (
 	"os"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
-	"gopkg.in/yaml.v2"
-
 	"github.com/zclconf/go-cty/cty"
+	"gopkg.in/yaml.v3"
 
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 )
 

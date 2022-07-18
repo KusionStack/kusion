@@ -111,6 +111,7 @@ func MustGetByPath(doc io.Reader, path *yaml.Path) string {
 	return expectNode.String()
 }
 
+// TODO: yamlv3.Marshal will reduce leading "/n" character
 // Merge multiple yaml documents into a single string,
 // separate yaml documents with '---'
 func MergeToOneYAML(yamlList ...interface{}) string {
