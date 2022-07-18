@@ -44,6 +44,16 @@ func (s stringSet) contains(value string) bool {
 	return ok
 }
 
+// toSlice generates a string slice containing all the string values in the stringSet s
+func (s stringSet) toSlice() []string {
+	result := make([]string, 0, len(s))
+	for value := range s {
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result
+}
+
 func NewDepsOptions() *DepsOptions {
 	return &DepsOptions{}
 }
