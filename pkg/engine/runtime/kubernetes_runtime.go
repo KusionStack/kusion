@@ -118,8 +118,10 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 
 	return &ApplyResponse{&models.Resource{
 		ID:         planState.ResourceKey(),
+		Type:       planState.Type,
 		Attributes: res.Object,
 		DependsOn:  planState.DependsOn,
+		Extensions: planState.Extensions,
 	}, nil}
 }
 
@@ -149,8 +151,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *ReadRequest) *Rea
 
 	return &ReadResponse{&models.Resource{
 		ID:         requestResource.ResourceKey(),
+		Type:       requestResource.Type,
 		Attributes: v.Object,
 		DependsOn:  requestResource.DependsOn,
+		Extensions: requestResource.Extensions,
 	}, nil}
 }
 
