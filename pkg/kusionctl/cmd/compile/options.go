@@ -21,7 +21,7 @@ type CompileOptions struct {
 	DisableNone bool
 	OverrideAST bool
 	Overrides   []string
-	LogToStderr bool
+	LogToStdout bool
 }
 
 func NewCompileOptions() *CompileOptions {
@@ -34,8 +34,8 @@ func NewCompileOptions() *CompileOptions {
 func (o *CompileOptions) Complete(args []string) {
 	o.Filenames = args
 	o.PreSet(projectstack.IsStack)
-	if o.LogToStderr {
-		log.SetOutput(os.Stderr)
+	if o.LogToStdout {
+		log.SetOutput(os.Stdout)
 	}
 }
 
