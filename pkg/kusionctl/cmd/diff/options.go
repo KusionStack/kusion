@@ -2,13 +2,14 @@ package diff
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
 	"github.com/gonvenience/wrap"
 	"github.com/gonvenience/ytbx"
 	yamlv3 "gopkg.in/yaml.v3"
+
+	diffutil "kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/third_party/dyff"
 )
 
@@ -79,8 +80,8 @@ func (o *DiffOptions) Validate() error {
 	}
 
 	switch strings.ToLower(o.outStyle) {
-	case OutputHuman:
-	case OutputRaw:
+	case diffutil.OutputHuman:
+	case diffutil.OutputRaw:
 		break
 	default:
 		return fmt.Errorf("invalid output style `%s`", o.outStyle)
@@ -166,41 +167,19 @@ func (o *DiffOptions) Run() error {
 	}
 
 	// handle output option
-	switch strings.ToLower(o.outStyle) {
-	case OutputHuman:
-		return o.writeReport(report)
-	case OutputRaw:
-		// output stdout/file
-		reportMap := map[string]interface{}{
-			"diffs": report.Diffs,
-		}
-
-		reportYAML, err := yamlv3.Marshal(reportMap)
-		if err != nil {
-			return wrap.Errorf(err, "failed to marshal report diffs")
-		}
-
-		fmt.Println(string(reportYAML))
-
-		return nil
-	}
-
-	return nil
-}
-
-func (o *DiffOptions) writeReport(report dyff.Report) error {
-	reportWriter := &dyff.HumanReport{
-		Report:               report,
-		DoNotInspectCerts:    o.doNotInspectCerts,
+	humanReport := &dyff.HumanReport{
 		NoTableStyle:         o.noTableStyle,
+		DoNotInspectCerts:    o.doNotInspectCerts,
 		OmitHeader:           o.omitHeader,
 		UseGoPatchPaths:      o.useGoPatchPaths,
 		MinorChangeThreshold: 0.1,
+		Report:               report,
 	}
-
-	if err := reportWriter.WriteReport(os.Stdout); err != nil {
-		return wrap.Errorf(err, "failed to print report")
+	reportString, err := diffutil.ToReportString(humanReport, o.outStyle)
+	if err != nil {
+		return err
 	}
+	fmt.Println(reportString)
 
 	return nil
 }

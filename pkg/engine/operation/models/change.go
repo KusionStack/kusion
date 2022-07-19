@@ -33,7 +33,7 @@ func (cs *ChangeStep) Diff() (string, error) {
 		return "", err
 	}
 
-	reportString, err := diff.ToReportString(*diffReport)
+	reportString, err := diff.ToHumanString(diff.NewHumanReport(diffReport))
 	if err != nil {
 		log.Warn("diff to string error: %v", err)
 		return "", err

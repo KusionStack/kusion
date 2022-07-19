@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	diffutil "kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/third_party/diff"
 )
 
@@ -84,7 +85,7 @@ func TestNewCmdDiff(t *testing.T) {
 	t.Run("diff by files with flags", func(t *testing.T) {
 		cmd := NewCmdDiff()
 		assert.Nil(t, cmd.Flags().Set("diff-mode", DiffModeIgnoreAdded))
-		assert.Nil(t, cmd.Flags().Set("output", OutputRaw))
+		assert.Nil(t, cmd.Flags().Set("output", diffutil.OutputRaw))
 		assert.Nil(t, cmd.Flags().Set("sort-by-kubernetes-resource", "true"))
 		assert.Nil(t, cmd.Flags().Set("swap", "true"))
 		cmd.SetArgs([]string{"testdata/pod1.yaml", "testdata/pod2.yaml"})
@@ -106,7 +107,7 @@ func TestNewCmdDiff(t *testing.T) {
 
 		cmd := NewCmdDiff()
 		assert.Nil(t, cmd.Flags().Set("diff-mode", DiffModeIgnoreAdded))
-		assert.Nil(t, cmd.Flags().Set("output", OutputRaw))
+		assert.Nil(t, cmd.Flags().Set("output", diffutil.OutputRaw))
 		assert.Nil(t, cmd.Flags().Set("sort-by-kubernetes-resource", "true"))
 		assert.Nil(t, cmd.Flags().Set("swap", "true"))
 		cmd.SetArgs([]string{"testdata/pod-full.yaml"})

@@ -1,23 +1,14 @@
 package operation
 
 import (
-	"bytes"
-	"fmt"
-	"strings"
-
-	"kusionstack.io/kusion/pkg/engine/operation/utils"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"github.com/gonvenience/wrap"
 	"github.com/pkg/errors"
-	yamlv3 "gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/kusionctl/cmd/diff"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
+	"kusionstack.io/kusion/pkg/util/diff"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/third_party/dyff"
 )
@@ -65,61 +56,17 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 
 func DiffWithRequestResourceAndState(plan *models.Spec, latest *states.State) (string, error) {
 	planString := jsonutil.MustMarshal2String(plan.Resources)
+	var report *dyff.Report
+	var err error
 	if latest == nil {
-		return DiffReport("", planString, diff.OutputHuman)
+		report, err = diff.ToReport("", planString)
 	} else {
 		latestResources := latest.Resources
 		priorString := jsonutil.MustMarshal2String(latestResources)
-		return DiffReport(priorString, planString, diff.OutputHuman)
+		report, err = diff.ToReport(priorString, priorString)
 	}
-}
-
-func DiffReport(prior, plan, mode string) (string, error) {
-	from, err := utils.LoadFile(prior, "Last State")
 	if err != nil {
 		return "", err
 	}
-	to, err := utils.LoadFile(plan, "Request State")
-	if err != nil {
-		return "", err
-	}
-
-	report, err := dyff.CompareInputFiles(from, to, dyff.IgnoreOrderChanges(true))
-	if err != nil {
-		return "", wrap.Errorf(err, "failed to compare input files")
-	}
-	return buildReport(mode, report)
-}
-
-func buildReport(mode string, report dyff.Report) (string, error) {
-	switch strings.ToLower(mode) {
-	case diff.OutputHuman:
-		return writeReport(report)
-	case diff.OutputRaw:
-		// output stdout/file
-		reportMap := map[string]interface{}{
-			"diffs": report.Diffs,
-		}
-		reportYAML, err := yamlv3.Marshal(reportMap)
-		if err != nil {
-			return "", wrap.Errorf(err, "failed to marshal report diffs")
-		}
-		return string(reportYAML), nil
-	default:
-		return "", fmt.Errorf("invalid output style `%s`", mode)
-	}
-}
-
-// WriteReport writes a human-readable report to the provided writer
-func writeReport(report dyff.Report) (string, error) {
-	reportWriter := &dyff.HumanReport{
-		Report:               report,
-		MinorChangeThreshold: 0.1,
-	}
-
-	buffer := new(bytes.Buffer)
-	if err := reportWriter.WriteReport(buffer); err != nil {
-		return "", err
-	}
-	return buffer.String(), nil
+	return diff.ToHumanString(diff.NewHumanReport(report))
 }
