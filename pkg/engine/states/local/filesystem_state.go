@@ -49,7 +49,7 @@ func (f *FileSystemState) Configure(obj cty.Value) error {
 }
 
 func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.State, error) {
-	// parse state
+	// create a new state file if no file exists
 	file, err := os.OpenFile(f.Path, os.O_RDWR|os.O_CREATE, fs.ModePerm)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,19 @@ func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.Stat
 
 func (f *FileSystemState) Apply(state *states.State) error {
 	now := time.Now()
-	state.CreateTime = now
+
+	// don't change createTime in the state
+	oldState, err := f.GetLatestState(nil)
+	if err != nil {
+		return err
+	}
+
+	if oldState == nil || oldState.CreateTime.IsZero() {
+		state.CreateTime = now
+	} else {
+		state.CreateTime = oldState.CreateTime
+	}
+
 	state.ModifiedTime = now
 	jsonByte, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
