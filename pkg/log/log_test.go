@@ -1,14 +1,12 @@
 package log
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_zapLogger(t *testing.T) {
-	SetOutput(os.Stderr)
 	t.Run("log debug", func(t *testing.T) {
 		Debug("foo")
 	})

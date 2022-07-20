@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
@@ -98,8 +97,4 @@ func GetLogger() Logger {
 
 func With(args ...interface{}) Logger {
 	return log.With(args...)
-}
-
-func SetOutput(out io.Writer) {
-	log.SetOutput(out)
 }
