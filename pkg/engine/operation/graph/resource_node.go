@@ -54,10 +54,8 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	priorState := operation.PriorStateResourceIndex[key]
 
 	// 3. get the latest resource from runtime
-	readRequest := &runtime.ReadRequest{Resource: planedState}
-	if readRequest.Resource == nil {
-		readRequest.Resource = priorState
-	}
+	readRequest := &runtime.ReadRequest{PlanResource: planedState, PriorResource: priorState}
+
 	response := operation.Runtime.Read(context.Background(), readRequest)
 	liveState := response.Resource
 	s := response.Status
@@ -138,7 +136,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		}
 	case types.UnChange:
 		log.Infof("planed resource not update live state")
-		res = planedState
+		res = priorState
 	}
 	if status.IsErr(s) {
 		return s

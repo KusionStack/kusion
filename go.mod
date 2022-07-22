@@ -6,19 +6,12 @@ require (
 	bou.ke/monkey v1.0.2
 	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/Azure/go-autorest/autorest/mocks v0.4.1
-	github.com/MakeNowJust/heredoc v1.0.0 // indirect
-	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
 	github.com/aws/aws-sdk-go v1.42.35
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/didi/gendry v1.7.0
-	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible
-	github.com/fatih/color v1.13.0 // indirect
-	github.com/go-errors/errors v1.4.0 // indirect
-	github.com/go-openapi/jsonreference v0.19.6 // indirect
-	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-yaml v1.8.9
 	github.com/gonvenience/bunt v1.1.1
@@ -27,45 +20,29 @@ require (
 	github.com/gonvenience/text v1.0.5
 	github.com/gonvenience/wrap v1.1.0
 	github.com/gonvenience/ytbx v1.3.0
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.2.0
 	github.com/gookit/goutil v0.5.1
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hashicorp/hcl/v2 v2.11.1 // indirect
+	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform v0.15.3
-	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/imdario/mergo v0.3.13
 	github.com/jinzhu/copier v0.3.2
-	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/lucasb-eyer/go-colorful v1.0.3
-	github.com/mattn/go-colorable v0.1.11 // indirect
-	github.com/mitchellh/go-ps v1.0.0 // indirect
-	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
 	github.com/sergi/go-diff v1.2.0
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.1.1
-	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.1
 	github.com/texttheater/golang-levenshtein v1.0.1
-	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/zclconf/go-cty v1.10.0
-	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
-	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
-	golang.org/x/sys v0.0.0-20220429121018-84afa8d3f7b3 // indirect
-	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
-	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20210420162539-3c870d7478d2 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0
-	honnef.co/go/tools v0.3.0 // indirect
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v10.0.0+incompatible

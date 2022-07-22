@@ -146,14 +146,14 @@ func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest)
 }
 
 func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
-	if request.Resource.ResourceKey() == "fake-id" {
+	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
 			Status:   nil,
 		}
 	}
 	return &runtime.ReadResponse{
-		Resource: request.Resource,
+		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
@@ -209,8 +209,8 @@ var (
 
 func newSA(name string) models.Resource {
 	return models.Resource{
-		ID: engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
-
+		ID:   engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
+		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
 			"apiVersion": apiVersion,
 			"kind":       kind,

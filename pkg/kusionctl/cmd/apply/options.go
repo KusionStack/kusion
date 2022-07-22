@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -83,12 +84,14 @@ func (o *ApplyOptions) Run() error {
 
 	// Compute changes for preview
 	stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+
+	runtimes := runtimeInit.InitRuntime()
+	runtime, err := runtimes[planResources.Resources[0].Type]()
 	if err != nil {
 		return err
 	}
 
-	changes, err := Preview(o, kubernetesRuntime, stateStorage, planResources, project, stack, os.Stdout)
+	changes, err := Preview(o, runtime, stateStorage, planResources, project, stack, os.Stdout)
 	if err != nil {
 		return err
 	}
@@ -131,7 +134,7 @@ func (o *ApplyOptions) Run() error {
 
 	if !o.OnlyPreview {
 		fmt.Println("Start applying diffs ...")
-		if err := Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout); err != nil {
+		if err := Apply(o, runtime, stateStorage, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 

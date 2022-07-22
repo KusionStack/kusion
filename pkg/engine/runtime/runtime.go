@@ -8,6 +8,11 @@ import (
 	"kusionstack.io/kusion/pkg/status"
 )
 
+const (
+	Kubernetes models.Type = "Kubernetes"
+	Terraform  models.Type = "Terraform"
+)
+
 // Runtime represents an actual infrastructure runtime managed by Kusion and every runtime implements this interface can be orchestrated
 // by Kusion like normal K8s resources. All methods in this interface are designed for manipulating one Resource at a time and will be
 // invoked in operations like Apply, Preview, Destroy, etc.
@@ -52,8 +57,11 @@ type ApplyResponse struct {
 }
 
 type ReadRequest struct {
-	// Resource represents the resource we want to read from the actual infra
-	Resource *models.Resource
+	// PriorResource is the last applied resource saved in state storage
+	PriorResource *models.Resource
+
+	// PlanResource is the resource we want to apply in this request
+	PlanResource *models.Resource
 }
 
 type ReadResponse struct {

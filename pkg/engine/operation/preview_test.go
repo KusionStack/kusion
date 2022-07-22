@@ -51,14 +51,18 @@ func (f *fakePreviewRuntime) Apply(ctx context.Context, request *runtime.ApplyRe
 }
 
 func (f *fakePreviewRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
-	if request.Resource.ResourceKey() == "fake-id" {
+	requestResource := request.PlanResource
+	if requestResource == nil {
+		requestResource = request.PriorResource
+	}
+	if requestResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
 			Status:   nil,
 		}
 	}
 	return &runtime.ReadResponse{
-		Resource: request.Resource,
+		Resource: requestResource,
 		Status:   nil,
 	}
 }

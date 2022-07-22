@@ -64,7 +64,7 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 	}
 
 	// Get live state
-	response := k.Read(ctx, &ReadRequest{planState})
+	response := k.Read(ctx, &ReadRequest{PlanResource: planState})
 	if status.IsErr(response.Status) {
 		return &ApplyResponse{nil, response.Status}
 	}
@@ -127,7 +127,10 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 
 // Read kubernetes Resource by client-go
 func (k *KubernetesRuntime) Read(ctx context.Context, request *ReadRequest) *ReadResponse {
-	requestResource := request.Resource
+	requestResource := request.PlanResource
+	if requestResource == nil {
+		requestResource = request.PriorResource
+	}
 	// Validate
 	if requestResource == nil {
 		return &ReadResponse{nil, status.NewErrorStatus(errors.New("requestResource is nil"))}
