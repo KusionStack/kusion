@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -19,8 +20,10 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/resources/crd"
 	jsonUtil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/yaml"
 )
 
 var enableRest bool
@@ -51,6 +54,14 @@ func CompileWithSpinner(workDir string, filenames, settings, arguments, override
 	if err != nil {
 		return nil, sp, err
 	}
+
+	// Append crd description to compiled result,
+	// workDir may omit empty if run in stack dir
+	err = appendCRDs(stack.Path, r)
+	if err != nil {
+		return nil, sp, err
+	}
+
 	// Construct resource from compile result to build request
 	resources, err := engine.ConvertKCLResult2Resources(r.Documents)
 	if err != nil {
@@ -58,6 +69,49 @@ func CompileWithSpinner(workDir string, filenames, settings, arguments, override
 	}
 
 	return resources, sp, nil
+}
+
+func appendCRDs(workDir string, r *CompileResult) error {
+	if r == nil {
+		return nil
+	}
+
+	crdObjs, err := readCRDs(workDir)
+	if err != nil {
+		return err
+	}
+	if len(crdObjs) != 0 {
+		// Append to Documents
+		for _, obj := range crdObjs {
+			if doc, flag := obj.(map[string]interface{}); flag {
+				r.Documents = append(r.Documents, doc)
+			}
+		}
+
+		// Update RawYAMLResult
+		items := make([]interface{}, len(r.Documents))
+		for i, doc := range r.Documents {
+			items[i] = doc
+		}
+		r.RawYAMLResult = yaml.MergeToOneYAML(items...)
+	}
+
+	return nil
+}
+
+func readCRDs(workDir string) ([]interface{}, error) {
+	projectPath := path.Dir(workDir)
+	crdPath := path.Join(projectPath, crd.Directory)
+	_, err := os.Stat(crdPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	visitor := crd.NewVisitor(crdPath)
+	return visitor.Visit()
 }
 
 // Compile General KCL compilation method
