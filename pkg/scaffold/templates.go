@@ -460,7 +460,7 @@ func RenderFSTemplate(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir st
 					configs[k] = v
 				}
 				// Skip if stackConfigs are not provided
-				stackConfigs, exits := tc.StacksConfig[fileInfo.Name()]
+				stackConfigs, exits := tc.StacksConfig[d.Name()]
 				if !exits {
 					continue
 				}
