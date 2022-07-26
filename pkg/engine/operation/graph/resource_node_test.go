@@ -177,7 +177,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Delete",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
-					return nil
+					return &runtime.DeleteResponse{Status: nil}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Read",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
