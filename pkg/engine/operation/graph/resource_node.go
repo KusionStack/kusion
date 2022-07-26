@@ -97,16 +97,8 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	case types.ApplyPreview, types.DestroyPreview:
 		fillResponseChangeSteps(operation, rn, liveState, predictableState)
 	case types.Apply, types.Destroy:
-		switch rn.Action {
-		case types.Create, types.Delete, types.Update:
-			s := rn.applyResource(operation, priorState, planedState)
-			if status.IsErr(s) {
-				return s
-			}
-		case types.UnChange:
-			log.Infof("PriorAttributes and PlanAttributes are equal.")
-		default:
-			return status.NewErrorStatus(fmt.Errorf("unknown action:%s", rn.Action.PrettyString()))
+		if s = rn.applyResource(operation, priorState, planedState); status.IsErr(s) {
+			return s
 		}
 	default:
 		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
@@ -137,6 +129,9 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())
 		}
+	case types.UnChange:
+		log.Infof("planed resource not update live state")
+		res = planedState
 	}
 	if status.IsErr(s) {
 		return s
