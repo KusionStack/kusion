@@ -214,3 +214,34 @@ func mockRunFiles(mockErr error) {
 // 		return &CompileResult{}, nil
 // 	})
 // }
+
+func Test_appendCRDs(t *testing.T) {
+	t.Run("append one CRD", func(t *testing.T) {
+		cs := &CompileResult{}
+		err := appendCRDs("./testdata/crd", cs)
+		assert.Nil(t, err)
+		assert.NotNil(t, cs.Documents)
+		assert.NotEmpty(t, cs.RawYAMLResult)
+	})
+
+	t.Run("no CRD to append", func(t *testing.T) {
+		cs := &CompileResult{}
+		err := appendCRDs("./testdata", cs)
+		assert.Nil(t, err)
+		assert.Nil(t, cs.Documents)
+		assert.Empty(t, cs.RawYAMLResult)
+	})
+}
+
+func Test_readCRDsIfExists(t *testing.T) {
+	t.Run("read CRDs", func(t *testing.T) {
+		crds, err := readCRDs("./testdata/crd")
+		assert.Nil(t, err)
+		assert.NotNil(t, crds)
+	})
+	t.Run("no CRDs", func(t *testing.T) {
+		crds, err := readCRDs("./testdata")
+		assert.Nil(t, err)
+		assert.Nil(t, crds)
+	})
+}
