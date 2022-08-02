@@ -43,6 +43,9 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 1. prepare planedState
 	planedState := rn.state
+	if rn.Action == types.Delete {
+		planedState = nil
+	}
 	// predictableState represents dry-run result
 	predictableState := planedState
 
@@ -51,7 +54,11 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	priorState := operation.PriorStateResourceIndex[key]
 
 	// 3. get the latest resource from runtime
-	response := operation.Runtime.Read(context.Background(), &runtime.ReadRequest{Resource: planedState})
+	readRequest := &runtime.ReadRequest{Resource: planedState}
+	if readRequest.Resource == nil {
+		readRequest.Resource = priorState
+	}
+	response := operation.Runtime.Read(context.Background(), readRequest)
 	liveState := response.Resource
 	s := response.Status
 	if status.IsErr(s) {
