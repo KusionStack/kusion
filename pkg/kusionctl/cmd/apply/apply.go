@@ -50,16 +50,9 @@ func NewCmdApply() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.CompileOptions.WorkDir, "workdir", "w", "",
-		i18n.T("Specify the work directory"))
+	o.AddCompileFlags(cmd)
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Arguments, "argument", "D", []string{},
-		i18n.T("Specify the arguments to apply KCL"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Settings, "setting", "Y", []string{},
-		i18n.T("Specify the command line setting files"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Overrides, "overrides", "O", []string{},
-		i18n.T("Specify the configuration override path and value"))
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,

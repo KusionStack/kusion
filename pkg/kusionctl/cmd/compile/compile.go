@@ -56,20 +56,24 @@ func NewCmdCompile() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringSliceVarP(&o.Arguments, "argument", "D", []string{},
-		i18n.T("Specify the top-level argument"))
-	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
-		i18n.T("Specify the command line setting files"))
+	o.AddCompileFlags(cmd)
 	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
 		i18n.T("Specify the output file"))
-	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
-		i18n.T("Specify the work directory"))
 	cmd.Flags().BoolVarP(&o.DisableNone, "disable-none", "n", false,
 		i18n.T("Disable dumping None values"))
 	cmd.Flags().BoolVarP(&o.OverrideAST, "override-AST", "a", false,
 		i18n.T("Specify the override option"))
-	cmd.Flags().StringSliceVarP(&o.Overrides, "overrides", "O", []string{},
-		i18n.T("Specify the configuration override path and value"))
 
 	return cmd
+}
+
+func (o *CompileOptions) AddCompileFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
+		i18n.T("Specify the work directory"))
+	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
+		i18n.T("Specify the command line setting files"))
+	cmd.Flags().StringArrayVarP(&o.Arguments, "argument", "D", []string{},
+		i18n.T("Specify the top-level argument"))
+	cmd.Flags().StringSliceVarP(&o.Overrides, "overrides", "O", []string{},
+		i18n.T("Specify the configuration override path and value"))
 }
