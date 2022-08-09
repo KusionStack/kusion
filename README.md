@@ -30,12 +30,17 @@ For a complete command function description, please refer to the [Kusion Command
 
 To get the binary just download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
 
-### Kusinoup
+### Kusionup
 
 You can install multiple versions of `kusion` with `kusionup`, and the latest version is installed by default.
 
 ```
-brew install KusionStack/tap/kusionup
+# First, install kusionup, multiple ways:
+# - brew install KusionStack/tap/kusionup
+# - curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/install.sh | bash
+# - For other ways, please refer to: https://github.com/KusionStack/kusionup#%EF%B8%8F-installation
+
+# Second, install kusion by kusionup
 kusionup install
 ```
 
