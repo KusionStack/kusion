@@ -202,7 +202,6 @@ build-local-linux:  ## Build kusion tool chain for linux
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-linux
 	mkdir -p ./_build/bundles/kusion-linux/bin
-	mkdir -p ./_build/bundles/kusion-linux/kclvm/bin
 
 	# Update version
 	go generate ./pkg/version
@@ -253,6 +252,10 @@ build-local-ubuntu-all: build-local-linux  ## Build kusion & kcl tool chain for 
 
 	# Copy README.md
 	cp ./README.md ./_build/bundles/kusion-ubuntu
+
+	# Copy kusion
+	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-ubuntu
+
 	# Build tgz
 	cd ./_build/bundles/kusion-ubuntu && tar -zcvf ../kusion-ubuntu.tgz  .
 	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-ubuntu.tgz > kusion-ubuntu.tgz.md5.txt
@@ -293,6 +296,10 @@ build-local-centos-all: build-local-linux  ## Build kusion & kcl tool chain for 
 
 	# Copy README.md
 	cp ./README.md ./_build/bundles/kusion-centos
+
+	# Copy kusion
+	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-centos
+
 	# Build tgz
 	cd ./_build/bundles/kusion-centos && tar -zcvf ../kusion-centos.tgz  .
 	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-centos.tgz > kusion-centos.tgz.md5.txt
