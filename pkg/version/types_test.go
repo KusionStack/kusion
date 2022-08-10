@@ -17,6 +17,7 @@ import (
 
 	goversion "github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/assert"
+
 	git "kusionstack.io/kusion/pkg/util/gitutil"
 )
 
@@ -147,7 +148,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 	})
 
 	versionJSON := `{
-	"releaseVersion": "v0.3.11-alpha-af79cd23",
+	"releaseVersion": "v0.3.11-alpha+af79cd23",
 	"gitInfo": {
 		"latestTag": "v0.3.11-alpha",
 		"commit": "af79cd231e7ed1dbb00e860da9615febf5f17bf0",
