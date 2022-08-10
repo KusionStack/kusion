@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 COPY _build/bundles/kusion-linux/ /kusion/
+COPY _build/bundles/kusion-ubuntu/ /kusion/
 
 RUN chmod +x /kusion/bin/kusion \
 &&  chmod +x /kusion/kclvm/bin/kcl \
