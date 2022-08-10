@@ -22,8 +22,8 @@ jobs:
         with:
           go-version: 1.17
 
-      - run: make build-local-linux-all
-      - run: echo "${PWD}/_build/bundles/kusion-linux/kclvm/bin" >> $GITHUB_PATH
+      - run: make build-local-ubuntu-all
+      - run: echo "${PWD}/_build/bundles/kusion-ubuntu/kclvm/bin" >> $GITHUB_PATH
       - run: which kclvm
       - run: go run ./cmd/kcl-go kcl
 
