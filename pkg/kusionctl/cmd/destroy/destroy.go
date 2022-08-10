@@ -50,6 +50,7 @@ func NewCmdDestroy() *cobra.Command {
 		i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
 		i18n.T("Automatically show plan details after previewing it"))
+	o.AddBackendFlags(cmd)
 
 	return cmd
 }

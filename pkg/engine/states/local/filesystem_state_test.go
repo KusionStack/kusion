@@ -14,8 +14,6 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
-	"github.com/zclconf/go-cty/cty"
-	"github.com/zclconf/go-cty/cty/gocty"
 )
 
 var stateFile string
@@ -42,76 +40,6 @@ func TestNewFileSystemState(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewFileSystemState(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewFileSystemState() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFileSystemState_ConfigSchema(t *testing.T) {
-	type fields struct {
-		Path string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   cty.Type
-	}{
-		{
-			name: "t1",
-			fields: fields{
-				Path: stateFile,
-			},
-			want: cty.Object(map[string]cty.Type{
-				"path": cty.String,
-			}),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &FileSystemState{
-				Path: tt.fields.Path,
-			}
-			if got := s.ConfigSchema(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FileSystemState.ConfigSchema() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFileSystemState_Configure(t *testing.T) {
-	type fields struct {
-		Path string
-	}
-	type args struct {
-		config map[string]interface{}
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "t1",
-			fields: fields{
-				Path: stateFile,
-			},
-			wantErr: false,
-			args: args{
-				config: map[string]interface{}{
-					"path": stateFile,
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &FileSystemState{
-				Path: tt.fields.Path,
-			}
-			obj, _ := gocty.ToCtyValue(tt.args.config, s.ConfigSchema())
-			if err := s.Configure(obj); (err != nil) != tt.wantErr {
-				t.Errorf("FileSystemState.Configure() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

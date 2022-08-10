@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -112,7 +114,8 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, &fakerRuntime{})
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, &fakerRuntime{}, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -225,7 +228,9 @@ func Test_destroy(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := o.destroy(planResources, changes, &fakerRuntime{})
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+
+		err := o.destroy(planResources, changes, &fakerRuntime{}, stateStorage)
 		assert.Nil(t, err)
 	})
 	t.Run("destroy failed", func(t *testing.T) {
@@ -246,8 +251,9 @@ func Test_destroy(t *testing.T) {
 			},
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 
-		err := o.destroy(planResources, changes, &fakerRuntime{})
+		err := o.destroy(planResources, changes, &fakerRuntime{}, stateStorage)
 		assert.NotNil(t, err)
 	})
 }

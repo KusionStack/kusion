@@ -61,6 +61,7 @@ func NewCmdApply() *cobra.Command {
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false,
 		i18n.T("dry-run to preview the execution effect (always successful) without actually applying the changes"))
+	o.AddBackendFlags(cmd)
 
 	return cmd
 }

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/pterm/pterm"
+	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -26,8 +27,9 @@ const (
 
 // ProjectConfiguration is the project configuration
 type ProjectConfiguration struct {
-	Name   string `json:"name" yaml:"name"`                         // Project name
-	Tenant string `json:"tenant,omitempty" yaml:"tenant,omitempty"` // Tenant name
+	Name    string           `json:"name" yaml:"name"`                           // Project name
+	Tenant  string           `json:"tenant,omitempty" yaml:"tenant,omitempty"`   // Tenant name
+	Backend *backend.Storage `json:"backend,omitempty" yaml:"backend,omitempty"` // state storage config
 }
 
 type Project struct {

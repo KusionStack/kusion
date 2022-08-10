@@ -7,16 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/zclconf/go-cty/cty"
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 )
-
-func init() {
-	states.AddToBackends("local", NewFileSystemState)
-}
 
 var _ states.StateStorage = &FileSystemState{}
 
@@ -30,23 +25,6 @@ func NewFileSystemState() states.StateStorage {
 }
 
 const KusionState = "kusion_state.json"
-
-func (f *FileSystemState) ConfigSchema() cty.Type {
-	config := map[string]cty.Type{
-		"path": cty.String,
-	}
-	return cty.Object(config)
-}
-
-func (f *FileSystemState) Configure(obj cty.Value) error {
-	var path cty.Value
-	if path = obj.GetAttr("path"); !path.IsNull() && path.AsString() != "" {
-		f.Path = path.AsString()
-	} else {
-		f.Path = KusionState
-	}
-	return nil
-}
 
 func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	// create a new state file if no file exists
