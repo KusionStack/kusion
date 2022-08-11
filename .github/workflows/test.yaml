@@ -61,7 +61,6 @@ jobs:
         run: GOLINTER=./golangci-lint-1.41.0-linux-amd64/golangci-lint make lint
   Publish: # Pack and publish image to Docker Hub and Github Release
     runs-on: ubuntu-latest
-    needs: [Test, Lint]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
