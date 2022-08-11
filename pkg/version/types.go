@@ -154,7 +154,7 @@ func NewInfo() (*Info, error) {
 	if isHeadAtTag {
 		releaseVersion = gitVersion.Original()
 	} else {
-		releaseVersion = fmt.Sprintf("%s-%s", gitVersion.Original(), headHashShort)
+		releaseVersion = fmt.Sprintf("%s+%s", gitVersion.Original(), headHashShort)
 	}
 
 	// Get dependency version
