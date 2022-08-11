@@ -1,0 +1,9 @@
+FROM ubuntu:20.04
+
+COPY _build/bundles/kusion-linux/bin/kusion /kusion/bin/
+
+RUN chmod +x /kusion/bin/kusion
+
+ENV PATH="/kusion/bin:${PATH}"
+ENV KUSION_PATH="/kusion"
+ENV LANG=en_US.utf8

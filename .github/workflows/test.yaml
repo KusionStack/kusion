@@ -74,7 +74,7 @@ jobs:
       - name: Pack kusion release packages for multiple platforms
         env:
           GO111MODULE: on
-        run: make build-all
+        run: make build-local-linux
       # <--- Get version informations --->
       - name: Get version
         id: get_version
