@@ -85,12 +85,21 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push image to Docker Hub
+      # <--- build and push kusion image to Dockerhub --->
+      - name: Build and push kusion image to Docker Hub
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: kusionstack/kusion:latest,kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}
+      # <--- build and push kusionctl image to Dockerhub --->
+      - name: Build and push kusionctl image to Docker Hub
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile_kusionctl
+          push: true
+          tags: kusionstack/kusionctl:latest,kusionstack/kusionctl:${{ steps.get_version.outputs.kusion_version }}
       # <--- Push kusion big packages for multiple platforms to Github Release --->
       - name: Release
         uses: softprops/action-gh-release@v1
