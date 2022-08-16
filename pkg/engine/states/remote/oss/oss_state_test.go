@@ -1,7 +1,7 @@
 //go:build !arm64
 // +build !arm64
 
-package remote
+package oss
 
 import (
 	"encoding/json"

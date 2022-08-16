@@ -1,4 +1,4 @@
-package remote
+package oss
 
 import (
 	"bytes"
@@ -11,11 +11,11 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/google/uuid"
-	"github.com/zclconf/go-cty/cty"
 )
 
 var ErrOSSNoExist = errors.New("oss: key not exist")
+
+const OSSStateName = "kusion_state.json"
 
 var _ states.StateStorage = &OssState{}
 
@@ -41,29 +41,13 @@ func NewOSSState(endPoint, accessKeyID, accessKeySecret, bucketName string) (*Os
 	return ossState, nil
 }
 
-// ConfigSchema returns a description of the expected configuration
-// structure for the receiving backend.
-func (s *OssState) ConfigSchema() cty.Type {
-	return cty.Type{}
-}
-
-// Configure uses the provided configuration to set configuration fields
-// within the OssState backend.
-func (s *OssState) Configure(obj cty.Value) error {
-	return nil
-}
-
 func (s *OssState) Apply(state *states.State) error {
-	u, err := uuid.NewUUID()
-	if err != nil {
-		return err
-	}
 	jsonByte, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return err
 	}
-	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack
-	err = s.bucket.PutObject(prefix+u.String(), bytes.NewReader(jsonByte))
+	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + OSSStateName
+	err = s.bucket.PutObject(prefix, bytes.NewReader(jsonByte))
 	if err != nil {
 		return err
 	}
@@ -75,24 +59,17 @@ func (s *OssState) Delete(id string) error {
 }
 
 func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, error) {
-	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack
+	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + OSSStateName
 	objects, err := s.bucket.ListObjects(oss.Delimiter("/"), oss.Prefix(prefix))
 	if err != nil {
 		return nil, err
 	}
 
-	var result *oss.ObjectProperties
-	for i := 0; i < len(objects.Objects); i++ {
-		if result == nil || result.LastModified.UnixNano() < objects.Objects[i].LastModified.UnixNano() {
-			result = &objects.Objects[i]
-		}
+	if len(objects.Objects) == 0 {
+		return nil, nil
 	}
 
-	if result == nil {
-		return nil, ErrOSSNoExist
-	}
-
-	body, err := s.bucket.GetObject(result.Key)
+	body, err := s.bucket.GetObject(prefix)
 	if err != nil {
 		return nil, err
 	}

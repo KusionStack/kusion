@@ -1,18 +1,15 @@
-package remote
+package db
 
 import (
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"sort"
 
-	"github.com/didi/gendry/manager"
 	"github.com/didi/gendry/scanner"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/copier"
-	"github.com/zclconf/go-cty/cty"
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
@@ -32,49 +29,6 @@ func NewDBState() states.StateStorage {
 
 type DBState struct {
 	DB *sql.DB
-}
-
-func (s *DBState) ConfigSchema() cty.Type {
-	config := map[string]cty.Type{
-		"dbName":     cty.String,
-		"dbUser":     cty.String,
-		"dbPassword": cty.String,
-		"dbHost":     cty.String,
-		"dbPort":     cty.Number,
-	}
-	return cty.Object(config)
-}
-
-func (s *DBState) Configure(obj cty.Value) error {
-	var dbName, dbUser, dbPassword, dbHost, dbPort cty.Value
-	if dbName = obj.GetAttr("dbName"); dbName.IsNull() {
-		return fmt.Errorf("dbName must be configure in backend config")
-	}
-	if dbUser = obj.GetAttr("dbUser"); dbUser.IsNull() {
-		return fmt.Errorf("dbUser must be configure in backend config")
-	}
-	if dbPassword = obj.GetAttr("dbPassword"); dbPassword.IsNull() {
-		return fmt.Errorf("dbPassword must be configure in backend config")
-	}
-	if dbHost = obj.GetAttr("dbHost"); dbHost.IsNull() {
-		return fmt.Errorf("dbHost must be configure in backend config")
-	}
-	if dbPort = obj.GetAttr("dbPort"); dbPort.IsNull() {
-		return fmt.Errorf("dbPort must be configure in backend config")
-	}
-	port, _ := dbPort.AsBigFloat().Int64()
-
-	db, err := manager.New(dbName.AsString(), dbUser.AsString(), dbPassword.AsString(), dbHost.AsString()).Set(
-		manager.SetCharset("utf8"),
-		manager.SetParseTime(true),
-		manager.SetInterpolateParams(true),
-		manager.SetLoc(url.QueryEscape("Asia/Shanghai"))).Port(int(port)).Open(true)
-	if err != nil {
-		return err
-	}
-	s.DB = db
-
-	return nil
 }
 
 // Apply save state in DB by add-only strategy.
