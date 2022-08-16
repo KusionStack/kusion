@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -75,8 +76,14 @@ func (o *DestroyOptions) Run() error {
 		return nil
 	}
 
+	runtimes := runtimeInit.InitRuntime()
+	runtime, err := runtimes[planResources.Resources[0].Type]()
+	if err != nil {
+		return nil
+	}
+
 	// Compute changes for preview
-	changes, err := o.preview(planResources, project, stack)
+	changes, err := o.preview(planResources, project, stack, runtime)
 	if err != nil {
 		return err
 	}
@@ -114,26 +121,19 @@ func (o *DestroyOptions) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(planResources, changes); err != nil {
+	if err := o.destroy(planResources, changes, runtime); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *DestroyOptions) preview(planResources *models.Spec,
-	project *projectstack.Project, stack *projectstack.Stack,
-) (*opsmodels.Changes, error) {
+func (o *DestroyOptions) preview(planResources *models.Spec, project *projectstack.Project, stack *projectstack.Stack, runtime runtime.Runtime) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
-
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return nil, err
-	}
 
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
 			OperationType: types.DestroyPreview,
-			Runtime:       kubernetesRuntime,
+			Runtime:       runtime,
 			StateStorage:  &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)},
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
@@ -157,16 +157,12 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes) error {
+func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes, runtime runtime.Runtime) error {
 	// Build apply operation
-	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-	if err != nil {
-		return err
-	}
 
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
-			Runtime:      kubernetesRuntime,
+			Runtime:      runtime,
 			StateStorage: &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)},
 			MsgCh:        make(chan opsmodels.Message),
 		},

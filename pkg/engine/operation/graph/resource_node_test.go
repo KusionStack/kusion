@@ -181,7 +181,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Read",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
-					return &runtime.ReadResponse{Resource: request.Resource}
+					return &runtime.ReadResponse{Resource: request.PriorResource}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
 				func(f *local.FileSystemState, state *states.State) error {

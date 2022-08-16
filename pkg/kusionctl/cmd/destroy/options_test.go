@@ -112,7 +112,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack)
+		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, &fakerRuntime{})
 		assert.Nil(t, err)
 	})
 }
@@ -135,14 +135,14 @@ func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest)
 }
 
 func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
-	if request.Resource.ResourceKey() == "fake-id" {
+	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
 			Status:   nil,
 		}
 	}
 	return &runtime.ReadResponse{
-		Resource: request.Resource,
+		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
@@ -187,8 +187,8 @@ var (
 
 func newSA(name string) models.Resource {
 	return models.Resource{
-		ID: engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
-
+		ID:   engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
+		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
 			"apiVersion": apiVersion,
 			"kind":       kind,
@@ -225,7 +225,7 @@ func Test_destroy(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := o.destroy(planResources, changes)
+		err := o.destroy(planResources, changes, &fakerRuntime{})
 		assert.Nil(t, err)
 	})
 	t.Run("destroy failed", func(t *testing.T) {
@@ -247,7 +247,7 @@ func Test_destroy(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := o.destroy(planResources, changes)
+		err := o.destroy(planResources, changes, &fakerRuntime{})
 		assert.NotNil(t, err)
 	})
 }

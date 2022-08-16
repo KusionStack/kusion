@@ -1,5 +1,7 @@
 package models
 
+import "encoding/json"
+
 type Type string
 
 type Resources []Resource
@@ -24,6 +26,17 @@ type Resource struct {
 
 func (r *Resource) ResourceKey() string {
 	return r.ID
+}
+
+// DeepCopy return a copy of resource
+func (r *Resource) DeepCopy() *Resource {
+	var out Resource
+	data, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	_ = json.Unmarshal(data, &out)
+	return &out
 }
 
 func (rs Resources) Index() map[string]*Resource {
