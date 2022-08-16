@@ -11,7 +11,12 @@ require (
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/didi/gendry v1.7.0
-	github.com/evanphx/json-patch v4.11.0+incompatible
+	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
+	github.com/evanphx/json-patch v4.12.0+incompatible
+	github.com/fatih/color v1.13.0 // indirect
+	github.com/go-errors/errors v1.4.0 // indirect
+	github.com/go-openapi/jsonreference v0.19.6 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-yaml v1.8.9
 	github.com/gonvenience/bunt v1.1.1
@@ -38,22 +43,28 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/zclconf/go-cty v1.10.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.19.1
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
+	golang.org/x/sys v0.0.0-20220429121018-84afa8d3f7b3 // indirect
+	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
+	google.golang.org/genproto v0.0.0-20210420162539-3c870d7478d2 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0
-	k8s.io/api v0.21.2
-	k8s.io/apimachinery v0.21.2
+	k8s.io/api v0.24.2
+	k8s.io/apimachinery v0.24.2
 	k8s.io/client-go v10.0.0+incompatible
-	k8s.io/component-base v0.21.2
+	k8s.io/component-base v0.24.2
 	k8s.io/kubectl v0.21.2
 	kusionstack.io/kcl-plugin v0.4.1-alpha2
 	kusionstack.io/kclvm-go v0.4.3-alpha.3
+	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/kustomize/api v0.8.11
 	sigs.k8s.io/kustomize/kustomize/v4 v4.1.2
 	sigs.k8s.io/kustomize/kyaml v0.11.0
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 replace (
