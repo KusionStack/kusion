@@ -23,10 +23,6 @@ import (
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
-func init() {
-	states.AddToBackends("db", NewDBState)
-}
-
 var _ states.StateStorage = &DBState{}
 
 func NewDBState() states.StateStorage {

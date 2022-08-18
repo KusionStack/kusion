@@ -4,24 +4,20 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
-	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/engine/states/local"
-
-	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
-
 	"kusionstack.io/kusion/pkg/compile"
+	"kusionstack.io/kusion/pkg/engine/backend"
+	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
 	"kusionstack.io/kusion/pkg/log"
@@ -38,6 +34,7 @@ type ApplyOptions struct {
 	NoStyle     bool
 	DryRun      bool
 	OnlyPreview bool
+	backend.BackendOps
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
@@ -82,9 +79,13 @@ func (o *ApplyOptions) Run() error {
 	sp.Success() // Resolve spinner with success message.
 	pterm.Println()
 
-	// Compute changes for preview
-	stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+	// Get stateStroage from backend config to manage state
+	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
+	if err != nil {
+		return err
+	}
 
+	// Compute changes for preview
 	runtimes := runtimeInit.InitRuntime()
 	runtime, err := runtimes[planResources.Resources[0].Type]()
 	if err != nil {
