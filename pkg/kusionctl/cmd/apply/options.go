@@ -9,6 +9,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
+
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
@@ -154,20 +155,22 @@ func (o *ApplyOptions) Run() error {
 // `storage` parameters.
 //
 // Example:
-//   o := NewApplyOptions()
-//   stateStorage := &states.FileSystemState{
-//       Path: filepath.Join(o.WorkDir, states.KusionState)
-//   }
-//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//   if err != nil {
-//       return err
-//   }
 //
-//   changes, err := Preview(o, kubernetesRuntime, stateStorage,
-//       planResources, project, stack, os.Stdout)
-//   if err != nil {
-//       return err
-//   }
+//	o := NewApplyOptions()
+//	stateStorage := &states.FileSystemState{
+//	    Path: filepath.Join(o.WorkDir, states.KusionState)
+//	}
+//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//	if err != nil {
+//	    return err
+//	}
+//
+//	changes, err := Preview(o, kubernetesRuntime, stateStorage,
+//	    planResources, project, stack, os.Stdout)
+//	if err != nil {
+//	    return err
+//	}
+//
 // todo @elliotxx io.Writer is not used now
 func Preview(
 	o *ApplyOptions,
@@ -229,19 +232,20 @@ func parseCluster(planResources *models.Spec) string {
 // storage through `runtime` and `storage` parameters.
 //
 // Example:
-//   o := NewApplyOptions()
-//   stateStorage := &states.FileSystemState{
-//       Path: filepath.Join(o.WorkDir, states.KusionState)
-//   }
-//   kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//   if err != nil {
-//       return err
-//   }
 //
-//   err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
-//   if err != nil {
-//       return err
-//   }
+//	o := NewApplyOptions()
+//	stateStorage := &states.FileSystemState{
+//	    Path: filepath.Join(o.WorkDir, states.KusionState)
+//	}
+//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//	if err != nil {
+//	    return err
+//	}
+//
+//	err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
+//	if err != nil {
+//	    return err
+//	}
 func Apply(
 	o *ApplyOptions,
 	runtime runtime.Runtime,
@@ -263,7 +267,11 @@ func Apply(
 	var ls lineSummary
 
 	// Progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).WithWriter(out).Start()
+	progressbar, err := pterm.DefaultProgressbar.
+		WithMaxWidth(0). // Set to 0, the terminal width will be used
+		WithTotal(len(changes.StepKeys)).
+		WithWriter(out).
+		Start()
 	if err != nil {
 		return err
 	}
