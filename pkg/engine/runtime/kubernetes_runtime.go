@@ -14,11 +14,9 @@ import (
 	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
-	"k8s.io/client-go/discovery"
-	memory "k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
@@ -31,7 +29,7 @@ var _ Runtime = (*KubernetesRuntime)(nil)
 
 type KubernetesRuntime struct {
 	dyn    dynamic.Interface
-	mapper *restmapper.DeferredDiscoveryRESTMapper
+	mapper meta.RESTMapper
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
@@ -139,6 +137,11 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *ReadRequest) *Rea
 	// Get resource by attribute
 	obj, resource, err := k.buildKubernetesResourceByState(requestResource)
 	if err != nil {
+		// Ignore no match error, cause target apiVersion or kind is not installed yet
+		if meta.IsNoMatchError(err) {
+			log.Infof("%v, ignore", err)
+			return &ReadResponse{nil, nil}
+		}
 		return &ReadResponse{nil, status.NewErrorStatus(err)}
 	}
 
@@ -194,20 +197,18 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *W
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient() (dynamic.Interface, *restmapper.DeferredDiscoveryRESTMapper, error) {
+func getKubernetesClient() (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
 	cfg, err := clientcmd.BuildConfigFromFlags("", config.GetKubeConfig())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Prepare a RESTMapper to find GVR
-	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
+	// DynamicRESTMapper can discover resource types at runtime dynamically
+	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
 	// Prepare the dynamic client
 	dyn, err := dynamic.NewForConfig(cfg)
@@ -243,7 +244,7 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models
 }
 
 // buildKubernetesResourceByUnstructured get resource by unstructured object
-func buildKubernetesResourceByUnstructured(dyn dynamic.Interface, mapper *restmapper.DeferredDiscoveryRESTMapper,
+func buildKubernetesResourceByUnstructured(dyn dynamic.Interface, mapper meta.RESTMapper,
 	obj *unstructured.Unstructured, gvk *schema.GroupVersionKind,
 ) (dynamic.ResourceInterface, error) {
 	// Find GVR
