@@ -1,32 +1,44 @@
-## 简介
+<div align="center">
+<p></p><p></p>
+<p>
+    <img  src="docs/logo.png">
+</p>
+<h1>A Unified Programmable Configuration Tech Stack</h1>
+
+[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) | [Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM) | [Kusion](https://github.com/KusionStack/kusion) | [https://kusionstack.io](https://kusionstack.io/)
 
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
+</div>
 
-> KusionStack 提供面向云原生生态的定义及最佳实践，提供静态类型配置语言及工具支持，在业务镜像外提供 **Compile to Cloud** 的技术栈。Kusion 使用 Golang 语言编写，并具有跨 Unix-like 平台属性。
+# Kusion
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的引擎，用于解析用户在 [Konfig](https://github.com/KusionStack/konfig) 中描述的运维意图，并根据这些运维意图对真实的基础设执行相应的操作
+## 核心能力
 
-## 📜 语言
+- **应用全生命周期管理**: 结合 [Kusion](https://github.com/KusionStack/kusion) 与 [Konfig](https://github.com/KusionStack/konfig) 实现从应用第一行配置代码到生产可用的全生命周期管理
+- **多层级管理**: 原生支持多租户、多环境运维能力
+- **混合运行时**: 以统一的方式运维 Kubernetes 和 Terraform 等多种运行时的资源
+- **厂商无关**: 一次编写，动态渲染，多云运行
 
-[English](https://github.com/KusionStack/kusion/blob/main/README.md) | [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
+<div align="center">
 
-## ✨ 功能概述
+![arch](docs/arch.png)
+</div>
 
-Kusion 的众多功能采用子命令的形式完成，其中较为常用的子命令包括 `apply`、`init`、`destroy`、`ls`、`preview` 等。
+## 快速开始
 
-- `kusion apply`：接受 KCL 语言编写的代码文件作为输入，其输出可以是 Yaml 文件、JSON 文件，甚至可以直接执行到 K8S Runtime；
-- `kusion init`：可以帮助用户快速新建一个 Kusion 项目；
-- `kusion destroy`：可以删除由 KCL 创建的 K8S 资源；
-- `kusion ls`：列出当前目录或指定目录中的所有 Project 和 Stack 信息；
-- `kusion preview`：预览 Stack 中的一系列资源更改；
+参考 [快速开始](https://kusionstack.io/docs/user_docs/getting-started/usecase) 通过一条 Kusion 命令拉起一个应用
 
-完整的命令功能说明，详见 [Kusion 命令](docs/cmd/en/kusion.md)。
+![apply](https://kusionstack.io/assets/images/compile-c47339757fc512ca096f3892a3059fce.gif)
 
-## 🛠️ 安装
 
-### 二进制安装（跨平台: windows, linux, mac ...）
+
+## 安装
+
+### 二进制安装
 
 从二进制安装，只需从 `kusion` 的 [发布页面](https://github.com/KusionStack/kusion/releases) 下载对应平台的二进制文件，然后将二进制文件放在命令行能访问到的目录中即可。
 
@@ -34,40 +46,22 @@ Kusion 的众多功能采用子命令的形式完成，其中较为常用的子�
 
 你可以通过 `kusionup` 安装多个 `kusion` 版本，默认会安装最新版。
 
+#### 安装 Kusionup
 ```
+# Homebrew
 brew install KusionStack/tap/kusionup
+```
+```
+# cURL
+curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/install.sh | bash
+```
+#### 安装 Kusion
+```
+# visit https://github.com/KusionStack/kusionup for more details
 kusionup install
 ```
 
-### 从源码构建
-
-使用 Go 1.16+ 版本，你可以通过 `make` 指令从源码构建适应于不同平台的完整 `kusion` 发布包：
-
-```
-# Build all platforms (darwin, linux, windows)
-make build-all
-
-# Build kusion & kcl tool chain for macOS
-# make build-local-darwin-all
-# Build kusion & kcl tool chain for linux
-# make build-local-linux-all
-# Build kusion & kcl tool chain for windows
-# make build-local-windows-all
-```
-
-### Docker
-
-Docker 用户可以用以下命令拉取 `kusion` 的镜像：
-
-```
-docker pull kusionstack/kusion:latest
-```
-
-## ⚡ 快速开始
-
-访问[快速开始](docs/getting-started.md)了解如何快速创建并应用一个 Kusion 项目。
-
-## 🎖︎ 贡献指南
+# 🎖︎ 贡献指南
 
 Kusion 仍处在初级阶段，有很多能力需要补全，所以我们欢迎所有人参与进来与我们一起共建。
 访问[贡献指南](docs/contributing.md)了解如何参与到贡献 Kusion 项目中。
