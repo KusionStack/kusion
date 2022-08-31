@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
+
+	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/util/kdump"
-
-	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
@@ -94,23 +94,24 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Re
 }
 
 func (o *Operation) InitStates(request *Request) (*states.State, *states.State) {
+	query := &states.StateQuery{
+		Tenant:  request.Tenant,
+		Stack:   request.Stack,
+		Project: request.Project,
+		Cluster: request.Cluster,
+	}
 	latestState, err := o.StateStorage.GetLatestState(
-		&states.StateQuery{
-			Tenant:  request.Tenant,
-			Stack:   request.Stack,
-			Project: request.Project,
-			Cluster: request.Cluster,
-		},
+		query,
 	)
-	util.CheckNotError(err, fmt.Sprintf("GetLatestState failed with request: %v", kdump.FormatN(request)))
+	util.CheckNotError(err, fmt.Sprintf("get the latest State failed with query: %v", jsonutil.Marshal2PrettyString(query)))
 	if latestState == nil {
-		log.Infof("can't find states with request: %v", kdump.FormatN(request))
+		log.Infof("can't find states with request: %v", jsonutil.Marshal2PrettyString(request))
 		latestState = states.NewState()
 	}
 	resultState := states.NewState()
 	resultState.Serial = latestState.Serial
 	err = copier.Copy(resultState, request)
-	util.CheckNotError(err, "Copy request to ResultState, request")
+	util.CheckNotError(err, fmt.Sprintf("copy request to result State failed, request:%v", jsonutil.Marshal2PrettyString(request)))
 	resultState.Resources = nil
 
 	return latestState, resultState
@@ -136,8 +137,8 @@ func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error
 	state.Resources = res
 	err := o.StateStorage.Apply(state)
 	if err != nil {
-		return fmt.Errorf("insert priorState failed. %w", err)
+		return fmt.Errorf("apply State failed. %w", err)
 	}
-	log.Infof("UpdateState:%v success", state.ID)
+	log.Infof("update State:%v success", state.ID)
 	return nil
 }
