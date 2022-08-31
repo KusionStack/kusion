@@ -90,14 +90,41 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 	// Final result, dry-run to diff, otherwise to save in states
 	var res *unstructured.Unstructured
 	if request.DryRun {
-		// Use client dry-run here to be compatible with server dry-run not supported
-		mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
-		if err != nil {
-			return &ApplyResponse{nil, status.NewErrorStatus(err)}
+		tryClientSide := true
+		if liveState == nil {
+			// Try ServerSideDryRun first
+			createOptions := metav1.CreateOptions{
+				DryRun: []string{metav1.DryRunAll},
+			}
+			if createdObj, err := resource.Create(ctx, planObj, createOptions); err == nil {
+				res = createdObj
+				// ServerSideDryRun success, not need to try ClientSideDryRun
+				tryClientSide = false
+			} else {
+				log.Errorf("ServerSideDryRun create failed, err: %v", err)
+			}
+		} else {
+			// Try ServerSideDryRun first
+			patchOptions := metav1.PatchOptions{
+				DryRun: []string{metav1.DryRunAll},
+			}
+			if patchedObj, err := resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, patchOptions); err == nil {
+				res = patchedObj
+				tryClientSide = false
+			} else {
+				log.Errorf("ServerSideDryRun Patch failed, err: %v", err)
+			}
 		}
-		res = &unstructured.Unstructured{}
-		if err = res.UnmarshalJSON(mergedPatch); err != nil {
-			return &ApplyResponse{nil, status.NewErrorStatus(err)}
+		if tryClientSide {
+			// Fall back to ClientSideDryRun
+			mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
+			if err != nil {
+				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+			}
+			res = &unstructured.Unstructured{}
+			if err = res.UnmarshalJSON(mergedPatch); err != nil {
+				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+			}
 		}
 	} else {
 		if liveState == nil {
