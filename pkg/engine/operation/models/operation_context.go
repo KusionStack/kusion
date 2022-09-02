@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
 	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 // Operation is the base model for all operations
