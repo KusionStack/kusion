@@ -1473,8 +1473,8 @@ k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 h1:HNSDgDCrr/6Ly3WEGKZftiE7IY19V
 k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kusionstack.io/kcl-plugin v0.4.1-alpha2 h1:m43JJhpJSjl/Q3FqghJf5dRIwdXsrJeKxrHhgqLJqbA=
 kusionstack.io/kcl-plugin v0.4.1-alpha2/go.mod h1:VgB7qXVbDGWFOh/qb/yXf75+UrliP5EPXOQUDqBCdAQ=
-kusionstack.io/kclvm-go v0.4.3-alpha.3 h1:JE82Py/PzFKRNS6wnfFKmKe+FCIM8nMsuZt4WNtAIA8=
-kusionstack.io/kclvm-go v0.4.3-alpha.3/go.mod h1:cxsYIWWMiDk7mwWJMm6H9kzNNtoIpOQHgzJBZvHThzo=
+kusionstack.io/kclvm-go v0.4.3-alpha.4 h1:qIP8dXxnBS/BfH/hOhsAaZt37WmrhrdX43X0bYwzBf8=
+kusionstack.io/kclvm-go v0.4.3-alpha.4/go.mod h1:cxsYIWWMiDk7mwWJMm6H9kzNNtoIpOQHgzJBZvHThzo=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
