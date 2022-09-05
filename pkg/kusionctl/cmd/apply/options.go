@@ -36,6 +36,7 @@ type ApplyOptions struct {
 	DryRun      bool
 	OnlyPreview bool
 	backend.BackendOps
+	IgnoreFields []string
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
@@ -189,6 +190,7 @@ func Preview(
 			OperationType: types.ApplyPreview,
 			Runtime:       runtime,
 			StateStorage:  storage,
+			IgnoreFields:  o.IgnoreFields,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}

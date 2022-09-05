@@ -7,9 +7,10 @@ import (
 
 type PreviewOptions struct {
 	compilecmd.CompileOptions
-	Yes     bool
-	Detail  bool
-	NoStyle bool
+	Yes          bool
+	Detail       bool
+	NoStyle      bool
+	IgnoreFields []string
 }
 
 func NewPreviewOptions() *PreviewOptions {

@@ -88,6 +88,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
+			IgnoreFields:            o.IgnoreFields,
 			ChangeOrder:             o.ChangeOrder,
 			Runtime:                 o.Runtime, // preview need get the latest spec from runtime
 			ResultState:             resultState,
