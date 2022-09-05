@@ -5,7 +5,6 @@ package preview
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -52,7 +51,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, &fooRuntime{}, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack, os.Stdout)
+		_, err := Preview(o, &fooRuntime{}, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
 		assert.Nil(t, err)
 	})
 }

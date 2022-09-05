@@ -2,7 +2,6 @@ package preview
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/pterm/pterm"
@@ -77,7 +76,7 @@ func (o *PreviewOptions) Run() error {
 		return err
 	}
 
-	changes, err := Preview(o, r, stateStorage, planResources, project, stack, os.Stdout)
+	changes, err := Preview(o, r, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
 	}
@@ -88,7 +87,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Summary preview table
-	changes.Summary()
+	changes.Summary(os.Stdout)
 
 	// Detail detection
 	if o.Detail {
@@ -116,7 +115,7 @@ func (o *PreviewOptions) Run() error {
 //
 // Example:
 //
-//	o := NewApplyOptions()
+//	o := NewPreviewOptions()
 //	stateStorage := &states.FileSystemState{
 //	    Path: filepath.Join(o.WorkDir, states.KusionState)
 //	}
@@ -130,8 +129,6 @@ func (o *PreviewOptions) Run() error {
 //	if err != nil {
 //	    return err
 //	}
-//
-// todo @elliotxx io.Writer is not used now
 func Preview(
 	o *PreviewOptions,
 	runtime runtime.Runtime,
@@ -139,7 +136,6 @@ func Preview(
 	planResources *models.Spec,
 	project *projectstack.Project,
 	stack *projectstack.Stack,
-	out io.Writer,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 

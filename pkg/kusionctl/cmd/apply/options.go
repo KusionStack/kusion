@@ -89,7 +89,7 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	changes, err := previewcmd.Preview(&o.PreviewOptions, r, stateStorage, planResources, project, stack, os.Stdout)
+	changes, err := previewcmd.Preview(&o.PreviewOptions, r, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Summary preview table
-	changes.Summary()
+	changes.Summary(os.Stdout)
 
 	// Detail detection
 	if o.Detail && !o.Yes {

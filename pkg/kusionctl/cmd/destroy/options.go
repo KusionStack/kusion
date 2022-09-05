@@ -2,6 +2,7 @@ package destroy
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -88,7 +89,7 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	// Preview
-	changes.Summary()
+	changes.Summary(os.Stdout)
 
 	// Detail detection
 	if o.Detail {

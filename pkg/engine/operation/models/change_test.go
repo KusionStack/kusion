@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -432,7 +433,7 @@ func TestChanges_Preview(t *testing.T) {
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
-			p.Summary()
+			p.Summary(os.Stdout)
 		})
 	}
 }
