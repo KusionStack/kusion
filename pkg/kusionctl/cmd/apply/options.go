@@ -42,12 +42,7 @@ type ApplyOptions struct {
 // NewApplyOptions returns a new ApplyOptions instance
 func NewApplyOptions() *ApplyOptions {
 	return &ApplyOptions{
-		CompileOptions: compilecmd.CompileOptions{
-			Filenames: []string{},
-			Arguments: []string{},
-			Settings:  []string{},
-			Overrides: []string{},
-		},
+		CompileOptions: *compilecmd.NewCompileOptions(),
 	}
 }
 

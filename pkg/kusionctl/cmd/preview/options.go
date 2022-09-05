@@ -15,12 +15,7 @@ type PreviewOptions struct {
 
 func NewPreviewOptions() *PreviewOptions {
 	return &PreviewOptions{
-		CompileOptions: compilecmd.CompileOptions{
-			Filenames: []string{},
-			Arguments: []string{},
-			Settings:  []string{},
-			Overrides: []string{},
-		},
+		CompileOptions: *compilecmd.NewCompileOptions(),
 	}
 }
 

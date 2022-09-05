@@ -7,6 +7,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
+
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -33,12 +34,7 @@ type DestroyOptions struct {
 
 func NewDestroyOptions() *DestroyOptions {
 	return &DestroyOptions{
-		CompileOptions: compilecmd.CompileOptions{
-			Filenames: []string{},
-			Arguments: []string{},
-			Settings:  []string{},
-			Overrides: []string{},
-		},
+		CompileOptions: *compilecmd.NewCompileOptions(),
 	}
 }
 
