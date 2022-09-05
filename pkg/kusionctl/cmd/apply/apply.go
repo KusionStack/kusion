@@ -51,19 +51,15 @@ func NewCmdApply() *cobra.Command {
 	}
 
 	o.AddCompileFlags(cmd)
-	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
-		i18n.T("Specify the operator"))
+	o.AddPreviewFlags(cmd)
+	o.AddBackendFlags(cmd)
+
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))
-	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
-		i18n.T("Automatically show plan details after previewing it"))
 	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false,
 		i18n.T("dry-run to preview the execution effect (always successful) without actually applying the changes"))
-	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,
-		i18n.T("Ignore differences of target fields"))
-	o.AddBackendFlags(cmd)
 
 	return cmd
 }

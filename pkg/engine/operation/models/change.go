@@ -148,6 +148,16 @@ func (o *ChangeOrder) Diffs() string {
 	return buf.String()
 }
 
+func (p *Changes) AllUnChange() bool {
+	for _, v := range p.ChangeSteps {
+		if v.Action != types.UnChange {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (p *Changes) Summary() {
 	// Create a fork of the default table, fill it with data and print it.
 	// Data can also be generated and inserted later.

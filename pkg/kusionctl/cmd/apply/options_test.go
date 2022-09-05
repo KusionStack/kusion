@@ -116,18 +116,6 @@ func mockCompileWithSpinner() {
 		})
 }
 
-func Test_preview(t *testing.T) {
-	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
-	t.Run("preview success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockOperationPreview()
-
-		o := NewApplyOptions()
-		_, err := Preview(o, &fakerRuntime{}, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack, os.Stdout)
-		assert.Nil(t, err)
-	})
-}
-
 func mockNewKubernetesRuntime() {
 	monkey.Patch(runtime.NewKubernetesRuntime, func() (runtime.Runtime, error) {
 		return &fakerRuntime{}, nil

@@ -1,15 +1,36 @@
 package preview
 
 import (
-	applycmd "kusionstack.io/kusion/pkg/kusionctl/cmd/apply"
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/pterm/pterm"
+
+	"kusionstack.io/kusion/pkg/compile"
+	"kusionstack.io/kusion/pkg/engine/backend"
+	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
+	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
+	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/status"
 )
 
 type PreviewOptions struct {
 	compilecmd.CompileOptions
-	Yes          bool
+	PreviewFlags
+	backend.BackendOps
+}
+
+type PreviewFlags struct {
+	Operator     string
 	Detail       bool
-	NoStyle      bool
 	IgnoreFields []string
 }
 
@@ -28,13 +49,127 @@ func (o *PreviewOptions) Validate() error {
 }
 
 func (o *PreviewOptions) Run() error {
-	applyOptions := applycmd.ApplyOptions{
-		CompileOptions: o.CompileOptions,
-		Yes:            o.Yes,
-		Detail:         o.Detail,
-		NoStyle:        o.NoStyle,
-		OnlyPreview:    true,
+	// Parse project and stack of work directory
+	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	if err != nil {
+		return err
 	}
 
-	return applyOptions.Run()
+	// Get compile result
+	planResources, sp, err := compile.CompileWithSpinner(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, stack)
+	if err != nil {
+		sp.Fail()
+		return err
+	}
+	sp.Success() // Resolve spinner with success message.
+	pterm.Println()
+
+	// Get state storage from backend config to manage state
+	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
+	if err != nil {
+		return err
+	}
+
+	// Compute changes for preview
+	runtimes := runtimeInit.InitRuntime()
+	r, err := runtimes[planResources.Resources[0].Type]()
+	if err != nil {
+		return err
+	}
+
+	changes, err := Preview(o, r, stateStorage, planResources, project, stack, os.Stdout)
+	if err != nil {
+		return err
+	}
+
+	if changes.AllUnChange() {
+		fmt.Println("All resources are reconciled. No diff found")
+		return nil
+	}
+
+	// Summary preview table
+	changes.Summary()
+
+	// Detail detection
+	if o.Detail {
+		changes.OutputDiff("all")
+	} else {
+		for {
+			target, err := changes.PromptDetails()
+			if err != nil {
+				return err
+			}
+			if target == "" { // Cancel option
+				break
+			}
+			changes.OutputDiff(target)
+		}
+	}
+
+	return nil
+}
+
+// The Preview function calculates the upcoming actions of each resource
+// through the execution Kusion Engine, and you can customize the
+// runtime of engine and the state storage through `runtime` and
+// `storage` parameters.
+//
+// Example:
+//
+//	o := NewApplyOptions()
+//	stateStorage := &states.FileSystemState{
+//	    Path: filepath.Join(o.WorkDir, states.KusionState)
+//	}
+//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//	if err != nil {
+//	    return err
+//	}
+//
+//	changes, err := Preview(o, kubernetesRuntime, stateStorage,
+//	    planResources, project, stack, os.Stdout)
+//	if err != nil {
+//	    return err
+//	}
+//
+// todo @elliotxx io.Writer is not used now
+func Preview(
+	o *PreviewOptions,
+	runtime runtime.Runtime,
+	storage states.StateStorage,
+	planResources *models.Spec,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	out io.Writer,
+) (*opsmodels.Changes, error) {
+	log.Info("Start compute preview changes ...")
+
+	// Construct the preview operation
+	pc := &operation.PreviewOperation{
+		Operation: opsmodels.Operation{
+			OperationType: types.ApplyPreview,
+			Runtime:       runtime,
+			StateStorage:  storage,
+			IgnoreFields:  o.IgnoreFields,
+			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+		},
+	}
+
+	log.Info("Start call pc.Preview() ...")
+
+	cluster := planResources.ParseCluster()
+	rsp, s := pc.Preview(&operation.PreviewRequest{
+		Request: opsmodels.Request{
+			Tenant:   project.Tenant,
+			Project:  project.Name,
+			Stack:    stack.Name,
+			Operator: o.Operator,
+			Spec:     planResources,
+			Cluster:  cluster,
+		},
+	})
+	if status.IsErr(s) {
+		return nil, fmt.Errorf("preview failed.\n%s", s.String())
+	}
+
+	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
