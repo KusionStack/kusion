@@ -5,12 +5,17 @@ package preview
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"bou.ke/monkey"
+	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -52,6 +57,54 @@ func Test_preview(t *testing.T) {
 
 		o := NewPreviewOptions()
 		_, err := Preview(o, &fooRuntime{}, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
+		assert.Nil(t, err)
+	})
+}
+
+func TestPreviewOptions_Run(t *testing.T) {
+	defer func() {
+		os.Remove("kusion_state.json")
+	}()
+
+	t.Run("no project or stack", func(t *testing.T) {
+		o := NewPreviewOptions()
+		o.Detail = true
+		err := o.Run()
+		assert.NotNil(t, err)
+	})
+
+	t.Run("compile failed", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+
+		o := NewPreviewOptions()
+		o.Detail = true
+		err := o.Run()
+		assert.NotNil(t, err)
+	})
+
+	t.Run("no changes", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+		mockCompileWithSpinner()
+		mockNewKubernetesRuntime()
+
+		o := NewPreviewOptions()
+		o.Detail = true
+		err := o.Run()
+		assert.Nil(t, err)
+	})
+
+	t.Run("detail is true", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+		mockCompileWithSpinner()
+		mockNewKubernetesRuntime()
+		mockOperationPreview()
+
+		o := NewPreviewOptions()
+		o.Detail = true
+		err := o.Run()
 		assert.Nil(t, err)
 	})
 }
@@ -128,4 +181,32 @@ func newSA(name string) models.Resource {
 			},
 		},
 	}
+}
+
+func mockDetectProjectAndStack() {
+	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+		project.Path = stackDir
+		stack.Path = stackDir
+		return project, stack, nil
+	})
+}
+
+func mockCompileWithSpinner() {
+	monkey.Patch(compile.CompileWithSpinner,
+		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
+		) (*models.Spec, *pterm.SpinnerPrinter, error) {
+			sp := pterm.DefaultSpinner.
+				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
+				WithDelay(time.Millisecond * 100)
+
+			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
+
+			return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, sp, nil
+		})
+}
+
+func mockNewKubernetesRuntime() {
+	monkey.Patch(runtime.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+		return &fooRuntime{}, nil
+	})
 }

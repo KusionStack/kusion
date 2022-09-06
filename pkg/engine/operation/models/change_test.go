@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -462,4 +464,34 @@ func Test_buildResourceStateMap(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestChanges_AllUnChange(t *testing.T) {
+	t.Run("changed", func(t *testing.T) {
+		changes := &Changes{
+			ChangeOrder: &ChangeOrder{
+				ChangeSteps: map[string]*ChangeStep{
+					"foo": {
+						Action: types.Update,
+					},
+				},
+			},
+		}
+		flag := changes.AllUnChange()
+		assert.False(t, flag)
+	})
+
+	t.Run("unchanged", func(t *testing.T) {
+		changes := &Changes{
+			ChangeOrder: &ChangeOrder{
+				ChangeSteps: map[string]*ChangeStep{
+					"bar": {
+						Action: types.UnChange,
+					},
+				},
+			},
+		}
+		flag := changes.AllUnChange()
+		assert.True(t, flag)
+	})
 }
