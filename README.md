@@ -5,7 +5,9 @@
 </p>
 <h1>A Unified Programmable Configuration Tech Stack</h1>
 
-[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) | [Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM) | [Kusion](https://github.com/KusionStack/kusion) | [https://kusionstack.io](https://kusionstack.io/)
+[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) 
+
+[Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM) | [Kusion](https://github.com/KusionStack/kusion) | [Website](https://kusionstack.io/)
 
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
@@ -58,6 +60,13 @@ curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/in
 ```
 # visit https://github.com/KusionStack/kusionup for more details
 kusionup install
+```
+### Docker
+
+Docker users can use the following commands to pull the latest image of the `kusion`:
+
+```
+docker pull kusionstack/kusion:latest
 ```
 
 # 🎖︎ Contribution Guide
