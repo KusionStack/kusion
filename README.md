@@ -18,7 +18,7 @@
 
 # Kusion
 
-Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsing user's intention described in [Konfig](https://github.com/KusionStack/konfig) and making them effect in infrastructures.
+Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsing user's intentions described in [Konfig](https://github.com/KusionStack/konfig) and making them effect in infrastructures.
 
 ## Key Features
 
