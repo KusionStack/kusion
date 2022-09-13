@@ -25,7 +25,10 @@ var (
 		kusion preview -D name=test -D age=18
 
 		# Preview with specifying setting file
-		kusion preview -Y settings.yaml`
+		kusion preview -Y settings.yaml
+
+		# Preview with ignored fields
+		kusion preview --ignore-fields="metadata.generation,metadata.managedFields"`
 )
 
 func NewCmdPreview() *cobra.Command {
@@ -45,20 +48,18 @@ func NewCmdPreview() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.CompileOptions.WorkDir, "workdir", "w", "",
-		i18n.T("Specify the work directory"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Arguments, "argument", "D", []string{},
-		i18n.T("Specify the arguments to preview KCL"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Settings, "setting", "Y", []string{},
-		i18n.T("Specify the command line setting files"))
-	cmd.Flags().StringSliceVarP(&o.CompileOptions.Overrides, "overrides", "O", []string{},
-		i18n.T("Specify the configuration override path and value"))
-	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
-		i18n.T("Show preview only, no details"))
-	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
-		i18n.T("Automatically show plan details after previewing it"))
-	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
-		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
+	o.AddCompileFlags(cmd)
+	o.AddPreviewFlags(cmd)
+	o.AddBackendFlags(cmd)
 
 	return cmd
+}
+
+func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
+		i18n.T("Specify the operator"))
+	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
+		i18n.T("Automatically show plan details after previewing it"))
+	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,
+		i18n.T("Ignore differences of target fields"))
 }

@@ -32,6 +32,9 @@ type Operation struct {
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
 	StateResourceIndex map[string]*models.Resource
 
+	// IgnoreFields will be ignored in preview stage
+	IgnoreFields []string
+
 	// ChangeOrder is resources' change order during this operation
 	ChangeOrder *ChangeOrder
 

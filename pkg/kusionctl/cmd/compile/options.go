@@ -2,7 +2,6 @@ package compile
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,21 +10,29 @@ import (
 )
 
 type CompileOptions struct {
-	IsCheck     bool
-	Filenames   []string
-	Arguments   []string
-	Settings    []string
+	IsCheck   bool
+	Filenames []string
+	CompileFlags
+}
+
+type CompileFlags struct {
 	Output      string
 	WorkDir     string
+	Settings    []string
+	Arguments   []string
+	Overrides   []string
 	DisableNone bool
 	OverrideAST bool
-	Overrides   []string
 }
 
 func NewCompileOptions() *CompileOptions {
 	return &CompileOptions{
-		Arguments: []string{},
-		Settings:  []string{},
+		Filenames: []string{},
+		CompileFlags: CompileFlags{
+			Settings:  []string{},
+			Arguments: []string{},
+			Overrides: []string{},
+		},
 	}
 }
 
@@ -68,7 +75,7 @@ func (o *CompileOptions) Run() error {
 				o.Output = filepath.Join(o.WorkDir, o.Output)
 			}
 
-			err := ioutil.WriteFile(o.Output, []byte(yaml), 0o666)
+			err := os.WriteFile(o.Output, []byte(yaml), 0o666)
 			if err != nil {
 				return err
 			}

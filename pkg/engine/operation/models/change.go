@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -148,7 +149,17 @@ func (o *ChangeOrder) Diffs() string {
 	return buf.String()
 }
 
-func (p *Changes) Summary() {
+func (p *Changes) AllUnChange() bool {
+	for _, v := range p.ChangeSteps {
+		if v.Action != types.UnChange {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (p *Changes) Summary(writer io.Writer) {
 	// Create a fork of the default table, fill it with data and print it.
 	// Data can also be generated and inserted later.
 	tableHeader := []string{fmt.Sprintf("Stack: %s", p.stack.Name), "ID", "Action"}
@@ -169,6 +180,7 @@ func (p *Changes) Summary() {
 		WithLeftAlignment(true).
 		WithSeparator("  ").
 		WithData(tableData).
+		WithWriter(writer).
 		Render()
 	pterm.Println() // Blank line
 }

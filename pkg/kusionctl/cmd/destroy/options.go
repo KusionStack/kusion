@@ -2,11 +2,13 @@ package destroy
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
+
 	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -33,12 +35,7 @@ type DestroyOptions struct {
 
 func NewDestroyOptions() *DestroyOptions {
 	return &DestroyOptions{
-		CompileOptions: compilecmd.CompileOptions{
-			Filenames: []string{},
-			Arguments: []string{},
-			Settings:  []string{},
-			Overrides: []string{},
-		},
+		CompileOptions: *compilecmd.NewCompileOptions(),
 	}
 }
 
@@ -92,7 +89,7 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	// Preview
-	changes.Summary()
+	changes.Summary(os.Stdout)
 
 	// Detail detection
 	if o.Detail {

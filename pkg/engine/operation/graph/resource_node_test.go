@@ -112,6 +112,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
+				IgnoreFields:            []string{"not_exist_field"},
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},

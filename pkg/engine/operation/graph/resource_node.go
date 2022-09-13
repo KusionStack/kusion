@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
@@ -83,6 +85,12 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 				return dryRunResp.Status
 			}
 			predictableState = dryRunResp.Resource
+			// Ignore differences of target fields
+			for _, field := range operation.IgnoreFields {
+				splits := strings.Split(field, ".")
+				unstructured.RemoveNestedField(liveState.Attributes, splits...)
+				unstructured.RemoveNestedField(predictableState.Attributes, splits...)
+			}
 			report, err := diff.ToReport(liveState, predictableState)
 			if err != nil {
 				return status.NewErrorStatus(err)

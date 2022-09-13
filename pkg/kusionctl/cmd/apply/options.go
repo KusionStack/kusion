@@ -20,7 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
-	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	previewcmd "kusionstack.io/kusion/pkg/kusionctl/cmd/preview"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -28,25 +28,21 @@ import (
 
 // ApplyOptions defines flags for the `apply` command
 type ApplyOptions struct {
-	compilecmd.CompileOptions
-	Operator    string
+	previewcmd.PreviewOptions
+	ApplyFlag
+}
+
+type ApplyFlag struct {
 	Yes         bool
-	Detail      bool
 	NoStyle     bool
 	DryRun      bool
 	OnlyPreview bool
-	backend.BackendOps
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
 func NewApplyOptions() *ApplyOptions {
 	return &ApplyOptions{
-		CompileOptions: compilecmd.CompileOptions{
-			Filenames: []string{},
-			Arguments: []string{},
-			Settings:  []string{},
-			Overrides: []string{},
-		},
+		PreviewOptions: *previewcmd.NewPreviewOptions(),
 	}
 }
 
@@ -80,7 +76,7 @@ func (o *ApplyOptions) Run() error {
 	sp.Success() // Resolve spinner with success message.
 	pterm.Println()
 
-	// Get stateStroage from backend config to manage state
+	// Get state storage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
 	if err != nil {
 		return err
@@ -88,12 +84,12 @@ func (o *ApplyOptions) Run() error {
 
 	// Compute changes for preview
 	runtimes := runtimeInit.InitRuntime()
-	runtime, err := runtimes[planResources.Resources[0].Type]()
+	r, err := runtimes[planResources.Resources[0].Type]()
 	if err != nil {
 		return err
 	}
 
-	changes, err := Preview(o, runtime, stateStorage, planResources, project, stack, os.Stdout)
+	changes, err := previewcmd.Preview(&o.PreviewOptions, r, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
 	}
@@ -104,7 +100,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Summary preview table
-	changes.Summary()
+	changes.Summary(os.Stdout)
 
 	// Detail detection
 	if o.Detail && !o.Yes {
@@ -136,7 +132,7 @@ func (o *ApplyOptions) Run() error {
 
 	if !o.OnlyPreview {
 		fmt.Println("Start applying diffs ...")
-		if err := Apply(o, runtime, stateStorage, planResources, changes, os.Stdout); err != nil {
+		if err := Apply(o, r, stateStorage, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 
@@ -147,81 +143,6 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	return nil
-}
-
-// The Preview function calculates the upcoming actions of each resource
-// through the execution Kusion Engine, and you can customize the
-// runtime of engine and the state storage through `runtime` and
-// `storage` parameters.
-//
-// Example:
-//
-//	o := NewApplyOptions()
-//	stateStorage := &states.FileSystemState{
-//	    Path: filepath.Join(o.WorkDir, states.KusionState)
-//	}
-//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//	if err != nil {
-//	    return err
-//	}
-//
-//	changes, err := Preview(o, kubernetesRuntime, stateStorage,
-//	    planResources, project, stack, os.Stdout)
-//	if err != nil {
-//	    return err
-//	}
-//
-// todo @elliotxx io.Writer is not used now
-func Preview(
-	o *ApplyOptions,
-	runtime runtime.Runtime,
-	storage states.StateStorage,
-	planResources *models.Spec,
-	project *projectstack.Project,
-	stack *projectstack.Stack,
-	out io.Writer,
-) (*opsmodels.Changes, error) {
-	log.Info("Start compute preview changes ...")
-
-	// Construct the preview operation
-	pc := &operation.PreviewOperation{
-		Operation: opsmodels.Operation{
-			OperationType: types.ApplyPreview,
-			Runtime:       runtime,
-			StateStorage:  storage,
-			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
-		},
-	}
-
-	log.Info("Start call pc.Preview() ...")
-
-	cluster := parseCluster(planResources)
-	rsp, s := pc.Preview(&operation.PreviewRequest{
-		Request: opsmodels.Request{
-			Tenant:   project.Tenant,
-			Project:  project.Name,
-			Stack:    stack.Name,
-			Operator: o.Operator,
-			Spec:     planResources,
-			Cluster:  cluster,
-		},
-	})
-	if status.IsErr(s) {
-		return nil, fmt.Errorf("preview failed.\n%s", s.String())
-	}
-
-	return opsmodels.NewChanges(project, stack, rsp.Order), nil
-}
-
-// parseCluster try to parse Cluster from resource extensions.
-// All resources in one compile MUST have the same Cluster and this constraint will be guaranteed by KCL compile logic
-func parseCluster(planResources *models.Spec) string {
-	resources := planResources.Resources
-	var cluster string
-	if len(resources) != 0 && resources[0].Extensions != nil && resources[0].Extensions["Cluster"] != nil {
-		cluster = resources[0].Extensions["Cluster"].(string)
-	}
-	return cluster
 }
 
 // The Apply function will apply the resources changes
@@ -344,7 +265,7 @@ func Apply(
 		}
 		close(ac.MsgCh)
 	} else {
-		cluster := parseCluster(planResources)
+		cluster := planResources.ParseCluster()
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
