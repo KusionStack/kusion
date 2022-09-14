@@ -3,7 +3,7 @@ package runtime
 import (
 	"context"
 
-	k8sWatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/apimachinery/pkg/watch"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/status"
@@ -89,13 +89,8 @@ type WatchRequest struct {
 }
 
 type WatchResponse struct {
-	MsgCh <-chan RowData
+	ResultCh <-chan watch.Event
 
 	// Status contains messages will show to users
 	Status status.Status
-}
-
-type RowData struct {
-	Event   k8sWatch.Event
-	Message string
 }
