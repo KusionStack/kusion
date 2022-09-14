@@ -26,7 +26,7 @@ var (
 		kusion check main.k -Y settings.yaml
 
 		# Check main.k with work directory
-		kusion check main.k -w appops/demo/dev`
+		kusion check main.k -W appops/demo/dev`
 )
 
 func NewCmdCheck() *cobra.Command {

@@ -3,17 +3,22 @@ package runtime
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	yamlv2 "gopkg.in/yaml.v2"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
+	k8sWatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -220,7 +225,87 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *DeleteRequest) 
 
 // Watch kubernetes resource by client-go
 func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *WatchResponse {
-	panic("need implement")
+	if request == nil || request.Resource == nil {
+		return &WatchResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
+	}
+
+	reqObj, resource, err := k.buildKubernetesResourceByState(request.Resource)
+	if err != nil {
+		return &WatchResponse{Status: status.NewErrorStatus(err)}
+	}
+
+	// Watch interface
+	w, err := resource.Watch(ctx, metav1.ListOptions{})
+	if err != nil {
+		return &WatchResponse{Status: status.NewErrorStatus(err)}
+	}
+
+	// Row data chan
+	msgCh := make(chan RowData)
+
+	go func() {
+		defer w.Stop()
+		stop := false
+		for {
+			if stop {
+				close(msgCh)
+				return
+			}
+			select {
+			case e := <-w.ResultChan():
+				watchedObj, ok := e.Object.(*unstructured.Unstructured)
+				if !ok {
+					break
+				}
+				if watchedObj.GetName() != reqObj.GetName() {
+					continue
+				}
+				var msg string
+				if e.Type == k8sWatch.Deleted {
+					msg = fmt.Sprintf("%s has beed deleted", watchedObj.GetName())
+					stop = true
+				} else {
+					// TODO: refactor me
+					switch watchedObj.GetKind() {
+					case "Namespace":
+						var ns corev1.Namespace
+						err = runtime.DefaultUnstructuredConverter.FromUnstructured(watchedObj.Object, &ns)
+						if err != nil {
+							return
+						}
+						msg, stop = printNamespace(&ns)
+					case "Service":
+						var svc corev1.Service
+						err = runtime.DefaultUnstructuredConverter.FromUnstructured(watchedObj.Object, &svc)
+						if err != nil {
+							return
+						}
+						msg, stop = printService(&svc)
+					case "Deployment":
+						var deploy appsv1.Deployment
+						err = runtime.DefaultUnstructuredConverter.FromUnstructured(watchedObj.Object, &deploy)
+						if err != nil {
+							return
+						}
+						msg, stop = printDeployment(&deploy)
+					default:
+						msg = "Unsupported Kind, skip"
+						stop = true
+					}
+				}
+				if stop {
+					msg += fmt.Sprintf("\n%s has been synced already.", request.Resource.ResourceKey())
+				}
+				msgCh <- RowData{e, msg}
+			case <-ctx.Done():
+			}
+		}
+	}()
+	var st status.Status
+	if err != nil {
+		st = status.NewErrorStatus(err)
+	}
+	return &WatchResponse{msgCh, st}
 }
 
 // getKubernetesClient get kubernetes client

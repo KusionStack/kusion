@@ -28,6 +28,7 @@ require (
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.2.0
 	github.com/gookit/goutil v0.5.1
+	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/go-version v1.4.0
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform v0.15.3
@@ -45,7 +46,7 @@ require (
 	github.com/zclconf/go-cty v1.10.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
-	golang.org/x/sys v0.0.0-20220429121018-84afa8d3f7b3 // indirect
+	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	google.golang.org/genproto v0.0.0-20210420162539-3c870d7478d2 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
@@ -68,6 +69,7 @@ require (
 )
 
 replace (
+	github.com/gosuri/uilive => github.com/howieyuen/uilive v0.0.5
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.2

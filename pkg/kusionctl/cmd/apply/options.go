@@ -37,6 +37,7 @@ type ApplyFlag struct {
 	NoStyle     bool
 	DryRun      bool
 	OnlyPreview bool
+	Watch       bool
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
@@ -139,6 +140,13 @@ func (o *ApplyOptions) Run() error {
 		// If dry run, print the hint
 		if o.DryRun {
 			fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
+		}
+
+		if o.Watch {
+			fmt.Println("\nStart watching changes ...")
+			if err := Watch(o, r, planResources, project, stack, os.Stdout); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -284,8 +292,54 @@ func Apply(
 	// Wait for msgCh closed
 	wg.Wait()
 	// Print summary
-	pterm.Fprintln(out)
 	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
+	return nil
+}
+
+// Watch function will observe the changes of each resource
+// by the execution engine.
+//
+// Example:
+//
+//	o := NewApplyOptions()
+//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
+//	if err != nil {
+//	    return err
+//	}
+//
+//	Watch(o, kubernetesRuntime, planResources, changes)
+//	if err != nil {
+//	    return err
+//	}
+func Watch(o *ApplyOptions,
+	r runtime.Runtime,
+	planResources *models.Spec,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	out io.Writer,
+) error {
+	if o.DryRun {
+		fmt.Fprintln(out, "NOTE: Watch doesn't work in DryRun mode")
+		return nil
+	}
+	if !o.Watch {
+		return nil
+	}
+	if _, ok := r.(*runtime.KubernetesRuntime); !ok {
+		return fmt.Errorf("WARNING: Watch only support Kubernetes resources for now")
+	}
+	// Watch operation
+	wo := &operation.WatchOperation{Runtime: r}
+	if err := wo.Watch(&operation.WatchRequest{
+		Request: opsmodels.Request{
+			Project: project.Name,
+			Stack:   stack.Name,
+			Spec:    planResources,
+		},
+	}); err != nil {
+		return err
+	}
+	fmt.Fprintln(out, "\nWatch Finish! All resources have been reconciled.")
 	return nil
 }
 
