@@ -33,11 +33,11 @@
 //       |   State     |                    |   Runtime   |
 //       +-------------+                    +-------------+
 //
-// 1. parse resources in the Spec and convert into a DAG
+// 1. `Operation Engine` parses resources in Spec and converts them into a DAG
 //
 // 2. Walk this DAG:
-// 	   a) get the latest state from the actual infra by the Runtime
-//     b) get last operation state from the State
+// 		1. Get the latest `State` from the actual infra by the `Runtime`
+// 		2. Get the last operation `State` from the `State` storage medium
 //
-// 3. Diff the two states(live state and prior state) and return the details of these diffs to cmd
+// 3. Merge/Diff three states: desired state described in Spec, live state from `Runtime` and prior state from `State` storage medium, and return the diff result to the console
 package engine
