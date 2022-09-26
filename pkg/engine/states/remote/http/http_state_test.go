@@ -1,4 +1,4 @@
-package remote
+package http
 
 import (
 	"fmt"
@@ -184,75 +184,6 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 				t.Errorf("wantErrFuncFailed:%v", err)
 			}
 			assert.Equalf(t, tt.want, got, "GetLatestState(%v)", tt.args.query)
-		})
-	}
-}
-
-func TestNewHTTPState(t *testing.T) {
-	type args struct {
-		params map[string]interface{}
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *HTTPState
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "NewState",
-			args: args{
-				params: map[string]interface{}{
-					"urlPrefix":          prefix,
-					"applyURLFormat":     format,
-					"getLatestURLFormat": format,
-				},
-			},
-			want: &HTTPState{
-				urlPrefix:          prefix,
-				applyURLFormat:     format,
-				getLatestURLFormat: format,
-			},
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return err == nil
-			},
-		},
-		{
-			name: "Empty value",
-			args: args{
-				params: map[string]interface{}{
-					"urlPrefix":          nil,
-					"applyURLFormat":     format,
-					"getLatestURLFormat": format,
-				},
-			},
-			want: nil,
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return strings.Contains(err.Error(), "urlPrefix can not be empty")
-			},
-		},
-		{
-			name: "Invalidate format",
-			args: args{
-				params: map[string]interface{}{
-					"urlPrefix":          prefix,
-					"applyURLFormat":     "invalidate_format",
-					"getLatestURLFormat": format,
-				},
-			},
-			want: nil,
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				return strings.Contains(err.Error(), "applyURLFormat must contains 4 \"%s\" placeholders for tenant, project, "+
-					"stack and cluster")
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewHTTPState(tt.args.params)
-			if !tt.wantErr(t, err, fmt.Sprintf("NewHTTPState(%v)", tt.args.params)) {
-				t.Errorf("wantErrFuncFailed:%v", err)
-			}
-			assert.Equalf(t, tt.want, got, "NewHTTPState(%v)", tt.args.params)
 		})
 	}
 }

@@ -28,7 +28,9 @@ type BackendOps struct {
 
 	// Type is the type of backend, currently supported:
 	//    local - state is stored to a local file
-	// TODO: support other storage type
+	//    db 	- state is stored to db
+	//    oss 	- state is stored to aliyun oss
+	//    s3 	- state is stored to aws s3
 	Type string
 }
 

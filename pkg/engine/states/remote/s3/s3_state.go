@@ -1,4 +1,4 @@
-package remote
+package s3
 
 import (
 	"bytes"
@@ -12,11 +12,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/google/uuid"
-	"github.com/zclconf/go-cty/cty"
 )
 
 var ErrS3NoExist = errors.New("s3: key not exist")
+
+const S3StateName = "kusion_state.json"
 
 var _ states.StateStorage = &S3State{}
 
@@ -43,32 +43,16 @@ func NewS3State(endPoint, accessKeyID, accessKeySecret, bucketName string, regio
 	return s3State, nil
 }
 
-// ConfigSchema returns a description of the expected configuration
-// structure for the receiving backend.
-func (s *S3State) ConfigSchema() cty.Type {
-	return cty.Type{}
-}
-
-// Configure uses the provided configuration to set configuration fields
-// within the S3State backend.
-func (s *S3State) Configure(obj cty.Value) error {
-	return nil
-}
-
 func (s *S3State) Apply(state *states.State) error {
-	u, err := uuid.NewUUID()
-	if err != nil {
-		return err
-	}
 	jsonByte, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return err
 	}
-	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack
-	svc := s3.New(s.sess)
-	_, err = svc.PutObject(&s3.PutObjectInput{
+	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + S3StateName
+	s3Client := s3.New(s.sess)
+	_, err = s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(s.bucketName),
-		Key:    aws.String(prefix + u.String()),
+		Key:    aws.String(prefix),
 		Body:   bytes.NewReader(jsonByte),
 	})
 	if err != nil {
@@ -83,8 +67,8 @@ func (s *S3State) Delete(id string) error {
 }
 
 func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error) {
-	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack
-	svc := s3.New(s.sess)
+	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + S3StateName
+	s3Client := s3.New(s.sess)
 
 	params := &s3.ListObjectsInput{
 		Bucket:    aws.String(s.bucketName),
@@ -92,28 +76,18 @@ func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error
 		Prefix:    aws.String(prefix),
 	}
 
-	objects, err := svc.ListObjects(params)
+	objects, err := s3Client.ListObjects(params)
 	if err != nil {
 		return nil, err
 	}
 
-	var result *s3.Object
 	if len(objects.Contents) == 0 {
-		return nil, ErrS3NoExist
-	}
-	for _, obj := range objects.Contents {
-		if result == nil || result.LastModified.UnixNano() < obj.LastModified.UnixNano() {
-			result = obj
-		}
+		return nil, nil
 	}
 
-	if result == nil {
-		return nil, ErrS3NoExist
-	}
-
-	out, err := svc.GetObject(&s3.GetObjectInput{
+	out, err := s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(s.bucketName),
-		Key:    result.Key,
+		Key:    &prefix,
 	})
 	if err != nil {
 		return nil, err
