@@ -14,6 +14,7 @@ import (
 	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
+	k8swatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -28,19 +29,19 @@ import (
 var _ Runtime = (*KubernetesRuntime)(nil)
 
 type KubernetesRuntime struct {
-	dyn    dynamic.Interface
+	client dynamic.Interface
 	mapper meta.RESTMapper
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
 func NewKubernetesRuntime() (Runtime, error) {
-	dyn, mapper, err := getKubernetesClient()
+	client, mapper, err := getKubernetesClient()
 	if err != nil {
 		return nil, err
 	}
 
 	return &KubernetesRuntime{
-		dyn:    dyn,
+		client: client,
 		mapper: mapper,
 	}, nil
 }
@@ -220,7 +221,25 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *DeleteRequest) 
 
 // Watch kubernetes resource by client-go
 func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *WatchResponse {
-	panic("need implement")
+	if request == nil || request.Resource == nil {
+		return &WatchResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
+	}
+
+	reqObj, resource, err := k.buildKubernetesResourceByState(request.Resource)
+	if err != nil {
+		return &WatchResponse{Status: status.NewErrorStatus(err)}
+	}
+
+	// Watch interface
+	w, err := resource.Watch(ctx, metav1.ListOptions{})
+	if err != nil {
+		return &WatchResponse{Status: status.NewErrorStatus(err)}
+	}
+
+	resultCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
+		return watched.GetName() == reqObj.GetName()
+	})
+	return &WatchResponse{resultCh, nil}
 }
 
 // getKubernetesClient get kubernetes client
@@ -262,7 +281,7 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models
 	// Get resource by unstructured
 	var resource dynamic.ResourceInterface
 
-	resource, err = buildKubernetesResourceByUnstructured(k.dyn, k.mapper, obj, gvk)
+	resource, err = buildKubernetesResourceByUnstructured(k.client, k.mapper, obj, gvk)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -305,4 +324,75 @@ func convertString2Unstructured(yamlContent []byte) (*unstructured.Unstructured,
 	}
 
 	return obj, gvk, nil
+}
+
+// WatchDependents will watch dependents of owner, provided group, version, resource and namespace.
+func (k *KubernetesRuntime) WatchDependents(
+	ctx context.Context,
+	owner *unstructured.Unstructured,
+	gvk schema.GroupVersionKind, namespace string,
+) (<-chan k8swatch.Event, error) {
+	mapping, err := k.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return nil, err
+	}
+
+	clientForResource := k.client.Resource(mapping.Resource).Namespace(namespace)
+	w, err := clientForResource.Watch(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
+		return ownedBy(owner, watched)
+	}), nil
+}
+
+// doWatch send watched object if check ok
+func doWatch(ctx context.Context, watcher k8swatch.Interface, check func(watched *unstructured.Unstructured) bool) <-chan k8swatch.Event {
+	resultCh := make(chan k8swatch.Event)
+	go func() {
+		defer watcher.Stop()
+		for {
+			select {
+			case e := <-watcher.ResultChan():
+				dependent, ok := e.Object.(*unstructured.Unstructured)
+				if !ok {
+					break
+				}
+				// Owner check
+				if check(dependent) {
+					resultCh <- e
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return resultCh
+}
+
+// Judge dependent is owned by owner
+func ownedBy(dependent, owner *unstructured.Unstructured) bool {
+	// Parse dependent's metadata.ownerReferences
+	ownerReferences, _, _ := unstructured.NestedSlice(dependent.Object, "metadata", "ownerReferences")
+
+	// Parse owner's apiVersion, kind and metadata.name
+	apiVersion := owner.GetAPIVersion()
+	kind := owner.GetKind()
+	name := owner.GetName()
+
+	for _, refI := range ownerReferences {
+		ref, isMap := refI.(map[string]interface{})
+		if !isMap {
+			continue
+		}
+
+		if ref["apiVersion"] == apiVersion && ref["kind"] == kind && ref["name"] == name {
+			return true
+		}
+	}
+
+	return false
 }

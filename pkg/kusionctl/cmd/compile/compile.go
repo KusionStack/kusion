@@ -29,7 +29,7 @@ var (
 		kusion compile main.k -Y settings.yaml
 
 		# Compile main.k with work directory
-		kusion compile main.k -w appops/demo/dev
+		kusion compile main.k -W appops/demo/dev
 
 		# Compile with override
 		kusion compile -O __main__:appConfiguration.image=nginx:latest -a
@@ -68,7 +68,7 @@ func NewCmdCompile() *cobra.Command {
 }
 
 func (o *CompileOptions) AddCompileFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
+	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "W", "",
 		i18n.T("Specify the work directory"))
 	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
 		i18n.T("Specify the command line setting files"))
