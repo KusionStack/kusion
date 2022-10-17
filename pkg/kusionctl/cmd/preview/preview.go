@@ -19,7 +19,7 @@ var (
 
 	previewExample = `
 		# Preview with specifying work directory
-		kusion preview -W /path/to/workdir
+		kusion preview -w /path/to/workdir
 
 		# Preview with specifying arguments
 		kusion preview -D name=test -D age=18

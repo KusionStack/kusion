@@ -21,7 +21,7 @@ var (
 
 	applyExample = `
 		# Apply with specifying work directory
-		kusion apply -W /path/to/workdir
+		kusion apply -w /path/to/workdir
 
 		# Apply with specifying arguments
 		kusion apply -D name=test -D age=18
@@ -60,7 +60,7 @@ func NewCmdApply() *cobra.Command {
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false,
 		i18n.T("dry-run to preview the execution effect (always successful) without actually applying the changes"))
-	cmd.Flags().BoolVarP(&o.Watch, "watch", "w", false,
+	cmd.Flags().BoolVarP(&o.Watch, "watch", "", false,
 		i18n.T("After creating/updating/deleting the requested object, watch for changes."))
 
 	return cmd
