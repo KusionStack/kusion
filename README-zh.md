@@ -36,7 +36,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的引擎，用于解�
 
 参考 [快速开始](https://kusionstack.io/docs/user_docs/getting-started/usecase) 通过一条 Kusion 命令拉起一个应用
 
-![apply](https://kusionstack.io/assets/images/compile-c47339757fc512ca096f3892a3059fce.gif)
+![apply](https://kusionstack.io/assets/images/apply-30acfe738fbda046d76f2996b2bf51b5.gif)
 
 
 
