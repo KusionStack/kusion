@@ -36,7 +36,7 @@ Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsin
 ## Quick Start
 Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecase) to deliver an App with one Kusion command
 
-![apply](https://kusionstack.io/assets/images/compile-c47339757fc512ca096f3892a3059fce.gif)
+![apply](https://kusionstack.io/assets/images/apply-30acfe738fbda046d76f2996b2bf51b5.gif)
 
 
 ## Installation
