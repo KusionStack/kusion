@@ -26,7 +26,6 @@ require (
 	github.com/gonvenience/wrap v1.1.0
 	github.com/gonvenience/ytbx v1.3.0
 	github.com/google/go-cmp v0.5.8
-	github.com/google/uuid v1.2.0
 	github.com/gookit/goutil v0.5.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/go-version v1.4.0
@@ -60,7 +59,7 @@ require (
 	k8s.io/component-base v0.24.2
 	k8s.io/kubectl v0.21.2
 	kusionstack.io/kcl-plugin v0.4.1-alpha2
-	kusionstack.io/kclvm-go v0.4.3-alpha.4
+	kusionstack.io/kclvm-go v0.4.3
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/kustomize/api v0.8.11
 	sigs.k8s.io/kustomize/kustomize/v4 v4.1.2
