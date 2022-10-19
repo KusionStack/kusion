@@ -454,7 +454,6 @@ github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3
 github.com/google/uuid v1.0.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/google/uuid v1.2.0 h1:qJYtXnJRWmpe7m/3XlyhrsLrEURqHRM2kxzoxXqyUDs=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
@@ -1475,8 +1474,8 @@ k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 h1:HNSDgDCrr/6Ly3WEGKZftiE7IY19V
 k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kusionstack.io/kcl-plugin v0.4.1-alpha2 h1:m43JJhpJSjl/Q3FqghJf5dRIwdXsrJeKxrHhgqLJqbA=
 kusionstack.io/kcl-plugin v0.4.1-alpha2/go.mod h1:VgB7qXVbDGWFOh/qb/yXf75+UrliP5EPXOQUDqBCdAQ=
-kusionstack.io/kclvm-go v0.4.3-alpha.4 h1:qIP8dXxnBS/BfH/hOhsAaZt37WmrhrdX43X0bYwzBf8=
-kusionstack.io/kclvm-go v0.4.3-alpha.4/go.mod h1:cxsYIWWMiDk7mwWJMm6H9kzNNtoIpOQHgzJBZvHThzo=
+kusionstack.io/kclvm-go v0.4.3 h1:8Uim02VBYZYsphhNRjjo+CFJl1H/LVjiPfQ5HZdLVR4=
+kusionstack.io/kclvm-go v0.4.3/go.mod h1:cxsYIWWMiDk7mwWJMm6H9kzNNtoIpOQHgzJBZvHThzo=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
