@@ -70,6 +70,15 @@ Docker users can use the following commands to pull the latest image of the `kus
 docker pull kusionstack/kusion:latest
 ```
 
+# Contact Us
+- Twitter: [KusionStack](https://twitter.com/KusionStack)
+- Slack: [Kusionstack](https://join.slack.com/t/kusionstack/shared_invite/zt-19lqcc3a9-_kTNwagaT5qwBE~my5Lnxg)
+- DingTalk (Chinese): 42753001
+- Wechat Group (Chinese)
+
+  <img src="docs/wx_spark.jpg" width="200" height="200"/>
+
+
 # 🎖︎ Contribution Guide
 
 Kusion is still in the initial stage, and there are many capabilities that need to be made up, so we welcome everyone to participate in construction with us. Visit the [Contribution Guide](docs/contributing.md) to understand how to participate in the contribution KusionStack project. If you have any questions, please [Submit the Issue](https://github.com/KusionStack/kusion/issues).
