@@ -24,9 +24,21 @@ const (
 
 // APIs in core/v1
 const (
-	Namespace = "Namespace"
-	Service   = "Service"
-	Endpoints = "Endpoints"
+	ComponentStatus       = "ComponentStatus"
+	ConfigMap             = "ConfigMap"
+	Endpoints             = "Endpoints"
+	Event                 = "Event"
+	Namespace             = "Namespace"
+	Node                  = "Node"
+	PersistentVolumeClaim = "PersistentVolumeClaim"
+	PersistentVolume      = "PersistentVolume"
+	Pod                   = "Pod"
+	PodTemplate           = "PodTemplate"
+	ReplicationController = "ReplicationController"
+	ResourceQuota         = "ResourceQuota"
+	Secret                = "Secret"
+	ServiceAccount        = "ServiceAccount"
+	Service               = "Service"
 )
 
 // APIs in apps/v1
@@ -55,12 +67,36 @@ func Convert(o *unstructured.Unstructured) runtime.Object {
 func convertCore(o *unstructured.Unstructured) runtime.Object {
 	var target runtime.Object
 	switch o.GetKind() {
-	case Namespace:
-		target = &corev1.Namespace{}
-	case Service:
-		target = &corev1.Service{}
+	case ComponentStatus:
+		target = &corev1.ComponentStatus{}
+	case ConfigMap:
+		target = &corev1.ConfigMap{}
 	case Endpoints:
 		target = &corev1.Endpoints{}
+	case Event:
+		target = &corev1.Event{}
+	case Namespace:
+		target = &corev1.Namespace{}
+	case Node:
+		target = &corev1.Node{}
+	case PersistentVolumeClaim:
+		target = &corev1.PersistentVolumeClaim{}
+	case PersistentVolume:
+		target = &corev1.PersistentVolume{}
+	case Pod:
+		target = &corev1.Pod{}
+	case PodTemplate:
+		target = &corev1.PodTemplate{}
+	case ReplicationController:
+		target = &corev1.ReplicationController{}
+	case ResourceQuota:
+		target = &corev1.ResourceQuota{}
+	case Secret:
+		target = &corev1.Secret{}
+	case ServiceAccount:
+		target = &corev1.ServiceAccount{}
+	case Service:
+		target = &corev1.Service{}
 	default:
 		return nil
 	}
