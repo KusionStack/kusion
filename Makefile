@@ -108,12 +108,12 @@ build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for 
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	# cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-	# 	go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
+	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-darwin/bin/kusion
-	# -chmod +x ./_build/bundles/kusion-darwin/bin/kcl-openapi
+	-chmod +x ./_build/bundles/kusion-darwin/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-plugin
@@ -164,12 +164,12 @@ build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl too
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	# cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
-	# 	go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
+	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kusion
-	# -chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
+	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-plugin
@@ -229,12 +229,12 @@ build-local-ubuntu-all: build-local-linux  ## Build kusion & kcl tool chain for 
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	# cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-	# 	go build -o ${PWD}/_build/bundles/kusion-ubuntu/bin/kcl-openapi
+	cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ${PWD}/_build/bundles/kusion-ubuntu/bin/kcl-openapi
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-linux/bin/kusion
-	# -chmod +x ./_build/bundles/kusion-ubuntu/bin/kcl-openapi
+	-chmod +x ./_build/bundles/kusion-ubuntu/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-plugin
@@ -273,12 +273,12 @@ build-local-centos-all: build-local-linux  ## Build kusion & kcl tool chain for 
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	# cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-	# 	go build -o ${PWD}/_build/bundles/kusion-centos/bin/kcl-openapi
+	cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ${PWD}/_build/bundles/kusion-centos/bin/kcl-openapi
 
 	# chmod +x
 	-chmod +x ./_build/bundles/kusion-linux/bin/kusion
-	# -chmod +x ./_build/bundles/kusion-centos/bin/kcl-openapi
+	-chmod +x ./_build/bundles/kusion-centos/bin/kcl-openapi
 	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl
 	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kclvm
 	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-plugin
@@ -333,8 +333,8 @@ build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain f
 		./cmd/kcl-go
 
 	# Build kcl-openapi
-	# cd ./cmd/kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-	# 	go build -o ${PWD}/_build/bundles/kusion-windows/kcl-openapi
+	cd ./cmd/kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ${PWD}/_build/bundles/kusion-windows/kcl-openapi
 
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-windows/docs
