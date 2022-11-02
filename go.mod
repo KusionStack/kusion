@@ -26,7 +26,6 @@ require (
 	github.com/gonvenience/wrap v1.1.0
 	github.com/gonvenience/ytbx v1.3.0
 	github.com/google/go-cmp v0.5.8
-	github.com/google/uuid v1.2.0
 	github.com/gookit/goutil v0.5.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/go-version v1.4.0
@@ -36,6 +35,8 @@ require (
 	github.com/jinzhu/copier v0.3.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/onsi/ginkgo/v2 v2.0.0
+	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.42-0.20220427210824-6bb8c6e6cc77
 	github.com/sergi/go-diff v1.2.0

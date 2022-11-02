@@ -352,4 +352,8 @@ build-image:  ## Build kusion image
 sh-in-docker:  ## Run a shell in the docker container of kusion
 	${RUN_IN_DOCKER} bash
 
-.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all
+e2e-test:
+	# Run e2e test
+	hack/run-e2e.sh
+
+.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all e2e-test
