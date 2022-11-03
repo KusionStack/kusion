@@ -34,6 +34,8 @@ func (v *crdVisitor) Visit() (objs []interface{}, err error) {
 		}
 
 		// check file extension
+		// todo dayuan validate yaml content to make sure it is a k8s CRD resource
+
 		if ignoreFile(filePath, FileExtensions) {
 			return nil
 		}

@@ -84,7 +84,11 @@ func appendCRDs(workDir string, r *CompileResult) error {
 		// Append to Documents
 		for _, obj := range crdObjs {
 			if doc, flag := obj.(map[string]interface{}); flag {
-				r.Documents = append(r.Documents, doc)
+				resource, err := k8sResource2ResourceMap(doc)
+				if err != nil {
+					return err
+				}
+				r.Documents = append(r.Documents, resource)
 			}
 		}
 
