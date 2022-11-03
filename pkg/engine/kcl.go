@@ -6,7 +6,6 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"github.com/pkg/errors"
 	kcl "kusionstack.io/kclvm-go"
 
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -27,9 +26,7 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*models.Spec, er
 		}
 
 		log.Infof("convertKCLResult2Resources resource:%v", msg)
-		// Use yamlv3.Marshal, and then yamlv3.Unmarshal, something will report an error:
-		// "did not find expected '-' indicator"
-		// So, use yamlv2.Marshal and yamlv3.Unmarshal.
+		// Using yamlv2.Marshal and yamlv3.Unmarshal is a workaround for the error "did not find expected '-' indicator" in unmarshalling yaml
 		yamlByte, err := yamlv2.Marshal(resourcesYamlMap)
 		if err != nil {
 			return nil, fmt.Errorf("yaml marshal failed. %v,%w", jsonUtil.MustMarshal2String(resourcesYamlMap), err)
@@ -40,14 +37,6 @@ func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*models.Spec, er
 		err = yamlv3.Unmarshal(yamlByte, item)
 		if err != nil {
 			return nil, err
-		}
-
-		// TODO: any other better judgement here?
-		if item.Attributes == nil {
-			item, _, err = NewRequestResourceForKubernetes(resourcesYamlMap)
-			if err != nil {
-				return nil, errors.Wrap(err, "compile result format error (neither kubernetes nor engine resource format)")
-			}
 		}
 
 		resources = append(resources, *item)
