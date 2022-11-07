@@ -8,9 +8,11 @@ require (
 	github.com/Azure/go-autorest/autorest/mocks v0.4.1
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
 	github.com/aws/aws-sdk-go v1.42.35
+	github.com/blang/semver/v4 v4.0.0
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/didi/gendry v1.7.0
+	github.com/djherbis/times v1.5.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/fatih/color v1.13.0 // indirect

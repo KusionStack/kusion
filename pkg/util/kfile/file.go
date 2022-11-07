@@ -12,6 +12,8 @@ import (
 
 const (
 	EnvKusionPath = "KUSION_PATH"
+	// CachedVersionFile is the name of the file we use to store when we last checked if the CLI was out of date
+	CachedVersionFile = ".cached_version"
 )
 
 func Stat(filename string) (fileInfo os.FileInfo, err error) {
@@ -114,4 +116,14 @@ func GetCredentials() (map[string]interface{}, error) {
 		return nil, err
 	}
 	return credentials, nil
+}
+
+// GetCachedVersionFilePath returns the location where the CLI caches information from pulumi.com on the newest
+// available version of the CLI
+func GetCachedVersionFilePath() (string, error) {
+	homeDir, err := KusionDataFolder()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(homeDir, CachedVersionFile), nil
 }
