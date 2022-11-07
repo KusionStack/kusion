@@ -4,6 +4,7 @@ COPY _build/bundles/kusion-linux/ /kusion/
 COPY _build/bundles/kusion-ubuntu/ /kusion/
 
 RUN chmod +x /kusion/bin/kusion \
+&&  chmod +x /kusion/bin/kcl-openapi \
 &&  chmod +x /kusion/kclvm/bin/kcl \
 &&  chmod +x /kusion/kclvm/bin/kclvm \
 &&  chmod +x /kusion/kclvm/bin/kcl-doc \
