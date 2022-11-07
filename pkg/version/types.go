@@ -10,10 +10,10 @@ import (
 	"runtime/debug"
 	"time"
 
-	"gopkg.in/yaml.v3"
-
 	goversion "github.com/hashicorp/go-version"
+	"gopkg.in/yaml.v3"
 	_ "kusionstack.io/kcl-plugin"
+
 	git "kusionstack.io/kusion/pkg/util/gitutil"
 )
 
@@ -67,8 +67,8 @@ func NewDefaultVersionInfo() *Info {
 // Info contains versioning information.
 // following attributes:
 //
-//    ReleaseVersion - "vX.Y.Z-00000000" used to indicate the last release version,
-// 		  containing GitVersion and GitCommitShort.
+//	ReleaseVersion - "vX.Y.Z-00000000" used to indicate the last release version,
+//	containing GitVersion and GitCommitShort.
 type Info struct {
 	ReleaseVersion string             `json:"releaseVersion" yaml:"releaseVersion"` // Such as "v1.2.3-3836f877"
 	GitInfo        *GitInfo           `json:"gitInfo,omitempty" yaml:"gitInfo,omitempty"`
@@ -79,10 +79,10 @@ type Info struct {
 // GitInfo contains git information.
 // following attributes:
 //
-//    LatestTag - "vX.Y.Z" used to indicate the last git tag.
-//    Commit - The git commit id corresponding to this source code.
-//    TreeState - "clean" indicates no changes since the git commit id
-//        "dirty" indicates source code changes after the git commit id
+//	LatestTag - "vX.Y.Z" used to indicate the last git tag.
+//	Commit - The git commit id corresponding to this source code.
+//	TreeState - "clean" indicates no changes since the git commit id,
+//	"dirty" indicates source code changes after the git commit id
 type GitInfo struct {
 	LatestTag string `json:"latestTag,omitempty" yaml:"latestTag,omitempty"` // Such as "v1.2.3"
 	Commit    string `json:"commit,omitempty" yaml:"commit,omitempty"`       // Such as "3836f8770ab8f488356b2129f42f2ae5c1134bb0"
