@@ -90,6 +90,19 @@ func parseTerraformInfo(infos []byte) ([]*TerraformInfo, error) {
 // TFError parse Terraform CLI output infos
 // return error with given infos
 func TFError(infos []byte) error {
+	// todo @Markliby TF error outputs are formatted as TerraformInfo only when TF_LOG is TRACE or higher.
+	// The output often looks like this when the log level is INFO:
+	// 2022-11-07T17:41:29.643+0800 [INFO]  Terraform version: 1.3.4
+	// 2022-11-07T17:41:29.643+0800 [INFO]  Go runtime version: go1.19.3
+	// 2022-11-07T17:41:29.643+0800 [INFO]  CLI args: []string{"terraform", "apply", "-auto-approve", "-json", "-lock=false"}
+	// ... ...
+	// {"@level":"info","@message":"Terraform 1.3.4","@module":"terraform.ui","@timestamp":"2022-11-07T17:41:29.647389+08:00",
+	// "terraform":"1.3.4","type":"version","ui":"1.0"}
+	// we should figure out a more user-friendly way to handle TF errors
+	// return errors.New(string(infos))
+	//
+	// So, we can check the TF_LOG level here and unmarshall the output to a struct.
+
 	tfInfo, err := parseTerraformInfo(infos)
 	if err != nil {
 		return err

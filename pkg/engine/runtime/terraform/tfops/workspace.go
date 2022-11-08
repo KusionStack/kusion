@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/spf13/afero"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
@@ -139,12 +140,12 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 	cmd.Dir = w.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return TFError(out)
+		return errors.New(string(out))
 	}
 	return nil
 }
 
-// Apply invoke terraform apply cli
+// Apply with the terraform cli apply command
 func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
 	cmd := exec.CommandContext(ctx, "terraform", "apply", "-auto-approve", "-json", "-lock=false")
 	cmd.Dir = w.dir
@@ -209,7 +210,7 @@ func (w *WorkSpace) Destroy(ctx context.Context) error {
 }
 
 // GetProvider get provider addr from terraform lock file.
-// return provider addr and erros
+// return provider addr and errors
 // eg. registry.terraform.io/hashicorp/local/2.2.3
 func (w *WorkSpace) GetProvider() (string, error) {
 	parser := hclparse.NewParser()
