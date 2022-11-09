@@ -8,7 +8,7 @@ set -o nounset
 set -o pipefail
 
 # Install ginkgo
-GO111MODULE=on go install github.com/onsi/ginkgo/v2/ginkgo
+GO111MODULE=on go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
 
 # Build kusion binary
 go build -o bin/kusion ./cmd/kusionctl/kusionctl.go
