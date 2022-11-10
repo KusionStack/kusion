@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 )
 
@@ -56,7 +57,7 @@ var (
 		},
 	}
 
-	fs = afero.Afero{Fs: afero.NewMemMapFs()}
+	fs = afero.Afero{Fs: afero.NewOsFs()}
 )
 
 func TestWriteHCL(t *testing.T) {

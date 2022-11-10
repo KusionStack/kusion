@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/hashicorp/terraform/addrs"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 )
 
@@ -92,7 +93,7 @@ func ConvertTFState(tfState *TFState, providerAddr string) models.Resource {
 	if tfState == nil || tfState.Values == nil {
 		return models.Resource{}
 	}
-	// terrafrom runtime execute single node
+	// terraform runtime execute single node
 	tResource := tfState.Values.RootModule.Resources[0]
 	extension := make(map[string]interface{})
 	extension["resourceType"] = tResource.Type
