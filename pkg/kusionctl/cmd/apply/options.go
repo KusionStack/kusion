@@ -34,7 +34,6 @@ type ApplyOptions struct {
 
 type ApplyFlag struct {
 	Yes         bool
-	NoStyle     bool
 	DryRun      bool
 	OnlyPreview bool
 	Watch       bool

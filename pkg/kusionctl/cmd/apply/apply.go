@@ -56,8 +56,6 @@ func NewCmdApply() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))
-	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
-		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false,
 		i18n.T("dry-run to preview the execution effect (always successful) without actually applying the changes"))
 	cmd.Flags().BoolVarP(&o.Watch, "watch", "", false,

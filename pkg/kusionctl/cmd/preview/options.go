@@ -30,6 +30,7 @@ type PreviewOptions struct {
 type PreviewFlags struct {
 	Operator     string
 	Detail       bool
+	NoStyle      bool
 	IgnoreFields []string
 }
 
@@ -48,6 +49,12 @@ func (o *PreviewOptions) Validate() error {
 }
 
 func (o *PreviewOptions) Run() error {
+	// Set no style
+	if o.NoStyle {
+		pterm.DisableStyling()
+		pterm.EnableColor()
+	}
+
 	// Parse project and stack of work directory
 	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
@@ -91,8 +98,6 @@ func (o *PreviewOptions) Run() error {
 
 	// Detail detection
 	if o.Detail {
-		changes.OutputDiff("all")
-	} else {
 		for {
 			target, err := changes.PromptDetails()
 			if err != nil {
