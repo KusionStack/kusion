@@ -101,6 +101,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 		mockCompileWithSpinner()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
+		mockPromptDetail("")
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -208,5 +209,11 @@ func mockCompileWithSpinner() {
 func mockNewKubernetesRuntime() {
 	monkey.Patch(runtime.NewKubernetesRuntime, func() (runtime.Runtime, error) {
 		return &fooRuntime{}, nil
+	})
+}
+
+func mockPromptDetail(input string) {
+	monkey.Patch((*opsmodels.ChangeOrder).PromptDetails, func(co *opsmodels.ChangeOrder) (string, error) {
+		return input, nil
 	})
 }

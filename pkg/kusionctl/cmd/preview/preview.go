@@ -60,6 +60,8 @@ func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
 		i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
 		i18n.T("Automatically show plan details after previewing it"))
+	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
+		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,
 		i18n.T("Ignore differences of target fields"))
 }
