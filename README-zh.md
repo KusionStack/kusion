@@ -23,7 +23,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的引擎，用于解�
 ## 核心能力
 
 - **应用全生命周期管理**: 结合 [Kusion](https://github.com/KusionStack/kusion) 与 [Konfig](https://github.com/KusionStack/konfig) 实现从应用第一行配置代码到生产可用的全生命周期管理
-- **多层级管理**: 原生支持多租户、多环境运维能力
+- **团队协同**: App Dev，SRE 和 Platform Dev 可以在代码化的平台上高效的合作
 - **混合运行时**: 以统一的方式运维 Kubernetes 和 Terraform 等多种运行时的资源
 - **厂商无关**: 一次编写，动态渲染，多云运行
 
@@ -41,10 +41,6 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的引擎，用于解�
 
 
 ## 安装
-
-### 二进制安装
-
-从二进制安装，只需从 `kusion` 的 [发布页面](https://github.com/KusionStack/kusion/releases) 下载对应平台的二进制文件，然后将二进制文件放在命令行能访问到的目录中即可。
 
 ### Kusinoup
 
@@ -71,6 +67,12 @@ Docker 用户可以用以下命令拉取 `kusion` 的镜像：
 ```
 docker pull kusionstack/kusion:latest
 ```
+### 二进制安装
+
+从二进制安装，只需从 `kusion` 的 [发布页面](https://github.com/KusionStack/kusion/releases) 下载对应平台的二进制文件，然后将二进制文件放在命令行能访问到的目录中即可。
+
+## 部署第一个应用
+一键部署你的一个应用，详情请参考 [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase)
 
 # 🎖︎ 贡献指南
 

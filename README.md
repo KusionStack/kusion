@@ -24,7 +24,7 @@ Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsin
 ## Key Features
 
 - **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
-- **Multiple Hierarchies**: Native support multi-tenant and multi-environment operations
+- **Team cooperation**: App Dev, SRE and Platform Dev cooperate efficiently in this codify platform 
 - **Hybrid Runtime**: Orchestrate hybrid runtime resources like Terraform and Kubernetes in an unified way
 - **Vendor Agnostic**: Write once, render dynamically, deliver to any cloud
 
@@ -40,10 +40,6 @@ Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecas
 
 
 ## Installation
-
-### Binary
-
-Download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
 
 ### Kusionup
 
@@ -62,6 +58,11 @@ curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/in
 # visit https://github.com/KusionStack/kusionup for more details
 kusionup install
 ```
+
+### Binary
+
+Download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
+
 ### Docker
 
 Docker users can use the following commands to pull the latest image of the `kusion`:
@@ -69,6 +70,9 @@ Docker users can use the following commands to pull the latest image of the `kus
 ```
 docker pull kusionstack/kusion:latest
 ```
+
+## Deploy your first App
+Deploy your first App with one Kusion command. Please visit this [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase) for more details
 
 # Contact Us
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
