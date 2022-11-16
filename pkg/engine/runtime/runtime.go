@@ -89,7 +89,7 @@ type WatchRequest struct {
 }
 
 type WatchResponse struct {
-	ResultCh <-chan watch.Event
+	ResultChs []<-chan watch.Event
 
 	// Status contains messages will show to users
 	Status status.Status

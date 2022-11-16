@@ -70,41 +70,18 @@ func (f *fooWatchRuntime) Delete(ctx context.Context, request *runtime.DeleteReq
 	return nil
 }
 
-var fooNs = map[string]interface{}{
-	"apiVersion": "v1",
-	"kind":       "Namespace",
-	"metadata": map[string]interface{}{
-		"name": "foo",
-	},
-}
-
 func (f *fooWatchRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
 	out := make(chan k8sWatch.Event)
 	go func() {
-		i := 0
-		for {
-			switch i {
-			case 0:
-				out <- k8sWatch.Event{
-					Type:   k8sWatch.Added,
-					Object: &unstructured.Unstructured{Object: fooNs},
-				}
-				i++
-			case 1:
-				out <- k8sWatch.Event{
-					Type:   k8sWatch.Deleted,
-					Object: &unstructured.Unstructured{Object: barDeployment},
-				}
-				i++
-			default:
-				close(out)
-				return
-			}
+		out <- k8sWatch.Event{
+			Type:   k8sWatch.Deleted,
+			Object: &unstructured.Unstructured{Object: barDeployment},
 		}
+		close(out)
 	}()
 
 	return &runtime.WatchResponse{
-		ResultCh: out,
-		Status:   nil,
+		ResultChs: []<-chan k8sWatch.Event{out},
+		Status:    nil,
 	}
 }
