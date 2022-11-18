@@ -70,10 +70,10 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	case types.Destroy, types.DestroyPreview:
 		rn.Action = types.Delete
 	case types.Apply, types.ApplyPreview:
-		if liveState == nil {
-			rn.Action = types.Create
-		} else if planedState == nil {
+		if planedState == nil {
 			rn.Action = types.Delete
+		} else if priorState == nil && liveState == nil {
+			rn.Action = types.Create
 		} else {
 			// Dry run to fetch predictable state
 			dryRunResp := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
