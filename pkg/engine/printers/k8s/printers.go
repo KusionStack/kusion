@@ -10,6 +10,7 @@ import (
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,6 +61,9 @@ func AddHandlers(h printers.PrintHandler) {
 	h.TableHandler(printControllerRevision)
 	// discovery.k8s.io/v1
 	h.TableHandler(printEndpointSlice)
+	// batch/v1
+	h.TableHandler(printCronJob)
+	h.TableHandler(printJob)
 }
 
 func printNamespace(obj *corev1.Namespace) (string, bool) {
@@ -782,4 +786,60 @@ func formatResourceName(kind schema.GroupKind, name string) string {
 	}
 
 	return strings.ToLower(kind.String()) + "/" + name
+}
+
+func printCronJob(obj *batchv1.CronJob) (string, bool) {
+	lastScheduleTime := "<none>"
+	if obj.Status.LastScheduleTime != nil {
+		lastScheduleTime = translateTimestampSince(*obj.Status.LastScheduleTime)
+	}
+
+	return fmt.Sprintf("Schedule: %s, Suspend: %s, Active: %d, Last Schedule: %s",
+			obj.Spec.Schedule, printBoolPtr(obj.Spec.Suspend), len(obj.Status.Active), lastScheduleTime),
+		lastScheduleTime != "<none>"
+}
+
+func printBoolPtr(value *bool) string {
+	if value != nil {
+		return printBool(*value)
+	}
+
+	return "<unset>"
+}
+
+func printBool(value bool) string {
+	if value {
+		return "True"
+	}
+
+	return "False"
+}
+
+func printJob(obj *batchv1.Job) (string, bool) {
+	var completions string
+	if obj.Spec.Completions != nil {
+		completions = fmt.Sprintf("%d/%d", obj.Status.Succeeded, *obj.Spec.Completions)
+	} else {
+		parallelism := int32(0)
+		if obj.Spec.Parallelism != nil {
+			parallelism = *obj.Spec.Parallelism
+		}
+		if parallelism > 1 {
+			completions = fmt.Sprintf("%d/1 of %d", obj.Status.Succeeded, parallelism)
+		} else {
+			completions = fmt.Sprintf("%d/1", obj.Status.Succeeded)
+		}
+	}
+	var jobDuration string
+	switch {
+	case obj.Status.StartTime == nil:
+	case obj.Status.CompletionTime == nil:
+		jobDuration = duration.HumanDuration(time.Since(obj.Status.StartTime.Time))
+	default:
+		jobDuration = duration.HumanDuration(obj.Status.CompletionTime.Sub(obj.Status.StartTime.Time))
+	}
+
+	return fmt.Sprintf("Completions: %s, Duration: %s, Age: %s",
+			completions, jobDuration, translateTimestampSince(obj.CreationTimestamp)),
+		obj.Status.Succeeded == *obj.Spec.Completions
 }

@@ -2,6 +2,7 @@ package k8s
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -12,6 +13,7 @@ import (
 const (
 	CoreGroup      = ""
 	AppsGroup      = "apps"
+	BatchGroup     = "batch"
 	DiscoveryGroup = "discovery.k8s.io"
 )
 
@@ -50,6 +52,12 @@ const (
 	ControllerRevision = "ControllerRevision"
 )
 
+// APIs in batch/v1
+const (
+	CronJob = "CronJob"
+	Job     = "Job"
+)
+
 // APIs in discovery.k8s.io/v1
 const (
 	EndpointSlice = "EndpointSlice"
@@ -61,6 +69,8 @@ func Convert(o *unstructured.Unstructured) runtime.Object {
 		return convertCore(o)
 	case AppsGroup:
 		return convertApps(o)
+	case BatchGroup:
+		return convertBatch(o)
 	case DiscoveryGroup:
 		return convertDiscovery(o)
 	default:
@@ -124,6 +134,23 @@ func convertApps(o *unstructured.Unstructured) runtime.Object {
 		target = &appsv1.StatefulSet{}
 	case ControllerRevision:
 		target = &appsv1.ControllerRevision{}
+	default:
+		return nil
+	}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(o.Object, target); err != nil {
+		return nil
+	}
+	return target
+}
+
+func convertBatch(o *unstructured.Unstructured) runtime.Object {
+	var target runtime.Object
+	switch o.GetKind() {
+	case CronJob:
+		target = &batchv1.CronJob{}
+	case Job:
+		target = &batchv1.Job{}
 	default:
 		return nil
 	}
