@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/duration"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -53,6 +54,10 @@ func AddHandlers(h printers.PrintHandler) {
 	h.TableHandler(printService)
 	// apps/v1
 	h.TableHandler(printDeployment)
+	h.TableHandler(printReplicaSet)
+	h.TableHandler(printDaemonSet)
+	h.TableHandler(printStatefulSet)
+	h.TableHandler(printControllerRevision)
 	// discovery.k8s.io/v1
 	h.TableHandler(printEndpointSlice)
 }
@@ -666,7 +671,7 @@ func printDeployment(obj *appsv1.Deployment) (string, bool) {
 	updatedReplicas := obj.Status.UpdatedReplicas
 	readyReplicas := obj.Status.ReadyReplicas
 	availableReplicas := obj.Status.AvailableReplicas
-	return fmt.Sprintf("readyReplicas: %d, desiredReplicas: %d, updatedReplicas: %d, availableReplicas: %d",
+	return fmt.Sprintf("Ready: %d/%d, Up-to-date: %d, Available: %d",
 		readyReplicas, desiredReplicas, updatedReplicas, availableReplicas), desiredReplicas == availableReplicas
 }
 
@@ -728,4 +733,53 @@ func listWithMoreString(list []string, more bool, count, max int) string {
 		ret = "<unset>"
 	}
 	return ret
+}
+
+func printReplicaSet(obj *appsv1.ReplicaSet) (string, bool) {
+	desiredReplicas := *(obj.Spec.Replicas)
+	currentReplicas := obj.Status.Replicas
+	readyReplicas := obj.Status.ReadyReplicas
+	return fmt.Sprintf("Desired: %d, Current: %d, Ready: %d",
+		desiredReplicas, currentReplicas, readyReplicas), desiredReplicas == readyReplicas
+}
+
+func printDaemonSet(obj *appsv1.DaemonSet) (string, bool) {
+	desiredScheduled := obj.Status.DesiredNumberScheduled
+	currentScheduled := obj.Status.CurrentNumberScheduled
+	numberReady := obj.Status.NumberReady
+	numberUpdated := obj.Status.UpdatedNumberScheduled
+	numberAvailable := obj.Status.NumberAvailable
+
+	return fmt.Sprintf("Desired: %d, Current: %d, Ready: %d, Up-to-date: %d, Available: %d",
+			desiredScheduled, currentScheduled, numberReady, numberUpdated, numberAvailable),
+		desiredScheduled == numberReady
+}
+
+func printStatefulSet(obj *appsv1.StatefulSet) (string, bool) {
+	desiredReplicas := *(obj.Spec.Replicas)
+	readyReplicas := obj.Status.ReadyReplicas
+	createTime := translateTimestampSince(obj.CreationTimestamp)
+	return fmt.Sprintf("Ready: %d/%d, Age: %s", desiredReplicas, readyReplicas, createTime),
+		desiredReplicas == readyReplicas
+}
+
+func printControllerRevision(obj *appsv1.ControllerRevision) (string, bool) {
+	controllerRef := metav1.GetControllerOf(obj)
+	noneController := "<none>"
+	controllerName := noneController
+	if controllerRef != nil {
+		gv, _ := schema.ParseGroupVersion(controllerRef.APIVersion)
+		gvk := gv.WithKind(controllerRef.Kind)
+		controllerName = formatResourceName(gvk.GroupKind(), controllerRef.Name)
+	}
+	revision := obj.Revision
+	return fmt.Sprintf("Controller: %s, Revision: %d", controllerName, revision), controllerName != noneController
+}
+
+func formatResourceName(kind schema.GroupKind, name string) string {
+	if kind.Empty() {
+		return name
+	}
+
+	return strings.ToLower(kind.String()) + "/" + name
 }

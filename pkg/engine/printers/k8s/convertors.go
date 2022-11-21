@@ -43,7 +43,11 @@ const (
 
 // APIs in apps/v1
 const (
-	Deployment = "Deployment"
+	Deployment         = "Deployment"
+	ReplicaSet         = "ReplicaSet"
+	DaemonSet          = "DaemonSet"
+	StatefulSet        = "StatefulSet"
+	ControllerRevision = "ControllerRevision"
 )
 
 // APIs in discovery.k8s.io/v1
@@ -112,6 +116,14 @@ func convertApps(o *unstructured.Unstructured) runtime.Object {
 	switch o.GetKind() {
 	case Deployment:
 		target = &appsv1.Deployment{}
+	case ReplicaSet:
+		target = &appsv1.ReplicaSet{}
+	case DaemonSet:
+		target = &appsv1.DaemonSet{}
+	case StatefulSet:
+		target = &appsv1.StatefulSet{}
+	case ControllerRevision:
+		target = &appsv1.ControllerRevision{}
 	default:
 		return nil
 	}
