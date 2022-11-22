@@ -160,8 +160,7 @@ func checkForUpdate() string {
 
 	latestVer, err := getLatestVersionInfo()
 	if err != nil {
-		log.Infof("error fetching latest version information "+
-			"(set `KUSION_SKIP_UPDATE_CHECK=true` to skip update checks): %s", err)
+		log.Infof("error fetching latest version information: %v", err)
 	}
 
 	if latestVer.GT(curVer) {
@@ -266,6 +265,7 @@ func getUpgradeMessage(latest semver.Version, current semver.Version) string {
 	}
 
 	msg += "visit https://kusionstack.io/docs/user_docs/getting-started/install/ for manual instructions."
+	msg += "\nNOTE: set env `KUSION_SKIP_UPDATE_CHECK` to `true` to skip version upgrade check."
 	return msg
 }
 
