@@ -6,7 +6,7 @@ Compile KCL into YAML
 
 Compile one or more KCL files.
 
- The KCL filename must be specified. You can specify a list of arguments to replace the placeholders defined in KCL, and output the compiled results to a file when using --output flag.
+The KCL filename must be specified. You can specify a list of arguments to replace the placeholders defined in KCL, and output the compiled results to a file when using --output flag.
 
 ```
 kusion compile [flags]

@@ -6,7 +6,7 @@ Preview a series of resource changes within the stack
 
 Preview a series of resource changes within the stack.
 
- Create or update or delete resources according to the KCL files within a stack. By default, Kusion will generate an execution plan and present it for your approval before taking any action.
+Create or update or delete resources according to the KCL files within a stack. By default, Kusion will generate an execution plan and present it for your approval before taking any action.
 
 ```
 kusion preview [flags]

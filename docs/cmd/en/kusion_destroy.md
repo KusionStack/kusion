@@ -6,9 +6,9 @@ Destroy a configuration stack to resource(s) by work directory
 
 Delete resources by resource spec.
 
- Only KCL files are accepted. Only one type of arguments may be specified: filenames, resources and names, or resources and label selector.
+Only KCL files are accepted. Only one type of arguments may be specified: filenames, resources and names, or resources and label selector.
 
- Note that the destroy command does NOT do resource version checks, so if someone submits an update to a resource right when you submit a destroy, their update will be lost along with the rest of the resource.
+Note that the destroy command does NOT do resource version checks, so if someone submits an update to a resource right when you submit a destroy, their update will be lost along with the rest of the resource.
 
 ```
 kusion destroy [flags]
