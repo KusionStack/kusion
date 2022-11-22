@@ -6,9 +6,9 @@ Apply a configuration stack to resource(s) by work directory
 
 Apply a series of resource changes within the stack.
 
-Create or update or delete resources according to the KCL files within a stack. By default, Kusion will generate an execution plan and present it for your approval before taking any action.
+ Create or update or delete resources according to the KCL files within a stack. By default, Kusion will generate an execution plan and present it for your approval before taking any action.
 
-You can check the plan details and then decide if the actions should be taken or aborted.
+ You can check the plan details and then decide if the actions should be taken or aborted.
 
 ```
 kusion apply [flags]
