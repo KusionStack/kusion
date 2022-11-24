@@ -19,6 +19,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 type PreviewOptions struct {
@@ -63,6 +64,13 @@ func (o *PreviewOptions) Run() error {
 
 	// Get compile result
 	planResources, sp, err := compile.CompileWithSpinner(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, stack)
+
+	// return immediately if no resource found in stack
+	if planResources == nil || len(planResources.Resources) == 0 {
+		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
+		return nil
+	}
+
 	if err != nil {
 		sp.Fail()
 		return err
