@@ -24,6 +24,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 // ApplyOptions defines flags for the `apply` command
@@ -73,6 +74,13 @@ func (o *ApplyOptions) Run() error {
 		sp.Fail()
 		return err
 	}
+
+	// return immediately if no resource found in stack
+	if planResources == nil || len(planResources.Resources) == 0 {
+		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
+		return nil
+	}
+
 	sp.Success() // Resolve spinner with success message.
 	pterm.Println()
 
