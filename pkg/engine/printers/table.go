@@ -18,10 +18,10 @@ type Row struct {
 	Detail string
 }
 
-func NewTable() *Table {
+func NewTable(capacity int) *Table {
 	return &Table{
-		IDs:  []string{},
-		Rows: map[string]*Row{},
+		IDs:  make([]string, 0, capacity),
+		Rows: make(map[string]*Row, capacity),
 	}
 }
 
@@ -45,6 +45,9 @@ func (t *Table) InsertOrUpdate(id string, row *Row) {
 }
 
 func (t *Table) IsCompleted() bool {
+	if len(t.IDs) < cap(t.IDs) {
+		return false
+	}
 	for _, row := range t.Rows {
 		if row.Type != READY {
 			return false

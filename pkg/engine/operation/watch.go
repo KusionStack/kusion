@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/gosuri/uilive"
@@ -80,30 +81,35 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	defer ticker.Stop()
 
 	// Counting completed resource
-	finished := make(map[string]bool, len(ids))
-	// Start printing
-	for {
-		// Finish watch
-		if len(finished) == len(ids) {
-			break
+	finished := make(map[string]bool)
+
+	// Start go routine for each table
+	for _, id := range ids {
+		chs, ok := msgChs[id]
+		if !ok {
+			continue
 		}
-		// Range tables by id
-		for _, id := range ids {
-			chs, ok := msgChs[id]
-			if !ok {
-				continue
-			}
-
-			// Get or new the target table
-			table, exist := tables[id]
-			if !exist {
-				table = printers.NewTable()
-			}
-
-			// Range channels for each table
-			for _, ch := range chs {
-				select {
-				case e := <-ch:
+		// Get or new the target table
+		table, exist := tables[id]
+		if !exist {
+			table = printers.NewTable(len(chs))
+		}
+		go func(id string, chs []<-chan k8swatch.Event, table *printers.Table) {
+			// Resources selects
+			cases := createSelectCases(chs)
+			// Default select
+			cases = append(cases, reflect.SelectCase{
+				Dir:  reflect.SelectDefault,
+				Chan: reflect.Value{},
+				Send: reflect.Value{},
+			})
+			for {
+				chosen, recv, recvOK := reflect.Select(cases)
+				if cases[chosen].Dir == reflect.SelectDefault {
+					continue
+				}
+				if recvOK {
+					e := recv.Interface().(k8swatch.Event)
 					o := e.Object.(*unstructured.Unstructured)
 					var detail string
 					var ready bool
@@ -125,19 +131,36 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 					table.InsertOrUpdate(
 						engine.BuildIDForKubernetes(o.GetAPIVersion(), o.GetKind(), o.GetNamespace(), o.GetName()),
 						printers.NewRow(e.Type, o.GetKind(), o.GetName(), detail))
-				case <-ticker.C:
-					// Should never reach
+
+					// Write back
+					tables[id] = table
+				}
+
+				// Break when completed
+				if table.IsCompleted() {
+					break
 				}
 			}
+		}(id, chs, table)
+	}
 
+	// Waiting for all tables completed
+	for {
+		// Finish watch
+		if len(finished) == len(ids) {
+			break
+		}
+
+		// Range tables
+		for id, table := range tables {
 			// All channels are isCompleted
 			if table.IsCompleted() {
 				finished[id] = true
 			}
-
-			// Write back
-			tables[id] = table
 		}
+
+		// Render table every 1s
+		<-ticker.C
 		wo.printTables(writer, ids, tables)
 	}
 	return nil
@@ -163,4 +186,15 @@ func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map
 	}
 
 	_ = w.Flush()
+}
+
+func createSelectCases(chs []<-chan k8swatch.Event) []reflect.SelectCase {
+	cases := make([]reflect.SelectCase, 0, len(chs))
+	for _, ch := range chs {
+		cases = append(cases, reflect.SelectCase{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		})
+	}
+	return cases
 }
