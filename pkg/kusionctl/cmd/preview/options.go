@@ -31,6 +31,7 @@ type PreviewOptions struct {
 type PreviewFlags struct {
 	Operator     string
 	Detail       bool
+	All          bool
 	NoStyle      bool
 	IgnoreFields []string
 }
@@ -63,9 +64,17 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Get compile result
-	planResources, sp, err := compile.CompileWithSpinner(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, stack)
+	planResources, err := compile.GenerateSpec(&compile.Options{
+		WorkDir:     o.WorkDir,
+		Filenames:   o.Filenames,
+		Settings:    o.Settings,
+		Arguments:   o.Arguments,
+		Overrides:   o.Overrides,
+		DisableNone: o.DisableNone,
+		OverrideAST: o.OverrideAST,
+		NoStyle:     o.NoStyle,
+	}, stack)
 	if err != nil {
-		sp.Fail()
 		return err
 	}
 
@@ -74,9 +83,6 @@ func (o *PreviewOptions) Run() error {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
-
-	sp.Success() // Resolve spinner with success message.
-	pterm.Println()
 
 	// Get state storage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)

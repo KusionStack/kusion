@@ -41,34 +41,59 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func CompileWithSpinner(workDir string, filenames, settings, arguments, overrides []string,
-	stack *projectstack.Stack,
-) (*models.Spec, *pterm.SpinnerPrinter, error) {
-	// Spinner
-	sp := &pretty.SpinnerT
+type Options struct {
+	WorkDir     string
+	Filenames   []string
+	Settings    []string
+	Arguments   []string
+	Overrides   []string
+	DisableNone bool
+	OverrideAST bool
+	NoStyle     bool
+}
 
-	sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
-
+func GenerateSpec(o *Options, stack *projectstack.Stack) (*models.Spec, error) {
+	var sp *pterm.SpinnerPrinter
+	if o.NoStyle {
+		fmt.Printf("Compiling in stack %s...\n", stack.Name)
+	} else {
+		sp = &pretty.SpinnerT
+		sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
+	}
 	// compile by kcl go sdk
-	r, err := Compile(workDir, filenames, settings, arguments, overrides, true, false)
+	r, err := Compile(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
 	if err != nil {
-		return nil, sp, err
+		if sp != nil {
+			sp.Fail()
+		}
+		return nil, err
 	}
 
 	// Append crd description to compiled result,
 	// workDir may omit empty if run in stack dir
 	err = appendCRDs(stack.Path, r)
 	if err != nil {
-		return nil, sp, err
+		if sp != nil {
+			sp.Fail()
+		}
+		return nil, err
 	}
 
 	// Construct resource from compile result to build request
 	resources, err := engine.ConvertKCLResult2Resources(r.Documents)
 	if err != nil {
-		return nil, sp, err
+		if sp != nil {
+			sp.Fail()
+		}
+		return nil, err
 	}
 
-	return resources, sp, nil
+	if sp != nil {
+		sp.Success()
+	}
+	fmt.Println()
+
+	return resources, nil
 }
 
 func appendCRDs(workDir string, r *CompileResult) error {

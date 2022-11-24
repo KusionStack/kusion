@@ -6,16 +6,13 @@ package apply
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
-	"time"
 
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/compile"
@@ -34,40 +31,22 @@ func TestApplyOptions_Run(t *testing.T) {
 	t.Run("Detail is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
 		o := NewApplyOptions()
 		o.Detail = true
+		o.All = true
 		o.NoStyle = true
 		err := o.Run()
-		assert.Nil(t, err)
-	})
-
-	t.Run("OnlyPreview is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
-
-		o := NewApplyOptions()
-		o.OnlyPreview = true
-
-		mockPromptOutput("yes")
-		err := o.Run()
-		assert.Nil(t, err)
-
-		mockPromptOutput("no")
-		err = o.Run()
 		assert.Nil(t, err)
 	})
 
 	t.Run("DryRun is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockOperationApply(opsmodels.Success)
@@ -102,18 +81,10 @@ func mockDetectProjectAndStack() {
 	})
 }
 
-func mockCompileWithSpinner() {
-	monkey.Patch(compile.CompileWithSpinner,
-		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
-		) (*models.Spec, *pterm.SpinnerPrinter, error) {
-			sp := pterm.DefaultSpinner.
-				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
-				WithDelay(time.Millisecond * 100)
-
-			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
-
-			return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, sp, nil
-		})
+func mockGenerateSpec() {
+	monkey.Patch(compile.GenerateSpec, func(o *compile.Options, stack *projectstack.Stack) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	})
 }
 
 func mockNewKubernetesRuntime() {
@@ -317,13 +288,13 @@ func Test_prompt(t *testing.T) {
 				return errors.New("mock error")
 			},
 		)
-		_, err := prompt(false)
+		_, err := prompt()
 		assert.NotNil(t, err)
 	})
 
 	t.Run("prompt yes", func(t *testing.T) {
 		mockPromptOutput("yes")
-		_, err := prompt(false)
+		_, err := prompt()
 		assert.Nil(t, err)
 	})
 }

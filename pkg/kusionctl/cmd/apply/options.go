@@ -34,10 +34,9 @@ type ApplyOptions struct {
 }
 
 type ApplyFlag struct {
-	Yes         bool
-	DryRun      bool
-	OnlyPreview bool
-	Watch       bool
+	Yes    bool
+	DryRun bool
+	Watch  bool
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
@@ -69,9 +68,17 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Get compile result
-	planResources, sp, err := compile.CompileWithSpinner(o.CompileOptions.WorkDir, o.CompileOptions.Filenames, o.CompileOptions.Settings, o.CompileOptions.Arguments, o.Overrides, stack)
+	planResources, err := compile.GenerateSpec(&compile.Options{
+		WorkDir:     o.WorkDir,
+		Filenames:   o.Filenames,
+		Settings:    o.Settings,
+		Arguments:   o.Arguments,
+		Overrides:   o.Overrides,
+		DisableNone: o.DisableNone,
+		OverrideAST: o.OverrideAST,
+		NoStyle:     o.NoStyle,
+	}, stack)
 	if err != nil {
-		sp.Fail()
 		return err
 	}
 
@@ -80,9 +87,6 @@ func (o *ApplyOptions) Run() error {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
-
-	sp.Success() // Resolve spinner with success message.
-	pterm.Println()
 
 	// Get state storage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
@@ -111,15 +115,17 @@ func (o *ApplyOptions) Run() error {
 	changes.Summary(os.Stdout)
 
 	// Detail detection
-	if o.Detail && !o.Yes {
+	if o.Detail && o.All {
 		changes.OutputDiff("all")
-		return nil
+		if !o.Yes {
+			return nil
+		}
 	}
 
 	// Prompt
 	if !o.Yes {
 		for {
-			input, err := prompt(o.OnlyPreview)
+			input, err := prompt()
 			if err != nil {
 				return err
 			}
@@ -138,22 +144,21 @@ func (o *ApplyOptions) Run() error {
 		}
 	}
 
-	if !o.OnlyPreview {
-		fmt.Println("Start applying diffs ...")
-		if err := Apply(o, r, stateStorage, planResources, changes, os.Stdout); err != nil {
+	fmt.Println("Start applying diffs ...")
+	if err := Apply(o, r, stateStorage, planResources, changes, os.Stdout); err != nil {
+		return err
+	}
+
+	// If dry run, print the hint
+	if o.DryRun {
+		fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
+		return nil
+	}
+
+	if o.Watch {
+		fmt.Println("\nStart watching changes ...")
+		if err := Watch(o, r, planResources, project, stack, os.Stdout); err != nil {
 			return err
-		}
-
-		// If dry run, print the hint
-		if o.DryRun {
-			fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
-		}
-
-		if o.Watch {
-			fmt.Println("\nStart watching changes ...")
-			if err := Watch(o, r, planResources, project, stack, os.Stdout); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -375,12 +380,9 @@ func allUnChange(changes *opsmodels.Changes) bool {
 	return true
 }
 
-func prompt(onlyPreview bool) (string, error) {
+func prompt() (string, error) {
 	// don`t display yes item when only preview
-	options := []string{"details", "no"}
-	if !onlyPreview {
-		options = append([]string{"yes"}, options...)
-	}
+	options := []string{"yes", "details", "no"}
 
 	prompt := &survey.Select{
 		Message: `Do you want to apply these diffs?`,

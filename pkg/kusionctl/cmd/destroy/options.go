@@ -57,13 +57,18 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	// Get compile result
-	planResources, sp, err := compile.CompileWithSpinner(o.CompileOptions.WorkDir, o.CompileOptions.Filenames, o.CompileOptions.Settings, o.CompileOptions.Arguments, o.Overrides, stack)
+	planResources, err := compile.GenerateSpec(&compile.Options{
+		WorkDir:     o.WorkDir,
+		Filenames:   o.Filenames,
+		Settings:    o.Settings,
+		Arguments:   o.Arguments,
+		Overrides:   o.Overrides,
+		DisableNone: o.DisableNone,
+		OverrideAST: o.OverrideAST,
+	}, stack)
 	if err != nil {
-		sp.Fail()
 		return err
 	}
-	sp.Success() // Resolve spinner with success message.
-	pterm.Println()
 
 	if planResources == nil || len(planResources.Resources) == 0 {
 		pterm.Println("No resources to destroy")
