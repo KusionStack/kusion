@@ -3,8 +3,10 @@ package runtime
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/gookit/goutil/jsonutil"
 	yamlv2 "gopkg.in/yaml.v2"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -20,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/printers/k8s"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/json"
@@ -230,16 +233,61 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *W
 		return &WatchResponse{Status: status.NewErrorStatus(err)}
 	}
 
-	// Watch interface
+	// Root watcher
 	w, err := resource.Watch(ctx, metav1.ListOptions{})
 	if err != nil {
 		return &WatchResponse{Status: status.NewErrorStatus(err)}
 	}
-
-	resultCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
+	rootCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
 		return watched.GetName() == reqObj.GetName()
 	})
-	return &WatchResponse{resultCh, nil}
+
+	// Collect all
+	var resultChs []<-chan k8swatch.Event
+	resultChs = append(resultChs, rootCh)
+
+	// Try to get sub resource by selector
+	selectorGVK := getSelectorGVK(reqObj.GroupVersionKind())
+	if !selectorGVK.Empty() {
+		// Get label selectors
+		labelStr, err := getSelectorString(reqObj)
+		if err != nil {
+			return &WatchResponse{Status: status.NewErrorStatus(err)}
+		}
+		for !selectorGVK.Empty() {
+			ch, err := k.WatchBySelector(ctx, reqObj, selectorGVK, labelStr)
+			if err != nil {
+				return &WatchResponse{Status: status.NewErrorStatus(err)}
+			}
+			resultChs = append(resultChs, ch)
+
+			// Try to get deeper, max depth is 3 including root
+			selectorGVK = getSelectorGVK(selectorGVK)
+		}
+	}
+
+	// Try to get dependent resource by owner reference
+	dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+	if !dependentGVK.Empty() {
+		owner := reqObj
+		for !dependentGVK.Empty() {
+			ch, dependent, err := k.WatchByOwnerRef(ctx, owner, dependentGVK)
+			if err != nil {
+				return &WatchResponse{Status: status.NewErrorStatus(err)}
+			}
+			resultChs = append(resultChs, ch)
+
+			if dependent == nil {
+				break
+			}
+			// Try to get deeper, max depth is 3 including root
+			dependentGVK = getDependentGVK(dependent.GroupVersionKind())
+			// Replace owner
+			owner = dependent
+		}
+	}
+
+	return &WatchResponse{resultChs, nil}
 }
 
 // getKubernetesClient get kubernetes client
@@ -281,7 +329,7 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models
 	// Get resource by unstructured
 	var resource dynamic.ResourceInterface
 
-	resource, err = buildKubernetesResourceByUnstructured(k.client, k.mapper, obj, gvk)
+	resource, err = buildDynamicResource(k.client, k.mapper, gvk, obj.GetNamespace())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -289,9 +337,10 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models
 	return obj, resource, nil
 }
 
-// buildKubernetesResourceByUnstructured get resource by unstructured object
-func buildKubernetesResourceByUnstructured(dyn dynamic.Interface, mapper meta.RESTMapper,
-	obj *unstructured.Unstructured, gvk *schema.GroupVersionKind,
+// buildDynamicResource get resource interface by gvk and namespace
+func buildDynamicResource(
+	dyn dynamic.Interface, mapper meta.RESTMapper,
+	gvk *schema.GroupVersionKind, namespace string,
 ) (dynamic.ResourceInterface, error) {
 	// Find GVR
 	mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
@@ -303,12 +352,11 @@ func buildKubernetesResourceByUnstructured(dyn dynamic.Interface, mapper meta.RE
 	var dr dynamic.ResourceInterface
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
 		// namespaced resources should specify the namespace
-		dr = dyn.Resource(mapping.Resource).Namespace(obj.GetNamespace())
+		dr = dyn.Resource(mapping.Resource).Namespace(namespace)
 	} else {
 		// for cluster-wide resources
 		dr = dyn.Resource(mapping.Resource)
 	}
-
 	return dr, nil
 }
 
@@ -326,30 +374,55 @@ func convertString2Unstructured(yamlContent []byte) (*unstructured.Unstructured,
 	return obj, gvk, nil
 }
 
-// WatchDependents will watch dependents of owner, provided group, version, resource and namespace.
-func (k *KubernetesRuntime) WatchDependents(
+// WatchBySelector watch resources by gvk and filter by selector
+func (k *KubernetesRuntime) WatchBySelector(
+	ctx context.Context,
+	o *unstructured.Unstructured,
+	gvk schema.GroupVersionKind,
+	labelStr string,
+) (<-chan k8swatch.Event, error) {
+	clientForResource, err := buildDynamicResource(k.client, k.mapper, &gvk, o.GetNamespace())
+	if err != nil {
+		return nil, err
+	}
+
+	w, err := clientForResource.Watch(ctx, metav1.ListOptions{LabelSelector: labelStr})
+	if err != nil {
+		return nil, err
+	}
+
+	return doWatch(ctx, w, nil), nil
+}
+
+// WatchByOwnerRef will watch dependents of owner, provided group, version, resource and namespace.
+func (k *KubernetesRuntime) WatchByOwnerRef(
 	ctx context.Context,
 	owner *unstructured.Unstructured,
-	gvk schema.GroupVersionKind, namespace string,
-) (<-chan k8swatch.Event, error) {
+	gvk schema.GroupVersionKind,
+) (<-chan k8swatch.Event, *unstructured.Unstructured, error) {
 	mapping, err := k.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	clientForResource := k.client.Resource(mapping.Resource).Namespace(namespace)
+	clientForResource := k.client.Resource(mapping.Resource).Namespace(owner.GetNamespace())
 	w, err := clientForResource.Watch(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	var dependent *unstructured.Unstructured
 	return doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
-		return ownedBy(owner, watched)
-	}), nil
+		owned := ownedBy(watched, owner)
+		if owned {
+			dependent = watched
+		}
+		return owned
+	}), dependent, nil
 }
 
 // doWatch send watched object if check ok
-func doWatch(ctx context.Context, watcher k8swatch.Interface, check func(watched *unstructured.Unstructured) bool) <-chan k8swatch.Event {
+func doWatch(ctx context.Context, watcher k8swatch.Interface, checker func(watched *unstructured.Unstructured) bool) <-chan k8swatch.Event {
 	resultCh := make(chan k8swatch.Event)
 	go func() {
 		defer watcher.Stop()
@@ -360,8 +433,8 @@ func doWatch(ctx context.Context, watcher k8swatch.Interface, check func(watched
 				if !ok {
 					break
 				}
-				// Owner check
-				if check(dependent) {
+				// Check
+				if checker == nil || checker != nil && checker(dependent) {
 					resultCh <- e
 				}
 			case <-ctx.Done():
@@ -376,7 +449,10 @@ func doWatch(ctx context.Context, watcher k8swatch.Interface, check func(watched
 // Judge dependent is owned by owner
 func ownedBy(dependent, owner *unstructured.Unstructured) bool {
 	// Parse dependent's metadata.ownerReferences
-	ownerReferences, _, _ := unstructured.NestedSlice(dependent.Object, "metadata", "ownerReferences")
+	ownerReferences, exists, _ := unstructured.NestedSlice(dependent.Object, "metadata", "ownerReferences")
+	if !exists {
+		return false
+	}
 
 	// Parse owner's apiVersion, kind and metadata.name
 	apiVersion := owner.GetAPIVersion()
@@ -395,4 +471,78 @@ func ownedBy(dependent, owner *unstructured.Unstructured) bool {
 	}
 
 	return false
+}
+
+func getSelectorGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
+	switch gvk.Kind {
+	// Deployment generates ReplicaSet
+	case k8s.Deployment:
+		return schema.GroupVersionKind{
+			Group:   gvk.Group,
+			Version: gvk.Version,
+			Kind:    k8s.ReplicaSet,
+		}
+	// DaemonSet and StatefulSet generate ControllerRevision
+	case k8s.DaemonSet, k8s.StatefulSet:
+		return schema.GroupVersionKind{
+			Group:   gvk.Group,
+			Version: gvk.Version,
+			Kind:    k8s.ControllerRevision,
+		}
+	// CronJob generates Job
+	case k8s.CronJob:
+		return schema.GroupVersionKind{
+			Group:   gvk.Group,
+			Version: gvk.Version,
+			Kind:    k8s.Job,
+		}
+	// ReplicaSet, ReplicationController, ControllerRevision and job generate Pod
+	case k8s.ReplicaSet, k8s.Job, k8s.ReplicationController, k8s.ControllerRevision:
+		return schema.GroupVersionKind{
+			Group:   k8s.CoreGroup,
+			Version: k8s.V1,
+			Kind:    k8s.Pod,
+		}
+	default:
+		return schema.GroupVersionKind{}
+	}
+}
+
+func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
+	switch gvk.Kind {
+	// Service is the owner of EndpointSlice
+	case k8s.Service:
+		return schema.GroupVersionKind{
+			Group:   k8s.DiscoveryGroup,
+			Version: k8s.V1,
+			Kind:    k8s.EndpointSlice,
+		}
+	default:
+		return schema.GroupVersionKind{}
+	}
+}
+
+func getSelectorString(o *unstructured.Unstructured) (string, error) {
+	selectorField, exists, err := unstructured.NestedMap(o.Object, "spec", "selector")
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", fmt.Errorf("no such field: spec.selector")
+	}
+
+	switch o.GetKind() {
+	case k8s.DaemonSet, k8s.Deployment, k8s.StatefulSet:
+		labelSelector := metav1.LabelSelector{}
+		if err = jsonutil.DecodeString(json.MustMarshal2String(selectorField), &labelSelector); err != nil {
+			return "", err
+		}
+		selector, err := metav1.LabelSelectorAsSelector(&labelSelector)
+		if err != nil {
+			return "", err
+		}
+		return selector.String(), nil
+	default:
+		return "", nil
+	}
 }
