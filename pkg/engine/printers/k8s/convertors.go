@@ -9,21 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// API groups
-const (
-	CoreGroup      = ""
-	AppsGroup      = "apps"
-	BatchGroup     = "batch"
-	DiscoveryGroup = "discovery.k8s.io"
-)
-
-// API versions
-const (
-	V1       = "v1"
-	V1Beta1  = "v1beta1"
-	V1Alpha1 = "v1alpha1"
-)
-
 // APIs in core/v1
 const (
 	ComponentStatus       = "ComponentStatus"
@@ -64,21 +49,21 @@ const (
 )
 
 func Convert(o *unstructured.Unstructured) runtime.Object {
-	switch o.GroupVersionKind().Group {
-	case CoreGroup:
-		return convertCore(o)
-	case AppsGroup:
-		return convertApps(o)
-	case BatchGroup:
-		return convertBatch(o)
-	case DiscoveryGroup:
-		return convertDiscovery(o)
+	switch o.GroupVersionKind().GroupVersion() {
+	case corev1.SchemeGroupVersion:
+		return convertCoreV1(o)
+	case appsv1.SchemeGroupVersion:
+		return convertAppsV1(o)
+	case batchv1.SchemeGroupVersion:
+		return convertBatchV1(o)
+	case discoveryv1.SchemeGroupVersion:
+		return convertDiscoveryV1(o)
 	default:
 		return nil
 	}
 }
 
-func convertCore(o *unstructured.Unstructured) runtime.Object {
+func convertCoreV1(o *unstructured.Unstructured) runtime.Object {
 	var target runtime.Object
 	switch o.GetKind() {
 	case ComponentStatus:
@@ -121,7 +106,7 @@ func convertCore(o *unstructured.Unstructured) runtime.Object {
 	return target
 }
 
-func convertApps(o *unstructured.Unstructured) runtime.Object {
+func convertAppsV1(o *unstructured.Unstructured) runtime.Object {
 	var target runtime.Object
 	switch o.GetKind() {
 	case Deployment:
@@ -144,7 +129,7 @@ func convertApps(o *unstructured.Unstructured) runtime.Object {
 	return target
 }
 
-func convertBatch(o *unstructured.Unstructured) runtime.Object {
+func convertBatchV1(o *unstructured.Unstructured) runtime.Object {
 	var target runtime.Object
 	switch o.GetKind() {
 	case CronJob:
@@ -161,7 +146,7 @@ func convertBatch(o *unstructured.Unstructured) runtime.Object {
 	return target
 }
 
-func convertDiscovery(o *unstructured.Unstructured) runtime.Object {
+func convertDiscoveryV1(o *unstructured.Unstructured) runtime.Object {
 	var target runtime.Object
 	switch o.GetKind() {
 	case EndpointSlice:
