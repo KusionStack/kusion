@@ -157,7 +157,7 @@ func (o *ApplyOptions) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err := Watch(o, r, planResources, project, stack, os.Stdout); err != nil {
+		if err := Watch(o, r, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 	}
@@ -319,38 +319,45 @@ func Apply(
 //	    return err
 //	}
 //
-//	Watch(o, kubernetesRuntime, planResources, changes)
+//	Watch(o, kubernetesRuntime, planResources, changes, os.Stdout)
 //	if err != nil {
 //	    return err
 //	}
 func Watch(o *ApplyOptions,
 	r runtime.Runtime,
 	planResources *models.Spec,
-	project *projectstack.Project,
-	stack *projectstack.Stack,
+	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
 	if o.DryRun {
 		fmt.Fprintln(out, "NOTE: Watch doesn't work in DryRun mode")
 		return nil
 	}
-	if !o.Watch {
-		return nil
-	}
+
 	if _, ok := r.(*runtime.KubernetesRuntime); !ok {
 		return fmt.Errorf("WARNING: Watch only support Kubernetes resources for now")
 	}
+
+	// Filter out unchanged resources
+	toBeWatched := models.Resources{}
+	for _, res := range planResources.Resources {
+		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != types.UnChange {
+			toBeWatched = append(toBeWatched, res)
+		}
+	}
+
 	// Watch operation
 	wo := &operation.WatchOperation{Runtime: r}
 	if err := wo.Watch(&operation.WatchRequest{
 		Request: opsmodels.Request{
-			Project: project.Name,
-			Stack:   stack.Name,
-			Spec:    planResources,
+			Project: changes.Project().Name,
+			Stack:   changes.Stack().Name,
+			Spec:    &models.Spec{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err
 	}
+
 	fmt.Fprintln(out, "\nWatch Finish! All resources have been reconciled.")
 	return nil
 }
