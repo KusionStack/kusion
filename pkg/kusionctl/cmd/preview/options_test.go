@@ -5,14 +5,11 @@ package preview
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"bou.ke/monkey"
-	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/compile"
@@ -86,7 +83,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("no changes", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 
 		o := NewPreviewOptions()
@@ -98,7 +95,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("detail is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockPromptDetail("")
@@ -192,18 +189,10 @@ func mockDetectProjectAndStack() {
 	})
 }
 
-func mockCompileWithSpinner() {
-	monkey.Patch(compile.CompileWithSpinner,
-		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
-		) (*models.Spec, *pterm.SpinnerPrinter, error) {
-			sp := pterm.DefaultSpinner.
-				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
-				WithDelay(time.Millisecond * 100)
-
-			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
-
-			return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, sp, nil
-		})
+func mockGenerateSpec() {
+	monkey.Patch(compile.GenerateSpec, func(o *compile.Options, stack *projectstack.Stack) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	})
 }
 
 func mockNewKubernetesRuntime() {

@@ -59,7 +59,9 @@ func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
-		i18n.T("Automatically show plan details after previewing it"))
+		i18n.T("Automatically show plan details with interactive options"))
+	cmd.Flags().BoolVarP(&o.All, "all", "a", false,
+		i18n.T("Automatically show all plan details, combined use with flag `--detail`"))
 	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,

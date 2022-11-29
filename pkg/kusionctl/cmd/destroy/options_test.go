@@ -6,15 +6,12 @@ package destroy
 import (
 	"context"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"reflect"
 	"testing"
-	"time"
 
 	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/compile"
@@ -33,7 +30,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("Detail is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -46,7 +43,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("prompt no", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -59,7 +56,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("prompt yes", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockCompileWithSpinner()
+		mockGenerateSpec()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockOperationDestroy(opsmodels.Success)
@@ -93,18 +90,10 @@ func mockDetectProjectAndStack() {
 	})
 }
 
-func mockCompileWithSpinner() {
-	monkey.Patch(compile.CompileWithSpinner,
-		func(workDir string, filenames, settings, arguments, overrides []string, stack *projectstack.Stack,
-		) (*models.Spec, *pterm.SpinnerPrinter, error) {
-			sp := pterm.DefaultSpinner.
-				WithSequence("⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ ").
-				WithDelay(time.Millisecond * 100)
-
-			sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
-
-			return &models.Spec{Resources: []models.Resource{sa1}}, sp, nil
-		})
+func mockGenerateSpec() {
+	monkey.Patch(compile.GenerateSpec, func(o *compile.Options, stack *projectstack.Stack) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1}}, nil
+	})
 }
 
 func Test_preview(t *testing.T) {
