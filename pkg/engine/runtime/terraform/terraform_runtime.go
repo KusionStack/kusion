@@ -40,12 +40,6 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		w = t.Store[planState.ResourceKey()]
 	}
 
-	// get terraform provider version
-	providerAddr, err := w.GetProvider()
-	if err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
-	}
-
 	// terraform dry run merge state
 	// TODO: terraform dry run apply,not only merge state
 	if request.DryRun {
@@ -69,6 +63,12 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	}
 
 	tfstate, err := w.Apply(ctx)
+	if err != nil {
+		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+	}
+
+	// get terraform provider version
+	providerAddr, err := w.GetProvider()
 	if err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
