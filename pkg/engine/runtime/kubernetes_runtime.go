@@ -3,10 +3,8 @@ package runtime
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	jsonpatch "github.com/evanphx/json-patch"
-	"github.com/gookit/goutil/jsonutil"
 	yamlv2 "gopkg.in/yaml.v2"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -246,44 +244,47 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *WatchRequest) *W
 	var resultChs []<-chan k8swatch.Event
 	resultChs = append(resultChs, rootCh)
 
-	// Try to get sub resource by selector
-	selectorGVK := getSelectorGVK(reqObj.GroupVersionKind())
-	if !selectorGVK.Empty() {
-		// Get label selectors
-		labelStr, err := getSelectorString(reqObj)
-		if err != nil {
-			return &WatchResponse{Status: status.NewErrorStatus(err)}
-		}
-		for !selectorGVK.Empty() {
-			ch, err := k.WatchBySelector(ctx, reqObj, selectorGVK, labelStr)
+	if reqObj.GetKind() == k8s.Service { // Watch Endpoints or EndpointSlice
+		if gvk, err := k.mapper.KindFor(schema.GroupVersionResource{
+			Group:    k8s.DiscoveryGroup,
+			Version:  k8s.V1,
+			Resource: k8s.EndpointSlice,
+		}); gvk.Empty() || err != nil { // Watch Endpoints
+			log.Errorf("k8s runtime has no kind for EndpointSlice, err: %v", err)
+			namedGVK := getNamedGVK(reqObj.GroupVersionKind())
+			ch, _, err := k.WatchByRelation(ctx, reqObj, namedGVK, namedBy)
 			if err != nil {
 				return &WatchResponse{Status: status.NewErrorStatus(err)}
 			}
 			resultChs = append(resultChs, ch)
-
-			// Try to get deeper, max depth is 3 including root
-			selectorGVK = getSelectorGVK(selectorGVK)
-		}
-	}
-
-	// Try to get dependent resource by owner reference
-	dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
-	if !dependentGVK.Empty() {
-		owner := reqObj
-		for !dependentGVK.Empty() {
-			ch, dependent, err := k.WatchByOwnerRef(ctx, owner, dependentGVK)
+		} else { // Watch EndpointSlice
+			dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+			ch, _, err := k.WatchByRelation(ctx, reqObj, dependentGVK, ownedBy)
 			if err != nil {
 				return &WatchResponse{Status: status.NewErrorStatus(err)}
 			}
 			resultChs = append(resultChs, ch)
+		}
+	} else {
+		// Try to get dependent resource by owner reference
+		dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+		if !dependentGVK.Empty() {
+			owner := reqObj
+			for !dependentGVK.Empty() {
+				ch, dependent, err := k.WatchByRelation(ctx, owner, dependentGVK, ownedBy)
+				if err != nil {
+					return &WatchResponse{Status: status.NewErrorStatus(err)}
+				}
+				resultChs = append(resultChs, ch)
 
-			if dependent == nil {
-				break
+				if dependent == nil {
+					break
+				}
+				// Try to get deeper, max depth is 3 including root
+				dependentGVK = getDependentGVK(dependent.GroupVersionKind())
+				// Replace owner
+				owner = dependent
 			}
-			// Try to get deeper, max depth is 3 including root
-			dependentGVK = getDependentGVK(dependent.GroupVersionKind())
-			// Replace owner
-			owner = dependent
 		}
 	}
 
@@ -394,31 +395,32 @@ func (k *KubernetesRuntime) WatchBySelector(
 	return doWatch(ctx, w, nil), nil
 }
 
-// WatchByOwnerRef will watch dependents of owner, provided group, version, resource and namespace.
-func (k *KubernetesRuntime) WatchByOwnerRef(
+// WatchByRelation watched resources by giving gvk if related() return true
+func (k *KubernetesRuntime) WatchByRelation(
 	ctx context.Context,
-	owner *unstructured.Unstructured,
+	cur *unstructured.Unstructured,
 	gvk schema.GroupVersionKind,
+	related func(watched, cur *unstructured.Unstructured) bool,
 ) (<-chan k8swatch.Event, *unstructured.Unstructured, error) {
 	mapping, err := k.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	clientForResource := k.client.Resource(mapping.Resource).Namespace(owner.GetNamespace())
+	clientForResource := k.client.Resource(mapping.Resource).Namespace(cur.GetNamespace())
 	w, err := clientForResource.Watch(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var dependent *unstructured.Unstructured
+	var next *unstructured.Unstructured
 	return doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
-		owned := ownedBy(watched, owner)
-		if owned {
-			dependent = watched
+		ok := related(watched, cur)
+		if ok {
+			next = watched
 		}
-		return owned
-	}), dependent, nil
+		return ok
+	}), next, nil
 }
 
 // doWatch send watched object if check ok
@@ -473,7 +475,12 @@ func ownedBy(dependent, owner *unstructured.Unstructured) bool {
 	return false
 }
 
-func getSelectorGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
+// Service and Endpoints must be in same name and namespace
+func namedBy(ep, svc *unstructured.Unstructured) bool {
+	return svc.GetNamespace() == ep.GetNamespace() && svc.GetName() == ep.GetName()
+}
+
+func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	switch gvk.Kind {
 	// Deployment generates ReplicaSet
 	case k8s.Deployment:
@@ -503,13 +510,6 @@ func getSelectorGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 			Version: k8s.V1,
 			Kind:    k8s.Pod,
 		}
-	default:
-		return schema.GroupVersionKind{}
-	}
-}
-
-func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
-	switch gvk.Kind {
 	// Service is the owner of EndpointSlice
 	case k8s.Service:
 		return schema.GroupVersionKind{
@@ -522,27 +522,15 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	}
 }
 
-func getSelectorString(o *unstructured.Unstructured) (string, error) {
-	selectorField, exists, err := unstructured.NestedMap(o.Object, "spec", "selector")
-	if err != nil {
-		return "", err
-	}
-	if !exists {
-		return "", fmt.Errorf("no such field: spec.selector")
-	}
-
-	switch o.GetKind() {
-	case k8s.DaemonSet, k8s.Deployment, k8s.StatefulSet:
-		labelSelector := metav1.LabelSelector{}
-		if err = jsonutil.DecodeString(json.MustMarshal2String(selectorField), &labelSelector); err != nil {
-			return "", err
+func getNamedGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
+	switch gvk.Kind {
+	case k8s.Service:
+		return schema.GroupVersionKind{
+			Group:   k8s.CoreGroup,
+			Version: k8s.V1,
+			Kind:    k8s.Endpoints,
 		}
-		selector, err := metav1.LabelSelectorAsSelector(&labelSelector)
-		if err != nil {
-			return "", err
-		}
-		return selector.String(), nil
 	default:
-		return "", nil
+		return schema.GroupVersionKind{}
 	}
 }
