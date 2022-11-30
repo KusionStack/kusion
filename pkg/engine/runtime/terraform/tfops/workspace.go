@@ -60,6 +60,7 @@ func GetWorkSpaceDir() (string, error) {
 func (w *WorkSpace) WriteHCL() error {
 	provider := strings.Split(w.resource.Extensions["provider"].(string), "/")
 	resourceType := w.resource.Extensions["resourceType"].(string)
+	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
 
 	m := map[string]interface{}{
 		"terraform": map[string]interface{}{
@@ -75,7 +76,7 @@ func (w *WorkSpace) WriteHCL() error {
 		},
 		"resource": map[string]interface{}{
 			resourceType: map[string]interface{}{
-				w.resource.ResourceKey(): w.resource.Attributes,
+				resourceNames[len(resourceNames)-1]: w.resource.Attributes,
 			},
 		},
 	}
@@ -138,9 +139,9 @@ func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "terraform", "init")
 	cmd.Dir = w.dir
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return errors.New(string(out))
+	_, err := cmd.Output()
+	if e, ok := err.(*exec.ExitError); ok {
+		return errors.New(string(e.Stderr))
 	}
 	return nil
 }
