@@ -21,6 +21,7 @@ import (
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	previewcmd "kusionstack.io/kusion/pkg/kusionctl/cmd/preview"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -94,13 +95,19 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	// Compute changes for preview
 	runtimes := runtimeInit.InitRuntime()
-	r, err := runtimes[planResources.Resources[0].Type]()
+	// validate resource type
+	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
 	if err != nil {
 		return err
 	}
 
+	r, err := runtimeInitFun()
+	if err != nil {
+		return err
+	}
+
+	// Compute changes for preview
 	changes, err := previewcmd.Preview(&o.PreviewOptions, r, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
