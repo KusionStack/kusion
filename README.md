@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>A Unified Programmable Configuration Tech Stack</h1>
+<h1>Codify, Collaborate, Automate modern App delivery across Kubernetes and Clouds</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) 
 
