@@ -16,6 +16,7 @@ import (
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -92,7 +93,12 @@ func (o *PreviewOptions) Run() error {
 
 	// Compute changes for preview
 	runtimes := runtimeInit.InitRuntime()
-	r, err := runtimes[planResources.Resources[0].Type]()
+	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
+	if err != nil {
+		return err
+	}
+
+	r, err := runtimeInitFun()
 	if err != nil {
 		return err
 	}

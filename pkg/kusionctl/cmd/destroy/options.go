@@ -19,6 +19,7 @@ import (
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -76,19 +77,24 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	runtimes := runtimeInit.InitRuntime()
-	runtime, err := runtimes[planResources.Resources[0].Type]()
+	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
+	if err != nil {
+		return err
+	}
+
+	r, err := runtimeInitFun()
 	if err != nil {
 		return nil
 	}
 
-	// Get stateStroage from backend config to manage state
+	// Get stateStorage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
 	if err != nil {
 		return err
 	}
 
 	// Compute changes for preview
-	changes, err := o.preview(planResources, project, stack, runtime, stateStorage)
+	changes, err := o.preview(planResources, project, stack, r, stateStorage)
 	if err != nil {
 		return err
 	}
@@ -126,7 +132,7 @@ func (o *DestroyOptions) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(planResources, changes, runtime, stateStorage); err != nil {
+	if err := o.destroy(planResources, changes, r, stateStorage); err != nil {
 		return err
 	}
 	return nil
