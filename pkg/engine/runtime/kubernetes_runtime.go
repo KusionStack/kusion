@@ -27,7 +27,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/printers/k8s"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
-	"kusionstack.io/kusion/pkg/util/json"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
 )
 
@@ -77,17 +77,17 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 	// Original equals to last-applied from annotation, kusion store it in kusion_state.json
 	original := ""
 	if priorState != nil {
-		original = json.MustMarshal2String(priorState.Attributes)
+		original = jsonutil.MustMarshal2String(priorState.Attributes)
 	}
 	// Modified equals to input content
-	modified := json.MustMarshal2String(planState.Attributes)
+	modified := jsonutil.MustMarshal2String(planState.Attributes)
 	// Current equals to live manifest
 	current := ""
 	if liveState != nil {
-		current = json.MustMarshal2String(liveState.Attributes)
+		current = jsonutil.MustMarshal2String(liveState.Attributes)
 	}
 
-	// Create patch body
+	// Create 3-way merge patch body
 	patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 	if err != nil {
 		return &ApplyResponse{nil, status.NewErrorStatus(err)}
@@ -96,7 +96,6 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 	// Final result, dry-run to diff, otherwise to save in states
 	var res *unstructured.Unstructured
 	if request.DryRun {
-		tryClientSide := true
 		if liveState == nil {
 			// Try ServerSideDryRun first
 			createOptions := metav1.CreateOptions{
@@ -104,10 +103,12 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 			}
 			if createdObj, err := resource.Create(ctx, planObj, createOptions); err == nil {
 				res = createdObj
-				// ServerSideDryRun success, not need to try ClientSideDryRun
-				tryClientSide = false
 			} else {
-				log.Errorf("ServerSideDryRun create failed, err: %v", err)
+				// Fall back to ClientSideDryRun
+				log.Errorf("ServerSideDryRun create %s failed, fall back to ClientSideDryRun; err: %v", planState.ID, err)
+
+				// LiveState is nil, return planObj directly
+				res = planObj
 			}
 		} else {
 			// Try ServerSideDryRun first
@@ -116,20 +117,21 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *ApplyRequest) *A
 			}
 			if patchedObj, err := resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, patchOptions); err == nil {
 				res = patchedObj
-				tryClientSide = false
 			} else {
-				log.Errorf("ServerSideDryRun Patch failed, err: %v", err)
-			}
-		}
-		if tryClientSide {
-			// Fall back to ClientSideDryRun
-			mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
-			if err != nil {
-				return &ApplyResponse{nil, status.NewErrorStatus(err)}
-			}
-			res = &unstructured.Unstructured{}
-			if err = res.UnmarshalJSON(mergedPatch); err != nil {
-				return &ApplyResponse{nil, status.NewErrorStatus(err)}
+				// Fall back to ClientSideDryRun
+				log.Errorf("ServerSideDryRun patch %s failed, fall back to ClientSideDryRun; err: %v", planState.ID, err)
+
+				// Merge 3-way patch
+				mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
+				if err != nil {
+					return &ApplyResponse{nil, status.NewErrorStatus(err)}
+				}
+
+				// Unmarshall and return
+				res = &unstructured.Unstructured{}
+				if err = res.UnmarshalJSON(mergedPatch); err != nil {
+					return &ApplyResponse{nil, status.NewErrorStatus(err)}
+				}
 			}
 		}
 	} else {
