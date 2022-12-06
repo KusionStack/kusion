@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/engine/terraform/dag"
+	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
+
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
-
-	"github.com/hashicorp/terraform/dag"
-	"github.com/hashicorp/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"

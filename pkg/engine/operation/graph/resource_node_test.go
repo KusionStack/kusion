@@ -10,13 +10,14 @@ import (
 	"testing"
 
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/engine/terraform/dag"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"bou.ke/monkey"
-	"github.com/hashicorp/terraform/dag"
+
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/models"

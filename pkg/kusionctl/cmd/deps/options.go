@@ -9,6 +9,7 @@ import (
 
 	kcl "kusionstack.io/kclvm-go"
 	"kusionstack.io/kclvm-go/pkg/tools/list"
+
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -155,13 +156,13 @@ func (o *DepsOptions) Run() (err error) {
 // the files under those stacks' directories appear in the focus paths list.
 // By downstream projects, it means that each of those projects contains one or more downstream stacks of the focus paths.
 //
-// Parameters
+// # Parameters
 //
 // The workDir should be a valid absolute path of the root path of the KCL program directory.
 // The focusPaths and shouldIgnore should be valid relative file paths under the workDir.
 // The value of the projectOnly decides whether the downstream projects(projectOnly is true) or stacks(projectOnly is false) will be filtered.
 //
-// Usage Caution
+// # Usage Caution
 //
 // This is a very time-consuming function based on the FindAllProjectsFrom API of kusion and the ListDownStreamFiles API of kcl.
 // Do not call this function with high frequency and please ensure at least 10 seconds interval when calling.

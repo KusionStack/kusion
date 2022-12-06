@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
+
 	"kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -395,7 +396,7 @@ func TestIsStackFile(t *testing.T) {
 		{
 			name: "is-not-stack-file",
 			args: args{
-				path: filepath.Join(TestStackPathAA),
+				path: TestStackPathAA,
 			},
 			want: false,
 		},

@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/terraform/dag"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 
 	"kusionstack.io/kusion/pkg/status"
-
-	"github.com/hashicorp/terraform/dag"
 )
 
 type Parser interface {

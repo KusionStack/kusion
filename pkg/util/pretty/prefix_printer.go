@@ -5,8 +5,9 @@ import "github.com/pterm/pterm"
 // Pretty prefix printer style.
 //
 // Usage:
-//   pretty.Info.Println("Hello")
-//   pretty.Warning.Println("Hello")
+//
+//	pretty.Info.Println("Hello")
+//	pretty.Warning.Println("Hello")
 var (
 	// Info returns a PrefixPrinter, which can be used to print text with an "info" Prefix.
 	Info = pterm.PrefixPrinter{

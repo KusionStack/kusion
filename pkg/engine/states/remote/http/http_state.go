@@ -20,16 +20,15 @@ import (
 // formats MUST contain 4 "%s" placeholders for tenant, project and stack, since we will replace this format with fmt.Sprintf()
 // Let's get applyURLFormat as an example to demonstrate how this suffix format works.
 //
+//	 Example:
 //
-//  Example:
-//
-//	urlPrefix = "http://kusionstack.io"
-//	applyURLFormat = "/apis/v1/tenants/%s/projects/%s/stacks/%s/clusters/%s/states/"
-//	tenant = "t"
-//	project = "p"
-//	stack = "s"
-//  cluster = "c"
-//	the final request URL = "http://kusionstack.io/apis/v1/tenants/t/projects/p/stacks/s/clusters/c/states"
+//		urlPrefix = "http://kusionstack.io"
+//		applyURLFormat = "/apis/v1/tenants/%s/projects/%s/stacks/%s/clusters/%s/states/"
+//		tenant = "t"
+//		project = "p"
+//		stack = "s"
+//	 cluster = "c"
+//		the final request URL = "http://kusionstack.io/apis/v1/tenants/t/projects/p/stacks/s/clusters/c/states"
 type HTTPState struct {
 	// urlPrefix is the prefix added in front of all request URLs. e.g. "http://kusionstack.io/"
 	urlPrefix string

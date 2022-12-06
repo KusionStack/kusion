@@ -5,9 +5,10 @@ import "github.com/pterm/pterm"
 // Pretty style, contains the color and the style.
 //
 // Usage:
-//   var s1 string = pretty.GreenBold("Hello")
-//   var s2 string = pretty.NormalBold("Hello %s", "World")
-//   fmt.Println(s1, s2)
+//
+//	var s1 string = pretty.GreenBold("Hello")
+//	var s2 string = pretty.NormalBold("Hello %s", "World")
+//	fmt.Println(s1, s2)
 var (
 	// Preset Color
 	// Red is an alias for FgRed.Sprintf.

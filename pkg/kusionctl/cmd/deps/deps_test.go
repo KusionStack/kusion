@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -37,7 +38,6 @@ func TestDepsOptions_Validate(t *testing.T) {
 		ignore  []string
 		errMsg  string
 	}{
-
 		{
 			name:   "invalid output filter",
 			errMsg: "invalid output downstream type. supported types: project, stack",

@@ -5,8 +5,9 @@ import "github.com/pterm/pterm"
 // Pretty prefix text printer style.
 //
 // Usage:
-//   pretty.InfoT.Println("Hello")
-//   pretty.WarningT.Println("Hello")
+//
+//	pretty.InfoT.Println("Hello")
+//	pretty.WarningT.Println("Hello")
 var (
 	// DebugT Prints debug messages. By default it will only print if PrintDebugMessages is true.
 	// You can change PrintDebugMessages with EnableDebugMessages and DisableDebugMessages, or by setting the variable itself.
