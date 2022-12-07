@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/engine/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 

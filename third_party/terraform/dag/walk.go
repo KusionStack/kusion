@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 // Walker is used to walk every vertex of a graph in parallel.

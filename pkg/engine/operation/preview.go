@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/engine/terraform/dag"
-	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
-
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
@@ -59,7 +58,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	var (
 		priorState, resultState *states.State
 		priorStateResourceIndex map[string]*models.Resource
-		ag                      *dag.AcyclicGraph
+		ag                      *dag2.AcyclicGraph
 	)
 
 	// 1. init & build Indexes
@@ -96,7 +95,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		},
 	}
 
-	w := &dag.Walker{Callback: previewOperation.previewWalkFun}
+	w := &dag2.Walker{Callback: previewOperation.previewWalkFun}
 	w.Update(ag)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
@@ -106,7 +105,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	return &PreviewResponse{Order: previewOperation.ChangeOrder}, nil
 }
 
-func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
+func (po *PreviewOperation) previewWalkFun(v dag2.Vertex) (diags tfdiags.Diagnostics) {
 	var s status.Status
 	if v == nil {
 		return nil

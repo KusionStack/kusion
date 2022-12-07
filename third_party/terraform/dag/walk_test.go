@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 func TestWalker_basic(t *testing.T) {

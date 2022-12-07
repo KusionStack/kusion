@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 
-	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 // AcyclicGraph is a specialization of Graph that cannot have cycles.

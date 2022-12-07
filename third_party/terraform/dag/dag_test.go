@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/terraform/tfdiags"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 func TestMain(m *testing.M) {
