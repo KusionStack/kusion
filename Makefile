@@ -105,7 +105,7 @@ build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for 
 	# Build kcl-go
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-darwin/kclvm/bin/kcl-go \
-		./cmd/kcl-go
+		./scripts/install-kcl-go
 
 	# Build kcl-openapi
 	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
@@ -161,7 +161,7 @@ build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl too
 	# Build kcl-go
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-go \
-		./cmd/kcl-go
+		./scripts/install-kcl-go
 
 	# Build kcl-openapi
 	cd ./cmd/kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
@@ -226,7 +226,7 @@ build-local-ubuntu-all: build-local-linux  ## Build kusion & kcl tool chain for 
 	# Build kcl-go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-ubuntu/kclvm/bin/kcl-go \
-		./cmd/kcl-go
+		./scripts/install-kcl-go
 
 	# Build kcl-openapi
 	cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
@@ -270,7 +270,7 @@ build-local-centos-all: build-local-linux  ## Build kusion & kcl tool chain for 
 	# Build kcl-go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-centos/kclvm/bin/kcl-go \
-		./cmd/kcl-go
+		./scripts/install-kcl-go
 
 	# Build kcl-openapi
 	cd ./cmd/kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
@@ -330,7 +330,7 @@ build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain f
 	# Build kcl-go
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-windows/kclvm/kcl-go \
-		./cmd/kcl-go
+		./scripts/install-kcl-go
 
 	# Build kcl-openapi
 	cd ./cmd/kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \

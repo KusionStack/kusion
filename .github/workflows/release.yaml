@@ -24,7 +24,7 @@ jobs:
       - run: make build-local-ubuntu-all
       - run: echo "${PWD}/_build/bundles/kusion-ubuntu/kclvm/bin" >> $GITHUB_PATH
       - run: which kclvm
-      - run: go run ./cmd/kcl-go kcl
+      - run: go run ./scripts/install-kcl-go kcl
 
       - name: Running go tests with coverage
         env:
