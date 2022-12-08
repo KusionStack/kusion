@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/fsutil"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/yaml"
-	"kusionstack.io/kusion/third_party/pulumi/fsutil"
 )
 
 // IsProject determine whether the given path is Project directory

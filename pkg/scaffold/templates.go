@@ -12,6 +12,8 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/spf13/afero"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"gopkg.in/src-d/go-git.v4"
@@ -20,8 +22,6 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/kfile"
-	"kusionstack.io/kusion/third_party/pulumi/gitutil"
-	"kusionstack.io/kusion/third_party/pulumi/workspace"
 )
 
 // These are variables instead of constants in order that they can be set using the `-X`
