@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -31,9 +31,9 @@ type ApplyResponse struct {
 	State *states.State
 }
 
-func NewApplyGraph(m *models.Spec, priorState *states.State) (*dag2.AcyclicGraph, status.Status) {
+func NewApplyGraph(m *models.Spec, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
 	specParser := parser.NewSpecParser(m)
-	g := &dag2.AcyclicGraph{}
+	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
 
 	s := specParser.Parse(g)
@@ -104,7 +104,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 		},
 	}
 
-	w := &dag2.Walker{Callback: applyOperation.applyWalkFun}
+	w := &dag.Walker{Callback: applyOperation.applyWalkFun}
 	w.Update(applyGraph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
@@ -115,7 +115,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	return &ApplyResponse{State: resultState}, nil
 }
 
-func (ao *ApplyOperation) applyWalkFun(v dag2.Vertex) (diags tfdiags.Diagnostics) {
+func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
 	var s status.Status
 	if v == nil {
 		return nil

@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
@@ -25,7 +25,7 @@ func NewSpecParser(spec *models.Spec) *SpecParser {
 
 var _ Parser = (*SpecParser)(nil)
 
-func (m *SpecParser) Parse(g *dag2.AcyclicGraph) (s status.Status) {
+func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(g, "dag is nil")
 	sp := m.spec
 	util.CheckNotNil(sp, "models is nil")
@@ -47,11 +47,11 @@ func (m *SpecParser) Parse(g *dag2.AcyclicGraph) (s status.Status) {
 		// add this resource to dag at first time
 		if !g.HasVertex(rn) {
 			g.Add(rn)
-			g.Connect(dag2.BasicEdge(root, rn))
+			g.Connect(dag.BasicEdge(root, rn))
 		} else {
 			// always get the latest vertex in this g otherwise you will get subtle mistake in walking this g
 			rn = GetVertex(g, rn).(*graph.ResourceNode)
-			g.Connect(dag2.BasicEdge(root, rn))
+			g.Connect(dag.BasicEdge(root, rn))
 		}
 		// handle explicate dependency
 		refNodeKeys := resourceState.DependsOn

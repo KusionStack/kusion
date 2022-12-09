@@ -9,21 +9,17 @@ import (
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/third_party/terraform/dag"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
-
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 func TestResourceNode_Execute(t *testing.T) {

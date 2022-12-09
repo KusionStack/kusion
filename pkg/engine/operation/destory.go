@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -28,8 +28,8 @@ type DestroyRequest struct {
 	opsmodels.Request `json:",inline" yaml:",inline"`
 }
 
-func NewDestroyGraph(resource models.Resources) (*dag2.AcyclicGraph, status.Status) {
-	ag := &dag2.AcyclicGraph{}
+func NewDestroyGraph(resource models.Resources) (*dag.AcyclicGraph, status.Status) {
+	ag := &dag.AcyclicGraph{}
 	ag.Add(&graph.RootNode{})
 	deleteResourceParser := parser.NewDeleteResourceParser(resource)
 	s := deleteResourceParser.Parse(ag)
@@ -91,7 +91,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 		},
 	}
 
-	w := &dag2.Walker{Callback: newDo.destroyWalkFun}
+	w := &dag.Walker{Callback: newDo.destroyWalkFun}
 	w.Update(destroyGraph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
@@ -101,7 +101,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	return nil
 }
 
-func (do *DestroyOperation) destroyWalkFun(v dag2.Vertex) (diags tfdiags.Diagnostics) {
+func (do *DestroyOperation) destroyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
 	ao := &ApplyOperation{
 		Operation: do.Operation,
 	}

@@ -3,22 +3,19 @@ package parser
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type Parser interface {
-	Parse(dag *dag2.AcyclicGraph) status.Status
+	Parse(dag *dag.AcyclicGraph) status.Status
 }
 
-func LinkRefNodes(ag *dag2.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
-	rn dag2.Vertex, defaultAction types.ActionType, manifestGraphMap map[string]interface{},
+func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
+	rn dag.Vertex, defaultAction types.ActionType, manifestGraphMap map[string]interface{},
 ) status.Status {
 	if len(refNodeKeys) == 0 {
 		return nil
@@ -45,23 +42,23 @@ func LinkRefNodes(ag *dag2.AcyclicGraph, refNodeKeys []string, resourceIndex map
 			if manifestGraphMap[parentKey] == nil {
 				if ag.HasVertex(parentNode) {
 					parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
-					ag.Connect(dag2.BasicEdge(rn, parentNode))
+					ag.Connect(dag.BasicEdge(rn, parentNode))
 				} else {
 					ag.Add(parentNode)
-					ag.Connect(dag2.BasicEdge(rn, parentNode))
+					ag.Connect(dag.BasicEdge(rn, parentNode))
 				}
 			} else {
 				parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
-				ag.Connect(dag2.BasicEdge(parentNode, rn))
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			}
 		default:
 			hasParent := ag.HasVertex(parentNode)
 			if hasParent {
 				parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
-				ag.Connect(dag2.BasicEdge(parentNode, rn))
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			} else {
 				ag.Add(parentNode)
-				ag.Connect(dag2.BasicEdge(parentNode, rn))
+				ag.Connect(dag.BasicEdge(parentNode, rn))
 			}
 		}
 	}
@@ -81,10 +78,10 @@ func Deduplicate(refNodeKeys []string) []string {
 	return res
 }
 
-func GetVertex(g *dag2.AcyclicGraph, nv dag2.NamedVertex) interface{} {
+func GetVertex(g *dag.AcyclicGraph, nv dag.NamedVertex) interface{} {
 	vertices := g.Vertices()
 	for i, vertex := range vertices {
-		if vertex.(dag2.NamedVertex).Name() == nv.Name() {
+		if vertex.(dag.NamedVertex).Name() == nv.Name() {
 			return vertices[i]
 		}
 	}

@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/pterm/pterm"
+
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/log"
 )
 
 var (
-	ErrNotStackDirectory   = errors.New("path must be stack directory")
-	ErrNotProjectDirectory = errors.New("path must be project directory")
+	ErrNotStackDirectory   = errors.New("path must be a stack directory")
+	ErrNotProjectDirectory = errors.New("path must be a project directory")
 	ErrProjectNotUnique    = errors.New("the project obtained is not unique")
 	ErrStackNotUnique      = errors.New("the stack obtained is not unique")
 )

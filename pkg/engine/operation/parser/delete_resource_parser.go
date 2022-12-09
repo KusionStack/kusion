@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	dag2 "kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
@@ -24,7 +24,7 @@ func NewDeleteResourceParser(resources models.Resources) *DeleteResourceParser {
 	return &DeleteResourceParser{resources: resources}
 }
 
-func (d *DeleteResourceParser) Parse(g *dag2.AcyclicGraph) (s status.Status) {
+func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(g, "graph is nil")
 	if len(g.Vertices()) == 0 {
 		log.Infof("no vertices in dag when parsing deleted resources. dag:%s", json.Marshal2String(g))
@@ -68,7 +68,7 @@ func (d *DeleteResourceParser) Parse(g *dag2.AcyclicGraph) (s status.Status) {
 				}
 			}
 			g.Add(rn)
-			g.Connect(dag2.BasicEdge(root, rn))
+			g.Connect(dag.BasicEdge(root, rn))
 		}
 
 		// always get the latest vertex in the g.
