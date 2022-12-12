@@ -244,7 +244,7 @@ func cacheVersionInfo(latest semver.Version) error {
 		return err
 	}
 
-	file, err := os.OpenFile(updateCheckFile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600)
+	file, err := os.OpenFile(updateCheckFile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0o600)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 
 	"kusionstack.io/kusion/pkg/engine/operation/types"
 
@@ -13,8 +14,6 @@ import (
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
-
-	"github.com/hashicorp/terraform/dag"
 )
 
 type DeleteResourceParser struct {

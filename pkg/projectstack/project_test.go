@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
+
 	"kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -443,7 +444,7 @@ func TestIsProjectFile(t *testing.T) {
 		{
 			name: "is-not-project-file",
 			args: args{
-				path: filepath.Join(TestProjectPathA),
+				path: TestProjectPathA,
 			},
 			want: false,
 		},

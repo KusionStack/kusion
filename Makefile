@@ -14,7 +14,7 @@ RUN_IN_DOCKER+=-w /root/kusion ${KCLVM_BUILDER}
 GOFORMATER			?= gofumpt
 GOFORMATER_VERSION	?= v0.2.0
 GOLINTER			?= golangci-lint
-GOLINTER_VERSION	?= v1.41.0
+GOLINTER_VERSION	?= v1.50.1
 COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 

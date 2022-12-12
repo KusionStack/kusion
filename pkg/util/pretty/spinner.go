@@ -9,9 +9,10 @@ import (
 // Spinner style.
 //
 // Usage:
-//   sp, _ := pretty.Spinner.Start("Starting ...")
-//   time.Sleep(time.Second * 3)
-//   sp.Success("Done")
+//
+//	sp, _ := pretty.Spinner.Start("Starting ...")
+//	time.Sleep(time.Second * 3)
+//	sp.Success("Done")
 var Spinner = pterm.SpinnerPrinter{
 	Sequence:            []string{" ⣾ ", " ⣽ ", " ⣻ ", " ⢿ ", " ⡿ ", " ⣟ ", " ⣯ ", " ⣷ "},
 	Style:               &pterm.ThemeDefault.SpinnerStyle,

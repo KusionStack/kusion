@@ -3,15 +3,11 @@ package parser
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/status"
-
-	"github.com/hashicorp/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type Parser interface {

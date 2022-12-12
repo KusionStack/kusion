@@ -6,13 +6,12 @@ import (
 	"sync"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	"kusionstack.io/kusion/pkg/engine/operation/types"
-
-	"github.com/hashicorp/terraform/dag"
-	"github.com/hashicorp/terraform/tfdiags"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/states"

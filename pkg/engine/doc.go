@@ -18,26 +18,26 @@
 //
 // Let's get operation Preview as an example to demonstrate how the three parts cooperate in an actual operation.
 //
-//                        +-------------+
-//                        |  Operation  |
-//                        |  Preview    |
-//                        +-------------+
-//                               |
-//                               |
-//                        +-------------+
-//                        |  Operation  |
-//              +---------|  Engine     |----------+
-//              |         +-------------+          |
-//              |                                  |
-//       +-------------+                    +-------------+
-//       |   State     |                    |   Runtime   |
-//       +-------------+                    +-------------+
+//	                 +-------------+
+//	                 |  Operation  |
+//	                 |  Preview    |
+//	                 +-------------+
+//	                        |
+//	                        |
+//	                 +-------------+
+//	                 |  Operation  |
+//	       +---------|  Engine     |----------+
+//	       |         +-------------+          |
+//	       |                                  |
+//	+-------------+                    +-------------+
+//	|   State     |                    |   Runtime   |
+//	+-------------+                    +-------------+
 //
 // 1. `Operation Engine` parses resources in Spec and converts them into a DAG
 //
 // 2. Walk this DAG:
-// 		1. Get the latest `State` from the actual infra by the `Runtime`
-// 		2. Get the last operation `State` from the `State` storage medium
+//  1. Get the latest `State` from the actual infra by the `Runtime`
+//  2. Get the last operation `State` from the `State` storage medium
 //
 // 3. Merge/Diff three states: desired state described in Spec, live state from `Runtime` and prior state from `State` storage medium, and return the diff result to the console
 package engine
