@@ -8,16 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 var (
-	TestChangeStepOpCreate   = NewChangeStep("id", types.Create, nil, nil)
-	TestChangeStepOpDelete   = NewChangeStep("id", types.Delete, nil, nil)
-	TestChangeStepOpUpdate   = NewChangeStep("id", types.Update, nil, nil)
-	TestChangeStepOpUnChange = NewChangeStep("id", types.UnChange, nil, nil)
+	TestChangeStepOpCreate   = NewChangeStep("id", Create, nil, nil)
+	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil)
+	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil)
+	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil)
 	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
@@ -30,27 +29,27 @@ var (
 func TestOpType_Ing(t *testing.T) {
 	tests := []struct {
 		name string
-		op   types.ActionType
+		op   ActionType
 		want string
 	}{
 		{
 			name: "t1",
-			op:   types.Create,
+			op:   Create,
 			want: "Creating",
 		},
 		{
 			name: "t2",
-			op:   types.Delete,
+			op:   Delete,
 			want: "Deleting",
 		},
 		{
 			name: "t3",
-			op:   types.Update,
+			op:   Update,
 			want: "Updating",
 		},
 		{
 			name: "t4",
-			op:   types.UnChange,
+			op:   UnChange,
 			want: "Unchanged",
 		},
 	}
@@ -66,28 +65,28 @@ func TestOpType_Ing(t *testing.T) {
 func TestOpType_PrettyString(t *testing.T) {
 	tests := []struct {
 		name string
-		op   types.ActionType
+		op   ActionType
 		want string
 	}{
 		{
 			name: "t1",
-			op:   types.Create,
-			want: pretty.Green(types.Create.Ing()),
+			op:   Create,
+			want: pretty.Green(Create.Ing()),
 		},
 		{
 			name: "t2",
-			op:   types.Delete,
-			want: pretty.Red(types.Delete.Ing()),
+			op:   Delete,
+			want: pretty.Red(Delete.Ing()),
 		},
 		{
 			name: "t3",
-			op:   types.Update,
-			want: pretty.Blue(types.Update.Ing()),
+			op:   Update,
+			want: pretty.Blue(Update.Ing()),
 		},
 		{
 			name: "t4",
-			op:   types.UnChange,
-			want: pretty.Gray(types.UnChange.Ing()),
+			op:   UnChange,
+			want: pretty.Gray(UnChange.Ing()),
 		},
 	}
 	for _, tt := range tests {
@@ -102,7 +101,7 @@ func TestOpType_PrettyString(t *testing.T) {
 func TestChangeStep_Diff(t *testing.T) {
 	type fields struct {
 		ID  string
-		Op  types.ActionType
+		Op  ActionType
 		Old interface{}
 		New interface{}
 	}
@@ -116,7 +115,7 @@ func TestChangeStep_Diff(t *testing.T) {
 			name: "t1",
 			fields: fields{
 				ID:  "id",
-				Op:  types.Create,
+				Op:  Create,
 				Old: nil,
 				New: nil,
 			},
@@ -472,7 +471,7 @@ func TestChanges_AllUnChange(t *testing.T) {
 			ChangeOrder: &ChangeOrder{
 				ChangeSteps: map[string]*ChangeStep{
 					"foo": {
-						Action: types.Update,
+						Action: Update,
 					},
 				},
 			},
@@ -486,7 +485,7 @@ func TestChanges_AllUnChange(t *testing.T) {
 			ChangeOrder: &ChangeOrder{
 				ChangeSteps: map[string]*ChangeStep{
 					"bar": {
-						Action: types.UnChange,
+						Action: UnChange,
 					},
 				},
 			},

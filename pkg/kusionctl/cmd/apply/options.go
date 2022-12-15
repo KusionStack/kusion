@@ -16,7 +16,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
@@ -246,7 +245,7 @@ func Apply(
 				switch msg.OpResult {
 				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == types.UnChange {
+					if changeStep.Action == opsmodels.UnChange {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
@@ -348,7 +347,7 @@ func Watch(o *ApplyOptions,
 	// Filter out unchanged resources
 	toBeWatched := models.Resources{}
 	for _, res := range planResources.Resources {
-		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != types.UnChange {
+		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChange {
 			toBeWatched = append(toBeWatched, res)
 		}
 	}
@@ -373,20 +372,20 @@ type lineSummary struct {
 	created, updated, deleted int
 }
 
-func (ls *lineSummary) Count(op types.ActionType) {
+func (ls *lineSummary) Count(op opsmodels.ActionType) {
 	switch op {
-	case types.Create:
+	case opsmodels.Create:
 		ls.created++
-	case types.Update:
+	case opsmodels.Update:
 		ls.updated++
-	case types.Delete:
+	case opsmodels.Delete:
 		ls.deleted++
 	}
 }
 
 func allUnChange(changes *opsmodels.Changes) bool {
 	for _, v := range changes.ChangeSteps {
-		if v.Action != types.UnChange {
+		if v.Action != opsmodels.UnChange {
 			return false
 		}
 	}

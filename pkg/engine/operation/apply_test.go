@@ -9,20 +9,16 @@ import (
 	"sync"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states/local"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"bou.ke/monkey"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -64,7 +60,7 @@ func Test_validateRequest(t *testing.T) {
 
 func TestOperation_Apply(t *testing.T) {
 	type fields struct {
-		OperationType           types.OperationType
+		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
 		CtxResourceIndex        map[string]*models.Resource
 		PriorStateResourceIndex map[string]*models.Resource
@@ -120,7 +116,7 @@ func TestOperation_Apply(t *testing.T) {
 		{
 			name: "apply test",
 			fields: fields{
-				OperationType: types.Apply,
+				OperationType: opsmodels.Apply,
 				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
 				Runtime:       &runtime.KubernetesRuntime{},
 				MsgCh:         make(chan opsmodels.Message, 5),

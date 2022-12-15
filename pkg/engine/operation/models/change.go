@@ -10,7 +10,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/diff"
@@ -18,10 +17,10 @@ import (
 )
 
 type ChangeStep struct {
-	ID     string           // the resource id
-	Action types.ActionType // the operation performed by this step.
-	From   interface{}      // old data
-	To     interface{}      // new data
+	ID     string      // the resource id
+	Action ActionType  // the operation performed by this step.
+	From   interface{} // old data
+	To     interface{} // new data
 }
 
 // Diff compares objects(from and to) which stores in ChangeStep,
@@ -46,12 +45,12 @@ func (cs *ChangeStep) Diff() (string, error) {
 		buf.WriteString(pretty.GreenBold("ID: "))
 		buf.WriteString(pretty.Green("%s\n", cs.ID))
 	}
-	if cs.Action != types.Undefined {
+	if cs.Action != Undefined {
 		buf.WriteString(pretty.GreenBold("Plan: "))
 		buf.WriteString(pterm.Sprintf("%s\n", cs.Action.PrettyString()))
 	}
 	buf.WriteString(pretty.GreenBold("Diff: "))
-	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == types.UnChange {
+	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChange {
 		buf.WriteString(pretty.Gray("<EMPTY>"))
 	} else {
 		buf.WriteString("\n" + strings.TrimSpace(reportString))
@@ -60,7 +59,7 @@ func (cs *ChangeStep) Diff() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChangeStep(id string, op types.ActionType, from, to interface{}) *ChangeStep {
+func NewChangeStep(id string, op ActionType, from, to interface{}) *ChangeStep {
 	return &ChangeStep{
 		ID:     id,
 		Action: op,
@@ -72,10 +71,10 @@ func NewChangeStep(id string, op types.ActionType, from, to interface{}) *Change
 type ChangeStepFilterFunc func(*ChangeStep) bool
 
 var (
-	CreateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Create }
-	UpdateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Update }
-	DeleteChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == types.Delete }
-	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == types.UnChange }
+	CreateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Create }
+	UpdateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Update }
+	DeleteChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Delete }
+	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == UnChange }
 )
 
 type Changes struct {
@@ -151,7 +150,7 @@ func (o *ChangeOrder) Diffs() string {
 
 func (p *Changes) AllUnChange() bool {
 	for _, v := range p.ChangeSteps {
-		if v.Action != types.UnChange {
+		if v.Action != UnChange {
 			return false
 		}
 	}

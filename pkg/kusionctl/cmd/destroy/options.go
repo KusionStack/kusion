@@ -14,7 +14,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
@@ -145,7 +144,7 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
-			OperationType: types.DestroyPreview,
+			OperationType: opsmodels.DestroyPreview,
 			Runtime:       runtime,
 			StateStorage:  stateStorage,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
@@ -212,7 +211,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 				switch msg.OpResult {
 				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == types.UnChange {
+					if changeStep.Action == opsmodels.UnChange {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),

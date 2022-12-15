@@ -3,17 +3,14 @@ package parser
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/third_party/terraform/dag"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type DeleteResourceParser struct {
@@ -52,7 +49,7 @@ func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	}
 
 	for key, resource := range resourceIndex {
-		rn, s := graph.NewResourceNode(key, resourceIndex[key], types.Delete)
+		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Delete)
 		if status.IsErr(s) {
 			return s
 		}
@@ -73,7 +70,7 @@ func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 
 		// always get the latest vertex in the g.
 		rn = GetVertex(g, rn).(*graph.ResourceNode)
-		s = LinkRefNodes(g, resource.DependsOn, resourceIndex, rn, types.Delete, manifestGraphMap)
+		s = LinkRefNodes(g, resource.DependsOn, resourceIndex, rn, opsmodels.Delete, manifestGraphMap)
 		if status.IsErr(s) {
 			return s
 		}

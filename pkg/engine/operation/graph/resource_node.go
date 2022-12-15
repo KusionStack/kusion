@@ -10,7 +10,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -21,7 +20,7 @@ import (
 
 type ResourceNode struct {
 	*baseNode
-	Action types.ActionType
+	Action opsmodels.ActionType
 	state  *models.Resource
 }
 
@@ -33,7 +32,7 @@ const (
 
 func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	log.Debugf("execute node:%s", rn.ID)
-	if operation.OperationType == types.Apply {
+	if operation.OperationType == opsmodels.Apply {
 		// replace implicit references
 		value := reflect.ValueOf(rn.state.Attributes)
 		_, implicitValue, s := ParseImplicitRef(value, operation.CtxResourceIndex, ImplicitReplaceFun)
@@ -45,7 +44,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 1. prepare planedState
 	planedState := rn.state
-	if rn.Action == types.Delete {
+	if rn.Action == opsmodels.Delete {
 		planedState = nil
 	}
 	// predictableState represents dry-run result
@@ -67,13 +66,13 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 4. compute ActionType of current resource node between planState and liveState
 	switch operation.OperationType {
-	case types.Destroy, types.DestroyPreview:
-		rn.Action = types.Delete
-	case types.Apply, types.ApplyPreview:
+	case opsmodels.Destroy, opsmodels.DestroyPreview:
+		rn.Action = opsmodels.Delete
+	case opsmodels.Apply, opsmodels.ApplyPreview:
 		if planedState == nil {
-			rn.Action = types.Delete
+			rn.Action = opsmodels.Delete
 		} else if priorState == nil && liveState == nil {
-			rn.Action = types.Create
+			rn.Action = opsmodels.Create
 		} else {
 			// Dry run to fetch predictable state
 			dryRunResp := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
@@ -96,9 +95,9 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 				return status.NewErrorStatus(err)
 			}
 			if len(report.Diffs) == 0 {
-				rn.Action = types.UnChange
+				rn.Action = opsmodels.UnChange
 			} else {
-				rn.Action = types.Update
+				rn.Action = opsmodels.Update
 			}
 		}
 	default:
@@ -107,9 +106,9 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 5. apply or return
 	switch operation.OperationType {
-	case types.ApplyPreview, types.DestroyPreview:
+	case opsmodels.ApplyPreview, opsmodels.DestroyPreview:
 		fillResponseChangeSteps(operation, rn, liveState, predictableState)
-	case types.Apply, types.Destroy:
+	case opsmodels.Apply, opsmodels.Destroy:
 		if s = rn.applyResource(operation, priorState, planedState); status.IsErr(s) {
 			return s
 		}
@@ -128,7 +127,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 	var s status.Status
 
 	switch rn.Action {
-	case types.Create, types.Update:
+	case opsmodels.Create, opsmodels.Update:
 		response := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: priorState, PlanResource: planedState})
 		res = response.Resource
 		s = response.Status
@@ -136,13 +135,13 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		if s != nil {
 			log.Debugf("apply status: %v", s.String())
 		}
-	case types.Delete:
+	case opsmodels.Delete:
 		response := operation.Runtime.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState})
 		s = response.Status
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())
 		}
-	case types.UnChange:
+	case opsmodels.UnChange:
 		log.Infof("planed resource not update live state")
 		res = priorState
 	}
@@ -167,7 +166,7 @@ func (rn *ResourceNode) State() *models.Resource {
 	return rn.state
 }
 
-func NewResourceNode(key string, state *models.Resource, action types.ActionType) (*ResourceNode, status.Status) {
+func NewResourceNode(key string, state *models.Resource, action opsmodels.ActionType) (*ResourceNode, status.Status) {
 	node, s := NewBaseNode(key)
 	if status.IsErr(s) {
 		return nil, s
