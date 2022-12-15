@@ -77,8 +77,7 @@ build-local-kusion-darwin:  ## Build kusionctl only for macOS
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
-		-ldflags="-s -w" \
-		./cmd/kusionctl
+		-ldflags="-s -w" .
 
 build-local-darwin:  ## Build kusion tool chain for macOS
 	# Delete old artifacts
@@ -92,8 +91,7 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
-		-ldflags="-s -w" \
-		./cmd/kusionctl
+		-ldflags="-s -w" .
 
 build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for macOS
 	# Install kclvm darwin
@@ -148,8 +146,7 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 	# Build kusion
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin-arm64/bin/kusion \
-		-ldflags="-s -w" \
-		./cmd/kusionctl
+		-ldflags="-s -w" .
 
 build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl tool chain for macOS arm64
 	# Install kclvm darwin
@@ -209,8 +206,7 @@ build-local-linux:  ## Build kusion tool chain for linux
 	# Build kusion
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-linux/bin/kusion \
-		-ldflags="-s -w" \
-		./cmd/kusionctl
+		-ldflags="-s -w" .
 
 build-local-linux-all:
 	@echo -e "$(CCRED)**** The use of build-local-linux-alle is deprecated. Use build-local-ubuntu-all or build-local-centos-all instead. ****$(CCEND)"
@@ -317,8 +313,7 @@ build-local-windows:  ## Build kusion tool chain for windows
 	# Build kusion
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-windows/bin/kusion.exe \
-		-ldflags="-s -w" \
-		./cmd/kusionctl
+		-ldflags="-s -w" .
 
 build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain for windows
 	# Install kclvm windows
