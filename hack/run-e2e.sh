@@ -11,7 +11,7 @@ set -o pipefail
 GO111MODULE=on go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
 
 # Build kusion binary
-go build -o bin/kusion ./cmd/kusionctl/kusionctl.go
+go build -o bin/kusion .
 
 
 # Run e2e
