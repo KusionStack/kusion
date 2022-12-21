@@ -5,7 +5,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
@@ -15,7 +15,7 @@ type Parser interface {
 }
 
 func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
-	rn dag.Vertex, defaultAction types.ActionType, manifestGraphMap map[string]interface{},
+	rn dag.Vertex, defaultAction opsmodels.ActionType, manifestGraphMap map[string]interface{},
 ) status.Status {
 	if len(refNodeKeys) == 0 {
 		return nil
@@ -35,7 +35,7 @@ func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[
 		}
 
 		switch defaultAction {
-		case types.Delete:
+		case opsmodels.Delete:
 			// if the parent node is a deleteNode, we will add an edge from child node to parent node.
 			// if parent node is not a deleteNode and manifestGraph contains parent node,
 			// we will add an edge from parent node to child node

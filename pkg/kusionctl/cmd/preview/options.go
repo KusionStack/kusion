@@ -11,7 +11,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
@@ -167,7 +166,7 @@ func Preview(
 	// Construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
-			OperationType: types.ApplyPreview,
+			OperationType: opsmodels.ApplyPreview,
 			Runtime:       runtime,
 			StateStorage:  storage,
 			IgnoreFields:  o.IgnoreFields,

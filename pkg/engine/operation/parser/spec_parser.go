@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"reflect"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/third_party/terraform/dag"
-
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type SpecParser struct {
@@ -39,7 +37,7 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(root, fmt.Sprintf("No root in this DAG:%s", json.Marshal2String(g)))
 	resourceIndex := sp.Resources.Index()
 	for key, resourceState := range resourceIndex {
-		rn, s := graph.NewResourceNode(key, resourceIndex[key], types.Update)
+		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Update)
 		if status.IsErr(s) {
 			return s
 		}
@@ -70,7 +68,7 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 		refNodeKeys = Deduplicate(refNodeKeys)
 
 		// linkRefNodes
-		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, types.Update, nil)
+		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Update, nil)
 		if status.IsErr(s) {
 			return s
 		}

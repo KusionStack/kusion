@@ -1,4 +1,4 @@
-package types
+package models
 
 type OperationType int64
 

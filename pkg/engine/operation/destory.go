@@ -5,19 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/third_party/terraform/dag"
-	"kusionstack.io/kusion/third_party/terraform/tfdiags"
-
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-
-	"kusionstack.io/kusion/pkg/engine/operation/parser"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 type DestroyOperation struct {
@@ -79,7 +74,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 
 	newDo := &DestroyOperation{
 		Operation: opsmodels.Operation{
-			OperationType:           types.Destroy,
+			OperationType:           opsmodels.Destroy,
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,

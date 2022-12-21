@@ -7,7 +7,6 @@ import (
 	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
@@ -18,7 +17,7 @@ import (
 // Operation is the base model for all operations
 type Operation struct {
 	// OperationType represents the OperationType of this operation
-	OperationType types.OperationType
+	OperationType OperationType
 
 	// StateStorage represents the storage where state will be saved during this operation
 	StateStorage states.StateStorage
@@ -77,15 +76,15 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType types.ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType ActionType) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
 	switch actionType {
-	case types.Delete:
+	case Delete:
 		o.CtxResourceIndex[resourceKey] = nil
 		o.StateResourceIndex[resourceKey] = nil
-	case types.Create, types.Update, types.UnChange:
+	case Create, Update, UnChange:
 		o.CtxResourceIndex[resourceKey] = resource
 		o.StateResourceIndex[resourceKey] = resource
 	default:

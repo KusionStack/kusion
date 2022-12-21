@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/third_party/terraform/dag"
-
-	"kusionstack.io/kusion/pkg/engine/models"
 )
 
 func TestDeleteResourceParser_Parse(t *testing.T) {

@@ -5,18 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/third_party/terraform/dag"
-	"kusionstack.io/kusion/third_party/terraform/tfdiags"
-
-	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
-
 	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/third_party/terraform/dag"
+	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 type PreviewOperation struct {
@@ -65,10 +61,10 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	priorState, resultState = po.InitStates(&request.Request)
 
 	switch o.OperationType {
-	case types.ApplyPreview:
+	case opsmodels.ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
 		ag, s = NewApplyGraph(request.Spec, priorState)
-	case types.DestroyPreview:
+	case opsmodels.DestroyPreview:
 		resources := request.Request.Spec.Resources
 		priorStateResourceIndex = resources.Index()
 		ag, s = NewDestroyGraph(resources)

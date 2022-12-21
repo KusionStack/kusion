@@ -14,7 +14,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
@@ -25,7 +24,7 @@ import (
 func TestResourceNode_Execute(t *testing.T) {
 	type fields struct {
 		BaseNode baseNode
-		Action   types.ActionType
+		Action   opsmodels.ActionType
 		state    *models.Resource
 	}
 	type args struct {
@@ -100,11 +99,11 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "update",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   types.Update,
+				Action:   opsmodels.Update,
 				state:    newResourceState,
 			},
 			args: args{operation: opsmodels.Operation{
-				OperationType:           types.Apply,
+				OperationType:           opsmodels.Apply,
 				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
@@ -121,11 +120,11 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "delete",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   types.Delete,
+				Action:   opsmodels.Delete,
 				state:    newResourceState,
 			},
 			args: args{operation: opsmodels.Operation{
-				OperationType:           types.Apply,
+				OperationType:           opsmodels.Apply,
 				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
@@ -141,11 +140,11 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "illegalRef",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   types.Update,
+				Action:   opsmodels.Update,
 				state:    illegalResourceState,
 			},
 			args: args{operation: opsmodels.Operation{
-				OperationType:           types.Apply,
+				OperationType:           opsmodels.Apply,
 				StateStorage:            local.NewFileSystemState(),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,

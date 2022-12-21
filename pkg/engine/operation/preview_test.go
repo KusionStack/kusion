@@ -9,7 +9,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
@@ -78,7 +77,7 @@ func (f *fakePreviewRuntime) Watch(ctx context.Context, request *runtime.WatchRe
 func TestOperation_Preview(t *testing.T) {
 	defer os.Remove("kusion_state.json")
 	type fields struct {
-		OperationType           types.OperationType
+		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
 		CtxResourceIndex        map[string]*models.Resource
 		PriorStateResourceIndex map[string]*models.Resource
@@ -102,7 +101,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-apply",
 			fields: fields{
-				OperationType: types.ApplyPreview,
+				OperationType: opsmodels.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
@@ -128,7 +127,7 @@ func TestOperation_Preview(t *testing.T) {
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id": {
 							ID:     "fake-id",
-							Action: types.Create,
+							Action: opsmodels.Create,
 							From:   (*models.Resource)(nil),
 							To:     &FakeResourceState,
 						},
@@ -140,7 +139,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				OperationType: types.DestroyPreview,
+				OperationType: opsmodels.DestroyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
@@ -166,7 +165,7 @@ func TestOperation_Preview(t *testing.T) {
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						"fake-id-2": {
 							ID:     "fake-id-2",
-							Action: types.Delete,
+							Action: opsmodels.Delete,
 							From:   &FakeResourceState2,
 							To:     (*models.Resource)(nil),
 						},
@@ -178,7 +177,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-empty-models",
 			fields: fields{
-				OperationType: types.ApplyPreview,
+				OperationType: opsmodels.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
@@ -196,7 +195,7 @@ func TestOperation_Preview(t *testing.T) {
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				OperationType: types.ApplyPreview,
+				OperationType: opsmodels.ApplyPreview,
 				Runtime:       &fakePreviewRuntime{},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},

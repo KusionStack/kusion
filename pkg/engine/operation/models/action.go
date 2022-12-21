@@ -1,4 +1,4 @@
-package types
+package models
 
 import "kusionstack.io/kusion/pkg/util/pretty"
 

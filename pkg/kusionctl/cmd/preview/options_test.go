@@ -17,7 +17,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/operation/types"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -146,17 +145,17 @@ func mockOperationPreview() {
 					ChangeSteps: map[string]*opsmodels.ChangeStep{
 						sa1.ID: {
 							ID:     sa1.ID,
-							Action: types.Create,
+							Action: opsmodels.Create,
 							From:   &sa1,
 						},
 						sa2.ID: {
 							ID:     sa2.ID,
-							Action: types.UnChange,
+							Action: opsmodels.UnChange,
 							From:   &sa2,
 						},
 						sa3.ID: {
 							ID:     sa3.ID,
-							Action: types.Undefined,
+							Action: opsmodels.Undefined,
 							From:   &sa1,
 						},
 					},
