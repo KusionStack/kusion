@@ -77,8 +77,8 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 
 	return &runtime.ApplyResponse{
 		Resource: &models.Resource{
-			ID:         r.ID,
-			Type:       r.Type,
+			ID:         planState.ID,
+			Type:       planState.Type,
 			Attributes: r.Attributes,
 			DependsOn:  planState.DependsOn,
 			Extensions: planState.Extensions,
@@ -124,8 +124,8 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 	return &runtime.ReadResponse{
 		Resource: &models.Resource{
-			ID:         r.ID,
-			Type:       r.Type,
+			ID:         planState.ID,
+			Type:       planState.Type,
 			Attributes: r.Attributes,
 			DependsOn:  planState.DependsOn,
 			Extensions: planState.Extensions,
