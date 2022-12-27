@@ -25,7 +25,7 @@ Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsin
 
 - **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
 - **Team cooperation**: App Dev, SRE and Platform Dev cooperate efficiently in this codify platform 
-- **Hybrid Runtime**: Orchestrate hybrid runtime resources like Terraform and Kubernetes in an unified way
+- **Hybrid Runtime**: Orchestrate hybrid runtime resources like Terraform and Kubernetes in a unified way
 - **Vendor Agnostic**: Write once, render dynamically, deliver to any cloud
 
 <div align="center">
