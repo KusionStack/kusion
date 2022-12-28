@@ -94,8 +94,11 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 		return
 	}
 
-	if len(o.Settings) == 0 && o.Output == "" && len(o.Filenames) == 0 {
+	if len(o.Settings) == 0 {
 		o.Settings = []string{filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile), projectstack.KclFile}
+	}
+
+	if o.Output == "" {
 		o.Output = filepath.Join(projectstack.CiTestDir, projectstack.StdoutGoldenFile)
 	}
 }
