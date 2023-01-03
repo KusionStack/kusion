@@ -11,6 +11,7 @@ set -o pipefail
 GO111MODULE=on go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
 
 # Build kusion binary
+go generate ./pkg/version
 go build -o bin/kusion .
 
 
