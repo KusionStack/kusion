@@ -22,7 +22,7 @@ builds:
     # ignore:
     #   - goos: windows
     #     goarch: arm64
-    main: ./cmd/kusionctl
+    main: .
 archives:
   - replacements:
       darwin: Darwin
@@ -101,8 +101,8 @@ brews:
 
     folder: HomebrewFormula
     homepage: "https://github.com/KusionStack/kusion"
-    description: ""
+    description: "Codify and deliver intentions to Kubernetes and Clouds"
     license: "Apache License"
     skip_upload: false
     test: |
-      system "#{bin}/kusion -V"
+      system "#{bin}/kusion version"
