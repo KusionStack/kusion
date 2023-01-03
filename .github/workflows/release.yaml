@@ -115,3 +115,11 @@ jobs:
             * [kclvm-go](https://github.com/KusionStack/kclvm-go): `${{ steps.get_version.outputs.kclvmgo_version }}`
             * [kcl-plugin](https://github.com/KusionStack/kcl-plugin): `${{ steps.get_version.outputs.kclplugin_version }}`
       # <--- End --->
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
