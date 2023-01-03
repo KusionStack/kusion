@@ -105,7 +105,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           generate_release_notes: true
-          files: ./_build/bundles/*.tgz*
+          files: |
+            ./_build/bundles/*.tgz*
+            ./_build/bundles/*.zip*
           append_body: true
           body: |
             ## Docker Images

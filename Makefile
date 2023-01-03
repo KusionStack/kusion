@@ -66,7 +66,7 @@ clean:  ## Clean build bundles
 	-rm -rf ./_build/bundles
 
 # todo: fix macOS-arm64 and windows build
-build-all: build-local-darwin-all build-local-ubuntu-all build-local-centos-all build-local-darwin-arm64-all ## build-local-windows-all ## Build all platforms (darwin, linux, windows)
+build-all: build-local-darwin-all build-local-ubuntu-all build-local-centos-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-kusion-darwin:  ## Build kusionctl only for macOS
 	# Delete old artifacts
