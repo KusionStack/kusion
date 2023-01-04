@@ -1,8 +1,7 @@
 SHELL = /bin/bash
 PWD:=$(shell pwd)
 
-# todo
-KCLVM_BUILDER:=reg.docker.kusionstack.io.com/kusion/kclvm-builder
+KCLVM_BUILDER:=kusionstack/kclvm-builder
 
 RUN_IN_DOCKER:=docker run -it --rm
 RUN_IN_DOCKER+=-v ~/.ssh:/root/.ssh
@@ -65,64 +64,23 @@ clean:  ## Clean build bundles
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles
 
-# todo: fix macOS-arm64 and windows build
 build-all: build-local-darwin-all build-local-ubuntu-all build-local-centos-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
-
-build-local-kusion-darwin:  ## Build kusionctl only for macOS
-	# Delete old artifacts
-	-rm -f ./pkg/version/z_update_version.go
-	-rm -rf ./_build/bundles/kusion-darwin/bin/kusion
-	# Update version
-	go generate ./pkg/version
-	# Build kusion
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
-		-ldflags="-s -w" .
 
 build-local-darwin:  ## Build kusion tool chain for macOS
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-darwin
-	mkdir -p ./_build/bundles/kusion-darwin/bin
-	mkdir -p ./_build/bundles/kusion-darwin/kclvm/bin
 	# Update version
 	go generate ./pkg/version
-
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
 		-ldflags="-s -w" .
 
 build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for macOS
-	# Install kclvm darwin
-	go run ./scripts/install-kclvm \
-		--triple=Darwin \
-		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
-		--outdir=./_build/bundles/kusion-darwin/kclvm
-
-	# Build kcl-go
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin/kclvm/bin/kcl-go \
-		./scripts/install-kcl-go
-
 	# Build kcl-openapi
 	cd ./scripts/install-kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
-
-	# chmod +x
-	-chmod +x ./_build/bundles/kusion-darwin/bin/kusion
-	-chmod +x ./_build/bundles/kusion-darwin/bin/kcl-openapi
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvm
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-plugin
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-doc
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-test
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-lint
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-fmt
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-vet
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/bin/kclvm_cli
-	-chmod +x ./_build/bundles/kusion-darwin/kclvm/tools/clang/bin/clang
 
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-darwin/docs
@@ -149,35 +107,9 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 		-ldflags="-s -w" .
 
 build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl tool chain for macOS arm64
-	# Install kclvm darwin
-	go run ./scripts/install-kclvm \
-		--triple=Darwin-arm64 \
-		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
-		--outdir=./_build/bundles/kusion-darwin-arm64/kclvm
-
-	# Build kcl-go
-	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-go \
-		./scripts/install-kcl-go
-
 	# Build kcl-openapi
 	cd ./scripts/install-kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
-
-	# chmod +x
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kusion
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvm
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-plugin
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-doc
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-test
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-lint
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-fmt
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-vet
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/bin/kclvm_cli
-	-chmod +x ./_build/bundles/kusion-darwin-arm64/kclvm/tools/clang/bin/clang
 
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-darwin-arm64/docs
@@ -208,97 +140,23 @@ build-local-linux:  ## Build kusion tool chain for linux
 		go build -o ./_build/bundles/kusion-linux/bin/kusion \
 		-ldflags="-s -w" .
 
-build-local-linux-all:
-	@echo -e "$(CCRED)**** The use of build-local-linux-alle is deprecated. Use build-local-ubuntu-all or build-local-centos-all instead. ****$(CCEND)"
-	$(MAKE) build-local-ubuntu-all
-
-build-local-ubuntu-all: build-local-linux  ## Build kusion & kcl tool chain for ubuntu
-	# Install kclvm ubuntu
-	go run ./scripts/install-kclvm \
-		--triple=ubuntu \
-		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
-		--outdir=./_build/bundles/kusion-ubuntu/kclvm
-
-	# Build kcl-go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-ubuntu/kclvm/bin/kcl-go \
-		./scripts/install-kcl-go
-
+build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for linux
 	# Build kcl-openapi
 	cd ./scripts/install-kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-ubuntu/bin/kcl-openapi
-
-	# chmod +x
-	-chmod +x ./_build/bundles/kusion-linux/bin/kusion
-	-chmod +x ./_build/bundles/kusion-ubuntu/bin/kcl-openapi
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kclvm
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-plugin
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-doc
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-test
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-lint
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-fmt
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-vet
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-ubuntu/kclvm/bin/kclvm_cli
-	# linux use native clang and need not chmod
+		go build -o ${PWD}/_build/bundles/kusion-linux/bin/kcl-openapi
 
 	# Copy docs
-	cp -r ./docs ./_build/bundles/kusion-ubuntu/docs
+	cp -r ./docs ./_build/bundles/kusion-linux/docs
 
 	# Copy README.md
-	cp ./README.md ./_build/bundles/kusion-ubuntu
+	cp ./README.md ./_build/bundles/kusion-linux
 
 	# Copy kusion
-	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-ubuntu
+	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-linux
 
 	# Build tgz
-	cd ./_build/bundles/kusion-ubuntu && tar -zcvf ../kusion-ubuntu.tgz  .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-ubuntu.tgz > kusion-ubuntu.tgz.md5.txt
-
-build-local-centos-all: build-local-linux  ## Build kusion & kcl tool chain for linux
-	# Install kclvm linux
-	go run ./scripts/install-kclvm \
-		--triple=centos \
-		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
-		--outdir=./_build/bundles/kusion-centos/kclvm
-
-	# Build kcl-go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-centos/kclvm/bin/kcl-go \
-		./scripts/install-kcl-go
-
-	# Build kcl-openapi
-	cd ./scripts/install-kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-centos/bin/kcl-openapi
-
-	# chmod +x
-	-chmod +x ./_build/bundles/kusion-linux/bin/kusion
-	-chmod +x ./_build/bundles/kusion-centos/bin/kcl-openapi
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kclvm
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-plugin
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-doc
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-test
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-lint
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-fmt
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-vet
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kcl-go
-	-chmod +x ./_build/bundles/kusion-centos/kclvm/bin/kclvm_cli
-	# linux use native clang and need not chmod
-
-	# Copy docs
-	cp -r ./docs ./_build/bundles/kusion-centos/docs
-
-	# Copy README.md
-	cp ./README.md ./_build/bundles/kusion-centos
-
-	# Copy kusion
-	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-centos
-
-	# Build tgz
-	cd ./_build/bundles/kusion-centos && tar -zcvf ../kusion-centos.tgz  .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-centos.tgz > kusion-centos.tgz.md5.txt
+	cd ./_build/bundles/kusion-linux && tar -zcvf ../kusion-linux.tgz  .
+	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-linux.tgz > kusion-linux.tgz.md5.txt
 
 build-local-windows:  ## Build kusion tool chain for windows
 	# Delete old artifacts
@@ -316,20 +174,9 @@ build-local-windows:  ## Build kusion tool chain for windows
 		-ldflags="-s -w" .
 
 build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain for windows
-	# Install kclvm windows
-	go run ./scripts/install-kclvm \
-		--triple=windows \
-		--mirrors=${KCLVM_URL_BASE_MIRRORS} \
-		--outdir=./_build/bundles/kusion-windows/kclvm
-
-	# Build kcl-go
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-windows/kclvm/kcl-go \
-		./scripts/install-kcl-go
-
 	# Build kcl-openapi
 	cd ./scripts/install-kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-windows/kcl-openapi
+		go build -o ${PWD}/_build/bundles/kusion-windows/kcl-openapi.exe
 
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-windows/docs
