@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/afero"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -148,6 +149,11 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 
 // Apply with the terraform cli apply command
 func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
+	err := w.CleanAndInitWorkspace(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := exec.CommandContext(ctx, "terraform", "apply", "-auto-approve", "-json", "-lock=false")
 	cmd.Dir = w.dir
 	out, err := cmd.CombinedOutput()
@@ -186,6 +192,10 @@ func (w *WorkSpace) Read(ctx context.Context) (*TFState, error) {
 
 // Refresh Sync Terraform State
 func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
+	err := w.CleanAndInitWorkspace(ctx)
+	if err != nil {
+		return nil, err
+	}
 	cmd := exec.CommandContext(ctx, "terraform", "apply", "-auto-approve", "-json", "--refresh-only", "-lock=false")
 	cmd.Dir = w.dir
 	out, err := cmd.CombinedOutput()
@@ -250,4 +260,44 @@ func (w *WorkSpace) GetProvider() (string, error) {
 
 	providerAddr := fmt.Sprintf("%s/%s", rawAddr, rawVersion)
 	return providerAddr, nil
+}
+
+// CleanAndInitWorkspace will clean up the provider cache and reinitialize the workspace
+// when the provider version or hash is updated.
+func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context) error {
+	isHashUpdate := w.checkHashUpdate(ctx)
+	isVersionUpdate, err := w.checkVersionUpdate(ctx)
+	if err != nil {
+		return fmt.Errorf("check provider version failed: %v", err)
+	}
+
+	// If the provider hash or version changes, delete the tf cache and reinitialize.
+	if isHashUpdate || isVersionUpdate {
+		log.Info("provider hash or version change.")
+		os.Remove(filepath.Join(w.dir, ".terraform.lock.hcl"))
+		os.Remove(filepath.Join(w.dir, ".terraform"))
+		err := w.InitWorkSpace(ctx)
+		if err != nil {
+			return fmt.Errorf("init terraform workspace failed: %v", err)
+		}
+	}
+	return nil
+}
+
+// checkHashUpdate checks whether the provider hash has changed, and returns true if changed
+func (w *WorkSpace) checkHashUpdate(ctx context.Context) bool {
+	cmd := exec.CommandContext(ctx, "terraform", "providers", "lock")
+	cmd.Dir = w.dir
+	output, _ := cmd.Output()
+
+	return strings.Contains(string(output), "Terraform has updated the lock file")
+}
+
+// checkVersionUpdate checks whether the provider version has changed, and returns true if changed
+func (w *WorkSpace) checkVersionUpdate(ctx context.Context) (bool, error) {
+	providerAddr, err := w.GetProvider()
+	if err != nil {
+		return false, fmt.Errorf("provider get version failed: %v", err)
+	}
+	return providerAddr != w.resource.Extensions["provider"].(string), nil
 }
