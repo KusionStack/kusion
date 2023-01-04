@@ -17,13 +17,20 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 const (
-	HCLMAINFILE = "main.tf.json"
-	HCLLOCKFILE = ".terraform.hcl.lock"
-	TFSTATEFILE = "terraform.tfstate"
+	HCLMAINFILE      = "main.tf.json"
+	HCLLOCKFILE      = ".terraform.hcl.lock"
+	TFSTATEFILE      = "terraform.tfstate"
+	envLog           = "TF_LOG"
+	tfDebugLOG       = "DEBUG"
+	envLogFile       = "TF_LOG_PATH"
+	tfProviderPrefix = "terraform-provider"
 )
+
+var envTFLog = fmt.Sprintf("%s=%s", envLog, tfDebugLOG)
 
 type WorkSpace struct {
 	resource   *models.Resource
@@ -143,6 +150,7 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "init")
 	cmd.Dir = w.stackDir
+	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
 	_, err := cmd.Output()
 	if e, ok := err.(*exec.ExitError); ok {
 		return errors.New(string(e.Stderr))
@@ -160,6 +168,7 @@ func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
 
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json", "-lock=false")
 	cmd.Dir = w.stackDir
+	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, TFError(out)
@@ -204,6 +213,7 @@ func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
 	}
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json", "--refresh-only", "-lock=false")
 	cmd.Dir = w.stackDir
+	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, TFError(out)
@@ -220,6 +230,7 @@ func (w *WorkSpace) Destroy(ctx context.Context) error {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "destroy", "-auto-approve")
 	cmd.Dir = w.stackDir
+	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return TFError(out)
@@ -295,6 +306,7 @@ func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) err
 func (w *WorkSpace) checkHashUpdate(ctx context.Context, chdir string) bool {
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "providers", "lock")
 	cmd.Dir = w.stackDir
+	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
 	output, _ := cmd.Output()
 	return strings.Contains(string(output), "Terraform has updated the lock file")
 }
@@ -306,4 +318,17 @@ func (w *WorkSpace) checkVersionUpdate(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("provider get version failed: %v", err)
 	}
 	return providerAddr != w.resource.Extensions["provider"].(string), nil
+}
+
+// getProviderLogPath returns the provider log path environmental variable,
+// the environmental variables that determine the provider log go to a file.
+func (w *WorkSpace) getEnvProviderLogPath() string {
+	kusionDataDir, _ := kfile.KusionDataFolder()
+	if v := os.Getenv("LOG_DIR"); v != "" {
+		kusionDataDir = v
+	}
+	provider := strings.Split(w.resource.Extensions["provider"].(string), "/")
+	providerLogPath := filepath.Join(kusionDataDir, "logs", fmt.Sprintf("%s-%s.log", tfProviderPrefix, provider[len(provider)-2]))
+	envTFLogPath := fmt.Sprintf("%s=%s", envLogFile, providerLogPath)
+	return envTFLogPath
 }
