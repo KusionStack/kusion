@@ -61,55 +61,21 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.18
-      # <--- Build and Package --->
-      - name: Pack kusion release packages for multiple platforms
-        env:
-          GO111MODULE: on
-        run: make build-all
       # <--- Get version informations --->
       - name: Get version
         id: get_version
         run: |
-          echo "::set-output name=kusion_version::$(./_build/bundles/kusion-linux/bin/kusion version -s | cut -d ';' -f 1)"
-          echo "::set-output name=kclvmgo_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclvmgoVersion | cut -d ':' -f 2 | awk '$1=$1')"
-          echo "::set-output name=kclplugin_version::$(./_build/bundles/kusion-linux/bin/kusion version -y | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')"
+          go generate ./pkg/version > version.txt
+          echo "kusion_version=$(cat version.txt | grep releaseVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
+          echo "kclvmgo_version=$(cat version.txt | grep kclvmgoVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
+          echo "kclplugin_version=$(cat version.txt | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
+          rm version.txt
       # <--- Login, build and push image to Docker Hub --->
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # <--- build and push kusion image to Dockerhub --->
-      - name: Build and push kusion image to Docker Hub
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: kusionstack/kusion:latest,kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}
-      # <--- build and push kusionctl image to Dockerhub --->
-      - name: Build and push kusionctl image to Docker Hub
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile_kusionctl
-          push: true
-          tags: kusionstack/kusionctl:latest,kusionstack/kusionctl:${{ steps.get_version.outputs.kusion_version }}
-      # <--- Push kusion big packages for multiple platforms to Github Release --->
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          files: |
-            ./_build/bundles/*.tgz*
-            ./_build/bundles/*.zip*
-          append_body: true
-          body: |
-            ## Docker Images
-            * `kusionstack/kusion:${{ steps.get_version.outputs.kusion_version }}`
-
-            ## Dependent version
-            * [kclvm-go](https://github.com/KusionStack/kclvm-go): `${{ steps.get_version.outputs.kclvmgo_version }}`
-            * [kcl-plugin](https://github.com/KusionStack/kcl-plugin): `${{ steps.get_version.outputs.kclplugin_version }}`
       # <--- End --->
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
@@ -119,3 +85,6 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
+          KUSION_VERSION: ${{ steps.get_version.outputs.kusion_version }}
+          KCLVM_GO_VERSION: ${{ steps.get_version.outputs.kclvmgo_version }}
+          KCL_PLUGIN_VERSION: ${{ steps.get_version.outputs.kclplugin_version }}

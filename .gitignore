@@ -53,3 +53,6 @@ _python37_home_/
 __debug_bin
 .vscode/
 zz_*
+
+# version
+*z_update_version.go
