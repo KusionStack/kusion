@@ -36,40 +36,34 @@ Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsin
 ## Quick Start
 Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecase) to deliver an App with one Kusion command
 
-![apply](https://kusionstack.io/assets/images/apply-30acfe738fbda046d76f2996b2bf51b5.gif)
+![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
 
 ## Installation
 
-### Kusionup
+### One-click Installation
 
-You can install multiple versions of `kusion` with `kusionup`, and the latest version is installed by default.
-#### Install Kusionup
-```
-# Homebrew
-brew install KusionStack/tap/kusionup
-```
-```
-# cURL
-curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/install.sh | bash
-```
-#### Install Kusion
-```
-# visit https://github.com/KusionStack/kusionup for more details
-kusionup install
+**MacOS & Linux**
+
+```shell
+brew install KusionStack/tap/kusion
 ```
 
-### Binary
+**Go Env**
 
-Download the latest release for your OS/Arch from the [release page](https://github.com/KusionStack/kusion/releases) and put the binary somewhere convenient.
+```shell
+go install github.com/KusionStack/kusion@latest
+```
 
-### Docker
+### No Installation
 
-Docker users can use the following commands to pull the latest image of the `kusion`:
+Kusion does not yet support all operating systems and architectures, Docker users can use the image to get started quickly:
 
 ```
 docker pull kusionstack/kusion:latest
 ```
+
+> For more information about installation, please check the [Installation Guide](https://kusionstack.io/docs/user_docs/getting-started/install) on KusionStack official website
 
 ## Deploy your first App
 Deploy your first App with one Kusion command. Please visit this [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase) for more details

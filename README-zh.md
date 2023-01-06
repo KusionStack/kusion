@@ -36,42 +36,38 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的引擎，用于解�
 
 参考 [快速开始](https://kusionstack.io/docs/user_docs/getting-started/usecase) 通过一条 Kusion 命令拉起一个应用
 
-![apply](https://kusionstack.io/assets/images/apply-30acfe738fbda046d76f2996b2bf51b5.gif)
+![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
 
 
 ## 安装
 
-### Kusinoup
+### 一键安装
 
-你可以通过 `kusionup` 安装多个 `kusion` 版本，默认会安装最新版。
+**MacOS & Linux**
 
-#### 安装 Kusionup
+```shell
+brew install KusionStack/tap/kusion
 ```
-# Homebrew
-brew install KusionStack/tap/kusionup
-```
-```
-# cURL
-curl -sSf https://raw.githubusercontent.com/KusionStack/kusionup/main/scripts/install.sh | bash
-```
-#### 安装 Kusion
-```
-# visit https://github.com/KusionStack/kusionup for more details
-kusionup install
-```
-### Docker
 
-Docker 用户可以用以下命令拉取 `kusion` 的镜像：
+**Go Env**
 
+```shell
+go install github.com/KusionStack/kusion@latest
 ```
+
+### 免安装
+
+Kusion 尚未支持所有操作系统和架构，Docker 用户可以使用镜像快速开始：
+
+```shell
 docker pull kusionstack/kusion:latest
 ```
-### 二进制安装
 
-从二进制安装，只需从 `kusion` 的 [发布页面](https://github.com/KusionStack/kusion/releases) 下载对应平台的二进制文件，然后将二进制文件放在命令行能访问到的目录中即可。
+> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://kusionstack.io/docs/user_docs/getting-started/install)。
 
 ## 部署第一个应用
+
 一键部署你的一个应用，详情请参考 [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase)
 
 # 🎖︎ 贡献指南
