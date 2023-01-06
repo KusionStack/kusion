@@ -3,7 +3,7 @@ COPY / /src
 WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg --mount=type=cache,target=/root/.cache/go-build make build-local-linux
 
-FROM ubuntu:20.04 AS base
+FROM ubuntu:22.04 AS base
 # Install KCL Dependencies
 RUN apt-get update -y && apt-get install python3 python3-pip -y
 # KCL PATH
