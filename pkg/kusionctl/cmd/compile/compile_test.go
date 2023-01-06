@@ -34,6 +34,9 @@ func TestNewCmdCompile(t *testing.T) {
 				}, nil
 			},
 		)
+		monkey.Patch((*CompileOptions).Complete, func(o *CompileOptions, args []string) {
+			o.Output = "stdout"
+		})
 		defer monkey.UnpatchAll()
 
 		cmd := NewCmdCompile()

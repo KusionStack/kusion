@@ -25,6 +25,8 @@ type CompileFlags struct {
 	OverrideAST bool
 }
 
+const Stdout = "stdout"
+
 func NewCompileOptions() *CompileOptions {
 	return &CompileOptions{
 		Filenames: []string{},
@@ -68,7 +70,7 @@ func (o *CompileOptions) Run() error {
 
 		// Output
 		yaml := compileResult.RawYAML()
-		if o.Output == "" {
+		if o.Output == Stdout {
 			fmt.Print(yaml)
 		} else {
 			if o.WorkDir != "" {
