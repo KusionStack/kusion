@@ -55,7 +55,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	priorState := operation.PriorStateResourceIndex[key]
 
 	// 3. get the latest resource from runtime
-	readRequest := &runtime.ReadRequest{PlanResource: planedState, PriorResource: priorState}
+	readRequest := &runtime.ReadRequest{PlanResource: planedState, PriorResource: priorState, Stack: operation.Stack}
 
 	response := operation.Runtime.Read(context.Background(), readRequest)
 	liveState := response.Resource
@@ -78,6 +78,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 			dryRunResp := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
 				PriorResource: priorState,
 				PlanResource:  planedState,
+				Stack:         operation.Stack,
 				DryRun:        true,
 			})
 			if status.IsErr(dryRunResp.Status) {
@@ -128,7 +129,9 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 
 	switch rn.Action {
 	case opsmodels.Create, opsmodels.Update:
-		response := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: priorState, PlanResource: planedState})
+		response := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
+			PriorResource: priorState, PlanResource: planedState, Stack: operation.Stack,
+		})
 		res = response.Resource
 		s = response.Status
 		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonutil.Marshal2String(res))
@@ -136,7 +139,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 			log.Debugf("apply status: %v", s.String())
 		}
 	case opsmodels.Delete:
-		response := operation.Runtime.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState})
+		response := operation.Runtime.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())

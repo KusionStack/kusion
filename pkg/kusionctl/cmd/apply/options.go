@@ -205,6 +205,7 @@ func Apply(
 	ac := &operation.ApplyOperation{
 		Operation: opsmodels.Operation{
 			Runtime:      runtime,
+			Stack:        changes.Stack(),
 			StateStorage: storage,
 			MsgCh:        make(chan opsmodels.Message),
 		},
@@ -295,8 +296,8 @@ func Apply(
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
-				Project:  changes.Project().Name,
-				Stack:    changes.Stack().Name,
+				Project:  changes.Project(),
+				Stack:    changes.Stack(),
 				Cluster:  cluster,
 				Operator: o.Operator,
 				Spec:     planResources,
@@ -356,8 +357,8 @@ func Watch(o *ApplyOptions,
 	wo := &operation.WatchOperation{Runtime: r}
 	if err := wo.Watch(&operation.WatchRequest{
 		Request: opsmodels.Request{
-			Project: changes.Project().Name,
-			Stack:   changes.Stack().Name,
+			Project: changes.Project(),
+			Stack:   changes.Stack(),
 			Spec:    &models.Spec{Resources: toBeWatched},
 		},
 	}); err != nil {

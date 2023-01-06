@@ -95,6 +95,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			Runtime:                 o.Runtime,
+			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},

@@ -80,6 +80,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
 			Runtime:                 o.Runtime,
+			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},

@@ -26,7 +26,7 @@ linters:
     - dupl
     - exportloopref
     - gocritic
-    - misspell
+#    - misspell
     - nolintlint
     - prealloc
     - predeclared

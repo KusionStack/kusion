@@ -86,6 +86,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			IgnoreFields:            o.IgnoreFields,
 			ChangeOrder:             o.ChangeOrder,
 			Runtime:                 o.Runtime, // preview need get the latest spec from runtime
+			Stack:                   o.Stack,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
 		},

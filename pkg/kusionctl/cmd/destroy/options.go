@@ -146,6 +146,7 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 		Operation: opsmodels.Operation{
 			OperationType: opsmodels.DestroyPreview,
 			Runtime:       runtime,
+			Stack:         stack,
 			StateStorage:  stateStorage,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
@@ -156,9 +157,9 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
-			Project:  project.Name,
+			Project:  project,
 			Operator: o.Operator,
-			Stack:    stack.Name,
+			Stack:    stack,
 			Spec:     planResources,
 		},
 	})
@@ -175,6 +176,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Runtime:      runtime,
+			Stack:        changes.Stack(),
 			StateStorage: stateStorage,
 			MsgCh:        make(chan opsmodels.Message),
 		},
@@ -250,9 +252,9 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 	st := do.Destroy(&operation.DestroyRequest{
 		Request: opsmodels.Request{
 			Tenant:   changes.Project().Tenant,
-			Project:  changes.Project().Name,
+			Project:  changes.Project(),
 			Operator: o.Operator,
-			Stack:    changes.Stack().Name,
+			Stack:    changes.Stack(),
 			Spec:     planResources,
 		},
 	})

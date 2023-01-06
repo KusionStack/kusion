@@ -17,16 +17,30 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestOperation_Destroy(t *testing.T) {
 	var (
 		tenant   = "tenant_name"
-		stack    = "dev"
-		project  = "project_name"
 		operator = "foo_user"
 	)
+
+	stack := &projectstack.Stack{
+		StackConfiguration: projectstack.StackConfiguration{Name: "fake-name"},
+		Path:               "fake-path",
+	}
+	project := &projectstack.Project{
+		ProjectConfiguration: projectstack.ProjectConfiguration{
+			Name:    "fake-name",
+			Tenant:  "fake-tenant",
+			Backend: nil,
+		},
+		Path:   "fake-path",
+		Stacks: []*projectstack.Stack{stack},
+	}
+
 	resourceState := models.Resource{
 		ID: "id1",
 

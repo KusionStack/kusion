@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -45,6 +46,9 @@ type ApplyRequest struct {
 	// PlanResource is the resource we want to apply in this request
 	PlanResource *models.Resource
 
+	// Stack contains info about where this command is invoked
+	Stack *projectstack.Stack
+
 	// DryRun means this a dry-run request and will not make any changes in actual infra
 	DryRun bool
 }
@@ -63,6 +67,9 @@ type ReadRequest struct {
 
 	// PlanResource is the resource we want to apply in this request
 	PlanResource *models.Resource
+
+	// Stack contains info about where this command is invoked
+	Stack *projectstack.Stack
 }
 
 type ReadResponse struct {
@@ -76,6 +83,9 @@ type ReadResponse struct {
 type DeleteRequest struct {
 	// Resource represents the resource we want to delete from the actual infra
 	Resource *models.Resource
+
+	// Stack contains info about where this command is invoked
+	Stack *projectstack.Stack
 }
 
 type DeleteResponse struct {
