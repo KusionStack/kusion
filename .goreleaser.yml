@@ -95,6 +95,7 @@ brews:
     commit_author:
       name: GoReleaser Bot
       email: goreleaser@carlosbecker.com
+    folder: HomebrewFormula
     homepage: "https://github.com/KusionStack/kusion"
     description: "Codify and deliver intentions to Kubernetes and Clouds"
     license: "Apache License"
