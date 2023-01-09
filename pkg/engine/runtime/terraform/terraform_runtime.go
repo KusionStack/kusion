@@ -2,7 +2,8 @@ package terraform
 
 import (
 	"context"
-	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/afero"
@@ -15,31 +16,19 @@ import (
 var _ runtime.Runtime = &TerraformRuntime{}
 
 type TerraformRuntime struct {
-	tfops.WorkspaceStore
+	tfops.WorkSpace
 }
 
 func NewTerraformRuntime() (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
-	ws, err := tfops.GetWorkspaceStore(fs)
-	if err != nil {
-		return nil, err
-	}
-	TFRuntime := &TerraformRuntime{ws}
+	ws := tfops.NewWorkSpace(fs)
+	TFRuntime := &TerraformRuntime{*ws}
 	return TFRuntime, nil
 }
 
 // Apply terraform apply resource
 func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	planState := request.PlanResource
-	w, ok := t.Store[planState.ResourceKey()]
-	if !ok {
-		err := t.Create(ctx, planState)
-		if err != nil {
-			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
-		}
-		w = t.Store[planState.ResourceKey()]
-	}
-
 	// terraform dry run merge state
 	// TODO: terraform dry run apply,not only merge state
 	if request.DryRun {
@@ -56,19 +45,35 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 			Extensions: planState.Extensions,
 		}, Status: nil}
 	}
-	w.SetResource(planState)
 
-	if err := w.WriteHCL(); err != nil {
+	stackPath := request.Stack.GetPath()
+	tfCacheDir := filepath.Join(stackPath, "."+planState.ResourceKey())
+	t.WorkSpace.SetStackDir(stackPath)
+	t.WorkSpace.SetCacheDir(tfCacheDir)
+	t.WorkSpace.SetResource(planState)
+
+	if err := t.WorkSpace.WriteHCL(); err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
 
-	tfstate, err := w.Apply(ctx)
+	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.HCLLOCKFILE))
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {
+				return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+			}
+		} else {
+			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		}
+	}
+
+	tfstate, err := t.WorkSpace.Apply(ctx)
 	if err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
 
 	// get terraform provider version
-	providerAddr, err := w.GetProvider()
+	providerAddr, err := t.WorkSpace.GetProvider()
 	if err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
@@ -90,24 +95,44 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 // Read terraform show state
 func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	priorState := request.PriorResource
-	planState := request.PlanResource
+	requestResource := request.PlanResource
+
+	// When the operation is create or update, the requestResource is set to planResource,
+	// when the operation is delete, planResource is nil, the requestResource is set to priorResource,
+	// tf runtime uses requestResource to rebuild tfcache resources.
+	if requestResource == nil {
+		requestResource = request.PriorResource
+	}
 	if priorState == nil {
 		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
 	var tfstate *tfops.TFState
-	w, ok := t.Store[planState.ResourceKey()]
-	if !ok {
-		err := t.Create(ctx, planState)
-		if err != nil {
-			return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
-		}
-		w = t.Store[priorState.ResourceKey()]
-		if err := w.WriteTFState(priorState); err != nil {
+
+	stackPath := request.Stack.GetPath()
+	tfCacheDir := filepath.Join(stackPath, "."+requestResource.ResourceKey())
+	t.WorkSpace.SetStackDir(stackPath)
+	t.WorkSpace.SetCacheDir(tfCacheDir)
+	t.WorkSpace.SetResource(requestResource)
+	if err := t.WorkSpace.WriteHCL(); err != nil {
+		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+	}
+	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.HCLLOCKFILE))
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {
+				return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+			}
+		} else {
 			return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 		}
 	}
 
-	tfstate, err := w.RefreshOnly(ctx)
+	// priorState overwirte tfstate in workspace
+	if err := t.WorkSpace.WriteTFState(priorState); err != nil {
+		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+	}
+
+	tfstate, err = t.WorkSpace.RefreshOnly(ctx)
 	if err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
@@ -116,7 +141,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	}
 
 	// get terraform provider addr
-	providerAddr, err := w.GetProvider()
+	providerAddr, err := t.WorkSpace.GetProvider()
 	if err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
@@ -124,11 +149,11 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 	return &runtime.ReadResponse{
 		Resource: &models.Resource{
-			ID:         planState.ID,
-			Type:       planState.Type,
+			ID:         requestResource.ID,
+			Type:       requestResource.Type,
 			Attributes: r.Attributes,
-			DependsOn:  planState.DependsOn,
-			Extensions: planState.Extensions,
+			DependsOn:  requestResource.DependsOn,
+			Extensions: requestResource.Extensions,
 		},
 		Status: nil,
 	}
@@ -136,17 +161,16 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 
 // Delete terraform resource and remove workspace
 func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
-	w, ok := t.Store[request.Resource.ResourceKey()]
-	if !ok {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(fmt.Errorf("%s terraform workspace not exist, cannot delete", request.Resource.ResourceKey()))}
-	}
-	if err := w.Destroy(ctx); err != nil {
+	stackPath := request.Stack.GetPath()
+	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
+	defer os.RemoveAll(tfCacheDir)
+	t.WorkSpace.SetStackDir(stackPath)
+	t.WorkSpace.SetCacheDir(tfCacheDir)
+	t.WorkSpace.SetResource(request.Resource)
+	if err := t.WorkSpace.Destroy(ctx); err != nil {
 		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
 
-	if err := t.Remove(ctx, request.Resource); err != nil {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
-	}
 	return &runtime.DeleteResponse{Status: nil}
 }
 
