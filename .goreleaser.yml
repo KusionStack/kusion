@@ -4,7 +4,6 @@ before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod tidy
-    - go generate ./pkg/version
 builds:
   - id: default
     env:
@@ -49,7 +48,7 @@ release:
     owner: KusionStack
     name: kusion
   draft: false
-  footer: |
+  header: |
     ## Docker Images
     * `kusionstack/kusion:{{ .Env.KUSION_VERSION }}`
     
