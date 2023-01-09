@@ -2,7 +2,7 @@ package scaffold
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"gopkg.in/yaml.v3"
@@ -38,7 +38,7 @@ func (singleton *projectTemplateLoader) load(path string) (*ProjectTemplate, err
 		return v, nil
 	}
 
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

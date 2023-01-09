@@ -21,7 +21,7 @@
 package dyff
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
@@ -44,28 +44,28 @@ var LoggingLevel = ERROR
 var ErrorLogger = log.New(os.Stderr, "Error: ", log.Lshortfile)
 
 // WarningLogger is the warning logger definition
-var WarningLogger = log.New(ioutil.Discard, "Warning: ", log.Lshortfile)
+var WarningLogger = log.New(io.Discard, "Warning: ", log.Lshortfile)
 
 // DebugLogger is the debugging logger definition
-var DebugLogger = log.New(ioutil.Discard, "Debug: ", log.Lshortfile)
+var DebugLogger = log.New(io.Discard, "Debug: ", log.Lshortfile)
 
 // SetLoggingLevel will initialise the logging set-up according to the provided input
 func SetLoggingLevel(loggingLevel LogLevel) {
 	switch loggingLevel {
 	case NONE:
-		ErrorLogger.SetOutput(ioutil.Discard)
-		WarningLogger.SetOutput(ioutil.Discard)
-		DebugLogger.SetOutput(ioutil.Discard)
+		ErrorLogger.SetOutput(io.Discard)
+		WarningLogger.SetOutput(io.Discard)
+		DebugLogger.SetOutput(io.Discard)
 
 	case ERROR:
 		ErrorLogger.SetOutput(os.Stderr)
-		WarningLogger.SetOutput(ioutil.Discard)
-		DebugLogger.SetOutput(ioutil.Discard)
+		WarningLogger.SetOutput(io.Discard)
+		DebugLogger.SetOutput(io.Discard)
 
 	case WARN:
 		ErrorLogger.SetOutput(os.Stderr)
 		WarningLogger.SetOutput(os.Stdout)
-		DebugLogger.SetOutput(ioutil.Discard)
+		DebugLogger.SetOutput(io.Discard)
 
 	case DEBUG:
 		ErrorLogger.SetOutput(os.Stderr)

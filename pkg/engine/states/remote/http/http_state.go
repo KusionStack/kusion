@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
 	"kusionstack.io/kusion/pkg/engine/states"
-
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -64,7 +63,7 @@ func (s *HTTPState) GetLatestState(query *states.StateQuery) (*states.State, err
 	}
 
 	state := &states.State{}
-	resBody, _ := ioutil.ReadAll(res.Body)
+	resBody, _ := io.ReadAll(res.Body)
 	err = json.Unmarshal(resBody, state)
 	if err != nil {
 		return nil, err

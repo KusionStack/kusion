@@ -3,7 +3,6 @@ package local
 import (
 	"encoding/json"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -34,7 +33,7 @@ func (f *FileSystemState) GetLatestState(query *states.StateQuery) (*states.Stat
 	}
 	defer file.Close()
 
-	jsonFile, err := ioutil.ReadFile(f.Path)
+	jsonFile, err := os.ReadFile(f.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +76,7 @@ func (f *FileSystemState) Apply(state *states.State) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(f.Path, jsonByte, fs.ModePerm)
+	return os.WriteFile(f.Path, jsonByte, fs.ModePerm)
 }
 
 func (f *FileSystemState) Delete(id string) error {
