@@ -2,7 +2,6 @@ package kfile
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -34,7 +33,7 @@ func Stat(filename string) (fileInfo os.FileInfo, err error) {
 	dirPath := filepath.Dir(filename)
 	base := filepath.Base(filename)
 
-	files, err := ioutil.ReadDir(dirPath)
+	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +105,7 @@ func GetCredentials() (map[string]interface{}, error) {
 	}
 	// Get kusion credentials data from credentials.json in kusion data folder
 	credentialsFilepath := filepath.Join(kusionDataFolder, KusionCredentialsFilename())
-	data, err := ioutil.ReadFile(credentialsFilepath)
+	data, err := os.ReadFile(credentialsFilepath)
 	if err != nil {
 		return nil, err
 	}

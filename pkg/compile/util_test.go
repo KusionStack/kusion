@@ -2,7 +2,6 @@ package compile
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -18,11 +17,11 @@ func TestGetKclPath(t *testing.T) {
 	_ = os.MkdirAll("./kclvm/bin", 0o777)
 
 	kclData := fmt.Sprintf("# kcl-test shell, %d", time.Now().Unix())
-	_ = ioutil.WriteFile("./kclvm/bin/kcl", []byte(kclData), 0o777)
+	_ = os.WriteFile("./kclvm/bin/kcl", []byte(kclData), 0o777)
 	defer os.RemoveAll("./kclvm")
 
 	kcl := getKclPath()
-	kclDataGot, _ := ioutil.ReadFile(kcl)
+	kclDataGot, _ := os.ReadFile(kcl)
 	if len(kclDataGot) > 50 {
 		kclDataGot = kclDataGot[:50]
 	}

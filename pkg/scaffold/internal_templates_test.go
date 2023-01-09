@@ -2,7 +2,7 @@ package scaffold
 
 import (
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -19,11 +19,11 @@ func TestGenInternalTemplates(t *testing.T) {
 
 	var checkFiles func(src, target string) error
 	checkFiles = func(src, target string) error {
-		srcFileInfos, err := ioutil.ReadDir(src)
+		srcFileInfos, err := os.ReadDir(src)
 		if err != nil {
 			return err
 		}
-		targetFileInfos, err := ioutil.ReadDir(target)
+		targetFileInfos, err := os.ReadDir(target)
 		if err != nil {
 			return err
 		}
@@ -43,11 +43,11 @@ func TestGenInternalTemplates(t *testing.T) {
 				return checkFiles(srcPath, targetPath)
 			} else if !srcFileInfo.IsDir() && !targetFileInfo.IsDir() {
 				// read content
-				srcBytes, err := ioutil.ReadFile(srcPath)
+				srcBytes, err := os.ReadFile(srcPath)
 				if err != nil {
 					return err
 				}
-				targetBytes, err := ioutil.ReadFile(targetPath)
+				targetBytes, err := os.ReadFile(targetPath)
 				if err != nil {
 					return err
 				}

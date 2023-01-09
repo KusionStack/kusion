@@ -5,7 +5,6 @@ package kfile
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -134,7 +133,7 @@ func mockMkdirall() {
 }
 
 func mockReadFile() {
-	monkey.Patch(ioutil.ReadFile, func(filename string) ([]byte, error) {
+	monkey.Patch(os.ReadFile, func(filename string) ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"token": "%s"}`, mockToken)), nil
 	})
 }

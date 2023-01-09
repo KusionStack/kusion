@@ -24,7 +24,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
@@ -90,7 +89,7 @@ func compareAgainstExpected(fromPath string, toPath string, expectedPath string,
 	from, to, err := ytbx.LoadFiles(fromPath, toPath)
 	Expect(err).To(BeNil())
 
-	rawBytes, err := ioutil.ReadFile(expectedPath)
+	rawBytes, err := os.ReadFile(expectedPath)
 	Expect(err).To(BeNil())
 
 	report, err := CompareInputFiles(from, to, compareOptions...)

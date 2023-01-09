@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -72,7 +71,7 @@ func (repo TemplateRepository) Templates() ([]Template, error) {
 
 	// Otherwise, read all subdirectories to find the ones
 	// that contain a kusion.yaml.
-	infos, err := ioutil.ReadDir(path)
+	infos, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +157,7 @@ func retrieveURLTemplates(rawurl string, online bool) (TemplateRepository, error
 
 	// Create a temp dir.
 	var temp string
-	if temp, err = ioutil.TempDir("", "kusion-template-"); err != nil {
+	if temp, err = os.MkdirTemp("", "kusion-template-"); err != nil {
 		return TemplateRepository{}, err
 	}
 
@@ -311,9 +310,9 @@ func newTemplateNotFoundError(templateDir string, templateName string) error {
 	message := fmt.Sprintf("template '%s' not found", templateName)
 
 	// Attempt to read the directory to offer suggestions.
-	infos, err := ioutil.ReadDir(templateDir)
+	infos, err := os.ReadDir(templateDir)
 	if err != nil {
-		log.Errorf("ioutil.ReadDir(%s) error: %v", templateDir, err)
+		log.Errorf("os.ReadDir(%s) error: %v", templateDir, err)
 		return errors.New(message)
 	}
 
@@ -401,7 +400,7 @@ func RenderLocalTemplate(sourceDir, destDir string, force bool, tc *TemplateConf
 
 // Read files' content from local dir into file system
 func ReadTemplate(dir string, fs afero.Fs) error {
-	fileInfos, err := ioutil.ReadDir(dir)
+	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
@@ -416,7 +415,7 @@ func ReadTemplate(dir string, fs afero.Fs) error {
 			}
 		} else {
 			// Read source file content
-			content, err := ioutil.ReadFile(path)
+			content, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}

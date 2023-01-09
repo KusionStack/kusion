@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/gonvenience/wrap"
@@ -85,7 +84,7 @@ func NewCmdDiff() *cobra.Command {
 }
 
 func liveDiffWithStdin() error {
-	data, err := ioutil.ReadAll(os.Stdin)
+	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return fmt.Errorf("unable to load data from os.stdin as %v", err)
 	}
@@ -190,7 +189,7 @@ func liveDiffWithFile(fromLocation, toLocation string) error {
 }
 
 func loadFile(location string) (*unstructured.Unstructured, error) {
-	data, err := ioutil.ReadFile(location)
+	data, err := os.ReadFile(location)
 	if err != nil {
 		return nil, wrap.Errorf(err, "failed to load input files")
 	}

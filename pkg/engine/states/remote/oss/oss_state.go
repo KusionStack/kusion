@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-
-	"kusionstack.io/kusion/pkg/engine/states"
-
-	"gopkg.in/yaml.v3"
+	"io"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"gopkg.in/yaml.v3"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 var ErrOSSNoExist = errors.New("oss: key not exist")
@@ -75,7 +74,7 @@ func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, erro
 	}
 	defer body.Close()
 
-	data, err := ioutil.ReadAll(body)
+	data, err := io.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}

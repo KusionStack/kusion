@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-
-	"kusionstack.io/kusion/pkg/engine/states"
+	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 var ErrS3NoExist = errors.New("s3: key not exist")
@@ -94,7 +94,7 @@ func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error
 	}
 	defer out.Body.Close()
 
-	data, err := ioutil.ReadAll(out.Body)
+	data, err := io.ReadAll(out.Body)
 	if err != nil {
 		return nil, err
 	}

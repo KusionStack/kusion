@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	_ "kusionstack.io/kcl-plugin"
@@ -29,9 +28,9 @@ func main() {
 
 	data := makeUpdateVersionGoFile(versionInfo)
 
-	err = ioutil.WriteFile(*flagOutFile, []byte(data), 0o666)
+	err = os.WriteFile(*flagOutFile, []byte(data), 0o666)
 	if err != nil {
-		log.Fatalf("ioutil.WriteFile: err = %v", err)
+		log.Fatalf("os.WriteFile: err = %v", err)
 	}
 
 	fmt.Println(versionInfo.String())

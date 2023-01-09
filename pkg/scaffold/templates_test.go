@@ -5,7 +5,6 @@ package scaffold
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -87,7 +86,7 @@ var (
 
 func TestTemplateRepository_Delete(t *testing.T) {
 	t.Run("should delete", func(t *testing.T) {
-		tmp, err := ioutil.TempDir("", "tmp-dir-for-test")
+		tmp, err := os.MkdirTemp("", "tmp-dir-for-test")
 		assert.Nil(t, err)
 		repo := TemplateRepository{
 			Root:         tmp,
@@ -188,7 +187,7 @@ func Test_cleanupLegacyTemplateDir(t *testing.T) {
 	t.Run("repo not exist", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		monkey.Patch(GetTemplateDir, func(subDir string) (string, error) {
-			return ioutil.TempDir("", "tmp-dir-for-test")
+			return os.MkdirTemp("", "tmp-dir-for-test")
 		})
 
 		err = cleanupLegacyTemplateDir()
@@ -247,7 +246,7 @@ func TestValidateProjectName(t *testing.T) {
 
 func TestRenderTemplateFiles(t *testing.T) {
 	// dest dir
-	tmp, err := ioutil.TempDir("", "tmp-dir-for-test")
+	tmp, err := os.MkdirTemp("", "tmp-dir-for-test")
 	assert.Nil(t, err)
 	defer func() {
 		err = os.RemoveAll(tmp)
