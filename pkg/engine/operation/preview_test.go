@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/kdump"
 )
@@ -91,6 +92,19 @@ func TestOperation_Preview(t *testing.T) {
 	type args struct {
 		request *PreviewRequest
 	}
+	stack := &projectstack.Stack{
+		StackConfiguration: projectstack.StackConfiguration{Name: "fake-name"},
+		Path:               "fake-path",
+	}
+	project := &projectstack.Project{
+		ProjectConfiguration: projectstack.ProjectConfiguration{
+			Name:    "fake-name",
+			Tenant:  "fake-tenant",
+			Backend: nil,
+		},
+		Path:   "fake-path",
+		Stacks: []*projectstack.Stack{stack},
+	}
 	tests := []struct {
 		name    string
 		fields  fields
@@ -110,8 +124,8 @@ func TestOperation_Preview(t *testing.T) {
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
-						Stack:    "fake-stack",
-						Project:  "fake-project",
+						Stack:    stack,
+						Project:  project,
 						Operator: "fake-operator",
 						Spec: &models.Spec{
 							Resources: []models.Resource{
@@ -148,8 +162,8 @@ func TestOperation_Preview(t *testing.T) {
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
-						Stack:    "fake-stack",
-						Project:  "fake-project",
+						Stack:    stack,
+						Project:  project,
 						Operator: "fake-operator",
 						Spec: &models.Spec{
 							Resources: []models.Resource{
@@ -203,9 +217,9 @@ func TestOperation_Preview(t *testing.T) {
 			args: args{
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
-						Tenant:   "fake-tennat",
-						Stack:    "fake-stack",
-						Project:  "fake-project",
+						Tenant:   "fake-tenant",
+						Stack:    stack,
+						Project:  project,
 						Operator: "fake-operator",
 						Spec: &models.Spec{
 							Resources: []models.Resource{

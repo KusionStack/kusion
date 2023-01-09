@@ -19,6 +19,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -67,6 +68,7 @@ func TestOperation_Apply(t *testing.T) {
 		StateResourceIndex      map[string]*models.Resource
 		Order                   *opsmodels.ChangeOrder
 		Runtime                 runtime.Runtime
+		Stack                   *projectstack.Stack
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -106,6 +108,20 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}
 
+	stack := &projectstack.Stack{
+		StackConfiguration: projectstack.StackConfiguration{Name: "fakeStack"},
+		Path:               "fakePath",
+	}
+	project := &projectstack.Project{
+		ProjectConfiguration: projectstack.ProjectConfiguration{
+			Name:    "fakeProject",
+			Tenant:  "fakeTenant",
+			Backend: nil,
+		},
+		Path:   "fakePath",
+		Stacks: []*projectstack.Stack{stack},
+	}
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -123,8 +139,8 @@ func TestOperation_Apply(t *testing.T) {
 			},
 			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
 				Tenant:   "fakeTenant",
-				Stack:    "fakeStack",
-				Project:  "fakeProject",
+				Stack:    stack,
+				Project:  project,
 				Operator: "faker",
 				Spec:     mf,
 			}}},
@@ -143,6 +159,7 @@ func TestOperation_Apply(t *testing.T) {
 				StateResourceIndex:      tt.fields.StateResourceIndex,
 				ChangeOrder:             tt.fields.Order,
 				Runtime:                 tt.fields.Runtime,
+				Stack:                   tt.fields.Stack,
 				MsgCh:                   tt.fields.MsgCh,
 				ResultState:             tt.fields.resultState,
 				Lock:                    tt.fields.lock,

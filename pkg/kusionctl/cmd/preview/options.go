@@ -168,6 +168,7 @@ func Preview(
 		Operation: opsmodels.Operation{
 			OperationType: opsmodels.ApplyPreview,
 			Runtime:       runtime,
+			Stack:         stack,
 			StateStorage:  storage,
 			IgnoreFields:  o.IgnoreFields,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
@@ -180,8 +181,8 @@ func Preview(
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
-			Project:  project.Name,
-			Stack:    stack.Name,
+			Project:  project,
+			Stack:    stack,
 			Operator: o.Operator,
 			Spec:     planResources,
 			Cluster:  cluster,

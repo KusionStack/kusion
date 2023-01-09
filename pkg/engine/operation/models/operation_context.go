@@ -10,6 +10,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
@@ -40,6 +41,9 @@ type Operation struct {
 	// Runtime is the resource infrastructure runtime of this operation
 	Runtime runtime.Runtime
 
+	// Stack contains info about where this command is invoked
+	Stack *projectstack.Stack
+
 	// MsgCh is used to send operation status like Success, Failed or Skip to Kusion CTl,
 	// and this message will be displayed in the terminal
 	MsgCh chan Message
@@ -58,12 +62,12 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string       `json:"tenant"`
-	Project  string       `json:"project"`
-	Stack    string       `json:"stack"`
-	Cluster  string       `json:"cluster"`
-	Operator string       `json:"operator"`
-	Spec     *models.Spec `json:"spec"`
+	Tenant   string                `json:"tenant"`
+	Project  *projectstack.Project `json:"project"`
+	Stack    *projectstack.Stack   `json:"stack"`
+	Cluster  string                `json:"cluster"`
+	Operator string                `json:"operator"`
+	Spec     *models.Spec          `json:"spec"`
 }
 
 type OpResult string
@@ -96,8 +100,8 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Re
 func (o *Operation) InitStates(request *Request) (*states.State, *states.State) {
 	query := &states.StateQuery{
 		Tenant:  request.Tenant,
-		Stack:   request.Stack,
-		Project: request.Project,
+		Stack:   request.Stack.Name,
+		Project: request.Project.Name,
 		Cluster: request.Cluster,
 	}
 	latestState, err := o.StateStorage.GetLatestState(
@@ -112,6 +116,9 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 	resultState.Serial = latestState.Serial
 	err = copier.Copy(resultState, request)
 	util.CheckNotError(err, fmt.Sprintf("copy request to result State failed, request:%v", jsonutil.Marshal2PrettyString(request)))
+	resultState.Stack = request.Stack.Name
+	resultState.Project = request.Project.Name
+
 	resultState.Resources = nil
 
 	return latestState, resultState

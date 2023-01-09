@@ -40,8 +40,8 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	latestState, err := d.StateStorage.GetLatestState(
 		&states.StateQuery{
 			Tenant:  request.Tenant,
-			Stack:   request.Stack,
-			Project: request.Project,
+			Stack:   request.Stack.Name,
+			Project: request.Project.Name,
 		},
 	)
 	if err != nil {
