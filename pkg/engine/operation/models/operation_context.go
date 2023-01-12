@@ -38,8 +38,8 @@ type Operation struct {
 	// ChangeOrder is resources' change order during this operation
 	ChangeOrder *ChangeOrder
 
-	// Runtime is the resource infrastructure runtime of this operation
-	Runtime runtime.Runtime
+	// RuntimeMap contains all infrastructure runtimes involved this operation. The key of this map is the Runtime type
+	RuntimeMap map[models.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
 	Stack *projectstack.Stack

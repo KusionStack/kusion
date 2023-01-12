@@ -42,8 +42,8 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 
 	resourceState := models.Resource{
-		ID: "id1",
-
+		ID:   "id1",
+		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
 			"foo": "bar",
 		},
@@ -54,7 +54,7 @@ func TestOperation_Destroy(t *testing.T) {
 		opsmodels.Operation{
 			OperationType: opsmodels.Destroy,
 			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
-			Runtime:       &runtime.KubernetesRuntime{},
+			RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
 		},
 	}
 	r := &DestroyRequest{

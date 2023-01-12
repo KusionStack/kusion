@@ -1,6 +1,3 @@
-//go:build !arm64
-// +build !arm64
-
 package graph
 
 import (
@@ -36,24 +33,24 @@ func TestResourceNode_Execute(t *testing.T) {
 	const Eric = "eric"
 	mf := &models.Spec{Resources: []models.Resource{
 		{
-			ID: Pony,
-
+			ID:   Pony,
+			Type: runtime.Kubernetes,
 			Attributes: map[string]interface{}{
 				"c": "d",
 			},
 			DependsOn: []string{Jack},
 		},
 		{
-			ID: Eric,
-
+			ID:   Eric,
+			Type: runtime.Kubernetes,
 			Attributes: map[string]interface{}{
 				"a": ImplicitRefPrefix + "jack.a.b",
 			},
 			DependsOn: []string{Pony},
 		},
 		{
-			ID: Jack,
-
+			ID:   Jack,
+			Type: runtime.Kubernetes,
 			Attributes: map[string]interface{}{
 				"a": map[string]interface{}{
 					"b": "c",
@@ -69,8 +66,8 @@ func TestResourceNode_Execute(t *testing.T) {
 	}
 
 	newResourceState := &models.Resource{
-		ID: Eric,
-
+		ID:   Eric,
+		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
 			"a": ImplicitRefPrefix + "jack.a.b",
 		},
@@ -78,8 +75,8 @@ func TestResourceNode_Execute(t *testing.T) {
 	}
 
 	illegalResourceState := &models.Resource{
-		ID: Eric,
-
+		ID:   Eric,
+		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
 			"a": ImplicitRefPrefix + "jack.notExist",
 		},
@@ -112,7 +109,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				Runtime:                 &runtime.KubernetesRuntime{},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -132,7 +129,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				Runtime:                 &runtime.KubernetesRuntime{},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -152,7 +149,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				Runtime:                 &runtime.KubernetesRuntime{},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
 			}},
 			want: status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find specified value in resource:jack by ref:jack.notExist"),
 		},
@@ -164,7 +161,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				Action:   tt.fields.Action,
 				state:    tt.fields.state,
 			}
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Apply",
+			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Apply",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 					mockState := *newResourceState
 					mockState.Attributes["a"] = "c"
@@ -172,11 +169,11 @@ func TestResourceNode_Execute(t *testing.T) {
 						Resource: &mockState,
 					}
 				})
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Delete",
+			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Delete",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 					return &runtime.DeleteResponse{Status: nil}
 				})
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.Runtime), "Read",
+			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Read",
 				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
 				})

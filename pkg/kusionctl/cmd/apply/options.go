@@ -16,11 +16,8 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/runtime"
-	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	previewcmd "kusionstack.io/kusion/pkg/kusionctl/cmd/preview"
-	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -94,20 +91,8 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	runtimes := runtimeInit.InitRuntime()
-	// validate resource type
-	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
-	if err != nil {
-		return err
-	}
-
-	r, err := runtimeInitFun()
-	if err != nil {
-		return err
-	}
-
 	// Compute changes for preview
-	changes, err := previewcmd.Preview(&o.PreviewOptions, r, stateStorage, planResources, project, stack)
+	changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
 	}
@@ -151,7 +136,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	fmt.Println("Start applying diffs ...")
-	if err := Apply(o, r, stateStorage, planResources, changes, os.Stdout); err != nil {
+	if err := Apply(o, stateStorage, planResources, changes, os.Stdout); err != nil {
 		return err
 	}
 
@@ -163,7 +148,7 @@ func (o *ApplyOptions) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err := Watch(o, r, planResources, changes, os.Stdout); err != nil {
+		if err := Watch(o, planResources, changes, os.Stdout); err != nil {
 			return err
 		}
 	}
@@ -195,7 +180,6 @@ func (o *ApplyOptions) Run() error {
 //	}
 func Apply(
 	o *ApplyOptions,
-	runtime runtime.Runtime,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
@@ -204,7 +188,6 @@ func Apply(
 	// Construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: opsmodels.Operation{
-			Runtime:      runtime,
 			Stack:        changes.Stack(),
 			StateStorage: storage,
 			MsgCh:        make(chan opsmodels.Message),
@@ -331,7 +314,6 @@ func Apply(
 //	    return err
 //	}
 func Watch(o *ApplyOptions,
-	r runtime.Runtime,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
 	out io.Writer,
@@ -339,10 +321,6 @@ func Watch(o *ApplyOptions,
 	if o.DryRun {
 		fmt.Fprintln(out, "NOTE: Watch doesn't work in DryRun mode")
 		return nil
-	}
-
-	if _, ok := r.(*runtime.KubernetesRuntime); !ok {
-		return fmt.Errorf("WARNING: Watch only support Kubernetes resources for now")
 	}
 
 	// Filter out unchanged resources
@@ -354,7 +332,7 @@ func Watch(o *ApplyOptions,
 	}
 
 	// Watch operation
-	wo := &operation.WatchOperation{Runtime: r}
+	wo := &operation.WatchOperation{}
 	if err := wo.Watch(&operation.WatchRequest{
 		Request: opsmodels.Request{
 			Project: changes.Project(),

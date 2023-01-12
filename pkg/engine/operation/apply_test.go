@@ -67,7 +67,7 @@ func TestOperation_Apply(t *testing.T) {
 		PriorStateResourceIndex map[string]*models.Resource
 		StateResourceIndex      map[string]*models.Resource
 		Order                   *opsmodels.ChangeOrder
-		Runtime                 runtime.Runtime
+		RuntimeMap              map[models.Type]runtime.Runtime
 		Stack                   *projectstack.Stack
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
@@ -80,7 +80,8 @@ func TestOperation_Apply(t *testing.T) {
 	const Jack = "jack"
 	mf := &models.Spec{Resources: []models.Resource{
 		{
-			ID: Jack,
+			ID:   Jack,
+			Type: runtime.Kubernetes,
 			Attributes: map[string]interface{}{
 				"a": "b",
 			},
@@ -99,7 +100,8 @@ func TestOperation_Apply(t *testing.T) {
 		Operator:      "faker",
 		Resources: []models.Resource{
 			{
-				ID: Jack,
+				ID:   Jack,
+				Type: runtime.Kubernetes,
 				Attributes: map[string]interface{}{
 					"a": "b",
 				},
@@ -134,7 +136,7 @@ func TestOperation_Apply(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.Apply,
 				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
-				Runtime:       &runtime.KubernetesRuntime{},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},
 			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
@@ -158,7 +160,7 @@ func TestOperation_Apply(t *testing.T) {
 				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
 				StateResourceIndex:      tt.fields.StateResourceIndex,
 				ChangeOrder:             tt.fields.Order,
-				Runtime:                 tt.fields.Runtime,
+				RuntimeMap:              tt.fields.RuntimeMap,
 				Stack:                   tt.fields.Stack,
 				MsgCh:                   tt.fields.MsgCh,
 				ResultState:             tt.fields.resultState,

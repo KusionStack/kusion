@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
-
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -27,12 +26,10 @@ func TestWatchOperation_Watch(t *testing.T) {
 			},
 		},
 	}
-	wo := &WatchOperation{Runtime: fooRuntime}
+	wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
 	err := wo.Watch(req)
 	assert.Nil(t, err)
 }
-
-var fooRuntime = &fooWatchRuntime{}
 
 var barDeployment = map[string]interface{}{
 	"apiVersion": "apps/v1",
@@ -55,6 +52,8 @@ var barDeployment = map[string]interface{}{
 		},
 	},
 }
+
+var fooRuntime = &fooWatchRuntime{}
 
 type fooWatchRuntime struct{}
 
