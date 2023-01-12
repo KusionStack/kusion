@@ -11,12 +11,11 @@ import (
 	"github.com/pkg/errors"
 
 	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
+
 	"kusionstack.io/kusion/pkg/log"
 )
 
 const (
-	compilePath       = "/api:protorpc/KclvmService.ExecProgram"
-	defaultEndpoint   = "http://127.0.0.1:2021"
 	defaultCompileURL = "http://127.0.0.1:2021/api:protorpc/KclvmService.ExecProgram"
 	defaultPingURL    = "http://127.0.0.1:2021/api:protorpc/BuiltinService.Ping"
 )
@@ -127,10 +126,6 @@ func withTimeOut(req *http.Request, timeout time.Duration) *http.Request {
 func setJSONContentType(req *http.Request) {
 	req.Header.Set("Content-Type", "accept/json")
 }
-
-// func setJSONAcceptType(req *http.Request) {
-// 	req.Header.Set("Accept", "application/json")
-// }
 
 func (c *Client) Compile(req *gpyrpc.ExecProgram_Args) (*Result, error) {
 	res := new(Result)

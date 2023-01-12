@@ -1,4 +1,4 @@
-package compile
+package kcl
 
 import (
 	"reflect"

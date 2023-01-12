@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/zclconf/go-cty/cty"
+
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"

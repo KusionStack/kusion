@@ -10,7 +10,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -18,6 +17,8 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	previewcmd "kusionstack.io/kusion/pkg/kusionctl/cmd/preview"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/spec"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -64,8 +65,8 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	// Get compile result
-	planResources, err := compile.GenerateSpec(&compile.Options{
+	// generate Spec
+	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -74,13 +75,13 @@ func (o *ApplyOptions) Run() error {
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
 		NoStyle:     o.NoStyle,
-	}, stack)
+	}, project, stack)
 	if err != nil {
 		return err
 	}
 
 	// return immediately if no resource found in stack
-	if planResources == nil || len(planResources.Resources) == 0 {
+	if sp == nil || len(sp.Resources) == 0 {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
@@ -92,7 +93,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, planResources, project, stack)
+	changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
 	}
@@ -136,7 +137,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	fmt.Println("Start applying diffs ...")
-	if err := Apply(o, stateStorage, planResources, changes, os.Stdout); err != nil {
+	if err := Apply(o, stateStorage, sp, changes, os.Stdout); err != nil {
 		return err
 	}
 
@@ -148,7 +149,7 @@ func (o *ApplyOptions) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err := Watch(o, planResources, changes, os.Stdout); err != nil {
+		if err := Watch(o, sp, changes, os.Stdout); err != nil {
 			return err
 		}
 	}

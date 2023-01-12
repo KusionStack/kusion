@@ -19,20 +19,39 @@ var (
 )
 
 const (
-	StackFile        = "stack.yaml"
-	ProjectFile      = "project.yaml"
-	CiTestDir        = "ci-test"
-	SettingsFile     = "settings.yaml"
-	StdoutGoldenFile = "stdout.golden.yaml"
-	KclFile          = "kcl.yaml"
+	StackFile                      = "stack.yaml"
+	ProjectFile                    = "project.yaml"
+	CiTestDir                      = "ci-test"
+	SettingsFile                   = "settings.yaml"
+	StdoutGoldenFile               = "stdout.golden.yaml"
+	KclFile                        = "kcl.yaml"
+	KCLGenerator     GeneratorType = "KCL"
 )
+
+type GeneratorType string
+
+// GeneratorConfig represent Generator configs saved in project.yaml
+type GeneratorConfig struct {
+	Type    GeneratorType          `json:"type"`
+	Configs map[string]interface{} `json:"configs,omitempty"`
+}
 
 // ProjectConfiguration is the project configuration
 type ProjectConfiguration struct {
-	Name         string             `json:"name" yaml:"name"`                                       // Project name
-	Tenant       string             `json:"tenant,omitempty" yaml:"tenant,omitempty"`               // Tenant name
-	Backend      *backend.Storage   `json:"backend,omitempty" yaml:"backend,omitempty"`             // state storage config
-	SecretStores *vals.SecretStores `json:"secret_stores,omitempty" yaml:"secret_stores,omitempty"` // Secret stores
+	// Project name
+	Name string `json:"name" yaml:"name"`
+
+	// Tenant name
+	Tenant string `json:"tenant,omitempty" yaml:"tenant,omitempty"`
+
+	// Backend storage config
+	Backend *backend.Storage `json:"backend,omitempty" yaml:"backend,omitempty"`
+
+	// SpecGenerator configs
+	Generator *GeneratorConfig `json:"generator,omitempty" yaml:"generator,omitempty"`
+
+	// Secret stores
+	SecretStores *vals.SecretStores `json:"secret_stores,omitempty" yaml:"secret_stores,omitempty"`
 }
 
 type Project struct {

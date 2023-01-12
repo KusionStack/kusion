@@ -5,7 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"kusionstack.io/kusion/pkg/compile"
+	yamlv3 "gopkg.in/yaml.v3"
+
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/spec"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -57,8 +60,22 @@ func (o *CompileOptions) Validate() error {
 }
 
 func (o *CompileOptions) Run() error {
-	// Compile
-	compileResult, err := compile.Compile(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
+	// Parse project and stack of work directory
+	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	if err != nil {
+		return err
+	}
+
+	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+		WorkDir:     o.WorkDir,
+		Filenames:   o.Filenames,
+		Settings:    o.Settings,
+		Arguments:   o.Arguments,
+		Overrides:   o.Overrides,
+		DisableNone: o.DisableNone,
+		OverrideAST: o.OverrideAST,
+	}, project, stack)
+
 	if o.IsCheck {
 		if err != nil {
 			fmt.Print(err)
@@ -68,16 +85,18 @@ func (o *CompileOptions) Run() error {
 			return err
 		}
 
-		// Output
-		yaml := compileResult.RawYAML()
+		yaml, err := yamlv3.Marshal(sp.Resources)
+		if err != nil {
+			return err
+		}
 		if o.Output == Stdout {
-			fmt.Print(yaml)
+			fmt.Print(string(yaml))
 		} else {
 			if o.WorkDir != "" {
 				o.Output = filepath.Join(o.WorkDir, o.Output)
 			}
 
-			err := os.WriteFile(o.Output, []byte(yaml), 0o666)
+			err := os.WriteFile(o.Output, yaml, 0o666)
 			if err != nil {
 				return err
 			}
