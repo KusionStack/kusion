@@ -110,7 +110,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	case opsmodels.ApplyPreview, opsmodels.DestroyPreview:
 		fillResponseChangeSteps(operation, rn, liveState, predictableState)
 	case opsmodels.Apply, opsmodels.Destroy:
-		if s = rn.applyResource(operation, priorState, planedState); status.IsErr(s) {
+		if s = rn.applyResource(operation, priorState, planedState, liveState); status.IsErr(s) {
 			return s
 		}
 	default:
@@ -120,9 +120,9 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState, planedState *models.Resource) status.Status {
+func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState, planedState, live *models.Resource) status.Status {
 	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(priorState),
-		jsonutil.Marshal2String(planedState))
+		jsonutil.Marshal2String(planedState), jsonutil.Marshal2String(live))
 
 	var res *models.Resource
 	var s status.Status
@@ -145,8 +145,13 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 			log.Debugf("delete state: %v", s.String())
 		}
 	case opsmodels.UnChange:
-		log.Infof("planed resource not update live state")
-		res = priorState
+		log.Infof("planed resource and live state are equal")
+		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
+		if priorState == nil {
+			res = live
+		} else {
+			res = priorState
+		}
 	}
 	if status.IsErr(s) {
 		return s
