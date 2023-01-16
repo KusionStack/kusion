@@ -89,6 +89,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			Stack:                   o.Stack,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
+			SecretStores:            o.SecretStores,
 		},
 	}
 

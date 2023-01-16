@@ -163,6 +163,11 @@ func Preview(
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
+	// Validate secret stores
+	if !project.SecretStores.IsValid() {
+		return nil, fmt.Errorf("no secret store is provided")
+	}
+
 	// Construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
@@ -172,6 +177,7 @@ func Preview(
 			StateStorage:  storage,
 			IgnoreFields:  o.IgnoreFields,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+			SecretStores:  project.SecretStores,
 		},
 	}
 
