@@ -2,6 +2,7 @@ package tfops
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -75,7 +76,7 @@ func TestWriteHCL(t *testing.T) {
 	}{
 		"writeSuccess": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 			want: want{
 				maintf: "{\"provider\":{\"local\":null},\"resource\":{\"local_file\":{\"kusion_example\":{\"content\":\"kusion\",\"filename\":\"test.txt\"}}},\"terraform\":{\"required_providers\":{\"local\":{\"source\":\"registry.terraform.io/hashicorp/local\",\"version\":\"2.2.3\"}}}}",
@@ -85,11 +86,13 @@ func TestWriteHCL(t *testing.T) {
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
 			if err := tt.args.w.WriteHCL(); err != nil {
 				t.Errorf("writeHCL error: %v", err)
 			}
 
-			s, _ := fs.ReadFile(filepath.Join(tt.w.dir, "main.tf.json"))
+			s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "main.tf.json"))
 			if diff := cmp.Diff(string(s), tt.want.maintf); diff != "" {
 				t.Errorf("\n%s\nWriteHCL(...): -want maintf, +got maintf:\n%s", name, diff)
 			}
@@ -112,7 +115,7 @@ func TestWriteTFState(t *testing.T) {
 	}{
 		"writeSuccess": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 			want: want{
 				tfstate: "{\"resources\":[{\"instances\":[{\"attributes\":{\"content\":\"kusion\",\"filename\":\"test.txt\"}}],\"mode\":\"managed\",\"name\":\"kusion_example\",\"provider\":\"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\"type\":\"local_file\"}],\"version\":4}",
@@ -122,11 +125,13 @@ func TestWriteTFState(t *testing.T) {
 
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
 			if err := tt.args.w.WriteTFState(&resourceTest); err != nil {
 				t.Errorf("WriteTFState error: %v", err)
 			}
 
-			s, _ := fs.ReadFile(filepath.Join(tt.w.dir, "terraform.tfstate"))
+			s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "terraform.tfstate"))
 			if diff := cmp.Diff(string(s), tt.want.tfstate); diff != "" {
 				t.Errorf("\n%s\nWriteTFState(...): -want tfstate, +got tfstate:\n%s", name, diff)
 			}
@@ -149,12 +154,14 @@ func TestInitWorkspace(t *testing.T) {
 	}{
 		"initws": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 		},
 	}
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
 			err := tt.args.w.InitWorkSpace(context.TODO())
 			if diff := cmp.Diff(tt.want.err, err); diff != "" {
 				t.Errorf("\nInitWorkSpace(...) -want err, +got err: \n%s", diff)
@@ -173,12 +180,15 @@ func TestApply(t *testing.T) {
 	}{
 		"applySuccess": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			tt.w.SetResource(&resourceTest)
+			tt.w.SetCacheDir(".test")
+			tt.args.w.SetStackDir(".")
 			if err := tt.w.WriteHCL(); err != nil {
 				t.Errorf("\nWriteHCL error: %v", err)
 			}
@@ -201,12 +211,15 @@ func TestRead(t *testing.T) {
 	}{
 		"readSuccess": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
+			tt.args.w.SetStackDir(".")
 			if _, err := tt.args.w.Read(context.TODO()); err != nil {
 				t.Errorf("\n Read error: %v", err)
 			}
@@ -223,12 +236,15 @@ func TestRefreshOnly(t *testing.T) {
 	}{
 		"readSuccess": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
+			tt.args.w.SetStackDir(".")
 			if _, err := tt.args.w.RefreshOnly(context.TODO()); err != nil {
 				t.Errorf("\n RefreshOnly error: %v", err)
 			}
@@ -253,7 +269,7 @@ func TestGerProvider(t *testing.T) {
 	}{
 		"Success": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 			want: want{
 				addr: "registry.terraform.io/hashicorp/local/2.2.3",
@@ -304,6 +320,7 @@ func mockProviderAddr() {
 }
 
 func TestDestory(t *testing.T) {
+	defer os.RemoveAll(".test")
 	type args struct {
 		w *WorkSpace
 	}
@@ -318,7 +335,7 @@ func TestDestory(t *testing.T) {
 	}{
 		"success": {
 			args: args{
-				w: NewWorkSpace(&resourceTest, fs),
+				w: NewWorkSpace(fs),
 			},
 			want: want{
 				err: nil,
@@ -327,6 +344,9 @@ func TestDestory(t *testing.T) {
 	}
 	for name, tt := range cases {
 		t.Run(name, func(t *testing.T) {
+			tt.args.w.SetResource(&resourceTest)
+			tt.args.w.SetCacheDir(".test")
+			tt.args.w.SetStackDir(".")
 			if err := tt.w.Destroy(context.TODO()); err != nil {
 				t.Errorf("terraform destroy error: %v", err)
 			}
