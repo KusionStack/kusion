@@ -151,9 +151,6 @@ build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for l
 	# Copy README.md
 	cp ./README.md ./_build/bundles/kusion-linux
 
-	# Copy kusion
-	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-linux
-
 	# Build tgz
 	cd ./_build/bundles/kusion-linux && tar -zcvf ../kusion-linux.tgz  .
 	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-linux.tgz > kusion-linux.tgz.md5.txt
