@@ -64,7 +64,7 @@ clean:  ## Clean build bundles
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles
 
-build-all: build-local-darwin-all build-local-ubuntu-all build-local-centos-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
+build-all: build-local-darwin-all build-local-linux-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-darwin:  ## Build kusion tool chain for macOS
 	# Delete old artifacts
