@@ -14,9 +14,6 @@
 *.out
 *.log
 
-# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
-.glide/
-
 # graph
 *.dot
 *.png
@@ -25,6 +22,7 @@
 # ide
 .idea/
 *.iml
+.gitpod.yml
 
 vendor/
 
@@ -48,6 +46,7 @@ _python37_home_/
 /VERSION
 /kclopenapi
 .kclvm/
+kusion_state*.json
 
 # Vscode
 __debug_bin
