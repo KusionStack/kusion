@@ -64,7 +64,7 @@ clean:  ## Clean build bundles
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles
 
-build-all: build-local-darwin-all build-local-ubuntu-all build-local-centos-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
+build-all: build-local-darwin-all build-local-linux-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
 build-local-darwin:  ## Build kusion tool chain for macOS
 	# Delete old artifacts
@@ -150,9 +150,6 @@ build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for l
 
 	# Copy README.md
 	cp ./README.md ./_build/bundles/kusion-linux
-
-	# Copy kusion
-	cp -r ./_build/bundles/kusion-linux/bin ./_build/bundles/kusion-linux
 
 	# Build tgz
 	cd ./_build/bundles/kusion-linux && tar -zcvf ../kusion-linux.tgz  .
