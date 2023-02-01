@@ -67,7 +67,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	resources := request.Request.Spec.Resources
 	priorStateResourceIndex := resources.Index()
 
-	runtimesMap, s := runtimeinit.AppendRuntimes(resources, o.RuntimeMap)
+	runtimesMap, s := runtimeinit.Runtimes(resources)
 	if status.IsErr(s) {
 		return s
 	}

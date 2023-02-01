@@ -37,10 +37,11 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 
 	// init runtimes
 	resources := req.Spec.Resources
-	runtimes, s := runtimeinit.AppendRuntimes(resources, wo.RuntimeMap)
+	runtimes, s := runtimeinit.Runtimes(resources)
 	if status.IsErr(s) {
 		return errors.New(s.Message())
 	}
+	wo.RuntimeMap = runtimes
 
 	// Result channels
 	msgChs := make(map[string][]<-chan k8swatch.Event, len(resources))

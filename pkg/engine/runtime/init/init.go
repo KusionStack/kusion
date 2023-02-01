@@ -18,12 +18,10 @@ var SupportRuntimes = map[models.Type]InitFn{
 // InitFn runtime init func
 type InitFn func() (runtime.Runtime, error)
 
-func AppendRuntimes(resources models.Resources, runtimesMap map[models.Type]runtime.Runtime) (map[models.Type]runtime.Runtime, status.Status) {
+func Runtimes(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+	runtimesMap := map[models.Type]runtime.Runtime{}
 	if resources == nil {
 		return runtimesMap, nil
-	}
-	if runtimesMap == nil {
-		runtimesMap = map[models.Type]runtime.Runtime{}
 	}
 
 	for _, resource := range resources {
