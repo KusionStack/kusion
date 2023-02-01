@@ -22,20 +22,7 @@ const (
 	KclPluginsModulePath = "kusionstack.io/kcl-plugin"
 )
 
-var info = NewMainOrDefaultVersionInfo()
-
-func NewMainOrDefaultVersionInfo() *Info {
-	v := NewDefaultVersionInfo()
-
-	if i, ok := debug.ReadBuildInfo(); ok {
-		mod := &i.Main
-		if mod.Replace != nil {
-			mod = mod.Replace
-		}
-	}
-
-	return v
-}
+var info = NewDefaultVersionInfo()
 
 func NewDefaultVersionInfo() *Info {
 	return &Info{
