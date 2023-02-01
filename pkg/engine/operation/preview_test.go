@@ -7,9 +7,12 @@ import (
 	"sync"
 	"testing"
 
+	"bou.ke/monkey"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -256,6 +259,10 @@ func TestOperation_Preview(t *testing.T) {
 					Lock:                    tt.fields.lock,
 				},
 			}
+
+			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
+			})
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
 				t.Errorf("Operation.Preview() gotRsp = %v, want %v", kdump.FormatN(gotRsp), kdump.FormatN(tt.wantRsp))

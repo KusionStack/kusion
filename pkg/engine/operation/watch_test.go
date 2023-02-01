@@ -4,12 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
+	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestWatchOperation_Watch(t *testing.T) {
@@ -26,6 +30,9 @@ func TestWatchOperation_Watch(t *testing.T) {
 			},
 		},
 	}
+	monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+		return map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
+	})
 	wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
 	err := wo.Watch(req)
 	assert.Nil(t, err)

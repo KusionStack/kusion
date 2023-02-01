@@ -17,6 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -173,6 +174,9 @@ func TestOperation_Apply(t *testing.T) {
 			monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 				o.ResultState = rs
 				return nil
+			})
+			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}}, nil
 			})
 
 			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)
