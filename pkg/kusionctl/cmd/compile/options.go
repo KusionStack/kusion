@@ -93,6 +93,9 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 		curDir, _ = os.Getwd()
 	}
 	if ok := preCheck(curDir); !ok {
+		if o.Output == "" {
+			o.Output = Stdout
+		}
 		return
 	}
 
