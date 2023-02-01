@@ -14,11 +14,8 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/runtime"
-	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
-	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -75,17 +72,6 @@ func (o *DestroyOptions) Run() error {
 		return nil
 	}
 
-	runtimes := runtimeInit.InitRuntime()
-	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
-	if err != nil {
-		return err
-	}
-
-	r, err := runtimeInitFun()
-	if err != nil {
-		return nil
-	}
-
 	// Get stateStorage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
 	if err != nil {
@@ -93,7 +79,7 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := o.preview(planResources, project, stack, r, stateStorage)
+	changes, err := o.preview(planResources, project, stack, stateStorage)
 	if err != nil {
 		return err
 	}
@@ -131,21 +117,20 @@ func (o *DestroyOptions) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(planResources, changes, r, stateStorage); err != nil {
+	if err := o.destroy(planResources, changes, stateStorage); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *DestroyOptions) preview(planResources *models.Spec,
-	project *projectstack.Project, stack *projectstack.Stack, runtime runtime.Runtime, stateStorage states.StateStorage,
+func (o *DestroyOptions) preview(planResources *models.Spec, project *projectstack.Project,
+	stack *projectstack.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
 			OperationType: opsmodels.DestroyPreview,
-			Runtime:       runtime,
 			Stack:         stack,
 			StateStorage:  stateStorage,
 			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
@@ -170,12 +155,11 @@ func (o *DestroyOptions) preview(planResources *models.Spec,
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes, runtime runtime.Runtime, stateStorage states.StateStorage) error {
+func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
 	// Build apply operation
 
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
-			Runtime:      runtime,
 			Stack:        changes.Stack(),
 			StateStorage: stateStorage,
 			MsgCh:        make(chan opsmodels.Message),

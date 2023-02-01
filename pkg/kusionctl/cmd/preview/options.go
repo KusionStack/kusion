@@ -11,11 +11,8 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/runtime"
-	runtimeInit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
-	"kusionstack.io/kusion/pkg/kusionctl/cmd/util"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -91,18 +88,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Compute changes for preview
-	runtimes := runtimeInit.InitRuntime()
-	runtimeInitFun, err := util.ValidateResourceType(runtimes, planResources.Resources[0].Type)
-	if err != nil {
-		return err
-	}
-
-	r, err := runtimeInitFun()
-	if err != nil {
-		return err
-	}
-
-	changes, err := Preview(o, r, stateStorage, planResources, project, stack)
+	changes, err := Preview(o, stateStorage, planResources, project, stack)
 	if err != nil {
 		return err
 	}
@@ -155,7 +141,6 @@ func (o *PreviewOptions) Run() error {
 //	}
 func Preview(
 	o *PreviewOptions,
-	runtime runtime.Runtime,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	project *projectstack.Project,
@@ -167,7 +152,6 @@ func Preview(
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
 			OperationType: opsmodels.ApplyPreview,
-			Runtime:       runtime,
 			Stack:         stack,
 			StateStorage:  storage,
 			IgnoreFields:  o.IgnoreFields,

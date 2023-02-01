@@ -9,6 +9,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -66,6 +67,12 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	resources := request.Request.Spec.Resources
 	priorStateResourceIndex := resources.Index()
 
+	runtimesMap, s := runtimeinit.Runtimes(resources)
+	if status.IsErr(s) {
+		return s
+	}
+	o.RuntimeMap = runtimesMap
+
 	// 2. build & walk DAG
 	destroyGraph, s := NewDestroyGraph(resources)
 	if status.IsErr(s) {
@@ -79,7 +86,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
-			Runtime:                 o.Runtime,
+			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,

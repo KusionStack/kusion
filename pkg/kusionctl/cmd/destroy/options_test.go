@@ -103,7 +103,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
-		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, &fakerRuntime{}, stateStorage)
+		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -218,7 +218,7 @@ func Test_destroy(t *testing.T) {
 
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 
-		err := o.destroy(planResources, changes, &fakerRuntime{}, stateStorage)
+		err := o.destroy(planResources, changes, stateStorage)
 		assert.Nil(t, err)
 	})
 	t.Run("destroy failed", func(t *testing.T) {
@@ -241,7 +241,7 @@ func Test_destroy(t *testing.T) {
 		changes := opsmodels.NewChanges(project, stack, order)
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 
-		err := o.destroy(planResources, changes, &fakerRuntime{}, stateStorage)
+		err := o.destroy(planResources, changes, stateStorage)
 		assert.NotNil(t, err)
 	})
 }

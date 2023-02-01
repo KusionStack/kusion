@@ -9,6 +9,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -80,6 +81,14 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
 
+	resources := request.Spec.Resources
+	resources = append(resources, priorState.Resources...)
+	runtimesMap, s := runtimeinit.Runtimes(resources)
+	if status.IsErr(s) {
+		return nil, s
+	}
+	o.RuntimeMap = runtimesMap
+
 	// 2. build & walk DAG
 	applyGraph, s := NewApplyGraph(request.Spec, priorState)
 	if status.IsErr(s) {
@@ -94,7 +103,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      priorStateResourceIndex,
-			Runtime:                 o.Runtime,
+			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,

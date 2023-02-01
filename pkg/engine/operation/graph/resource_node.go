@@ -57,7 +57,8 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	// 3. get the latest resource from runtime
 	readRequest := &runtime.ReadRequest{PlanResource: planedState, PriorResource: priorState, Stack: operation.Stack}
 
-	response := operation.Runtime.Read(context.Background(), readRequest)
+	resourceType := rn.state.Type
+	response := operation.RuntimeMap[resourceType].Read(context.Background(), readRequest)
 	liveState := response.Resource
 	s := response.Status
 	if status.IsErr(s) {
@@ -75,7 +76,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 			rn.Action = opsmodels.Create
 		} else {
 			// Dry run to fetch predictable state
-			dryRunResp := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
+			dryRunResp := operation.RuntimeMap[resourceType].Apply(context.Background(), &runtime.ApplyRequest{
 				PriorResource: priorState,
 				PlanResource:  planedState,
 				Stack:         operation.Stack,
@@ -126,10 +127,11 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 
 	var res *models.Resource
 	var s status.Status
+	resourceType := rn.state.Type
 
 	switch rn.Action {
 	case opsmodels.Create, opsmodels.Update:
-		response := operation.Runtime.Apply(context.Background(), &runtime.ApplyRequest{
+		response := operation.RuntimeMap[resourceType].Apply(context.Background(), &runtime.ApplyRequest{
 			PriorResource: priorState, PlanResource: planedState, Stack: operation.Stack,
 		})
 		res = response.Resource
@@ -139,7 +141,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 			log.Debugf("apply status: %v", s.String())
 		}
 	case opsmodels.Delete:
-		response := operation.Runtime.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
+		response := operation.RuntimeMap[resourceType].Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
 			log.Debugf("delete state: %v", s.String())

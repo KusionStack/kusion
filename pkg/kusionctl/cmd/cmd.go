@@ -123,7 +123,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 			},
 		},
 		{
-			Message: "Runtime Commands:",
+			Message: "RuntimeMap Commands:",
 			Commands: []*cobra.Command{
 				preview.NewCmdPreview(),
 				apply.NewCmdApply(),

@@ -8,6 +8,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -60,6 +61,15 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	// 1. init & build Indexes
 	priorState, resultState = po.InitStates(&request.Request)
 
+	// Kusion is a multi-runtime system. We initialize runtimes dynamically by resource types
+	resources := request.Spec.Resources
+	resources = append(resources, priorState.Resources...)
+	runtimesMap, s := runtimeinit.Runtimes(resources)
+	if status.IsErr(s) {
+		return nil, s
+	}
+	o.RuntimeMap = runtimesMap
+
 	switch o.OperationType {
 	case opsmodels.ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
@@ -85,7 +95,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			StateResourceIndex:      priorStateResourceIndex,
 			IgnoreFields:            o.IgnoreFields,
 			ChangeOrder:             o.ChangeOrder,
-			Runtime:                 o.Runtime, // preview need get the latest spec from runtime
+			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},

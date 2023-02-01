@@ -7,9 +7,12 @@ import (
 	"sync"
 	"testing"
 
+	"bou.ke/monkey"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -31,10 +34,12 @@ var (
 	}
 	FakeResourceState = models.Resource{
 		ID:         "fake-id",
+		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
 	}
 	FakeResourceState2 = models.Resource{
 		ID:         "fake-id-2",
+		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
 	}
 )
@@ -84,7 +89,7 @@ func TestOperation_Preview(t *testing.T) {
 		PriorStateResourceIndex map[string]*models.Resource
 		StateResourceIndex      map[string]*models.Resource
 		Order                   *opsmodels.ChangeOrder
-		Runtime                 runtime.Runtime
+		RuntimeMap              map[models.Type]runtime.Runtime
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -116,7 +121,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-apply",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
@@ -154,7 +159,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-destroy",
 			fields: fields{
 				OperationType: opsmodels.DestroyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -192,7 +197,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-empty-models",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -210,7 +215,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-nonexistent-id",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				Runtime:       &fakePreviewRuntime{},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -225,6 +230,7 @@ func TestOperation_Preview(t *testing.T) {
 							Resources: []models.Resource{
 								{
 									ID:         "fake-id",
+									Type:       runtime.Kubernetes,
 									Attributes: FakeService,
 									DependsOn:  []string{"nonexistent-id"},
 								},
@@ -247,12 +253,16 @@ func TestOperation_Preview(t *testing.T) {
 					PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
 					StateResourceIndex:      tt.fields.StateResourceIndex,
 					ChangeOrder:             tt.fields.Order,
-					Runtime:                 tt.fields.Runtime,
+					RuntimeMap:              tt.fields.RuntimeMap,
 					MsgCh:                   tt.fields.MsgCh,
 					ResultState:             tt.fields.resultState,
 					Lock:                    tt.fields.lock,
 				},
 			}
+
+			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
+			})
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
 				t.Errorf("Operation.Preview() gotRsp = %v, want %v", kdump.FormatN(gotRsp), kdump.FormatN(tt.wantRsp))

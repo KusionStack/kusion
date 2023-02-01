@@ -2,6 +2,7 @@ package operation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/printers"
 	"kusionstack.io/kusion/pkg/engine/printers/k8s"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -22,7 +24,7 @@ import (
 var tableGenerator = printers.NewTableGenerator().With(k8s.AddHandlers)
 
 type WatchOperation struct {
-	Runtime runtime.Runtime
+	opsmodels.Operation
 }
 
 type WatchRequest struct {
@@ -32,7 +34,15 @@ type WatchRequest struct {
 func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// init runtimes
 	resources := req.Spec.Resources
+	runtimes, s := runtimeinit.Runtimes(resources)
+	if status.IsErr(s) {
+		return errors.New(s.Message())
+	}
+	wo.RuntimeMap = runtimes
+
 	// Result channels
 	msgChs := make(map[string][]<-chan k8swatch.Event, len(resources))
 	// Keep sorted
@@ -40,8 +50,15 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	// Collect watchers
 	for i := range resources {
 		res := &resources[i]
+
+		// only support k8s resources
+		t := res.Type
+		if runtime.Kubernetes != t {
+			return fmt.Errorf("WARNING: Watch only support Kubernetes resources for now")
+		}
+
 		// Get watchers
-		resp := wo.Runtime.Watch(ctx, &runtime.WatchRequest{Resource: res})
+		resp := runtimes[t].Watch(ctx, &runtime.WatchRequest{Resource: res})
 		if status.IsErr(resp.Status) {
 			return fmt.Errorf(resp.Status.String())
 		}

@@ -199,7 +199,7 @@ func Test_apply(t *testing.T) {
 		changes := opsmodels.NewChanges(project, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
-		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply success", func(t *testing.T) {
@@ -225,7 +225,7 @@ func Test_apply(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	t.Run("apply failed", func(t *testing.T) {
@@ -246,7 +246,7 @@ func Test_apply(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(project, stack, order)
 
-		err := Apply(o, &fakerRuntime{}, stateStorage, planResources, changes, os.Stdout)
+		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }
