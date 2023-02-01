@@ -32,10 +32,6 @@ func NewMainOrDefaultVersionInfo() *Info {
 		if mod.Replace != nil {
 			mod = mod.Replace
 		}
-
-		if mod.Version != "(devel)" {
-			v.ReleaseVersion = mod.Version
-		}
 	}
 
 	return v
