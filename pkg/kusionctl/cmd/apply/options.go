@@ -185,12 +185,19 @@ func Apply(
 	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
+	// Validate secret stores
+	project := changes.Project()
+	if !project.SecretStores.IsValid() {
+		return fmt.Errorf("no secret store is provided")
+	}
+
 	// Construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),
 			StateStorage: storage,
 			MsgCh:        make(chan opsmodels.Message),
+			SecretStores: project.SecretStores,
 		},
 	}
 

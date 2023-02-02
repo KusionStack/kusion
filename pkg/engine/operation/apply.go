@@ -108,6 +108,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
+			SecretStores:            o.SecretStores,
 		},
 	}
 

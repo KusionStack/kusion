@@ -8,6 +8,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/vals"
 )
 
 var (
@@ -28,9 +29,10 @@ const (
 
 // ProjectConfiguration is the project configuration
 type ProjectConfiguration struct {
-	Name    string           `json:"name" yaml:"name"`                           // Project name
-	Tenant  string           `json:"tenant,omitempty" yaml:"tenant,omitempty"`   // Tenant name
-	Backend *backend.Storage `json:"backend,omitempty" yaml:"backend,omitempty"` // state storage config
+	Name         string             `json:"name" yaml:"name"`                                       // Project name
+	Tenant       string             `json:"tenant,omitempty" yaml:"tenant,omitempty"`               // Tenant name
+	Backend      *backend.Storage   `json:"backend,omitempty" yaml:"backend,omitempty"`             // state storage config
+	SecretStores *vals.SecretStores `json:"secret_stores,omitempty" yaml:"secret_stores,omitempty"` // Secret stores
 }
 
 type Project struct {

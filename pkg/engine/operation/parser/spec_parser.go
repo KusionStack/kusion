@@ -56,7 +56,7 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 
 		// handle implicit dependency
 		v := reflect.ValueOf(resourceState.Attributes)
-		implicitRefKeys, _, s := graph.ParseImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
+		implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
 			return v, nil
 		})
 		if status.IsErr(s) {

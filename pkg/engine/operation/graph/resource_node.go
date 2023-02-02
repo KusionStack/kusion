@@ -16,6 +16,7 @@ import (
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/diff"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/pkg/vals"
 )
 
 type ResourceNode struct {
@@ -30,16 +31,34 @@ const (
 	ImplicitRefPrefix = "$kusion_path."
 )
 
+func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
+	value := reflect.ValueOf(rn.state.Attributes)
+	var replaced reflect.Value
+	var s status.Status
+	switch o.OperationType {
+	case opsmodels.ApplyPreview:
+		// replace secret ref
+		_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
+	case opsmodels.Apply:
+		// replace secret ref and implicit ref
+		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+	default:
+		return nil
+	}
+	if status.IsErr(s) {
+		return s
+	}
+	if !replaced.IsZero() {
+		rn.state.Attributes = replaced.Interface().(map[string]interface{})
+	}
+	return nil
+}
+
 func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	log.Debugf("execute node:%s", rn.ID)
-	if operation.OperationType == opsmodels.Apply {
-		// replace implicit references
-		value := reflect.ValueOf(rn.state.Attributes)
-		_, implicitValue, s := ParseImplicitRef(value, operation.CtxResourceIndex, ImplicitReplaceFun)
-		if status.IsErr(s) {
-			return s
-		}
-		rn.state.Attributes = implicitValue.Interface().(map[string]interface{})
+
+	if s := rn.PreExecute(operation); status.IsErr(s) {
+		return s
 	}
 
 	// 1. prepare planedState
@@ -203,6 +222,10 @@ func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, plan, l
 	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, plan, live)
 }
 
+func ReplaceSecretRef(v reflect.Value, ss *vals.SecretStores) ([]string, reflect.Value, status.Status) {
+	return ReplaceRef(v, nil, nil, ss, vals.ParseSecretRef)
+}
+
 var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
 	const Sep = "."
 	split := strings.Split(refPath, Sep)
@@ -232,8 +255,17 @@ var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath
 	return reflect.ValueOf(valueMap), nil
 }
 
-func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource,
-	replaceFun func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status),
+func ReplaceImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource,
+	replaceFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+) ([]string, reflect.Value, status.Status) {
+	return ReplaceRef(v, resourceIndex, replaceFun, nil, nil)
+}
+
+func ReplaceRef(v reflect.Value,
+	resourceIndex map[string]*models.Resource,
+	replaceImplicitFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+	ss *vals.SecretStores,
+	replaceSecretFun func(string, string, *vals.SecretStores) (string, error),
 ) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {
@@ -245,22 +277,36 @@ func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource
 		if v.IsNil() {
 			return nil, v, nil
 		}
-		return ParseImplicitRef(v.Elem(), resourceIndex, replaceFun)
+		return ReplaceRef(v.Elem(), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
 	case reflect.String:
 		vStr := v.String()
-		if strings.HasPrefix(vStr, ImplicitRefPrefix) {
-			ref := strings.TrimPrefix(vStr, ImplicitRefPrefix)
-			util.CheckArgument(len(ref) > 0,
-				fmt.Sprintf("illegal implicit ref:%s. Implicit ref format: %sresourceKey.attribute", ref, ImplicitRefPrefix))
-			split := strings.Split(ref, ".")
-			result = append(result, split[0])
-			log.Infof("add implicit ref:%s", split[0])
-			// replace v with output
-			tv, s := replaceFun(resourceIndex, ref)
-			if status.IsErr(s) {
-				return nil, v, s
+		if replaceImplicitFun != nil {
+			if strings.HasPrefix(vStr, ImplicitRefPrefix) {
+				ref := strings.TrimPrefix(vStr, ImplicitRefPrefix)
+				util.CheckArgument(len(ref) > 0,
+					fmt.Sprintf("illegal implicit ref:%s. Implicit ref format: %sresourceKey.attribute", ref, ImplicitRefPrefix))
+				split := strings.Split(ref, ".")
+				result = append(result, split[0])
+				log.Infof("add implicit ref:%s", split[0])
+				// replace v with output
+				tv, s := replaceImplicitFun(resourceIndex, ref)
+				if status.IsErr(s) {
+					return nil, v, s
+				}
+				v = tv
 			}
-			v = tv
+		}
+
+		if ss != nil && replaceSecretFun != nil {
+			if prefix, ok := vals.IsSecured(vStr); ok {
+				tStr, err := replaceSecretFun(prefix, vStr, ss)
+				if err != nil {
+					return nil, v, status.NewErrorStatus(err)
+				}
+				tv := reflect.New(v.Type()).Elem()
+				tv.SetString(tStr)
+				v = tv
+			}
 		}
 	case reflect.Slice, reflect.Array:
 		if v.Len() == 0 {
@@ -270,7 +316,7 @@ func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource
 		vs := reflect.MakeSlice(v.Type(), 0, 0)
 
 		for i := 0; i < v.Len(); i++ {
-			ref, tv, s := ParseImplicitRef(v.Index(i), resourceIndex, replaceFun)
+			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
@@ -288,7 +334,7 @@ func ParseImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource
 
 		iter := v.MapRange()
 		for iter.Next() {
-			ref, tv, s := ParseImplicitRef(iter.Value(), resourceIndex, replaceFun)
+			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
