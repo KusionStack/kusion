@@ -15,10 +15,10 @@ import (
 
 const MaxLogLength = 3751
 
-func ConvertKCLResult2Resources(resourceYAMLs []kcl.KCLResult) (*models.Spec, error) {
+func ResourcesYAML2Spec(resourcesYAML []kcl.KCLResult) (*models.Spec, error) {
 	resources := []models.Resource{}
 
-	for _, resourcesYamlMap := range resourceYAMLs {
+	for _, resourcesYamlMap := range resourcesYAML {
 		// Convert kcl result to yaml string
 		msg := jsonUtil.MustMarshal2String(resourcesYamlMap)
 		if len(msg) > MaxLogLength {

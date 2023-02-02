@@ -9,13 +9,14 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	compilecmd "kusionstack.io/kusion/pkg/kusionctl/cmd/compile"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/spec"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
@@ -54,7 +55,7 @@ func (o *DestroyOptions) Run() error {
 	}
 
 	// Get compile result
-	planResources, err := compile.GenerateSpec(&compile.Options{
+	planResources, err := spec.GenerateSpecWithSpinner(&generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -62,7 +63,7 @@ func (o *DestroyOptions) Run() error {
 		Overrides:   o.Overrides,
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
-	}, stack)
+	}, project, stack)
 	if err != nil {
 		return err
 	}

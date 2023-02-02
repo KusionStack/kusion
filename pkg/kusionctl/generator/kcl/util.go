@@ -1,4 +1,4 @@
-package compile
+package kcl
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/io"
 	kyaml "kusionstack.io/kusion/pkg/util/yaml"
@@ -94,7 +94,7 @@ func k8sResource2ResourceMap(resource map[string]interface{}) (map[string]interf
 
 	return map[string]interface{}{
 		ID:         engine.BuildIDForKubernetes(apiVersion, kind, metadataNamespace, metadataName),
-		Type:       runtime.Kubernetes,
+		Type:       generator.Kubernetes,
 		Attributes: resource,
 	}, nil
 }

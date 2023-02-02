@@ -22,7 +22,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
 			output, err := ExecKusionWithWorkDir("kusion compile", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.BeEmpty())
+			gomega.Expect(output).To(gomega.ContainSubstring("Generating Spec"))
 		})
 	})
 
@@ -32,7 +32,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
 			output, err := ExecKusionWithWorkDir("kusion check", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.BeEmpty())
+			gomega.Expect(output).To(gomega.ContainSubstring("Generating Spec"))
 		})
 	})
 

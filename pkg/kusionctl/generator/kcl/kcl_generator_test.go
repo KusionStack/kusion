@@ -1,11 +1,9 @@
-//go:build !arm64
-// +build !arm64
-
 // Provide general KCL compilation method
-package compile
+package kcl
 
 import (
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -15,7 +13,10 @@ import (
 	k2 "kusionstack.io/kclvm-go/pkg/kcl"
 	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
 
-	"kusionstack.io/kusion/pkg/compile/rest"
+	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
+	"kusionstack.io/kusion/pkg/kusionctl/generator/kcl/rest"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 func TestInit(t *testing.T) {
@@ -33,8 +34,16 @@ func TestInit(t *testing.T) {
 	})
 }
 
-func TestCompile(t *testing.T) {
+func TestGenerateSpec(t *testing.T) {
 	defer monkey.UnpatchAll()
+
+	fakeStack := &projectstack.Stack{
+		StackConfiguration: projectstack.StackConfiguration{
+			Name: "fake-stack",
+		},
+		Path: filepath.Join(".", "testdata"),
+	}
+
 	type args struct {
 		workDir     string
 		filenames   []string
@@ -53,14 +62,14 @@ func TestCompile(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *CompileResult
+		want    *models.Spec
 		wantErr bool
 		prefunc func()
 	}{
 		{
 			name:    "success",
 			args:    testArgs,
-			want:    NewCompileResult(&kcl.KCLResultList{}),
+			want:    &models.Spec{Resources: []models.Resource{}},
 			wantErr: false,
 			prefunc: func() { mockRunFiles(nil) },
 		},
@@ -77,7 +86,18 @@ func TestCompile(t *testing.T) {
 			if tt.prefunc != nil {
 				tt.prefunc()
 			}
-			got, err := Compile(tt.args.workDir, tt.args.filenames, tt.args.settings, tt.args.arguments, tt.args.overrides, tt.args.disableNone, tt.args.overrideAST)
+
+			g := &Generator{}
+			got, err := g.GenerateSpec(
+				&generator.Options{
+					WorkDir:     tt.args.workDir,
+					Filenames:   tt.args.filenames,
+					Settings:    tt.args.settings,
+					Arguments:   tt.args.arguments,
+					Overrides:   tt.args.overrides,
+					DisableNone: tt.args.disableNone,
+					OverrideAST: tt.args.overrideAST,
+				}, fakeStack)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Compile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -190,30 +210,6 @@ func mockRunFiles(mockErr error) {
 		return &kcl.KCLResultList{}, mockErr
 	})
 }
-
-// func mockRestCompile(client *rest.Client) {
-// 	monkey.PatchInstanceMethod(reflect.TypeOf(client), "Compile", func(_ *rest.Client, req *gpyrpc.ExecProgram_Args) (*rest.Result, error) {
-// 		return new(rest.Result), nil
-// 	})
-// }
-
-// func mockBuildOptions() {
-// 	monkey.Patch(buildOptions, func(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
-// 		return []kcl.Option{}, nil
-// 	})
-// }
-
-// func mockParseArgs() {
-// 	monkey.Patch(k2.ParseArgs, func(pathList []string, opts ...kcl.Option) (kcl.Option, error) {
-// 		return kcl.Option{}, nil
-// 	})
-// }
-
-// func mockNormResult() {
-// 	monkey.Patch(normResult, func(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
-// 		return &CompileResult{}, nil
-// 	})
-// }
 
 func Test_appendCRDs(t *testing.T) {
 	t.Run("append one CRD", func(t *testing.T) {

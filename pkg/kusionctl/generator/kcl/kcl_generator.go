@@ -1,5 +1,4 @@
-// Provide general KCL compilation method
-package compile
+package kcl
 
 import (
 	"bytes"
@@ -11,22 +10,26 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pterm/pterm"
-	kcl "kusionstack.io/kclvm-go"
+	"kusionstack.io/kclvm-go"
 	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
 
-	"kusionstack.io/kusion/pkg/compile/rest"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
+	"kusionstack.io/kusion/pkg/kusionctl/generator/kcl/rest"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/resources/crd"
-	jsonUtil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/util/pretty"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/yaml"
 )
 
-var enableRest bool
+type Generator struct{}
+
+var (
+	_          generator.Generator = (*Generator)(nil)
+	enableRest bool
+)
 
 func Init() error {
 	_, err := rest.New()
@@ -41,59 +44,35 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-type Options struct {
-	WorkDir     string
-	Filenames   []string
-	Settings    []string
-	Arguments   []string
-	Overrides   []string
-	DisableNone bool
-	OverrideAST bool
-	NoStyle     bool
-}
-
-func GenerateSpec(o *Options, stack *projectstack.Stack) (*models.Spec, error) {
-	var sp *pterm.SpinnerPrinter
-	if o.NoStyle {
-		fmt.Printf("Compiling in stack %s...\n", stack.Name)
-	} else {
-		sp = &pretty.SpinnerT
-		sp, _ = sp.Start(fmt.Sprintf("Compiling in stack %s...", stack.Name))
-	}
-	// compile by kcl go sdk
-	r, err := Compile(o.WorkDir, o.Filenames, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
+func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack) (*models.Spec, error) {
+	optList, err := buildOptions(o.WorkDir, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
 	if err != nil {
-		if sp != nil {
-			sp.Fail()
-		}
 		return nil, err
 	}
+
+	log.Debugf("Compile filenames: %v", o.Filenames)
+	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
+
+	// call kcl run
+	result, err := kclvm.RunFiles(o.Filenames, optList...)
+	if err != nil {
+		return nil, err
+	}
+	compileResult := NewCompileResult(result)
 
 	// Append crd description to compiled result,
 	// workDir may omit empty if run in stack dir
-	err = appendCRDs(stack.Path, r)
+	err = appendCRDs(stack.Path, compileResult)
 	if err != nil {
-		if sp != nil {
-			sp.Fail()
-		}
 		return nil, err
 	}
 
-	// Construct resource from compile result to build request
-	resources, err := engine.ConvertKCLResult2Resources(r.Documents)
+	// convert compile result to spec
+	spec, err := engine.ResourcesYAML2Spec(compileResult.Documents)
 	if err != nil {
-		if sp != nil {
-			sp.Fail()
-		}
 		return nil, err
 	}
-
-	if sp != nil {
-		sp.Success()
-	}
-	fmt.Println()
-
-	return resources, nil
+	return spec, nil
 }
 
 func appendCRDs(workDir string, r *CompileResult) error {
@@ -143,32 +122,14 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-// Compile General KCL compilation method
-func Compile(workDir string, filenames, settings, arguments, overrides []string, disableNone bool, overrideAST bool) (*CompileResult, error) {
-	optList, err := buildOptions(workDir, settings, arguments, overrides, disableNone, overrideAST)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debugf("Compile filenames: %v", filenames)
-	log.Debugf("Compile options: %s", jsonUtil.MustMarshal2PrettyString(optList))
-
-	// call kcl run
-	result, err := kcl.RunFiles(filenames, optList...)
-	if err != nil {
-		return nil, err
-	}
-	return NewCompileResult(result), nil
-}
-
-func buildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
-	optList := []kcl.Option{}
+func buildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kclvm.Option, error) {
+	optList := []kclvm.Option{}
 	// build settings option
 	for _, setting := range settings {
 		if workDir != "" {
 			setting = filepath.Join(workDir, setting)
 		}
-		opt := kcl.WithSettings(setting)
+		opt := kclvm.WithSettings(setting)
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
@@ -178,7 +139,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 
 	// build arguments option
 	for _, arg := range arguments {
-		opt := kcl.WithOptions(arg)
+		opt := kclvm.WithOptions(arg)
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
@@ -187,7 +148,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	}
 
 	// build overrides option
-	opt := kcl.WithOverrides(overrides...)
+	opt := kclvm.WithOverrides(overrides...)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -195,7 +156,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// build disable none option
-	opt = kcl.WithDisableNone(disableNone)
+	opt = kclvm.WithDisableNone(disableNone)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -203,7 +164,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// open PrintOverride option
-	opt = kcl.WithPrintOverridesAST(overrideAST)
+	opt = kclvm.WithPrintOverridesAST(overrideAST)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -211,7 +172,7 @@ func buildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// build workDir option
-	opt = kcl.WithWorkDir(workDir)
+	opt = kclvm.WithWorkDir(workDir)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -235,7 +196,7 @@ func normResult(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
 		return nil, fmt.Errorf("normResult: invalid result: %s", resp.JsonResult)
 	}
 
-	var kclResults []kcl.KCLResult
+	var kclResults []kclvm.KCLResult
 	for _, m := range mList {
 		if len(m) != 0 {
 			kclResults = append(kclResults, m)
@@ -274,7 +235,7 @@ func genKclArgs(args map[string]string, settings []string) string {
 }
 
 func Overwrite(fileName string, overrides []string) (bool, error) {
-	return kcl.OverrideFile(fileName, overrides, []string{})
+	return kclvm.OverrideFile(fileName, overrides, []string{})
 }
 
 // Get kcl cli path

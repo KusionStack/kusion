@@ -1,4 +1,4 @@
-package compile
+package kcl
 
 import (
 	kcl "kusionstack.io/kclvm-go"

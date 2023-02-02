@@ -1,6 +1,7 @@
 package projectstack
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -93,36 +94,35 @@ func FindAllProjects() ([]*Project, error) {
 func FindAllProjectsFrom(path string) ([]*Project, error) {
 	projects := []*Project{}
 	s := sets.NewString()
-	_ = filepath.WalkDir(path, func(p string, _ fs.DirEntry, _ error) error {
+	err := filepath.WalkDir(path, func(p string, _ fs.DirEntry, _ error) error {
 		if IsProject(p) && !s.Has(p) {
 			// Parse project configuration
 			config, err := ParseProjectConfiguration(p)
 			if err != nil {
 				log.Error(err)
-				return nil
+				return fmt.Errorf("parse project.yaml failed. %w", err)
 			}
 
 			// Find all stacks
 			stacks, err := FindAllStacksFrom(p)
 			if err != nil {
 				log.Error(err)
-				return nil
+				return fmt.Errorf("parse stacks failed. %w", err)
 			}
 
 			// Get absolute path
 			absPath, err := filepath.Abs(p)
 			if err != nil {
 				log.Error(err)
-				return nil
+				return fmt.Errorf("project path failed. %w", err)
 			}
 
 			projects = append(projects, NewProject(config, absPath, stacks))
 		}
-
 		return nil
 	})
 
-	return projects, nil
+	return projects, err
 }
 
 // GetProject get project from the current working directory

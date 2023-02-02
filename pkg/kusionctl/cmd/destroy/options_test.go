@@ -1,6 +1,3 @@
-//go:build !arm64
-// +build !arm64
-
 package destroy
 
 import (
@@ -14,13 +11,14 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/compile"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/kusionctl/cmd/spec"
+	"kusionstack.io/kusion/pkg/kusionctl/generator"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -90,7 +88,7 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGenerateSpec() {
-	monkey.Patch(compile.GenerateSpec, func(o *compile.Options, stack *projectstack.Stack) (*models.Spec, error) {
+	monkey.Patch(spec.GenerateSpecWithSpinner, func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1}}, nil
 	})
 }
