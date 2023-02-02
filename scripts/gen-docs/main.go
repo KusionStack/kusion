@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra/doc"
 
-	"kusionstack.io/kusion/pkg/kusionctl/cmd"
+	"kusionstack.io/kusion/pkg/cmd"
 	"kusionstack.io/kusion/pkg/log"
 	uio "kusionstack.io/kusion/pkg/util/io"
 )
