@@ -7,7 +7,7 @@ import (
 
 	_ "kusionstack.io/kcl-plugin"
 
-	"kusionstack.io/kusion/pkg/kusionctl/cmd"
+	"kusionstack.io/kusion/pkg/cmd"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
