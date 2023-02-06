@@ -52,7 +52,7 @@ brew install KusionStack/tap/kusion
 **Go Env**
 
 ```shell
-go install github.com/KusionStack/kusion@latest
+go install kusionstack.io/kusion@latest
 ```
 
 ### No Installation
