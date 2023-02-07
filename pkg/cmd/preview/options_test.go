@@ -15,6 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -106,6 +107,10 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 type fooRuntime struct{}
 
+func (f *fooRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+	return &runtime.ImportResponse{Resource: request.PlanResource}
+}
+
 func (f *fooRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,
@@ -193,7 +198,7 @@ func mockGenerateSpec() {
 }
 
 func mockNewKubernetesRuntime() {
-	monkey.Patch(runtime.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+	monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
 		return &fooRuntime{}, nil
 	})
 }

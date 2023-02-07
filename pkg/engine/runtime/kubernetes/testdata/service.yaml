@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gocity
+  namespace: code-city
+spec:
+  ports:
+    - name: gocity-backend
+      port: 4000
+      protocol: TCP
+      targetPort: 4000
+  selector:
+    app.kubernetes.io/env: dev
+    app.kubernetes.io/name: gocity
+  type: ClusterIP

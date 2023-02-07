@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -59,9 +60,16 @@ var barDeployment = map[string]interface{}{
 	},
 }
 
-var fooRuntime = &fooWatchRuntime{}
+var (
+	fooRuntime                 = &fooWatchRuntime{}
+	_          runtime.Runtime = (*fooWatchRuntime)(nil)
+)
 
 type fooWatchRuntime struct{}
+
+func (f *fooWatchRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+	return &runtime.ImportResponse{Resource: request.PlanResource}
+}
 
 func (f *fooWatchRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return nil

@@ -48,6 +48,10 @@ var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
 
 type fakePreviewRuntime struct{}
 
+func (f *fakePreviewRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+	return &runtime.ImportResponse{Resource: request.PlanResource}
+}
+
 func (f *fakePreviewRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,

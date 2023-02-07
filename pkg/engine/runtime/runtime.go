@@ -30,6 +30,9 @@ type Runtime interface {
 	// Read the latest state of this Resource
 	Read(ctx context.Context, request *ReadRequest) *ReadResponse
 
+	// Import Resource that already existed in the actual infrastructure
+	Import(ctx context.Context, request *ImportRequest) *ImportResponse
+
 	// Delete this Resource in the actual infrastructure and return success if this Resource is not exist
 	Delete(ctx context.Context, request *DeleteRequest) *DeleteResponse
 
@@ -74,6 +77,22 @@ type ReadRequest struct {
 
 type ReadResponse struct {
 	// Resource is the result read from the actual infra
+	Resource *models.Resource
+
+	// Status contains messages will show to users
+	Status status.Status
+}
+
+type ImportRequest struct {
+	// PlanResource is the resource we want to apply in this request
+	PlanResource *models.Resource
+
+	// Stack contains info about where this command is invoked
+	Stack *projectstack.Stack
+}
+
+type ImportResponse struct {
+	// Resource is the result returned by Runtime
 	Resource *models.Resource
 
 	// Status contains messages will show to users

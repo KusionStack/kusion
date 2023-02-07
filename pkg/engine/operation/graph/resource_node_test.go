@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/status"
@@ -109,7 +110,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -129,7 +130,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -149,7 +150,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
+				RuntimeMap:              map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
 			want: status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find specified value in resource:jack by ref:jack.notExist"),
 		},
@@ -162,7 +163,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				state:    tt.fields.state,
 			}
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Apply",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 					mockState := *newResourceState
 					mockState.Attributes["a"] = "c"
 					return &runtime.ApplyResponse{
@@ -170,11 +171,11 @@ func TestResourceNode_Execute(t *testing.T) {
 					}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Delete",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 					return &runtime.DeleteResponse{Status: nil}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Read",
-				func(k *runtime.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
 				})
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
