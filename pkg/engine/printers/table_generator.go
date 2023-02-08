@@ -24,6 +24,8 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
+var TG = NewTableGenerator()
+
 // TableGenerator - an interface for generating a message and ready flag provided a runtime.Object
 type TableGenerator interface {
 	GenerateTable(obj runtime.Object) (string, bool)

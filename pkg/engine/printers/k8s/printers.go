@@ -34,6 +34,10 @@ const (
 	nodeLabelRole = "kubernetes.io/role"
 )
 
+func init() {
+	printers.TG.With(AddHandlers)
+}
+
 // AddHandlers adds print handlers for default Kubernetes types dealing with internal versions.
 // TODO: handle errors from Handler
 func AddHandlers(h printers.PrintHandler) {
