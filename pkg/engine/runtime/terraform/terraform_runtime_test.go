@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -34,7 +35,10 @@ func TestTerraformRuntime(t *testing.T) {
 		Path:               filepath.Join(cwd, "fakePath"),
 	}
 	defer os.RemoveAll(stack.GetPath())
-	tfRuntime := TerraformRuntime{*tfops.NewWorkSpace(afero.Afero{Fs: afero.NewOsFs()})}
+	tfRuntime := TerraformRuntime{
+		WorkSpace: *tfops.NewWorkSpace(afero.Afero{Fs: afero.NewOsFs()}),
+		mu:        &sync.Mutex{},
+	}
 
 	t.Run("ApplyDryRun", func(t *testing.T) {
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: true, Stack: stack})

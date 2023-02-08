@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/afero"
@@ -17,12 +18,16 @@ var _ runtime.Runtime = &TerraformRuntime{}
 
 type TerraformRuntime struct {
 	tfops.WorkSpace
+	mu *sync.Mutex
 }
 
 func NewTerraformRuntime() (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
 	ws := tfops.NewWorkSpace(fs)
-	TFRuntime := &TerraformRuntime{*ws}
+	TFRuntime := &TerraformRuntime{
+		WorkSpace: *ws,
+		mu:        &sync.Mutex{},
+	}
 	return TFRuntime, nil
 }
 
@@ -46,6 +51,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		}, Status: nil}
 	}
 
+	t.mu.Lock()
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+planState.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
@@ -71,6 +77,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	if err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
+	t.mu.Unlock()
 
 	// get terraform provider version
 	providerAddr, err := t.WorkSpace.GetProvider()
@@ -108,6 +115,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	}
 	var tfstate *tfops.TFState
 
+	t.mu.Lock()
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+requestResource.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
@@ -136,6 +144,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
+	t.mu.Unlock()
 	if tfstate == nil || tfstate.Values == nil {
 		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
@@ -164,12 +173,14 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
 	defer os.RemoveAll(tfCacheDir)
+	t.mu.Lock()
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(request.Resource)
 	if err := t.WorkSpace.Destroy(ctx); err != nil {
 		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
+	t.mu.Unlock()
 
 	return &runtime.DeleteResponse{Status: nil}
 }
