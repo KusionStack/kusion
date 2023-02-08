@@ -59,19 +59,19 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 
 	// Don`t consider delete case, so plan state must be not empty
 	if planState == nil {
-		return &runtime.ApplyResponse{nil, status.NewErrorStatus(errors.New("plan state is nil"))}
+		return &runtime.ApplyResponse{Status: status.NewErrorStatus(errors.New("plan state is nil"))}
 	}
 
 	// Get kubernetes Resource interface from plan state
 	planObj, resource, err := k.buildKubernetesResourceByState(planState)
 	if err != nil {
-		return &runtime.ApplyResponse{nil, status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
 	}
 
 	// Get live state
 	response := k.Read(ctx, &runtime.ReadRequest{PlanResource: planState})
 	if status.IsErr(response.Status) {
-		return &runtime.ApplyResponse{nil, response.Status}
+		return &runtime.ApplyResponse{Status: response.Status}
 	}
 	liveState := response.Resource
 
@@ -91,7 +91,7 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 	// Create 3-way merge patch body
 	patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 	if err != nil {
-		return &runtime.ApplyResponse{nil, status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
 	}
 
 	// Final result, dry-run to diff, otherwise to save in states
@@ -125,13 +125,13 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 				// Merge 3-way patch
 				mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
 				if err != nil {
-					return &runtime.ApplyResponse{nil, status.NewErrorStatus(err)}
+					return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
 				}
 
 				// Unmarshall and return
 				res = &unstructured.Unstructured{}
 				if err = res.UnmarshalJSON(mergedPatch); err != nil {
-					return &runtime.ApplyResponse{nil, status.NewErrorStatus(err)}
+					return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
 				}
 			}
 		}
@@ -144,19 +144,19 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 			_, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, metav1.PatchOptions{FieldManager: "kusion"})
 		}
 		if err != nil {
-			return &runtime.ApplyResponse{nil, status.NewErrorStatus(err)}
+			return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
 		}
 		// Save modified
 		res = planObj
 	}
 
-	return &runtime.ApplyResponse{&models.Resource{
+	return &runtime.ApplyResponse{Resource: &models.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
 		Attributes: res.Object,
 		DependsOn:  planState.DependsOn,
 		Extensions: planState.Extensions,
-	}, nil}
+	}}
 }
 
 // Read kubernetes Resource by client-go
@@ -167,7 +167,7 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 	}
 	// Validate
 	if requestResource == nil {
-		return &runtime.ReadResponse{nil, status.NewErrorStatus(errors.New("requestResource is nil"))}
+		return &runtime.ReadResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
 	// Get resource by attribute
@@ -176,9 +176,9 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 		// Ignore no match error, cause target apiVersion or kind is not installed yet
 		if meta.IsNoMatchError(err) {
 			log.Infof("%v, ignore", err)
-			return &runtime.ReadResponse{nil, nil}
+			return &runtime.ReadResponse{}
 		}
-		return &runtime.ReadResponse{nil, status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Status: status.NewErrorStatus(err)}
 	}
 
 	// Read resource
@@ -186,18 +186,18 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			log.Infof("%s not found, ignore", requestResource.ResourceKey())
-			return &runtime.ReadResponse{nil, nil}
+			return &runtime.ReadResponse{}
 		}
-		return &runtime.ReadResponse{nil, status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Status: status.NewErrorStatus(err)}
 	}
 
-	return &runtime.ReadResponse{&models.Resource{
+	return &runtime.ReadResponse{Resource: &models.Resource{
 		ID:         requestResource.ResourceKey(),
 		Type:       requestResource.Type,
 		Attributes: v.Object,
 		DependsOn:  requestResource.DependsOn,
 		Extensions: requestResource.Extensions,
-	}, nil}
+	}}
 }
 
 // Import already exist kubernetes Resource
@@ -242,13 +242,13 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *runtime.DeleteR
 	requestResource := request.Resource
 	// Validate
 	if requestResource == nil {
-		return &runtime.DeleteResponse{status.NewErrorStatus(errors.New("requestResource is nil"))}
+		return &runtime.DeleteResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
 	// Get Resource by attribute
 	obj, resource, err := k.buildKubernetesResourceByState(requestResource)
 	if err != nil {
-		return &runtime.DeleteResponse{status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
 
 	// Delete Resource
@@ -256,12 +256,12 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *runtime.DeleteR
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			log.Infof("%s not found, ignore", requestResource.ResourceKey())
-			return &runtime.DeleteResponse{nil}
+			return &runtime.DeleteResponse{}
 		}
-		return &runtime.DeleteResponse{status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
 
-	return &runtime.DeleteResponse{nil}
+	return &runtime.DeleteResponse{}
 }
 
 // Watch kubernetes resource by client-go
@@ -332,7 +332,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 		}
 	}
 
-	return &runtime.WatchResponse{resultChs, nil}
+	return &runtime.WatchResponse{ResultChs: resultChs}
 }
 
 // getKubernetesClient get kubernetes client
