@@ -18,6 +18,7 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
+	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -137,7 +138,7 @@ func TestOperation_Apply(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.Apply,
 				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}},
+				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},
 			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
@@ -176,7 +177,7 @@ func TestOperation_Apply(t *testing.T) {
 				return nil
 			})
 			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
-				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &runtime.KubernetesRuntime{}}, nil
+				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			})
 
 			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)

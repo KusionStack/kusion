@@ -6,12 +6,13 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/status"
 )
 
 var SupportRuntimes = map[models.Type]InitFn{
-	runtime.Kubernetes: runtime.NewKubernetesRuntime,
+	runtime.Kubernetes: kubernetes.NewKubernetesRuntime,
 	runtime.Terraform:  terraform.NewTerraformRuntime,
 }
 

@@ -8,9 +8,11 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/afero"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -135,7 +137,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		}
 	}
 
-	// priorState overwirte tfstate in workspace
+	// priorState overwrite tfstate in workspace
 	if err := t.WorkSpace.WriteTFState(priorState); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
@@ -166,6 +168,12 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		},
 		Status: nil,
 	}
+}
+
+func (t *TerraformRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+	// TODO change to terraform cli import
+	log.Info("skip import TF resource:%s", request.PlanResource.ID)
+	return nil
 }
 
 // Delete terraform resource and remove workspace

@@ -148,28 +148,27 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 	var s status.Status
 	resourceType := rn.state.Type
 
+	rt := operation.RuntimeMap[resourceType]
 	switch rn.Action {
 	case opsmodels.Create, opsmodels.Update:
-		response := operation.RuntimeMap[resourceType].Apply(context.Background(), &runtime.ApplyRequest{
-			PriorResource: priorState, PlanResource: planedState, Stack: operation.Stack,
-		})
+		response := rt.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: priorState, PlanResource: planedState, Stack: operation.Stack})
 		res = response.Resource
 		s = response.Status
-		log.Debugf("apply resource:%s, result: %v", planedState.ID, jsonutil.Marshal2String(res))
-		if s != nil {
-			log.Debugf("apply status: %v", s.String())
-		}
+		log.Debugf("apply resource:%s, response: %v", planedState.ID, jsonutil.Marshal2String(response))
 	case opsmodels.Delete:
-		response := operation.RuntimeMap[resourceType].Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
+		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
-			log.Debugf("delete state: %v", s.String())
+			log.Debugf("delete resource:%s, state: %v", planedState.ID, s.String())
 		}
 	case opsmodels.UnChange:
 		log.Infof("planed resource and live state are equal")
 		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
 		if priorState == nil {
-			res = live
+			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planedState})
+			s = response.Status
+			log.Debugf("import resource:%s, state:%v", planedState.ID, s.String())
+			res = response.Resource
 		} else {
 			res = priorState
 		}

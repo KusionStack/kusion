@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"name":"gocity","namespace":"code-city"},"spec":{"ports":[{"name":"gocity-backend","port":4000,"protocol":"TCP","targetPort":4000}],"selector":{"app.kubernetes.io/env":"dev","app.kubernetes.io/name":"gocity"},"type":"ClusterIP"}}
+  creationTimestamp: "2023-02-01T03:33:11Z"
+  name: gocity
+  namespace: code-city
+  resourceVersion: "1052147"
+  uid: c4f4f7f8-d1f2-4fec-ad3f-237573af1be1
+spec:
+  clusterIP: 10.101.160.144
+  clusterIPs:
+    - 10.101.160.144
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: gocity-backend
+      port: 4000
+      protocol: TCP
+      targetPort: 4000
+  selector:
+    app.kubernetes.io/env: dev
+    app.kubernetes.io/name: gocity
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
