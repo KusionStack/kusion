@@ -167,7 +167,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		if priorState == nil {
 			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planedState})
 			s = response.Status
-			log.Debugf("import resource:%s, state:%v", planedState.ID, s.String())
+			log.Debugf("import resource:%s, state:%v", planedState.ID, jsonutil.Marshal2String(s))
 			res = response.Resource
 		} else {
 			res = priorState
