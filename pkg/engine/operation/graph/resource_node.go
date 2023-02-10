@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -108,8 +106,8 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 			// Ignore differences of target fields
 			for _, field := range operation.IgnoreFields {
 				splits := strings.Split(field, ".")
-				unstructured.RemoveNestedField(liveState.Attributes, splits...)
-				unstructured.RemoveNestedField(predictableState.Attributes, splits...)
+				removeNestedField(liveState.Attributes, splits...)
+				removeNestedField(predictableState.Attributes, splits...)
 			}
 			report, err := diff.ToReport(liveState, predictableState)
 			if err != nil {
@@ -138,6 +136,25 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	}
 
 	return nil
+}
+
+func removeNestedField(obj interface{}, fields ...string) {
+	m := obj
+	switch next := m.(type) {
+	case map[string]interface{}:
+		if len(fields) == 1 {
+			delete(next, fields[0])
+			return
+		} else {
+			removeNestedField(next[fields[0]], fields[1:]...)
+		}
+	case []interface{}:
+		for _, n := range next {
+			removeNestedField(n, fields...)
+		}
+	default:
+		return
+	}
 }
 
 func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState, planedState, live *models.Resource) status.Status {
