@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
@@ -223,8 +224,18 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 			return &runtime.ImportResponse{Status: status.NewErrorStatusWithCode(status.IllegalManifest, err)}
 		}
 	} else {
-		unstructured.RemoveNestedField(ur.Object, "status")
+		// normalize resources
+		if k8s.Service == ur.GetKind() {
+			if err := normalizeService(ur); err != nil {
+				return &runtime.ImportResponse{
+					Resource: nil,
+					Status:   status.NewErrorStatusWithCode(status.IllegalManifest, err),
+				}
+			}
+		}
+
 		const metadata = "metadata"
+		unstructured.RemoveNestedField(ur.Object, "status")
 		unstructured.RemoveNestedField(ur.Object, metadata, "resourceVersion")
 		unstructured.RemoveNestedField(ur.Object, metadata, "creationTimestamp")
 		unstructured.RemoveNestedField(ur.Object, metadata, "selfLink")
@@ -235,6 +246,25 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 		Resource: response.Resource,
 		Status:   nil,
 	}
+}
+
+func normalizeService(ur *unstructured.Unstructured) error {
+	target := &corev1.Service{}
+	if err := k8sruntime.DefaultUnstructuredConverter.FromUnstructured(ur.Object, target); err != nil {
+		return err
+	}
+	if len(target.Spec.ClusterIPs) > 0 {
+		target.Spec.ClusterIPs = nil
+	}
+	if len(target.Spec.ClusterIP) > 0 {
+		target.Spec.ClusterIP = ""
+	}
+	toUnstructured, err := k8sruntime.DefaultUnstructuredConverter.ToUnstructured(target)
+	if err != nil {
+		return err
+	}
+	ur.Object = toUnstructured
+	return nil
 }
 
 // Delete kubernetes Resource by client-go
