@@ -4,9 +4,6 @@ metadata:
   name: gocity
   namespace: code-city
 spec:
-  clusterIP: 10.101.160.144
-  clusterIPs:
-    - 10.101.160.144
   internalTrafficPolicy: Cluster
   ipFamilies:
     - IPv4
