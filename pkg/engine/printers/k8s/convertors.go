@@ -7,6 +7,8 @@ import (
 	discoveryv1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"kusionstack.io/kusion/pkg/engine/printers"
 )
 
 // APIs in core/v1
@@ -47,6 +49,10 @@ const (
 const (
 	EndpointSlice = "EndpointSlice"
 )
+
+func init() {
+	printers.RegisterConvertor(Convert)
+}
 
 func Convert(o *unstructured.Unstructured) runtime.Object {
 	switch o.GroupVersionKind().GroupVersion() {
