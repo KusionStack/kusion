@@ -188,3 +188,75 @@ func TestResourceNode_Execute(t *testing.T) {
 		})
 	}
 }
+
+func Test_removeNestedField(t *testing.T) {
+	t.Run("remove nested field", func(t *testing.T) {
+		e1 := []interface{}{
+			map[string]interface{}{"f": "f1", "g": "g1"},
+		}
+		e2 := []interface{}{
+			map[string]interface{}{"f": "f2", "g": "g2"},
+		}
+
+		c := []interface{}{
+			map[string]interface{}{"d": "d1", "e": e1},
+			map[string]interface{}{"d": "d2", "e": e2},
+		}
+
+		a := map[string]interface{}{
+			"b": 1,
+			"c": c,
+		}
+
+		obj := map[string]interface{}{
+			"a": a,
+		}
+
+		removeNestedField(obj, "a", "c", "e", "f")
+		assert.Len(t, e1[0], 1)
+		assert.Len(t, e2[0], 1)
+
+		removeNestedField(obj, "a", "c", "e", "g")
+		assert.Empty(t, e1[0])
+		assert.Empty(t, e2[0])
+
+		removeNestedField(obj, "a", "c", "e")
+		assert.Len(t, c[0], 1)
+		assert.Len(t, c[1], 1)
+
+		removeNestedField(obj, "a", "c", "d")
+		assert.Len(t, c[0], 0)
+		assert.Len(t, c[1], 0)
+
+		removeNestedField(obj, "a", "c")
+		assert.Len(t, a, 1)
+
+		removeNestedField(obj, "a", "b")
+		assert.Len(t, a, 0)
+
+		removeNestedField(obj, "a")
+		assert.Empty(t, obj)
+	})
+
+	t.Run("remove spec.ports.targetPort", func(t *testing.T) {
+		ports := []interface{}{
+			map[string]interface{}{
+				"port":       80,
+				"protocol":   "TCP",
+				"targetPort": 80,
+			},
+		}
+
+		spec := map[string]interface{}{
+			"clusterIP": "172.16.128.40",
+			"ports":     ports,
+		}
+
+		obj := map[string]interface{}{
+			"spec": spec,
+		}
+
+		removeNestedField(obj, "spec", "ports", "targetPort")
+		assert.Len(t, ports[0], 2)
+	})
+}
