@@ -45,7 +45,21 @@ func EnableRPC() bool {
 }
 
 func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack) (*models.Spec, error) {
-	optList, err := buildOptions(o.WorkDir, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
+	compileResult, err := Run(o, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert Run result to spec
+	spec, err := engine.ResourcesYAML2Spec(compileResult.Documents)
+	if err != nil {
+		return nil, err
+	}
+	return spec, nil
+}
+
+func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error) {
+	optList, err := BuildOptions(o.WorkDir, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
 	if err != nil {
 		return nil, err
 	}
@@ -66,13 +80,7 @@ func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack
 	if err != nil {
 		return nil, err
 	}
-
-	// convert compile result to spec
-	spec, err := engine.ResourcesYAML2Spec(compileResult.Documents)
-	if err != nil {
-		return nil, err
-	}
-	return spec, nil
+	return compileResult, err
 }
 
 func appendCRDs(workDir string, r *CompileResult) error {
@@ -122,7 +130,7 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-func buildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kclvm.Option, error) {
+func BuildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kclvm.Option, error) {
 	optList := []kclvm.Option{}
 	// build settings option
 	for _, setting := range settings {

@@ -75,34 +75,32 @@ func (o *CompileOptions) Run() error {
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
 	}, project, stack)
-
-	if o.IsCheck {
-		if err != nil {
-			fmt.Print(err)
-		}
-	} else {
-		if err != nil {
-			return err
-		}
-
-		yaml, err := yamlv3.Marshal(sp.Resources)
-		if err != nil {
-			return err
-		}
-		if o.Output == Stdout {
-			fmt.Print(string(yaml))
+	if err != nil {
+		// only print err in the check command
+		if o.IsCheck {
+			fmt.Println(err)
+			return nil
 		} else {
-			if o.WorkDir != "" {
-				o.Output = filepath.Join(o.WorkDir, o.Output)
-			}
-
-			err := os.WriteFile(o.Output, yaml, 0o666)
-			if err != nil {
-				return err
-			}
+			return err
 		}
 	}
 
+	yaml, err := yamlv3.Marshal(sp.Resources)
+	if err != nil {
+		return err
+	}
+	if o.Output == Stdout {
+		fmt.Print(string(yaml))
+	} else {
+		if o.WorkDir != "" {
+			o.Output = filepath.Join(o.WorkDir, o.Output)
+		}
+
+		err = os.WriteFile(o.Output, yaml, 0o666)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
