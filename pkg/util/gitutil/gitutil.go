@@ -1,9 +1,13 @@
 package gitutil
 
 import (
+	"context"
 	"errors"
 	"os/exec"
 	"strings"
+
+	"github.com/blang/semver/v4"
+	"github.com/google/go-github/v50/github"
 )
 
 // https://git-scm.com/docs/git-tag
@@ -11,8 +15,31 @@ import (
 
 var ErrEmptyGitTag = errors.New("empty tag")
 
+const (
+	Owner = "KusionStack"
+	Repo  = "kusion"
+)
+
+func GetLatestTag() (string, error) {
+	tag, err := getLatestTagFromLocal()
+	if tag == "" || err != nil {
+		return getLatestTagFromRemote()
+	}
+	return tag, nil
+}
+
+// getLatestTagFromRemote the fitting git clone depth is 1
+func getLatestTagFromRemote() (string, error) {
+	tags, err := getTagListFromRemote(Owner, Repo)
+	if err != nil {
+		return "", err
+	}
+
+	return tags[0], nil
+}
+
 // get remote url
-func GetRemoteURL() (string, error) {
+func getRemoteURL() (string, error) {
 	stdout, err := exec.Command(
 		"git", "config", "--get", "remote.origin.url",
 	).CombinedOutput()
@@ -22,35 +49,8 @@ func GetRemoteURL() (string, error) {
 	return strings.TrimSpace(string(stdout)), nil
 }
 
-func GetLatestTag() (string, error) {
-	tag, err := GetLatestTagFromLocal()
-	if tag == "" || err != nil {
-		return GetLatestTagFromRemote()
-	}
-	return tag, nil
-}
-
-// get latest tag from remote,
-// the fitting git clone depth is 1
-func GetLatestTagFromRemote() (tag string, err error) {
-	// get remote url
-	remoteURL, err := GetRemoteURL()
-	if err != nil {
-		return "", err
-	}
-
-	// get latest tag from remote
-	stdout, err := exec.Command(
-		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteURL+` | tail -n1 | sed 's/.*\///; s/\^{}//'`,
-	).CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(stdout)), nil
-}
-
-func GetLatestTagFromLocal() (tag string, err error) {
-	tags, err := GetTagList()
+func getLatestTagFromLocal() (tag string, err error) {
+	tags, err := getTagListFromLocal()
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +60,7 @@ func GetLatestTagFromLocal() (tag string, err error) {
 	return strings.TrimSpace(tag), nil
 }
 
-func GetTagList() (tags []string, err error) {
+func getTagListFromLocal() (tags []string, err error) {
 	// git tag --merged
 	stdout, err := exec.Command(
 		`git`, `describe`, `--abbrev=0`, `--tags`,
@@ -77,38 +77,28 @@ func GetTagList() (tags []string, err error) {
 	return
 }
 
-func GetTagListFromRemote(remoteURL string, reverse bool) (tags []string, err error) {
-	tmpTags := []string{}
-	// Get all tags from remote
-	stdout, err := exec.Command(
-		`bash`, `-c`, `git ls-remote --tags --sort=v:refname `+remoteURL+` | sed 's/.*\///; s/\^{}//'`,
-	).CombinedOutput()
+func getTagListFromRemote(owner, repo string) (tags []string, err error) {
+	client := github.NewClient(nil)
+	rts, _, err := client.Repositories.ListTags(context.Background(), owner, repo, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, s := range strings.Split(strings.TrimSpace(string(stdout)), "\n") {
-		if s := strings.TrimSpace(s); s != "" {
-			tmpTags = append(tmpTags, s)
-		}
+	if len(rts) == 0 {
+		return nil, errors.New("no tag found")
 	}
 
-	// Reverse slice
-	if reverse {
-		for i, j := 0, len(tmpTags)-1; i < j; i, j = i+1, j-1 {
-			tmpTags[i], tmpTags[j] = tmpTags[j], tmpTags[i]
+	for _, rt := range rts {
+		v, err := semver.ParseTolerant(rt.GetName())
+		if err != nil {
+			continue
 		}
+		if len(v.Pre) > 0 || len(v.Build) > 0 {
+			continue
+		}
+		tags = append(tags, rt.GetName())
 	}
 
-	// Remove duplicates
-	tagSet := make(map[string]struct{})
-	for _, tag := range tmpTags {
-		if _, ok := tagSet[tag]; !ok {
-			tags = append(tags, tag)
-			tagSet[tag] = struct{}{}
-		}
-	}
-	return
+	return tags, nil
 }
 
 func GetHeadHash() (sha string, err error) {
@@ -135,19 +125,34 @@ func GetHeadHashShort() (sha string, err error) {
 	return
 }
 
-func GetTagCommitSha(tag string) (sha string, err error) {
+func IsHeadAtTag(tag string) (bool, error) {
+	if tag == "" {
+		return false, ErrEmptyGitTag
+	}
+	sha1, err1 := getTagCommitSha(tag)
+	if err1 != nil {
+		return false, err1
+	}
+	sha2, err2 := GetHeadHash()
+	if err2 != nil {
+		return false, err2
+	}
+	return sha1 == sha2, nil
+}
+
+func getTagCommitSha(tag string) (sha string, err error) {
 	if tag == "" {
 		return "", ErrEmptyGitTag
 	}
 
-	sha, err = GetTagCommitShaFromLocal(tag)
+	sha, err = getTagCommitShaFromLocal(tag)
 	if sha == "" || err != nil {
-		return GetTagCommitShaFromRemote(tag)
+		return getTagCommitShaFromRemote(tag)
 	}
 	return
 }
 
-func GetTagCommitShaFromLocal(tag string) (sha string, err error) {
+func getTagCommitShaFromLocal(tag string) (sha string, err error) {
 	// git rev-list -n 1 {tag}
 	stdout, err := exec.Command(
 		`git`, `rev-list`, `-n`, `1`, tag,
@@ -169,9 +174,9 @@ func GetTagCommitShaFromLocal(tag string) (sha string, err error) {
 
 // get tag commit sha from remote,
 // the fitting git clone depth is 1
-func GetTagCommitShaFromRemote(_ string) (string, error) {
+func getTagCommitShaFromRemote(_ string) (string, error) {
 	// get remote url
-	remoteURL, err := GetRemoteURL()
+	remoteURL, err := getRemoteURL()
 	if err != nil {
 		return "", err
 	}
@@ -184,21 +189,6 @@ func GetTagCommitShaFromRemote(_ string) (string, error) {
 	}
 
 	return strings.TrimSpace(string(stdout)), nil
-}
-
-func IsHeadAtTag(tag string) (bool, error) {
-	if tag == "" {
-		return false, ErrEmptyGitTag
-	}
-	sha1, err1 := GetTagCommitSha(tag)
-	if err1 != nil {
-		return false, err1
-	}
-	sha2, err2 := GetHeadHash()
-	if err2 != nil {
-		return false, err2
-	}
-	return sha1 == sha2, nil
 }
 
 func IsDirty() (dirty bool, err error) {
