@@ -118,8 +118,25 @@ type WatchRequest struct {
 }
 
 type WatchResponse struct {
-	ResultChs []<-chan watch.Event
+	Watchers *SequentialWatchers
 
 	// Status contains messages will show to users
 	Status status.Status
+}
+
+type SequentialWatchers struct {
+	IDs      []string
+	Watchers []<-chan watch.Event
+}
+
+func NewWatchers() *SequentialWatchers {
+	return &SequentialWatchers{
+		IDs:      []string{},
+		Watchers: []<-chan watch.Event{},
+	}
+}
+
+func (w *SequentialWatchers) Insert(id string, watcher <-chan watch.Event) {
+	w.IDs = append(w.IDs, id)
+	w.Watchers = append(w.Watchers, watcher)
 }

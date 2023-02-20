@@ -93,7 +93,7 @@ func k8sResource2ResourceMap(resource map[string]interface{}) (map[string]interf
 	metadataNamespace, _ := kyaml.GetByPathString(doc, "$.metadata.namespace")
 
 	return map[string]interface{}{
-		ID:         engine.BuildIDForKubernetes(apiVersion, kind, metadataNamespace, metadataName),
+		ID:         engine.BuildID(apiVersion, kind, metadataNamespace, metadataName),
 		Type:       generator.Kubernetes,
 		Attributes: resource,
 	}, nil

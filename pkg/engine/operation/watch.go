@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gosuri/uilive"
+	"github.com/howieyuen/uilive"
 	"github.com/pterm/pterm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8swatch "k8s.io/apimachinery/pkg/watch"
@@ -17,6 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/printers"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -42,28 +43,28 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	wo.RuntimeMap = runtimes
 
 	// Result channels
-	msgChs := make(map[string][]<-chan k8swatch.Event, len(resources))
+	msgChs := make(map[string]*runtime.SequentialWatchers, len(resources))
 	// Keep sorted
 	ids := make([]string, resources.Len())
 	// Collect watchers
 	for i := range resources {
 		res := &resources[i]
-
-		// only support k8s resources
 		t := res.Type
-		if runtime.Kubernetes != t {
-			return fmt.Errorf("WARNING: Watch only support Kubernetes resources for now")
-		}
 
-		// Get watchers
+		// Get watchers, only support k8s resources
 		resp := runtimes[t].Watch(ctx, &runtime.WatchRequest{Resource: res})
+		if resp == nil {
+			log.Debug("unsupported resource type: %s", t)
+			continue
+		}
 		if status.IsErr(resp.Status) {
 			return fmt.Errorf(resp.Status.String())
 		}
+
 		// Save id
 		ids[i] = res.ResourceKey()
 		// Save channels
-		msgChs[res.ResourceKey()] = resp.ResultChs
+		msgChs[res.ResourceKey()] = resp.Watchers
 	}
 
 	// Console writer
@@ -82,14 +83,14 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 
 	// Start go routine for each table
 	for _, id := range ids {
-		chs, ok := msgChs[id]
+		sw, ok := msgChs[id]
 		if !ok {
 			continue
 		}
 		// Get or new the target table
 		table, exist := tables[id]
 		if !exist {
-			table = printers.NewTable(len(chs))
+			table = printers.NewTable(sw.IDs)
 		}
 		go func(id string, chs []<-chan k8swatch.Event, table *printers.Table) {
 			// Resources selects
@@ -125,8 +126,8 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 					}
 
 					// Save watched msg
-					table.InsertOrUpdate(
-						engine.BuildIDForKubernetes(o.GetAPIVersion(), o.GetKind(), o.GetNamespace(), o.GetName()),
+					table.Update(
+						engine.BuildIDForKubernetes(o),
 						printers.NewRow(e.Type, o.GetKind(), o.GetName(), detail))
 
 					// Write back
@@ -134,11 +135,11 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 				}
 
 				// Break when completed
-				if table.IsCompleted() {
+				if table.AllCompleted() {
 					break
 				}
 			}
-		}(id, chs, table)
+		}(id, sw.Watchers, table)
 	}
 
 	// Waiting for all tables completed
@@ -151,7 +152,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 		// Range tables
 		for id, table := range tables {
 			// All channels are isCompleted
-			if table.IsCompleted() {
+			if table.AllCompleted() {
 				finished[id] = true
 			}
 		}
@@ -166,7 +167,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map[string]*printers.Table) {
 	for i, id := range ids {
 		// Print resource Key as heading text
-		_, _ = fmt.Fprintf(w, "%s\n", pretty.LightCyanBold("[%s]", id))
+		_, _ = fmt.Fprintln(w, pretty.LightCyanBold("[%s]", id))
 
 		table, ok := tables[id]
 		if !ok {

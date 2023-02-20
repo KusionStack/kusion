@@ -18,10 +18,10 @@ type Row struct {
 	Detail string
 }
 
-func NewTable(capacity int) *Table {
+func NewTable(ids []string) *Table {
 	return &Table{
-		IDs:  make([]string, 0, capacity),
-		Rows: make(map[string]*Row, capacity),
+		IDs:  ids,
+		Rows: make(map[string]*Row),
 	}
 }
 
@@ -36,16 +36,12 @@ func NewRow(t k8swatch.EventType, kind, name, detail string) *Row {
 
 const READY k8swatch.EventType = "READY"
 
-func (t *Table) InsertOrUpdate(id string, row *Row) {
-	_, ok := t.Rows[id]
-	if !ok {
-		t.IDs = append(t.IDs, id)
-	}
+func (t *Table) Update(id string, row *Row) {
 	t.Rows[id] = row
 }
 
-func (t *Table) IsCompleted() bool {
-	if len(t.IDs) < cap(t.IDs) {
+func (t *Table) AllCompleted() bool {
+	if len(t.Rows) < len(t.IDs) {
 		return false
 	}
 	for _, row := range t.Rows {
@@ -57,8 +53,7 @@ func (t *Table) IsCompleted() bool {
 }
 
 func (t *Table) Print() [][]string {
-	data := [][]string{}
-	data = append(data, []string{"Type", "Kind", "Name", "Detail"})
+	data := [][]string{{"Type", "Kind", "Name", "Detail"}}
 	for _, id := range t.IDs {
 		row := t.Rows[id]
 		eventType := row.Type
