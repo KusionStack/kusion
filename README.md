@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>Codify, Self-Service, Automate modern App delivery across Kubernetes and Clouds</h1>
+<h1>A self-service application deployment platform for hybrid resources</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) 
 
@@ -24,10 +24,8 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 ## Key Features
 
 - **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
-- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev
-  efficiently
-- **Hybrid Runtime**: Orchestrate hybrid runtime resources like Kubernetes, Terraform and your customized infrastructure
-  resource in a unified way
+- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev efficiently
+- **Hybrid Resources Operation**: Orchestrate hybrid runtime resources like Kubernetes, Terraform and your customized infrastructure resource in a unified way
 - **Vendor Agnostic**: Write once, render dynamically, deliver to any cloud
 
 <div align="center">
