@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>Codify, Collaborate, Automate modern App delivery across Kubernetes and Clouds</h1>
+<h1>A self-service application deployment platform for hybrid resources</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) 
 
@@ -19,13 +19,13 @@
 
 # Kusion
 
-Kusion is the engine of [KusionStack](https://github.com/KusionStack) for parsing user's intentions described in [Konfig](https://github.com/KusionStack/konfig) and making them effect in infrastructures.
+Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions described in [Konfig](https://github.com/KusionStack/konfig) to Kubernetes, Clouds and Customized Infrastructure resources
 
 ## Key Features
 
 - **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
-- **Team cooperation**: App Dev, SRE and Platform Dev cooperate efficiently in this codify platform 
-- **Hybrid Runtime**: Orchestrate hybrid runtime resources like Terraform and Kubernetes in a unified way
+- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev efficiently
+- **Hybrid Resources Operation**: Orchestrate hybrid runtime resources like Kubernetes, Terraform and your customized infrastructure resource in a unified way
 - **Vendor Agnostic**: Write once, render dynamically, deliver to any cloud
 
 <div align="center">
@@ -41,23 +41,19 @@ Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecas
 
 ## Installation
 
-### One-click Installation
-
-**MacOS & Linux**
+### Homebrew (macOS & Linux)
 
 ```shell
 brew install KusionStack/tap/kusion
 ```
 
-**Go Env**
+### Go Install
 
 ```shell
 go install kusionstack.io/kusion@latest
 ```
 
-### No Installation
-
-Kusion does not yet support all operating systems and architectures, Docker users can use the image to get started quickly:
+### Docker
 
 ```
 docker pull kusionstack/kusion:latest
