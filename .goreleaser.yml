@@ -100,6 +100,8 @@ brews:
     description: "Codify and deliver intentions to Kubernetes and Clouds"
     license: "Apache License"
     skip_upload: false
+    dependencies:
+      - name: kcl-lang/tap/kclvm
     test: |
       system "#{bin}/kusion version"
 
