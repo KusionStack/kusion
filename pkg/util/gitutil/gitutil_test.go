@@ -15,14 +15,14 @@ import (
 
 func TestGetRemoteURL(t *testing.T) {
 	t.Run("get remote.origin.url", func(t *testing.T) {
-		url, err := GetRemoteURL()
+		url, err := getRemoteURL()
 		assert.Nil(t, err)
 		fmt.Println(url)
 	})
 	t.Run("cmd error", func(t *testing.T) {
 		mockCombinedOutput(nil, ErrMockCombinedOutput)
 		defer monkey.UnpatchAll()
-		_, err := GetRemoteURL()
+		_, err := getRemoteURL()
 		assert.NotNil(t, err)
 	})
 }
@@ -44,23 +44,10 @@ func TestGetLatestTag(t *testing.T) {
 }
 
 func TestGetLatestTagFromRemote(t *testing.T) {
-	t.Run("remote url error", func(t *testing.T) {
-		mockGetRemoteURL("", ErrMockGetRemoteURL)
-		defer monkey.UnpatchAll()
-		_, err := GetLatestTagFromRemote()
-		assert.NotNil(t, err)
-	})
-	t.Run("cmd error", func(t *testing.T) {
-		mockGetRemoteURL("", nil)
-		mockCombinedOutput(nil, ErrMockCombinedOutput)
-		defer monkey.UnpatchAll()
-		_, err := GetLatestTagFromRemote()
-		assert.NotNil(t, err)
-	})
 	t.Run("remote latest tag", func(t *testing.T) {
 		mockGetRemoteURL(remoteURL, nil)
 		defer monkey.UnpatchAll()
-		tag, err := GetLatestTagFromRemote()
+		tag, err := getLatestTagFromRemote()
 		assert.Nil(t, err)
 		fmt.Println("remote tag: ", tag)
 	})
@@ -70,13 +57,13 @@ func TestGetLatestTagFromLocal(t *testing.T) {
 	t.Run("get latest tag from local", func(t *testing.T) {
 		mockGetTagList([]string{"tag1", "tag2"}, nil)
 		defer monkey.UnpatchAll()
-		_, err := GetLatestTagFromLocal()
+		_, err := getLatestTagFromLocal()
 		assert.Nil(t, err)
 	})
 	t.Run("error tag", func(t *testing.T) {
 		mockCombinedOutput(nil, ErrEmptyGitTag)
 		defer monkey.UnpatchAll()
-		_, err := GetLatestTagFromLocal()
+		_, err := getLatestTagFromLocal()
 		assert.NotNil(t, err)
 	})
 }
@@ -85,8 +72,12 @@ func TestGetTagList(t *testing.T) {
 	t.Run("cmd error", func(t *testing.T) {
 		mockCombinedOutput(nil, ErrMockCombinedOutput)
 		defer monkey.UnpatchAll()
-		_, err := GetTagList()
+		_, err := getTagListFromLocal()
 		assert.NotNil(t, err)
+	})
+	t.Run("cmd error", func(t *testing.T) {
+		_, err := getTagListFromLocal()
+		assert.Nil(t, err)
 	})
 }
 
@@ -121,20 +112,20 @@ func TestGetHeadHashShort(t *testing.T) {
 
 func TestGetTagCommitSha(t *testing.T) {
 	t.Run("error tag", func(t *testing.T) {
-		_, err := GetTagCommitSha("")
+		_, err := getTagCommitSha("")
 		assert.NotNil(t, err)
 	})
 	t.Run("local tag commit sha", func(t *testing.T) {
 		mockGetTagCommitShaFromLocal(commitSHA, nil)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitSha("tag")
+		_, err := getTagCommitSha("tag")
 		assert.Nil(t, err)
 	})
 	t.Run("local tag commit sha", func(t *testing.T) {
 		mockGetTagCommitShaFromLocal("", ErrMockGetTagCommitShaFromLocal)
 		mockGetTagCommitShaFromRemote("remote sha", nil)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitSha("tag")
+		_, err := getTagCommitSha("tag")
 		assert.Nil(t, err)
 	})
 }
@@ -143,7 +134,7 @@ func TestGetTagCommitShaFromLocal(t *testing.T) {
 	t.Run("cmd error", func(t *testing.T) {
 		mockCombinedOutput(nil, ErrMockCombinedOutput)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitShaFromLocal("")
+		_, err := getTagCommitShaFromLocal("")
 		assert.NotNil(t, err)
 	})
 }
@@ -152,20 +143,20 @@ func TestGetTagCommitShaFromRemote(t *testing.T) {
 	t.Run("get remote.origin.url error", func(t *testing.T) {
 		mockGetRemoteURL("", ErrMockGetRemoteURL)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitShaFromRemote("")
+		_, err := getTagCommitShaFromRemote("")
 		assert.NotNil(t, err)
 	})
 	t.Run("cmd error", func(t *testing.T) {
 		mockGetRemoteURL(remoteURL, nil)
 		mockCombinedOutput(nil, ErrMockCombinedOutput)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitShaFromRemote("")
+		_, err := getTagCommitShaFromRemote("")
 		assert.NotNil(t, err)
 	})
 	t.Run("cmd error", func(t *testing.T) {
 		mockGetRemoteURL(remoteURL, nil)
 		defer monkey.UnpatchAll()
-		_, err := GetTagCommitShaFromRemote("")
+		_, err := getTagCommitShaFromRemote("")
 		assert.Nil(t, err)
 	})
 }
@@ -175,7 +166,7 @@ func TestIsHeadAtTag(t *testing.T) {
 		_, err := IsHeadAtTag("")
 		assert.NotNil(t, err)
 	})
-	t.Run("GetTagCommitSha error", func(t *testing.T) {
+	t.Run("getTagCommitSha error", func(t *testing.T) {
 		mockGetTagCommitSha("", ErrMockGetTagCommitSha)
 		defer monkey.UnpatchAll()
 		_, err := IsHeadAtTag("tag")
@@ -230,10 +221,10 @@ func TestGetCurrentBranch(t *testing.T) {
 
 var (
 	ErrMockCombinedOutput           = errors.New("mock CombinedOutput error")
-	ErrMockGetRemoteURL             = errors.New("mock GetRemoteURL error")
+	ErrMockGetRemoteURL             = errors.New("mock getRemoteURL error")
 	ErrMockGetHeadHash              = errors.New("mock GetHeadHash error")
-	ErrMockGetTagCommitSha          = errors.New("mock GetTagCommitSha error")
-	ErrMockGetTagCommitShaFromLocal = errors.New("mock GetTagCommitShaFromLocal error")
+	ErrMockGetTagCommitSha          = errors.New("mock getTagCommitSha error")
+	ErrMockGetTagCommitShaFromLocal = errors.New("mock getTagCommitShaFromLocal error")
 )
 
 var (
@@ -250,25 +241,25 @@ func mockCombinedOutput(output []byte, err error) {
 }
 
 func mockGetLatestTagFromLocal(tag string, err error) {
-	monkey.Patch(GetLatestTagFromLocal, func() (string, error) {
+	monkey.Patch(getLatestTagFromLocal, func() (string, error) {
 		return tag, err
 	})
 }
 
 func mockGetLatestTagFromRemote(tag string, err error) {
-	monkey.Patch(GetLatestTagFromRemote, func() (string, error) {
+	monkey.Patch(getLatestTagFromRemote, func() (string, error) {
 		return tag, err
 	})
 }
 
 func mockGetRemoteURL(url string, err error) {
-	monkey.Patch(GetRemoteURL, func() (string, error) {
+	monkey.Patch(getRemoteURL, func() (string, error) {
 		return url, err
 	})
 }
 
 func mockGetTagList(tags []string, err error) {
-	monkey.Patch(GetTagList, func() ([]string, error) {
+	monkey.Patch(getTagListFromLocal, func() ([]string, error) {
 		return tags, err
 	})
 }
@@ -280,19 +271,19 @@ func mockGetHeadHash(sha string, err error) {
 }
 
 func mockGetTagCommitShaFromLocal(sha string, err error) {
-	monkey.Patch(GetTagCommitShaFromLocal, func(tag string) (string, error) {
+	monkey.Patch(getTagCommitShaFromLocal, func(tag string) (string, error) {
 		return sha, err
 	})
 }
 
 func mockGetTagCommitShaFromRemote(sha string, err error) {
-	monkey.Patch(GetTagCommitShaFromRemote, func(tag string) (string, error) {
+	monkey.Patch(getTagCommitShaFromRemote, func(tag string) (string, error) {
 		return sha, err
 	})
 }
 
 func mockGetTagCommitSha(sha string, err error) {
-	monkey.Patch(GetTagCommitSha, func(tag string) (string, error) {
+	monkey.Patch(getTagCommitSha, func(tag string) (string, error) {
 		return sha, err
 	})
 }

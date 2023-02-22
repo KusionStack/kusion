@@ -150,7 +150,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 func checkForUpdate() string {
 	curVer, err := semver.ParseTolerant(versionInfo.ReleaseVersion())
 	if err != nil {
-		log.Infof("error parsing current version: %s", err)
+		log.Errorf("error parsing current version: %s", err)
 	}
 
 	// We don't care about warning for you to update if you have installed a developer version
@@ -160,7 +160,7 @@ func checkForUpdate() string {
 
 	latestVer, err := getLatestVersionInfo()
 	if err != nil {
-		log.Infof("error fetching latest version information: %v", err)
+		log.Errorf("error fetching latest version information: %v", err)
 	}
 
 	if latestVer.GT(curVer) {
@@ -202,7 +202,7 @@ func getLatestVersionInfo() (semver.Version, error) {
 	}
 
 	if err = cacheVersionInfo(latest); err != nil {
-		log.Infof("failed to cache version info: %s", err)
+		log.Errorf("failed to cache version info: %s", err)
 	}
 
 	return latest, nil
@@ -279,7 +279,7 @@ func getUpgradeCommand() string {
 
 	isKusionup, err := isKusionUpInstall(exe)
 	if err != nil {
-		log.Infof("error determining if the running executable was installed with kusionup: %s", err)
+		log.Errorf("error determining if the running executable was installed with kusionup: %s", err)
 	}
 	if isKusionup {
 		return "$ kusionup install"

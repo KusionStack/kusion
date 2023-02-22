@@ -24,7 +24,8 @@ require (
 	github.com/gonvenience/text v1.0.5
 	github.com/gonvenience/wrap v1.1.0
 	github.com/gonvenience/ytbx v1.3.0
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
+	github.com/google/go-github/v50 v50.0.0
 	github.com/gookit/goutil v0.5.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/errwrap v1.0.0
