@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
+	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/printers/k8s"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -315,8 +316,8 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 	})
 
 	// Collect all
-	var resultChs []<-chan k8swatch.Event
-	resultChs = append(resultChs, rootCh)
+	watchers := runtime.NewWatchers()
+	watchers.Insert(engine.BuildIDForKubernetes(reqObj), rootCh)
 
 	if reqObj.GetKind() == k8s.Service { // Watch Endpoints or EndpointSlice
 		if gvk, err := k.mapper.KindFor(schema.GroupVersionResource{
@@ -326,18 +327,18 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 		}); gvk.Empty() || err != nil { // Watch Endpoints
 			log.Errorf("k8s runtime has no kind for EndpointSlice, err: %v", err)
 			namedGVK := getNamedGVK(reqObj.GroupVersionKind())
-			ch, _, err := k.WatchByRelation(ctx, reqObj, namedGVK, namedBy)
+			ch, dependent, err := k.WatchByRelation(ctx, reqObj, namedGVK, namedBy)
 			if err != nil {
 				return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
 			}
-			resultChs = append(resultChs, ch)
+			watchers.Insert(engine.BuildIDForKubernetes(dependent), ch)
 		} else { // Watch EndpointSlice
 			dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
-			ch, _, err := k.WatchByRelation(ctx, reqObj, dependentGVK, ownedBy)
+			ch, dependent, err := k.WatchByRelation(ctx, reqObj, dependentGVK, ownedBy)
 			if err != nil {
 				return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
 			}
-			resultChs = append(resultChs, ch)
+			watchers.Insert(engine.BuildIDForKubernetes(dependent), ch)
 		}
 	} else {
 		// Try to get dependent resource by owner reference
@@ -349,11 +350,12 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 				if err != nil {
 					return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
 				}
-				resultChs = append(resultChs, ch)
 
 				if dependent == nil {
 					break
 				}
+				watchers.Insert(engine.BuildIDForKubernetes(dependent), ch)
+
 				// Try to get deeper, max depth is 3 including root
 				dependentGVK = getDependentGVK(dependent.GroupVersionKind())
 				// Replace owner
@@ -362,7 +364,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 		}
 	}
 
-	return &runtime.WatchResponse{ResultChs: resultChs}
+	return &runtime.WatchResponse{Watchers: watchers}
 }
 
 // getKubernetesClient get kubernetes client
@@ -499,7 +501,11 @@ func (k *KubernetesRuntime) WatchByRelation(
 
 // doWatch send watched object if check ok
 func doWatch(ctx context.Context, watcher k8swatch.Interface, checker func(watched *unstructured.Unstructured) bool) <-chan k8swatch.Event {
-	resultCh := make(chan k8swatch.Event)
+	// Buffered channel, store new event
+	resultCh := make(chan k8swatch.Event, 1)
+	// Wait for the first watched obj
+	first := true
+	signal := make(chan struct{})
 	go func() {
 		defer watcher.Stop()
 		for {
@@ -512,12 +518,19 @@ func doWatch(ctx context.Context, watcher k8swatch.Interface, checker func(watch
 				// Check
 				if checker == nil || checker != nil && checker(dependent) {
 					resultCh <- e
+					if first {
+						signal <- struct{}{}
+						first = false
+					}
 				}
 			case <-ctx.Done():
 				return
 			}
 		}
 	}()
+
+	// Owner&Dependent check pass, return the dependent Obj
+	<-signal
 
 	return resultCh
 }

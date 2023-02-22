@@ -170,7 +170,7 @@ func mockOperationPreview() {
 
 func newSA(name string) models.Resource {
 	return models.Resource{
-		ID:   engine.BuildIDForKubernetes(apiVersion, kind, namespace, name),
+		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
 			"apiVersion": apiVersion,

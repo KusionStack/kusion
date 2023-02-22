@@ -94,7 +94,10 @@ func (f *fooWatchRuntime) Watch(ctx context.Context, request *runtime.WatchReque
 	}()
 
 	return &runtime.WatchResponse{
-		ResultChs: []<-chan k8sWatch.Event{out},
-		Status:    nil,
+		Watchers: &runtime.SequentialWatchers{
+			IDs:      []string{"apps/v1:Deployment:foo:bar"},
+			Watchers: []<-chan k8sWatch.Event{out},
+		},
+		Status: nil,
 	}
 }

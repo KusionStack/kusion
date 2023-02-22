@@ -149,7 +149,7 @@ func (o *ApplyOptions) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err := Watch(o, sp, changes, os.Stdout); err != nil {
+		if err := Watch(o, sp, changes); err != nil {
 			return err
 		}
 	}
@@ -324,10 +324,9 @@ func Apply(
 func Watch(o *ApplyOptions,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
-	out io.Writer,
 ) error {
 	if o.DryRun {
-		fmt.Fprintln(out, "NOTE: Watch doesn't work in DryRun mode")
+		fmt.Println("NOTE: Watch doesn't work in DryRun mode")
 		return nil
 	}
 
@@ -351,7 +350,7 @@ func Watch(o *ApplyOptions,
 		return err
 	}
 
-	fmt.Fprintln(out, "\nWatch Finish! All resources have been reconciled.")
+	fmt.Println("Watch Finish! All resources have been reconciled.")
 	return nil
 }
 
