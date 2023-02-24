@@ -26,7 +26,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/engine/printers/k8s"
+	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/status"
@@ -226,7 +226,7 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 		}
 	} else {
 		// normalize resources
-		if k8s.Service == ur.GetKind() {
+		if convertor.Service == ur.GetKind() {
 			if err := normalizeService(ur); err != nil {
 				return &runtime.ImportResponse{
 					Resource: nil,
@@ -319,11 +319,11 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 	watchers := runtime.NewWatchers()
 	watchers.Insert(engine.BuildIDForKubernetes(reqObj), rootCh)
 
-	if reqObj.GetKind() == k8s.Service { // Watch Endpoints or EndpointSlice
+	if reqObj.GetKind() == convertor.Service { // Watch Endpoints or EndpointSlice
 		if gvk, err := k.mapper.KindFor(schema.GroupVersionResource{
 			Group:    discoveryv1.SchemeGroupVersion.Group,
 			Version:  discoveryv1.SchemeGroupVersion.Version,
-			Resource: k8s.EndpointSlice,
+			Resource: convertor.EndpointSlice,
 		}); gvk.Empty() || err != nil { // Watch Endpoints
 			log.Errorf("k8s runtime has no kind for EndpointSlice, err: %v", err)
 			namedGVK := getNamedGVK(reqObj.GroupVersionKind())
@@ -570,39 +570,39 @@ func namedBy(ep, svc *unstructured.Unstructured) bool {
 func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	switch gvk.Kind {
 	// Deployment generates ReplicaSet
-	case k8s.Deployment:
+	case convertor.Deployment:
 		return schema.GroupVersionKind{
 			Group:   appsv1.SchemeGroupVersion.Group,
 			Version: appsv1.SchemeGroupVersion.Version,
-			Kind:    k8s.ReplicaSet,
+			Kind:    convertor.ReplicaSet,
 		}
 	// DaemonSet and StatefulSet generate ControllerRevision
-	case k8s.DaemonSet, k8s.StatefulSet:
+	case convertor.DaemonSet, convertor.StatefulSet:
 		return schema.GroupVersionKind{
 			Group:   appsv1.SchemeGroupVersion.Group,
 			Version: appsv1.SchemeGroupVersion.Version,
-			Kind:    k8s.ControllerRevision,
+			Kind:    convertor.ControllerRevision,
 		}
 	// CronJob generates Job
-	case k8s.CronJob:
+	case convertor.CronJob:
 		return schema.GroupVersionKind{
 			Group:   batchv1.SchemeGroupVersion.Group,
 			Version: batchv1.SchemeGroupVersion.Version,
-			Kind:    k8s.Job,
+			Kind:    convertor.Job,
 		}
 	// ReplicaSet, ReplicationController, ControllerRevision and job generate Pod
-	case k8s.ReplicaSet, k8s.Job, k8s.ReplicationController, k8s.ControllerRevision:
+	case convertor.ReplicaSet, convertor.Job, convertor.ReplicationController, convertor.ControllerRevision:
 		return schema.GroupVersionKind{
 			Group:   corev1.SchemeGroupVersion.Group,
 			Version: corev1.SchemeGroupVersion.Version,
-			Kind:    k8s.Pod,
+			Kind:    convertor.Pod,
 		}
 	// Service is the owner of EndpointSlice
-	case k8s.Service:
+	case convertor.Service:
 		return schema.GroupVersionKind{
 			Group:   discoveryv1.SchemeGroupVersion.Group,
 			Version: discoveryv1.SchemeGroupVersion.Version,
-			Kind:    k8s.EndpointSlice,
+			Kind:    convertor.EndpointSlice,
 		}
 	default:
 		return schema.GroupVersionKind{}
@@ -611,11 +611,11 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 
 func getNamedGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	switch gvk.Kind {
-	case k8s.Service:
+	case convertor.Service:
 		return schema.GroupVersionKind{
 			Group:   corev1.SchemeGroupVersion.Group,
 			Version: corev1.SchemeGroupVersion.Version,
-			Kind:    k8s.Endpoints,
+			Kind:    convertor.Endpoints,
 		}
 	default:
 		return schema.GroupVersionKind{}

@@ -1,23 +1,14 @@
-package kubevela
+package printer
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/duration"
-
-	"kusionstack.io/kusion/pkg/engine/printers"
 	oamv1beta1 "kusionstack.io/kusion/third_party/kubevela/kubevela/apis/v1beta1"
 )
 
-func init() {
-	printers.TG.With(AddHandlers)
-}
-
-func AddHandlers(h printers.PrintHandler) {
+func AddOAMHandlers(h PrintHandler) {
 	h.TableHandler(printApplication)
 }
 
@@ -52,14 +43,4 @@ func printApplication(obj *oamv1beta1.Application) (string, bool) {
 
 	return fmt.Sprintf("Component: %s, Type: %s, Phase: %s, Healthy: %s, Status: %s, Age: %s",
 		componentStr, typeStr, phase, healthyStr, statusStr, age), phase == "running" && obj.Status.Workflow.Finished
-}
-
-// translateTimestampSince returns the elapsed time since timestamp in
-// human-readable approximation.
-func translateTimestampSince(timestamp metav1.Time) string {
-	if timestamp.IsZero() {
-		return "<unknown>"
-	}
-
-	return duration.HumanDuration(time.Since(timestamp.Time))
 }

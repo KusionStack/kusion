@@ -117,7 +117,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 					} else {
 						// Restore to actual type
 						target := printers.Convert(o)
-						detail, ready = printers.TG.GenerateTable(target)
+						detail, ready = printers.Generate(target)
 					}
 
 					// Mark ready for breaking loop

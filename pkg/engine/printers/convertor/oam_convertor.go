@@ -1,10 +1,9 @@
-package kubevela
+package convertor
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"kusionstack.io/kusion/pkg/engine/printers"
 	oamv1beta1 "kusionstack.io/kusion/third_party/kubevela/kubevela/apis/v1beta1"
 )
 
@@ -13,11 +12,7 @@ const (
 	Application = "Application"
 )
 
-func init() {
-	printers.RegisterConvertor(Convert)
-}
-
-func Convert(o *unstructured.Unstructured) runtime.Object {
+func ToOAM(o *unstructured.Unstructured) runtime.Object {
 	switch o.GroupVersionKind().GroupVersion() {
 	case oamv1beta1.SchemeGroupVersion:
 		return convertOamV1beta1(o)
