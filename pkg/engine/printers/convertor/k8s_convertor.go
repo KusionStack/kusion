@@ -1,4 +1,4 @@
-package k8s
+package convertor
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
@@ -7,8 +7,6 @@ import (
 	discoveryv1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	"kusionstack.io/kusion/pkg/engine/printers"
 )
 
 // APIs in core/v1
@@ -50,11 +48,7 @@ const (
 	EndpointSlice = "EndpointSlice"
 )
 
-func init() {
-	printers.RegisterConvertor(Convert)
-}
-
-func Convert(o *unstructured.Unstructured) runtime.Object {
+func ToK8s(o *unstructured.Unstructured) runtime.Object {
 	switch o.GroupVersionKind().GroupVersion() {
 	case corev1.SchemeGroupVersion:
 		return convertCoreV1(o)

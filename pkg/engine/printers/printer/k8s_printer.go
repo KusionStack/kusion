@@ -1,4 +1,4 @@
-package k8s
+package printer
 
 import (
 	"bytes"
@@ -19,8 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/duration"
 	"k8s.io/apimachinery/pkg/util/sets"
-
-	"kusionstack.io/kusion/pkg/engine/printers"
 )
 
 const (
@@ -34,13 +32,9 @@ const (
 	nodeLabelRole = "kubernetes.io/role"
 )
 
-func init() {
-	printers.TG.With(AddHandlers)
-}
-
 // AddHandlers adds print handlers for default Kubernetes types dealing with internal versions.
 // TODO: handle errors from Handler
-func AddHandlers(h printers.PrintHandler) {
+func AddK8sHandlers(h PrintHandler) {
 	// core/v1
 	h.TableHandler(printComponentStatus)
 	h.TableHandler(printConfigMap)

@@ -3,13 +3,20 @@ package printers
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 )
+
+func init() {
+	registerConvertor(convertor.ToK8s)
+	registerConvertor(convertor.ToOAM)
+}
 
 type Convertor func(o *unstructured.Unstructured) runtime.Object
 
 var convertors []Convertor
 
-func RegisterConvertor(c Convertor) {
+func registerConvertor(c Convertor) {
 	convertors = append(convertors, c)
 }
 
