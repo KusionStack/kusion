@@ -234,19 +234,25 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 				}
 			}
 		}
-
-		const metadata = "metadata"
-		unstructured.RemoveNestedField(ur.Object, "status")
-		unstructured.RemoveNestedField(ur.Object, metadata, "resourceVersion")
-		unstructured.RemoveNestedField(ur.Object, metadata, "creationTimestamp")
-		unstructured.RemoveNestedField(ur.Object, metadata, "selfLink")
-		unstructured.RemoveNestedField(ur.Object, metadata, "uid")
+		normalizeServerSideFields(ur)
 	}
 	response.Resource.Attributes = ur.Object
 	return &runtime.ImportResponse{
 		Resource: response.Resource,
 		Status:   nil,
 	}
+}
+
+// normalize fields added by K8s that will cause a perpetual diff
+func normalizeServerSideFields(ur *unstructured.Unstructured) {
+	const metadata = "metadata"
+	unstructured.RemoveNestedField(ur.Object, "status")
+	unstructured.RemoveNestedField(ur.Object, metadata, "resourceVersion")
+	unstructured.RemoveNestedField(ur.Object, metadata, "creationTimestamp")
+	unstructured.RemoveNestedField(ur.Object, metadata, "selfLink")
+	unstructured.RemoveNestedField(ur.Object, metadata, "uid")
+	unstructured.RemoveNestedField(ur.Object, metadata, "generation")
+	unstructured.RemoveNestedField(ur.Object, metadata, "managedFields")
 }
 
 func normalizeService(ur *unstructured.Unstructured) error {
