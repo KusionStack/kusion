@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>面向异构资源的自服务应用发布平台</h1>
+<h1>面向 Kubernetes 与云服务的自服务应用程序部署平台</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md)
 
@@ -25,7 +25,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 - **应用全生命周期管理**: 结合 [Kusion](https://github.com/KusionStack/kusion) 与 [Konfig](https://github.com/KusionStack/konfig) 实现从应用第一行配置代码到生产可用的全生命周期管理
 - **自服务能力**: 为 App Dev 提供自服务能力，帮助他们与 SRE 和 Platform Dev 在代码化的平台上高效的合作
-- **异构资源运维**: 以统一的方式运维 Kubernetes、Terraform 和自定义基础设施等多种运行时的资源
+- **异构资源运维**: 以统一的方式运维 Kubernetes、IaaS 云资源和自定义基础设施等多种运行时的资源
 - **厂商无关**: 一次编写，动态渲染，多云运行
 
 <div align="center">
