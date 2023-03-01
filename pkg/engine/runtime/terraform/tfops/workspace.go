@@ -283,18 +283,23 @@ func (w *WorkSpace) GetProvider() (string, error) {
 // CleanAndInitWorkspace will clean up the provider cache and reinitialize the workspace
 // when the provider version or hash is updated.
 func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) error {
-	isHashUpdate := w.checkHashUpdate(ctx, chdir)
-	isVersionUpdate, err := w.checkVersionUpdate(ctx)
+	isVersionUpdate, err := w.checkVersionUpdate()
 	if err != nil {
 		return fmt.Errorf("check provider version failed: %v", err)
 	}
 
 	// If the provider hash or version changes, delete the tf cache and reinitialize.
-	if isHashUpdate || isVersionUpdate {
+	if isVersionUpdate {
 		log.Info("provider hash or version change.")
-		os.Remove(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
-		os.Remove(filepath.Join(w.tfCacheDir, ".terraform"))
-		err := w.InitWorkSpace(ctx)
+		err = os.Remove(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
+		if err != nil {
+			return err
+		}
+		err = os.Remove(filepath.Join(w.tfCacheDir, ".terraform"))
+		if err != nil {
+			return err
+		}
+		err = w.InitWorkSpace(ctx)
 		if err != nil {
 			return fmt.Errorf("init terraform workspace failed: %v", err)
 		}
@@ -302,17 +307,8 @@ func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) err
 	return nil
 }
 
-// checkHashUpdate checks whether the provider hash has changed, and returns true if changed
-func (w *WorkSpace) checkHashUpdate(ctx context.Context, chdir string) bool {
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "providers", "lock")
-	cmd.Dir = w.stackDir
-	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
-	output, _ := cmd.Output()
-	return strings.Contains(string(output), "Terraform has updated the lock file")
-}
-
 // checkVersionUpdate checks whether the provider version has changed, and returns true if changed
-func (w *WorkSpace) checkVersionUpdate(ctx context.Context) (bool, error) {
+func (w *WorkSpace) checkVersionUpdate() (bool, error) {
 	providerAddr, err := w.GetProvider()
 	if err != nil {
 		return false, fmt.Errorf("provider get version failed: %v", err)
