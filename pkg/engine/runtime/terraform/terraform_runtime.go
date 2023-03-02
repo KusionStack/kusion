@@ -64,7 +64,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
 
-	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.HCLLOCKFILE))
+	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.LockHCLFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {
@@ -126,7 +126,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if err := t.WorkSpace.WriteHCL(); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
-	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.HCLLOCKFILE))
+	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.LockHCLFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {

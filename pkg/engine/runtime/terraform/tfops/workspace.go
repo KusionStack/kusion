@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	HCLMAINFILE      = "main.tf.json"
-	HCLLOCKFILE      = ".terraform.hcl.lock"
-	TFSTATEFILE      = "terraform.tfstate"
+	MainTFFile       = "main.tf.json"
+	LockHCLFile      = ".terraform.lock.hcl"
+	TFStateFile      = "terraform.tfstate"
 	envLog           = "TF_LOG"
 	tfDebugLOG       = "DEBUG"
 	envLogFile       = "TF_LOG_PATH"
@@ -106,7 +106,7 @@ func (w *WorkSpace) WriteHCL() error {
 			return err
 		}
 	}
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, HCLMAINFILE), hclMain, 0o600)
+	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, MainTFFile), hclMain, 0o600)
 	if err != nil {
 		return fmt.Errorf("write hcl main.tf.json error: %v", err)
 	}
@@ -138,9 +138,9 @@ func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 		return fmt.Errorf("marshal hcl state error: %v", err)
 	}
 
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFSTATEFILE), hclState, os.ModePerm)
+	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFStateFile), hclState, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("write hcl  error: %v", err)
+		return fmt.Errorf("write hcl error: %v", err)
 	}
 	return nil
 }
@@ -161,7 +161,7 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 // Apply with the terraform cli apply command
 func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
-	err := w.CleanAndInitWorkspace(ctx, chdir)
+	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (w *WorkSpace) Read(ctx context.Context) (*TFState, error) {
 // Refresh Sync Terraform State
 func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
-	err := w.CleanAndInitWorkspace(ctx, chdir)
+	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (w *WorkSpace) Destroy(ctx context.Context) error {
 // eg. registry.terraform.io/hashicorp/local/2.2.3
 func (w *WorkSpace) GetProvider() (string, error) {
 	parser := hclparse.NewParser()
-	hclFile, diags := parser.ParseHCLFile(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
+	hclFile, diags := parser.ParseHCLFile(filepath.Join(w.tfCacheDir, LockHCLFile))
 	if diags != nil {
 		return "", errors.New(diags.Error())
 	}
@@ -282,7 +282,7 @@ func (w *WorkSpace) GetProvider() (string, error) {
 
 // CleanAndInitWorkspace will clean up the provider cache and reinitialize the workspace
 // when the provider version or hash is updated.
-func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) error {
+func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context) error {
 	isVersionUpdate, err := w.checkVersionUpdate()
 	if err != nil {
 		return fmt.Errorf("check provider version failed: %v", err)
@@ -291,7 +291,7 @@ func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) err
 	// If the provider hash or version changes, delete the tf cache and reinitialize.
 	if isVersionUpdate {
 		log.Info("provider hash or version change.")
-		err = os.Remove(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
+		err = os.Remove(filepath.Join(w.tfCacheDir, LockHCLFile))
 		if err != nil {
 			return err
 		}
