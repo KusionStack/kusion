@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	HCLMAINFILE      = "main.tf.json"
-	HCLLOCKFILE      = ".terraform.hcl.lock"
-	TFSTATEFILE      = "terraform.tfstate"
+	MainTFFile       = "main.tf.json"
+	LockHCLFile      = ".terraform.lock.hcl"
+	TFStateFile      = "terraform.tfstate"
 	envLog           = "TF_LOG"
 	tfDebugLOG       = "DEBUG"
 	envLogFile       = "TF_LOG_PATH"
@@ -106,7 +106,7 @@ func (w *WorkSpace) WriteHCL() error {
 			return err
 		}
 	}
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, HCLMAINFILE), hclMain, 0o600)
+	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, MainTFFile), hclMain, 0o600)
 	if err != nil {
 		return fmt.Errorf("write hcl main.tf.json error: %v", err)
 	}
@@ -138,9 +138,9 @@ func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 		return fmt.Errorf("marshal hcl state error: %v", err)
 	}
 
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFSTATEFILE), hclState, os.ModePerm)
+	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFStateFile), hclState, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("write hcl  error: %v", err)
+		return fmt.Errorf("write hcl error: %v", err)
 	}
 	return nil
 }
@@ -161,7 +161,7 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 // Apply with the terraform cli apply command
 func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
-	err := w.CleanAndInitWorkspace(ctx, chdir)
+	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (w *WorkSpace) Read(ctx context.Context) (*TFState, error) {
 // Refresh Sync Terraform State
 func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
-	err := w.CleanAndInitWorkspace(ctx, chdir)
+	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (w *WorkSpace) Destroy(ctx context.Context) error {
 // eg. registry.terraform.io/hashicorp/local/2.2.3
 func (w *WorkSpace) GetProvider() (string, error) {
 	parser := hclparse.NewParser()
-	hclFile, diags := parser.ParseHCLFile(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
+	hclFile, diags := parser.ParseHCLFile(filepath.Join(w.tfCacheDir, LockHCLFile))
 	if diags != nil {
 		return "", errors.New(diags.Error())
 	}
@@ -282,19 +282,24 @@ func (w *WorkSpace) GetProvider() (string, error) {
 
 // CleanAndInitWorkspace will clean up the provider cache and reinitialize the workspace
 // when the provider version or hash is updated.
-func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) error {
-	isHashUpdate := w.checkHashUpdate(ctx, chdir)
-	isVersionUpdate, err := w.checkVersionUpdate(ctx)
+func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context) error {
+	isVersionUpdate, err := w.checkVersionUpdate()
 	if err != nil {
 		return fmt.Errorf("check provider version failed: %v", err)
 	}
 
 	// If the provider hash or version changes, delete the tf cache and reinitialize.
-	if isHashUpdate || isVersionUpdate {
+	if isVersionUpdate {
 		log.Info("provider hash or version change.")
-		os.Remove(filepath.Join(w.tfCacheDir, ".terraform.lock.hcl"))
-		os.Remove(filepath.Join(w.tfCacheDir, ".terraform"))
-		err := w.InitWorkSpace(ctx)
+		err = os.Remove(filepath.Join(w.tfCacheDir, LockHCLFile))
+		if err != nil {
+			return err
+		}
+		err = os.Remove(filepath.Join(w.tfCacheDir, ".terraform"))
+		if err != nil {
+			return err
+		}
+		err = w.InitWorkSpace(ctx)
 		if err != nil {
 			return fmt.Errorf("init terraform workspace failed: %v", err)
 		}
@@ -302,17 +307,8 @@ func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context, chdir string) err
 	return nil
 }
 
-// checkHashUpdate checks whether the provider hash has changed, and returns true if changed
-func (w *WorkSpace) checkHashUpdate(ctx context.Context, chdir string) bool {
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "providers", "lock")
-	cmd.Dir = w.stackDir
-	cmd.Env = append(os.Environ(), envTFLog, w.getEnvProviderLogPath())
-	output, _ := cmd.Output()
-	return strings.Contains(string(output), "Terraform has updated the lock file")
-}
-
 // checkVersionUpdate checks whether the provider version has changed, and returns true if changed
-func (w *WorkSpace) checkVersionUpdate(ctx context.Context) (bool, error) {
+func (w *WorkSpace) checkVersionUpdate() (bool, error) {
 	providerAddr, err := w.GetProvider()
 	if err != nil {
 		return false, fmt.Errorf("provider get version failed: %v", err)
