@@ -51,6 +51,9 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 		res := &resources[i]
 		t := res.Type
 
+		// Save id first, might have TF resources
+		ids[i] = res.ResourceKey()
+
 		// Get watchers, only support k8s resources
 		resp := runtimes[t].Watch(ctx, &runtime.WatchRequest{Resource: res})
 		if resp == nil {
@@ -61,9 +64,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 			return fmt.Errorf(resp.Status.String())
 		}
 
-		// Save id
-		ids[i] = res.ResourceKey()
-		// Save channels
+		// Save watchers
 		msgChs[res.ResourceKey()] = resp.Watchers
 	}
 
@@ -84,14 +85,14 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	// Start go routine for each table
 	for _, id := range ids {
 		sw, ok := msgChs[id]
-		if !ok {
+		if !ok { // Terraform resource, skip
 			continue
 		}
-		// Get or new the target table
-		table, exist := tables[id]
-		if !exist {
-			table = printers.NewTable(sw.IDs)
-		}
+		// New target table
+		table := printers.NewTable(sw.IDs)
+		// Save tables first
+		tables[id] = table
+		// Start watching resource
 		go func(id string, chs []<-chan k8swatch.Event, table *printers.Table) {
 			// Resources selects
 			cases := createSelectCases(chs)
@@ -142,10 +143,16 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 		}(id, sw.Watchers, table)
 	}
 
+	// No k8s resources
+	if len(tables) == 0 {
+		wo.printTables(writer, ids, tables)
+		return nil
+	}
+
 	// Waiting for all tables completed
 	for {
 		// Finish watch
-		if len(finished) == len(ids) {
+		if len(finished) == len(tables) {
 			break
 		}
 
@@ -171,11 +178,13 @@ func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map
 
 		table, ok := tables[id]
 		if !ok {
-			continue
+			// Terraform resource, leave a hint
+			_, _ = fmt.Fprintln(w, pretty.LightYellow("! Terraform resources, skip monitoring"))
+		} else {
+			// Print table
+			data := table.Print()
+			_ = pterm.DefaultTable.WithHasHeader().WithSeparator("  ").WithData(data).WithWriter(w).Render()
 		}
-		// Print table
-		data := table.Print()
-		_ = pterm.DefaultTable.WithHasHeader().WithSeparator("  ").WithData(data).WithWriter(w).Render()
 
 		// Split each resource with blank line
 		if i != len(ids)-1 {
