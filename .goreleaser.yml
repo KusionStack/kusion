@@ -101,7 +101,7 @@ brews:
     license: "Apache License"
     skip_upload: false
     dependencies:
-      - name: kcl-lang/tap/kclvm
+      - name: kclvm
     test: |
       system "#{bin}/kusion version"
 
