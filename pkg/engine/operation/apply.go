@@ -165,7 +165,7 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 		}
 	}
 	if s != nil {
-		diags = diags.Append(fmt.Errorf("node execte failed, status:\n%v", s))
+		diags = diags.Append(fmt.Errorf("apply failed, status:\n%v", s))
 	}
 	return diags
 }
