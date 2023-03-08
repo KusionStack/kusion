@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"kusionstack.io/kusion/pkg/log"
 )
 
 // TerraformInfo represent fields of a Terraform CLI JSON-formatted log line
@@ -80,7 +82,8 @@ func parseTerraformInfo(infos []byte) ([]*TerraformInfo, error) {
 		}
 		err := json.Unmarshal([]byte(v), terraformInfo)
 		if err != nil {
-			return nil, err
+			log.Debug("unmarshall TF output to TerraformInfo failed. Return the output directly.")
+			return nil, fmt.Errorf(string(infos))
 		}
 		tfInfos = append(tfInfos, terraformInfo)
 	}
