@@ -54,6 +54,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	}
 
 	t.mu.Lock()
+	defer t.mu.Unlock()
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+planState.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
@@ -79,7 +80,6 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	if err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
-	t.mu.Unlock()
 
 	// get terraform provider version
 	providerAddr, err := t.WorkSpace.GetProvider()
@@ -118,6 +118,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	var tfstate *tfops.TFState
 
 	t.mu.Lock()
+	defer t.mu.Unlock()
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+requestResource.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
@@ -146,7 +147,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
-	t.mu.Unlock()
+
 	if tfstate == nil || tfstate.Values == nil {
 		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
@@ -182,13 +183,13 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
 	defer os.RemoveAll(tfCacheDir)
 	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(request.Resource)
 	if err := t.WorkSpace.Destroy(ctx); err != nil {
 		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
-	t.mu.Unlock()
 
 	return &runtime.DeleteResponse{Status: nil}
 }

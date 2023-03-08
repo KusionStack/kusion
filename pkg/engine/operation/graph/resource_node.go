@@ -61,9 +61,6 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 1. prepare planedState
 	planedState := rn.state
-	if rn.Action == opsmodels.Delete {
-		planedState = nil
-	}
 	// predictableState represents dry-run result
 	predictableState := planedState
 

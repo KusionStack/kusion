@@ -62,11 +62,10 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	}
 
 	// 1. init & build Indexes
-	_, resultState := o.InitStates(&request.Request)
-	// replace priorState.Resources with models.Resources, so we do Delete in all nodes
-	resources := request.Request.Spec.Resources
-	priorStateResourceIndex := resources.Index()
+	priorState, resultState := o.InitStates(&request.Request)
+	priorStateResourceIndex := priorState.Resources.Index()
 
+	resources := request.Request.Spec.Resources
 	runtimesMap, s := runtimeinit.Runtimes(resources)
 	if status.IsErr(s) {
 		return s
