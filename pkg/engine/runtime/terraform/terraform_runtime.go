@@ -103,16 +103,25 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 
 // Read terraform show state
 func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
-	priorState := request.PriorResource
+	priorResource := request.PriorResource
 	requestResource := request.PlanResource
 
 	// When the operation is create or update, the requestResource is set to planResource,
 	// when the operation is delete, planResource is nil, the requestResource is set to priorResource,
 	// tf runtime uses requestResource to rebuild tfcache resources.
-	if requestResource == nil {
-		requestResource = request.PriorResource
+	if requestResource == nil && priorResource != nil {
+		// We only need to refresh the tf.state files and return the latest resources state in this method.
+		// Attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
+		// if fields copied from kusion_state.json but illegal in .tf like the field `id`
+		requestResource = &models.Resource{
+			ID:         priorResource.ID,
+			Type:       priorResource.Type,
+			Attributes: nil,
+			DependsOn:  priorResource.DependsOn,
+			Extensions: priorResource.Extensions,
+		}
 	}
-	if priorState == nil {
+	if priorResource == nil {
 		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
 	var tfstate *tfops.TFState
@@ -124,6 +133,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(requestResource)
+
 	if err := t.WorkSpace.WriteHCL(); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
@@ -138,8 +148,8 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		}
 	}
 
-	// priorState overwrite tfstate in workspace
-	if err := t.WorkSpace.WriteTFState(priorState); err != nil {
+	// priorResource overwrite tfstate in workspace
+	if err = t.WorkSpace.WriteTFState(priorResource); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
 	}
 
