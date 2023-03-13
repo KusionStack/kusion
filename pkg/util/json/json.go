@@ -75,7 +75,7 @@ func Marshal2String(v interface{}) string {
 func Marshal2PrettyString(v interface{}) string {
 	r, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return "marshal failed"
+		return "marshal to pretty json failed"
 	}
 
 	return string(r)
@@ -92,7 +92,7 @@ func MustMarshal2String(v interface{}) string {
 // MustMarshal2PrettyString marshal to pretty string and panic on error
 func MustMarshal2PrettyString(v interface{}) string {
 	r, err := json.MarshalIndent(v, "", "  ")
-	util.CheckNotError(err, "json marshal failed")
+	util.CheckNotError(err, "must marshal to pretty json failed")
 
 	return string(r)
 }
