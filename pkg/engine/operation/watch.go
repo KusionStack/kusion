@@ -179,7 +179,7 @@ func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map
 		table, ok := tables[id]
 		if !ok {
 			// Terraform resource, leave a hint
-			_, _ = fmt.Fprintln(w, pretty.LightYellow("! Terraform resources, skip monitoring"))
+			_, _ = fmt.Fprintln(w, "Skip monitoring Terraform resources")
 		} else {
 			// Print table
 			data := table.Print()
