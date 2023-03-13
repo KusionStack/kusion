@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"kusionstack.io/kusion/pkg/log"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 // TerraformInfo represent fields of a Terraform CLI JSON-formatted log line
@@ -25,11 +26,11 @@ type TerraformInfo struct {
 // Diagnostic represents relevant fields of a Terraform CLI JSON-formatted
 // log line diagnostic info
 type Diagnostic struct {
-	Severity string  `json:"severity"`
-	Summary  string  `json:"summary"`
-	Detail   string  `json:"detail"`
-	Range    Range   `json:"range"`
-	Snippet  Snippet `json:"snippet"`
+	Severity string   `json:"severity"`
+	Summary  string   `json:"summary"`
+	Detail   string   `json:"detail"`
+	Range    *Range   `json:"range,omitempty"`
+	Snippet  *Snippet `json:"snippet,omitempty"`
 }
 
 // Pos represents a position in the source code.
@@ -93,7 +94,7 @@ func parseTerraformInfo(infos []byte) ([]*TerraformInfo, error) {
 // TFError parse Terraform CLI output infos
 // return error with given infos
 func TFError(infos []byte) error {
-	// todo @Markliby TF error outputs are formatted as TerraformInfo only when TF_LOG is TRACE or higher.
+	// Fixme: TF error outputs are formatted as TerraformInfo only when TF_LOG is TRACE or higher.
 	// The output often looks like this when the log level is INFO:
 	// 2022-11-07T17:41:29.643+0800 [INFO]  Terraform version: 1.3.4
 	// 2022-11-07T17:41:29.643+0800 [INFO]  Go runtime version: go1.19.3
@@ -115,7 +116,13 @@ func TFError(infos []byte) error {
 			continue
 		}
 		if v.Diagnostic.Severity == "error" {
-			msg := fmt.Sprintf("%s: %s", v.Diagnostic.Summary, v.Diagnostic.Detail)
+			msg := fmt.Sprintf("%s. %s\n", v.Diagnostic.Summary, v.Diagnostic.Detail)
+			if v.Diagnostic.Range != nil {
+				msg += fmt.Sprintf("Range:%s\n", jsonutil.Marshal2PrettyString(v.Diagnostic.Range))
+			}
+			if v.Diagnostic.Snippet != nil {
+				msg += fmt.Sprintf("Context:%s\nCode:%s", v.Diagnostic.Snippet.Context, v.Diagnostic.Snippet.Code)
+			}
 			return errors.New(msg)
 		}
 	}

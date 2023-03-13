@@ -49,7 +49,12 @@ func TestTFError(t *testing.T) {
 			args: args{
 				infos: []byte(applyInfos),
 			},
-			wantMessage: "Extraneous JSON object property: No argument or block type is named \"content!\". Did you mean \"content\"?",
+			wantMessage: "Extraneous JSON object property. No argument or block type is named \"content!\". Did you mean \"content\"?\n" +
+				"Range:{\n  \"filename\": \"main.tf.json\",\n  \"start\": {\n    \"line\": 1,\n    \"column\": 62,\n    \"byte\": 61\n  }," +
+				"\n  \"end\": {\n    \"line\": 1,\n    \"column\": 72,\n    \"byte\": 71\n  }\n}\nContext:resource.local_file.test\n" +
+				"Code:{\"provider\":{\"local\":null},\"resource\":{\"local_file\":{\"test\":{\"content!\":\"kusion12345\"," +
+				"\"filename\":\"test.txt\"}}},\"terraform\":{\"required_providers\":{\"local\":" +
+				"{\"source\":\"registry.terraform.io/hashicorp/local\",\"version\":\"2.2.3\"}}}}",
 		},
 	}
 

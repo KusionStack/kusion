@@ -138,7 +138,7 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 	if node, ok := v.(graph.ExecutableNode); ok {
 		s = node.Execute(&po.Operation)
 		if status.IsErr(s) {
-			diags = diags.Append(fmt.Errorf("node execute failed.\n%v", s))
+			diags = diags.Append(fmt.Errorf("preview failed.\n%v", s))
 			return diags
 		}
 	}

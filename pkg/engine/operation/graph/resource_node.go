@@ -53,7 +53,8 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 }
 
 func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
-	log.Debugf("execute node:%s", rn.ID)
+	log.Debugf("executing resource node:%s", rn.ID)
+	defer log.Debugf("resource node:%s has been executed", rn.ID)
 
 	if s := rn.PreExecute(operation); status.IsErr(s) {
 		return s
