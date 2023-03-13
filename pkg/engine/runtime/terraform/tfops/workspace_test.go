@@ -79,7 +79,7 @@ func TestWriteHCL(t *testing.T) {
 				w: NewWorkSpace(fs),
 			},
 			want: want{
-				maintf: "{\"provider\":{\"local\":null},\"resource\":{\"local_file\":{\"kusion_example\":{\"content\":\"kusion\",\"filename\":\"test.txt\"}}},\"terraform\":{\"required_providers\":{\"local\":{\"source\":\"registry.terraform.io/hashicorp/local\",\"version\":\"2.2.3\"}}}}",
+				maintf: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
 			},
 		},
 	}
@@ -118,7 +118,7 @@ func TestWriteTFState(t *testing.T) {
 				w: NewWorkSpace(fs),
 			},
 			want: want{
-				tfstate: "{\"resources\":[{\"instances\":[{\"attributes\":{\"content\":\"kusion\",\"filename\":\"test.txt\"}}],\"mode\":\"managed\",\"name\":\"kusion_example\",\"provider\":\"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\"type\":\"local_file\"}],\"version\":4}",
+				tfstate: "{\n  \"resources\": [\n    {\n      \"instances\": [\n        {\n          \"attributes\": {\n            \"content\": \"kusion\",\n            \"filename\": \"test.txt\"\n          }\n        }\n      ],\n      \"mode\": \"managed\",\n      \"name\": \"kusion_example\",\n      \"provider\": \"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\n      \"type\": \"local_file\"\n    }\n  ],\n  \"version\": 4\n}",
 			},
 		},
 	}
