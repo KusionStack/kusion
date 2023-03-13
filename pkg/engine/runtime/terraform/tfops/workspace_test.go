@@ -19,7 +19,7 @@ import (
 
 var (
 	resourceTest = models.Resource{
-		ID:   "kusion_example",
+		ID:   "hashicorp:local:local_file:kusion_example",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
 			"content":  "kusion",
