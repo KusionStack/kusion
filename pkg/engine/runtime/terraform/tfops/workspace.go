@@ -17,6 +17,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -90,13 +91,9 @@ func (w *WorkSpace) WriteHCL() error {
 			},
 		},
 	}
-	hclMain, err := json.Marshal(m)
-	if err != nil {
-		return fmt.Errorf("marshal hcl main error: %v", err)
-	}
+	hclMain := jsonutil.Marshal2PrettyString(m)
 
-	_, err = w.fs.Stat(w.tfCacheDir)
-
+	_, err := w.fs.Stat(w.tfCacheDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := w.fs.MkdirAll(w.tfCacheDir, os.ModePerm); err != nil {
@@ -106,7 +103,7 @@ func (w *WorkSpace) WriteHCL() error {
 			return err
 		}
 	}
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, MainTFFile), hclMain, 0o600)
+	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, MainTFFile), []byte(hclMain), 0o600)
 	if err != nil {
 		return fmt.Errorf("write hcl main.tf.json error: %v", err)
 	}
@@ -133,12 +130,9 @@ func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 			},
 		},
 	}
-	hclState, err := json.Marshal(m)
-	if err != nil {
-		return fmt.Errorf("marshal hcl state error: %v", err)
-	}
+	hclState := jsonutil.Marshal2PrettyString(m)
 
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFStateFile), hclState, os.ModePerm)
+	err := w.fs.WriteFile(filepath.Join(w.tfCacheDir, TFStateFile), []byte(hclState), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("write hcl error: %v", err)
 	}
