@@ -190,7 +190,7 @@ func TestOperation_Preview(t *testing.T) {
 							ID:     "fake-id-2",
 							Action: opsmodels.Delete,
 							From:   &FakeResourceState2,
-							To:     &FakeResourceState2,
+							To:     (*models.Resource)(nil),
 						},
 					},
 				},
