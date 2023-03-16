@@ -110,6 +110,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	// when the operation is delete, planResource is nil, the requestResource is set to priorResource,
 	// tf runtime uses requestResource to rebuild tfcache resources.
 	if requestResource == nil && priorResource != nil {
+		// requestResource is nil representing that this is a Delete action.
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
 		// Attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
 		// if fields copied from kusion_state.json but illegal in .tf like the field `id`
