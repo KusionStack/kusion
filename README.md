@@ -34,7 +34,7 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 </div>
 
 ## Quick Start
-Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecase) to deliver an App with one Kusion command
+Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) to deliver an App with one Kusion command
 
 ![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
