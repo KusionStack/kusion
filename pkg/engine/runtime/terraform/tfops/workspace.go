@@ -72,6 +72,10 @@ func (w *WorkSpace) WriteHCL() error {
 	provider := strings.Split(w.resource.Extensions["provider"].(string), "/")
 	resourceType := w.resource.Extensions["resourceType"].(string)
 	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
+	if len(resourceNames) < 4 {
+		return fmt.Errorf("illegial resource id:%s in Spec. "+
+			"Resource id format: providerNamespace:providerName:resourceType:resourceName", w.resource.ResourceKey())
+	}
 
 	m := map[string]interface{}{
 		"terraform": map[string]interface{}{
@@ -114,13 +118,18 @@ func (w *WorkSpace) WriteHCL() error {
 // WriteTFState writes TFState to the file, this function is for terraform apply refresh only
 func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 	provider := strings.Split(priorState.Extensions["provider"].(string), "/")
+	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
+	if len(resourceNames) < 4 {
+		return fmt.Errorf("illegial resource id:%s in terraform.tfstate. "+
+			"Resource id format: providerNamespace:providerName:resourceType:resourceName", w.resource.ResourceKey())
+	}
 	m := map[string]interface{}{
 		"version": 4,
 		"resources": []map[string]interface{}{
 			{
 				"mode":     "managed",
 				"type":     priorState.Extensions["resourceType"].(string),
-				"name":     priorState.ID,
+				"name":     resourceNames[len(resourceNames)-1],
 				"provider": fmt.Sprintf("provider[\"%s\"]", strings.Join(provider[:len(provider)-1], "/")),
 				"instances": []map[string]interface{}{
 					{

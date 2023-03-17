@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
@@ -16,7 +17,7 @@ import (
 )
 
 var testResource = models.Resource{
-	ID:   "example",
+	ID:   "hashicorp:local:local_file:kusion_example",
 	Type: "Terraform",
 	Attributes: map[string]interface{}{
 		"content":  "kusion",
