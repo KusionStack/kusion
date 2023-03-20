@@ -62,6 +62,11 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 
 	// 1. prepare planedState
 	planedState := rn.state
+	// When a resource is deleted in Spec but exists in PriorState,
+	// this node should be regarded as a deleted node, and rn.state stores the PriorState
+	if rn.Action == opsmodels.Delete {
+		planedState = nil
+	}
 	// predictableState represents dry-run result
 	predictableState := planedState
 
