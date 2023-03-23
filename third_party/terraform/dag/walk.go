@@ -2,10 +2,10 @@ package dag
 
 import (
 	"errors"
-	"log"
 	"sync"
 	"time"
 
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
@@ -380,7 +380,7 @@ func (w *Walker) walkVertex(v Vertex, info *walkerVertex) {
 	if depsSuccess {
 		diags = w.Callback(v)
 	} else {
-		log.Printf("[TRACE] dag/walk: upstream of %q errored, so skipping", VertexName(v))
+		log.Info("[TRACE] dag/walk: upstream of %q errored, so skipping", VertexName(v))
 		// This won't be displayed to the user because we'll set upstreamFailed,
 		// but we need to ensure there's at least one error in here so that
 		// the failures will cascade downstream.
@@ -426,7 +426,7 @@ func (w *Walker) waitDeps(
 				return
 
 			case <-time.After(time.Second * 5):
-				log.Printf("[TRACE] dag/walk: vertex %q is waiting for %q",
+				log.Info("[TRACE] dag/walk: vertex %q is waiting for %q",
 					VertexName(v), VertexName(dep))
 			}
 		}
