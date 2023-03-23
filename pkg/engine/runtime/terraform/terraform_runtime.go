@@ -112,8 +112,8 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if requestResource == nil && priorResource != nil {
 		// requestResource is nil representing that this is a Delete action.
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
-		// Attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
-		// if fields copied from kusion_state.json but illegal in .tf like the field `id`
+		// Most fields in attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
+		// if fields copied from kusion_state.json but read-only in main.tf.json
 		requestResource = &models.Resource{
 			ID:         priorResource.ID,
 			Type:       priorResource.Type,

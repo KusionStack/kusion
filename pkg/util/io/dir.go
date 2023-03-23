@@ -3,17 +3,15 @@ package io
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 )
 
 // Create dir recursively if not exist
-// Note: input argument must be a file path
-func CreateDirIfNotExist(filePath string) error {
-	fileDir := path.Dir(filePath)
-	_, err := os.Stat(fileDir)
+// Note: input argument must be a dirPath
+func CreateDirIfNotExist(dirPath string) error {
+	_, err := os.Stat(dirPath)
 	if os.IsNotExist(err) {
-		err = os.MkdirAll(fileDir, os.ModePerm)
+		err = os.MkdirAll(dirPath, os.ModePerm)
 		if err != nil {
 			return err
 		}
