@@ -189,10 +189,15 @@ func (t *TerraformRuntime) Import(ctx context.Context, request *runtime.ImportRe
 }
 
 // Delete terraform resource and remove workspace
-func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) (res *runtime.DeleteResponse) {
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
-	defer os.RemoveAll(tfCacheDir)
+	defer func(path string) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			res = &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+		}
+	}(tfCacheDir)
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.WorkSpace.SetStackDir(stackPath)

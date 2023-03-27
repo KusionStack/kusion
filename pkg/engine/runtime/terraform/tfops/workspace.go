@@ -336,7 +336,7 @@ func (w *WorkSpace) CleanAndInitWorkspace(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		err = os.Remove(filepath.Join(w.tfCacheDir, ".terraform"))
+		err = os.RemoveAll(filepath.Join(w.tfCacheDir, ".terraform"))
 		if err != nil {
 			return err
 		}
