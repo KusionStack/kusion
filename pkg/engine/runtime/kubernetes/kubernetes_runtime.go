@@ -169,7 +169,7 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 	}
 	// Validate
 	if requestResource == nil {
-		return &runtime.ReadResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
+		return &runtime.ReadResponse{Status: status.NewErrorStatus(errors.New("can not read k8s resource with empty body"))}
 	}
 
 	// Get resource by attribute

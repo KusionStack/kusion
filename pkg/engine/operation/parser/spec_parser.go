@@ -52,7 +52,7 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 		}
 
 		// compute implicit and explicate dependencies
-		refNodeKeys, s := computeDependencies(resource)
+		refNodeKeys, s := updateDependencies(resource)
 		if status.IsErr(s) {
 			return s
 		}
