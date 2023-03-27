@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"reflect"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -12,6 +13,25 @@ import (
 
 type Parser interface {
 	Parse(dag *dag.AcyclicGraph) status.Status
+}
+
+func computeDependencies(resource *models.Resource) ([]string, status.Status) {
+	// handle explicate dependency
+	refNodeKeys := resource.DependsOn
+
+	// handle implicit dependency
+	v := reflect.ValueOf(resource.Attributes)
+	implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
+		return v, nil
+	})
+	if status.IsErr(s) {
+		return nil, s
+	}
+	refNodeKeys = append(refNodeKeys, implicitRefKeys...)
+
+	// Deduplicate
+	refNodeKeys = Deduplicate(refNodeKeys)
+	return refNodeKeys, nil
 }
 
 func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,

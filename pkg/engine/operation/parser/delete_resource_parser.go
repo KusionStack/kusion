@@ -68,9 +68,15 @@ func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 			g.Connect(dag.BasicEdge(root, rn))
 		}
 
+		// compute implicit and explicate dependencies
+		refNodeKeys, s := computeDependencies(resource)
+		if status.IsErr(s) {
+			return s
+		}
+
 		// always get the latest vertex in the g.
 		rn = GetVertex(g, rn).(*graph.ResourceNode)
-		s = LinkRefNodes(g, resource.DependsOn, resourceIndex, rn, opsmodels.Delete, manifestGraphMap)
+		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Delete, manifestGraphMap)
 		if status.IsErr(s) {
 			return s
 		}
