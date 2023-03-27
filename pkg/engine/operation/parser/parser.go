@@ -15,7 +15,7 @@ type Parser interface {
 	Parse(dag *dag.AcyclicGraph) status.Status
 }
 
-func computeDependencies(resource *models.Resource) ([]string, status.Status) {
+func updateDependencies(resource *models.Resource) ([]string, status.Status) {
 	// handle explicate dependency
 	refNodeKeys := resource.DependsOn
 
@@ -31,6 +31,7 @@ func computeDependencies(resource *models.Resource) ([]string, status.Status) {
 
 	// Deduplicate
 	refNodeKeys = Deduplicate(refNodeKeys)
+	resource.DependsOn = refNodeKeys
 	return refNodeKeys, nil
 }
 

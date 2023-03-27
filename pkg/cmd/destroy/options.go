@@ -10,16 +10,15 @@ import (
 	"github.com/pterm/pterm"
 
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
-	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/signals"
 )
 
@@ -54,33 +53,34 @@ func (o *DestroyOptions) Run() error {
 		return err
 	}
 
-	// Get compile result
-	planResources, err := spec.GenerateSpecWithSpinner(&generator.Options{
-		WorkDir:     o.WorkDir,
-		Filenames:   o.Filenames,
-		Settings:    o.Settings,
-		Arguments:   o.Arguments,
-		Overrides:   o.Overrides,
-		DisableNone: o.DisableNone,
-		OverrideAST: o.OverrideAST,
-	}, project, stack)
-	if err != nil {
-		return err
-	}
-
-	if planResources == nil || len(planResources.Resources) == 0 {
-		pterm.Println("No resources to destroy")
-		return nil
-	}
-
 	// Get stateStorage from backend config to manage state
 	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
 	if err != nil {
 		return err
 	}
 
+	// only destroy resources we managed
+	// todo add the `cluster` field in query
+	query := &states.StateQuery{
+		Tenant:  project.Tenant,
+		Stack:   stack.Name,
+		Project: project.Name,
+	}
+	latestState, err := stateStorage.GetLatestState(query)
+	if err != nil {
+		log.Infof("can't find states with query: %v", jsonutil.Marshal2PrettyString(query))
+		return fmt.Errorf("can not find State in this stack")
+	}
+	destroyResources := latestState.Resources
+
+	if destroyResources == nil || len(latestState.Resources) == 0 {
+		pterm.Println(pterm.Green("No managed resources to destroy"))
+		return nil
+	}
+
 	// Compute changes for preview
-	changes, err := o.preview(planResources, project, stack, stateStorage)
+	spec := &models.Spec{Resources: destroyResources}
+	changes, err := o.preview(spec, project, stack, stateStorage)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (o *DestroyOptions) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(planResources, changes, stateStorage); err != nil {
+	if err := o.destroy(spec, changes, stateStorage); err != nil {
 		return err
 	}
 	return nil
@@ -157,8 +157,6 @@ func (o *DestroyOptions) preview(planResources *models.Spec, project *projectsta
 }
 
 func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
-	// Build apply operation
-
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),

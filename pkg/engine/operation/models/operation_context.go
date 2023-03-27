@@ -108,9 +108,7 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 		Project: request.Project.Name,
 		Cluster: request.Cluster,
 	}
-	latestState, err := o.StateStorage.GetLatestState(
-		query,
-	)
+	latestState, err := o.StateStorage.GetLatestState(query)
 	util.CheckNotError(err, fmt.Sprintf("get the latest State failed with query: %v", jsonutil.Marshal2PrettyString(query)))
 	if latestState == nil {
 		log.Infof("can't find states with request: %v", jsonutil.Marshal2PrettyString(request))

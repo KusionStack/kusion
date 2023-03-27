@@ -5,6 +5,8 @@ type Spec struct {
 	Resources Resources `json:"resources" yaml:"resources"`
 }
 
+// fixme: get `cluster` from compile arguments
+
 // ParseCluster try to parse Cluster from resource extensions.
 // All resources in one compile MUST have the same Cluster and this constraint will be guaranteed by KCL compile logic
 func (s *Spec) ParseCluster() string {
