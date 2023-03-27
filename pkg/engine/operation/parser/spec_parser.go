@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"reflect"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -36,7 +35,7 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotError(err, "get dag root error")
 	util.CheckNotNil(root, fmt.Sprintf("No root in this DAG:%s", json.Marshal2String(g)))
 	resourceIndex := sp.Resources.Index()
-	for key, resourceState := range resourceIndex {
+	for key, resource := range resourceIndex {
 		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Update)
 		if status.IsErr(s) {
 			return s
@@ -51,21 +50,12 @@ func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 			rn = GetVertex(g, rn).(*graph.ResourceNode)
 			g.Connect(dag.BasicEdge(root, rn))
 		}
-		// handle explicate dependency
-		refNodeKeys := resourceState.DependsOn
 
-		// handle implicit dependency
-		v := reflect.ValueOf(resourceState.Attributes)
-		implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
-			return v, nil
-		})
+		// compute implicit and explicate dependencies
+		refNodeKeys, s := computeDependencies(resource)
 		if status.IsErr(s) {
 			return s
 		}
-		refNodeKeys = append(refNodeKeys, implicitRefKeys...)
-
-		// Deduplicate
-		refNodeKeys = Deduplicate(refNodeKeys)
 
 		// linkRefNodes
 		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Update, nil)
