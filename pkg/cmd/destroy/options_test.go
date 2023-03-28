@@ -11,15 +11,14 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
+	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -28,7 +27,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("Detail is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGetLatestState()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -41,7 +40,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("prompt no", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGetLatestState()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -54,7 +53,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 	t.Run("prompt yes", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGetLatestState()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockOperationDestroy(opsmodels.Success)
@@ -88,9 +87,9 @@ func mockDetectProjectAndStack() {
 	})
 }
 
-func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1}}, nil
+func mockGetLatestState() {
+	monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(f *local.FileSystemState, query *states.StateQuery) (*states.State, error) {
+		return &states.State{Resources: []models.Resource{sa1}}, nil
 	})
 }
 

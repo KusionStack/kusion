@@ -67,7 +67,7 @@ func (o *DestroyOptions) Run() error {
 		Project: project.Name,
 	}
 	latestState, err := stateStorage.GetLatestState(query)
-	if err != nil {
+	if err != nil || latestState == nil {
 		log.Infof("can't find states with query: %v", jsonutil.Marshal2PrettyString(query))
 		return fmt.Errorf("can not find State in this stack")
 	}
