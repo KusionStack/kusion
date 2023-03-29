@@ -192,14 +192,9 @@ func (t *TerraformRuntime) Import(ctx context.Context, request *runtime.ImportRe
 func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) (res *runtime.DeleteResponse) {
 	stackPath := request.Stack.GetPath()
 	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			res = &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
-		}
-	}(tfCacheDir)
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(request.Resource)
@@ -207,6 +202,11 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
 	}
 
+	// delete tf directory after destroy operation is success
+	err := os.RemoveAll(tfCacheDir)
+	if err != nil {
+		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+	}
 	return &runtime.DeleteResponse{Status: nil}
 }
 
