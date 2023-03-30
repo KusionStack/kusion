@@ -62,7 +62,7 @@ docker pull kusionstack/kusion:latest
 > For more information about installation, please check the [Installation Guide](https://kusionstack.io/docs/user_docs/getting-started/install) on KusionStack official website
 
 ## Deploy your first App
-Deploy your first App with one Kusion command. Please visit this [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase) for more details
+Deploy your first App with one Kusion command. Please visit this [use case](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) for more details
 
 # Contact Us
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
