@@ -160,7 +160,7 @@ func TestResourceNode_Execute(t *testing.T) {
 			rn := &ResourceNode{
 				baseNode: &tt.fields.BaseNode,
 				Action:   tt.fields.Action,
-				state:    tt.fields.state,
+				resource: tt.fields.state,
 			}
 			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Apply",
 				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {

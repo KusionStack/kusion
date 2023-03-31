@@ -19,8 +19,8 @@ import (
 
 type ResourceNode struct {
 	*baseNode
-	Action opsmodels.ActionType
-	state  *models.Resource
+	Action   opsmodels.ActionType
+	resource *models.Resource
 }
 
 var _ ExecutableNode = (*ResourceNode)(nil)
@@ -30,7 +30,7 @@ const (
 )
 
 func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
-	value := reflect.ValueOf(rn.state.Attributes)
+	value := reflect.ValueOf(rn.resource.Attributes)
 	var replaced reflect.Value
 	var s status.Status
 	switch o.OperationType {
@@ -47,7 +47,7 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 		return s
 	}
 	if !replaced.IsZero() {
-		rn.state.Attributes = replaced.Interface().(map[string]interface{})
+		rn.resource.Attributes = replaced.Interface().(map[string]interface{})
 	}
 	return nil
 }
@@ -60,61 +60,68 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 		return s
 	}
 
-	// 1. prepare planedState
-	planedState := rn.state
-	// When a resource is deleted in Spec but exists in PriorState,
-	// this node should be regarded as a deleted node, and rn.state stores the PriorState
-	if rn.Action == opsmodels.Delete {
-		planedState = nil
-	}
-	// predictableState represents dry-run result
-	predictableState := planedState
-
-	// 2. get prior state which is stored in kusion_state.json
-	key := rn.state.ResourceKey()
-	priorState := operation.PriorStateResourceIndex[key]
-
-	// 3. get the latest resource from runtime
-	readRequest := &runtime.ReadRequest{PlanResource: planedState, PriorResource: priorState, Stack: operation.Stack}
-
-	resourceType := rn.state.Type
-	response := operation.RuntimeMap[resourceType].Read(context.Background(), readRequest)
-	liveState := response.Resource
-	s := response.Status
+	// init 3-way diff data
+	planedResource, priorResource, liveResource, s := rn.initThreeWayDiffData(operation)
 	if status.IsErr(s) {
 		return s
 	}
 
-	// 4. compute ActionType of current resource node between planState and liveState
+	// compute action type
+	dryRunResource, s := rn.computeActionType(operation, planedResource, priorResource, liveResource)
+	if status.IsErr(s) {
+		return s
+	}
+
+	// execute the operation
+	switch operation.OperationType {
+	case opsmodels.ApplyPreview, opsmodels.DestroyPreview:
+		updateChangeOrder(operation, rn, liveResource, dryRunResource)
+	case opsmodels.Apply, opsmodels.Destroy:
+		if s = rn.applyResource(operation, liveResource, planedResource, liveResource); status.IsErr(s) {
+			return s
+		}
+	default:
+		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
+	}
+
+	return nil
+}
+
+// computeActionType compute ActionType of current resource node according to  planResource, priorResource and liveResource.
+// dryRunResource is a middle result during the process of computing ActionType. We will use it to perform live diff latter
+func (rn *ResourceNode) computeActionType(
+	operation *opsmodels.Operation, planedResource *models.Resource, priorResource *models.Resource, liveResource *models.Resource,
+) (*models.Resource, status.Status) {
+	dryRunResource := planedResource
 	switch operation.OperationType {
 	case opsmodels.Destroy, opsmodels.DestroyPreview:
 		rn.Action = opsmodels.Delete
 	case opsmodels.Apply, opsmodels.ApplyPreview:
-		if planedState == nil {
+		if planedResource == nil {
 			rn.Action = opsmodels.Delete
-		} else if priorState == nil && liveState == nil {
+		} else if priorResource == nil && liveResource == nil {
 			rn.Action = opsmodels.Create
 		} else {
-			// Dry run to fetch predictable state
-			dryRunResp := operation.RuntimeMap[resourceType].Apply(context.Background(), &runtime.ApplyRequest{
-				PriorResource: priorState,
-				PlanResource:  planedState,
+			// Dry run to fetch predictable resource
+			dryRunResp := operation.RuntimeMap[rn.resource.Type].Apply(context.Background(), &runtime.ApplyRequest{
+				PriorResource: priorResource,
+				PlanResource:  planedResource,
 				Stack:         operation.Stack,
 				DryRun:        true,
 			})
 			if status.IsErr(dryRunResp.Status) {
-				return dryRunResp.Status
+				return nil, dryRunResp.Status
 			}
-			predictableState = dryRunResp.Resource
+			dryRunResource = dryRunResp.Resource
 			// Ignore differences of target fields
 			for _, field := range operation.IgnoreFields {
 				splits := strings.Split(field, ".")
-				removeNestedField(liveState.Attributes, splits...)
-				removeNestedField(predictableState.Attributes, splits...)
+				removeNestedField(liveResource.Attributes, splits...)
+				removeNestedField(dryRunResource.Attributes, splits...)
 			}
-			report, err := diff.ToReport(liveState, predictableState)
+			report, err := diff.ToReport(liveResource, dryRunResource)
 			if err != nil {
-				return status.NewErrorStatus(err)
+				return nil, status.NewErrorStatus(err)
 			}
 			if len(report.Diffs) == 0 {
 				rn.Action = opsmodels.UnChange
@@ -123,22 +130,38 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 			}
 		}
 	default:
-		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
+		return nil, status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
+	}
+	return dryRunResource, nil
+}
+
+func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*models.Resource, *models.Resource, *models.Resource, status.Status) {
+	// 1. prepare planed resource that we want to execute
+	planedResource := rn.resource
+	// When a resource is deleted in Spec but exists in PriorState,
+	// this node should be regarded as a deleted node, and rn.resource stores the PriorState
+	if rn.Action == opsmodels.Delete {
+		planedResource = nil
 	}
 
-	// 5. apply or return
-	switch operation.OperationType {
-	case opsmodels.ApplyPreview, opsmodels.DestroyPreview:
-		fillResponseChangeSteps(operation, rn, liveState, predictableState)
-	case opsmodels.Apply, opsmodels.Destroy:
-		if s = rn.applyResource(operation, priorState, planedState, liveState); status.IsErr(s) {
-			return s
-		}
-	default:
-		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
-	}
+	// 2. get prior resource which is stored in kusion_state.json
+	key := rn.resource.ResourceKey()
+	priorResource := operation.PriorStateResourceIndex[key]
 
-	return nil
+	// 3. get the live resource from runtime
+	readRequest := &runtime.ReadRequest{
+		PlanResource:  planedResource,
+		PriorResource: priorResource,
+		Stack:         operation.Stack,
+	}
+	resourceType := rn.resource.Type
+	response := operation.RuntimeMap[resourceType].Read(context.Background(), readRequest)
+	liveResource := response.Resource
+	s := response.Status
+	if status.IsErr(s) {
+		return nil, nil, nil, s
+	}
+	return planedResource, priorResource, liveResource, nil
 }
 
 func removeNestedField(obj interface{}, fields ...string) {
@@ -166,7 +189,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 
 	var res *models.Resource
 	var s status.Status
-	resourceType := rn.state.Type
+	resourceType := rn.resource.Type
 
 	rt := operation.RuntimeMap[resourceType]
 	switch rn.Action {
@@ -179,15 +202,15 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
-			log.Debugf("delete resource:%s, state: %v", planedState.ID, s.String())
+			log.Debugf("delete resource:%s, resource: %v", planedState.ID, s.String())
 		}
 	case opsmodels.UnChange:
-		log.Infof("planed resource and live state are equal")
+		log.Infof("planed resource and live resource are equal")
 		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
 		if priorState == nil {
 			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planedState})
 			s = response.Status
-			log.Debugf("import resource:%s, state:%v", planedState.ID, jsonutil.Marshal2String(s))
+			log.Debugf("import resource:%s, resource:%v", planedState.ID, jsonutil.Marshal2String(s))
 			res = response.Resource
 		} else {
 			res = priorState
@@ -197,7 +220,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 		return s
 	}
 
-	key := rn.state.ResourceKey()
+	key := rn.resource.ResourceKey()
 	if e := operation.RefreshResourceIndex(key, res, rn.Action); e != nil {
 		return status.NewErrorStatus(e)
 	}
@@ -206,12 +229,12 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 	}
 
 	// print apply resource success msg
-	log.Infof("apply resource success: %s", rn.state.ResourceKey())
+	log.Infof("apply resource success: %s", rn.resource.ResourceKey())
 	return nil
 }
 
 func (rn *ResourceNode) State() *models.Resource {
-	return rn.state
+	return rn.resource
 }
 
 func NewResourceNode(key string, state *models.Resource, action opsmodels.ActionType) (*ResourceNode, status.Status) {
@@ -219,11 +242,11 @@ func NewResourceNode(key string, state *models.Resource, action opsmodels.Action
 	if status.IsErr(s) {
 		return nil, s
 	}
-	return &ResourceNode{baseNode: node, Action: action, state: state}, nil
+	return &ResourceNode{baseNode: node, Action: action, resource: state}, nil
 }
 
 // save change steps in DAG walking order so that we can preview a full applying list
-func fillResponseChangeSteps(ops *opsmodels.Operation, rn *ResourceNode, plan, live interface{}) {
+func updateChangeOrder(ops *opsmodels.Operation, rn *ResourceNode, plan, live interface{}) {
 	defer ops.Lock.Unlock()
 	ops.Lock.Lock()
 
@@ -251,7 +274,7 @@ var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath
 	key := split[0]
 	priorState := resourceIndex[key]
 	if priorState == nil {
-		msg := fmt.Sprintf("can't find state by key:%s when replacing %s", key, refPath)
+		msg := fmt.Sprintf("can't find resource by key:%s when replacing %s", key, refPath)
 		return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
 	}
 	attributes := priorState.Attributes
@@ -274,13 +297,16 @@ var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath
 	return reflect.ValueOf(valueMap), nil
 }
 
-func ReplaceImplicitRef(v reflect.Value, resourceIndex map[string]*models.Resource,
+func ReplaceImplicitRef(
+	v reflect.Value,
+	resourceIndex map[string]*models.Resource,
 	replaceFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
 ) ([]string, reflect.Value, status.Status) {
 	return ReplaceRef(v, resourceIndex, replaceFun, nil, nil)
 }
 
-func ReplaceRef(v reflect.Value,
+func ReplaceRef(
+	v reflect.Value,
 	resourceIndex map[string]*models.Resource,
 	replaceImplicitFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
 	ss *vals.SecretStores,
