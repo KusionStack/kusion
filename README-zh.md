@@ -35,7 +35,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 ## 快速开始
 
-参考 [快速开始](https://kusionstack.io/docs/user_docs/getting-started/usecase) 通过一条 Kusion 命令拉起一个应用
+参考 [快速开始](https://kusionstack.io/zh-CN/docs/user_docs/getting-started/usecases/deliver-first-project) 通过一条 Kusion 命令拉起一个应用
 
 ![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
@@ -61,11 +61,11 @@ go install kusionstack.io/kusion@latest
 docker pull kusionstack/kusion:latest
 ```
 
-> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://kusionstack.io/docs/user_docs/getting-started/install)。
+> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://kusionstack.io/zh-CN/docs/user_docs/getting-started/install)。
 
 ## 部署第一个应用
 
-一键部署你的一个应用，详情请参考 [use case](https://kusionstack.io/docs/user_docs/getting-started/usecase)
+一键部署你的一个应用，详情请参考 [use case](https://kusionstack.io/zh-CN/docs/user_docs/getting-started/usecases/deliver-first-project)
 
 # 🎖︎ 贡献指南
 
