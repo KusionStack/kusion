@@ -33,7 +33,7 @@ func NewTerraformRuntime() (runtime.Runtime, error) {
 	return TFRuntime, nil
 }
 
-// Apply terraform apply resource
+// Apply Terraform resource
 func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	planState := request.PlanResource
 	// terraform dry run merge state

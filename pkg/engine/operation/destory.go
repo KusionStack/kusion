@@ -64,6 +64,11 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	// 1. init & build Indexes
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
+	// copy priorStateResourceIndex into a new map
+	stateResourceIndex := map[string]*models.Resource{}
+	for k, v := range priorStateResourceIndex {
+		stateResourceIndex[k] = v
+	}
 
 	// only destroy resources we have recorded
 	resources := priorState.Resources
@@ -85,7 +90,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
-			StateResourceIndex:      priorStateResourceIndex,
+			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,

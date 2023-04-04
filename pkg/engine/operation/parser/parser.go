@@ -35,8 +35,13 @@ func updateDependencies(resource *models.Resource) ([]string, status.Status) {
 	return refNodeKeys, nil
 }
 
-func LinkRefNodes(ag *dag.AcyclicGraph, refNodeKeys []string, resourceIndex map[string]*models.Resource,
-	rn dag.Vertex, defaultAction opsmodels.ActionType, manifestGraphMap map[string]interface{},
+func LinkRefNodes(
+	ag *dag.AcyclicGraph,
+	refNodeKeys []string,
+	resourceIndex map[string]*models.Resource,
+	rn dag.Vertex,
+	defaultAction opsmodels.ActionType,
+	manifestGraphMap map[string]interface{},
 ) status.Status {
 	if len(refNodeKeys) == 0 {
 		return nil

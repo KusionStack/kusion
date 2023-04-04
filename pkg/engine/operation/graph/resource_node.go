@@ -33,10 +33,15 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	value := reflect.ValueOf(rn.resource.Attributes)
 	var replaced reflect.Value
 	var s status.Status
+
 	switch o.OperationType {
 	case opsmodels.ApplyPreview:
-		// replace secret ref
-		_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
+		// first time apply. Do not replace implicit dependency ref
+		if len(o.PriorStateResourceIndex) == 0 {
+			_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
+		} else {
+			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+		}
 	case opsmodels.Apply:
 		// replace secret ref and implicit ref
 		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
@@ -75,6 +80,11 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 	// execute the operation
 	switch operation.OperationType {
 	case opsmodels.ApplyPreview, opsmodels.DestroyPreview:
+		key := rn.resource.ResourceKey()
+		// refresh resource index in operation to make sure other resource node can get the latest index
+		if e := operation.RefreshResourceIndex(key, dryRunResource, rn.Action); e != nil {
+			return status.NewErrorStatus(e)
+		}
 		updateChangeOrder(operation, rn, liveResource, dryRunResource)
 	case opsmodels.Apply, opsmodels.Destroy:
 		if s = rn.applyResource(operation, liveResource, planedResource, liveResource); status.IsErr(s) {
@@ -90,7 +100,10 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 // computeActionType compute ActionType of current resource node according to  planResource, priorResource and liveResource.
 // dryRunResource is a middle result during the process of computing ActionType. We will use it to perform live diff latter
 func (rn *ResourceNode) computeActionType(
-	operation *opsmodels.Operation, planedResource *models.Resource, priorResource *models.Resource, liveResource *models.Resource,
+	operation *opsmodels.Operation,
+	planedResource *models.Resource,
+	priorResource *models.Resource,
+	liveResource *models.Resource,
 ) (*models.Resource, status.Status) {
 	dryRunResource := planedResource
 	switch operation.OperationType {
@@ -308,7 +321,7 @@ func ReplaceImplicitRef(
 func ReplaceRef(
 	v reflect.Value,
 	resourceIndex map[string]*models.Resource,
-	replaceImplicitFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+	replaceImplicitDependencyFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
 	ss *vals.SecretStores,
 	replaceSecretFun func(string, string, *vals.SecretStores) (string, error),
 ) ([]string, reflect.Value, status.Status) {
@@ -322,10 +335,10 @@ func ReplaceRef(
 		if v.IsNil() {
 			return nil, v, nil
 		}
-		return ReplaceRef(v.Elem(), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
+		return ReplaceRef(v.Elem(), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
 	case reflect.String:
 		vStr := v.String()
-		if replaceImplicitFun != nil {
+		if replaceImplicitDependencyFun != nil {
 			if strings.HasPrefix(vStr, ImplicitRefPrefix) {
 				ref := strings.TrimPrefix(vStr, ImplicitRefPrefix)
 				util.CheckArgument(len(ref) > 0,
@@ -334,7 +347,7 @@ func ReplaceRef(
 				result = append(result, split[0])
 				log.Infof("add implicit ref:%s", split[0])
 				// replace v with output
-				tv, s := replaceImplicitFun(resourceIndex, ref)
+				tv, s := replaceImplicitDependencyFun(resourceIndex, ref)
 				if status.IsErr(s) {
 					return nil, v, s
 				}
@@ -361,7 +374,7 @@ func ReplaceRef(
 		vs := reflect.MakeSlice(v.Type(), 0, 0)
 
 		for i := 0; i < v.Len(); i++ {
-			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
+			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
@@ -379,7 +392,7 @@ func ReplaceRef(
 
 		iter := v.MapRange()
 		for iter.Next() {
-			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, replaceImplicitFun, ss, replaceSecretFun)
+			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
