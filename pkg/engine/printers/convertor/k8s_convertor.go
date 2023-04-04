@@ -5,6 +5,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -48,6 +49,11 @@ const (
 	EndpointSlice = "EndpointSlice"
 )
 
+// APIs in networking.k8s.io/v1
+const (
+	Ingress = "Ingress"
+)
+
 func ToK8s(o *unstructured.Unstructured) runtime.Object {
 	switch o.GroupVersionKind().GroupVersion() {
 	case corev1.SchemeGroupVersion:
@@ -58,6 +64,8 @@ func ToK8s(o *unstructured.Unstructured) runtime.Object {
 		return convertBatchV1(o)
 	case discoveryv1.SchemeGroupVersion:
 		return convertDiscoveryV1(o)
+	case networkingv1.SchemeGroupVersion:
+		return convertNetworkingV1(o)
 	default:
 		return nil
 	}
@@ -151,6 +159,21 @@ func convertDiscoveryV1(o *unstructured.Unstructured) runtime.Object {
 	switch o.GetKind() {
 	case EndpointSlice:
 		target = &discoveryv1.EndpointSlice{}
+	default:
+		return nil
+	}
+
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(o.Object, target); err != nil {
+		return nil
+	}
+	return target
+}
+
+func convertNetworkingV1(o *unstructured.Unstructured) runtime.Object {
+	var target runtime.Object
+	switch o.GetKind() {
+	case Ingress:
+		target = &networkingv1.Ingress{}
 	default:
 		return nil
 	}
