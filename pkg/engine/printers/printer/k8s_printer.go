@@ -865,7 +865,7 @@ func printIngress(obj *networkingv1.Ingress) (string, bool) {
 }
 
 func getIngressHosts(obj *networkingv1.Ingress) string {
-	var results []string
+	results := []string{}
 	for _, rule := range obj.Spec.Rules {
 		host := "*"
 		if rule.Host != "" {
