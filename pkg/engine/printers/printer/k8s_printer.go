@@ -13,6 +13,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,6 +63,8 @@ func AddK8sHandlers(h PrintHandler) {
 	// batch/v1
 	h.TableHandler(printCronJob)
 	h.TableHandler(printJob)
+	// networking.k8s.io/v1
+	h.TableHandler(printIngress)
 }
 
 func printNamespace(obj *corev1.Namespace) (string, bool) {
@@ -840,4 +843,35 @@ func printJob(obj *batchv1.Job) (string, bool) {
 	return fmt.Sprintf("Completions: %s, Duration: %s, Age: %s",
 			completions, jobDuration, translateTimestampSince(obj.CreationTimestamp)),
 		obj.Status.Succeeded == *obj.Spec.Completions
+}
+
+func printIngress(obj *networkingv1.Ingress) (string, bool) {
+	className := "<none>"
+	if obj.Spec.IngressClassName != nil {
+		className = *obj.Spec.IngressClassName
+	}
+
+	hosts := getIngressHosts(obj)
+
+	lbIps := loadBalancerStatusStringer(obj.Status.LoadBalancer, false)
+	address := "<pending>"
+	if len(lbIps) > 0 {
+		address = lbIps
+	}
+
+	ready := !strings.Contains(address, "pending")
+	return fmt.Sprintf("Class: %s, Hosts: %s, Address: %s",
+		className, hosts, address), ready
+}
+
+func getIngressHosts(obj *networkingv1.Ingress) string {
+	var results []string
+	for _, rule := range obj.Spec.Rules {
+		host := "*"
+		if rule.Host != "" {
+			host = rule.Host
+		}
+		results = append(results, host)
+	}
+	return strings.Join(results, ",")
 }
