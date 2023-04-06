@@ -87,7 +87,7 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
 		}
 		updateChangeOrder(operation, rn, liveResource, dryRunResource)
 	case opsmodels.Apply, opsmodels.Destroy:
-		if s = rn.applyResource(operation, liveResource, planedResource, liveResource); status.IsErr(s) {
+		if s = rn.applyResource(operation, priorResource, planedResource, liveResource); status.IsErr(s) {
 			return s
 		}
 	default:
@@ -196,9 +196,9 @@ func removeNestedField(obj interface{}, fields ...string) {
 	}
 }
 
-func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState, planedState, live *models.Resource) status.Status {
-	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(priorState),
-		jsonutil.Marshal2String(planedState), jsonutil.Marshal2String(live))
+func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, planed, live *models.Resource) status.Status {
+	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(prior),
+		jsonutil.Marshal2String(planed), jsonutil.Marshal2String(live))
 
 	var res *models.Resource
 	var s status.Status
@@ -207,26 +207,26 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, priorState
 	rt := operation.RuntimeMap[resourceType]
 	switch rn.Action {
 	case opsmodels.Create, opsmodels.Update:
-		response := rt.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: priorState, PlanResource: planedState, Stack: operation.Stack})
+		response := rt.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: prior, PlanResource: planed, Stack: operation.Stack})
 		res = response.Resource
 		s = response.Status
-		log.Debugf("apply resource:%s, response: %v", planedState.ID, jsonutil.Marshal2String(response))
+		log.Debugf("apply resource:%s, response: %v", planed.ID, jsonutil.Marshal2String(response))
 	case opsmodels.Delete:
-		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: priorState, Stack: operation.Stack})
+		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: prior, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
-			log.Debugf("delete resource:%s, resource: %v", planedState.ID, s.String())
+			log.Debugf("delete resource:%s, resource: %v", planed.ID, s.String())
 		}
 	case opsmodels.UnChange:
 		log.Infof("planed resource and live resource are equal")
 		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
-		if priorState == nil {
-			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planedState})
+		if prior == nil {
+			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planed})
 			s = response.Status
-			log.Debugf("import resource:%s, resource:%v", planedState.ID, jsonutil.Marshal2String(s))
+			log.Debugf("import resource:%s, resource:%v", planed.ID, jsonutil.Marshal2String(s))
 			res = response.Resource
 		} else {
-			res = priorState
+			res = prior
 		}
 	}
 	if status.IsErr(s) {
