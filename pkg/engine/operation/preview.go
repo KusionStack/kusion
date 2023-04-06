@@ -82,6 +82,11 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	if status.IsErr(s) {
 		return nil, s
 	}
+	// copy priorStateResourceIndex into a new map
+	stateResourceIndex := map[string]*models.Resource{}
+	for k, v := range priorStateResourceIndex {
+		stateResourceIndex[k] = v
+	}
 
 	// 2. walk DAG and preview resources
 	log.Info("walking DAG and preview resources ...")
@@ -92,7 +97,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
-			StateResourceIndex:      priorStateResourceIndex,
+			StateResourceIndex:      stateResourceIndex,
 			IgnoreFields:            o.IgnoreFields,
 			ChangeOrder:             o.ChangeOrder,
 			RuntimeMap:              o.RuntimeMap,

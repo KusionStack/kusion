@@ -80,6 +80,11 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	// 1. init & build Indexes
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
+	// copy priorStateResourceIndex into a new map
+	stateResourceIndex := map[string]*models.Resource{}
+	for k, v := range priorStateResourceIndex {
+		stateResourceIndex[k] = v
+	}
 
 	resources := request.Spec.Resources
 	resources = append(resources, priorState.Resources...)
@@ -102,7 +107,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*models.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
-			StateResourceIndex:      priorStateResourceIndex,
+			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
