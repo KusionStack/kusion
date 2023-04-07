@@ -25,8 +25,8 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 - **应用全生命周期管理**: 结合 [Kusion](https://github.com/KusionStack/kusion) 与 [Konfig](https://github.com/KusionStack/konfig) 实现从应用第一行配置代码到生产可用的全生命周期管理
 - **自服务能力**: 为 App Dev 提供自服务能力，帮助他们与 SRE 和 Platform Dev 在代码化的平台上高效的合作
+- **风险左移**: 原生支持 Policy/Secret as Code、3-way Live Diff 等能力，尽早发现运维风险
 - **异构资源运维**: 以统一的方式运维 Kubernetes、IaaS 云资源和自定义基础设施等多种运行时的资源
-- **厂商无关**: 一次编写，动态渲染，多云运行
 
 <div align="center">
 
@@ -39,14 +39,19 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 ![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
-
-
 ## 安装
 
 ### Homebrew (macOS & Linux)
 
 ```shell
 brew install KusionStack/tap/kusion
+```
+
+### Scoop (Windows)
+
+```bash
+scoop add bucket KusionStack https://github.com/KusionStack/scoop-bucket.git
+scoop install KusionStack/kusion
 ```
 
 ### Go Install

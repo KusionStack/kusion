@@ -5,9 +5,12 @@
 </p>
 <h1>A self-service application deployment platform for Kubernetes and Clouds</h1>
 
-[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md) 
+[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
+| [English](https://github.com/KusionStack/kusion/blob/main/README.md)
 
-[Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM) | [Kusion](https://github.com/KusionStack/kusion) | [kusionstack.io](https://kusionstack.io/) | [CNCF Landscape](https://landscape.cncf.io/?selected=kusion-stack)
+[Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM)
+| [Kusion](https://github.com/KusionStack/kusion) | [kusionstack.io](https://kusionstack.io/)
+| [CNCF Landscape](https://landscape.cncf.io/?selected=kusion-stack)
 
 [![Kusion](https://github.com/KusionStack/kusion/actions/workflows/release.yaml/badge.svg)](https://github.com/KusionStack/kusion/actions/workflows/release.yaml)
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
@@ -24,9 +27,12 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 ## Key Features
 
 - **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
-- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev efficiently
-- **Hybrid Resources Operation**: Orchestrate hybrid runtime resources such as Kubernetes, clouds and customized infrastructures in a unified way
-- **Vendor Agnostic**: Write once, render dynamically, deliver to any cloud
+- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev
+  efficiently
+- **Shift Risk Left**: Native support features such as Policy/Secret as Code and 3-way Live Diff to guarantee security
+  at the earliest stages
+- **Hybrid Resources Operation**: Orchestrate hybrid runtime resources such as Kubernetes, clouds and customized
+  infrastructures in a unified way
 
 <div align="center">
 
@@ -38,7 +44,6 @@ Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecas
 
 ![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
 
-
 ## Installation
 
 ### Homebrew (macOS & Linux)
@@ -46,6 +51,13 @@ Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecas
 ```shell
 brew install KusionStack/tap/kusion
 ```
+
+### Scoop (Windows)
+
+```bash
+scoop add bucket KusionStack https://github.com/KusionStack/scoop-bucket.git
+scoop install KusionStack/kusion
+``` 
 
 ### Go Install
 
