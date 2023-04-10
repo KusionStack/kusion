@@ -30,6 +30,7 @@ const (
 	envLogPath        = "TF_LOG_PATH"
 	LockHCLFile       = ".terraform.lock.hcl"
 	mainTFFile        = "main.tf.json"
+	tfPlanFile        = "plan.out"
 	tfStateFile       = "terraform.tfstate"
 	tfProviderPrefix  = "terraform-provider"
 	terraformD        = ".terraform.d"
@@ -120,7 +121,7 @@ func (w *WorkSpace) WriteHCL() error {
 	return nil
 }
 
-// WriteTFState writes TFState to the file, this function is for terraform apply refresh only
+// WriteTFState writes StateRepresentation to the file, this function is for terraform apply refresh only
 func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
 	provider := strings.Split(priorState.Extensions["provider"].(string), "/")
 	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
@@ -184,7 +185,7 @@ func (w *WorkSpace) initEnvs() ([]string, error) {
 }
 
 // Apply with the terraform cli apply command
-func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
+func (w *WorkSpace) Apply(ctx context.Context) (*StateRepresentation, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
@@ -211,32 +212,90 @@ func (w *WorkSpace) Apply(ctx context.Context) (*TFState, error) {
 	return s, err
 }
 
-// Read make terraform show call. Return terraform state model
-// TODO: terraform show livestate.
-func (w *WorkSpace) Read(ctx context.Context) (*TFState, error) {
-	_, err := w.fs.Stat(filepath.Join(w.tfCacheDir, "terraform.tfstate"))
+// Plan with the terraform cli plan command
+func (w *WorkSpace) Plan(ctx context.Context) (*PlanRepresentation, error) {
+	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
+	err := w.CleanAndInitWorkspace(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "plan", "-out="+tfPlanFile)
+	cmd.Dir = w.stackDir
+	envs, err := w.initEnvs()
+	if err != nil {
+		return nil, err
+	}
+	cmd.Env = envs
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, TFError(out)
+	}
+	// convert plan result to PlanRepresentation
+	pr, err := w.ShowPlan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("terraform show plan error: %v", err)
+	}
+
+	return pr, err
+}
+
+// ShowState shows local tfstate with the terraform cli show command
+func (w *WorkSpace) ShowState(ctx context.Context) (*StateRepresentation, error) {
+	fi, err := w.fs.Stat(filepath.Join(w.tfCacheDir, tfStateFile))
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "show", "-json")
-	cmd.Dir = w.stackDir
-	out, err := cmd.CombinedOutput()
+	out, err := w.show(ctx, fi.Name())
 	if err != nil {
-		return nil, TFError(out)
+		return nil, err
 	}
-	s := &TFState{}
+
+	s := &StateRepresentation{}
 	if err = json.Unmarshal(out, s); err != nil {
 		return nil, fmt.Errorf("json umarshal state failed: %v", err)
 	}
 	return s, nil
 }
 
-// Refresh Sync Terraform State
-func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
+// ShowPlan shows local plan file with the terraform cli show command
+func (w *WorkSpace) ShowPlan(ctx context.Context) (*PlanRepresentation, error) {
+	fi, err := w.fs.Stat(filepath.Join(w.tfCacheDir, tfPlanFile))
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	out, err := w.show(ctx, fi.Name())
+	if err != nil {
+		return nil, err
+	}
+
+	s := &PlanRepresentation{}
+	if err = json.Unmarshal(out, s); err != nil {
+		return nil, fmt.Errorf("json umarshal plan representation failed: %v", err)
+	}
+	return s, nil
+}
+
+func (w *WorkSpace) show(ctx context.Context, fileName string) ([]byte, error) {
+	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "show", "-json", fileName)
+	cmd.Dir = w.stackDir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, TFError(out)
+	}
+	return out, nil
+}
+
+// RefreshOnly refresh Terraform State
+func (w *WorkSpace) RefreshOnly(ctx context.Context) (*StateRepresentation, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	err := w.CleanAndInitWorkspace(ctx)
 	if err != nil {
@@ -255,7 +314,7 @@ func (w *WorkSpace) RefreshOnly(ctx context.Context) (*TFState, error) {
 	if err != nil {
 		return nil, TFError(out)
 	}
-	s, err := w.Read(ctx)
+	s, err := w.ShowState(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("terraform read state error: %v", err)
 	}

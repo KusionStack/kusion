@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/imdario/mergo"
 	"github.com/spf13/afero"
 
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -35,31 +34,15 @@ func NewTerraformRuntime() (runtime.Runtime, error) {
 
 // Apply Terraform resource
 func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
-	planState := request.PlanResource
-	// terraform dry run merge state
-	// TODO: terraform dry run apply,not only merge state
-	if request.DryRun {
-		prior := request.PriorResource.DeepCopy()
-		if err := mergo.Merge(prior, planState, mergo.WithSliceDeepCopy, mergo.WithOverride); err != nil {
-			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
-		}
-
-		return &runtime.ApplyResponse{Resource: &models.Resource{
-			ID:         planState.ID,
-			Type:       planState.Type,
-			Attributes: prior.Attributes,
-			DependsOn:  planState.DependsOn,
-			Extensions: planState.Extensions,
-		}, Status: nil}
-	}
-
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
+	plan := request.PlanResource
 	stackPath := request.Stack.GetPath()
-	tfCacheDir := filepath.Join(stackPath, "."+planState.ResourceKey())
+	tfCacheDir := filepath.Join(stackPath, "."+plan.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
-	t.WorkSpace.SetResource(planState)
+	t.WorkSpace.SetResource(plan)
 
 	if err := t.WorkSpace.WriteHCL(); err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
@@ -73,6 +56,30 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 			}
 		} else {
 			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		}
+	}
+
+	// dry run by terraform plan
+	if request.DryRun {
+		pr, err := t.WorkSpace.Plan(ctx)
+		if err != nil {
+			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		}
+		module := pr.PlannedValues.RootModule
+		if len(module.Resources) == 0 {
+			log.Debugf("no resource found in terraform plan file")
+			return &runtime.ApplyResponse{Resource: &models.Resource{}, Status: nil}
+		}
+
+		return &runtime.ApplyResponse{
+			Resource: &models.Resource{
+				ID:         plan.ID,
+				Type:       plan.Type,
+				Attributes: module.Resources[0].AttributeValues,
+				DependsOn:  plan.DependsOn,
+				Extensions: plan.Extensions,
+			},
+			Status: nil,
 		}
 	}
 
@@ -91,11 +98,11 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 
 	return &runtime.ApplyResponse{
 		Resource: &models.Resource{
-			ID:         planState.ID,
-			Type:       planState.Type,
+			ID:         plan.ID,
+			Type:       plan.Type,
 			Attributes: r.Attributes,
-			DependsOn:  planState.DependsOn,
-			Extensions: planState.Extensions,
+			DependsOn:  plan.DependsOn,
+			Extensions: plan.Extensions,
 		},
 		Status: nil,
 	}
@@ -104,17 +111,17 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 // Read terraform show state
 func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	priorResource := request.PriorResource
-	requestResource := request.PlanResource
+	planResource := request.PlanResource
 
-	// When the operation is create or update, the requestResource is set to planResource,
-	// when the operation is delete, planResource is nil, the requestResource is set to priorResource,
-	// tf runtime uses requestResource to rebuild tfcache resources.
-	if requestResource == nil && priorResource != nil {
-		// requestResource is nil representing that this is a Delete action.
+	// When the operation is create or update, the planResource is set to planResource,
+	// when the operation is delete, planResource is nil, the planResource is set to priorResource,
+	// tf runtime uses planResource to rebuild tfcache resources.
+	if planResource == nil && priorResource != nil {
+		// planResource is nil representing that this is a Delete action.
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
 		// Most fields in attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
 		// if fields copied from kusion_state.json but read-only in main.tf.json
-		requestResource = &models.Resource{
+		planResource = &models.Resource{
 			ID:         priorResource.ID,
 			Type:       priorResource.Type,
 			Attributes: nil,
@@ -125,15 +132,15 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if priorResource == nil {
 		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
-	var tfstate *tfops.TFState
+	var tfstate *tfops.StateRepresentation
 
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	stackPath := request.Stack.GetPath()
-	tfCacheDir := filepath.Join(stackPath, "."+requestResource.ResourceKey())
+	tfCacheDir := filepath.Join(stackPath, "."+planResource.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
-	t.WorkSpace.SetResource(requestResource)
+	t.WorkSpace.SetResource(planResource)
 
 	if err := t.WorkSpace.WriteHCL(); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
@@ -172,11 +179,11 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 	return &runtime.ReadResponse{
 		Resource: &models.Resource{
-			ID:         requestResource.ID,
-			Type:       requestResource.Type,
+			ID:         planResource.ID,
+			Type:       planResource.Type,
 			Attributes: r.Attributes,
-			DependsOn:  requestResource.DependsOn,
-			Extensions: requestResource.Extensions,
+			DependsOn:  planResource.DependsOn,
+			Extensions: planResource.Extensions,
 		},
 		Status: nil,
 	}

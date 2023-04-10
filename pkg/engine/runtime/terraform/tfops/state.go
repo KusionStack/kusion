@@ -8,8 +8,10 @@ import (
 	"kusionstack.io/kusion/pkg/engine/models"
 )
 
-// Terraform State schema from https://github.com/hashicorp/terraform/blob/main/internal/command/jsonstate/state.go
-type TFState struct {
+// StateRepresentation is the top-level representation of the json format of a terraform
+// StateRepresentation schema from https://github.com/hashicorp/terraform/blob/main/internal/command/jsonstate/state.go
+// https://developer.hashicorp.com/terraform/internals/json-format#state-representation
+type StateRepresentation struct {
 	FormatVersion    string       `json:"format_version,omitempty"`
 	TerraformVersion string       `json:"terraform_version,omitempty"`
 	Values           *stateValues `json:"values,omitempty"`
@@ -106,7 +108,7 @@ type resource struct {
 type attributeValues map[string]interface{}
 
 // ConvertTFState convert Terraform State to kusion State
-func ConvertTFState(tfState *TFState, providerAddr string) models.Resource {
+func ConvertTFState(tfState *StateRepresentation, providerAddr string) models.Resource {
 	if tfState == nil || tfState.Values == nil {
 		return models.Resource{}
 	}
