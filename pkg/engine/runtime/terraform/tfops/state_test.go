@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"kusionstack.io/kusion/pkg/engine/models"
 )
 
@@ -11,11 +12,11 @@ var providerAddr = "registry.terraform.io/hashicorp/local/2.2.3"
 
 func TestConvertTFState(t *testing.T) {
 	tests := map[string]struct {
-		args TFState
+		args StateRepresentation
 		want models.Resource
 	}{
 		"success": {
-			args: TFState{
+			args: StateRepresentation{
 				FormatVersion:    "0.2",
 				TerraformVersion: "1.0.6",
 				Values: &stateValues{

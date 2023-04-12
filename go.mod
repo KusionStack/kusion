@@ -32,7 +32,7 @@ require (
 	github.com/hashicorp/go-version v1.4.0
 	github.com/hashicorp/hcl/v2 v2.15.0
 	github.com/howieyuen/uilive v0.0.6
-	github.com/imdario/mergo v0.3.13
+	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/jinzhu/copier v0.3.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mattn/go-colorable v0.1.11 // indirect
