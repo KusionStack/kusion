@@ -12,6 +12,7 @@ import (
 
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -283,7 +284,8 @@ func Apply(
 		}
 		close(ac.MsgCh)
 	} else {
-		cluster := planResources.ParseCluster()
+		// parse cluster in arguments
+		cluster := util.ParseClusterArgument(o.Arguments)
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
@@ -321,7 +323,8 @@ func Apply(
 //	if err != nil {
 //	    return err
 //	}
-func Watch(o *ApplyOptions,
+func Watch(
+	o *ApplyOptions,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
 ) error {

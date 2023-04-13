@@ -32,3 +32,28 @@ func TestCheckErr(t *testing.T) {
 		CheckErr(err)
 	})
 }
+
+func TestParseClusterArgument(t *testing.T) {
+	type args struct {
+		args []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "parse_cluster",
+			args: args{args: []string{"cluster=fake"}},
+			want: "fake",
+		},
+		{name: "parse_empty", args: args{args: nil}, want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseClusterArgument(tt.args.args); got != tt.want {
+				t.Errorf("ParseClusterArgument() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

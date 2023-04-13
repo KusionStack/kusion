@@ -8,6 +8,7 @@ import (
 
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -62,7 +63,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Get compile result
-	spec, err := spec.GenerateSpecWithSpinner(&generator.Options{
+	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -77,7 +78,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// return immediately if no resource found in stack
-	if spec == nil || len(spec.Resources) == 0 {
+	if sp == nil || len(sp.Resources) == 0 {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
@@ -89,7 +90,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := Preview(o, stateStorage, spec, project, stack)
+	changes, err := Preview(o, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
 	}
@@ -168,7 +169,8 @@ func Preview(
 
 	log.Info("Start call pc.Preview() ...")
 
-	cluster := planResources.ParseCluster()
+	// parse cluster in arguments
+	cluster := util.ParseClusterArgument(o.Arguments)
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
 			Tenant:   project.Tenant,
