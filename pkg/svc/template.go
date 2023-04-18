@@ -18,7 +18,7 @@ type Template struct {
 }
 
 var (
-	ErrEmptyTemplateRepoUrl = errors.New("empty template repo url")
+	ErrEmptyTemplateRepoURL = errors.New("empty template repo url")
 	ErrEmptyTemplatePath    = errors.New("empty template path")
 )
 
@@ -26,16 +26,16 @@ var (
 type ListTemplateOptions struct {
 	// Online indicates querying templates from online repo or local path.
 	Online bool `json:"online,omitempty" yaml:"online,omitempty"`
-	// Url is the online repo url, works when Online is true.
-	Url string `json:"url,omitempty" yaml:"url,omitempty"`
+	// URL is the online repo url, works when Online is true.
+	URL string `json:"url,omitempty" yaml:"url,omitempty"`
 	// Path is the local path to find the templates, works when Online is false.
 	Path string `json:"path,omitempty" yaml:"path,omitempty"`
 }
 
 // Validate is used to check the validation of ListTemplateOptions.
 func (o *ListTemplateOptions) Validate() error {
-	if o.Online && o.Url == "" {
-		return ErrEmptyTemplateRepoUrl
+	if o.Online && o.URL == "" {
+		return ErrEmptyTemplateRepoURL
 	}
 	if !o.Online && o.Path == "" {
 		return ErrEmptyTemplatePath
@@ -53,7 +53,7 @@ func ListTemplates(o *ListTemplateOptions) ([]*Template, error) {
 	// retrieve the template repo.
 	var templateNamePathOrURL string
 	if o.Online {
-		templateNamePathOrURL = o.Url
+		templateNamePathOrURL = o.URL
 	} else {
 		templateNamePathOrURL = o.Path
 	}
@@ -72,13 +72,13 @@ func ListTemplates(o *ListTemplateOptions) ([]*Template, error) {
 	if err != nil {
 		return nil, WrapInternalErr(err)
 	}
-	var templates []*Template
-	for _, t := range ts {
-		templates = append(templates, &Template{
+	templates := make([]*Template, len(ts))
+	for i, t := range ts {
+		templates[i] = &Template{
 			Name:            t.Name,
 			Dir:             t.Dir,
 			ProjectTemplate: *t.ProjectTemplate,
-		})
+		}
 	}
 	return templates, nil
 }
