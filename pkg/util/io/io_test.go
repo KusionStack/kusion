@@ -14,21 +14,7 @@ import (
 	"bou.ke/monkey"
 
 	"github.com/stretchr/testify/assert"
-
-	"sigs.k8s.io/kustomize/api/krusty"
-	"sigs.k8s.io/kustomize/api/resmap"
-	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
-
-func TestReadKustomizeInput(t *testing.T) {
-	defer monkey.UnpatchAll()
-	monkey.Patch((*krusty.Kustomizer).Run, func(b *krusty.Kustomizer, fSys filesys.FileSystem, path string) (resmap.ResMap, error) {
-		return resmap.New(), nil
-	})
-	result, err := ReadKustomizeInput("./")
-	assert.Equal(t, "", result)
-	assert.Nil(t, err)
-}
 
 func TestReadStdinInput(t *testing.T) {
 	defer monkey.UnpatchAll()
