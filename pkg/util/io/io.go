@@ -6,28 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"sigs.k8s.io/kustomize/api/krusty"
-	"sigs.k8s.io/kustomize/kustomize/v4/commands/build"
-	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
-
-// Generate yaml with kustomize build
-func ReadKustomizeInput(kustomizeDir string) (string, error) {
-	fSys := filesys.MakeFsOnDisk()
-	k := krusty.MakeKustomizer(
-		build.HonorKustomizeFlags(krusty.MakeDefaultOptions()),
-	)
-	m, err := k.Run(fSys, kustomizeDir)
-	if err != nil {
-		return "", err
-	}
-	yml, err := m.AsYaml()
-	if err != nil {
-		return "", err
-	}
-	return string(yml), nil
-}
 
 // Read stdin content as string
 func ReadStdinInput() (string, error) {
