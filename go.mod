@@ -1,6 +1,6 @@
 module kusionstack.io/kusion
 
-go 1.18
+go 1.19
 
 require (
 	bou.ke/monkey v1.0.2
