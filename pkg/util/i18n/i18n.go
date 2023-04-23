@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chai2010/gettext-go/gettext"
+	"github.com/chai2010/gettext-go"
 
 	"kusionstack.io/kusion/pkg/log"
 )
@@ -103,9 +103,9 @@ func LoadTranslations(root string, getLanguageFn func() string) error {
 	if err := w.Close(); err != nil {
 		return err
 	}
-	gettext.BindTextdomain("kusion", root+".zip", buf.Bytes())
-	gettext.Textdomain("kusion")
-	gettext.SetLocale(langStr)
+	gettext.BindLocale(gettext.New("kusion", root+".zip", buf.Bytes()))
+	gettext.SetDomain("kusion")
+	gettext.SetLanguage(langStr)
 	return nil
 }
 
