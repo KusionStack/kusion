@@ -1,4 +1,4 @@
-FROM golang:1.18 AS build
+FROM golang:1.19 AS build
 COPY / /src
 WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg --mount=type=cache,target=/root/.cache/go-build make build-local-linux
