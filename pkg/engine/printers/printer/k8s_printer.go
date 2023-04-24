@@ -134,6 +134,21 @@ func makePortString(ports []corev1.ServicePort) string {
 	return strings.Join(pieces, ",")
 }
 
+// LoadBalancerStatus is moved from core to networking since k8s 1.26.0. We have to handle it to update k8s related go.mod.
+func ingressLoadBalancerStatusStringer(s *networkingv1.IngressLoadBalancerStatus) string {
+	ingressLBIngresses := s.Ingress
+	result := sets.NewString()
+	for i := range ingressLBIngresses {
+		if ingressLBIngresses[i].IP != "" {
+			result.Insert(ingressLBIngresses[i].IP)
+		} else if ingressLBIngresses[i].Hostname != "" {
+			result.Insert(ingressLBIngresses[i].Hostname)
+		}
+	}
+
+	return strings.Join(result.List(), ",")
+}
+
 // loadBalancerStatusStringer behaves mostly like a string interface and converts the given status to a string.
 // `wide` indicates whether the returned value:meant for --o=wide output. If not, it's clipped to 16 bytes.
 func loadBalancerStatusStringer(s corev1.LoadBalancerStatus, wide bool) string {
@@ -169,7 +184,7 @@ func printEndpoints(obj *corev1.Endpoints) (string, bool) {
 }
 
 // Set ports=nil for all ports.
-func formatEndpoints(endpoints *corev1.Endpoints, ports sets.String) string {
+func formatEndpoints(endpoints *corev1.Endpoints, ports sets.Set[string]) string {
 	if len(endpoints.Subsets) == 0 {
 		return "<none>"
 	}
@@ -853,7 +868,7 @@ func printIngress(obj *networkingv1.Ingress) (string, bool) {
 
 	hosts := getIngressHosts(obj)
 
-	lbIps := loadBalancerStatusStringer(obj.Status.LoadBalancer, false)
+	lbIps := ingressLoadBalancerStatusStringer(&obj.Status.LoadBalancer)
 	address := "<pending>"
 	if len(lbIps) > 0 {
 		address = lbIps
