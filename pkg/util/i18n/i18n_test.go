@@ -117,13 +117,19 @@ func TestTranslationUsingEnvVar(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			for _, envVar := range envVarsToBackup {
-				if envVarValue := os.Getenv(envVar); envVarValue != "" {
-					os.Unsetenv(envVar)
-					// Restore env var at the end
-					defer func() { os.Setenv(envVar, envVarValue) }()
+			envBk := make(map[string]string)
+
+			for _, envKey := range envVarsToBackup {
+				if envValue := os.Getenv(envKey); envValue != "" {
+					os.Unsetenv(envKey)
+					envBk[envKey] = envValue
 				}
 			}
+			defer func(bk map[string]string) {
+				for k, v := range bk {
+					os.Setenv(k, v)
+				}
+			}(envBk)
 
 			test.setenvFn()
 

@@ -34,34 +34,6 @@ var (
 			"resourceType": "local_file",
 		},
 	}
-	tfstateTest = StateRepresentation{
-		FormatVersion:    "0.2",
-		TerraformVersion: "1.0.6",
-		Values: &stateValues{
-			RootModule: module{
-				Resources: []resource{
-					{
-						Address:       "local_file.kusion_example",
-						Mode:          "managed",
-						Type:          "local_file",
-						Name:          "kusion_example",
-						ProviderName:  "registry.terraform.io/hashicorp/local",
-						SchemaVersion: 0,
-						AttributeValues: attributeValues{
-							"content":              "kusion",
-							"directory_permission": "0777",
-							"file_permission":      "0777",
-							"filename":             "text.txt",
-							"sensitive_content":    nil,
-							"source":               nil,
-							"content_base64":       nil,
-						},
-					},
-				},
-			},
-		},
-	}
-
 	fs = afero.Afero{Fs: afero.NewOsFs()}
 )
 
