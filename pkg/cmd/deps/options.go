@@ -128,6 +128,17 @@ func (o *DepsOptions) Run() (err error) {
 		shouldIgnore := toSet(o.Ignore)
 		focusPaths := toSet(o.Focus)
 
+		// 2.1 If a path in the focusPaths should be ignored, remove it from the focusPaths
+		for f := range shouldIgnore {
+			if focusPaths.contains(f) {
+				focusPaths.remove(f)
+			}
+		}
+
+		if len(focusPaths) == 0 {
+			return nil
+		}
+
 		// 3. Find all the projects under the workdir
 		var projects []*projectstack.Project
 		if projects, err = projectstack.FindAllProjectsFrom(workDir); err != nil {
