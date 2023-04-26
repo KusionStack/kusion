@@ -40,9 +40,15 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 </div>
 
 ## Quick Start
-Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) to deliver an App with one Kusion command
 
-![apply](https://kusionstack.io/assets/images/apply-1cc90f7fe294b3b1414b4dd3a27a2d2b.gif)
+### Deploy your first App
+
+Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) to deliver an
+App with one Kusion command
+
+### Demo Video
+
+[![Wordpress Demo](http://img.youtube.com/vi/psUV_WmP2OU/maxresdefault.jpg)](http://www.youtube.com/watch?v=psUV_WmP2OU)
 
 ## Installation
 
@@ -73,8 +79,6 @@ docker pull kusionstack/kusion:latest
 
 > For more information about installation, please check the [Installation Guide](https://kusionstack.io/docs/user_docs/getting-started/install) on KusionStack official website
 
-## Deploy your first App
-Deploy your first App with one Kusion command. Please visit this [use case](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) for more details
 
 # Contact Us
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
