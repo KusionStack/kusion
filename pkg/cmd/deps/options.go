@@ -192,7 +192,7 @@ func findDownStreams(workDir string, projects []*projectstack.Project, focusPath
 			isDownstream := false
 			// Iterate all the focus files and check if there appear some files under that stack, and delete those files from the focus paths
 			for f := range focusPaths {
-				if strings.HasPrefix(f, stackRel) {
+				if strings.HasPrefix(f, stackRel+string(filepath.Separator)) {
 					// Skip those focus paths that are under the stack directory
 					focusPaths.remove(f)
 					if !shouldIgnore.contains(f) {
