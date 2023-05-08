@@ -48,7 +48,7 @@ func TestWriteHCL(t *testing.T) {
 	}
 
 	type want struct {
-		maintf string
+		mainTF string
 	}
 
 	cases := map[string]struct {
@@ -60,7 +60,7 @@ func TestWriteHCL(t *testing.T) {
 				w: NewWorkSpace(fs),
 			},
 			want: want{
-				maintf: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
+				mainTF: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
 			},
 		},
 	}
@@ -74,8 +74,8 @@ func TestWriteHCL(t *testing.T) {
 			}
 
 			s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "main.tf.json"))
-			if diff := cmp.Diff(string(s), tt.want.maintf); diff != "" {
-				t.Errorf("\n%s\nWriteHCL(...): -want maintf, +got maintf:\n%s", name, diff)
+			if diff := cmp.Diff(string(s), tt.want.mainTF); diff != "" {
+				t.Errorf("\n%s\nWriteHCL(...): -want mainTF, +got mainTF:\n%s", name, diff)
 			}
 		})
 	}
