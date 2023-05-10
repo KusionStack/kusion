@@ -41,7 +41,17 @@ func TestRun(t *testing.T) {
 		assert.Nil(t, err)
 		err = o.Run()
 		assert.Nil(t, err)
-		os.RemoveAll(o.ProjectName)
+		_ = os.RemoveAll(o.ProjectName)
+	})
+
+	t.Run("init templates from official url", func(t *testing.T) {
+		o := &TemplatesOptions{
+			Output: jsonOutput,
+		}
+		err := o.Complete(nil, true)
+		assert.Nil(t, err)
+		err = o.Run()
+		assert.Nil(t, err)
 	})
 }
 

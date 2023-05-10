@@ -15,6 +15,8 @@ import (
 	"kusionstack.io/kusion/pkg/scaffold"
 )
 
+const jsonOutput = "json"
+
 type InitOptions struct {
 	TemplateNameOrURL string
 	Online            bool
@@ -30,22 +32,13 @@ func NewInitOptions() *InitOptions {
 
 func (o *InitOptions) Complete(args []string) error {
 	if o.Online { // use online templates, official link or user-specified link
-		if len(args) > 0 {
-			// user-specified link
-			o.TemplateNameOrURL = args[0]
-		}
+		o.TemplateNameOrURL = getURL(args)
 	} else { // use offline templates, internal templates or user-specified local dir
-		if len(args) > 0 {
-			// user-specified local dir
-			o.TemplateNameOrURL = args[0]
-		} else {
-			// use internal templates
-			internalTemplateDir, err := scaffold.GetTemplateDir(scaffold.InternalTemplateDir)
-			if err != nil {
-				return err
-			}
-			o.TemplateNameOrURL = internalTemplateDir
+		path, err := getPath(args)
+		if err != nil {
+			return err
 		}
+		o.TemplateNameOrURL = path
 	}
 	return nil
 }
@@ -55,39 +48,24 @@ func (o *InitOptions) Validate() error {
 		return nil
 	}
 	// offline mode may need to generate templates
-	internalTemplateDir, err := scaffold.GetTemplateDir(scaffold.InternalTemplateDir)
-	if err != nil {
+	if err := validatePath(o.TemplateNameOrURL); err != nil {
 		return err
-	}
-	// gen internal templates first before using it
-	if internalTemplateDir == o.TemplateNameOrURL {
-		_, err := os.Stat(o.TemplateNameOrURL)
-		if os.IsNotExist(err) {
-			return scaffold.GenInternalTemplates()
-		}
 	}
 	return nil
 }
 
 func (o *InitOptions) Run() error {
 	// Retrieve the template repo.
-	repo, err := scaffold.RetrieveTemplates(o.TemplateNameOrURL, o.Online)
+	repo, err := retrieveTemplateRepo(o.TemplateNameOrURL, o.Online)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := repo.Delete(); err != nil {
-			log.Warnf("Explicitly ignoring and discarding error: %v", err)
-		}
-	}()
+	defer deleteTemplateRepo(repo)
 
 	// List the templates from the repo.
-	templates, err := repo.Templates()
+	templates, err := getTemplates(repo)
 	if err != nil {
 		return err
-	}
-	if len(templates) == 0 {
-		return errors.New("no templates")
 	}
 
 	// Choose template
@@ -203,6 +181,165 @@ func (o *InitOptions) Run() error {
 	return nil
 }
 
+type TemplatesOptions struct {
+	Online bool
+	URL    string
+	Path   string
+	Output string
+}
+
+func NewTemplatesOptions() *TemplatesOptions {
+	return &TemplatesOptions{}
+}
+
+func (o *TemplatesOptions) Complete(args []string, online bool) error {
+	o.Online = online
+	if o.Online {
+		o.URL = getURL(args)
+	} else {
+		if path, err := getPath(args); err != nil {
+			return err
+		} else {
+			o.Path = path
+		}
+	}
+	return nil
+}
+
+func (o *TemplatesOptions) Validate() error {
+	if o.Output != "" && o.Output != jsonOutput {
+		return errors.New("invalid output type, supported types: json")
+	}
+	if !o.Online {
+		if err := validatePath(o.Path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (o *TemplatesOptions) Run() error {
+	var templateName string
+	if o.Online {
+		templateName = o.URL
+	} else {
+		templateName = o.Path
+	}
+	// retrieve template repo
+	repo, err := retrieveTemplateRepo(templateName, o.Online)
+	if err != nil {
+		return err
+	}
+	defer deleteTemplateRepo(repo)
+
+	// get templates from repo, and print it
+	templates, err := getTemplates(repo)
+	if err != nil {
+		return err
+	}
+	templateOutputs, err := fmtTemplatesOutput(templates, o.Output == jsonOutput)
+	if err != nil {
+		return err
+	}
+	for _, output := range templateOutputs {
+		pterm.Println(output)
+	}
+	return nil
+}
+
+// getURL parses url from args, called when --online is true.
+func getURL(args []string) string {
+	if len(args) > 0 {
+		// user-specified link
+		return args[0]
+	}
+	return "" // use official link
+}
+
+// getPath parses path from args, if not specified, use default InternalTemplateDir,
+// called when --online is false.
+func getPath(args []string) (string, error) {
+	if len(args) > 0 {
+		// user-specified local dir
+		return args[0], nil
+	} else {
+		// use internal templates
+		internalTemplateDir, err := scaffold.GetTemplateDir(scaffold.InternalTemplateDir)
+		if err != nil {
+			return "", err
+		}
+		return internalTemplateDir, nil
+	}
+}
+
+// validatePath checks the path is valid or not.
+func validatePath(path string) error {
+	// offline mode may need to generate templates
+	internalTemplateDir, err := scaffold.GetTemplateDir(scaffold.InternalTemplateDir)
+	if err != nil {
+		return err
+	}
+	// gen internal templates first before using it
+	if internalTemplateDir == path {
+		if _, err = os.Stat(path); os.IsNotExist(err) {
+			return scaffold.GenInternalTemplates()
+		}
+	}
+	return nil
+}
+
+// retrieveTemplateRepo gets template repos from online or local, with specified url or path.
+func retrieveTemplateRepo(templateName string, online bool) (scaffold.TemplateRepository, error) {
+	return scaffold.RetrieveTemplates(templateName, online)
+}
+
+// deleteTemplateRepo is used to delete the files of the template repos, log warn if failed.
+func deleteTemplateRepo(repo scaffold.TemplateRepository) {
+	if err := repo.Delete(); err != nil {
+		log.Warnf("Explicitly ignoring and discarding error: %w", err)
+	}
+}
+
+// getTemplates get templates from template repo.
+func getTemplates(repo scaffold.TemplateRepository) ([]scaffold.Template, error) {
+	// List the templates from the repo.
+	templates, err := repo.Templates()
+	if err != nil {
+		return nil, err
+	}
+	if len(templates) == 0 {
+		return nil, errors.New("no templates")
+	}
+	return templates, nil
+}
+
+// fmtTemplatesOutput is used to format the templates output, in text or json.
+func fmtTemplatesOutput(templates []scaffold.Template, jsonFmt bool) ([]string, error) {
+	var outputs []string
+	if jsonFmt {
+		output, err := json.Marshal(templates)
+		if err != nil {
+			return nil, fmt.Errorf("failed to json marshal templates as %w", err)
+		}
+		outputs = append(outputs, string(output))
+	} else {
+		// Find the longest name length. Used to add padding between the name and description.
+		maxNameLength := 0
+		for _, template := range templates {
+			if len(template.Name) > maxNameLength {
+				maxNameLength = len(template.Name)
+			}
+		}
+		// Create the option string that combines the name, padding, and description.
+		for _, template := range templates {
+			output := fmt.Sprintf(fmt.Sprintf("%%%ds    %%s", -maxNameLength), template.Name, template.Description)
+			outputs = append(outputs, output)
+		}
+	}
+
+	return outputs, nil
+}
+
 // chooseTemplate will prompt the user to choose amongst the available templates.
 func chooseTemplate(templates []scaffold.Template) (scaffold.Template, error) {
 	const chooseTemplateErr = "no template selected; please use `kusion init` to choose one"
@@ -236,24 +373,11 @@ func chooseTemplate(templates []scaffold.Template) (scaffold.Template, error) {
 // templatesToOptionArrayAndMap returns an array of option strings and a map of option strings to templates.
 // Each option string is made up of the template name and description with some padding in between.
 func templatesToOptionArrayAndMap(templates []scaffold.Template) ([]string, map[string]scaffold.Template) {
-	// Find the longest name length. Used to add padding between the name and description.
-	maxNameLength := 0
-	for _, template := range templates {
-		if len(template.Name) > maxNameLength {
-			maxNameLength = len(template.Name)
-		}
-	}
-
 	// Build the array and map.
-	options := []string{}
+	options, _ := fmtTemplatesOutput(templates, false)
 	nameToTemplateMap := make(map[string]scaffold.Template)
-	for _, template := range templates {
-		// Create the option string that combines the name, padding, and description.
-		option := fmt.Sprintf(fmt.Sprintf("%%%ds    %%s", -maxNameLength), template.Name, template.Description)
-
-		// Add it to the array and map.
-		options = append(options, option)
-		nameToTemplateMap[option] = template
+	for i, template := range templates {
+		nameToTemplateMap[options[i]] = template
 	}
 	sort.Strings(options)
 

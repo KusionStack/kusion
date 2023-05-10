@@ -125,8 +125,10 @@ func LoadTemplate(path string) (Template, error) {
 
 // Template represents a project template.
 type Template struct {
-	Dir  string // The directory containing kusion.yaml.
-	Name string // The name of the template.
+	// The directory containing kusion.yaml.
+	Dir string `json:"dir,omitempty" yaml:"dir,omitempty"`
+	// The name of the template.
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
 	*ProjectTemplate
 }
