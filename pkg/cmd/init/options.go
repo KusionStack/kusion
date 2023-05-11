@@ -79,10 +79,11 @@ func (o *InitOptions) Run() error {
 		// if template name is specified, find template from repo data
 		var templateExist bool
 		for _, t := range templates {
-			t.Name = o.TemplateName
-			templateExist = true
-			template = t
-			break
+			if t.Name == o.TemplateName {
+				templateExist = true
+				template = t
+				break
+			}
 		}
 		if !templateExist {
 			return fmt.Errorf("template %s does not exist", o.TemplateName)
