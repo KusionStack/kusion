@@ -60,6 +60,9 @@ func NewCmdInit() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(
+		&o.TemplateName, "template-name", "",
+		i18n.T("The template name; if not specified, a prompt will request it"))
+	cmd.Flags().StringVar(
 		&o.ProjectName, "project-name", "",
 		i18n.T("The project name; if not specified, a prompt will request it"))
 	cmd.Flags().BoolVar(

@@ -18,12 +18,13 @@ import (
 const jsonOutput = "json"
 
 type InitOptions struct {
-	TemplateNameOrURL string
-	Online            bool
-	ProjectName       string
-	Force             bool
-	Yes               bool
-	CustomParamsJSON  string
+	TemplateRepoPath string
+	TemplateName     string
+	Online           bool
+	ProjectName      string
+	Force            bool
+	Yes              bool
+	CustomParamsJSON string
 }
 
 func NewInitOptions() *InitOptions {
@@ -32,31 +33,30 @@ func NewInitOptions() *InitOptions {
 
 func (o *InitOptions) Complete(args []string) error {
 	if o.Online { // use online templates, official link or user-specified link
-		o.TemplateNameOrURL = getURL(args)
+		o.TemplateRepoPath = templateRepoPathFromURL(args)
 	} else { // use offline templates, internal templates or user-specified local dir
-		path, err := getPath(args)
+		path, err := templateRepoPathFromLocal(args)
 		if err != nil {
 			return err
 		}
-		o.TemplateNameOrURL = path
+		o.TemplateRepoPath = path
 	}
 	return nil
 }
 
 func (o *InitOptions) Validate() error {
-	if o.Online {
-		return nil
-	}
-	// offline mode may need to generate templates
-	if err := validatePath(o.TemplateNameOrURL); err != nil {
-		return err
+	if !o.Online {
+		// offline mode may need to generate templates
+		if err := validateLocalTemplateRepoPath(o.TemplateRepoPath); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (o *InitOptions) Run() error {
 	// Retrieve the template repo.
-	repo, err := retrieveTemplateRepo(o.TemplateNameOrURL, o.Online)
+	repo, err := retrieveTemplateRepo(o.TemplateRepoPath, o.Online)
 	if err != nil {
 		return err
 	}
@@ -70,8 +70,23 @@ func (o *InitOptions) Run() error {
 
 	// Choose template
 	var template scaffold.Template
-	if template, err = chooseTemplate(templates); err != nil {
-		return err
+	if o.TemplateName == "" {
+		// if template name is not specified, choose template by prompt
+		if template, err = chooseTemplate(templates); err != nil {
+			return err
+		}
+	} else {
+		// if template name is specified, find template from repo data
+		var templateExist bool
+		for _, t := range templates {
+			t.Name = o.TemplateName
+			templateExist = true
+			template = t
+			break
+		}
+		if !templateExist {
+			return fmt.Errorf("template %s does not exist", o.TemplateName)
+		}
 	}
 
 	// Parse customParams if not empty
@@ -182,10 +197,9 @@ func (o *InitOptions) Run() error {
 }
 
 type TemplatesOptions struct {
-	Online bool
-	URL    string
-	Path   string
-	Output string
+	TemplateRepoPath string
+	Online           bool
+	Output           string
 }
 
 func NewTemplatesOptions() *TemplatesOptions {
@@ -195,12 +209,12 @@ func NewTemplatesOptions() *TemplatesOptions {
 func (o *TemplatesOptions) Complete(args []string, online bool) error {
 	o.Online = online
 	if o.Online {
-		o.URL = getURL(args)
+		o.TemplateRepoPath = templateRepoPathFromURL(args)
 	} else {
-		if path, err := getPath(args); err != nil {
+		if path, err := templateRepoPathFromLocal(args); err != nil {
 			return err
 		} else {
-			o.Path = path
+			o.TemplateRepoPath = path
 		}
 	}
 	return nil
@@ -211,7 +225,7 @@ func (o *TemplatesOptions) Validate() error {
 		return errors.New("invalid output type, supported types: json")
 	}
 	if !o.Online {
-		if err := validatePath(o.Path); err != nil {
+		if err := validateLocalTemplateRepoPath(o.TemplateRepoPath); err != nil {
 			return err
 		}
 	}
@@ -219,14 +233,8 @@ func (o *TemplatesOptions) Validate() error {
 }
 
 func (o *TemplatesOptions) Run() error {
-	var templateName string
-	if o.Online {
-		templateName = o.URL
-	} else {
-		templateName = o.Path
-	}
 	// retrieve template repo
-	repo, err := retrieveTemplateRepo(templateName, o.Online)
+	repo, err := retrieveTemplateRepo(o.TemplateRepoPath, o.Online)
 	if err != nil {
 		return err
 	}
@@ -247,8 +255,8 @@ func (o *TemplatesOptions) Run() error {
 	return nil
 }
 
-// getURL parses url from args, called when --online is true.
-func getURL(args []string) string {
+// templateRepoPathFromURL parses url from args, called when --online is true.
+func templateRepoPathFromURL(args []string) string {
 	if len(args) > 0 {
 		// user-specified link
 		return args[0]
@@ -256,9 +264,9 @@ func getURL(args []string) string {
 	return "" // use official link
 }
 
-// getPath parses path from args, if not specified, use default InternalTemplateDir,
+// templateRepoPathFromLocal parses path from args, if not specified, use default InternalTemplateDir,
 // called when --online is false.
-func getPath(args []string) (string, error) {
+func templateRepoPathFromLocal(args []string) (string, error) {
 	if len(args) > 0 {
 		// user-specified local dir
 		return args[0], nil
@@ -272,8 +280,8 @@ func getPath(args []string) (string, error) {
 	}
 }
 
-// validatePath checks the path is valid or not.
-func validatePath(path string) error {
+// validateLocalTemplateRepoPath checks the path is valid or not.
+func validateLocalTemplateRepoPath(path string) error {
 	// offline mode may need to generate templates
 	internalTemplateDir, err := scaffold.GetTemplateDir(scaffold.InternalTemplateDir)
 	if err != nil {
@@ -289,8 +297,8 @@ func validatePath(path string) error {
 }
 
 // retrieveTemplateRepo gets template repos from online or local, with specified url or path.
-func retrieveTemplateRepo(templateName string, online bool) (scaffold.TemplateRepository, error) {
-	return scaffold.RetrieveTemplates(templateName, online)
+func retrieveTemplateRepo(templateRepoPath string, online bool) (scaffold.TemplateRepository, error) {
+	return scaffold.RetrieveTemplates(templateRepoPath, online)
 }
 
 // deleteTemplateRepo is used to delete the files of the template repos, log warn if failed.
