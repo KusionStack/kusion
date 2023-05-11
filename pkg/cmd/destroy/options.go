@@ -219,7 +219,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pterm.Error.Printf("%s, %v\n", title, msg.OpErr)
+					pterm.Error.Printf("%s\n", title)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),

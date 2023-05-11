@@ -261,7 +261,7 @@ func Apply(
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pterm.Error.WithWriter(out).Printf("%s, %v\n", title, msg.OpErr)
+					pterm.Error.WithWriter(out).Printf("%s\n", title)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),

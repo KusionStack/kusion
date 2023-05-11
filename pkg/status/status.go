@@ -55,7 +55,7 @@ func (b *BaseStatus) Message() string {
 }
 
 func (b *BaseStatus) String() string {
-	return fmt.Sprintf("Kind:%s\nCode:%s\nMessage:%s", b.kind, b.code, b.message)
+	return fmt.Sprintf("Kind: %s, Code: %s, Message: %s", b.kind, b.code, b.message)
 }
 
 func IsErr(s Status) bool {
