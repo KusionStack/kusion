@@ -33,9 +33,9 @@ func NewInitOptions() *InitOptions {
 
 func (o *InitOptions) Complete(args []string) error {
 	if o.Online { // use online templates, official link or user-specified link
-		o.TemplateRepoPath = templateRepoPathFromURL(args)
+		o.TemplateRepoPath = onlineTemplateRepoPath(args)
 	} else { // use offline templates, internal templates or user-specified local dir
-		path, err := templateRepoPathFromLocal(args)
+		path, err := localTemplateRepoPath(args)
 		if err != nil {
 			return err
 		}
@@ -45,11 +45,12 @@ func (o *InitOptions) Complete(args []string) error {
 }
 
 func (o *InitOptions) Validate() error {
-	if !o.Online {
-		// offline mode may need to generate templates
-		if err := validateLocalTemplateRepoPath(o.TemplateRepoPath); err != nil {
-			return err
-		}
+	if o.Online {
+		return nil
+	}
+	// offline mode may need to generate templates
+	if err := validateLocalTemplateRepoPath(o.TemplateRepoPath); err != nil {
+		return err
 	}
 	return nil
 }
@@ -210,9 +211,9 @@ func NewTemplatesOptions() *TemplatesOptions {
 func (o *TemplatesOptions) Complete(args []string, online bool) error {
 	o.Online = online
 	if o.Online {
-		o.TemplateRepoPath = templateRepoPathFromURL(args)
+		o.TemplateRepoPath = onlineTemplateRepoPath(args)
 	} else {
-		if path, err := templateRepoPathFromLocal(args); err != nil {
+		if path, err := localTemplateRepoPath(args); err != nil {
 			return err
 		} else {
 			o.TemplateRepoPath = path
@@ -256,8 +257,8 @@ func (o *TemplatesOptions) Run() error {
 	return nil
 }
 
-// templateRepoPathFromURL parses url from args, called when --online is true.
-func templateRepoPathFromURL(args []string) string {
+// onlineTemplateRepoPath parses url from args, called when --online is true.
+func onlineTemplateRepoPath(args []string) string {
 	if len(args) > 0 {
 		// user-specified link
 		return args[0]
@@ -265,9 +266,9 @@ func templateRepoPathFromURL(args []string) string {
 	return "" // use official link
 }
 
-// templateRepoPathFromLocal parses path from args, if not specified, use default InternalTemplateDir,
+// localTemplateRepoPath parses path from args, if not specified, use default InternalTemplateDir,
 // called when --online is false.
-func templateRepoPathFromLocal(args []string) (string, error) {
+func localTemplateRepoPath(args []string) (string, error) {
 	if len(args) > 0 {
 		// user-specified local dir
 		return args[0], nil
