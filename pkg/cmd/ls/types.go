@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/pterm/pterm"
+	"github.com/pterm/pterm/putils"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -91,7 +92,7 @@ func (r *lsReport) Tree() (string, error) {
 	}
 
 	// Generate tree from LeveledList.
-	root := pterm.NewTreeFromLeveledList(leveledList)
+	root := putils.TreeFromLeveledList(leveledList)
 
 	// Render TreePrinter
 	tree, err := pterm.DefaultTree.WithRoot(root).Srender()
