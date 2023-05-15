@@ -103,6 +103,20 @@ func TestPreviewOptions_Run(t *testing.T) {
 		err := o.Run()
 		assert.Nil(t, err)
 	})
+
+	t.Run("json output is true", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+		mockGenerateSpec()
+		mockNewKubernetesRuntime()
+		mockOperationPreview()
+		mockPromptDetail("")
+
+		o := NewPreviewOptions()
+		o.Output = jsonOutput
+		err := o.Run()
+		assert.Nil(t, err)
+	})
 }
 
 type fooRuntime struct{}
