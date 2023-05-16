@@ -94,11 +94,9 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// return immediately if no resource found in stack
+	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
 	if sp == nil || len(sp.Resources) == 0 {
-		if o.Output == jsonOutput {
-			emptyChanges, _ := json.Marshal(&opsmodels.Changes{})
-			fmt.Println(string(emptyChanges))
-		} else {
+		if o.Output != jsonOutput {
 			fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		}
 		return nil
