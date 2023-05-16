@@ -51,7 +51,7 @@ func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack
 	}
 
 	// convert Run result to spec
-	spec, err := engine.ResourcesYAML2Spec(compileResult.Documents)
+	spec, err := engine.KCLResult2Spec(compileResult.Documents)
 	if err != nil {
 		return nil, err
 	}

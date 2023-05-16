@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	yamlv3 "gopkg.in/yaml.v3"
+	yamlv2 "gopkg.in/yaml.v2"
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/generator"
@@ -85,7 +85,7 @@ func (o *CompileOptions) Run() error {
 		}
 	}
 
-	yaml, err := yamlv3.Marshal(sp.Resources)
+	yaml, err := yamlv2.Marshal(sp.Resources)
 	if err != nil {
 		return err
 	}
