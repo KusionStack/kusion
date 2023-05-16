@@ -66,4 +66,6 @@ func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,
 		i18n.T("Ignore differences of target fields"))
+	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
+		i18n.T("Specify the output format"))
 }

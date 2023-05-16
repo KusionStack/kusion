@@ -39,6 +39,9 @@ type Options struct {
 	// OverrideAST is the kclvm option. It is not appropriate to put it here
 	OverrideAST bool
 
-	// NoStyle represent whether turn on the spinner output style
+	// NoStyle represents whether to turn on the spinner output style
 	NoStyle bool
+
+	// NoPrompt represents whether to print prompt or not
+	NoPrompt bool
 }

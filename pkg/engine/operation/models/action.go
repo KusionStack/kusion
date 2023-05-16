@@ -1,6 +1,10 @@
 package models
 
-import "kusionstack.io/kusion/pkg/util/pretty"
+import (
+	"encoding/json"
+
+	"kusionstack.io/kusion/pkg/util/pretty"
+)
 
 // ActionType represents the kind of operation performed by a plan.  It evaluates to its string label.
 type ActionType int64
@@ -22,6 +26,10 @@ func (t ActionType) String() string {
 		"Update",
 		"Delete",
 	}[t]
+}
+
+func (t ActionType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
 }
 
 func (t ActionType) Ing() string {

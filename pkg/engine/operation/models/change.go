@@ -17,10 +17,14 @@ import (
 )
 
 type ChangeStep struct {
-	ID     string      // the resource id
-	Action ActionType  // the operation performed by this step.
-	From   interface{} // old data
-	To     interface{} // new data
+	// the resource id
+	ID string `json:"id,omitempty" yaml:"id,omitempty"`
+	// the operation performed by this step
+	Action ActionType `json:"action,omitempty" yaml:"action,omitempty"`
+	// old data
+	From interface{} `json:"from,omitempty" yaml:"from,omitempty"`
+	// new data
+	To interface{} `json:"to,omitempty" yaml:"to,omitempty"`
 }
 
 // Diff compares objects(from and to) which stores in ChangeStep,
@@ -78,14 +82,15 @@ var (
 )
 
 type Changes struct {
-	*ChangeOrder
+	*ChangeOrder `json:",inline" yaml:",inline"`
+
 	project *projectstack.Project // the project of current changes
 	stack   *projectstack.Stack   // the stack of current changes
 }
 
 type ChangeOrder struct {
-	StepKeys    []string
-	ChangeSteps map[string]*ChangeStep
+	StepKeys    []string               `json:"stepKeys,omitempty" yaml:"stepKeys,omitempty"`
+	ChangeSteps map[string]*ChangeStep `json:"changeSteps,omitempty" yaml:"changeSteps,omitempty"`
 }
 
 func NewChanges(p *projectstack.Project, s *projectstack.Stack, order *ChangeOrder) *Changes {

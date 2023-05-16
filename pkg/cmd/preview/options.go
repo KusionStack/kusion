@@ -1,6 +1,8 @@
 package preview
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,6 +23,8 @@ import (
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
+const jsonOutput = "json"
+
 type PreviewOptions struct {
 	compilecmd.CompileOptions
 	PreviewFlags
@@ -32,6 +36,7 @@ type PreviewFlags struct {
 	Detail       bool
 	All          bool
 	NoStyle      bool
+	Output       string
 	IgnoreFields []string
 }
 
@@ -46,7 +51,13 @@ func (o *PreviewOptions) Complete(args []string) {
 }
 
 func (o *PreviewOptions) Validate() error {
-	return o.CompileOptions.Validate()
+	if err := o.CompileOptions.Validate(); err != nil {
+		return err
+	}
+	if o.Output != "" && o.Output != jsonOutput {
+		return errors.New("invalid output type, supported types: json")
+	}
+	return nil
 }
 
 func (o *PreviewOptions) Run() error {
@@ -54,6 +65,10 @@ func (o *PreviewOptions) Run() error {
 	if o.NoStyle {
 		pterm.DisableStyling()
 		pterm.EnableColor()
+	}
+	if o.Output == jsonOutput {
+		pterm.DisableStyling()
+		pterm.DisableColor()
 	}
 
 	// Parse project and stack of work directory
@@ -72,14 +87,18 @@ func (o *PreviewOptions) Run() error {
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
 		NoStyle:     o.NoStyle,
+		NoPrompt:    o.Output == jsonOutput,
 	}, project, stack)
 	if err != nil {
 		return err
 	}
 
 	// return immediately if no resource found in stack
+	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
 	if sp == nil || len(sp.Resources) == 0 {
-		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
+		if o.Output != jsonOutput {
+			fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
+		}
 		return nil
 	}
 
@@ -93,6 +112,16 @@ func (o *PreviewOptions) Run() error {
 	changes, err := Preview(o, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
+	}
+
+	if o.Output == jsonOutput {
+		var previewChanges []byte
+		previewChanges, err = json.Marshal(changes)
+		if err != nil {
+			return fmt.Errorf("json marshal preview changes failed as %w", err)
+		}
+		fmt.Println(string(previewChanges))
+		return nil
 	}
 
 	if changes.AllUnChange() {

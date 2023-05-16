@@ -14,9 +14,10 @@ import (
 
 func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 	var sp *pterm.SpinnerPrinter
-	if o.NoStyle {
+	if !o.NoPrompt && o.NoStyle {
 		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
-	} else {
+	}
+	if !o.NoPrompt && !o.NoStyle {
 		sp = &pretty.SpinnerT
 		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
 	}
@@ -41,16 +42,18 @@ func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project
 
 	spec, err := g.GenerateSpec(o, stack)
 	if err != nil {
-		if sp != nil {
+		if !o.NoPrompt && sp != nil {
 			sp.Fail()
 		}
 		return nil, err
 	}
 
-	if sp != nil {
+	if !o.NoPrompt && sp != nil {
 		sp.Success()
 	}
-	fmt.Println()
+	if !o.NoPrompt {
+		fmt.Println()
+	}
 
 	return spec, nil
 }
