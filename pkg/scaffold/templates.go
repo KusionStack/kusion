@@ -10,13 +10,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pkg/errors"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/spf13/afero"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
