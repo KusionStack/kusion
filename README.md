@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>A self-service application deployment platform for Kubernetes and Clouds</h1>
+<h1>Build your Internal Developer Platform more effectively and safely</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
 | [English](https://github.com/KusionStack/kusion/blob/main/README.md)
@@ -22,17 +22,18 @@
 
 # Kusion
 
-Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions described in [Konfig](https://github.com/KusionStack/konfig) to Kubernetes, Clouds and Customized Infrastructure resources
+Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions
+described in [Konfig](https://github.com/KusionStack/konfig) to Kubernetes, Clouds and Customized Infrastructure
+resources
 
 ## Key Features
 
-- **App Whole Lifecycle Management**: Manage App from the first code to production-ready with [Kusion](https://github.com/KusionStack/kusion) and [Konfig](https://github.com/KusionStack/konfig)
-- **Self-Service**: Enable App Dev self-service capabilities and help them cooperate with SRE and Platform Dev
-  efficiently
-- **Shift Risk Left**: Native support features such as Policy/Secret as Code and 3-way Live Diff to guarantee security
-  at the earliest stages
-- **Hybrid Resources Operation**: Orchestrate hybrid runtime resources such as Kubernetes, clouds and customized
-  infrastructures in a unified way
+- **Application-Centric**: Managing all application operations in one place, in a unified way
+- **Enable Self-Service**: Developers fulfill their own needs by using the capabilities provided by the platform
+- **Shift left security**: Guarantee security at the earliest stages to make operation more confidence
+- **Kubernetes-friendly**: Provide friendly observability and troubleshooting capabilities to make Kubernetes operations
+  easier.
+
 
 <div align="center">
 
@@ -48,7 +49,7 @@ App with one Kusion command
 
 ### Demo Video
 
-[![Wordpress Demo](http://img.youtube.com/vi/psUV_WmP2OU/maxresdefault.jpg)](http://www.youtube.com/watch?v=psUV_WmP2OU)
+[![Wordpress Demo](http://img.youtube.com/vi/QHzKKsoKLQ0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QHzKKsoKLQ0)
 
 ## Installation
 
