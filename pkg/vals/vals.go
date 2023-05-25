@@ -21,7 +21,7 @@ var runtime *vals.Runtime
 
 func init() {
 	r, err := vals.New(vals.Options{})
-	contract.AssertNoError(err)
+	contract.AssertNoErrorf(err, "failed to initialize vals")
 	runtime = r
 }
 
@@ -61,7 +61,7 @@ func buildParams(prefix string, ss *SecretStores) string {
 	var v reflect.Value
 	switch prefix {
 	case VaultPrefix:
-		contract.Require(ss.Vault != nil, "secret_store.vault is nil")
+		contract.Requiref(ss.Vault != nil, "secret_store.vault is nil", "")
 		t = reflect.TypeOf(*ss.Vault)
 		v = reflect.ValueOf(*ss.Vault)
 	default:

@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/jinzhu/copier"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 const (
