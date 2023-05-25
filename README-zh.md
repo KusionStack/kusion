@@ -19,9 +19,7 @@
 
 # Kusion
 
-Kusion 是 [KusionStack](https://github.com/KusionStack)
-的平台工程引擎，可以根据用户在 [Konfig](https:/github.com/KusionStack/konfig) 中描述的运维意图对
-Kubernetes、IaaS云资源和自定义基础设施运维
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎，可以根据用户在 [Konfig](https:/github.com/KusionStack/konfig) 中描述的运维意图对 Kubernetes、IaaS云资源和自定义基础设施运维
 
 ## 核心能力
 

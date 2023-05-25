@@ -22,9 +22,7 @@
 
 # Kusion
 
-Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions
-described in [Konfig](https://github.com/KusionStack/konfig) to Kubernetes, Clouds and Customized Infrastructure
-resources
+Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions described in [Konfig](https://github.com/KusionStack/konfig) to Kubernetes, Clouds and Customized Infrastructure resources
 
 ## Key Features
 
