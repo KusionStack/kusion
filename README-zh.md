@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>面向 Kubernetes 与云服务的自服务应用程序部署平台</h1>
+<h1>更高效更安全地构建你的内部研发平台</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md)
 
@@ -17,16 +17,17 @@
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
 </div>
 
-
 # Kusion
 
-Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎，可以根据用户在 [Konfig](https://github.com/KusionStack/konfig) 中描述的运维意图对 Kubernetes、IaaS 云资源和自定义基础设施运维
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎，可以根据用户在 [Konfig](https:/github.com/KusionStack/konfig) 中描述的运维意图对 Kubernetes、IaaS云资源和自定义基础设施运维
+
 ## 核心能力
 
-- **应用全生命周期管理**: 结合 [Kusion](https://github.com/KusionStack/kusion) 与 [Konfig](https://github.com/KusionStack/konfig) 实现从应用第一行配置代码到生产可用的全生命周期管理
-- **自服务能力**: 为 App Dev 提供自服务能力，帮助他们与 SRE 和 Platform Dev 在代码化的平台上高效的合作
-- **风险左移**: 原生支持 Policy/Secret as Code、3-way Live Diff 等能力，尽早发现运维风险
-- **异构资源运维**: 以统一的方式运维 Kubernetes、IaaS 云资源和自定义基础设施等多种运行时的资源
+- **以应用为中心**: 在同一个地方、以统一的方式，管理应用所需要的所有的运维操作
+- **研发自服务**: 研发可以利用平台提供的能力，自助实现自己的需求
+- **风险左移**: 在运维前期保证安全性，使操作更有信心。
+- **Kubernetes 友好**: 提供友好的可观测性与排障能力，让 Kubernetes 运维更简单
+
 
 <div align="center">
 
@@ -40,9 +41,9 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 参考 [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) 通过 Kusion
 部署您的第一个应用
 
-### Demo Video
+### 演示视频
 
-[![Wordpress Demo](http://img.youtube.com/vi/psUV_WmP2OU/maxresdefault.jpg)](http://www.youtube.com/watch?v=psUV_WmP2OU)
+[![Wordpress Demo](http://img.youtube.com/vi/QHzKKsoKLQ0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QHzKKsoKLQ0)
 
 ## 安装
 
