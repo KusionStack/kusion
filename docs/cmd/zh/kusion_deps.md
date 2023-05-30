@@ -1,11 +1,10 @@
 ## kusion deps
 
-Show KCL file dependency information
+显示KCL文件的依赖信息
 
 ### Synopsis
 
-Show the KCL file dependency information in the current directory or the specified workdir. By default, it will list all the KCL files that are dependent on the given package path.
-
+显示当前目前或指定目录中的KCL文件的依赖信息。默认列出所有依赖给定包路径下的KCL文件。
 ```
 kusion deps [WORKDIR] [flags]
 ```
@@ -13,27 +12,27 @@ kusion deps [WORKDIR] [flags]
 ### Examples
 
 ```
-  # List all the KCL files that are dependent by the given focus paths
+  # 列出所有依赖给定路径下的KCL文件
   kusion deps --focus path/to/focus1 --focus path/to/focus2
   
-  # List all the projects that depend on the given focus paths
+  # 列出所有依赖给定路径的项目
   kusion deps --direct down --focus path/to/focus1 --focus path/to/focus2
   
-  # List all the stacks that depend on the given focus paths
+  # 列出所有依赖给定路径的堆栈
   kusion deps --direct down --focus path/to/focus1 --focus path/to/focus2 --only stack
   
-  # List all the projects that depend on the given focus paths, ignoring some paths from entrance files in each stack
+  # 列出所有依赖给定路径的项目，并忽略每个堆栈入口文件中的一些路径
   kusion deps --direct down --focus path/to/focus1 --focus path/to/focus2 --ignore path/to/ignore
 ```
 
 ### Options
 
 ```
-      --direct string    the inspect direct of the dependency information. Valid values: up, down. Defaults to up (default "up")
-      --focus strings    the paths to focus on to inspect. It cannot be empty and each path needs to be a valid relative path from the workdir
+      --direct string    依赖信息的检查方向。有效取值：up（默认）、down。
+      --focus strings    指定目录。目录不能为空，且为当前工作目录的有效相对路径。
   -h, --help             help for deps
-      --ignore strings   the file paths to ignore when filtering the affected stacks/projects. Each path needs to be a valid relative path from the workdir. If not set, no paths will be ignored.
-      --only string      when direct is set to "down", "only" means only the downstream project/stack list will be output. Valid values: project, stack. Defaults to project (default "project")
+      --ignore strings   在筛选受影响的堆栈/项目时，指定要忽略的文件路径。每个路径都必须是相对于工作目录的有效相对路径。如果未设置，则不会忽略任何路径。
+      --only string      当direct被设置为 "down "时，"only "意味着只有下游的project/stack列表会被输出。有效值：project（默认）、stack。
 ```
 
 ### SEE ALSO
