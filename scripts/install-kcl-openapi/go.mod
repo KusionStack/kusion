@@ -34,9 +34,9 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	go.mongodb.org/mongo-driver v1.9.1 // indirect
-	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
