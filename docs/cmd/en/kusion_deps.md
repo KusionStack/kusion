@@ -29,7 +29,7 @@ kusion deps [WORKDIR] [flags]
 ### Options
 
 ```
-      --direct string    specify the direction of dependency information inspection. Valid values: up, down. Defaults to up (default "up")
+      --direct string    specify the inspect direction of dependency information. Valid values: up, down. Defaults to up (default "up")
       --focus strings    the paths to focus on to inspect. It cannot be empty and each path needs to be a valid relative path from the workdir
   -h, --help             help for deps
       --ignore strings   the file paths to ignore when filtering the affected stacks/projects. Each path needs to be a valid relative path from the workdir. If not set, no paths will be ignored.
