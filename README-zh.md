@@ -41,9 +41,13 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 参考 [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) 通过 Kusion
 部署您的第一个应用
 
+![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
+
 ### 演示视频
 
-[![Wordpress Demo](http://img.youtube.com/vi/QHzKKsoKLQ0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QHzKKsoKLQ0)
+<a href="http://www.youtube.com/watch?v=QHzKKsoKLQ0" target="_blank">
+ <img src="http://img.youtube.com/vi/QHzKKsoKLQ0/sddefault.jpg" alt="Watch the video" width="512" height="384" border="1" />
+</a>
 
 ## 安装
 
