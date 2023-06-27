@@ -17,7 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
-	"kusionstack.io/kusion/pkg/util/kdump"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 var (
@@ -269,7 +269,7 @@ func TestOperation_Preview(t *testing.T) {
 			})
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
-				t.Errorf("Operation.Preview() gotRsp = %v, want %v", kdump.FormatN(gotRsp), kdump.FormatN(tt.wantRsp))
+				t.Errorf("Operation.Preview() gotRsp = %v, want %v", jsonutil.Marshal2PrettyString(gotRsp), jsonutil.Marshal2PrettyString(tt.wantRsp))
 			}
 			if !reflect.DeepEqual(gotS, tt.wantS) {
 				t.Errorf("Operation.Preview() gotS = %v, want %v", gotS, tt.wantS)
