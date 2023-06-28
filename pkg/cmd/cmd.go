@@ -23,6 +23,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/env"
+	"kusionstack.io/kusion/pkg/cmd/get"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/ls"
 	"kusionstack.io/kusion/pkg/cmd/preview"
@@ -127,6 +128,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 			Commands: []*cobra.Command{
 				preview.NewCmdPreview(),
 				apply.NewCmdApply(),
+				get.NewCmdGet(),
 				destroy.NewCmdDestroy(),
 			},
 		},
