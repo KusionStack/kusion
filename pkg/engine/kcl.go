@@ -3,7 +3,7 @@ package engine
 import (
 	"encoding/json"
 
-	kcl "kusionstack.io/kclvm-go"
+	kcl "kcl-lang.io/kcl-go"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"

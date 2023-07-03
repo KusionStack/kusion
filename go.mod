@@ -55,8 +55,8 @@ require (
 	k8s.io/client-go v0.27.1
 	k8s.io/component-base v0.27.1
 	k8s.io/kubectl v0.27.1
-	kusionstack.io/kcl-plugin v0.4.4
-	kusionstack.io/kclvm-go v0.5.0-beta.1
+	kcl-lang.io/kcl-go v0.5.0-beta.2
+	kcl-lang.io/kcl-plugin v0.5.0
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/yaml v1.3.0

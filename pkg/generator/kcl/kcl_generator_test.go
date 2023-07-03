@@ -10,7 +10,6 @@ import (
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	kcl "kcl-lang.io/kcl-go"
-	k2 "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -162,7 +161,7 @@ func Test_normResult(t *testing.T) {
 				},
 			},
 			want: &CompileResult{
-				Documents: []k2.KCLResult{map[string]interface{}{"a": "b"}},
+				Documents: []kcl.KCLResult{map[string]interface{}{"a": "b"}},
 			},
 			wantErr: false,
 		},

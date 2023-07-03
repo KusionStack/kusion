@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
+	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/log"
 )
