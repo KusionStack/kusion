@@ -206,7 +206,7 @@ func mockGit() {
 
 func mockDependency() {
 	monkey.Patch(debug.ReadBuildInfo, func() (*debug.BuildInfo, bool) {
-		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclvmgoModulePath, Version: "stable"}, {Path: KclPluginsModulePath, Version: "stable"}}}, true
+		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclGoModulePath, Version: "stable"}, {Path: KclPluginModulePath, Version: "stable"}}}, true
 	})
 }
 
