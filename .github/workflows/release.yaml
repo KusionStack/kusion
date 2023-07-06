@@ -63,7 +63,7 @@ jobs:
         run: |
           go generate ./pkg/version > version.txt
           echo "kusion_version=$(cat version.txt | grep releaseVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
-          echo "kclvmgo_version=$(cat version.txt | grep kclvmgoVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
+          echo "kclgo_version=$(cat version.txt | grep kclGoVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
           echo "kclplugin_version=$(cat version.txt | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
           rm version.txt
       # <--- Login, build and push image to Docker Hub --->
@@ -82,5 +82,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
           KUSION_VERSION: ${{ steps.get_version.outputs.kusion_version }}
-          KCLVM_GO_VERSION: ${{ steps.get_version.outputs.kclvmgo_version }}
+          KCL_GO_VERSION: ${{ steps.get_version.outputs.kclgo_version }}
           KCL_PLUGIN_VERSION: ${{ steps.get_version.outputs.kclplugin_version }}

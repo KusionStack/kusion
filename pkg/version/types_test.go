@@ -44,7 +44,7 @@ func TestKusionVersionNormal(t *testing.T) {
 			"buildTime": "2006-01-02 15:04:05"
 		},
 		"dependency": {
-			"kclvmgoVersion": "stable",
+			"kclGoVersion": "stable",
 			"kclPluginVersion": "stable"
 		}
 	}`
@@ -163,7 +163,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		"buildTime": "2006-01-02 15:04:05"
 	},
 	"dependency": {
-		"kclvmgoVersion": "stable",
+		"kclGoVersion": "stable",
 		"kclPluginVersion": "stable"
 	}
 }`
