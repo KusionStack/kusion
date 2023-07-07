@@ -41,7 +41,4 @@ type Options struct {
 
 	// NoStyle represents whether to turn on the spinner output style
 	NoStyle bool
-
-	// NoPrompt represents whether to print prompt or not
-	NoPrompt bool
 }

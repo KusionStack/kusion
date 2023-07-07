@@ -3,7 +3,9 @@ package spec
 import (
 	"fmt"
 
+	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
+	"sigs.k8s.io/kustomize/kyaml/errors"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
@@ -14,10 +16,9 @@ import (
 
 func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 	var sp *pterm.SpinnerPrinter
-	if !o.NoPrompt && o.NoStyle {
+	if o.NoStyle {
 		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
-	}
-	if !o.NoPrompt && !o.NoStyle {
+	} else {
 		sp = &pretty.SpinnerT
 		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
 	}
@@ -42,16 +43,21 @@ func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project
 
 	spec, err := g.GenerateSpec(o, stack)
 	if err != nil {
-		if !o.NoPrompt && sp != nil {
+		if !o.NoStyle && sp != nil {
 			sp.Fail()
 		}
+
+		if o.NoStyle {
+			return nil, errors.Wrap(stripansi.Strip(err.Error()))
+		}
+
 		return nil, err
 	}
 
-	if !o.NoPrompt && sp != nil {
+	if !o.NoStyle && sp != nil {
 		sp.Success()
 	}
-	if !o.NoPrompt {
+	if !o.NoStyle {
 		fmt.Println()
 	}
 

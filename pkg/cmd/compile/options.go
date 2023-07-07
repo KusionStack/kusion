@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
 	yamlv2 "gopkg.in/yaml.v2"
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
@@ -26,6 +27,7 @@ type CompileFlags struct {
 	Overrides   []string
 	DisableNone bool
 	OverrideAST bool
+	NoStyle     bool
 }
 
 const Stdout = "stdout"
@@ -60,6 +62,12 @@ func (o *CompileOptions) Validate() error {
 }
 
 func (o *CompileOptions) Run() error {
+	// Set no style
+	if o.NoStyle {
+		pterm.DisableStyling()
+		pterm.DisableColor()
+	}
+
 	// Parse project and stack of work directory
 	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
@@ -74,6 +82,7 @@ func (o *CompileOptions) Run() error {
 		Overrides:   o.Overrides,
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
+		NoStyle:     o.NoStyle,
 	}, project, stack)
 	if err != nil {
 		// only print err in the check command
