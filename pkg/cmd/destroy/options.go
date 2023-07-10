@@ -124,7 +124,8 @@ func (o *DestroyOptions) Run() error {
 	return nil
 }
 
-func (o *DestroyOptions) preview(planResources *models.Spec, project *projectstack.Project,
+func (o *DestroyOptions) preview(
+	planResources *models.Spec, project *projectstack.Project,
 	stack *projectstack.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
@@ -196,7 +197,7 @@ func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.
 				switch msg.OpResult {
 				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == opsmodels.UnChange {
+					if changeStep.Action == opsmodels.UnChanged {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),

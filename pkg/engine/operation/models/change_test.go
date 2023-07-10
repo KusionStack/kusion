@@ -16,7 +16,7 @@ var (
 	TestChangeStepOpCreate   = NewChangeStep("id", Create, nil, nil)
 	TestChangeStepOpDelete   = NewChangeStep("id", Delete, nil, nil)
 	TestChangeStepOpUpdate   = NewChangeStep("id", Update, nil, nil)
-	TestChangeStepOpUnChange = NewChangeStep("id", UnChange, nil, nil)
+	TestChangeStepOpUnChange = NewChangeStep("id", UnChanged, nil, nil)
 	TestStepKeys             = []string{"test-key-1", "test-key-2", "test-key-3", "test-key-4"}
 	TestChangeSteps          = map[string]*ChangeStep{
 		"test-key-1": TestChangeStepOpCreate,
@@ -49,7 +49,7 @@ func TestOpType_Ing(t *testing.T) {
 		},
 		{
 			name: "t4",
-			op:   UnChange,
+			op:   UnChanged,
 			want: "Unchanged",
 		},
 	}
@@ -85,8 +85,8 @@ func TestOpType_PrettyString(t *testing.T) {
 		},
 		{
 			name: "t4",
-			op:   UnChange,
-			want: pretty.Gray(UnChange.Ing()),
+			op:   UnChanged,
+			want: pretty.Gray(UnChanged.Ing()),
 		},
 	}
 	for _, tt := range tests {
@@ -485,7 +485,7 @@ func TestChanges_AllUnChange(t *testing.T) {
 			ChangeOrder: &ChangeOrder{
 				ChangeSteps: map[string]*ChangeStep{
 					"bar": {
-						Action: UnChange,
+						Action: UnChanged,
 					},
 				},
 			},

@@ -238,7 +238,7 @@ func Apply(
 				switch msg.OpResult {
 				case opsmodels.Success, opsmodels.Skip:
 					var title string
-					if changeStep.Action == opsmodels.UnChange {
+					if changeStep.Action == opsmodels.UnChanged {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
@@ -336,7 +336,7 @@ func Watch(
 	// Filter out unchanged resources
 	toBeWatched := models.Resources{}
 	for _, res := range planResources.Resources {
-		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChange {
+		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChanged {
 			toBeWatched = append(toBeWatched, res)
 		}
 	}
@@ -374,7 +374,7 @@ func (ls *lineSummary) Count(op opsmodels.ActionType) {
 
 func allUnChange(changes *opsmodels.Changes) bool {
 	for _, v := range changes.ChangeSteps {
-		if v.Action != opsmodels.UnChange {
+		if v.Action != opsmodels.UnChanged {
 			return false
 		}
 	}
