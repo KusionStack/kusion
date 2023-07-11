@@ -54,7 +54,7 @@ func (cs *ChangeStep) Diff() (string, error) {
 		buf.WriteString(pterm.Sprintf("%s\n", cs.Action.PrettyString()))
 	}
 	buf.WriteString(pretty.GreenBold("Diff: "))
-	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChange {
+	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChanged {
 		buf.WriteString(pretty.Gray("<EMPTY>"))
 	} else {
 		buf.WriteString("\n" + strings.TrimSpace(reportString))
@@ -78,7 +78,7 @@ var (
 	CreateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Create }
 	UpdateChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Update }
 	DeleteChangeStepFilter   = func(c *ChangeStep) bool { return c.Action == Delete }
-	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == UnChange }
+	UnChangeChangeStepFilter = func(c *ChangeStep) bool { return c.Action == UnChanged }
 )
 
 type Changes struct {
@@ -155,7 +155,7 @@ func (o *ChangeOrder) Diffs() string {
 
 func (p *Changes) AllUnChange() bool {
 	for _, v := range p.ChangeSteps {
-		if v.Action != UnChange {
+		if v.Action != UnChanged {
 			return false
 		}
 	}

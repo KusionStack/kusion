@@ -137,7 +137,7 @@ func (rn *ResourceNode) computeActionType(
 				return nil, status.NewErrorStatus(err)
 			}
 			if len(report.Diffs) == 0 {
-				rn.Action = opsmodels.UnChange
+				rn.Action = opsmodels.UnChanged
 			} else {
 				rn.Action = opsmodels.Update
 			}
@@ -217,7 +217,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 		if s != nil {
 			log.Debugf("delete resource:%s, resource: %v", planed.ID, s.String())
 		}
-	case opsmodels.UnChange:
+	case opsmodels.UnChanged:
 		log.Infof("planed resource and live resource are equal")
 		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
 		if prior == nil {

@@ -88,7 +88,10 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGetLatestState() {
-	monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(f *local.FileSystemState, query *states.StateQuery) (*states.State, error) {
+	monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+		f *local.FileSystemState,
+		query *states.StateQuery,
+	) (*states.State, error) {
 		return &states.State{Resources: []models.Resource{sa1}}, nil
 	})
 }
@@ -211,7 +214,7 @@ func Test_destroy(t *testing.T) {
 				},
 				sa2.ID: {
 					ID:     sa2.ID,
-					Action: opsmodels.UnChange,
+					Action: opsmodels.UnChanged,
 					From:   &sa2,
 				},
 			},
