@@ -11,8 +11,10 @@ TRANSLATIONS_DIR=${TRANSLATIONS_BASE_DIR:-"pkg/util/i18n/translations/kusion"}
 TRANSLATIONS_FOLDER=${TRANSLATIONS_FOLDER:-"LC_MESSAGES"}
 TRANSLATIONS_FUNC=${TRANSLATIONS_FUNC:-"i18n.T"}
 TRANSLATIONS_LANG=("en_US" "zh_CN")
+DEFAULT_TRANSLATIONS_LANG=${DEFAULT_TRANSLATIONS_LANG:-"en_US"}
 POT_FILE=${POT_FILE:-"template.pot"}
 PO_FILE=${PO_FILE:-"kusion.po"}
+MO_FILE=${MO_FILE:-"kusion.mo"}
 
 if ! which go-xgettext > /dev/null; then
   echo "Can not find go-xgettext, install with: go install github.com/gosexy/gettext/go-xgettext."
@@ -26,6 +28,11 @@ fi
 
 if ! which msgmerge > /dev/null; then
   echo "Can not find msgmerge, install with: brew install gettext."
+  exit 1
+fi
+
+if ! which msgfmt > /dev/null; then
+  echo "Can not find msgfmt, install with: brew install gettext."
   exit 1
 fi
 
@@ -53,6 +60,12 @@ do
     msginit -l "${lang}" -o "${tmpPoFilePath}" -i "${tmpPotFilePath}" --no-translator > /dev/null
     echo "initialize .po file of lang ${lang} succeeded."
   fi
+  if [ "${lang}" = "${DEFAULT_TRANSLATIONS_LANG}" ]; then
+    echo "start updating .mo file of default lang ${lang}"
+    tmpMoFilePath="${TRANSLATIONS_DIR}/${lang}/${TRANSLATIONS_FOLDER}/tmp.mo"
+    msgfmt -c -v -o "${tmpMoFilePath}" "${tmpPoFilePath}" > /dev/null
+    echo "update .mo file of default lang ${lang} succeeded"
+  fi
 done
 
 potFilePath="${TRANSLATIONS_DIR}/${POT_FILE}"
@@ -62,5 +75,10 @@ do
   poFilePath="${TRANSLATIONS_DIR}/${lang}/${TRANSLATIONS_FOLDER}/${PO_FILE}"
   tmpPoFilePath="${TRANSLATIONS_DIR}/${lang}/${TRANSLATIONS_FOLDER}/tmp.po"
   mv "${tmpPoFilePath}" "${poFilePath}"
+  if [ "${lang}" = "${DEFAULT_TRANSLATIONS_LANG}" ]; then
+    moFilePath="${TRANSLATIONS_DIR}/${lang}/${TRANSLATIONS_FOLDER}/${MO_FILE}"
+    tmpMoFilePath="${TRANSLATIONS_DIR}/${lang}/${TRANSLATIONS_FOLDER}/tmp.mo"
+    mv "${tmpMoFilePath}" "${moFilePath}"
+  fi
 done
 echo "update translations files succeeded."

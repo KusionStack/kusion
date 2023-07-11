@@ -36,7 +36,14 @@ For `long description`, must end with full stop. For `example`, it depends on th
 If func `i18n.Error` is in use, should update `hack/update-translations.sh`; 
 - When using `i18n.T`, the input string must be a const, variable is not allowed, which is 
 the restriction of `go-xgettext`;
+- Be sure that `i18n.T` will be executed, don't use `i18n.T` to create a global variables, 
+which is generated when compiling;
+- When using back quote to define a string, write a paragraph in one line without line break,
+or there is unexpected space in translations. When a line break is needed, the new line should
+start with two tabs;
 - When new commands added, update `CMD_FILES` in `hack/update-translations.sh`.
+
+Refer to `pkg/cmd/init/init.go`, which is an example to show how to use i18n.
 
 ## Updating Translations Files
 
@@ -54,7 +61,7 @@ is `pkg/util/i18n/translations/kusion/<language>/LC_MESSAGES/kusion.po`, and the
 
 `pkg/util/i18n/translations/test` is for testing, do not edit it.
 
-## Extracting strings
+### Extracting strings
 
 `go-xgettext` is used to extract `.pot` from `.go` files, and `msgmerge` is used to update 
 the template of `.po`. First, install the commands:
@@ -64,7 +71,7 @@ the template of `.po`. First, install the commands:
 go install github.com/gosexy/gettext/go-xgettext
 
 # install gettext to use msgmerge
-brew install msgmerge
+brew install gettext
 ```
 
 Then, run `hack/update-translations.sh` under repo root path, to update the `.pot` file and 
@@ -72,12 +79,12 @@ the templates of `.po` files.
 
 ### Translating
 After executing the script, you will find the `msgid` updated but left `msgstr` empty in 
-`.po`. Now, You need to do the translation job, translate the `msgid` in English to `msgstr` 
+`.po`. Now, You need to do the translation job, translate the `msgid` in `en_US` to `msgstr` 
 in the specified language.
 
 `poedit` is a popular open source tool for translations. You can load the `.po` file, add or
-update the translations. When finish translating and save `.po` file, the corresponding `.mo`
-file with same prefix in the same directory will get updated automatically by `poedit`.
+update the translations. When finishing translating and save `.po` file, the corresponding 
+`.mo` file with same prefix in the same directory will get updated automatically by `poedit`.
 
 If you don't want to use `poedit`, after updating `.po`, you have to update `.mo` manually. 
 You can use the following command, run under the corresponding language's translation dir:
@@ -86,15 +93,16 @@ You can use the following command, run under the corresponding language's transl
 msgfmt -c -v -o kusion.mo kusion.po
 ```
 
-Be attention, for `en_US`, although you don't need to translate in `.po`, you still have to 
-update `.mo` if `.po` updated.
+Because there is no need to do translation for default language `en_US`, `hack/update-translations.sh`
+updates `.mo` for `en_US`. Hence, you don't need to do any job for `.po` and `.mo` for 
+`en_US` at all.
 
 ### Updating Docs
-When the below jobs are done, `i18n` will work for the software. But in kusion, you need to 
+When the above jobs are done, `i18n` will work for the software. But in kusion, you need to 
 update the docs, run `hack/gen-docs/main.go` to update the docs under `docs/cmd`. You can 
 specify the doc directory and language env key by args, which is in usual not needed.
 
 ### Adding a New Language
-Which is similar to the below steps, the only thing is to update `knownTranslations` in 
+Which is similar to the above steps, the only thing is to update `knownTranslations` in 
 `pkg/util/i18n/i18n.go`, `TRANSLATIONS_LANG` in `hack/update-translations.sh`, `docsMatrix` 
 in `hack/gen-docs/main.go`.
