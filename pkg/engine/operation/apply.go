@@ -110,6 +110,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
+			IgnoreFields:            o.IgnoreFields,
 			MsgCh:                   o.MsgCh,
 			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
