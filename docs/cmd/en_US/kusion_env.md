@@ -30,7 +30,7 @@ kusion env [flags]
 
 ```
   -h, --help   help for env
-      --json   print the environment in JSON format
+      --json   Print the environment in JSON format
 ```
 
 ### SEE ALSO

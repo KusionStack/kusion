@@ -38,9 +38,9 @@ kusion ls [WORKDIR] [flags]
 ### Options
 
 ```
-      --format string   the output format of the project information. valid values: json, yaml, tree, human (default "human")
+      --format string   Output format of the project information. valid values: json, yaml, tree, human (default "human")
   -h, --help            help for ls
-  -L, --level int       max display depth of the project and stack tree. One of 0,1,2 (default 2)
+  -L, --level int       Max display depth of the project and stack tree. One of 0,1,2 (default 2)
 ```
 
 ### SEE ALSO

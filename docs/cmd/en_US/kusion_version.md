@@ -21,9 +21,9 @@ kusion version [flags]
 
 ```
   -h, --help    help for version
-  -j, --json    print version info as JSON
-  -s, --short   print version info as versionShort string
-  -y, --yaml    print version info as YAML
+  -j, --json    Print version info as JSON
+  -s, --short   Print version info as versionShort string
+  -y, --yaml    Print version info as YAML
 ```
 
 ### SEE ALSO

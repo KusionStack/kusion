@@ -31,16 +31,16 @@ kusion preview [flags]
 ### Options
 
 ```
-  -a, --all                      Automatically show plan details after previewing it
+  -a, --all --detail             Automatically show all plan details, combined use with flag --detail
   -D, --argument stringArray     Specify the top-level argument
   -C, --backend-config strings   backend-config config state storage backend
       --backend-type string      backend-type specify state storage backend
-  -d, --detail                   Automatically show plan details after previewing it
+  -d, --detail                   Automatically show plan details with interactive options
   -h, --help                     help for preview
       --ignore-fields strings    Ignore differences of target fields
       --no-style                 no-style sets to RawOutput mode and disables all of styling
       --operator string          Specify the operator
-  -o, --output string            Specify the output file
+  -o, --output string            Specify the output format
   -O, --overrides strings        Specify the configuration override path and value
   -Y, --setting strings          Specify the command line setting files
   -w, --workdir string           Specify the work directory

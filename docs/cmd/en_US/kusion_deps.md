@@ -29,7 +29,7 @@ kusion deps [WORKDIR] [flags]
 ### Options
 
 ```
-      --direct string    the output format of the project information. valid values: json, yaml, tree, human (default "up")
+      --direct string    Inspect direct of the dependency information. Valid values: up, down. Defaults to up (default "up")
       --focus strings    Paths to focus on to inspect. It cannot be empty and each path needs to be a valid relative path from the workdir
   -h, --help             help for deps
       --ignore strings   File paths to ignore when filtering the affected stacks/projects. Each path needs to be a valid relative path from the workdir. If not set, no paths will be ignored.

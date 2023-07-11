@@ -33,17 +33,17 @@ kusion apply [flags]
 ### Options
 
 ```
-  -a, --all                      Automatically show plan details after previewing it
+  -a, --all --detail             Automatically show all plan details, combined use with flag --detail
   -D, --argument stringArray     Specify the top-level argument
   -C, --backend-config strings   backend-config config state storage backend
       --backend-type string      backend-type specify state storage backend
-  -d, --detail                   Automatically show plan details after previewing it
-      --dry-run                  dry-run to preview the execution effect (always successful) without actually applying the changes
+  -d, --detail                   Automatically show plan details with interactive options
+      --dry-run                  Preview the execution effect (always successful) without actually applying the changes
   -h, --help                     help for apply
       --ignore-fields strings    Ignore differences of target fields
       --no-style                 no-style sets to RawOutput mode and disables all of styling
       --operator string          Specify the operator
-  -o, --output string            Specify the output file
+  -o, --output string            Specify the output format
   -O, --overrides strings        Specify the configuration override path and value
   -Y, --setting strings          Specify the command line setting files
       --watch                    After creating/updating/deleting the requested object, watch for changes
