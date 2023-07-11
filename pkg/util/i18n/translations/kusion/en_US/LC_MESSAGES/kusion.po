@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: EMAIL\n"
-"POT-Creation-Date: 2022-01-21 20:27+0800\n"
+"POT-Creation-Date: 2023-07-11 11:57+0800\n"
 "PO-Revision-Date: 2022-11-22 16:23+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,533 +18,126 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2\n"
 
-#: pkg/kusionctl/cmd/cmd.go:42
-msgid "kusion manages the Kubernetes cluster by code"
-msgstr "kusion manages the Kubernetes cluster by code"
-
-#: pkg/kusionctl/cmd/cmd.go:43
-msgid "kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code."
-msgstr "kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code."
-
-#: pkg/kusionctl/cmd/profilling.go:21
-msgid "Name of profile to capture. One of (none|cpu|heap|goroutine|threadcreate|block|mutex)"
-msgstr "Name of profile to capture. One of (none|cpu|heap|goroutine|threadcreate|block|mutex)"
-
-#: pkg/kusionctl/cmd/profilling.go:23
-msgid "Filename to write the profile"
-msgstr "Filename to write the profile"
-
-#: pkg/kusionctl/cmd/profilling.go:25
-msgid "Set kusion develop log level, default is INFO, all options: DEBUG, INFO, ERROR, WARN, FATAL"
-msgstr "Set kusion develop log level, default is INFO, all options: DEBUG, INFO, ERROR, WARN, FATAL"
-
-#: pkg/kusionctl/cmd/apply/apply.go:12
-msgid "Apply a configuration stack to resource(s) by work directory"
-msgstr "Apply a configuration stack to resource(s) by work directory"
-
-#: pkg/kusionctl/cmd/apply/apply.go:14
+#: pkg/cmd/deps/deps.go:14
 msgid ""
-"\t\tApply a series of resource changes within the stack.\n"
 "\n"
-"\t\tCreate or update or delete resources according to the KCL files within a stack.\n"
-"\t\tBy default, Kusion will generate an execution plan and present it for your approval before taking any "
-"action.\n"
-"\n"
-"\t\tYou can check the plan details and then decide if the actions should be taken or aborted."
+"\t\tShow the KCL file dependency information in the current directory or the "
+"specified workdir.\n"
+"    By default, it will list all the KCL files that are dependent on the "
+"given package path."
 msgstr ""
-"\t\tApply a series of resource changes within the stack.\n"
-"\n"
-"\t\tCreate or update or delete resources according to the KCL files within a stack.\n"
-"\t\tBy default, Kusion will generate an execution plan and present it for your approval before taking any "
-"action.\n"
-"\n"
-"\t\tYou can check the plan details and then decide if the actions should be taken or aborted."
 
-#: pkg/kusionctl/cmd/apply/apply.go:22
+#: pkg/cmd/diff/diff.go:70
 msgid ""
-"\n"
-"\t\t# Apply with specifying work directory\n"
-"\t\tkusion apply -w /path/to/workdir\n"
-"\n"
-"\t\t# Apply with specifying arguments\n"
-"\t\tkusion apply -D name=test -D age=18\n"
-"\n"
-"\t\t# Apply with specifying setting file\n"
-"\t\tkusion apply -Y settings.yaml\n"
-"\n"
-"\t\t# Skip interactive approval of plan details before applying\n"
-"\t\tkusion apply --yes"
+"Swap <from> and <to> for comparison. Note that it is invalid when <from> is "
+"stdin. The default is false"
 msgstr ""
-"\n"
-"\t\t# Apply with specifying work directory\n"
-"\t\tkusion apply -w /path/to/workdir\n"
-"\n"
-"\t\t# Apply with specifying arguments\n"
-"\t\tkusion apply -D name=test -D age=18\n"
-"\n"
-"\t\t# Apply with specifying setting file\n"
-"\t\tkusion apply -Y settings.yaml\n"
-"\n"
-"\t\t# Skip interactive approval of plan details before applying\n"
-"\t\tkusion apply --yes"
+"Swap <from> and <to> for comparison. Note that it is invalid when <from> is "
+"stdin. The default is false"
 
-#: pkg/kusionctl/cmd/apply/apply.go:54 pkg/kusionctl/cmd/compile/compile.go:63
-#: pkg/kusionctl/cmd/destroy/destroy.go:151 pkg/kusionctl/cmd/check/check.go:57
-msgid "Specify the work directory"
-msgstr "Specify the work directory"
-
-#: pkg/kusionctl/cmd/apply/apply.go:56 pkg/kusionctl/cmd/destroy/destroy.go:153
-msgid "Specify the operator"
-msgstr "Specify the operator"
-
-#: pkg/kusionctl/cmd/apply/apply.go:58
-msgid "Specify the arguments to apply KCL"
-msgstr "Specify the arguments to apply KCL"
-
-#: pkg/kusionctl/cmd/apply/apply.go:60 pkg/kusionctl/cmd/compile/compile.go:59
-#: pkg/kusionctl/cmd/destroy/destroy.go:157 pkg/kusionctl/cmd/check/check.go:55
-msgid "Specify the command line setting files"
-msgstr "Specify the command line setting files"
-
-#: pkg/kusionctl/cmd/apply/apply.go:62
-msgid "Specify the configuration override path and value"
-msgstr "Specify the configuration override path and value"
-
-#: pkg/kusionctl/cmd/apply/apply.go:64
-msgid "Automatically approve and perform the update after previewing it"
-msgstr "Automatically approve and perform the update after previewing it"
-
-#: pkg/kusionctl/cmd/apply/apply.go:66
-msgid "Automatically show plan details after previewing it"
-msgstr "Automatically show plan details after previewing it"
-
-#: pkg/kusionctl/cmd/apply/apply.go:68 pkg/kusionctl/cmd/preview/preview.go:61
-msgid "no-style sets to RawOutput mode and disables all of styling"
-msgstr "no-style sets to RawOutput mode and disables all of styling"
-
-#: pkg/kusionctl/cmd/apply/apply.go:70
-msgid "dry-run to preview the execution effect (always successful) without actually applying the changes"
-msgstr "dry-run to preview the execution effect (always successful) without actually applying the changes"
-
-#: pkg/kusionctl/cmd/check/check.go:13
-msgid "Check if KCL configurations in current directory ok to compile"
-msgstr "Check if KCL configurations in current directory ok to compile"
-
-#: pkg/kusionctl/cmd/check/check.go:15
+#: pkg/cmd/init/init.go:14
+#, fuzzy
 msgid ""
 "\n"
-"\t\tCheck if KCL configurations in current directory ok to compile."
-msgstr ""
-"\n"
-"\t\tCheck if KCL configurations in current directory ok to compile."
-
-#: pkg/kusionctl/cmd/check/check.go:18
-msgid ""
-"\n"
-"\t\t# Check configuration in main.k\n"
-"\t\tkusion check main.k\n"
-"\n"
-"\t\t# Check main.k with arguments\n"
-"\t\tkusion check main.k -D name=test -D age=18\n"
-"\n"
-"\t\t# Check main.k with arguments from settings.yaml\n"
-"\t\tkusion check main.k -Y settings.yaml\n"
-"\n"
-"\t\t# Check main.k with work directory\n"
-"\t\tkusion check main.k -w appops/demo/dev"
-msgstr ""
-"\n"
-"\t\t# Check configuration in main.k\n"
-"\t\tkusion check main.k\n"
-"\n"
-"\t\t# Check main.k with arguments\n"
-"\t\tkusion check main.k -D name=test -D age=18\n"
-"\n"
-"\t\t# Check main.k with arguments from settings.yaml\n"
-"\t\tkusion check main.k -Y settings.yaml\n"
-"\n"
-"\t\t# Check main.k with work directory\n"
-"\t\tkusion check main.k -w appops/demo/dev"
-
-#: pkg/kusionctl/cmd/check/check.go:59 pkg/kusionctl/cmd/compile/compile.go:65
-msgid "Disable dumping None values"
-msgstr "Disable dumping None values"
-
-#: pkg/kusionctl/cmd/compile/compile.go:12
-msgid "Compile KCL into YAML"
-msgstr "Compile KCL into YAML"
-
-#: pkg/kusionctl/cmd/compile/compile.go:14
-msgid ""
-"\n"
-"\t\tCompile one or more KCL files.\n"
-"\n"
-"\t\tThe KCL filename must be specified.\n"
-"\t\tYou can specify a list of arguments to replace the placeholders defined in KCL,\n"
-"\t\tand output the compiled results to a file when using --output flag."
-msgstr ""
-"\n"
-"\t\tCompile one or more KCL files.\n"
-"\n"
-"\t\tThe KCL filename must be specified.\n"
-"\t\tYou can specify a list of arguments to replace the placeholders defined in KCL,\n"
-"\t\tand output the compiled results to a file when using --output flag."
-
-#: pkg/kusionctl/cmd/compile/compile.go:22
-msgid ""
-"\n"
-"\t\t# Compile configuration in main.k into YAML format\n"
-"\t\tkusion compile main.k\n"
-"\n"
-"\t\t# Compile main.k with arguments\n"
-"\t\tkusion compile main.k -D name=test -D age=18\n"
-"\n"
-"\t\t# Compile main.k with arguments from settings.yaml\n"
-"\t\tkusion compile main.k -Y settings.yaml\n"
-"\n"
-"\t\t# Compile main.k with work directory\n"
-"\t\tkusion compile main.k -w appops/demo/dev\n"
-"\n"
-"\t\t# Compile with override\n"
-"\t\tkusion compile -O __main__:appConfiguration.image=nginx:latest -a\n"
-"\n"
-"\t\t# Compile main.k and write result into output.yaml\n"
-"\t\tkusion compile main.k -o output.yaml"
-msgstr ""
-"\n"
-"\t\t# Compile configuration in main.k into YAML format\n"
-"\t\tkusion compile main.k\n"
-"\n"
-"\t\t# Compile main.k with arguments\n"
-"\t\tkusion compile main.k -D name=test -D age=18\n"
-"\n"
-"\t\t# Compile main.k with arguments from settings.yaml\n"
-"\t\tkusion compile main.k -Y settings.yaml\n"
-"\n"
-"\t\t# Compile main.k with work directory\n"
-"\t\tkusion compile main.k -w appops/demo/dev\n"
-"\n"
-"\t\t# Compile with override\n"
-"\t\tkusion compile -O __main__:appConfiguration.image=nginx:latest -a\n"
-"\n"
-"\t\t# Compile main.k and write result into output.yaml\n"
-"\t\tkusion compile main.k -o output.yaml"
-
-#: pkg/kusionctl/cmd/compile/compile.go:57 pkg/kusionctl/cmd/check/check.go:53
-msgid "Specify the top-level argument"
-msgstr "Specify the top-level argument"
-
-#: pkg/kusionctl/cmd/compile/compile.go:61
-msgid "Specify the output file"
-msgstr "Specify the output file"
-
-#: pkg/kusionctl/cmd/compile/compile.go:67 pkg/kusionctl/cmd/check/check.go:61
-msgid "Specify the override option"
-msgstr "Specify the override option"
-
-#: pkg/kusionctl/cmd/destroy/destroy.go:56
-msgid "Destroy a configuration stack to resource(s) by work directory"
-msgstr "Destroy a configuration stack to resource(s) by work directory"
-
-#: pkg/kusionctl/cmd/destroy/destroy.go:58
-msgid ""
-"\n"
-"\t\tDelete resources by resource spec.\n"
-"\n"
-"\t\tOnly KCL files are accepted. Only one type of arguments may be specified: filenames,\n"
-"\t\tresources and names, or resources and label selector.\n"
-"\n"
-"\t\tNote that the destroy command does NOT do resource version checks, so if someone submits an\n"
-"\t\tupdate to a resource right when you submit a destroy, their update will be lost along with the\n"
-"\t\trest of the resource."
-msgstr ""
-"\n"
-"\t\tDelete resources by resource spec.\n"
-"\n"
-"\t\tOnly KCL files are accepted. Only one type of arguments may be specified: filenames,\n"
-"\t\tresources and names, or resources and label selector.\n"
-"\n"
-"\t\tNote that the destroy command does NOT do resource version checks, so if someone submits an\n"
-"\t\tupdate to a resource right when you submit a destroy, their update will be lost along with the\n"
-"\t\trest of the resource."
-
-#: pkg/kusionctl/cmd/destroy/destroy.go:68
-msgid ""
-"\n"
-"\t\t# Delete the configuration in pod.k\n"
-"\t\tkusion destroy -f ./pod.k"
-msgstr ""
-"\n"
-"\t\t# Delete the configuration in pod.k\n"
-"\t\tkusion destroy -f ./pod.k"
-
-#: pkg/kusionctl/cmd/destroy/destroy.go:155
-msgid "Specify the arguments for compile KCL"
-msgstr "Specify the arguments for compile KCL"
-
-#: pkg/kusionctl/cmd/diff/diff.go:30
-msgid "Compare differences between input files <from> and <to>"
-msgstr "Compare differences between input files <from> and <to>"
-
-#: pkg/kusionctl/cmd/diff/diff.go:32
-msgid ""
-"\n"
-"\t\tCompare files differences and display the delta.\n"
-"\t\tSupport input file types are: YAML (http://yaml.org/) and JSON (http://json.org/)."
-msgstr ""
-"\n"
-"\t\tCompare files differences and display the delta.\n"
-"\t\tSupport input file types are: YAML (http://yaml.org/) and JSON (http://json.org/)."
-
-#: pkg/kusionctl/cmd/diff/diff.go:36
-msgid ""
-"\n"
-"\t\t# The comparison object comes from the files\n"
-"\t\tkusion diff pod-1.yaml pod-2.yaml\n"
-"\t\tkusion diff pod-1.yaml pod-2.yaml --swap=true\n"
-"\n"
-"\t\t# The comparison object comes from the stdin\n"
-"\t\tcat pod-1.yaml > pod-full.yaml\n"
-"\t\techo '---' >> pod-full.yaml\n"
-"\t\tcat pod-2.yaml >> pod-full.yaml\n"
-"\t\tcat pod-full.yaml | kusion diff -"
-msgstr ""
-"\n"
-"\t\t# The comparison object comes from the files\n"
-"\t\tkusion diff pod-1.yaml pod-2.yaml\n"
-"\t\tkusion diff pod-1.yaml pod-2.yaml --swap=true\n"
-"\n"
-"\t\t# The comparison object comes from the stdin\n"
-"\t\tcat pod-1.yaml > pod-full.yaml\n"
-"\t\techo '---' >> pod-full.yaml\n"
-"\t\tcat pod-2.yaml >> pod-full.yaml\n"
-"\t\tcat pod-full.yaml | kusion diff -"
-
-#: pkg/kusionctl/cmd/diff/diff.go:77
-msgid "Swap <from> and <to> for comparison. Note that it is invalid when <from> is stdin. The default is false"
-msgstr "Swap <from> and <to> for comparison. Note that it is invalid when <from> is stdin. The default is false"
-
-#: pkg/kusionctl/cmd/diff/diff.go:79
-msgid "Diff mode. One of normal and ignore-added. The default is normal"
-msgstr "Diff mode. One of normal and ignore-added. The default is normal"
-
-#: pkg/kusionctl/cmd/diff/diff.go:81
-msgid "Specify the output style. One of human and raw. The default is human"
-msgstr "Specify the output style. One of human and raw. The default is human"
-
-#: pkg/kusionctl/cmd/diff/diff.go:83
-msgid "Ignore order changes in lists. The default is false"
-msgstr "Ignore order changes in lists. The default is false"
-
-#: pkg/kusionctl/cmd/diff/diff.go:85
-msgid "Omit the dyff summary header. The default is false"
-msgstr "Omit the dyff summary header. The default is false"
-
-#: pkg/kusionctl/cmd/diff/diff.go:87
-msgid "Sort from and to by kubernetes resource order(non standard behavior). The default is false"
-msgstr "Sort from and to by kubernetes resource order(non standard behavior). The default is false"
-
-#: pkg/kusionctl/cmd/env/env.go:12
-msgid "Print Kusion environment information"
-msgstr "Print Kusion environment information"
-
-#: pkg/kusionctl/cmd/env/env.go:14
-msgid ""
-"\n"
-"Env prints Kusion environment information.\n"
-"\n"
-"By default env prints information as a shell script\n"
-"(on Windows, a batch file). If one or more variable\n"
-"names is given as arguments, env prints the value of\n"
-"each named variable on its own line.\n"
-"\n"
-"The --json flag prints the environment in JSON format\n"
-"instead of as a shell script.\n"
-"\n"
-"For more about environment variables, see 'kusion env -h'."
-msgstr ""
-"\n"
-"Env prints Kusion environment information.\n"
-"\n"
-"By default env prints information as a shell script\n"
-"(on Windows, a batch file). If one or more variable\n"
-"names is given as arguments, env prints the value of\n"
-"each named variable on its own line.\n"
-"\n"
-"The --json flag prints the environment in JSON format\n"
-"instead of as a shell script.\n"
-"\n"
-"For more about environment variables, see 'kusion env -h'."
-
-#: pkg/kusionctl/cmd/env/env.go:27
-msgid ""
-"\n"
-"\t\t# Print Kusion environment information\n"
-"\t\tkusion env\n"
-"\n"
-"\t\t# Print Kusion environment information as JSON format\n"
-"\t\tkusion env --json"
-msgstr ""
-"\n"
-"\t\t# Print Kusion environment information\n"
-"\t\tkusion env\n"
-"\n"
-"\t\t# Print Kusion environment information as JSON format\n"
-"\t\tkusion env --json"
-
-#: pkg/kusionctl/cmd/env/env.go:54
-msgid "print the environment in JSON format"
-msgstr "print the environment in JSON format"
-
-#: pkg/kusionctl/cmd/init/init.go:25
-msgid "Initialize KCL file structure and base codes for a new project"
-msgstr "Initialize KCL file structure and base codes for a new project"
-
-#: pkg/kusionctl/cmd/init/init.go:27
-msgid ""
-"\n"
-"\t\tkusion init command helps you to generate an scaffolding KCL project.\n"
+"\t\tKusion init command helps you to generate a scaffolding KCL project.\n"
 "\t\tTry \"kusion init\" to simply get a demo project."
 msgstr ""
 "\n"
 "\t\tkusion init command helps you to generate an scaffolding KCL project.\n"
 "\t\tTry \"kusion init\" to simply get a demo project."
 
-#: pkg/kusionctl/cmd/init/init.go:31
-msgid ""
-"\n"
-"\t\t# Initialize a new KCL project from internal templates\n"
-"\t\tkusion init\n"
-"\n"
-"\t\t# Initialize a new KCL project from external default templates location\n"
-"\t\tkusion init --online=true\n"
-"\n"
-"\t\t# Initialize a new KCL project from specific templates location\n"
-"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
-"\n"
-"\t\t# Initialize a new KCL project from local directory\n"
-"\t\tkusion init /path/to/templates"
-msgstr ""
-"\n"
-"\t\t# Initialize a new KCL project from internal templates\n"
-"\t\tkusion init\n"
-"\n"
-"\t\t# Initialize a new KCL project from external default templates location\n"
-"\t\tkusion init --online=true\n"
-"\n"
-"\t\t# Initialize a new KCL project from specific templates location\n"
-"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
-"\n"
-"\t\t# Initialize a new KCL project from local directory\n"
-"\t\tkusion init /path/to/templates"
-
-#: pkg/kusionctl/cmd/init/init.go:51
-msgid "The project name; if not specified, a prompt will request it"
-msgstr "The project name; if not specified, a prompt will request it"
-
-#: pkg/kusionctl/cmd/init/init.go:54
-msgid "Forces content to be generated even if it would change existing files"
-msgstr "Forces content to be generated even if it would change existing files"
-
-#: pkg/kusionctl/cmd/init/init.go:57
+#: pkg/cmd/init/init.go:60
 msgid "Use locally cached templates without making any network requests"
 msgstr "Use locally cached templates without making any network requests"
 
-#: pkg/kusionctl/cmd/init/init.go:60
-msgid "Skip prompts and proceed with default values"
-msgstr "Skip prompts and proceed with default values"
-
-#: pkg/kusionctl/cmd/ls/ls.go:12
+#: pkg/cmd/ls/ls.go:12
 msgid "List all project and stack information"
 msgstr "List all project and stack information"
 
-#: pkg/kusionctl/cmd/ls/ls.go:14
+#: pkg/cmd/deps/deps.go:12
+msgid "Show KCL file dependency information"
+msgstr ""
+
+#: pkg/cmd/init/init.go:74
+msgid "List Templates used to initialize a new project"
+msgstr ""
+
+#: pkg/cmd/version/version.go:14
+#, fuzzy
 msgid ""
 "\n"
-"\t\tList all project and stack information in the current directory or the\n"
-"\t\tspecify directory.\n"
-"\t\tThe default output is in a human friendly format, and it also supports\n"
-"\t\ta variety of formatted structure output."
-msgstr ""
-"\n"
-"\t\tList all project and stack information in the current directory or the\n"
-"\t\tspecify directory.\n"
-"\t\tThe default output is in a human friendly format, and it also supports\n"
-"\t\ta variety of formatted structure output."
+"    Print the kusion version information for the current context."
+msgstr "Print the kusion version information for the current context."
 
-#: pkg/kusionctl/cmd/ls/ls.go:20
+#: pkg/cmd/version/version.go:44
+#, fuzzy
+msgid "Print version info as versionShort string"
+msgstr "print version info as versionShort string"
+
+#: pkg/cmd/deps/deps.go:53
+msgid ""
+"Paths to focus on to inspect. It cannot be empty and each path needs to be a "
+"valid relative path from the workdir"
+msgstr ""
+
+#: pkg/cmd/compile/compile.go:21
 msgid ""
 "\n"
-"\t\t# List all project and stack information in the current directory\n"
-"\t\tkusion ls\n"
+"\t\t# Compile configuration in main.k into YAML format\n"
+"\t\tkusion compile main.k\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory\n"
-"\t\tkusion ls ./path/to/project_dir\n"
+"\t\t# Compile main.k with arguments\n"
+"\t\tkusion compile main.k -D name=test -D age=18\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a Tree format\n"
-"\t\tkusion ls ./path/to/project_dir --format=tree\n"
+"\t\t# Compile main.k with arguments from settings.yaml\n"
+"\t\tkusion compile main.k -Y settings.yaml\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a JSON format\n"
-"\t\tkusion ls ./path/to/project_dir --format=json\n"
+"\t\t# Compile main.k with work directory\n"
+"\t\tkusion compile main.k -w appops/demo/dev\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a YAML format\n"
-"\t\tkusion ls ./path/to/project_dir --format=yaml\n"
+"\t\t# Compile with override\n"
+"\t\tkusion compile -O __main__:appConfiguration.image=nginx:latest -a\n"
 "\n"
-"\t\t# List all project and stack by level, and output in a Tree format\n"
-"\t\tkusion ls ./path/to/project_dir --format=tree --level=1"
+"\t\t# Compile main.k and write result into output.yaml\n"
+"\t\tkusion compile main.k -o output.yaml"
 msgstr ""
 "\n"
-"\t\t# List all project and stack information in the current directory\n"
-"\t\tkusion ls\n"
+"\t\t# Compile configuration in main.k into YAML format\n"
+"\t\tkusion compile main.k\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory\n"
-"\t\tkusion ls ./path/to/project_dir\n"
+"\t\t# Compile main.k with arguments\n"
+"\t\tkusion compile main.k -D name=test -D age=18\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a Tree format\n"
-"\t\tkusion ls ./path/to/project_dir --format=tree\n"
+"\t\t# Compile main.k with arguments from settings.yaml\n"
+"\t\tkusion compile main.k -Y settings.yaml\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a JSON format\n"
-"\t\tkusion ls ./path/to/project_dir --format=json\n"
+"\t\t# Compile main.k with work directory\n"
+"\t\tkusion compile main.k -w appops/demo/dev\n"
 "\n"
-"\t\t# List all project and stack information in the specify directory,\n"
-"\t\t# and output in a YAML format\n"
-"\t\tkusion ls ./path/to/project_dir --format=yaml\n"
+"\t\t# Compile with override\n"
+"\t\tkusion compile -O __main__:appConfiguration.image=nginx:latest -a\n"
 "\n"
-"\t\t# List all project and stack by level, and output in a Tree format\n"
-"\t\tkusion ls ./path/to/project_dir --format=tree --level=1"
+"\t\t# Compile main.k and write result into output.yaml\n"
+"\t\tkusion compile main.k -o output.yaml"
 
-#: pkg/kusionctl/cmd/ls/ls.go:62
-msgid "the output format of the project information. valid values: json, yaml, tree, human"
-msgstr "the output format of the project information. valid values: json, yaml, tree, human"
-
-#: pkg/kusionctl/cmd/ls/ls.go:64
-msgid "max display depth of the project and stack tree. One of 0,1,2"
-msgstr "max display depth of the project and stack tree. One of 0,1,2"
-
-#: pkg/kusionctl/cmd/preview/preview.go:12
-msgid "Preview a series of resource changes within the stack"
-msgstr "Preview a series of resource changes within the stack"
-
-#: pkg/kusionctl/cmd/preview/preview.go:14
+#: pkg/cmd/deps/deps.go:55
 msgid ""
-"\n"
-"\t\tPreview a series of resource changes within the stack.\n"
-"\n"
-"\t\tCreate or update or delete resources according to the KCL files within a stack.\n"
-"\t\tBy default, Kusion will generate an execution plan and present it for your approval before taking any action."
+"Direct is set to \"down\", \"only\" means only the downstream project/stack "
+"list will be output. Valid values: project, stack. Defaults to project"
 msgstr ""
-"\n"
-"\t\tPreview a series of resource changes within the stack.\n"
-"\n"
-"\t\tCreate or update or delete resources according to the KCL files within a stack.\n"
-"\t\tBy default, Kusion will generate an execution plan and present it for your approval before taking any action."
 
-#: pkg/kusionctl/cmd/preview/preview.go:20
+#: pkg/cmd/destroy/destroy.go:48 pkg/cmd/preview/preview.go:60
+msgid "Specify the operator"
+msgstr "Specify the operator"
+
+#: pkg/cmd/init/init.go:66
+msgid ""
+"Custom params in JSON string; if not empty, kusion will skip prompt process "
+"and use it as template default value"
+msgstr ""
+
+#: pkg/cmd/preview/preview.go:20
+#, fuzzy
 msgid ""
 "\n"
 "\t\t# Preview with specifying work directory\n"
@@ -554,7 +147,11 @@ msgid ""
 "\t\tkusion preview -D name=test -D age=18\n"
 "\n"
 "\t\t# Preview with specifying setting file\n"
-"\t\tkusion preview -Y settings.yaml"
+"\t\tkusion preview -Y settings.yaml\n"
+"\n"
+"\t\t# Preview with ignored fields\n"
+"\t\tkusion preview --ignore-fields=\"metadata.generation,metadata."
+"managedFields"
 msgstr ""
 "\n"
 "\t\t# Preview with specifying work directory\n"
@@ -566,19 +163,406 @@ msgstr ""
 "\t\t# Preview with specifying setting file\n"
 "\t\tkusion preview -Y settings.yaml"
 
-#: pkg/kusionctl/cmd/preview/preview.go:51
-msgid "Specify the arguments to preview KCL"
-msgstr "Specify the arguments to preview KCL"
+#: pkg/cmd/preview/preview.go:64
+#, fuzzy
+msgid "Automatically show all plan details, combined use with flag `--detail`"
+msgstr "Automatically show plan details after previewing it"
 
-#: pkg/kusionctl/cmd/version/version.go:12
+#: pkg/cmd/apply/apply.go:22
+msgid ""
+"\n"
+"\t\t# Apply with specifying work directory\n"
+"\t\tkusion apply -w /path/to/workdir\n"
+"\n"
+"\t\t# Apply with specifying arguments\n"
+"\t\tkusion apply -D name=test -D age=18\n"
+"\n"
+"\t\t# Apply with specifying setting file\n"
+"\t\tkusion apply -Y settings.yaml\n"
+"\n"
+"\t\t# Skip interactive approval of plan details before applying\n"
+"\t\tkusion apply --yes"
+msgstr ""
+"\n"
+"\t\t# Apply with specifying work directory\n"
+"\t\tkusion apply -w /path/to/workdir\n"
+"\n"
+"\t\t# Apply with specifying arguments\n"
+"\t\tkusion apply -D name=test -D age=18\n"
+"\n"
+"\t\t# Apply with specifying setting file\n"
+"\t\tkusion apply -Y settings.yaml\n"
+"\n"
+"\t\t# Skip interactive approval of plan details before applying\n"
+"\t\tkusion apply --yes"
+
+#: pkg/cmd/compile/compile.go:72
+msgid "Specify the work directory"
+msgstr "Specify the work directory"
+
+#: pkg/cmd/compile/compile.go:74
+msgid "Specify the command line setting files"
+msgstr "Specify the command line setting files"
+
+#: pkg/cmd/diff/diff.go:74
+msgid "Specify the output style. One of human and raw. The default is human"
+msgstr "Specify the output style. One of human and raw. The default is human"
+
+#: pkg/cmd/preview/preview.go:68
+msgid "Ignore differences of target fields"
+msgstr ""
+
+#: pkg/cmd/version/version.go:12
 msgid "Print the kusion version info"
 msgstr "Print the kusion version info"
 
-#: pkg/kusionctl/cmd/version/version.go:14
-msgid "Print the kusion version information for the current context."
-msgstr "Print the kusion version information for the current context."
+#: pkg/cmd/check/check.go:56 pkg/cmd/compile/compile.go:65
+msgid "Specify the override option"
+msgstr "Specify the override option"
 
-#: pkg/kusionctl/cmd/version/version.go:16
+#: pkg/cmd/apply/apply.go:14
+#, fuzzy
+msgid ""
+"\n"
+"\t\tApply a series of resource changes within the stack.\n"
+"\n"
+"\t\tCreate or update or delete resources according to the KCL files within a "
+"stack.\n"
+"\t\tBy default, Kusion will generate an execution plan and present it for "
+"your approval before taking any action.\n"
+"\n"
+"\t\tYou can check the plan details and then decide if the actions should be "
+"taken or aborted."
+msgstr ""
+"\t\tApply a series of resource changes within the stack.\n"
+"\n"
+"\t\tCreate or update or delete resources according to the KCL files within a "
+"stack.\n"
+"\t\tBy default, Kusion will generate an execution plan and present it for "
+"your approval before taking any action.\n"
+"\n"
+"\t\tYou can check the plan details and then decide if the actions should be "
+"taken or aborted."
+
+#: pkg/cmd/compile/compile.go:61
+msgid "Specify the output file"
+msgstr "Specify the output file"
+
+#: pkg/cmd/init/init.go:111
+msgid ""
+"The output format, only support json if specified; if not specified, print "
+"template name and description"
+msgstr ""
+
+#: pkg/cmd/preview/preview.go:62
+#, fuzzy
+msgid "Automatically show plan details with interactive options"
+msgstr "Automatically show plan details after previewing it"
+
+#: pkg/cmd/apply/apply.go:12
+msgid "Apply a configuration stack to resource(s) by work directory"
+msgstr "Apply a configuration stack to resource(s) by work directory"
+
+#: pkg/cmd/compile/compile.go:12
+msgid "Compile KCL into YAML"
+msgstr "Compile KCL into YAML"
+
+#: pkg/cmd/destroy/destroy.go:14
+msgid ""
+"\n"
+"\t\tDelete resources by resource spec.\n"
+"\n"
+"\t\tOnly KCL files are accepted. Only one type of arguments may be "
+"specified: filenames,\n"
+"\t\tresources and names, or resources and label selector.\n"
+"\n"
+"\t\tNote that the destroy command does NOT do resource version checks, so if "
+"someone submits an\n"
+"\t\tupdate to a resource right when you submit a destroy, their update will "
+"be lost along with the\n"
+"\t\trest of the resource."
+msgstr ""
+"\n"
+"\t\tDelete resources by resource spec.\n"
+"\n"
+"\t\tOnly KCL files are accepted. Only one type of arguments may be "
+"specified: filenames,\n"
+"\t\tresources and names, or resources and label selector.\n"
+"\n"
+"\t\tNote that the destroy command does NOT do resource version checks, so if "
+"someone submits an\n"
+"\t\tupdate to a resource right when you submit a destroy, their update will "
+"be lost along with the\n"
+"\t\trest of the resource."
+
+#: pkg/cmd/init/init.go:51
+#, fuzzy
+msgid "The template name; if not specified, a prompt will request it"
+msgstr "The project name; if not specified, a prompt will request it"
+
+#: pkg/cmd/init/init.go:54
+msgid "The project name; if not specified, a prompt will request it"
+msgstr "The project name; if not specified, a prompt will request it"
+
+#: pkg/cmd/cmd.go:58
+#, fuzzy
+msgid "Kusion manages the Kubernetes cluster by code"
+msgstr "kusion manages the Kubernetes cluster by code"
+
+#: pkg/cmd/env/env.go:12
+msgid "Print Kusion environment information"
+msgstr "Print Kusion environment information"
+
+#: pkg/cmd/check/check.go:54 pkg/cmd/compile/compile.go:63
+msgid "Disable dumping None values"
+msgstr "Disable dumping None values"
+
+#: pkg/cmd/env/env.go:14
+#, fuzzy
+msgid ""
+"\n"
+"    Env prints Kusion environment information.\n"
+"\n"
+"    By default env prints information as a shell script (on Windows, a batch "
+"file). If one\n"
+"    or more variable names is given as arguments, env prints the value of "
+"each named variable\n"
+"    on its own line.\n"
+"\n"
+"    The --json flag prints the environment in JSON format instead of as a "
+"shell script.\n"
+"\n"
+"    For more about environment variables, see \"kusion env -h\"."
+msgstr ""
+"\n"
+"Env prints Kusion environment information.\n"
+"\n"
+"By default env prints information as a shell script\n"
+"(on Windows, a batch file). If one or more variable\n"
+"names is given as arguments, env prints the value of\n"
+"each named variable on its own line.\n"
+"\n"
+"The --json flag prints the environment in JSON format\n"
+"instead of as a shell script.\n"
+"\n"
+"For more about environment variables, see 'kusion env -h'."
+
+#: pkg/cmd/env/env.go:25
+msgid ""
+"\n"
+"\t\t# Print Kusion environment information\n"
+"\t\tkusion env\n"
+"\n"
+"\t\t# Print Kusion environment information as JSON format\n"
+"\t\tkusion env --json"
+msgstr ""
+"\n"
+"\t\t# Print Kusion environment information\n"
+"\t\tkusion env\n"
+"\n"
+"\t\t# Print Kusion environment information as JSON format\n"
+"\t\tkusion env --json"
+
+#: pkg/cmd/diff/diff.go:29
+msgid ""
+"\n"
+"\t\t# The comparison object comes from the files\n"
+"\t\tkusion diff pod-1.yaml pod-2.yaml\n"
+"\t\tkusion diff pod-1.yaml pod-2.yaml --swap=true\n"
+"\n"
+"\t\t# The comparison object comes from the stdin\n"
+"\t\tcat pod-1.yaml > pod-full.yaml\n"
+"\t\techo '---' >> pod-full.yaml\n"
+"\t\tcat pod-2.yaml >> pod-full.yaml\n"
+"\t\tcat pod-full.yaml | kusion diff -"
+msgstr ""
+"\n"
+"\t\t# The comparison object comes from the files\n"
+"\t\tkusion diff pod-1.yaml pod-2.yaml\n"
+"\t\tkusion diff pod-1.yaml pod-2.yaml --swap=true\n"
+"\n"
+"\t\t# The comparison object comes from the stdin\n"
+"\t\tcat pod-1.yaml > pod-full.yaml\n"
+"\t\techo '---' >> pod-full.yaml\n"
+"\t\tcat pod-2.yaml >> pod-full.yaml\n"
+"\t\tcat pod-full.yaml | kusion diff -"
+
+#: pkg/cmd/deps/deps.go:51
+#, fuzzy
+msgid ""
+"Inspect direct of the dependency information. Valid values: up, down. "
+"Defaults to up"
+msgstr ""
+"the output format of the project information. valid values: json, yaml, "
+"tree, human"
+
+#: pkg/cmd/destroy/destroy.go:52
+msgid "Automatically show plan details after previewing it"
+msgstr "Automatically show plan details after previewing it"
+
+#: pkg/cmd/diff/diff.go:23
+msgid "Compare differences between input files <from> and <to>"
+msgstr "Compare differences between input files <from> and <to>"
+
+#: pkg/cmd/diff/diff.go:25
+msgid ""
+"\n"
+"\t\tCompare files differences and display the delta.\n"
+"\t\tSupport input file types are: YAML (http://yaml.org/) and JSON (http://"
+"json.org/)."
+msgstr ""
+"\n"
+"\t\tCompare files differences and display the delta.\n"
+"\t\tSupport input file types are: YAML (http://yaml.org/) and JSON (http://"
+"json.org/)."
+
+#: pkg/cmd/diff/diff.go:78
+msgid "Omit the dyff summary header. The default is false"
+msgstr "Omit the dyff summary header. The default is false"
+
+#: pkg/cmd/init/init.go:18
+msgid ""
+"\n"
+"\t\t# Initialize a new KCL project from internal templates\n"
+"\t\tkusion init\n"
+"\n"
+"\t\t# Initialize a new KCL project from external default templates location\n"
+"\t\tkusion init --online=true\n"
+"\n"
+"\t\t# Initialize a new KCL project from specific templates location\n"
+"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
+"\n"
+"\t\t# Initialize a new KCL project from local directory\n"
+"\t\tkusion init /path/to/templates"
+msgstr ""
+"\n"
+"\t\t# Initialize a new KCL project from internal templates\n"
+"\t\tkusion init\n"
+"\n"
+"\t\t# Initialize a new KCL project from external default templates location\n"
+"\t\tkusion init --online=true\n"
+"\n"
+"\t\t# Initialize a new KCL project from specific templates location\n"
+"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
+"\n"
+"\t\t# Initialize a new KCL project from local directory\n"
+"\t\tkusion init /path/to/templates"
+
+#: pkg/cmd/init/init.go:63
+msgid "Skip prompts and proceed with default values"
+msgstr "Skip prompts and proceed with default values"
+
+#: pkg/cmd/compile/compile.go:76
+msgid "Specify the top-level argument"
+msgstr "Specify the top-level argument"
+
+#: pkg/cmd/ls/ls.go:20
+msgid ""
+"\n"
+"\t\t# List all project and stack information in the current directory\n"
+"\t\tkusion ls\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory\n"
+"\t\tkusion ls ./path/to/project_dir\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a Tree format\n"
+"\t\tkusion ls ./path/to/project_dir --format=tree\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a JSON format\n"
+"\t\tkusion ls ./path/to/project_dir --format=json\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a YAML format\n"
+"\t\tkusion ls ./path/to/project_dir --format=yaml\n"
+"\n"
+"\t\t# List all project and stack by level, and output in a Tree format\n"
+"\t\tkusion ls ./path/to/project_dir --format=tree --level=1"
+msgstr ""
+"\n"
+"\t\t# List all project and stack information in the current directory\n"
+"\t\tkusion ls\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory\n"
+"\t\tkusion ls ./path/to/project_dir\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a Tree format\n"
+"\t\tkusion ls ./path/to/project_dir --format=tree\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a JSON format\n"
+"\t\tkusion ls ./path/to/project_dir --format=json\n"
+"\n"
+"\t\t# List all project and stack information in the specify directory,\n"
+"\t\t# and output in a YAML format\n"
+"\t\tkusion ls ./path/to/project_dir --format=yaml\n"
+"\n"
+"\t\t# List all project and stack by level, and output in a Tree format\n"
+"\t\tkusion ls ./path/to/project_dir --format=tree --level=1"
+
+#: pkg/cmd/check/check.go:18
+msgid ""
+"\n"
+"\t\t# Check configuration in main.k\n"
+"\t\tkusion check main.k\n"
+"\n"
+"\t\t# Check main.k with arguments\n"
+"\t\tkusion check main.k -D name=test -D age=18\n"
+"\n"
+"\t\t# Check main.k with arguments from settings.yaml\n"
+"\t\tkusion check main.k -Y settings.yaml\n"
+"\n"
+"\t\t# Check main.k with work directory\n"
+"\t\tkusion check main.k -w appops/demo/dev"
+msgstr ""
+"\n"
+"\t\t# Check configuration in main.k\n"
+"\t\tkusion check main.k\n"
+"\n"
+"\t\t# Check main.k with arguments\n"
+"\t\tkusion check main.k -D name=test -D age=18\n"
+"\n"
+"\t\t# Check main.k with arguments from settings.yaml\n"
+"\t\tkusion check main.k -Y settings.yaml\n"
+"\n"
+"\t\t# Check main.k with work directory\n"
+"\t\tkusion check main.k -w appops/demo/dev"
+
+#: pkg/cmd/compile/compile.go:78
+msgid "Specify the configuration override path and value"
+msgstr "Specify the configuration override path and value"
+
+#: pkg/cmd/init/init.go:80
+msgid ""
+"\n"
+"\t\t# Get name and description of internal templates\n"
+"\t\tkusion init templates\n"
+"\n"
+"\t\t# Get templates from specific templates location\n"
+"\t\tkusion init templates https://github.com/<user>/<repo> --online=true"
+msgstr ""
+
+#: pkg/cmd/preview/preview.go:12
+msgid "Preview a series of resource changes within the stack"
+msgstr "Preview a series of resource changes within the stack"
+
+#: pkg/cmd/apply/apply.go:60
+#, fuzzy
+msgid ""
+"Preview the execution effect (always successful) without actually applying "
+"the changes"
+msgstr ""
+"dry-run to preview the execution effect (always successful) without actually "
+"applying the changes"
+
+#: pkg/cmd/diff/diff.go:72
+#, fuzzy
+msgid "Diff mode. One of noemal and . The default is normal ignore-added"
+msgstr "Diff mode. One of normal and ignore-added. The default is normal"
+
+#: pkg/cmd/version/version.go:17
 msgid ""
 "\n"
 "\t\t# Print the kusion version\n"
@@ -588,14 +572,217 @@ msgstr ""
 "\t\t# Print the kusion version\n"
 "\t\tkusion version"
 
-#: pkg/kusionctl/cmd/version/version.go:39
-msgid "print version info as JSON"
-msgstr "print version info as JSON"
+#: pkg/cmd/apply/apply.go:58 pkg/cmd/destroy/destroy.go:50
+msgid "Automatically approve and perform the update after previewing it"
+msgstr "Automatically approve and perform the update after previewing it"
 
-#: pkg/kusionctl/cmd/version/version.go:41
-msgid "print version info as YAML"
+#: pkg/cmd/env/env.go:50
+#, fuzzy
+msgid "Print the environment in JSON format"
+msgstr "print the environment in JSON format"
+
+#: pkg/cmd/init/init.go:12
+msgid "Initialize KCL file structure and base codes for a new project"
+msgstr "Initialize KCL file structure and base codes for a new project"
+
+#: pkg/cmd/init/init.go:57
+msgid "Forces content to be generated even if it would change existing files"
+msgstr "Forces content to be generated even if it would change existing files"
+
+#: pkg/cmd/preview/preview.go:70
+#, fuzzy
+msgid "Specify the output format"
+msgstr "Specify the output file"
+
+#: pkg/cmd/check/check.go:15
+msgid ""
+"\n"
+"\t\tCheck if KCL configurations in current directory ok to compile."
+msgstr ""
+"\n"
+"\t\tCheck if KCL configurations in current directory ok to compile."
+
+#: pkg/cmd/init/init.go:76
+msgid ""
+"\n"
+"\t\tKusion init templates command helps you get the templates which are "
+"used\n"
+"    to generate a scaffolding KCL project."
+msgstr ""
+
+#: pkg/cmd/ls/ls.go:14
+msgid ""
+"\n"
+"\t\tList all project and stack information in the current directory or the\n"
+"\t\tspecify directory.\n"
+"\t\tThe default output is in a human friendly format, and it also supports\n"
+"\t\ta variety of formatted structure output."
+msgstr ""
+"\n"
+"\t\tList all project and stack information in the current directory or the\n"
+"\t\tspecify directory.\n"
+"\t\tThe default output is in a human friendly format, and it also supports\n"
+"\t\ta variety of formatted structure output."
+
+#: pkg/cmd/ls/ls.go:62
+#, fuzzy
+msgid ""
+"Output format of the project information. valid values: json, yaml, tree, "
+"human"
+msgstr ""
+"the output format of the project information. valid values: json, yaml, "
+"tree, human"
+
+#: pkg/cmd/version/version.go:42
+#, fuzzy
+msgid "Print version info as YAML"
 msgstr "print version info as YAML"
 
-#: pkg/kusionctl/cmd/version/version.go:43
-msgid "print version info as versionShort string"
-msgstr "print version info as versionShort string"
+#: pkg/cmd/check/check.go:13
+msgid "Check if KCL configurations in current directory ok to compile"
+msgstr "Check if KCL configurations in current directory ok to compile"
+
+#: pkg/cmd/deps/deps.go:18
+msgid ""
+"\n"
+"\t\t# List all the KCL files that are dependent by the given focus paths\n"
+"        kusion deps --focus path/to/focus1 --focus path/to/focus2\n"
+"\n"
+"\t\t# List all the projects that depend on the given focus paths\n"
+"\t\tkusion deps --direct down --focus path/to/focus1 --focus path/to/focus2\n"
+"\n"
+"\t\t# List all the stacks that depend on the given focus paths\n"
+"\t\tkusion deps --direct down --focus path/to/focus1 --focus path/to/focus2 "
+"--only stack\n"
+"\n"
+"\t\t# List all the projects that depend on the given focus paths, ignoring "
+"some paths from entrance files in each stack\n"
+"\t\tkusion deps --direct down --focus path/to/focus1 --focus path/to/focus2 "
+"--ignore path/to/ignore"
+msgstr ""
+
+#: pkg/cmd/destroy/destroy.go:24
+#, fuzzy
+msgid ""
+"\n"
+"\t\t# Delete the configuration of current stack\n"
+"\t\tkusion destroy"
+msgstr ""
+"\n"
+"\t\t# Delete the configuration in pod.k\n"
+"\t\tkusion destroy -f ./pod.k"
+
+#: pkg/cmd/apply/apply.go:62
+msgid ""
+"After creating/updating/deleting the requested object, watch for changes"
+msgstr ""
+
+#: pkg/cmd/deps/deps.go:57
+msgid ""
+"File paths to ignore when filtering the affected stacks/projects. Each path "
+"needs to be a valid relative path from the workdir. If not set, no paths "
+"will be ignored."
+msgstr ""
+
+#: pkg/cmd/destroy/destroy.go:12
+msgid "Destroy a configuration stack to resource(s) by work directory"
+msgstr "Destroy a configuration stack to resource(s) by work directory"
+
+#: pkg/cmd/diff/diff.go:76
+msgid "Ignore order changes in lists. The default is false"
+msgstr "Ignore order changes in lists. The default is false"
+
+#: pkg/cmd/diff/diff.go:80
+msgid ""
+"Sort from and to by kubernetes resource order(non standard behavior). The "
+"default is false"
+msgstr ""
+"Sort from and to by kubernetes resource order(non standard behavior). The "
+"default is false"
+
+#: pkg/cmd/preview/preview.go:14
+#, fuzzy
+msgid ""
+"\n"
+"\t\tPreview a series of resource changes within the stack.\n"
+"\n"
+"\t\tCreate or update or delete resources according to the KCL files within a "
+"stack. By default,\n"
+"    Kusion will generate an execution plan and present it for your approval "
+"before taking any action."
+msgstr ""
+"\n"
+"\t\tPreview a series of resource changes within the stack.\n"
+"\n"
+"\t\tCreate or update or delete resources according to the KCL files within a "
+"stack.\n"
+"\t\tBy default, Kusion will generate an execution plan and present it for "
+"your approval before taking any action."
+
+#: pkg/cmd/preview/preview.go:66
+msgid "no-style sets to RawOutput mode and disables all of styling"
+msgstr "no-style sets to RawOutput mode and disables all of styling"
+
+#: pkg/cmd/version/version.go:40
+#, fuzzy
+msgid "Print version info as JSON"
+msgstr "print version info as JSON"
+
+#: pkg/cmd/compile/compile.go:14
+msgid ""
+"\n"
+"\t\tCompile one or more KCL files.\n"
+"\n"
+"\t\tThe KCL filename must be specified.\n"
+"\t\tYou can specify a list of arguments to replace the placeholders defined "
+"in KCL,\n"
+"\t\tand output the compiled results to a file when using --output flag."
+msgstr ""
+"\n"
+"\t\tCompile one or more KCL files.\n"
+"\n"
+"\t\tThe KCL filename must be specified.\n"
+"\t\tYou can specify a list of arguments to replace the placeholders defined "
+"in KCL,\n"
+"\t\tand output the compiled results to a file when using --output flag."
+
+#: pkg/cmd/ls/ls.go:64
+#, fuzzy
+msgid "Max display depth of the project and stack tree. One of 0,1,2"
+msgstr "max display depth of the project and stack tree. One of 0,1,2"
+
+#: pkg/cmd/cmd.go:60
+#, fuzzy
+msgid ""
+"\n"
+"    Kusion is a cloud-native programmable technology stack, which manages "
+"the Kubernetes cluster by code."
+msgstr ""
+"kusion is a cloud-native programmable technology stack, which manages the "
+"Kubernetes cluster by code."
+
+#~ msgid ""
+#~ "Name of profile to capture. One of (none|cpu|heap|goroutine|threadcreate|"
+#~ "block|mutex)"
+#~ msgstr ""
+#~ "Name of profile to capture. One of (none|cpu|heap|goroutine|threadcreate|"
+#~ "block|mutex)"
+
+#~ msgid "Filename to write the profile"
+#~ msgstr "Filename to write the profile"
+
+#~ msgid ""
+#~ "Set kusion develop log level, default is INFO, all options: DEBUG, INFO, "
+#~ "ERROR, WARN, FATAL"
+#~ msgstr ""
+#~ "Set kusion develop log level, default is INFO, all options: DEBUG, INFO, "
+#~ "ERROR, WARN, FATAL"
+
+#~ msgid "Specify the arguments to apply KCL"
+#~ msgstr "Specify the arguments to apply KCL"
+
+#~ msgid "Specify the arguments for compile KCL"
+#~ msgstr "Specify the arguments for compile KCL"
+
+#~ msgid "Specify the arguments to preview KCL"
+#~ msgstr "Specify the arguments to preview KCL"

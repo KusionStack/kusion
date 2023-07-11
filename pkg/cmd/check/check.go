@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	checkShort = "Check if KCL configurations in current directory ok to compile"
+	checkShort = i18n.T(`Check if KCL configurations in current directory ok to compile`)
 
-	checkLong = `
-		Check if KCL configurations in current directory ok to compile.`
+	checkLong = i18n.T(`
+		Check if KCL configurations in current directory ok to compile.`)
 
-	checkExample = `
+	checkExample = i18n.T(`
 		# Check configuration in main.k
 		kusion check main.k
 
@@ -26,7 +26,7 @@ var (
 		kusion check main.k -Y settings.yaml
 
 		# Check main.k with work directory
-		kusion check main.k -w appops/demo/dev`
+		kusion check main.k -w appops/demo/dev`)
 )
 
 func NewCmdCheck() *cobra.Command {
@@ -35,9 +35,9 @@ func NewCmdCheck() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "check",
-		Short:   i18n.T(checkShort),
-		Long:    templates.LongDesc(i18n.T(checkLong)),
-		Example: templates.Examples(i18n.T(checkExample)),
+		Short:   checkShort,
+		Long:    templates.LongDesc(checkLong),
+		Example: templates.Examples(checkExample),
 		Aliases: []string{"vl"},
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)

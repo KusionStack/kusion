@@ -9,16 +9,16 @@ import (
 )
 
 var (
-	compileShort = `Compile KCL into YAML`
+	compileShort = i18n.T(`Compile KCL into YAML`)
 
-	compileLong = `
+	compileLong = i18n.T(`
 		Compile one or more KCL files.
 
 		The KCL filename must be specified.
 		You can specify a list of arguments to replace the placeholders defined in KCL,
-		and output the compiled results to a file when using --output flag.`
+		and output the compiled results to a file when using --output flag.`)
 
-	compileExample = `
+	compileExample = i18n.T(`
 		# Compile configuration in main.k into YAML format
 		kusion compile main.k
 
@@ -35,7 +35,7 @@ var (
 		kusion compile -O __main__:appConfiguration.image=nginx:latest -a
 
 		# Compile main.k and write result into output.yaml
-		kusion compile main.k -o output.yaml`
+		kusion compile main.k -o output.yaml`)
 )
 
 func NewCmdCompile() *cobra.Command {
@@ -43,9 +43,9 @@ func NewCmdCompile() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "compile",
-		Short:   i18n.T(compileShort),
-		Long:    templates.LongDesc(i18n.T(compileLong)),
-		Example: templates.Examples(i18n.T(compileExample)),
+		Short:   compileShort,
+		Long:    templates.LongDesc(compileLong),
+		Example: templates.Examples(compileExample),
 		Aliases: []string{"cl"},
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)

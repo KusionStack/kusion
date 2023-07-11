@@ -14,20 +14,19 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 	"sigs.k8s.io/yaml"
 
-	diffutil "kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/third_party/diff"
 	"kusionstack.io/kusion/third_party/dyff"
 )
 
 var (
-	diffShort = "Compare differences between input files <from> and <to>"
+	diffShort = i18n.T(`Compare differences between input files <from> and <to>`)
 
-	diffLong = `
+	diffLong = i18n.T(`
 		Compare files differences and display the delta.
-		Support input file types are: YAML (http://yaml.org/) and JSON (http://json.org/).`
+		Support input file types are: YAML (http://yaml.org/) and JSON (http://json.org/).`)
 
-	diffExample = `
+	diffExample = i18n.T(`
 		# The comparison object comes from the files
 		kusion diff pod-1.yaml pod-2.yaml
 		kusion diff pod-1.yaml pod-2.yaml --swap=true
@@ -36,7 +35,7 @@ var (
 		cat pod-1.yaml > pod-full.yaml
 		echo '---' >> pod-full.yaml
 		cat pod-2.yaml >> pod-full.yaml
-		cat pod-full.yaml | kusion diff -`
+		cat pod-full.yaml | kusion diff -`)
 )
 
 func NewCmdDiff() *cobra.Command {
@@ -44,11 +43,11 @@ func NewCmdDiff() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "diff <from> <to>",
-		Short:   i18n.T(diffShort),
-		Long:    templates.LongDesc(i18n.T(diffLong)),
+		Short:   diffShort,
+		Long:    templates.LongDesc(diffLong),
 		Args:    cobra.RangeArgs(1, 2),
 		Aliases: []string{"df"},
-		Example: templates.Examples(i18n.T(diffExample)),
+		Example: templates.Examples(diffExample),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := o.Complete(args)
 			if err != nil {
@@ -70,9 +69,9 @@ func NewCmdDiff() *cobra.Command {
 	cmd.Flags().BoolVar(&o.swap, "swap", false,
 		i18n.T("Swap <from> and <to> for comparison. Note that it is invalid when <from> is stdin. The default is false"))
 	cmd.Flags().StringVar(&o.diffMode, "diff-mode", "normal",
-		i18n.T(fmt.Sprintf("Diff mode. One of %s and %s. The default is normal", DiffModeNormal, DiffModeIgnoreAdded)))
+		i18n.T("Diff mode. One of noemal and . The default is normal ignore-added"))
 	cmd.Flags().StringVarP(&o.outStyle, "output", "o", "human",
-		i18n.T(fmt.Sprintf("Specify the output style. One of %s and %s. The default is human", diffutil.OutputHuman, diffutil.OutputRaw)))
+		i18n.T("Specify the output style. One of human and raw. The default is human"))
 	cmd.Flags().BoolVarP(&o.ignoreOrderChanges, "ignore-order-changes", "i", false,
 		i18n.T("Ignore order changes in lists. The default is false"))
 	cmd.Flags().BoolVarP(&o.omitHeader, "omit-header", "b", false,

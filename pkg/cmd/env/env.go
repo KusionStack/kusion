@@ -9,27 +9,25 @@ import (
 )
 
 var (
-	envShort = "Print Kusion environment information"
+	envShort = i18n.T(`Print Kusion environment information`)
 
-	envLong = `
-Env prints Kusion environment information.
+	envLong = i18n.T(`
+    Env prints Kusion environment information.
 
-By default env prints information as a shell script
-(on Windows, a batch file). If one or more variable
-names is given as arguments, env prints the value of
-each named variable on its own line.
+    By default env prints information as a shell script (on Windows, a batch file). If one
+    or more variable names is given as arguments, env prints the value of each named variable
+    on its own line.
 
-The --json flag prints the environment in JSON format
-instead of as a shell script.
+    The --json flag prints the environment in JSON format instead of as a shell script.
 
-For more about environment variables, see 'kusion env -h'.`
+    For more about environment variables, see "kusion env -h".`)
 
-	envExample = `
+	envExample = i18n.T(`
 		# Print Kusion environment information
 		kusion env
 
 		# Print Kusion environment information as JSON format
-		kusion env --json`
+		kusion env --json`)
 )
 
 func NewCmdEnv() *cobra.Command {
@@ -37,9 +35,9 @@ func NewCmdEnv() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "env",
-		Short:   i18n.T(envShort),
-		Long:    i18n.T(envLong),
-		Example: templates.Examples(i18n.T(envExample)),
+		Short:   envShort,
+		Long:    templates.LongDesc(envLong),
+		Example: templates.Examples(envExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete()
@@ -49,7 +47,7 @@ func NewCmdEnv() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&o.envJSON, "json", "", false, i18n.T("print the environment in JSON format"))
+	cmd.Flags().BoolVarP(&o.envJSON, "json", "", false, i18n.T("Print the environment in JSON format"))
 
 	return cmd
 }

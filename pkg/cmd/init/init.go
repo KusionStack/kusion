@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	initShort = `Initialize KCL file structure and base codes for a new project`
+	initShort = i18n.T(`Initialize KCL file structure and base codes for a new project`)
 
-	initLong = `
-		kusion init command helps you to generate a scaffolding KCL project.
-		Try "kusion init" to simply get a demo project.`
+	initLong = i18n.T(`
+		Kusion init command helps you to generate a scaffolding KCL project.
+		Try "kusion init" to simply get a demo project.`)
 
-	initExample = `
+	initExample = i18n.T(`
 		# Initialize a new KCL project from internal templates
 		kusion init
 
@@ -26,29 +26,16 @@ var (
 		kusion init https://github.com/<user>/<repo> --online=true
 
 		# Initialize a new KCL project from local directory
-		kusion init /path/to/templates`
-
-	templatesShort = `List Templates used to initialize a new project`
-
-	templatesLong = `
-		kusion init templates command helps you get the templates which are used
-    to generate a scaffolding KCL project.`
-
-	templatesExample = `
-		# Get name and description of internal templates
-		kusion init templates
-
-		# Get templates from specific templates location
-		kusion init templates https://github.com/<user>/<repo> --online=true`
+		kusion init /path/to/templates`)
 )
 
 func NewCmdInit() *cobra.Command {
 	o := NewInitOptions()
 	cmd := &cobra.Command{
 		Use:                   "init",
-		Short:                 i18n.T(initShort),
-		Long:                  templates.LongDesc(i18n.T(initLong)),
-		Example:               templates.Examples(i18n.T(initExample)),
+		Short:                 initShort,
+		Long:                  templates.LongDesc(initLong),
+		Example:               templates.Examples(initExample),
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
@@ -83,13 +70,28 @@ func NewCmdInit() *cobra.Command {
 	return cmd
 }
 
+var (
+	templatesShort = i18n.T(`List Templates used to initialize a new project`)
+
+	templatesLong = i18n.T(`
+		Kusion init templates command helps you get the templates which are used
+    to generate a scaffolding KCL project.`)
+
+	templatesExample = i18n.T(`
+		# Get name and description of internal templates
+		kusion init templates
+
+		# Get templates from specific templates location
+		kusion init templates https://github.com/<user>/<repo> --online=true`)
+)
+
 func newCmdTemplates() *cobra.Command {
 	o := NewTemplatesOptions()
 	cmd := &cobra.Command{
 		Use:                   "templates",
-		Short:                 i18n.T(templatesShort),
-		Long:                  templates.LongDesc(i18n.T(templatesLong)),
-		Example:               templates.Examples(i18n.T(templatesExample)),
+		Short:                 templatesShort,
+		Long:                  templates.LongDesc(templatesLong),
+		Example:               templates.Examples(templatesExample),
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
