@@ -24,7 +24,7 @@ kusion [flags]
 * [kusion deps](kusion_deps.md)	 - Show KCL file dependency information
 * [kusion destroy](kusion_destroy.md)	 - Destroy a configuration stack to resource(s) by work directory
 * [kusion env](kusion_env.md)	 - Print Kusion environment information
-* [kusion init](kusion_init.md)	 - Initialize KCL file structure and base codes for a new project
+* [kusion init](kusion_init.md)	 - 初始化一个 Project 的脚手架
 * [kusion ls](kusion_ls.md)	 - List all project and stack information
 * [kusion preview](kusion_preview.md)	 - Preview a series of resource changes within the stack
 * [kusion version](kusion_version.md)	 - Print the kusion version info
