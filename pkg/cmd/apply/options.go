@@ -200,6 +200,7 @@ func Apply(
 			StateStorage: storage,
 			MsgCh:        make(chan opsmodels.Message),
 			SecretStores: project.SecretStores,
+			IgnoreFields: o.IgnoreFields,
 		},
 	}
 
