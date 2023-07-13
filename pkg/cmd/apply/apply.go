@@ -10,7 +10,7 @@ import (
 
 func NewCmdApply() *cobra.Command {
 	var (
-		applyShort = i18n.T(`Apply a configuration stack to resource(s) by work directory`)
+		applyShort = i18n.T(`Apply the operation intents of various resources to multiple runtime`)
 
 		applyLong = i18n.T(`
 		Apply a series of resource changes within the stack.

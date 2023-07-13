@@ -1,10 +1,10 @@
 ## kusion
 
-Kusion manages the Kubernetes cluster by code
+Kusion is the entry point to use KusionStack
 
 ### Synopsis
 
-Kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code.
+The Kusion command line tool is the entry point for users to use KusionStack. Users can use the Kusion command line tool to complete all operation tasks.
 
 ```
 kusion [flags]
@@ -18,11 +18,11 @@ kusion [flags]
 
 ### SEE ALSO
 
-* [kusion apply](kusion_apply.md)	 - Apply a configuration stack to resource(s) by work directory
+* [kusion apply](kusion_apply.md)	 - Apply the operation intents of various resources to multiple runtime
 * [kusion check](kusion_check.md)	 - Check if KCL configurations in current directory ok to compile
 * [kusion compile](kusion_compile.md)	 - Compile KCL into YAML
 * [kusion deps](kusion_deps.md)	 - Show KCL file dependency information
-* [kusion destroy](kusion_destroy.md)	 - Destroy a configuration stack to resource(s) by work directory
+* [kusion destroy](kusion_destroy.md)	 - Delete the resources of a specified stack in runtime
 * [kusion env](kusion_env.md)	 - Print Kusion environment information
 * [kusion init](kusion_init.md)	 - Initialize the scaffolding for a project
 * [kusion ls](kusion_ls.md)	 - List all project and stack information

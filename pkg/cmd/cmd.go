@@ -62,10 +62,12 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 	updateCheckResult := make(chan string)
 
 	var (
-		rootShort = i18n.T(`Kusion manages the Kubernetes cluster by code`)
+		rootShort = i18n.T(`Kusion is the entry point to use KusionStack`)
 
 		rootLong = i18n.T(`
-		Kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code.`)
+		The Kusion command line tool is the entry point for users to use KusionStack. 
+		Users can use the Kusion command line tool to complete all operation tasks.
+		`)
 	)
 
 	// Parent command to which all subcommands are added.
