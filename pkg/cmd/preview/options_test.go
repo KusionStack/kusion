@@ -117,6 +117,20 @@ func TestPreviewOptions_Run(t *testing.T) {
 		err := o.Run()
 		assert.Nil(t, err)
 	})
+
+	t.Run("no style is true", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+		mockGenerateSpec()
+		mockNewKubernetesRuntime()
+		mockOperationPreview()
+		mockPromptDetail("")
+
+		o := NewPreviewOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Nil(t, err)
+	})
 }
 
 type fooRuntime struct{}

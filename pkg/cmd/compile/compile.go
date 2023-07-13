@@ -63,6 +63,8 @@ func NewCmdCompile() *cobra.Command {
 		i18n.T("Disable dumping None values"))
 	cmd.Flags().BoolVarP(&o.OverrideAST, "override-AST", "a", false,
 		i18n.T("Specify the override option"))
+	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "s", false,
+		i18n.T("Disable the output style and color"))
 
 	return cmd
 }

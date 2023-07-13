@@ -57,7 +57,7 @@ func (o *ApplyOptions) Run() error {
 	// Set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
-		pterm.EnableColor()
+		pterm.DisableColor()
 	}
 
 	// Parse project and stack of work directory
