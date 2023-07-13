@@ -1,11 +1,11 @@
 package spec
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
-	"sigs.k8s.io/kustomize/kyaml/errors"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
@@ -47,8 +47,10 @@ func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project
 			sp.Fail()
 		}
 
+		// TODO: we will replace this implementation with KCL no-style flag
+		// when it is supported
 		if o.NoStyle {
-			return nil, errors.Wrap(stripansi.Strip(err.Error()))
+			return nil, errors.New(stripansi.Strip(err.Error()))
 		}
 
 		return nil, err
