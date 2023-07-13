@@ -8,40 +8,31 @@ import (
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
-var (
-	versionShort = i18n.T(`Print the kusion version info`)
-
-	versionLong = i18n.T(`
-    Print the kusion version information for the current context.`)
-
-	versionExample = i18n.T(`
-		# Print the kusion version
-		kusion version`)
-)
-
 func NewCmdVersion() *cobra.Command {
+	var (
+		versionShort   = i18n.T(`Print the Kusion version information for the current context`)
+		versionExample = i18n.T(`
+		# Print the Kusion version
+		kusion version`)
+	)
+
 	o := NewVersionOptions()
 
 	cmd := &cobra.Command{
 		Use:     "version",
 		Short:   versionShort,
-		Long:    templates.LongDesc(versionLong),
+		Long:    templates.LongDesc(versionShort),
 		Example: templates.Examples(versionExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
-			o.Complete()
 			util.CheckErr(o.Validate())
 			o.Run()
 			return
 		},
 	}
 
-	cmd.Flags().BoolVarP(&o.ExportJSON, "json", "j", false,
-		i18n.T("Print version info as JSON"))
-	cmd.Flags().BoolVarP(&o.ExportYAML, "yaml", "y", false,
-		i18n.T("Print version info as YAML"))
-	cmd.Flags().BoolVarP(&o.Short, "short", "s", false,
-		i18n.T("Print version info as versionShort string"))
+	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
+		i18n.T("Output format. Only json format is supported for now"))
 
 	return cmd
 }
