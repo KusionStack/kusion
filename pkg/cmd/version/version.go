@@ -9,13 +9,14 @@ import (
 )
 
 var (
-	versionShort = "Print the kusion version info"
+	versionShort = i18n.T(`Print the kusion version info`)
 
-	versionLong = "Print the kusion version information for the current context."
+	versionLong = i18n.T(`
+    Print the kusion version information for the current context.`)
 
-	versionExample = `
+	versionExample = i18n.T(`
 		# Print the kusion version
-		kusion version`
+		kusion version`)
 )
 
 func NewCmdVersion() *cobra.Command {
@@ -23,9 +24,9 @@ func NewCmdVersion() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "version",
-		Short:   i18n.T(versionShort),
-		Long:    templates.LongDesc(i18n.T(versionLong)),
-		Example: templates.Examples(i18n.T(versionExample)),
+		Short:   versionShort,
+		Long:    templates.LongDesc(versionLong),
+		Example: templates.Examples(versionExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete()
@@ -36,11 +37,11 @@ func NewCmdVersion() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&o.ExportJSON, "json", "j", false,
-		i18n.T("print version info as JSON"))
+		i18n.T("Print version info as JSON"))
 	cmd.Flags().BoolVarP(&o.ExportYAML, "yaml", "y", false,
-		i18n.T("print version info as YAML"))
+		i18n.T("Print version info as YAML"))
 	cmd.Flags().BoolVarP(&o.Short, "short", "s", false,
-		i18n.T("print version info as versionShort string"))
+		i18n.T("Print version info as versionShort string"))
 
 	return cmd
 }

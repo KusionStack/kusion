@@ -9,17 +9,17 @@ import (
 )
 
 var (
-	applyShort = `Apply a configuration stack to resource(s) by work directory`
+	applyShort = i18n.T(`Apply a configuration stack to resource(s) by work directory`)
 
-	applyLong = `
+	applyLong = i18n.T(`
 		Apply a series of resource changes within the stack.
 
 		Create or update or delete resources according to the KCL files within a stack.
 		By default, Kusion will generate an execution plan and present it for your approval before taking any action.
 
-		You can check the plan details and then decide if the actions should be taken or aborted.`
+		You can check the plan details and then decide if the actions should be taken or aborted.`)
 
-	applyExample = `
+	applyExample = i18n.T(`
 		# Apply with specifying work directory
 		kusion apply -w /path/to/workdir
 
@@ -30,7 +30,7 @@ var (
 		kusion apply -Y settings.yaml
 
 		# Skip interactive approval of plan details before applying
-		kusion apply --yes`
+		kusion apply --yes`)
 )
 
 func NewCmdApply() *cobra.Command {
@@ -38,9 +38,9 @@ func NewCmdApply() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "apply",
-		Short:   i18n.T(applyShort),
-		Long:    templates.LongDesc(i18n.T(applyLong)),
-		Example: templates.Examples(i18n.T(applyExample)),
+		Short:   applyShort,
+		Long:    templates.LongDesc(applyLong),
+		Example: templates.Examples(applyExample),
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete(args)
@@ -57,9 +57,9 @@ func NewCmdApply() *cobra.Command {
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&o.DryRun, "dry-run", "", false,
-		i18n.T("dry-run to preview the execution effect (always successful) without actually applying the changes"))
+		i18n.T("Preview the execution effect (always successful) without actually applying the changes"))
 	cmd.Flags().BoolVarP(&o.Watch, "watch", "", false,
-		i18n.T("After creating/updating/deleting the requested object, watch for changes."))
+		i18n.T("After creating/updating/deleting the requested object, watch for changes"))
 
 	return cmd
 }

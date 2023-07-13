@@ -17,7 +17,7 @@ go build -o bin/kusion .
 
 # Run e2e
 set +e
-ginkgo  ./test/e2e/ 
+ginkgo  ./test/e2e/
 TESTING_RESULT=$?
 
 

@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	destroyShort = `Destroy a configuration stack to resource(s) by work directory`
+	destroyShort = i18n.T(`Destroy a configuration stack to resource(s) by work directory`)
 
-	destroyLong = `
+	destroyLong = i18n.T(`
 		Delete resources by resource spec.
 
 		Only KCL files are accepted. Only one type of arguments may be specified: filenames,
@@ -19,11 +19,11 @@ var (
 
 		Note that the destroy command does NOT do resource version checks, so if someone submits an
 		update to a resource right when you submit a destroy, their update will be lost along with the
-		rest of the resource.`
+		rest of the resource.`)
 
-	destroyExample = `
+	destroyExample = i18n.T(`
 		# Delete the configuration of current stack
-		kusion destroy`
+		kusion destroy`)
 )
 
 func NewCmdDestroy() *cobra.Command {
@@ -31,9 +31,9 @@ func NewCmdDestroy() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "destroy",
-		Short:   i18n.T(destroyShort),
-		Long:    templates.LongDesc(i18n.T(destroyLong)),
-		Example: templates.Examples(i18n.T(destroyExample)),
+		Short:   destroyShort,
+		Long:    templates.LongDesc(destroyLong),
+		Example: templates.Examples(destroyExample),
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete(args)

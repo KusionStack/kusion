@@ -8,7 +8,7 @@ import (
 var knownTestLocale = "en_US.UTF-8"
 
 func TestTranslation(t *testing.T) {
-	err := LoadTranslations("test", func() string { return "default" })
+	err := LoadTranslations(domainTest, func() string { return LangEnUS })
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -20,7 +20,7 @@ func TestTranslation(t *testing.T) {
 }
 
 func TestTranslationPlural(t *testing.T) {
-	err := LoadTranslations("test", func() string { return "default" })
+	err := LoadTranslations(domainTest, func() string { return LangEnUS })
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -37,12 +37,11 @@ func TestTranslationPlural(t *testing.T) {
 }
 
 func TestTranslationUsingEnvVar(t *testing.T) {
-	// We must backup and restore env vars before setting test values in tests
-	// othervise we are risking to break other tests/test cases
+	// We must back up and restore env vars before setting test values in tests
+	// otherwise we are risking to break other tests/test cases
 	// which rely on the same env vars
-	envVarsToBackup := []string{"LC_MESSAGES", "LANG", "LC_ALL"}
-	expectedStrEnUSLocale := "baz"
-	expectedStrFallback := "foo"
+	envVarsToBackup := []string{EnvKeyLcMessages, EnvKeyLang, EnvKeyLcAll}
+	expectedStrEnUSLocale := "foo"
 
 	testCases := []struct {
 		name        string
@@ -51,67 +50,67 @@ func TestTranslationUsingEnvVar(t *testing.T) {
 	}{
 		{
 			name:        "Only LC_ALL is set",
-			setenvFn:    func() { os.Setenv("LC_ALL", knownTestLocale) },
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLcAll, knownTestLocale) },
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Only LC_MESSAGES is set",
-			setenvFn:    func() { os.Setenv("LC_MESSAGES", knownTestLocale) },
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLcMessages, knownTestLocale) },
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Only LANG",
-			setenvFn:    func() { os.Setenv("LANG", knownTestLocale) },
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLang, knownTestLocale) },
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name: "LC_MESSAGES overrides LANG",
 			setenvFn: func() {
-				os.Setenv("LANG", "be_BY.UTF-8") // Unknown locale
-				os.Setenv("LC_MESSAGES", knownTestLocale)
+				_ = os.Setenv(EnvKeyLang, "be_BY.UTF-8") // Unknown locale
+				_ = os.Setenv(EnvKeyLcMessages, knownTestLocale)
 			},
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name: "LC_ALL overrides LANG",
 			setenvFn: func() {
-				os.Setenv("LANG", "be_BY.UTF-8") // Unknown locale
-				os.Setenv("LC_ALL", knownTestLocale)
+				_ = os.Setenv(EnvKeyLang, "be_BY.UTF-8") // Unknown locale
+				_ = os.Setenv(EnvKeyLcAll, knownTestLocale)
 			},
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name: "LC_ALL overrides LC_MESSAGES",
 			setenvFn: func() {
-				os.Setenv("LC_MESSAGES", "be_BY.UTF-8") // Unknown locale
-				os.Setenv("LC_ALL", knownTestLocale)
+				_ = os.Setenv(EnvKeyLcMessages, "be_BY.UTF-8") // Unknown locale
+				_ = os.Setenv(EnvKeyLcAll, knownTestLocale)
 			},
 			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Unknown locale in LANG",
-			setenvFn:    func() { os.Setenv("LANG", "be_BY.UTF-8") },
-			expectedStr: expectedStrFallback,
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLang, "be_BY.UTF-8") },
+			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Unknown locale in LC_MESSAGES",
-			setenvFn:    func() { os.Setenv("LC_MESSAGES", "be_BY.UTF-8") },
-			expectedStr: expectedStrFallback,
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLcMessages, "be_BY.UTF-8") },
+			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Unknown locale in LC_ALL",
-			setenvFn:    func() { os.Setenv("LC_ALL", "be_BY.UTF-8") },
-			expectedStr: expectedStrFallback,
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLcAll, "be_BY.UTF-8") },
+			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "Invalid env var",
-			setenvFn:    func() { os.Setenv("LC_MESSAGES", "fake.locale.UTF-8") },
-			expectedStr: expectedStrFallback,
+			setenvFn:    func() { _ = os.Setenv(EnvKeyLcMessages, "fake.locale.UTF-8") },
+			expectedStr: expectedStrEnUSLocale,
 		},
 		{
 			name:        "No env vars",
 			setenvFn:    func() {},
-			expectedStr: expectedStrFallback,
+			expectedStr: expectedStrEnUSLocale,
 		},
 	}
 
@@ -121,19 +120,19 @@ func TestTranslationUsingEnvVar(t *testing.T) {
 
 			for _, envKey := range envVarsToBackup {
 				if envValue := os.Getenv(envKey); envValue != "" {
-					os.Unsetenv(envKey)
+					_ = os.Unsetenv(envKey)
 					envBk[envKey] = envValue
 				}
 			}
 			defer func(bk map[string]string) {
 				for k, v := range bk {
-					os.Setenv(k, v)
+					_ = os.Setenv(k, v)
 				}
 			}(envBk)
 
 			test.setenvFn()
 
-			err := LoadTranslations("test", nil)
+			err := LoadTranslations(domainTest, nil)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
