@@ -54,19 +54,19 @@ func NewDefaultKusionctlCommandWithArgs(args []string, in io.Reader, out, errOut
 	return kusionctl
 }
 
-var (
-	rootShort = i18n.T(`Kusion manages the Kubernetes cluster by code`)
-
-	rootLong = i18n.T(`
-    Kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code.`)
-)
-
 func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 	// Sending in 'nil' for the getLanguageFn() results in using LANGUAGE, LC_ALL,
 	// LC_MESSAGES, or LANG environment variable in sequence.
 	_ = i18n.LoadTranslations(i18n.DomainKusion, nil)
 
 	updateCheckResult := make(chan string)
+
+	var (
+		rootShort = i18n.T(`Kusion manages the Kubernetes cluster by code`)
+
+		rootLong = i18n.T(`
+		Kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code.`)
+	)
 
 	// Parent command to which all subcommands are added.
 	cmds := &cobra.Command{

@@ -4,9 +4,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-CMD_DIR=${CMD_DIR:-"pkg/cmd"}
-CMD_FILES=("cmd.go" "apply/apply.go" "check/check.go" "compile/compile.go" "deps/deps.go" "destroy/destroy.go" \
-"diff/diff.go" "env/env.go" "init/init.go" "ls/ls.go" "preview/preview.go" "version/version.go")
+CMD_FILES=("pkg/cmd/cmd.go" "pkg/cmd/apply/apply.go" "pkg/cmd/check/check.go" "pkg/cmd/compile/compile.go" "pkg/cmd/deps/deps.go" "pkg/cmd/destroy/destroy.go" \
+"pkg/cmd/diff/diff.go" "pkg/cmd/env/env.go" "pkg/cmd/init/init.go" "pkg/cmd/ls/ls.go" "pkg/cmd/preview/preview.go" "pkg/cmd/version/version.go" "pkg/engine/backend/backend.go")
 TRANSLATIONS_DIR=${TRANSLATIONS_BASE_DIR:-"pkg/util/i18n/translations/kusion"}
 TRANSLATIONS_FOLDER=${TRANSLATIONS_FOLDER:-"LC_MESSAGES"}
 TRANSLATIONS_FUNC=${TRANSLATIONS_FUNC:-"i18n.T"}
@@ -39,13 +38,12 @@ fi
 cmdFileList=""
 for file in "${CMD_FILES[@]}"
 do
-  cmdFile="${CMD_DIR}/${file}"
-  cmdFileList="${cmdFileList} ${cmdFile}"
+  cmdFileList="${cmdFileList} ${file}"
 done
 cmdFileList=${cmdFileList:1}
 tmpPotFilePath="${TRANSLATIONS_DIR}/tmp.pot"
 go-xgettext -k "${TRANSLATIONS_FUNC}" -o "${tmpPotFilePath}" ${cmdFileList}
-echo "derive .pot file from ${CMD_DIR} .go files succeeded."
+echo "derive .pot file succeeded."
 
 for lang in "${TRANSLATIONS_LANG[@]}"
 do
