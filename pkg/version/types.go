@@ -12,14 +12,14 @@ import (
 
 	goversion "github.com/hashicorp/go-version"
 	"gopkg.in/yaml.v3"
-	_ "kusionstack.io/kcl-plugin"
+	_ "kcl-lang.io/kcl-plugin"
 
 	git "kusionstack.io/kusion/pkg/util/gitutil"
 )
 
 const (
-	KclvmgoModulePath    = "kusionstack.io/kclvm-go"
-	KclPluginsModulePath = "kusionstack.io/kcl-plugin"
+	KclGoModulePath     = "kcl-lang.io/kcl-go"
+	KclPluginModulePath = "kcl-lang.io/kcl-plugin"
 )
 
 var info = NewMainOrDefaultVersionInfo()
@@ -58,7 +58,7 @@ func NewDefaultVersionInfo() *Info {
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
 		Dependency: &DependencyVersion{
-			KclvmgoVersion:   "",
+			KclGoVersion:     "",
 			KclPluginVersion: "",
 		},
 	}
@@ -99,7 +99,7 @@ type BuildInfo struct {
 }
 
 type DependencyVersion struct {
-	KclvmgoVersion   string `json:"kclvmgoVersion,omitempty" yaml:"kclvmgoVersion,omitempty"`
+	KclGoVersion     string `json:"kclGoVersion,omitempty" yaml:"kclGoVersion,omitempty"`
 	KclPluginVersion string `json:"kclPluginVersion,omitempty" yaml:"kclPluginVersion,omitempty"`
 }
 
@@ -111,7 +111,7 @@ func NewInfo() (*Info, error) {
 		latestTag         string
 		gitVersion        *goversion.Version
 		releaseVersion    string
-		kclvmgoVersion    string
+		KclGoVersion      string
 		kclPluginsVersion string
 		isDirty           bool
 		gitTreeState      string
@@ -160,12 +160,12 @@ func NewInfo() (*Info, error) {
 	// Get dependency version
 	if bi, ok := debug.ReadBuildInfo(); ok {
 		for _, v := range bi.Deps {
-			if v.Path == KclvmgoModulePath {
-				kclvmgoVersion = v.Version
+			if v.Path == KclGoModulePath {
+				KclGoVersion = v.Version
 				if v.Replace != nil {
-					kclvmgoVersion = v.Replace.Version
+					KclGoVersion = v.Replace.Version
 				}
-			} else if v.Path == KclPluginsModulePath {
+			} else if v.Path == KclPluginModulePath {
 				kclPluginsVersion = v.Version
 				if v.Replace != nil {
 					kclPluginsVersion = v.Replace.Version
@@ -190,7 +190,7 @@ func NewInfo() (*Info, error) {
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
 		Dependency: &DependencyVersion{
-			KclvmgoVersion:   kclvmgoVersion,
+			KclGoVersion:     KclGoVersion,
 			KclPluginVersion: kclPluginsVersion,
 		},
 	}, nil
@@ -198,10 +198,6 @@ func NewInfo() (*Info, error) {
 
 func (v *Info) String() string {
 	return v.YAML()
-}
-
-func (v *Info) ShortString() string {
-	return fmt.Sprintf("%s; git: %s; build time: %s", v.ReleaseVersion, v.GitInfo.Commit, v.BuildInfo.BuildTime)
 }
 
 func (v *Info) JSON() string {

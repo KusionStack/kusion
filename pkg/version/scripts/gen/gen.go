@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	_ "kusionstack.io/kcl-plugin"
-	_ "kusionstack.io/kclvm-go"
+	_ "kcl-lang.io/kcl-go"
+	_ "kcl-lang.io/kcl-plugin"
 
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/version"
@@ -58,7 +58,7 @@ func init() {
 			BuildTime: %q,
 		},
 		Dependency: &DependencyVersion{
-			KclvmgoVersion:   %q,
+			KclGoVersion:     %q,
 			KclPluginVersion: %q,
 		},
 	}
@@ -74,7 +74,7 @@ func init() {
 		v.BuildInfo.NumCPU,
 		v.BuildInfo.Compiler,
 		v.BuildInfo.BuildTime,
-		v.Dependency.KclvmgoVersion,
+		v.Dependency.KclGoVersion,
 		v.Dependency.KclPluginVersion,
 	)
 }

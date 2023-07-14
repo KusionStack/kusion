@@ -1,10 +1,10 @@
 ## kusion version
 
-Print the kusion version info
+Print the Kusion version information for the current context
 
 ### Synopsis
 
-Print the kusion version information for the current context.
+Print the Kusion version information for the current context
 
 ```
 kusion version [flags]
@@ -13,17 +13,15 @@ kusion version [flags]
 ### Examples
 
 ```
-  # Print the kusion version
+  # Print the Kusion version
   kusion version
 ```
 
 ### Options
 
 ```
-  -h, --help    help for version
-  -j, --json    Print version info as JSON
-  -s, --short   Print version info as versionShort string
-  -y, --yaml    Print version info as YAML
+  -h, --help            help for version
+  -o, --output string   Output format. Only json format is supported for now
 ```
 
 ### SEE ALSO

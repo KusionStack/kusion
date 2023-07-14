@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	kcl "kusionstack.io/kclvm-go"
-	"kusionstack.io/kclvm-go/pkg/tools/list"
+	kcl "kcl-lang.io/kcl-go"
+	"kcl-lang.io/kcl-go/pkg/tools/list"
 
 	"kusionstack.io/kusion/pkg/projectstack"
 )

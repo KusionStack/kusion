@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
+	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 )
 
 type Result struct {

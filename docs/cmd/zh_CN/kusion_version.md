@@ -1,10 +1,10 @@
 ## kusion version
 
-Print the kusion version info
+打印当前 Kusion 的版本信息
 
 ### Synopsis
 
-Print the kusion version information for the current context.
+打印当前 Kusion 的版本信息
 
 ```
 kusion version [flags]
@@ -13,17 +13,15 @@ kusion version [flags]
 ### Examples
 
 ```
-  # Print the kusion version
+  # 打印 Kusion 版本
   kusion version
 ```
 
 ### Options
 
 ```
-  -h, --help    help for version
-  -j, --json    将版本信息打印成 JSON 格式
-  -s, --short   将版本信息打印成短版本字符串
-  -y, --yaml    将版本信息打印成 YAML 格式
+  -h, --help            help for version
+  -o, --output string   Output format. Only json format is supported for now
 ```
 
 ### SEE ALSO
