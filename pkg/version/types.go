@@ -200,10 +200,6 @@ func (v *Info) String() string {
 	return v.YAML()
 }
 
-func (v *Info) ShortString() string {
-	return fmt.Sprintf("%s; git: %s; build time: %s", v.ReleaseVersion, v.GitInfo.Commit, v.BuildInfo.BuildTime)
-}
-
 func (v *Info) JSON() string {
 	data, err := json.MarshalIndent(v, "", "    ")
 	if err != nil {

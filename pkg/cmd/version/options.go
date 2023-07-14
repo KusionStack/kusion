@@ -1,44 +1,34 @@
 package version
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"kusionstack.io/kusion/pkg/version"
 )
 
+const jsonOutput = "json"
+
 type VersionOptions struct {
-	ExportJSON bool
-	ExportYAML bool
-	Short      bool
+	Output string
 }
 
 func NewVersionOptions() *VersionOptions {
 	return &VersionOptions{}
 }
 
-func (o *VersionOptions) Complete() {
-	if !(o.ExportYAML || o.ExportJSON || o.Short) {
-		o.ExportYAML = true
-	}
-}
-
 func (o *VersionOptions) Validate() error {
-	if (o.ExportJSON && o.ExportYAML) || (o.ExportJSON && o.Short) || (o.ExportYAML && o.Short) {
-		return fmt.Errorf("invalid options")
+	if o.Output != "" && o.Output != jsonOutput {
+		return errors.New("invalid output type, output must be 'json'")
 	}
-
 	return nil
 }
 
 func (o *VersionOptions) Run() {
-	switch {
-	case o.ExportJSON:
+	if strings.ToLower(o.Output) == jsonOutput {
 		fmt.Println(version.JSON())
-	case o.ExportYAML:
-		fmt.Println(version.YAML())
-	case o.Short:
-		fmt.Println(version.ShortString())
-	default:
+	} else {
 		fmt.Println(version.String())
 	}
 }
