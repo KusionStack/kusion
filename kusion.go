@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	_ "kusionstack.io/kcl-plugin"
+	_ "kcl-lang.io/kcl-plugin"
 
 	"kusionstack.io/kusion/pkg/cmd"
 	"kusionstack.io/kusion/pkg/util/pretty"

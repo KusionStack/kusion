@@ -54,8 +54,8 @@ release:
     * `kusionstack/kusion:{{ .Env.KUSION_VERSION }}`
     
     ## Dependent version
-    * [kclvm-go](https://github.com/KusionStack/kclvm-go): `{{ .Env.KCLVM_GO_VERSION }}`
-    * [kcl-plugin](https://github.com/KusionStack/kcl-plugin): `{{ .Env.KCL_PLUGIN_VERSION }}`
+    * [kcl-go](https://github.com/kcl-lang/kcl-go): `{{ .Env.KCL_GO_VERSION }}`
+    * [kcl-plugin](https://github.com/kcl-lang/kcl-plugin): `{{ .Env.KCL_PLUGIN_VERSION }}`
 
 dockers:
   - use: buildx
@@ -100,8 +100,6 @@ brews:
     description: "Codify and deliver intentions to Kubernetes and Clouds"
     license: "Apache License"
     skip_upload: false
-    dependencies:
-      - name: kclvm
     test: |
       system "#{bin}/kusion version"
 

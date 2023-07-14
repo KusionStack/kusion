@@ -1,7 +1,7 @@
 package kcl
 
 import (
-	kcl "kusionstack.io/kclvm-go"
+	kcl "kcl-lang.io/kcl-go"
 )
 
 // The result of a KCL compilation
