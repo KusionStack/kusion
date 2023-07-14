@@ -10,7 +10,7 @@ import (
 
 func NewCmdDestroy() *cobra.Command {
 	var (
-		destroyShort = i18n.T(`Delete the resources of a specified stack in runtime`)
+		destroyShort = i18n.T(`Delete the specified resources in runtime`)
 
 		destroyLong = i18n.T(`
 		Delete resources by resource spec.
