@@ -18,7 +18,7 @@ kusion [flags]
 
 ### SEE ALSO
 
-* [kusion apply](kusion_apply.md)	 - Apply the operation intents of various resources to multiple runtime
+* [kusion apply](kusion_apply.md)	 - Apply the operation intents of various resources to multiple runtimes
 * [kusion check](kusion_check.md)	 - Check if KCL configurations in current directory ok to compile
 * [kusion compile](kusion_compile.md)	 - Compile KCL into YAML
 * [kusion deps](kusion_deps.md)	 - Show KCL file dependency information

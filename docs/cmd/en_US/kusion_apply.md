@@ -1,6 +1,6 @@
 ## kusion apply
 
-Apply the operation intents of various resources to multiple runtime
+Apply the operation intents of various resources to multiple runtimes
 
 ### Synopsis
 

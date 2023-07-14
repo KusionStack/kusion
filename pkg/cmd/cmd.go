@@ -66,7 +66,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 
 		rootLong = i18n.T(`
 		Kusion is the platform engineering engine of KusionStack. 
-		It delivers intentions to Kubernetes, Clouds, and on-premise resources.`)
+		It delivers intentions to Kubernetes, Clouds, and On-Premise resources.`)
 	)
 
 	// Parent command to which all subcommands are added.
