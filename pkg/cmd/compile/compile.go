@@ -39,7 +39,7 @@ func NewCmdCompile() *cobra.Command {
 		kusion compile main.k -o output.yaml
 		
 		# Complie without output style and color
-		kusion compile -s=true`)
+		kusion compile --no-style=true`)
 	)
 
 	o := NewCompileOptions()
@@ -65,7 +65,7 @@ func NewCmdCompile() *cobra.Command {
 		i18n.T("Disable dumping None values"))
 	cmd.Flags().BoolVarP(&o.OverrideAST, "override-AST", "a", false,
 		i18n.T("Specify the override option"))
-	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "s", false,
+	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
 		i18n.T("Disable the output style and color"))
 
 	return cmd

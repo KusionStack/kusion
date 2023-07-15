@@ -34,7 +34,7 @@ func NewCmdApply() *cobra.Command {
 		kusion apply --yes
 		
 		# Apply without output style and color
-		kusion apply -s=true`)
+		kusion apply --no-style=true`)
 	)
 
 	o := NewApplyOptions()
