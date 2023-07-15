@@ -8,39 +8,41 @@ import (
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
-var (
-	compileShort = i18n.T(`Compile KCL into YAML`)
+func NewCmdCompile() *cobra.Command {
+	var (
+		compileShort = i18n.T(`Compile KCL into YAML`)
 
-	compileLong = i18n.T(`
+		compileLong = i18n.T(`
 		Compile one or more KCL files.
-
+	
 		The KCL filename must be specified.
 		You can specify a list of arguments to replace the placeholders defined in KCL,
 		and output the compiled results to a file when using --output flag.`)
 
-	compileExample = i18n.T(`
+		compileExample = i18n.T(`
 		# Compile configuration in main.k into YAML format
 		kusion compile main.k
-
+	
 		# Compile main.k with arguments
 		kusion compile main.k -D name=test -D age=18
-
+	
 		# Compile main.k with arguments from settings.yaml
 		kusion compile main.k -Y settings.yaml
-
+	
 		# Compile main.k with work directory
 		kusion compile main.k -w appops/demo/dev
-
+	
 		# Compile with override
 		kusion compile -O __main__:appConfiguration.image=nginx:latest -a
-
+	
 		# Compile main.k and write result into output.yaml
-		kusion compile main.k -o output.yaml`)
-)
+		kusion compile main.k -o output.yaml
+		
+		# Complie without output style and color
+		kusion compile --no-style=true`)
+	)
 
-func NewCmdCompile() *cobra.Command {
 	o := NewCompileOptions()
-
 	cmd := &cobra.Command{
 		Use:     "compile",
 		Short:   compileShort,
@@ -63,7 +65,7 @@ func NewCmdCompile() *cobra.Command {
 		i18n.T("Disable dumping None values"))
 	cmd.Flags().BoolVarP(&o.OverrideAST, "override-AST", "a", false,
 		i18n.T("Specify the override option"))
-	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "s", false,
+	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
 		i18n.T("Disable the output style and color"))
 
 	return cmd

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	lsShort = i18n.T(`List all project and stack information`)
+	lsShort = i18n.T(`List all Projects and Stacks`)
 
 	lsLong = i18n.T(`
 		List all project and stack information in the current directory or the
