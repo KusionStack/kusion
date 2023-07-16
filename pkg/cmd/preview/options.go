@@ -64,7 +64,7 @@ func (o *PreviewOptions) Run() error {
 	// Set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
-		pterm.EnableColor()
+		pterm.DisableColor()
 	}
 	if o.Output == jsonOutput {
 		pterm.DisableStyling()
@@ -86,8 +86,7 @@ func (o *PreviewOptions) Run() error {
 		Overrides:   o.Overrides,
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle,
-		NoPrompt:    o.Output == jsonOutput,
+		NoStyle:     o.NoStyle || o.Output == jsonOutput,
 	}, project, stack)
 	if err != nil {
 		return err

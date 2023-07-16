@@ -55,8 +55,8 @@ require (
 	k8s.io/client-go v0.27.1
 	k8s.io/component-base v0.27.1
 	k8s.io/kubectl v0.27.1
-	kusionstack.io/kcl-plugin v0.4.4
-	kusionstack.io/kclvm-go v0.5.0-alpha.3
+	kcl-lang.io/kcl-go v0.5.0
+	kcl-lang.io/kcl-plugin v0.5.0
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/yaml v1.3.0
@@ -98,6 +98,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/a8m/envsubst v1.3.0 // indirect
+	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
@@ -238,7 +239,7 @@ require (
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c // indirect
 	k8s.io/utils v0.0.0-20230209194617-a36077c30491 // indirect
-	kusionstack.io/kclvm-artifact-go v0.5.0-alpha.3 // indirect
+	kcl-lang.io/kcl-artifact-go v0.5.0 // indirect
 	lukechampine.com/frand v1.4.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect

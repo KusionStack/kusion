@@ -117,6 +117,20 @@ func TestPreviewOptions_Run(t *testing.T) {
 		err := o.Run()
 		assert.Nil(t, err)
 	})
+
+	t.Run("no style is true", func(t *testing.T) {
+		defer monkey.UnpatchAll()
+		mockDetectProjectAndStack()
+		mockGenerateSpec()
+		mockNewKubernetesRuntime()
+		mockOperationPreview()
+		mockPromptDetail("")
+
+		o := NewPreviewOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Nil(t, err)
+	})
 }
 
 type fooRuntime struct{}
@@ -167,7 +181,7 @@ func mockOperationPreview() {
 						},
 						sa2.ID: {
 							ID:     sa2.ID,
-							Action: opsmodels.UnChange,
+							Action: opsmodels.UnChanged,
 							From:   &sa2,
 						},
 						sa3.ID: {
@@ -206,7 +220,11 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+		o *generator.Options,
+		project *projectstack.Project,
+		stack *projectstack.Stack,
+	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	})
 }

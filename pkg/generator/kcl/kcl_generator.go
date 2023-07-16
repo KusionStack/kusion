@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kusionstack.io/kclvm-go"
-	"kusionstack.io/kclvm-go/pkg/spec/gpyrpc"
+	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
+	kcl "kcl-lang.io/kcl-go"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
@@ -68,7 +68,7 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
 	// call kcl run
-	result, err := kclvm.RunFiles(o.Filenames, optList...)
+	result, err := kcl.RunFiles(o.Filenames, optList...)
 	if err != nil {
 		return nil, err
 	}
@@ -130,14 +130,14 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-func BuildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kclvm.Option, error) {
-	optList := []kclvm.Option{}
+func BuildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
+	optList := []kcl.Option{}
 	// build settings option
 	for _, setting := range settings {
 		if workDir != "" {
 			setting = filepath.Join(workDir, setting)
 		}
-		opt := kclvm.WithSettings(setting)
+		opt := kcl.WithSettings(setting)
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
@@ -147,7 +147,7 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 
 	// build arguments option
 	for _, arg := range arguments {
-		opt := kclvm.WithOptions(arg)
+		opt := kcl.WithOptions(arg)
 		if opt.Err != nil {
 			return nil, opt.Err
 		}
@@ -156,7 +156,7 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	}
 
 	// build overrides option
-	opt := kclvm.WithOverrides(overrides...)
+	opt := kcl.WithOverrides(overrides...)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -164,7 +164,7 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// build disable none option
-	opt = kclvm.WithDisableNone(disableNone)
+	opt = kcl.WithDisableNone(disableNone)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -172,7 +172,7 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// open PrintOverride option
-	opt = kclvm.WithPrintOverridesAST(overrideAST)
+	opt = kcl.WithPrintOverridesAST(overrideAST)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -180,7 +180,7 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	optList = append(optList, opt)
 
 	// build workDir option
-	opt = kclvm.WithWorkDir(workDir)
+	opt = kcl.WithWorkDir(workDir)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}
@@ -204,7 +204,7 @@ func normResult(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
 		return nil, fmt.Errorf("normResult: invalid result: %s", resp.JsonResult)
 	}
 
-	var kclResults []kclvm.KCLResult
+	var kclResults []kcl.KCLResult
 	for _, m := range mList {
 		if len(m) != 0 {
 			kclResults = append(kclResults, m)
@@ -243,7 +243,7 @@ func genKclArgs(args map[string]string, settings []string) string {
 }
 
 func Overwrite(fileName string, overrides []string) (bool, error) {
-	return kclvm.OverrideFile(fileName, overrides, []string{})
+	return kcl.OverrideFile(fileName, overrides, []string{})
 }
 
 // Get kcl cli path

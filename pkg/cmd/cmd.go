@@ -55,26 +55,26 @@ func NewDefaultKusionctlCommandWithArgs(args []string, in io.Reader, out, errOut
 	return kusionctl
 }
 
-var (
-	rootShort = "kusion manages the Kubernetes cluster by code"
-	rootLong  = "kusion is a cloud-native programmable technology stack, which manages the Kubernetes cluster by code."
-)
-
 func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
-	// Sending in 'nil' for the getLanguageFn() results in using
-	// the LANG environment variable.
-	//
-	// TODO: Consider adding a flag or file preference for setting
-	// the language, instead of just loading from the LANG env. variable.
-	_ = i18n.LoadTranslations("kusion", nil)
+	// Sending in 'nil' for the getLanguageFn() results in using LANGUAGE, LC_ALL,
+	// LC_MESSAGES, or LANG environment variable in sequence.
+	_ = i18n.LoadTranslations(i18n.DomainKusion, nil)
 
 	updateCheckResult := make(chan string)
+
+	var (
+		rootShort = i18n.T(`Kusion is the platform engineering engine of KusionStack`)
+
+		rootLong = i18n.T(`
+		Kusion is the platform engineering engine of KusionStack. 
+		It delivers intentions to Kubernetes, Clouds, and On-Premise resources.`)
+	)
 
 	// Parent command to which all subcommands are added.
 	cmds := &cobra.Command{
 		Use:           "kusion",
-		Short:         i18n.T(rootShort),
-		Long:          templates.LongDesc(i18n.T(rootLong)),
+		Short:         rootShort,
+		Long:          templates.LongDesc(rootLong),
 		SilenceErrors: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// If we fail before we start the async update check, go ahead and close the
@@ -86,6 +86,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 				}
 			}()
 
+			// todo: delete env KUSION_SKIP_UPDATE_CHECK, only show need updating info when run kusion version
 			if v := os.Getenv("KUSION_SKIP_UPDATE_CHECK"); v == "true" {
 				log.Infof("skipping update check")
 			} else {
@@ -290,6 +291,7 @@ func getUpgradeCommand() string {
 }
 
 // isKusionUpInstall returns true if the current running executable is running on linux based and was installed with kusionup.
+// todo: delete embedding with kusionup
 func isKusionUpInstall(exe string) (bool, error) {
 	exePath, err := filepath.EvalSymlinks(exe)
 	if err != nil {

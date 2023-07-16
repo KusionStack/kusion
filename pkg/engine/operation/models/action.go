@@ -12,7 +12,7 @@ type ActionType int64
 // ActionType values
 const (
 	Undefined ActionType = iota // invalidate value
-	UnChange                    // nothing to do.
+	UnChanged                   // nothing to do.
 	Create                      // creating a new resource.
 	Update                      // updating an existing resource.
 	Delete                      // deleting an existing resource.
@@ -21,7 +21,7 @@ const (
 func (t ActionType) String() string {
 	return []string{
 		"Undefined",
-		"UnChange",
+		"UnChanged",
 		"Create",
 		"Update",
 		"Delete",
@@ -47,7 +47,7 @@ func (t ActionType) Ing() string {
 
 func (t ActionType) PrettyString() string {
 	switch t {
-	case UnChange:
+	case UnChanged:
 		return pretty.Gray(t.Ing())
 	case Create:
 		return pretty.Green(t.Ing())

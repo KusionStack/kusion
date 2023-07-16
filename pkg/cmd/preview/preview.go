@@ -8,37 +8,42 @@ import (
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
-var (
-	previewShort = `Preview a series of resource changes within the stack`
+func NewCmdPreview() *cobra.Command {
+	var (
+		previewShort = i18n.T(`Preview a series of resource changes within the stack`)
 
-	previewLong = `
+		previewLong = i18n.T(`
 		Preview a series of resource changes within the stack.
+	
+		Create or update or delete resources according to the KCL files within a stack. By default,
+		Kusion will generate an execution plan and present it for your approval before taking any action.`)
 
-		Create or update or delete resources according to the KCL files within a stack.
-		By default, Kusion will generate an execution plan and present it for your approval before taking any action.`
-
-	previewExample = `
+		previewExample = i18n.T(`
 		# Preview with specifying work directory
 		kusion preview -w /path/to/workdir
-
+	
 		# Preview with specifying arguments
 		kusion preview -D name=test -D age=18
-
+	
 		# Preview with specifying setting file
 		kusion preview -Y settings.yaml
-
+	
 		# Preview with ignored fields
-		kusion preview --ignore-fields="metadata.generation,metadata.managedFields"`
-)
+		kusion preview --ignore-fields="metadata.generation,metadata.managedFields
+		
+		# Preview with json format result
+		kusion preview -o json
+		
+		# Preview without output style and color
+		kusion preview --no-style=true`)
+	)
 
-func NewCmdPreview() *cobra.Command {
 	o := NewPreviewOptions()
-
 	cmd := &cobra.Command{
 		Use:     "preview",
-		Short:   i18n.T(previewShort),
-		Long:    templates.LongDesc(i18n.T(previewLong)),
-		Example: templates.Examples(i18n.T(previewExample)),
+		Short:   previewShort,
+		Long:    templates.LongDesc(previewLong),
+		Example: templates.Examples(previewExample),
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete(args)

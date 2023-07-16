@@ -9,15 +9,15 @@ import (
 )
 
 var (
-	lsShort = "List all project and stack information"
+	lsShort = i18n.T(`List all Projects and Stacks`)
 
-	lsLong = `
+	lsLong = i18n.T(`
 		List all project and stack information in the current directory or the
 		specify directory.
 		The default output is in a human friendly format, and it also supports
-		a variety of formatted structure output.`
+		a variety of formatted structure output.`)
 
-	lsExample = `
+	lsExample = i18n.T(`
 		# List all project and stack information in the current directory
 		kusion ls
 
@@ -37,7 +37,7 @@ var (
 		kusion ls ./path/to/project_dir --format=yaml
 
 		# List all project and stack by level, and output in a Tree format
-		kusion ls ./path/to/project_dir --format=tree --level=1`
+		kusion ls ./path/to/project_dir --format=tree --level=1`)
 )
 
 func NewCmdLs() *cobra.Command {
@@ -45,9 +45,9 @@ func NewCmdLs() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "ls [WORKDIR]",
-		Short:   i18n.T(lsShort),
-		Long:    templates.LongDesc(i18n.T(lsLong)),
-		Example: templates.Examples(i18n.T(lsExample)),
+		Short:   lsShort,
+		Long:    templates.LongDesc(lsLong),
+		Example: templates.Examples(lsExample),
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
@@ -59,9 +59,9 @@ func NewCmdLs() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&o.OutputFormat, "format", "human",
-		i18n.T("the output format of the project information. valid values: json, yaml, tree, human"))
+		i18n.T("Output format of the project information. valid values: json, yaml, tree, human"))
 	cmd.Flags().IntVarP(&o.Level, "level", "L", 2,
-		i18n.T("max display depth of the project and stack tree. One of 0,1,2"))
+		i18n.T("Max display depth of the project and stack tree. One of 0,1,2"))
 
 	return cmd
 }

@@ -44,7 +44,7 @@ func TestKusionVersionNormal(t *testing.T) {
 			"buildTime": "2006-01-02 15:04:05"
 		},
 		"dependency": {
-			"kclvmgoVersion": "stable",
+			"kclGoVersion": "stable",
 			"kclPluginVersion": "stable"
 		}
 	}`
@@ -58,7 +58,6 @@ func TestKusionVersionNormal(t *testing.T) {
 	assert.Equal(t, want.JSON(), version.JSON())
 	assert.Equal(t, want.YAML(), version.YAML())
 	assert.Equal(t, want.String(), version.String())
-	assert.Equal(t, want.ShortString(), version.ShortString())
 }
 
 func TestKusionVersionReturnError(t *testing.T) {
@@ -163,7 +162,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		"buildTime": "2006-01-02 15:04:05"
 	},
 	"dependency": {
-		"kclvmgoVersion": "stable",
+		"kclGoVersion": "stable",
 		"kclPluginVersion": "stable"
 	}
 }`
@@ -177,7 +176,6 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 	assert.Equal(t, want.JSON(), version.JSON())
 	assert.Equal(t, want.YAML(), version.YAML())
 	assert.Equal(t, want.String(), version.String())
-	assert.Equal(t, want.ShortString(), version.ShortString())
 }
 
 func mockGit() {
@@ -206,7 +204,7 @@ func mockGit() {
 
 func mockDependency() {
 	monkey.Patch(debug.ReadBuildInfo, func() (*debug.BuildInfo, bool) {
-		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclvmgoModulePath, Version: "stable"}, {Path: KclPluginsModulePath, Version: "stable"}}}, true
+		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclGoModulePath, Version: "stable"}, {Path: KclPluginModulePath, Version: "stable"}}}, true
 	})
 }
 

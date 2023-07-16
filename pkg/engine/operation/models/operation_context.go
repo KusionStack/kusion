@@ -92,7 +92,7 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Re
 	case Delete:
 		o.CtxResourceIndex[resourceKey] = nil
 		o.StateResourceIndex[resourceKey] = nil
-	case Create, Update, UnChange:
+	case Create, Update, UnChanged:
 		o.CtxResourceIndex[resourceKey] = resource
 		o.StateResourceIndex[resourceKey] = resource
 	default:
