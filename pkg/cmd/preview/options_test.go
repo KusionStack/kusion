@@ -81,7 +81,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("no changes", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGenerateSpecWithSpinner()
 		mockNewKubernetesRuntime()
 
 		o := NewPreviewOptions()
@@ -93,7 +93,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("detail is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGenerateSpecWithSpinner()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockPromptDetail("")
@@ -121,7 +121,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("no style is true", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 		mockDetectProjectAndStack()
-		mockGenerateSpec()
+		mockGenerateSpecWithSpinner()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockPromptDetail("")
@@ -219,8 +219,18 @@ func mockDetectProjectAndStack() {
 	})
 }
 
-func mockGenerateSpec() {
+func mockGenerateSpecWithSpinner() {
 	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+		o *generator.Options,
+		project *projectstack.Project,
+		stack *projectstack.Stack,
+	) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	})
+}
+
+func mockGenerateSpec() {
+	monkey.Patch(spec.GenerateSpec, func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
