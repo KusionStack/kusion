@@ -178,7 +178,7 @@ func (o *GetOptions) Run() error {
 
 func allUnChange(changes *opsmodels.Changes) bool {
 	for _, v := range changes.ChangeSteps {
-		if v.Action != opsmodels.UnChange {
+		if v.Action != opsmodels.UnChanged {
 			return false
 		}
 	}

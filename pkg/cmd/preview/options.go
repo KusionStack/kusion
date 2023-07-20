@@ -62,15 +62,10 @@ func (o *PreviewOptions) Validate() error {
 
 func (o *PreviewOptions) Run() error {
 	// Set no style
-	if o.NoStyle {
+	if o.NoStyle || o.Output == jsonOutput {
 		pterm.DisableStyling()
 		pterm.DisableColor()
 	}
-	if o.Output == jsonOutput {
-		pterm.DisableStyling()
-		pterm.DisableColor()
-	}
-
 	// Parse project and stack of work directory
 	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
@@ -78,7 +73,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Get compile result
-	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+	options := &generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -86,8 +81,15 @@ func (o *PreviewOptions) Run() error {
 		Overrides:   o.Overrides,
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle || o.Output == jsonOutput,
-	}, project, stack)
+		NoStyle:     o.NoStyle,
+	}
+
+	var sp *models.Spec
+	if o.Output == jsonOutput {
+		sp, err = spec.GenerateSpec(options, project, stack)
+	} else {
+		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
+	}
 	if err != nil {
 		return err
 	}
