@@ -16,9 +16,6 @@ const (
 )
 
 type Options struct {
-	// SpecFile represent the filesystem path where the spec file in
-	SpecFile string
-
 	// WorkDir represent the filesystem path where the operation is invoked
 	WorkDir string
 

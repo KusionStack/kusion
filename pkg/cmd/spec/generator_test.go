@@ -4,11 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/require"
 	"kusionstack.io/kusion/pkg/engine/models"
-	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 var (
@@ -121,47 +118,6 @@ func TestGenerateSpecFromFile(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestGenerateSpec(t *testing.T) {
-	type args struct {
-		o       *generator.Options
-		project *projectstack.Project
-		stack   *projectstack.Stack
-	}
-	tests := []struct {
-		name                        string
-		specFile                    string
-		GenerateSpecFromFileCall    int
-		GenerateSpecWithSpinnerCall int
-	}{
-		{
-			"test1",
-			"",
-			0,
-			1,
-		},
-		{
-			"test2",
-			"kusion_spec.yml",
-			1,
-			0,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m1 := mockey.Mock(GenerateSpecFromFile).Return(nil, nil).Build()
-			m2 := mockey.Mock(GenerateSpecWithSpinner).Return(nil, nil).Build()
-			defer m1.UnPatch()
-			defer m2.UnPatch()
-			o := &generator.Options{}
-			o.SpecFile = tt.specFile
-			_, _ = GenerateSpec(o, nil, nil)
-			require.Equal(t, tt.GenerateSpecFromFileCall, m1.Times())
-			require.Equal(t, tt.GenerateSpecWithSpinnerCall, m2.Times())
-			m1.UnPatch()
 		})
 	}
 }

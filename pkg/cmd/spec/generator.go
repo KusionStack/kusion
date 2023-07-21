@@ -85,10 +85,3 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 	}
 	return &models.Spec{Resources: resources}, nil
 }
-
-func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
-	if o.SpecFile != "" {
-		return GenerateSpecFromFile(o.SpecFile)
-	}
-	return GenerateSpecWithSpinner(o, project, stack)
-}

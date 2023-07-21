@@ -66,20 +66,24 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	// generate Spec
-	sp, err := spec.GenerateSpec(&generator.Options{
-		SpecFile:    o.SpecFile,
-		WorkDir:     o.WorkDir,
-		Filenames:   o.Filenames,
-		Settings:    o.Settings,
-		Arguments:   o.Arguments,
-		Overrides:   o.Overrides,
-		DisableNone: o.DisableNone,
-		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle,
-	}, project, stack)
-	if err != nil {
-		return err
+	var sp *models.Spec
+	if o.SpecFile != "" {
+		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+	} else {
+		// Get compile result
+		sp, err = spec.GenerateSpecWithSpinner(&generator.Options{
+			WorkDir:     o.WorkDir,
+			Filenames:   o.Filenames,
+			Settings:    o.Settings,
+			Arguments:   o.Arguments,
+			Overrides:   o.Overrides,
+			DisableNone: o.DisableNone,
+			OverrideAST: o.OverrideAST,
+			NoStyle:     o.NoStyle,
+		}, project, stack)
+		if err != nil {
+			return err
+		}
 	}
 
 	// return immediately if no resource found in stack
