@@ -96,39 +96,38 @@ func (o *PreviewOptions) ValidateSpecFile() error {
 
 func (o *PreviewOptions) Run() error {
 	// Set no style
-	if o.NoStyle {
+	if o.NoStyle || o.Output == jsonOutput {
 		pterm.DisableStyling()
 		pterm.DisableColor()
 	}
-	if o.Output == jsonOutput {
-		pterm.DisableStyling()
-		pterm.DisableColor()
-	}
-
 	// Parse project and stack of work directory
 	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
 		return err
 	}
 
+	// Get compile result
+	options := &generator.Options{
+		WorkDir:     o.WorkDir,
+		Filenames:   o.Filenames,
+		Settings:    o.Settings,
+		Arguments:   o.Arguments,
+		Overrides:   o.Overrides,
+		DisableNone: o.DisableNone,
+		OverrideAST: o.OverrideAST,
+		NoStyle:     o.NoStyle,
+	}
+
 	var sp *models.Spec
 	if o.SpecFile != "" {
 		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+	} else if o.Output == jsonOutput {
+		sp, err = spec.GenerateSpec(options, project, stack)
 	} else {
-		// Get compile result
-		sp, err = spec.GenerateSpecWithSpinner(&generator.Options{
-			WorkDir:     o.WorkDir,
-			Filenames:   o.Filenames,
-			Settings:    o.Settings,
-			Arguments:   o.Arguments,
-			Overrides:   o.Overrides,
-			DisableNone: o.DisableNone,
-			OverrideAST: o.OverrideAST,
-			NoStyle:     o.NoStyle || o.Output == jsonOutput,
-		}, project, stack)
-		if err != nil {
-			return err
-		}
+		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
+	}
+	if err != nil {
+		return err
 	}
 
 	// return immediately if no resource found in stack
