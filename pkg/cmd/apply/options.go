@@ -66,7 +66,6 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	// Get compile result
 	options := &generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
@@ -78,6 +77,7 @@ func (o *ApplyOptions) Run() error {
 		NoStyle:     o.NoStyle,
 	}
 
+	// Generate Spec
 	var sp *models.Spec
 	if o.SpecFile != "" {
 		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
