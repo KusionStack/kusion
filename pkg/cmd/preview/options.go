@@ -2,12 +2,13 @@ package preview
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 
+	"github.com/pkg/errors"
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/cmd/util"
@@ -37,6 +38,7 @@ type PreviewFlags struct {
 	All          bool
 	NoStyle      bool
 	Output       string
+	SpecFile     string
 	IgnoreFields []string
 }
 
@@ -56,6 +58,38 @@ func (o *PreviewOptions) Validate() error {
 	}
 	if o.Output != "" && o.Output != jsonOutput {
 		return errors.New("invalid output type, supported types: json")
+	}
+	if err := o.ValidateSpecFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *PreviewOptions) ValidateSpecFile() error {
+	if o.SpecFile == "" {
+		return nil
+	}
+	absSF, err := filepath.Abs(o.SpecFile)
+	if err != nil {
+		return err
+	}
+	fi, err := os.Stat(absSF)
+	if err != nil {
+		return err
+	}
+	if fi.IsDir() || !fi.Mode().IsRegular() {
+		return fmt.Errorf("spec file must be a regular file")
+	}
+	absWD, err := filepath.Abs(o.WorkDir)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(absWD, absSF)
+	if err != nil {
+		return err
+	}
+	if rel[:3] == ".."+string(filepath.Separator) {
+		return fmt.Errorf("spec file must be located in workDir's directory or its subdirectory")
 	}
 	return nil
 }
@@ -78,7 +112,8 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Get compile result
-	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+	sp, err := spec.GenerateSpec(&generator.Options{
+		SpecFile:    o.SpecFile,
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,

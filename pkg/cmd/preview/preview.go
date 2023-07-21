@@ -73,4 +73,6 @@ func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
 		i18n.T("Ignore differences of target fields"))
 	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
 		i18n.T("Specify the output format"))
+	cmd.Flags().StringVarP(&o.SpecFile, "spec-file", "", "",
+		i18n.T("Specify the spec file as input"))
 }

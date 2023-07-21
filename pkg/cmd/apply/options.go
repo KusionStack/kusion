@@ -67,7 +67,8 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// generate Spec
-	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+	sp, err := spec.GenerateSpec(&generator.Options{
+		SpecFile:    o.SpecFile,
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
