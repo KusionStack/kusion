@@ -10,6 +10,7 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/require"
+	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -346,6 +347,49 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestPreviewOptions_Validate(t *testing.T) {
+	m := mockey.Mock((*compilecmd.CompileOptions).Validate).Return(nil).Build()
+	defer m.UnPatch()
+	tests := []struct {
+		name    string
+		output  string
+		wantErr bool
+	}{
+		{
+			name:    "test1",
+			output:  "json",
+			wantErr: false,
+		},
+		{
+			name:    "test2",
+			output:  "yaml",
+			wantErr: true,
+		},
+		{
+			name:    "test3",
+			output:  "",
+			wantErr: false,
+		},
+		{
+			name:    "test4",
+			output:  "",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &PreviewOptions{}
+			o.Output = tt.output
+			err := o.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
