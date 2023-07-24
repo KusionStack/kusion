@@ -312,6 +312,18 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 			createSpecFile: true,
 			wantErr:        true,
 		},
+		{
+			name:     "test7",
+			specFile: "",
+			workDir:  "",
+			wantErr:  false,
+		},
+		{
+			name:     "test8",
+			specFile: currDir,
+			workDir:  "",
+			wantErr:  true,
+		},
 	}
 
 	for _, tt := range tests {
