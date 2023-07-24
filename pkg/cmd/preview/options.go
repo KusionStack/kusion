@@ -84,12 +84,16 @@ func (o *PreviewOptions) ValidateSpecFile() error {
 	if err != nil {
 		return err
 	}
+
+	// calculate the relative path between absWD and absSF,
+	// if absSF is not located in the directory or subdirectory specified by absWD,
+	// an error will be returned
 	rel, err := filepath.Rel(absWD, absSF)
 	if err != nil {
 		return err
 	}
 	if rel[:3] == ".."+string(filepath.Separator) {
-		return fmt.Errorf("spec file must be located in workDir's directory or its subdirectory")
+		return fmt.Errorf("the spec file must be located in the working directory or its subdirectories")
 	}
 	return nil
 }

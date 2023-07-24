@@ -265,6 +265,7 @@ func monkeyPatchPromptDetail(input string) *mockey.Mocker {
 }
 
 func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
+	currDir, _ := os.Getwd()
 	tests := []struct {
 		name           string
 		specFile       string
@@ -280,20 +281,33 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 		},
 		{
 			name:           "test2",
+			specFile:       filepath.Join(currDir, "kusion_spec.yaml"),
+			workDir:        "",
+			createSpecFile: true,
+		},
+		{
+			name:           "test3",
 			specFile:       "kusion_spec.yaml",
 			workDir:        "",
 			createSpecFile: false,
 			wantErr:        true,
 		},
 		{
-			name:           "test3",
+			name:           "test4",
 			specFile:       "ci-test/stdout.golden.yaml",
 			workDir:        "",
 			createSpecFile: true,
 		},
 		{
-			name:           "test4",
+			name:           "test5",
 			specFile:       "../kusion_spec.yaml",
+			workDir:        "",
+			createSpecFile: true,
+			wantErr:        true,
+		},
+		{
+			name:           "test6",
+			specFile:       filepath.Join(currDir, "../kusion_spec.yaml"),
 			workDir:        "",
 			createSpecFile: true,
 			wantErr:        true,
