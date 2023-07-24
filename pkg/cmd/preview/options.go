@@ -69,21 +69,19 @@ func (o *PreviewOptions) ValidateSpecFile() error {
 	if o.SpecFile == "" {
 		return nil
 	}
-	absSF, err := filepath.Abs(o.SpecFile)
-	if err != nil {
-		return err
-	}
+	absSF, _ := filepath.Abs(o.SpecFile)
 	fi, err := os.Stat(absSF)
 	if err != nil {
+		if os.IsNotExist(err) {
+			err = fmt.Errorf("spec file not exist")
+		}
 		return err
 	}
+
 	if fi.IsDir() || !fi.Mode().IsRegular() {
 		return fmt.Errorf("spec file must be a regular file")
 	}
-	absWD, err := filepath.Abs(o.WorkDir)
-	if err != nil {
-		return err
-	}
+	absWD, _ := filepath.Abs(o.WorkDir)
 
 	// calculate the relative path between absWD and absSF,
 	// if absSF is not located in the directory or subdirectory specified by absWD,
