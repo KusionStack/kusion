@@ -66,8 +66,7 @@ func (o *ApplyOptions) Run() error {
 		return err
 	}
 
-	// generate Spec
-	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+	options := &generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -76,7 +75,15 @@ func (o *ApplyOptions) Run() error {
 		DisableNone: o.DisableNone,
 		OverrideAST: o.OverrideAST,
 		NoStyle:     o.NoStyle,
-	}, project, stack)
+	}
+
+	// Generate Spec
+	var sp *models.Spec
+	if o.SpecFile != "" {
+		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+	} else {
+		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
+	}
 	if err != nil {
 		return err
 	}

@@ -27,13 +27,16 @@ func NewCmdPreview() *cobra.Command {
 	
 		# Preview with specifying setting file
 		kusion preview -Y settings.yaml
+
+		# Preview with specifying spec file
+		kuions preview --spec-file ci-test/stdout.golden.yaml
 	
 		# Preview with ignored fields
 		kusion preview --ignore-fields="metadata.generation,metadata.managedFields
 		
 		# Preview with json format result
 		kusion preview -o json
-		
+
 		# Preview without output style and color
 		kusion preview --no-style=true`)
 	)
@@ -73,4 +76,6 @@ func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
 		i18n.T("Ignore differences of target fields"))
 	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
 		i18n.T("Specify the output format"))
+	cmd.Flags().StringVarP(&o.SpecFile, "spec-file", "", "",
+		i18n.T("Specify the spec file path as input, and the spec file must be located in the working directory or its subdirectories"))
 }

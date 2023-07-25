@@ -2,12 +2,13 @@ package preview
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 
+	"github.com/pkg/errors"
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/cmd/util"
@@ -37,6 +38,7 @@ type PreviewFlags struct {
 	All          bool
 	NoStyle      bool
 	Output       string
+	SpecFile     string
 	IgnoreFields []string
 }
 
@@ -57,6 +59,40 @@ func (o *PreviewOptions) Validate() error {
 	if o.Output != "" && o.Output != jsonOutput {
 		return errors.New("invalid output type, supported types: json")
 	}
+	if err := o.ValidateSpecFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *PreviewOptions) ValidateSpecFile() error {
+	if o.SpecFile == "" {
+		return nil
+	}
+	absSF, _ := filepath.Abs(o.SpecFile)
+	fi, err := os.Stat(absSF)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = fmt.Errorf("spec file not exist")
+		}
+		return err
+	}
+
+	if fi.IsDir() || !fi.Mode().IsRegular() {
+		return fmt.Errorf("spec file must be a regular file")
+	}
+	absWD, _ := filepath.Abs(o.WorkDir)
+
+	// calculate the relative path between absWD and absSF,
+	// if absSF is not located in the directory or subdirectory specified by absWD,
+	// an error will be returned
+	rel, err := filepath.Rel(absWD, absSF)
+	if err != nil {
+		return err
+	}
+	if rel[:3] == ".."+string(filepath.Separator) {
+		return fmt.Errorf("the spec file must be located in the working directory or its subdirectories")
+	}
 	return nil
 }
 
@@ -72,7 +108,6 @@ func (o *PreviewOptions) Run() error {
 		return err
 	}
 
-	// Get compile result
 	options := &generator.Options{
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
@@ -84,8 +119,11 @@ func (o *PreviewOptions) Run() error {
 		NoStyle:     o.NoStyle,
 	}
 
+	// Generate Spec
 	var sp *models.Spec
-	if o.Output == jsonOutput {
+	if o.SpecFile != "" {
+		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+	} else if o.Output == jsonOutput {
 		sp, err = spec.GenerateSpec(options, project, stack)
 	} else {
 		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
