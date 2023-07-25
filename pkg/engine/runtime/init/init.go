@@ -37,7 +37,7 @@ func Runtimes(resources models.Resources) (map[models.Type]runtime.Runtime, stat
 		} else if runtimesMap[rt] == nil {
 			r, err := SupportRuntimes[rt]()
 			if err != nil {
-				return nil, status.NewErrorStatus(fmt.Errorf("init %s runtime failed", rt))
+				return nil, status.NewErrorStatus(fmt.Errorf("init %s runtime failed. %w", rt, err))
 			}
 			runtimesMap[rt] = r
 		}
