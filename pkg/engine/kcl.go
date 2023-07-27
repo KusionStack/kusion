@@ -5,14 +5,14 @@ import (
 
 	kcl "kcl-lang.io/kcl-go"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
+	models2 "kusionstack.io/kusion/pkg/models"
 )
 
 const MaxLogLength = 3751
 
-func KCLResult2Spec(kclResults []kcl.KCLResult) (*models.Spec, error) {
-	resources := make([]models.Resource, len(kclResults))
+func KCLResult2Spec(kclResults []kcl.KCLResult) (*models2.Spec, error) {
+	resources := make([]models2.Resource, len(kclResults))
 
 	for i, result := range kclResults {
 		// Marshal kcl result to bytes
@@ -29,12 +29,12 @@ func KCLResult2Spec(kclResults []kcl.KCLResult) (*models.Spec, error) {
 		log.Infof("convert kcl result to resource: %s", msg)
 
 		// Parse json data as models.Resource
-		var item models.Resource
+		var item models2.Resource
 		if err = json.Unmarshal(bytes, &item); err != nil {
 			return nil, err
 		}
 		resources[i] = item
 	}
 
-	return &models.Spec{Resources: resources}, nil
+	return &models2.Spec{Resources: resources}, nil
 }

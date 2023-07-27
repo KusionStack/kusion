@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 

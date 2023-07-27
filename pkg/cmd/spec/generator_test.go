@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"kusionstack.io/kusion/pkg/engine/models"
 )
 
 var (

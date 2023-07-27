@@ -15,12 +15,12 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/log"
+	models2 "kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -78,7 +78,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Generate Spec
-	var sp *models.Spec
+	var sp *models2.Spec
 	if o.SpecFile != "" {
 		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
 	} else {
@@ -190,7 +190,7 @@ func (o *ApplyOptions) Run() error {
 func Apply(
 	o *ApplyOptions,
 	storage states.StateStorage,
-	planResources *models.Spec,
+	planResources *models2.Spec,
 	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
@@ -333,7 +333,7 @@ func Apply(
 //	}
 func Watch(
 	o *ApplyOptions,
-	planResources *models.Spec,
+	planResources *models2.Spec,
 	changes *opsmodels.Changes,
 ) error {
 	if o.DryRun {
@@ -342,7 +342,7 @@ func Watch(
 	}
 
 	// Filter out unchanged resources
-	toBeWatched := models.Resources{}
+	toBeWatched := models2.Resources{}
 	for _, res := range planResources.Resources {
 		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChanged {
 			toBeWatched = append(toBeWatched, res)
@@ -355,7 +355,7 @@ func Watch(
 		Request: opsmodels.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Spec:    &models.Spec{Resources: toBeWatched},
+			Spec:    &models2.Spec{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

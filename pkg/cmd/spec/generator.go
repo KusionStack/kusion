@@ -12,14 +12,14 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl"
+	models2 "kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
-func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models2.Spec, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
@@ -52,7 +52,7 @@ func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project
 	return spec, nil
 }
 
-func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models2.Spec, error) {
 	// Choose the generator
 	var g generator.Generator
 	pg := project.Generator
@@ -78,7 +78,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	return spec, nil
 }
 
-func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
+func GenerateSpecFromFile(filePath string) (*models2.Spec, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -86,9 +86,9 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	var resources models.Resources
+	var resources models2.Resources
 	if err = decoder.Decode(&resources); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("failed to parse the spec file, please check if the file content is valid")
 	}
-	return &models.Spec{Resources: resources}, nil
+	return &models2.Spec{Resources: resources}, nil
 }

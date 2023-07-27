@@ -14,7 +14,6 @@ import (
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -76,7 +75,10 @@ func TestOperation_Destroy(t *testing.T) {
 		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
 		})
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(f *local.FileSystemState, query *states.StateQuery) (*states.State, error) {
+		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+			f *local.FileSystemState,
+			query *states.StateQuery,
+		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
 		})
 		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
@@ -94,7 +96,10 @@ func TestOperation_Destroy(t *testing.T) {
 		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
 		})
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(f *local.FileSystemState, query *states.StateQuery) (*states.State, error) {
+		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+			f *local.FileSystemState,
+			query *states.StateQuery,
+		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
 		})
 		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
