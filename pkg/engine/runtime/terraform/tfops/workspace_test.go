@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/models"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	// jsonutil "kusionstack.io/kusion/pkg/util/json"
 )

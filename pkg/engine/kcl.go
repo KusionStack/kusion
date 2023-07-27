@@ -5,8 +5,8 @@ import (
 
 	kcl "kcl-lang.io/kcl-go"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 )
 
 const MaxLogLength = 3751

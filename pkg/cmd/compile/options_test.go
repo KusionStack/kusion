@@ -7,10 +7,11 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -125,7 +126,11 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+		o *generator.Options,
+		project *projectstack.Project,
+		stack *projectstack.Stack,
+	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	})
 }
