@@ -94,7 +94,7 @@ func (o *CompileOptions) Run() error {
 		}
 	}
 
-	yaml, err := yamlv2.Marshal(sp.Resources)
+	yaml, err := yamlv2.Marshal(sp)
 	if err != nil {
 		return err
 	}
