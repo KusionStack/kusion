@@ -8,7 +8,7 @@ import (
 // Generator represents a way to generate Spec. Usually, it is implemented by KCL, but we make it as an interface for a more general usage.
 // Anyone who implements this interface is regarded as a Generator, and can be integrated by the Kusion workflow.
 type Generator interface {
-	GenerateSpec(o *Options, stack *projectstack.Stack) (*models.Spec, error)
+	GenerateSpec(o *Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error)
 }
 
 const (

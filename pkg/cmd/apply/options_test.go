@@ -20,7 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/generator"
-	models2 "kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -84,8 +84,8 @@ func mockGenerateSpec() {
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
-	) (*models2.Spec, error) {
-		return &models2.Spec{Resources: []models2.Resource{sa1, sa2, sa3}}, nil
+	) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	})
 }
 
@@ -172,8 +172,8 @@ var (
 	sa3 = newSA("sa3")
 )
 
-func newSA(name string) models2.Resource {
-	return models2.Resource{
+func newSA(name string) models.Resource {
+	return models.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -192,7 +192,7 @@ func Test_apply(t *testing.T) {
 	t.Run("dry run", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 
-		planResources := &models2.Spec{Resources: []models2.Resource{sa1}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -214,7 +214,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
-		planResources := &models2.Spec{Resources: []models2.Resource{sa1, sa2}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1, sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -240,7 +240,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
-		planResources := &models2.Spec{Resources: []models2.Resource{sa1}}
+		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{

@@ -9,7 +9,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	models2 "kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
@@ -25,13 +25,13 @@ type Operation struct {
 	StateStorage states.StateStorage
 
 	// CtxResourceIndex represents resources updated by this operation
-	CtxResourceIndex map[string]*models2.Resource
+	CtxResourceIndex map[string]*models.Resource
 
 	// PriorStateResourceIndex represents resource state saved during the last operation
-	PriorStateResourceIndex map[string]*models2.Resource
+	PriorStateResourceIndex map[string]*models.Resource
 
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
-	StateResourceIndex map[string]*models2.Resource
+	StateResourceIndex map[string]*models.Resource
 
 	// IgnoreFields will be ignored in preview stage
 	IgnoreFields []string
@@ -40,7 +40,7 @@ type Operation struct {
 	ChangeOrder *ChangeOrder
 
 	// RuntimeMap contains all infrastructure runtimes involved this operation. The key of this map is the Runtime type
-	RuntimeMap map[models2.Type]runtime.Runtime
+	RuntimeMap map[models.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
 	Stack *projectstack.Stack
@@ -71,7 +71,7 @@ type Request struct {
 	Stack    *projectstack.Stack   `json:"stack"`
 	Cluster  string                `json:"cluster"`
 	Operator string                `json:"operator"`
-	Spec     *models2.Spec         `json:"spec"`
+	Spec     *models.Spec          `json:"spec"`
 }
 
 type OpResult string
@@ -84,7 +84,7 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models2.Resource, actionType ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType ActionType) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -126,7 +126,7 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 	return latestState, resultState
 }
 
-func (o *Operation) UpdateState(resourceIndex map[string]*models2.Resource) error {
+func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -134,7 +134,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*models2.Resource) erro
 	state.Serial += 1
 	state.Resources = nil
 
-	res := make([]models2.Resource, 0, len(resourceIndex))
+	res := make([]models.Resource, 0, len(resourceIndex))
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {
