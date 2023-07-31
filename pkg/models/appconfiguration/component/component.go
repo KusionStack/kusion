@@ -1,10 +1,15 @@
 package component
 
-import "kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
+import (
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component/job"
+)
 
 type Component struct {
 	// The templates of containers to be ran.
 	Containers map[string]container.Container `yaml:"containers,omitempty" json:"containers,omitempty"`
+	// The templates of jobs to be ran.
+	Jobs map[string]job.Job `yaml:"jobs,omitempty" json:"jobs,omitempty"`
 
 	// The number of containers that should be ran.
 	// Default is 2 to meet high availability requirements.

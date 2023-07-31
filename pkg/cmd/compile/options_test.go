@@ -11,6 +11,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
