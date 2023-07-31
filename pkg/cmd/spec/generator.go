@@ -16,6 +16,7 @@ import (
 	"kusionstack.io/kusion/pkg/generator/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -85,7 +86,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	return spec, nil
 }
 
-func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*app_configuration.AppConfiguration, error) {
+func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfiguration.AppConfiguration, error) {
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -102,7 +103,7 @@ func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*app_confi
 	}
 
 	log.Debugf("unmarshal %s to app config", out)
-	appConfig := &app_configuration.AppConfiguration{}
+	appConfig := &appconfiguration.AppConfiguration{}
 	err = yaml.Unmarshal(out, appConfig)
 	if err != nil {
 		return nil, err
