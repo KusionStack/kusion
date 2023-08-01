@@ -49,7 +49,7 @@ func (g *namespaceGenerator) Generate(spec *models.Spec) error {
 	}
 
 	r := models.Resource{
-		ID:         buildK8sResourceId(ns.TypeMeta, ns.ObjectMeta),
+		ID:         buildK8sResourceID(ns.TypeMeta, ns.ObjectMeta),
 		Type:       generator.Kubernetes,
 		Attributes: unstructured,
 		DependsOn:  nil,

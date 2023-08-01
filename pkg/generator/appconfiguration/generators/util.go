@@ -5,13 +5,13 @@ import (
 	"kusionstack.io/kusion/pkg/models"
 )
 
-func buildK8sResourceId(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
+func buildK8sResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
 	// resource id example: apps/v1:Deployment:code-city:code-citydev
 	id := typeMeta.APIVersion + ":" + typeMeta.Kind + ":"
 	if objectMeta.Namespace != "" {
-		id = id + objectMeta.Namespace + ":"
+		id += objectMeta.Namespace + ":"
 	}
-	id = id + objectMeta.Name
+	id += objectMeta.Name
 	return id
 }
 

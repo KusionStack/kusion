@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
