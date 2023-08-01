@@ -6,11 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/bytedance/mockey"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
@@ -20,6 +18,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )

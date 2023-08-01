@@ -13,13 +13,13 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
-
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )

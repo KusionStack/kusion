@@ -1,8 +1,8 @@
-package app_configuration
+package appconfiguration
 
 import (
 	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/generator/app_configuration/generators"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generators"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
