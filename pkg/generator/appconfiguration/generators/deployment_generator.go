@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/component"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
 )
 
 // deploymentGenerator is a struct for generating Deployment
@@ -65,7 +66,7 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 	// Create a slice of containers based on the component's
 	// containers.
 	containers := []v1.Container{}
-	for containerName, c := range g.comp.Containers {
+	if err := foreachOrderedContainers(g.comp.Containers, func(containerName string, c container.Container) error {
 		// Create a slice of env vars based on the container's
 		// envvars.
 		envs := []v1.EnvVar{}
@@ -88,6 +89,9 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 		}
 
 		containers = append(containers, container)
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	// Create a Deployment object based on the component's

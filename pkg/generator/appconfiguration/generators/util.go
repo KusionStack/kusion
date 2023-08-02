@@ -1,10 +1,14 @@
 package generators
 
 import (
+	"sort"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
 )
 
 // kubernetesResourceID returns the unique ID of a Kubernetes resource
@@ -84,4 +88,50 @@ func uniqueComponentLabels(projectName, compName string) map[string]string {
 // int32Ptr returns a pointer to an int32 value.
 func int32Ptr(i int32) *int32 {
 	return &i
+}
+
+// foreachOrderedContainers executes the given function on each
+// container in the map in order of their keys.
+func foreachOrderedContainers(
+	m map[string]container.Container,
+	f func(containerName string, c container.Container) error,
+) error {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := m[k]
+		if err := f(k, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// foreachOrderedComponents executes the given function on each
+// component in the map in order of their keys.
+func foreachOrderedComponents(
+	m map[string]component.Component,
+	f func(compName string, comp component.Component) error,
+) error {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := m[k]
+		if err := f(k, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
