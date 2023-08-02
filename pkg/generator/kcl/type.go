@@ -4,13 +4,13 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 )
 
-// The result of a KCL compilation
+// CompileResult is the result of a KCL compilation
 type CompileResult struct {
 	Documents     []kcl.KCLResult
 	RawYAMLResult string
 }
 
-// New a CompileResult by KCLResultList
+// NewCompileResult news a CompileResult by KCLResultList
 func NewCompileResult(k *kcl.KCLResultList) *CompileResult {
 	return &CompileResult{
 		Documents:     k.Slice(),
@@ -18,7 +18,7 @@ func NewCompileResult(k *kcl.KCLResultList) *CompileResult {
 	}
 }
 
-// New a CompileResult by map array
+// NewCompileResultByMapList news a CompileResult by map array
 func NewCompileResultByMapList(mapList []map[string]interface{}) *CompileResult {
 	documents := []kcl.KCLResult{}
 	for _, mapItem := range mapList {
