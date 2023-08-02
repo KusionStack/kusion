@@ -35,15 +35,18 @@ func (g *componentsGenerator) Generate(spec *models.Spec) error {
 	}
 
 	if g.components != nil {
-		for _, comp := range g.components {
+		if err := foreachOrderedComponents(g.components, func(compName string, comp component.Component) error {
 			gfs := []NewGeneratorFunc{
-				NewDeploymentGeneratorFunc(&comp),
-				NewJobGeneratorFunc(&comp),
+				NewDeploymentGeneratorFunc(g.projectName, compName, &comp),
 			}
 
 			if err := callGenerators(spec, gfs...); err != nil {
 				return err
 			}
+
+			return nil
+		}); err != nil {
+			return err
 		}
 	}
 
