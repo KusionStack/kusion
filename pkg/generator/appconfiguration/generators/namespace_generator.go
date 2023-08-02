@@ -5,8 +5,6 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -43,20 +41,9 @@ func (g *namespaceGenerator) Generate(spec *models.Spec) error {
 		ObjectMeta: metav1.ObjectMeta{Name: g.projectName},
 	}
 
-	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(ns)
-	if err != nil {
-		return err
-	}
-
-	r := models.Resource{
-		ID:         buildK8sResourceID(ns.TypeMeta, ns.ObjectMeta),
-		Type:       generator.Kubernetes,
-		Attributes: unstructured,
-		DependsOn:  nil,
-		Extensions: nil,
-	}
-
-	spec.Resources = append(spec.Resources, r)
-
-	return nil
+	return appendToSpec(
+		kubernetesResourceID(ns.TypeMeta, ns.ObjectMeta),
+		ns,
+		spec,
+	)
 }

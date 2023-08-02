@@ -35,10 +35,9 @@ func (g *componentsGenerator) Generate(spec *models.Spec) error {
 	}
 
 	if g.components != nil {
-		for _, comp := range g.components {
+		for compName, comp := range g.components {
 			gfs := []NewGeneratorFunc{
-				NewDeploymentGeneratorFunc(&comp),
-				NewJobGeneratorFunc(&comp),
+				NewDeploymentGeneratorFunc(g.projectName, compName, &comp),
 			}
 
 			if err := callGenerators(spec, gfs...); err != nil {
