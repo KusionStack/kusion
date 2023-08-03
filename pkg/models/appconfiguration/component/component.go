@@ -2,18 +2,27 @@ package component
 
 import (
 	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/component/job"
+)
+
+const (
+	WorkloadTypeLongRunningService string = "LongRunningService"
+	WorkloadTypeJob                string = "Job"
 )
 
 type Component struct {
+	// The workload type of containers
+	WorkloadType string `yaml:"workloadType" json:"workloadType"`
 	// The templates of containers to be ran.
 	Containers map[string]container.Container `yaml:"containers,omitempty" json:"containers,omitempty"`
-	// The templates of jobs to be ran.
-	Jobs map[string]job.Job `yaml:"jobs,omitempty" json:"jobs,omitempty"`
 
 	// The number of containers that should be ran.
 	// Default is 2 to meet high availability requirements.
+	// Only supported when workloadType is LongRunningService
 	Replicas int `yaml:"replicas,omitempty" json:"replicas,omitempty"`
+
+	// The schedule in Cron format
+	// Only supported when workloadType is Job.
+	Schedule string
 
 	// List of Workload supporting accessory. Accessory defines various runtime capabilities and operation functionalities.
 
