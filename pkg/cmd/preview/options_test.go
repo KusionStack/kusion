@@ -6,9 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/bytedance/mockey"
+	"github.com/stretchr/testify/require"
+	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/models"
@@ -47,8 +49,8 @@ var (
 func Test_preview(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	t.Run("preview success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockOperationPreview()
+		m := monkeyPatchOperationPreview()
+		defer m.UnPatch()
 
 		o := NewPreviewOptions()
 		_, err := Preview(o, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
@@ -69,8 +71,8 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("compile failed", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
+		m := monkeyPatchDetectProjectAndStack()
+		defer m.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -79,10 +81,12 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("no changes", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpecWithSpinner()
-		mockNewKubernetesRuntime()
+		m1 := monkeyPatchDetectProjectAndStack()
+		m2 := monkeyPatchGenerateSpecWithSpinner()
+		m3 := monkeyPatchNewKubernetesRuntime()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -91,12 +95,16 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("detail is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpecWithSpinner()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
-		mockPromptDetail("")
+		m1 := monkeyPatchDetectProjectAndStack()
+		m2 := monkeyPatchGenerateSpecWithSpinner()
+		m3 := monkeyPatchNewKubernetesRuntime()
+		m4 := monkeyPatchOperationPreview()
+		m5 := monkeyPatchPromptDetail("")
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
+		defer m4.UnPatch()
+		defer m5.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -105,12 +113,16 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("json output is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
-		mockPromptDetail("")
+		m1 := monkeyPatchDetectProjectAndStack()
+		m2 := monkeyPatchGenerateSpec()
+		m3 := monkeyPatchNewKubernetesRuntime()
+		m4 := monkeyPatchOperationPreview()
+		m5 := monkeyPatchPromptDetail("")
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
+		defer m4.UnPatch()
+		defer m5.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Output = jsonOutput
@@ -119,12 +131,16 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("no style is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpecWithSpinner()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
-		mockPromptDetail("")
+		m1 := monkeyPatchDetectProjectAndStack()
+		m2 := monkeyPatchGenerateSpecWithSpinner()
+		m3 := monkeyPatchNewKubernetesRuntime()
+		m4 := monkeyPatchOperationPreview()
+		m5 := monkeyPatchPromptDetail("")
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
+		defer m4.UnPatch()
+		defer m5.UnPatch()
 
 		o := NewPreviewOptions()
 		o.NoStyle = true
@@ -167,33 +183,31 @@ func (f *fooRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *
 	return nil
 }
 
-func mockOperationPreview() {
-	monkey.Patch((*operation.PreviewOperation).Preview,
-		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
-			return &operation.PreviewResponse{
-				Order: &opsmodels.ChangeOrder{
-					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-					ChangeSteps: map[string]*opsmodels.ChangeStep{
-						sa1.ID: {
-							ID:     sa1.ID,
-							Action: opsmodels.Create,
-							From:   &sa1,
-						},
-						sa2.ID: {
-							ID:     sa2.ID,
-							Action: opsmodels.UnChanged,
-							From:   &sa2,
-						},
-						sa3.ID: {
-							ID:     sa3.ID,
-							Action: opsmodels.Undefined,
-							From:   &sa1,
-						},
+func monkeyPatchOperationPreview() *mockey.Mocker {
+	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+		return &operation.PreviewResponse{
+			Order: &opsmodels.ChangeOrder{
+				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
+				ChangeSteps: map[string]*opsmodels.ChangeStep{
+					sa1.ID: {
+						ID:     sa1.ID,
+						Action: opsmodels.Create,
+						From:   &sa1,
+					},
+					sa2.ID: {
+						ID:     sa2.ID,
+						Action: opsmodels.UnChanged,
+						From:   &sa2,
+					},
+					sa3.ID: {
+						ID:     sa3.ID,
+						Action: opsmodels.Undefined,
+						From:   &sa1,
 					},
 				},
-			}, nil
-		},
-	)
+			},
+		}, nil
+	}).Build()
 }
 
 func newSA(name string) models.Resource {
@@ -211,42 +225,171 @@ func newSA(name string) models.Resource {
 	}
 }
 
-func mockDetectProjectAndStack() {
-	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+func monkeyPatchDetectProjectAndStack() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
-	})
+	}).Build()
 }
 
-func mockGenerateSpecWithSpinner() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+func monkeyPatchGenerateSpec() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpec).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
 	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
-	})
+	}).Build()
 }
 
-func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpec, func(
+func monkeyPatchGenerateSpecWithSpinner() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
 	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
-	})
+	}).Build()
 }
 
-func mockNewKubernetesRuntime() {
-	monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+func monkeyPatchNewKubernetesRuntime() *mockey.Mocker {
+	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fooRuntime{}, nil
-	})
+	}).Build()
 }
 
-func mockPromptDetail(input string) {
-	monkey.Patch((*opsmodels.ChangeOrder).PromptDetails, func(co *opsmodels.ChangeOrder) (string, error) {
+func monkeyPatchPromptDetail(input string) *mockey.Mocker {
+	return mockey.Mock((*opsmodels.ChangeOrder).PromptDetails).To(func(co *opsmodels.ChangeOrder) (string, error) {
 		return input, nil
-	})
+	}).Build()
+}
+
+func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
+	currDir, _ := os.Getwd()
+	tests := []struct {
+		name           string
+		specFile       string
+		workDir        string
+		createSpecFile bool
+		wantErr        bool
+	}{
+		{
+			name:           "test1",
+			specFile:       "kusion_spec.yaml",
+			workDir:        "",
+			createSpecFile: true,
+		},
+		{
+			name:           "test2",
+			specFile:       filepath.Join(currDir, "kusion_spec.yaml"),
+			workDir:        "",
+			createSpecFile: true,
+		},
+		{
+			name:           "test3",
+			specFile:       "kusion_spec.yaml",
+			workDir:        "",
+			createSpecFile: false,
+			wantErr:        true,
+		},
+		{
+			name:           "test4",
+			specFile:       "ci-test/stdout.golden.yaml",
+			workDir:        "",
+			createSpecFile: true,
+		},
+		{
+			name:           "test5",
+			specFile:       "../kusion_spec.yaml",
+			workDir:        "",
+			createSpecFile: true,
+			wantErr:        true,
+		},
+		{
+			name:           "test6",
+			specFile:       filepath.Join(currDir, "../kusion_spec.yaml"),
+			workDir:        "",
+			createSpecFile: true,
+			wantErr:        true,
+		},
+		{
+			name:     "test7",
+			specFile: "",
+			workDir:  "",
+			wantErr:  false,
+		},
+		{
+			name:     "test8",
+			specFile: currDir,
+			workDir:  "",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := PreviewOptions{}
+			o.SpecFile = tt.specFile
+			o.WorkDir = tt.workDir
+			if tt.createSpecFile {
+				dir := filepath.Dir(tt.specFile)
+				if _, err := os.Stat(dir); os.IsNotExist(err) {
+					os.MkdirAll(dir, 0o755)
+					defer os.RemoveAll(dir)
+				}
+				os.Create(tt.specFile)
+				defer os.Remove(tt.specFile)
+			}
+			err := o.ValidateSpecFile()
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestPreviewOptions_Validate(t *testing.T) {
+	m := mockey.Mock((*compilecmd.CompileOptions).Validate).Return(nil).Build()
+	defer m.UnPatch()
+	tests := []struct {
+		name    string
+		output  string
+		wantErr bool
+	}{
+		{
+			name:    "test1",
+			output:  "json",
+			wantErr: false,
+		},
+		{
+			name:    "test2",
+			output:  "yaml",
+			wantErr: true,
+		},
+		{
+			name:    "test3",
+			output:  "",
+			wantErr: false,
+		},
+		{
+			name:    "test4",
+			output:  "",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &PreviewOptions{}
+			o.Output = tt.output
+			err := o.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }

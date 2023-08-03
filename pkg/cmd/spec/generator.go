@@ -1,11 +1,16 @@
 package spec
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
+
+	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
@@ -71,4 +76,19 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
 	return spec, nil
+}
+
+func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	decoder := yaml.NewDecoder(bytes.NewBuffer(b))
+	decoder.KnownFields(true)
+	var resources models.Resources
+	if err = decoder.Decode(&resources); err != nil && err != io.EOF {
+		return nil, fmt.Errorf("failed to parse the spec file, please check if the file content is valid")
+	}
+	return &models.Spec{Resources: resources}, nil
 }
