@@ -13,8 +13,8 @@ import (
 	"bou.ke/monkey"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/models"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -84,7 +84,11 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 		k := &KubernetesRuntime{}
 		defer monkey.UnpatchAll()
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(k *KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(
+			k *KubernetesRuntime,
+			ctx context.Context,
+			request *runtime.ReadRequest,
+		) *runtime.ReadResponse {
 			return &runtime.ReadResponse{Resource: &models.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,
@@ -102,7 +106,11 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 
 	t.Run(tests[1].name, func(t *testing.T) {
 		k := &KubernetesRuntime{}
-		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(k *KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(
+			k *KubernetesRuntime,
+			ctx context.Context,
+			request *runtime.ReadRequest,
+		) *runtime.ReadResponse {
 			return &runtime.ReadResponse{Resource: &models.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,

@@ -9,12 +9,12 @@ import (
 	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
