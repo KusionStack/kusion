@@ -1,11 +1,12 @@
 package compile
 
 import (
+	"errors"
+	"github.com/bytedance/mockey"
 	"io/fs"
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
@@ -34,6 +35,8 @@ var (
 	sa1 = newSA("sa1")
 	sa2 = newSA("sa2")
 	sa3 = newSA("sa3")
+
+	testError = errors.New("test error")
 )
 
 func TestCompileOptions_preSet(t *testing.T) {
@@ -69,7 +72,7 @@ func TestCompileOptions_preSet(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			o := NewCompileOptions()
 
 			o.Settings = tt.fields.Settings
@@ -88,8 +91,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		os.Remove("kusion_state.json")
 	}()
 
-	t.Run("no style is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("no style is true", t, func() {
 		mockDetectProjectAndStack()
 		mockGenerateSpec()
 		mockWriteFile()
@@ -98,6 +100,36 @@ func TestCompileOptions_Run(t *testing.T) {
 		o.NoStyle = true
 		err := o.Run()
 		assert.Nil(t, err)
+	})
+
+	mockey.PatchConvey("detect project and spec failed", t, func() {
+		mockDetectProjectAndStackFail()
+
+		o := NewCompileOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Equal(t, testError, err)
+	})
+
+	mockey.PatchConvey("generate spec failed", t, func() {
+		mockDetectProjectAndStack()
+		mockGenerateSpecFail()
+
+		o := NewCompileOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Equal(t, testError, err)
+	})
+
+	mockey.PatchConvey("write file failed", t, func() {
+		mockDetectProjectAndStack()
+		mockGenerateSpec()
+		mockWriteFileFail()
+
+		o := NewCompileOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Equal(t, testError, err)
 	})
 }
 
@@ -117,21 +149,41 @@ func newSA(name string) models.Resource {
 }
 
 func mockDetectProjectAndStack() {
-	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
-	})
+	}).Build()
+}
+
+func mockDetectProjectAndStackFail() {
+	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+		project.Path = stackDir
+		stack.Path = stackDir
+		return project, stack, testError
+	}).Build()
 }
 
 func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
-	})
+	}).Build()
+}
+
+func mockGenerateSpecFail() {
+	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, testError
+	}).Build()
 }
 
 func mockWriteFile() {
-	monkey.Patch(os.WriteFile, func(name string, data []byte, perm fs.FileMode) error {
+	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return nil
-	})
+	}).Build()
+}
+
+func mockWriteFileFail() {
+	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
+		return testError
+	}).Build()
 }
