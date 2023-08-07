@@ -146,29 +146,6 @@ func toOrderedContainers(appContainers map[string]container.Container) ([]corev1
 	return containers, nil
 }
 
-func toK8SContainer(containerName string, c container.Container) corev1.Container {
-	// Create a slice of env vars based on the container's
-	// envvars.
-	envs := []corev1.EnvVar{}
-	for k, v := range c.Env {
-		envs = append(envs, corev1.EnvVar{
-			Name:  k,
-			Value: v,
-		})
-	}
-
-	// Create a container object and append it to the containers
-	// slice.
-	return corev1.Container{
-		Name:       containerName,
-		Image:      c.Image,
-		Command:    c.Command,
-		Args:       c.Args,
-		WorkingDir: c.WorkingDir,
-		Env:        envs,
-	}
-}
-
 // foreachOrderedComponents executes the given function on each
 // component in the map in order of their keys.
 func foreachOrderedComponents(
