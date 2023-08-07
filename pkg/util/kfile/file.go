@@ -58,7 +58,7 @@ func FileExists(filename string) (bool, error) {
 	return !info.IsDir(), nil
 }
 
-// Get the kusion data directory of the current user
+// KusionDataFolder gets the kusion data directory of the current user
 func KusionDataFolder() (string, error) {
 	var kusionDataFolder string
 

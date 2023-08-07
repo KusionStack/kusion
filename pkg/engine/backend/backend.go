@@ -54,8 +54,7 @@ func MergeConfig(config, override map[string]interface{}) map[string]interface{}
 	return content
 }
 
-// NewDefalutBackend return defalut backend.
-// default backend is local filesystem
+// NewDefaultBackend return default backend, default backend is local filesystem
 func NewDefaultBackend(dir string, fileName string) *Storage {
 	return &Storage{
 		Type: "local",
