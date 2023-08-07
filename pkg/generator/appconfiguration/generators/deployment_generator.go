@@ -57,7 +57,8 @@ func NewDeploymentGeneratorFunc(
 
 // Generate generates a Deployment resource to the given spec.
 func (g *deploymentGenerator) Generate(spec *models.Spec) error {
-	if g.comp.WorkloadType != component.WorkloadTypeLongRunningService {
+	lrs := g.comp.LongRunningService
+	if lrs == nil {
 		return nil
 	}
 
@@ -68,7 +69,7 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 
 	// Create a slice of containers based on the component's
 	// containers.
-	containers, err := toOrderedContainers(g.comp.Containers)
+	containers, err := toOrderedContainers(lrs.Containers)
 	if err != nil {
 		return err
 	}
@@ -86,7 +87,7 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 			Namespace: g.projectName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(g.comp.Replicas)),
+			Replicas: int32Ptr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: uniqueComponentLabels(g.projectName, g.compName),
 			},

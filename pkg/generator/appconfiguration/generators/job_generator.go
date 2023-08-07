@@ -29,7 +29,8 @@ func NewJobGeneratorFunc(projectName, compName string, comp *component.Component
 }
 
 func (g *jobGenerator) Generate(spec *models.Spec) error {
-	if g.comp.WorkloadType != component.WorkloadTypeJob {
+	job := g.comp.Job
+	if job == nil {
 		return nil
 	}
 
@@ -44,7 +45,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		Annotations: g.comp.Annotations,
 	}
 
-	containers, err := toOrderedContainers(g.comp.Containers)
+	containers, err := toOrderedContainers(job.Containers)
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		},
 	}
 
-	if g.comp.Schedule == "" {
+	if job.Schedule == "" {
 		resource := &batchv1.Job{
 			ObjectMeta: meta,
 			TypeMeta: metav1.TypeMeta{
@@ -85,7 +86,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: jobSpec,
 			},
-			Schedule: g.comp.Schedule,
+			Schedule: job.Schedule,
 		},
 	}
 	return appendToSpec(
