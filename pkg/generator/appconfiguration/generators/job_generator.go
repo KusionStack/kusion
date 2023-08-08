@@ -65,7 +65,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			ObjectMeta: meta,
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Job",
-				APIVersion: "batch/v1",
+				APIVersion: batchv1.SchemeGroupVersion.String(),
 			},
 			Spec: jobSpec,
 		}
@@ -80,7 +80,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		ObjectMeta: meta,
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "CronJob",
-			APIVersion: "batch/v1",
+			APIVersion: batchv1.SchemeGroupVersion.String(),
 		},
 		Spec: batchv1.CronJobSpec{
 			JobTemplate: batchv1.JobTemplateSpec{
