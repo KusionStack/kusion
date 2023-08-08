@@ -1,14 +1,12 @@
 package component
 
-import "kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
+import (
+	"kusionstack.io/kusion/pkg/models/appconfiguration/component/workload"
+)
 
 type Component struct {
-	// The templates of containers to be ran.
-	Containers map[string]container.Container `yaml:"containers,omitempty" json:"containers,omitempty"`
-
-	// The number of containers that should be ran.
-	// Default is 2 to meet high availability requirements.
-	Replicas int `yaml:"replicas,omitempty" json:"replicas,omitempty"`
+	Job                *workload.Job
+	LongRunningService *workload.LongRunningService
 
 	// List of Workload supporting accessory. Accessory defines various runtime capabilities and operation functionalities.
 

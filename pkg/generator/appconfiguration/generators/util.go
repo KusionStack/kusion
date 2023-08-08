@@ -3,6 +3,7 @@ package generators
 import (
 	"sort"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -112,6 +113,38 @@ func foreachOrderedContainers(
 	}
 
 	return nil
+}
+
+func toOrderedContainers(appContainers map[string]container.Container) ([]corev1.Container, error) {
+	// Create a slice of containers based on the component's
+	// containers.
+	containers := []corev1.Container{}
+	if err := foreachOrderedContainers(appContainers, func(containerName string, c container.Container) error {
+		// Create a slice of env vars based on the container's
+		// envvars.
+		envs := []corev1.EnvVar{}
+		for k, v := range c.Env {
+			envs = append(envs, corev1.EnvVar{
+				Name:  k,
+				Value: v,
+			})
+		}
+
+		// Create a container object and append it to the containers
+		// slice.
+		containers = append(containers, corev1.Container{
+			Name:       containerName,
+			Image:      c.Image,
+			Command:    c.Command,
+			Args:       c.Args,
+			WorkingDir: c.WorkingDir,
+			Env:        envs,
+		})
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return containers, nil
 }
 
 // foreachOrderedComponents executes the given function on each
