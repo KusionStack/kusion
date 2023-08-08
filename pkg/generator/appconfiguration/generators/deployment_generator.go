@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/component"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
 )
 
 // deploymentGenerator is a struct for generating Deployment
@@ -58,6 +57,11 @@ func NewDeploymentGeneratorFunc(
 
 // Generate generates a Deployment resource to the given spec.
 func (g *deploymentGenerator) Generate(spec *models.Spec) error {
+	lrs := g.comp.LongRunningService
+	if lrs == nil {
+		return nil
+	}
+
 	// Create an empty resource slice if it doesn't exist yet.
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
@@ -65,32 +69,8 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 
 	// Create a slice of containers based on the component's
 	// containers.
-	containers := []v1.Container{}
-	if err := foreachOrderedContainers(g.comp.Containers, func(containerName string, c container.Container) error {
-		// Create a slice of env vars based on the container's
-		// envvars.
-		envs := []v1.EnvVar{}
-		for k, v := range c.Env {
-			envs = append(envs, v1.EnvVar{
-				Name:  k,
-				Value: v,
-			})
-		}
-
-		// Create a container object and append it to the containers
-		// slice.
-		container := v1.Container{
-			Name:       containerName,
-			Image:      c.Image,
-			Command:    c.Command,
-			Args:       c.Args,
-			WorkingDir: c.WorkingDir,
-			Env:        envs,
-		}
-
-		containers = append(containers, container)
-		return nil
-	}); err != nil {
+	containers, err := toOrderedContainers(lrs.Containers)
+	if err != nil {
 		return err
 	}
 
@@ -107,7 +87,7 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 			Namespace: g.projectName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(g.comp.Replicas)),
+			Replicas: int32Ptr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: uniqueComponentLabels(g.projectName, g.compName),
 			},
