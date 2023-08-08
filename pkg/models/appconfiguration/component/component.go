@@ -4,11 +4,6 @@ import (
 	"kusionstack.io/kusion/pkg/models/appconfiguration/component/workload"
 )
 
-const (
-	WorkloadTypeLongRunningService string = "LongRunningService"
-	WorkloadTypeJob                string = "Job"
-)
-
 type Component struct {
 	Job                *workload.Job
 	LongRunningService *workload.LongRunningService
