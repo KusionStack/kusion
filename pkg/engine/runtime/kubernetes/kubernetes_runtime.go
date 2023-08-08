@@ -25,10 +25,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/status"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"

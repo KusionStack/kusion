@@ -6,10 +6,10 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"

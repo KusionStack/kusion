@@ -10,16 +10,17 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/require"
+
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
@@ -184,7 +185,10 @@ func (f *fooRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *
 }
 
 func monkeyPatchOperationPreview() *mockey.Mocker {
-	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
+		*operation.PreviewOperation,
+		*operation.PreviewRequest,
+	) (rsp *operation.PreviewResponse, s status.Status) {
 		return &operation.PreviewResponse{
 			Order: &opsmodels.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},

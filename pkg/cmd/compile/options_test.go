@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -165,7 +166,11 @@ func mockDetectProjectAndStackFail() {
 }
 
 func mockGenerateSpec() {
-	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
+		o *generator.Options,
+		project *projectstack.Project,
+		stack *projectstack.Stack,
+	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }

@@ -5,7 +5,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/watch"
 
-	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )

@@ -5,7 +5,7 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/engine/models"
+	"kusionstack.io/kusion/pkg/models"
 )
 
 // StateRepresentation is the top-level representation of the json format of a terraform
