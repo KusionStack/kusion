@@ -86,7 +86,7 @@ func Test_jobGenerator_Generate(t *testing.T) {
 				comp: &component.Component{
 					Job: &workload.Job{
 						Containers: map[string]container.Container{
-							"container1": {
+							"container2": {
 								Image: "nginx:v1",
 							},
 						},
@@ -124,7 +124,7 @@ func Test_jobGenerator_Generate(t *testing.T) {
 										"spec": map[string]interface{}{
 											"containers": []interface{}{map[string]interface{}{
 												"image":     "nginx:v1",
-												"name":      "container1",
+												"name":      "container2",
 												"resources": map[string]interface{}{},
 											}},
 										},
