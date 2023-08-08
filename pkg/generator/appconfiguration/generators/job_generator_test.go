@@ -95,50 +95,52 @@ func Test_jobGenerator_Generate(t *testing.T) {
 				},
 			},
 			in: &models.Spec{},
-			want: &models.Spec{Resources: models.Resources{
-				{
-					ID:   "batch/v1:CronJob:proj2:proj2-comp2",
-					Type: "Kubernetes",
-					Attributes: map[string]interface{}{
-						"apiVersion": "batch/v1",
-						"kind":       "CronJob",
-						"metadata": map[string]interface{}{
-							"creationTimestamp": nil,
-							"name":              "proj2-comp2",
-							"namespace":         "proj2",
-						},
-						"spec": map[string]interface{}{
-							"jobTemplate": map[string]interface{}{
-								"metadata": map[string]interface{}{
-									"creationTimestamp": nil,
-								},
-								"spec": map[string]interface{}{
-									"template": map[string]interface{}{
-										"metadata": map[string]interface{}{
-											"creationTimestamp": nil,
-											"labels": map[string]interface{}{
-												"app.kubernetes.io/component": "comp2",
-												"app.kubernetes.io/name":      "proj2",
+			want: &models.Spec{
+				Resources: models.Resources{
+					{
+						ID:   "batch/v1:CronJob:proj2:proj2-comp2",
+						Type: "Kubernetes",
+						Attributes: map[string]interface{}{
+							"apiVersion": "batch/v1",
+							"kind":       "CronJob",
+							"metadata": map[string]interface{}{
+								"creationTimestamp": nil,
+								"name":              "proj2-comp2",
+								"namespace":         "proj2",
+							},
+							"spec": map[string]interface{}{
+								"jobTemplate": map[string]interface{}{
+									"metadata": map[string]interface{}{
+										"creationTimestamp": nil,
+									},
+									"spec": map[string]interface{}{
+										"template": map[string]interface{}{
+											"metadata": map[string]interface{}{
+												"creationTimestamp": nil,
+												"labels": map[string]interface{}{
+													"app.kubernetes.io/component": "comp2",
+													"app.kubernetes.io/name":      "proj2",
+												},
 											},
-										},
-										"spec": map[string]interface{}{
-											"containers": []interface{}{map[string]interface{}{
-												"image":     "nginx:v1",
-												"name":      "container2",
-												"resources": map[string]interface{}{},
-											}},
+											"spec": map[string]interface{}{
+												"containers": []interface{}{map[string]interface{}{
+													"image":     "nginx:v1",
+													"name":      "container2",
+													"resources": map[string]interface{}{},
+												}},
+											},
 										},
 									},
 								},
+								"schedule": "* * * * *",
 							},
-							"schedule": "* * * * *",
+							"status": map[string]interface{}{},
 						},
-						"status": map[string]interface{}{},
+						DependsOn:  nil,
+						Extensions: nil,
 					},
-					DependsOn:  nil,
-					Extensions: nil,
 				},
-			}},
+			},
 		},
 	}
 	for _, tt := range tests {
