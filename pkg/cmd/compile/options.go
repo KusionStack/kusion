@@ -126,10 +126,18 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 	}
 
 	if len(o.Settings) == 0 {
-		o.Settings = []string{filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile), projectstack.KclFile}
+		o.Settings = []string{projectstack.KclFile}
+		if _, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile)); err == nil {
+			o.Settings = append(o.Settings, filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile))
+		}
 	}
 
 	if o.Output == "" {
+		absCiTestDir := filepath.Join(curDir, projectstack.CiTestDir)
+		_, err := os.Stat(absCiTestDir)
+		if err != nil && os.IsNotExist(err) {
+			_ = os.Mkdir(absCiTestDir, 0o750)
+		}
 		o.Output = filepath.Join(projectstack.CiTestDir, projectstack.StdoutGoldenFile)
 	}
 }
