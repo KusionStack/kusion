@@ -3,8 +3,7 @@ package states
 import (
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/models"
-
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/version"
 )
 

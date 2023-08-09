@@ -2,17 +2,17 @@ package get
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/pterm/pterm"
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -110,78 +110,106 @@ func (o *GetOptions) Run() error {
 	// 	return nil
 	// }
 
-	if o.ShowDrift {
-		// Compute changes for preview
-		changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, sp, project, stack)
-		if err != nil {
-			return err
-		}
-
-		if allUnChange(changes) {
-			fmt.Println("All resources are reconciled. No diff found")
-			return nil
-		}
-
-		// Summary preview table
-		changes.Summary(os.Stdout)
-
-		// Prompt
-		for {
-			target, err := changes.PromptDetails()
-			if err != nil {
-				return err
-			}
-			if target == "" { // Cancel option
-				break
-			}
-			changes.OutputDiff(target)
-		}
-	} else {
-		// TODO: add the `cluster` field in query
-		query := &states.StateQuery{
-			Tenant:  project.Tenant,
-			Stack:   stack.Name,
-			Project: project.Name,
-		}
-
-		latestState, err := stateStorage.GetLatestState(query)
-		if err != nil || latestState == nil {
-			// log.Infof("can't find states with query: %v", jsonutil.Marshal2PrettyString(query))
-			return fmt.Errorf("can not find State in this stack")
-		}
-
-		getResources := latestState.Resources
-
-		if getResources == nil || len(latestState.Resources) == 0 {
-			pterm.Println(pterm.Green("No managed resources to get"))
-			return nil
-		}
-
-		// Compute changes for preview
-		spec := &models.Spec{Resources: getResources}
-		changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, spec, project, stack)
-		if err != nil {
-			return err
-		}
-
-		// Summary preview table
-		changes.Summary(os.Stdout)
-
-		fmt.Println("\nStart watching status ...")
-		if err := Watch(o, spec, changes); err != nil {
-			return err
-		}
+	//if o.ShowDrift {
+	//	// Compute changes for preview
+	//	changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, sp, project, stack)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	if allUnChange(changes) {
+	//		fmt.Println("All resources are reconciled. No diff found")
+	//		return nil
+	//	}
+	//
+	//	// Summary preview table
+	//	changes.Summary(os.Stdout)
+	//
+	//	// Prompt
+	//	for {
+	//		target, err := changes.PromptDetails()
+	//		if err != nil {
+	//			return err
+	//		}
+	//		if target == "" { // Cancel option
+	//			break
+	//		}
+	//		changes.OutputDiff(target)
+	//	}
+	//} else {
+	// TODO: add the `cluster` field in query
+	query := &states.StateQuery{
+		Tenant:  project.Tenant,
+		Stack:   stack.Name,
+		Project: project.Name,
 	}
+
+	latestState, err := stateStorage.GetLatestState(query)
+	if err != nil || latestState == nil {
+		// log.Infof("can't find states with query: %v", jsonutil.Marshal2PrettyString(query))
+		return fmt.Errorf("can not find State in this stack")
+	}
+
+	getResources := latestState.Resources
+
+	if getResources == nil || len(latestState.Resources) == 0 {
+		pterm.Println(pterm.Green("No managed resources to get"))
+		return nil
+	}
+
+	// Compute changes for preview
+	getSpec := &models.Spec{Resources: getResources}
+	if err := o.get(stateStorage, getSpec, project, stack); err != nil {
+		return err
+	}
+
+	// TODO: Show resources
+
+	//if err := Watch(o, spec, changes); err != nil {
+	//	return err
+	//}
+	//}
 
 	return nil
 }
 
-func allUnChange(changes *opsmodels.Changes) bool {
-	for _, v := range changes.ChangeSteps {
-		if v.Action != opsmodels.UnChanged {
-			return false
-		}
+func (o *GetOptions) get(
+	storage states.StateStorage,
+	planResources *models.Spec,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+) error {
+	// log.Info("Start get resources ...")
+	fmt.Println("Start get resources ...")
+
+	// Validate secret stores
+	if !project.SecretStores.IsValid() {
+		fmt.Println("no secret store is provided")
 	}
 
-	return true
+	// Get operation
+	getOp := &operation.GetOperation{
+		Operation: opsmodels.Operation{
+			OperationType: opsmodels.UndefinedOperation,
+			Stack:         stack,
+			StateStorage:  storage,
+			IgnoreFields:  o.IgnoreFields,
+			SecretStores:  project.SecretStores,
+		},
+	}
+
+	cluster := util.ParseClusterArgument(o.Arguments)
+	if err := getOp.Get(&operation.GetRequest{
+		Request: opsmodels.Request{
+			Tenant:   project.Tenant,
+			Project:  project,
+			Stack:    stack,
+			Spec:     planResources,
+			Operator: o.Operator,
+			Cluster:  cluster,
+		},
+	}); err != nil {
+		return err
+	}
+	return nil
 }

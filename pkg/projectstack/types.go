@@ -19,13 +19,14 @@ var (
 )
 
 const (
-	StackFile                      = "stack.yaml"
-	ProjectFile                    = "project.yaml"
-	CiTestDir                      = "ci-test"
-	SettingsFile                   = "settings.yaml"
-	StdoutGoldenFile               = "stdout.golden.yaml"
-	KclFile                        = "kcl.yaml"
-	KCLGenerator     GeneratorType = "KCL"
+	StackFile                               = "stack.yaml"
+	ProjectFile                             = "project.yaml"
+	CiTestDir                               = "ci-test"
+	SettingsFile                            = "settings.yaml"
+	StdoutGoldenFile                        = "stdout.golden.yaml"
+	KclFile                                 = "kcl.yaml"
+	KCLGenerator              GeneratorType = "KCL"
+	AppConfigurationGenerator GeneratorType = "AppConfiguration"
 )
 
 type GeneratorType string
@@ -74,7 +75,7 @@ func (p *Project) GetName() string {
 	return p.Name
 }
 
-// GetName returns the path of the project
+// GetPath returns the path of the project
 func (p *Project) GetPath() string {
 	return p.Path
 }
@@ -137,7 +138,7 @@ func (s *Stack) GetName() string {
 	return s.Name
 }
 
-// GetName returns the path of the stack
+// GetPath returns the path of the stack
 func (s *Stack) GetPath() string {
 	return s.Path
 }

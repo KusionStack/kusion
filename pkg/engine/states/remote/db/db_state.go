@@ -13,9 +13,9 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )

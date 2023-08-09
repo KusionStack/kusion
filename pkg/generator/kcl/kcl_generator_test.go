@@ -12,9 +12,9 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl/rest"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -87,16 +87,15 @@ func TestGenerateSpec(t *testing.T) {
 			}
 
 			g := &Generator{}
-			got, err := g.GenerateSpec(
-				&generator.Options{
-					WorkDir:     tt.args.workDir,
-					Filenames:   tt.args.filenames,
-					Settings:    tt.args.settings,
-					Arguments:   tt.args.arguments,
-					Overrides:   tt.args.overrides,
-					DisableNone: tt.args.disableNone,
-					OverrideAST: tt.args.overrideAST,
-				}, fakeStack)
+			got, err := g.GenerateSpec(&generator.Options{
+				WorkDir:     tt.args.workDir,
+				Filenames:   tt.args.filenames,
+				Settings:    tt.args.settings,
+				Arguments:   tt.args.arguments,
+				Overrides:   tt.args.overrides,
+				DisableNone: tt.args.disableNone,
+				OverrideAST: tt.args.overrideAST,
+			}, nil, fakeStack)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Compile() error = %v, wantErr %v", err, tt.wantErr)
 				return

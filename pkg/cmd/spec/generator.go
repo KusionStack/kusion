@@ -9,12 +9,14 @@ import (
 
 	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
-
 	"gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/generator/kcl"
+	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
+	appconfigmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -66,16 +68,48 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 		switch gt {
 		case projectstack.KCLGenerator:
 			g = &kcl.Generator{}
+		case projectstack.AppConfigurationGenerator:
+			appConfig, err := buildAppConfig(o, stack)
+			if err != nil {
+				return nil, err
+			}
+			g = &appconfiguration.Generator{AppConfiguration: appConfig}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
 	}
 
-	spec, err := g.GenerateSpec(o, stack)
+	spec, err := g.GenerateSpec(o, project, stack)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
 	return spec, nil
+}
+
+func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfigmodel.AppConfiguration, error) {
+	compileResult, err := kcl.Run(o, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	documents := compileResult.Documents
+	if len(documents) != 1 {
+		return nil, fmt.Errorf("invalide more than one AppConfiguration are found in the compile result")
+	}
+
+	out, err := yaml.Marshal(documents[0])
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("unmarshal %s to app config", out)
+	appConfig := &appconfigmodel.AppConfiguration{}
+	err = yaml.Unmarshal(out, appConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return appConfig, nil
 }
 
 func GenerateSpecFromFile(filePath string) (*models.Spec, error) {

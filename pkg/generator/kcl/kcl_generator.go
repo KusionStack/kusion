@@ -13,11 +13,12 @@ import (
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
 	kcl "kcl-lang.io/kcl-go"
+
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/engine/models"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl/rest"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/resources/crd"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
@@ -44,7 +45,7 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack) (*models.Spec, error) {
+func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 	compileResult, err := Run(o, stack)
 	if err != nil {
 		return nil, err
