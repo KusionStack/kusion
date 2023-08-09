@@ -19,13 +19,14 @@ var (
 )
 
 const (
-	StackFile                      = "stack.yaml"
-	ProjectFile                    = "project.yaml"
-	CiTestDir                      = "ci-test"
-	SettingsFile                   = "settings.yaml"
-	StdoutGoldenFile               = "stdout.golden.yaml"
-	KclFile                        = "kcl.yaml"
-	KCLGenerator     GeneratorType = "KCL"
+	StackFile                               = "stack.yaml"
+	ProjectFile                             = "project.yaml"
+	CiTestDir                               = "ci-test"
+	SettingsFile                            = "settings.yaml"
+	StdoutGoldenFile                        = "stdout.golden.yaml"
+	KclFile                                 = "kcl.yaml"
+	KCLGenerator              GeneratorType = "KCL"
+	AppConfigurationGenerator GeneratorType = "AppConfiguration"
 )
 
 type GeneratorType string
