@@ -11,16 +11,16 @@ import (
 	"kusionstack.io/kusion/pkg/models/appconfiguration/component/workload"
 )
 
-// deploymentGenerator is a struct for generating Deployment
+// statefulSetGenerator is a struct for generating StatefulSet
 // resources.
-type deploymentGenerator struct {
+type statefulSetGenerator struct {
 	projectName string
 	compName    string
 	comp        *component.Component
 }
 
-// NewDeploymentGenerator returns a new deploymentGenerator instance.
-func NewDeploymentGenerator(
+// NewStatefulSetGenerator returns a new statefulSetGenerator instance.
+func NewStatefulSetGenerator(
 	projectName string,
 	compName string,
 	comp *component.Component,
@@ -28,41 +28,38 @@ func NewDeploymentGenerator(
 	if len(projectName) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
-
 	if len(compName) == 0 {
 		return nil, fmt.Errorf("component name must not be empty")
 	}
-
 	if comp == nil {
 		return nil, fmt.Errorf("component must not be nil")
 	}
-
-	return &deploymentGenerator{
+	return &statefulSetGenerator{
 		projectName: projectName,
 		compName:    compName,
 		comp:        comp,
 	}, nil
 }
 
-// NewDeploymentGeneratorFunc returns a new NewGeneratorFunc that
-// returns a deploymentGenerator instance.
-func NewDeploymentGeneratorFunc(
+// NewStatefulSetGeneratorFunc returns a new NewGeneratorFunc that
+// returns a statefulSetGenerator instance.
+func NewStatefulSetGeneratorFunc(
 	projectName string,
 	compName string,
 	comp *component.Component,
 ) NewGeneratorFunc {
 	return func() (Generator, error) {
-		return NewDeploymentGenerator(projectName, compName, comp)
+		return NewStatefulSetGenerator(projectName, compName, comp)
 	}
 }
 
-// Generate generates a Deployment resource to the given spec.
-func (g *deploymentGenerator) Generate(spec *models.Spec) error {
+// Generate generates a StatefulSet resource to the given spec.
+func (g *statefulSetGenerator) Generate(spec *models.Spec) error {
 	lrs := g.comp.LongRunningService
 	if lrs == nil {
 		return nil
 	}
-	if !(len(lrs.Type) == 0 || lrs.Type == workload.LongRunningServiceTypeDeployment) {
+	if lrs.Type != workload.LongRunningServiceTypeStatefulSet {
 		return nil
 	}
 
@@ -78,23 +75,24 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 		return err
 	}
 
-	// Create a Deployment object based on the component's
+	// Create a StatefulSet object based on the component's
 	// configuration.
-	resource := &appsv1.Deployment{
+	resource := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       "Deployment",
+			Kind:       "StatefulSet",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:    uniqueComponentLabels(g.projectName, g.compName),
 			Name:      uniqueComponentName(g.projectName, g.compName),
 			Namespace: g.projectName,
 		},
-		Spec: appsv1.DeploymentSpec{
+		Spec: appsv1.StatefulSetSpec{
 			Replicas: int32Ptr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: uniqueComponentLabels(g.projectName, g.compName),
 			},
+			ServiceName: uniqueComponentName(g.projectName, g.compName),
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: uniqueComponentLabels(g.projectName, g.compName),
@@ -103,10 +101,10 @@ func (g *deploymentGenerator) Generate(spec *models.Spec) error {
 					Containers: containers,
 				},
 			},
+			VolumeClaimTemplates: []v1.PersistentVolumeClaim{},
 		},
 	}
-
-	// Add the Deployment resource to the spec.
+	// Add the StatefulSet resource to the spec.
 	return appendToSpec(
 		kubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
 		resource,

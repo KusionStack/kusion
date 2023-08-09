@@ -38,6 +38,7 @@ func (g *componentsGenerator) Generate(spec *models.Spec) error {
 		if err := foreachOrderedComponents(g.components, func(compName string, comp component.Component) error {
 			gfs := []NewGeneratorFunc{
 				NewDeploymentGeneratorFunc(g.projectName, compName, &comp),
+				NewStatefulSetGeneratorFunc(g.projectName, compName, &comp),
 				NewJobGeneratorFunc(g.projectName, compName, &comp),
 			}
 
