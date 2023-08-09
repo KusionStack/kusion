@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
+
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl/rest"
 	"kusionstack.io/kusion/pkg/models"

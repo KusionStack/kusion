@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
+
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
