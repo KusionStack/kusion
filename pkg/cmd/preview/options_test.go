@@ -50,7 +50,7 @@ var (
 func Test_preview(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	t.Run("preview success", func(t *testing.T) {
-		m := monkeyPatchOperationPreview()
+		m := mockOperationPreview()
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
@@ -72,7 +72,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("compile failed", func(t *testing.T) {
-		m := monkeyPatchDetectProjectAndStack()
+		m := mockDetectProjectAndStack()
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
@@ -82,9 +82,9 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("no changes", func(t *testing.T) {
-		m1 := monkeyPatchDetectProjectAndStack()
-		m2 := monkeyPatchGenerateSpecWithSpinner()
-		m3 := monkeyPatchNewKubernetesRuntime()
+		m1 := mockDetectProjectAndStack()
+		m2 := mockPatchGenerateSpecWithSpinner()
+		m3 := mockNewKubernetesRuntime()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
@@ -96,11 +96,11 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("detail is true", func(t *testing.T) {
-		m1 := monkeyPatchDetectProjectAndStack()
-		m2 := monkeyPatchGenerateSpecWithSpinner()
-		m3 := monkeyPatchNewKubernetesRuntime()
-		m4 := monkeyPatchOperationPreview()
-		m5 := monkeyPatchPromptDetail("")
+		m1 := mockDetectProjectAndStack()
+		m2 := mockPatchGenerateSpecWithSpinner()
+		m3 := mockNewKubernetesRuntime()
+		m4 := mockOperationPreview()
+		m5 := mockPromptDetail("")
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
@@ -114,11 +114,11 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("json output is true", func(t *testing.T) {
-		m1 := monkeyPatchDetectProjectAndStack()
-		m2 := monkeyPatchGenerateSpec()
-		m3 := monkeyPatchNewKubernetesRuntime()
-		m4 := monkeyPatchOperationPreview()
-		m5 := monkeyPatchPromptDetail("")
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpec()
+		m3 := mockNewKubernetesRuntime()
+		m4 := mockOperationPreview()
+		m5 := mockPromptDetail("")
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
@@ -132,11 +132,11 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("no style is true", func(t *testing.T) {
-		m1 := monkeyPatchDetectProjectAndStack()
-		m2 := monkeyPatchGenerateSpecWithSpinner()
-		m3 := monkeyPatchNewKubernetesRuntime()
-		m4 := monkeyPatchOperationPreview()
-		m5 := monkeyPatchPromptDetail("")
+		m1 := mockDetectProjectAndStack()
+		m2 := mockPatchGenerateSpecWithSpinner()
+		m3 := mockNewKubernetesRuntime()
+		m4 := mockOperationPreview()
+		m5 := mockPromptDetail("")
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
@@ -184,7 +184,7 @@ func (f *fooRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *
 	return nil
 }
 
-func monkeyPatchOperationPreview() *mockey.Mocker {
+func mockOperationPreview() *mockey.Mocker {
 	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
 		*operation.PreviewOperation,
 		*operation.PreviewRequest,
@@ -229,7 +229,7 @@ func newSA(name string) models.Resource {
 	}
 }
 
-func monkeyPatchDetectProjectAndStack() *mockey.Mocker {
+func mockDetectProjectAndStack() *mockey.Mocker {
 	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
@@ -237,7 +237,7 @@ func monkeyPatchDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
-func monkeyPatchGenerateSpec() *mockey.Mocker {
+func mockGenerateSpec() *mockey.Mocker {
 	return mockey.Mock(spec.GenerateSpec).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
@@ -247,7 +247,7 @@ func monkeyPatchGenerateSpec() *mockey.Mocker {
 	}).Build()
 }
 
-func monkeyPatchGenerateSpecWithSpinner() *mockey.Mocker {
+func mockPatchGenerateSpecWithSpinner() *mockey.Mocker {
 	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
@@ -257,13 +257,13 @@ func monkeyPatchGenerateSpecWithSpinner() *mockey.Mocker {
 	}).Build()
 }
 
-func monkeyPatchNewKubernetesRuntime() *mockey.Mocker {
+func mockNewKubernetesRuntime() *mockey.Mocker {
 	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fooRuntime{}, nil
 	}).Build()
 }
 
-func monkeyPatchPromptDetail(input string) *mockey.Mocker {
+func mockPromptDetail(input string) *mockey.Mocker {
 	return mockey.Mock((*opsmodels.ChangeOrder).PromptDetails).To(func(co *opsmodels.ChangeOrder) (string, error) {
 		return input, nil
 	}).Build()
