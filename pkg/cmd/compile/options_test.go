@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/bytedance/mockey"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
@@ -42,23 +42,26 @@ func TestCompileOptions_preSet(t *testing.T) {
 		Settings []string
 		Output   string
 	}
-
-	want := NewCompileOptions()
-	want.Settings = []string{"ci-test/settings.yaml", "kcl.yaml"}
-	want.Output = "ci-test/stdout.golden.yaml"
+	type want struct {
+		Settings []string
+		Output   string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
-		want   *CompileOptions
+		want   want
 	}{
 		{
-			name: "preset-noting",
+			name: "preset-nothing",
 			fields: fields{
 				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
 				Output:   "ci-test/stdout.golden.yaml",
 			},
-			want: want,
+			want: want{
+				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
+				Output:   "ci-test/stdout.golden.yaml",
+			},
 		},
 		{
 			name: "preset-everything",
@@ -66,7 +69,10 @@ func TestCompileOptions_preSet(t *testing.T) {
 				Settings: []string{},
 				Output:   "",
 			},
-			want: want,
+			want: want{
+				Settings: []string{"kcl.yaml"},
+				Output:   "ci-test/stdout.golden.yaml",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -79,7 +85,12 @@ func TestCompileOptions_preSet(t *testing.T) {
 			o.PreSet(func(cur string) bool {
 				return true
 			})
-			assert.Equal(t, tt.want, o)
+
+			wantOpt := NewCompileOptions()
+			wantOpt.Settings = tt.want.Settings
+			wantOpt.Output = tt.want.Output
+
+			assert.Equal(t, wantOpt, o)
 		})
 	}
 }
@@ -90,10 +101,12 @@ func TestCompileOptions_Run(t *testing.T) {
 	}()
 
 	t.Run("no style is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockWriteFile()
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpec()
+		m3 := mockWriteFile()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
 
 		o := NewCompileOptions()
 		o.NoStyle = true
@@ -117,26 +130,26 @@ func newSA(name string) models.Resource {
 	}
 }
 
-func mockDetectProjectAndStack() {
-	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+func mockDetectProjectAndStack() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
-	})
+	}).Build()
 }
 
-func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+func mockGenerateSpec() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
 	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
-	})
+	}).Build()
 }
 
-func mockWriteFile() {
-	monkey.Patch(os.WriteFile, func(name string, data []byte, perm fs.FileMode) error {
+func mockWriteFile() *mockey.Mocker {
+	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return nil
-	})
+	}).Build()
 }
