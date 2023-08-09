@@ -37,7 +37,7 @@ var (
 	sa2 = newSA("sa2")
 	sa3 = newSA("sa3")
 
-	testError = errors.New("test error")
+	errTest = errors.New("test error")
 )
 
 func TestCompileOptions_preSet(t *testing.T) {
@@ -109,7 +109,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		o := NewCompileOptions()
 		o.NoStyle = true
 		err := o.Run()
-		assert.Equal(t, testError, err)
+		assert.Equal(t, errTest, err)
 	})
 
 	mockey.PatchConvey("generate spec failed", t, func() {
@@ -119,7 +119,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		o := NewCompileOptions()
 		o.NoStyle = true
 		err := o.Run()
-		assert.Equal(t, testError, err)
+		assert.Equal(t, errTest, err)
 	})
 
 	mockey.PatchConvey("write file failed", t, func() {
@@ -130,7 +130,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		o := NewCompileOptions()
 		o.NoStyle = true
 		err := o.Run()
-		assert.Equal(t, testError, err)
+		assert.Equal(t, errTest, err)
 	})
 }
 
@@ -161,7 +161,7 @@ func mockDetectProjectAndStackFail() {
 	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
-		return project, stack, testError
+		return project, stack, errTest
 	}).Build()
 }
 
@@ -177,7 +177,7 @@ func mockGenerateSpec() {
 
 func mockGenerateSpecFail() {
 	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, testError
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 
@@ -189,6 +189,6 @@ func mockWriteFile() {
 
 func mockWriteFileFail() {
 	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
-		return testError
+		return errTest
 	}).Build()
 }
