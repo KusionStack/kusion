@@ -8,11 +8,11 @@ import (
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
-type AppConfigurationGenerator struct {
+type Generator struct {
 	*appconfiguration.AppConfiguration
 }
 
-func (acg *AppConfigurationGenerator) GenerateSpec(
+func (acg *Generator) GenerateSpec(
 	o *generator.Options,
 	project *projectstack.Project,
 	stack *projectstack.Stack,

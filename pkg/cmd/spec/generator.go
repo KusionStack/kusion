@@ -73,7 +73,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 			if err != nil {
 				return nil, err
 			}
-			g = &appconfiguration.AppConfigurationGenerator{AppConfiguration: appConfig}
+			g = &appconfiguration.Generator{AppConfiguration: appConfig}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
