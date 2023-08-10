@@ -13,8 +13,9 @@ func TestNewCmdCheck(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 
-		monkey.Patch((*compile.CompileOptions).Complete, func(o *compile.CompileOptions, args []string) {
+		monkey.Patch((*compile.CompileOptions).Complete, func(o *compile.CompileOptions, args []string) error {
 			o.Output = "stdout"
+			return nil
 		})
 		monkey.Patch((*compile.CompileOptions).Run, func(*compile.CompileOptions) error {
 			return nil
