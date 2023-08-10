@@ -44,9 +44,9 @@ func NewCompileOptions() *CompileOptions {
 	}
 }
 
-func (o *CompileOptions) Complete(args []string) {
+func (o *CompileOptions) Complete(args []string) error {
 	o.Filenames = args
-	o.PreSet(projectstack.IsStack)
+	return o.PreSet(projectstack.IsStack)
 }
 
 func (o *CompileOptions) Validate() error {
@@ -114,7 +114,7 @@ func (o *CompileOptions) Run() error {
 	return nil
 }
 
-func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
+func (o *CompileOptions) PreSet(preCheck func(cur string) bool) error {
 	curDir := o.WorkDir
 	if o.WorkDir == "" {
 		curDir, _ = os.Getwd()
@@ -123,15 +123,21 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 		if o.Output == "" {
 			o.Output = Stdout
 		}
-		return
+		return nil
 	}
 
 	if len(o.Settings) == 0 {
 		o.Settings = []string{projectstack.KclFile}
-		if _, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile)); err != nil {
-			log.Warnf("Failed to get file status form system: %v", err)
-		} else {
+		info, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile))
+		switch {
+		case err != nil && os.IsNotExist(err):
+			log.Warnf("%s is not exist", projectstack.SettingsFile)
+		case err != nil && !os.IsNotExist(err):
+			return err
+		case err == nil && info.Mode().IsRegular():
 			o.Settings = append(o.Settings, filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile))
+		case err == nil && !info.Mode().IsRegular():
+			log.Warnf("%s is not a regular file", projectstack.SettingsFile)
 		}
 	}
 
@@ -143,4 +149,5 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 		}
 		o.Output = filepath.Join(projectstack.CiTestDir, projectstack.StdoutGoldenFile)
 	}
+	return nil
 }
