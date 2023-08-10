@@ -144,7 +144,10 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) error {
 	if o.Output == "" {
 		absCiTestDir := filepath.Join(curDir, projectstack.CiTestDir)
 		_, err := os.Stat(absCiTestDir)
-		if err != nil && os.IsNotExist(err) {
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
 			_ = os.Mkdir(absCiTestDir, 0o750)
 		}
 		o.Output = filepath.Join(projectstack.CiTestDir, projectstack.StdoutGoldenFile)
