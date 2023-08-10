@@ -10,6 +10,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/generator"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -127,7 +128,9 @@ func (o *CompileOptions) PreSet(preCheck func(cur string) bool) {
 
 	if len(o.Settings) == 0 {
 		o.Settings = []string{projectstack.KclFile}
-		if _, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile)); err == nil {
+		if _, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile)); err != nil {
+			log.Warnf("Failed to get file status form system: %v", err)
+		} else {
 			o.Settings = append(o.Settings, filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile))
 		}
 	}
