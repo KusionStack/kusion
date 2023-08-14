@@ -6,31 +6,31 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/component"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 )
 
 type jobGenerator struct {
 	projectName string
-	compName    string
-	comp        *component.Component
+	jobName     string
+	job         *workload.Job
 }
 
-func NewJobGenerator(projectName, compName string, comp *component.Component) (Generator, error) {
+func NewJobGenerator(projectName, jobName string, job *workload.Job) (Generator, error) {
 	return &jobGenerator{
 		projectName: projectName,
-		compName:    compName,
-		comp:        comp,
+		jobName:     jobName,
+		job:         job,
 	}, nil
 }
 
-func NewJobGeneratorFunc(projectName, compName string, comp *component.Component) NewGeneratorFunc {
+func NewJobGeneratorFunc(projectName, jobName string, job *workload.Job) NewGeneratorFunc {
 	return func() (Generator, error) {
-		return NewJobGenerator(projectName, compName, comp)
+		return NewJobGenerator(projectName, jobName, job)
 	}
 }
 
 func (g *jobGenerator) Generate(spec *models.Spec) error {
-	job := g.comp.Job
+	job := g.job
 	if job == nil {
 		return nil
 	}
@@ -41,9 +41,9 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 
 	meta := metav1.ObjectMeta{
 		Namespace:   g.projectName,
-		Name:        uniqueComponentName(g.projectName, g.compName),
-		Labels:      g.comp.Labels,
-		Annotations: g.comp.Annotations,
+		Name:        uniqueWorkloadName(g.projectName, g.jobName),
+		Labels:      g.job.Labels,
+		Annotations: g.job.Annotations,
 	}
 
 	containers, err := toOrderedContainers(job.Containers)
@@ -53,7 +53,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	jobSpec := batchv1.JobSpec{
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels: uniqueComponentLabels(g.projectName, g.compName),
+				Labels: uniqueWorkloadLabels(g.projectName, g.jobName),
 			},
 			Spec: corev1.PodSpec{
 				Containers: containers,

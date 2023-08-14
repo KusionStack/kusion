@@ -2,7 +2,7 @@ package container
 
 type Container struct {
 	// Image to run for this container
-	Image string `yaml:"image,omitempty" json:"image,omitempty"`
+	Image string `yaml:"image" json:"image"`
 	// Entrypoint array.
 	// The image's ENTRYPOINT is used if this is not provided.
 	Command []string `yaml:"command,omitempty" json:"command,omitempty"`
