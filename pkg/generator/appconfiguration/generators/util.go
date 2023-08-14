@@ -6,11 +6,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/component"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/component/container"
+	"kusionstack.io/kusion/pkg/models/appconfiguration"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 )
 
 // kubernetesResourceID returns the unique ID of a Kubernetes resource
@@ -25,9 +24,9 @@ func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// callGeneratorFuncs calls each NewGeneratorFunc in the given slice
+// CallGeneratorFuncs calls each NewGeneratorFunc in the given slice
 // and returns a slice of Generator instances.
-func callGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) {
+func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) {
 	gs := make([]Generator, 0, len(newGenerators))
 	for _, newGenerator := range newGenerators {
 		if g, err := newGenerator(); err != nil {
@@ -39,10 +38,10 @@ func callGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 	return gs, nil
 }
 
-// callGenerators calls the Generate method of each Generator instance
+// CallGenerators calls the Generate method of each Generator instance
 // returned by the given NewGeneratorFuncs.
-func callGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
-	gs, err := callGeneratorFuncs(newGenerators...)
+func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
+	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
 		return err
 	}
@@ -72,18 +71,18 @@ func appendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	return nil
 }
 
-// uniqueComponentName returns a unique name for a component based on
+// uniqueWorkloadName returns a unique name for a workload based on
 // its project and name.
-func uniqueComponentName(projectName, compName string) string {
+func uniqueWorkloadName(projectName, compName string) string {
 	return projectName + "-" + compName
 }
 
-// uniqueComponentLabels returns a map of labels that identify a
-// component based on its project and name.
-func uniqueComponentLabels(projectName, compName string) map[string]string {
+// uniqueWorkloadLabels returns a map of labels that identify a
+// app based on its project and name.
+func uniqueWorkloadLabels(projectName, appName string) map[string]string {
 	return map[string]string{
-		"app.kubernetes.io/name":      projectName,
-		"app.kubernetes.io/component": compName,
+		"app.kubernetes.io/part-of": projectName,
+		"app.kubernetes.io/name":    appName,
 	}
 }
 
@@ -116,7 +115,7 @@ func foreachOrderedContainers(
 }
 
 func toOrderedContainers(appContainers map[string]container.Container) ([]corev1.Container, error) {
-	// Create a slice of containers based on the component's
+	// Create a slice of containers based on the app's
 	// containers.
 	containers := []corev1.Container{}
 	if err := foreachOrderedContainers(appContainers, func(containerName string, c container.Container) error {
@@ -147,11 +146,11 @@ func toOrderedContainers(appContainers map[string]container.Container) ([]corev1
 	return containers, nil
 }
 
-// foreachOrderedComponents executes the given function on each
-// component in the map in order of their keys.
-func foreachOrderedComponents(
-	m map[string]component.Component,
-	f func(compName string, comp component.Component) error,
+// ForeachOrderedApps executes the given function on each
+// app in the map in order of their keys.
+func ForeachOrderedApps(
+	m map[string]appconfiguration.AppConfiguration,
+	f func(appName string, app appconfiguration.AppConfiguration) error,
 ) error {
 	keys := make([]string, 0, len(m))
 	for k := range m {

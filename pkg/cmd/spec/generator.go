@@ -69,11 +69,11 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 		case projectstack.KCLGenerator:
 			g = &kcl.Generator{}
 		case projectstack.AppConfigurationGenerator:
-			appConfig, err := buildAppConfig(o, stack)
+			appConfigs, err := buildAppConfigs(o, stack)
 			if err != nil {
 				return nil, err
 			}
-			g = &appconfiguration.Generator{AppConfiguration: appConfig}
+			g = &appconfiguration.Generator{Apps: appConfigs}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
@@ -86,7 +86,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	return spec, nil
 }
 
-func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfigmodel.AppConfiguration, error) {
+func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appconfigmodel.AppConfiguration, error) {
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -102,14 +102,14 @@ func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfig
 		return nil, err
 	}
 
-	log.Debugf("unmarshal %s to app config", out)
-	appConfig := &appconfigmodel.AppConfiguration{}
-	err = yaml.Unmarshal(out, appConfig)
+	log.Debugf("unmarshal %s to app configs", out)
+	appConfigs := map[string]appconfigmodel.AppConfiguration{}
+	err = yaml.Unmarshal(out, appConfigs)
 	if err != nil {
 		return nil, err
 	}
 
-	return appConfig, nil
+	return appConfigs, nil
 }
 
 func GenerateSpecFromFile(filePath string) (*models.Spec, error) {

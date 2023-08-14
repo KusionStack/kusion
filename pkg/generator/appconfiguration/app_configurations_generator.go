@@ -4,12 +4,12 @@ import (
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generators"
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration"
+	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 type Generator struct {
-	*appconfiguration.AppConfiguration
+	Apps map[string]appmodel.AppConfiguration
 }
 
 func (acg *Generator) GenerateSpec(
@@ -21,11 +21,12 @@ func (acg *Generator) GenerateSpec(
 		Resources: []models.Resource{},
 	}
 
-	g, err := generators.NewAppConfigurationGenerator(project.Name, acg.AppConfiguration)
-	if err != nil {
-		return nil, err
-	}
-	if err = g.Generate(spec); err != nil {
+	gfs := []generators.NewGeneratorFunc{}
+	generators.ForeachOrderedApps(acg.Apps, func(appName string, app appmodel.AppConfiguration) error {
+		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project.Name, appName, &app))
+		return nil
+	})
+	if err := generators.CallGenerators(spec, gfs...); err != nil {
 		return nil, err
 	}
 
