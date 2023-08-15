@@ -5,11 +5,11 @@ package init
 
 import (
 	"fmt"
+	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/stretchr/testify/assert"
 
@@ -17,22 +17,21 @@ import (
 )
 
 func patchChooseTemplate() {
-	monkey.Patch(chooseTemplate, func(templates []scaffold.Template) (scaffold.Template, error) {
+	mockey.Mock(chooseTemplate).To(func(templates []scaffold.Template) (scaffold.Template, error) {
 		return templates[0], nil
-	})
+	}).Build()
 }
 
 func patchPromptValue() {
-	monkey.Patch(promptValue, func(valueType, description, defaultValue string, isValidFn func(value string) error) (string, error) {
+	mockey.Mock(promptValue).To(func(valueType, description, defaultValue string, isValidFn func(value string) error) (string, error) {
 		return defaultValue, nil
-	})
+	}).Build()
 }
 
 func TestRun(t *testing.T) {
-	t.Run("init from official url", func(t *testing.T) {
+	mockey.PatchConvey("init from official url", t, func() {
 		patchChooseTemplate()
 		patchPromptValue()
-		defer monkey.UnpatchAll()
 
 		o := &InitOptions{
 			Force: true,
@@ -44,7 +43,7 @@ func TestRun(t *testing.T) {
 		_ = os.RemoveAll(o.ProjectName)
 	})
 
-	t.Run("init templates from official url", func(t *testing.T) {
+	mockey.PatchConvey("init templates from official url", t, func() {
 		o := &TemplatesOptions{
 			Output: jsonOutput,
 		}
@@ -56,16 +55,15 @@ func TestRun(t *testing.T) {
 }
 
 func TestChooseTemplate(t *testing.T) {
-	t.Run("choose first", func(t *testing.T) {
+	mockey.PatchConvey("choose first", t, func() {
 		// survey.AskOne
-		monkey.Patch(
-			survey.AskOne,
+		mockey.Mock(
+			survey.AskOne).To(
 			func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 				reflect.ValueOf(response).Elem().Set(reflect.ValueOf("foo1    "))
 				return nil
 			},
-		)
-		defer monkey.UnpatchAll()
+		).Build()
 
 		// test data
 		templates := []scaffold.Template{
@@ -114,7 +112,7 @@ func TestTemplatesToOptionArrayAndMap(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			got, got1 := templatesToOptionArrayAndMap(tt.args.templates)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("templatesToOptionArrayAndMap() got = %v, want %v", got, tt.want)
@@ -141,18 +139,17 @@ func TestPromptValue(t *testing.T) {
 	}
 
 	// mock survey.AskOne
-	monkey.Patch(survey.AskOne, func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
+	mockey.Mock(survey.AskOne).To(func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 		reflect.ValueOf(response).Elem().Set(reflect.ValueOf(defaultValue))
 		return nil
-	})
-	defer monkey.UnpatchAll()
+	}).Build()
 
-	t.Run("prompt success", func(t *testing.T) {
+	mockey.PatchConvey("prompt success", t, func() {
 		got, err := promptValue(valueType, description, defaultValue, nil)
 		assert.Nil(t, err)
 		assert.Equal(t, defaultValue, got)
 	})
-	t.Run("valid failed first and succeed next", func(t *testing.T) {
+	mockey.PatchConvey("valid failed first and succeed next", t, func() {
 		got, err := promptValue(valueType, description, defaultValue, isValidFunc)
 		assert.Nil(t, err)
 		assert.Equal(t, defaultValue, got)

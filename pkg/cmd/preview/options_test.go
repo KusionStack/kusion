@@ -49,7 +49,7 @@ var (
 
 func Test_preview(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
-	t.Run("preview success", func(t *testing.T) {
+	mockey.PatchConvey("preview success", t, func() {
 		m := monkeyPatchOperationPreview()
 		defer m.UnPatch()
 
@@ -64,14 +64,14 @@ func TestPreviewOptions_Run(t *testing.T) {
 		os.Remove("kusion_state.json")
 	}()
 
-	t.Run("no project or stack", func(t *testing.T) {
+	mockey.PatchConvey("no project or stack", t, func() {
 		o := NewPreviewOptions()
 		o.Detail = true
 		err := o.Run()
 		assert.NotNil(t, err)
 	})
 
-	t.Run("compile failed", func(t *testing.T) {
+	mockey.PatchConvey("compile failed", t, func() {
 		m := monkeyPatchDetectProjectAndStack()
 		defer m.UnPatch()
 
@@ -81,7 +81,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("no changes", func(t *testing.T) {
+	mockey.PatchConvey("no changes", t, func() {
 		m1 := monkeyPatchDetectProjectAndStack()
 		m2 := monkeyPatchGenerateSpecWithSpinner()
 		m3 := monkeyPatchNewKubernetesRuntime()
@@ -95,7 +95,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("detail is true", func(t *testing.T) {
+	mockey.PatchConvey("detail is true", t, func() {
 		m1 := monkeyPatchDetectProjectAndStack()
 		m2 := monkeyPatchGenerateSpecWithSpinner()
 		m3 := monkeyPatchNewKubernetesRuntime()
@@ -113,7 +113,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("json output is true", func(t *testing.T) {
+	mockey.PatchConvey("json output is true", t, func() {
 		m1 := monkeyPatchDetectProjectAndStack()
 		m2 := monkeyPatchGenerateSpec()
 		m3 := monkeyPatchNewKubernetesRuntime()
@@ -131,7 +131,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("no style is true", func(t *testing.T) {
+	mockey.PatchConvey("no style is true", t, func() {
 		m1 := monkeyPatchDetectProjectAndStack()
 		m2 := monkeyPatchGenerateSpecWithSpinner()
 		m3 := monkeyPatchNewKubernetesRuntime()
