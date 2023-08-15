@@ -9,8 +9,7 @@ import (
 var tg = printer.NewTableGenerator()
 
 func init() {
-	tg.With(printer.AddK8sHandlers)
-	tg.With(printer.AddOAMHandlers)
+	tg.With(printer.AddK8sHandlers, printer.AddCollaSetHandlers, printer.AddOAMHandlers)
 }
 
 func Generate(obj runtime.Object) (string, bool) {

@@ -7,17 +7,12 @@ import (
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 )
 
-func init() {
-	registerConvertor(convertor.ToK8s)
-	registerConvertor(convertor.ToOAM)
-}
+var convertors []Convertor
 
 type Convertor func(o *unstructured.Unstructured) runtime.Object
 
-var convertors []Convertor
-
-func registerConvertor(c Convertor) {
-	convertors = append(convertors, c)
+func init() {
+	convertors = []Convertor{convertor.ToK8s, convertor.ToKafed, convertor.ToOAM}
 }
 
 func Convert(o *unstructured.Unstructured) runtime.Object {
