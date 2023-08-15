@@ -89,7 +89,7 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			Namespace: g.projectName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(lrs.Replicas)),
+			Replicas: IntPtr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: uniqueWorkloadLabels(g.projectName, g.appName),
 			},

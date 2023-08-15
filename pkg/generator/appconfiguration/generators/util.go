@@ -8,21 +8,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 )
-
-// kubernetesResourceID returns the unique ID of a Kubernetes resource
-// based on its type and metadata.
-func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
-	// resource id example: apps/v1:Deployment:code-city:code-citydev
-	id := typeMeta.APIVersion + ":" + typeMeta.Kind + ":"
-	if objectMeta.Namespace != "" {
-		id += objectMeta.Namespace + ":"
-	}
-	id += objectMeta.Name
-	return id
-}
 
 // CallGeneratorFuncs calls each NewGeneratorFunc in the given slice
 // and returns a slice of Generator instances.
@@ -51,6 +38,46 @@ func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error 
 		}
 	}
 	return nil
+}
+
+// ForeachOrdered executes the given function on each
+// item in the map in order of their keys.
+func ForeachOrdered[T any](
+	m map[string]T,
+	f func(key string, value T) error,
+) error {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := m[k]
+		if err := f(k, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// IntPtr returns a pointer to the provided value.
+func IntPtr[T any](i T) *T {
+	return &i
+}
+
+// kubernetesResourceID returns the unique ID of a Kubernetes resource
+// based on its type and metadata.
+func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
+	// resource id example: apps/v1:Deployment:code-city:code-citydev
+	id := typeMeta.APIVersion + ":" + typeMeta.Kind + ":"
+	if objectMeta.Namespace != "" {
+		id += objectMeta.Namespace + ":"
+	}
+	id += objectMeta.Name
+	return id
 }
 
 // appendToSpec adds a Kubernetes resource to a spec's resources
@@ -86,39 +113,11 @@ func uniqueWorkloadLabels(projectName, appName string) map[string]string {
 	}
 }
 
-// int32Ptr returns a pointer to an int32 value.
-func int32Ptr(i int32) *int32 {
-	return &i
-}
-
-// foreachOrderedContainers executes the given function on each
-// container in the map in order of their keys.
-func foreachOrderedContainers(
-	m map[string]container.Container,
-	f func(containerName string, c container.Container) error,
-) error {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		v := m[k]
-		if err := f(k, v); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func toOrderedContainers(appContainers map[string]container.Container) ([]corev1.Container, error) {
 	// Create a slice of containers based on the app's
 	// containers.
 	containers := []corev1.Container{}
-	if err := foreachOrderedContainers(appContainers, func(containerName string, c container.Container) error {
+	if err := ForeachOrdered(appContainers, func(containerName string, c container.Container) error {
 		// Create a slice of env vars based on the container's
 		// envvars.
 		envs := []corev1.EnvVar{}
@@ -144,27 +143,4 @@ func toOrderedContainers(appContainers map[string]container.Container) ([]corev1
 		return nil, err
 	}
 	return containers, nil
-}
-
-// ForeachOrderedApps executes the given function on each
-// app in the map in order of their keys.
-func ForeachOrderedApps(
-	m map[string]appconfiguration.AppConfiguration,
-	f func(appName string, app appconfiguration.AppConfiguration) error,
-) error {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		v := m[k]
-		if err := f(k, v); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
