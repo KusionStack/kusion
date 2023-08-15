@@ -22,7 +22,7 @@ func (acg *Generator) GenerateSpec(
 	}
 
 	gfs := []generators.NewGeneratorFunc{}
-	generators.ForeachOrderedApps(acg.Apps, func(appName string, app appmodel.AppConfiguration) error {
+	generators.ForeachOrdered(acg.Apps, func(appName string, app appmodel.AppConfiguration) error {
 		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project.Name, appName, &app))
 		return nil
 	})
