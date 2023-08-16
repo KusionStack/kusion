@@ -11,21 +11,21 @@ import (
 
 type jobGenerator struct {
 	projectName string
-	jobName     string
+	appName     string
 	job         *workload.Job
 }
 
-func NewJobGenerator(projectName, jobName string, job *workload.Job) (Generator, error) {
+func NewJobGenerator(projectName, appName string, job *workload.Job) (Generator, error) {
 	return &jobGenerator{
 		projectName: projectName,
-		jobName:     jobName,
+		appName:     appName,
 		job:         job,
 	}, nil
 }
 
-func NewJobGeneratorFunc(projectName, jobName string, job *workload.Job) NewGeneratorFunc {
+func NewJobGeneratorFunc(projectName, appName string, job *workload.Job) NewGeneratorFunc {
 	return func() (Generator, error) {
-		return NewJobGenerator(projectName, jobName, job)
+		return NewJobGenerator(projectName, appName, job)
 	}
 }
 
@@ -40,10 +40,15 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	}
 
 	meta := metav1.ObjectMeta{
-		Namespace:   g.projectName,
-		Name:        uniqueWorkloadName(g.projectName, g.jobName),
-		Labels:      g.job.Labels,
-		Annotations: g.job.Annotations,
+		Namespace: g.projectName,
+		Name:      uniqueAppName(g.projectName, g.appName),
+		Labels: mergeMaps(
+			uniqueAppLabels(g.projectName, g.appName),
+			g.job.Labels,
+		),
+		Annotations: mergeMaps(
+			g.job.Annotations,
+		),
 	}
 
 	containers, err := toOrderedContainers(job.Containers)
@@ -53,7 +58,13 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	jobSpec := batchv1.JobSpec{
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels: uniqueWorkloadLabels(g.projectName, g.jobName),
+				Labels: mergeMaps(
+					uniqueAppLabels(g.projectName, g.appName),
+					g.job.Labels,
+				),
+				Annotations: mergeMaps(
+					g.job.Annotations,
+				),
 			},
 			Spec: corev1.PodSpec{
 				Containers: containers,

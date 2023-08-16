@@ -68,6 +68,26 @@ func IntPtr[T any](i T) *T {
 	return &i
 }
 
+// mergeMaps merges multiple map[string]string into one
+// map[string]string.
+// If a map is nil, it skips it and moves on to the next one. For each
+// non-nil map, it iterates over its key-value pairs and adds them to
+// the merged map. Finally, it returns the merged map.
+func mergeMaps(maps ...map[string]string) map[string]string {
+	merged := make(map[string]string)
+
+	for _, m := range maps {
+		if m == nil {
+			continue
+		}
+		for k, v := range m {
+			merged[k] = v
+		}
+	}
+
+	return merged
+}
+
 // kubernetesResourceID returns the unique ID of a Kubernetes resource
 // based on its type and metadata.
 func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
@@ -98,15 +118,15 @@ func appendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	return nil
 }
 
-// uniqueWorkloadName returns a unique name for a workload based on
-// its project and name.
-func uniqueWorkloadName(projectName, compName string) string {
-	return projectName + "-" + compName
+// uniqueAppName returns a unique name for a workload based on
+// its project and app name.
+func uniqueAppName(projectName, appName string) string {
+	return projectName + appName
 }
 
-// uniqueWorkloadLabels returns a map of labels that identify a
+// uniqueAppLabels returns a map of labels that identify a
 // app based on its project and name.
-func uniqueWorkloadLabels(projectName, appName string) map[string]string {
+func uniqueAppLabels(projectName, appName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/part-of": projectName,
 		"app.kubernetes.io/name":    appName,
