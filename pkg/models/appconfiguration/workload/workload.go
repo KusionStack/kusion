@@ -68,3 +68,50 @@ func (w *Workload) UnmarshalJSON(data []byte) error {
 
 	return err
 }
+
+func (w Workload) MarshalYAML() (interface{}, error) {
+	switch w.Type {
+	case WorkloadTypeService:
+		return struct {
+			WorkloadHeader `yaml:",inline" json:",inline"`
+			Service        `yaml:",inline" json:",inline"`
+		}{
+			WorkloadHeader: WorkloadHeader{w.Type},
+			Service:        *w.Service,
+		}, nil
+	case WorkloadTypeJob:
+		return struct {
+			WorkloadHeader `yaml:",inline" json:",inline"`
+			*Job           `yaml:",inline" json:",inline"`
+		}{
+			WorkloadHeader: WorkloadHeader{w.Type},
+			Job:            w.Job,
+		}, nil
+	default:
+		return nil, errors.New("unknown workload type")
+	}
+}
+
+func (w *Workload) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var workloadData WorkloadHeader
+	err := unmarshal(&workloadData)
+	if err != nil {
+		return err
+	}
+
+	w.Type = workloadData.Type
+	switch w.Type {
+	case WorkloadTypeJob:
+		var v Job
+		err = unmarshal(&v)
+		w.Job = &v
+	case WorkloadTypeService:
+		var v Service
+		err = unmarshal(&v)
+		w.Service = &v
+	default:
+		err = errors.New("unknown workload type")
+	}
+
+	return err
+}
