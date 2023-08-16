@@ -84,18 +84,30 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:    uniqueWorkloadLabels(g.projectName, g.appName),
-			Name:      uniqueWorkloadName(g.projectName, g.appName),
+			Labels: mergeMaps(
+				uniqueAppLabels(g.projectName, g.appName),
+				g.service.Labels,
+			),
+			Annotations: mergeMaps(
+				g.service.Annotations,
+			),
+			Name:      uniqueAppName(g.projectName, g.appName),
 			Namespace: g.projectName,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: IntPtr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: uniqueWorkloadLabels(g.projectName, g.appName),
+				MatchLabels: uniqueAppLabels(g.projectName, g.appName),
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: uniqueWorkloadLabels(g.projectName, g.appName),
+					Labels: mergeMaps(
+						uniqueAppLabels(g.projectName, g.appName),
+						g.service.Labels,
+					),
+					Annotations: mergeMaps(
+						g.service.Annotations,
+					),
 				},
 				Spec: v1.PodSpec{
 					Containers: containers,
