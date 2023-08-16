@@ -1,10 +1,11 @@
-package generators
+package workload
 
 import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 )
@@ -15,7 +16,7 @@ type jobGenerator struct {
 	job         *workload.Job
 }
 
-func NewJobGenerator(projectName, appName string, job *workload.Job) (Generator, error) {
+func NewJobGenerator(projectName, appName string, job *workload.Job) (appconfiguration.Generator, error) {
 	return &jobGenerator{
 		projectName: projectName,
 		appName:     appName,
@@ -23,8 +24,8 @@ func NewJobGenerator(projectName, appName string, job *workload.Job) (Generator,
 	}, nil
 }
 
-func NewJobGeneratorFunc(projectName, appName string, job *workload.Job) NewGeneratorFunc {
-	return func() (Generator, error) {
+func NewJobGeneratorFunc(projectName, appName string, job *workload.Job) appconfiguration.NewGeneratorFunc {
+	return func() (appconfiguration.Generator, error) {
 		return NewJobGenerator(projectName, appName, job)
 	}
 }
@@ -41,12 +42,12 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 
 	meta := metav1.ObjectMeta{
 		Namespace: g.projectName,
-		Name:      uniqueAppName(g.projectName, g.appName),
-		Labels: mergeMaps(
-			uniqueAppLabels(g.projectName, g.appName),
+		Name:      appconfiguration.UniqueAppName(g.projectName, g.appName),
+		Labels: appconfiguration.MergeMaps(
+			appconfiguration.UniqueAppLabels(g.projectName, g.appName),
 			g.job.Labels,
 		),
-		Annotations: mergeMaps(
+		Annotations: appconfiguration.MergeMaps(
 			g.job.Annotations,
 		),
 	}
@@ -58,11 +59,11 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	jobSpec := batchv1.JobSpec{
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels: mergeMaps(
-					uniqueAppLabels(g.projectName, g.appName),
+				Labels: appconfiguration.MergeMaps(
+					appconfiguration.UniqueAppLabels(g.projectName, g.appName),
 					g.job.Labels,
 				),
-				Annotations: mergeMaps(
+				Annotations: appconfiguration.MergeMaps(
 					g.job.Annotations,
 				),
 			},
@@ -81,8 +82,8 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			},
 			Spec: jobSpec,
 		}
-		return appendToSpec(
-			kubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
+		return appconfiguration.AppendToSpec(
+			appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
 			resource,
 			spec,
 		)
@@ -101,8 +102,8 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			Schedule: job.Schedule,
 		},
 	}
-	return appendToSpec(
-		kubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
+	return appconfiguration.AppendToSpec(
+		appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
 		resource,
 		spec,
 	)

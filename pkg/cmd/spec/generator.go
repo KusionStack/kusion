@@ -12,11 +12,11 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	appgenerator "kusionstack.io/kusion/pkg/generator/appconfiguration/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
-	appconfigmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
+	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -59,7 +59,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	var g generator.Generator
 	pg := project.Generator
 
-	// default Generator
+	// default AppsGenerator
 	if pg == nil {
 		g = &kcl.Generator{}
 	} else {
@@ -73,7 +73,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 			if err != nil {
 				return nil, err
 			}
-			g = &appconfiguration.Generator{Apps: appConfigs}
+			g = &appgenerator.AppsGenerator{Apps: appConfigs}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
@@ -86,7 +86,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	return spec, nil
 }
 
-func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appconfigmodel.AppConfiguration, error) {
+func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appmodel.AppConfiguration, error) {
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[strin
 	}
 
 	log.Debugf("unmarshal %s to app configs", out)
-	appConfigs := map[string]appconfigmodel.AppConfiguration{}
+	appConfigs := map[string]appmodel.AppConfiguration{}
 	err = yaml.Unmarshal(out, appConfigs)
 	if err != nil {
 		return nil, err
