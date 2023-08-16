@@ -7,11 +7,11 @@ import "kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 // these common attributes.
 type WorkloadBase struct {
 	// The templates of containers to be ran.
-	Containers map[string]container.Container `yaml:"containers" json:"containers"`
+	Containers map[string]container.Container `yaml:"containers,omitempty" json:"containers,omitempty"`
 
 	// The number of containers that should be ran.
 	// Default is 2 to meet high availability requirements.
-	Replicas int `yaml:"replicas" json:"replicas"`
+	Replicas int `yaml:"replicas,omitempty" json:"replicas,omitempty"`
 
 	// Labels and annotations can be used to attach arbitrary metadata
 	// as key-value pairs to resources.
