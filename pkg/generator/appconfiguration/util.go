@@ -1,18 +1,17 @@
-package generators
+package appconfiguration
 
 import (
 	"sort"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 )
 
 // CallGeneratorFuncs calls each NewGeneratorFunc in the given slice
-// and returns a slice of Generator instances.
+// and returns a slice of AppsGenerator instances.
 func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) {
 	gs := make([]Generator, 0, len(newGenerators))
 	for _, newGenerator := range newGenerators {
@@ -25,7 +24,7 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 	return gs, nil
 }
 
-// CallGenerators calls the Generate method of each Generator instance
+// CallGenerators calls the Generate method of each AppsGenerator instance
 // returned by the given NewGeneratorFuncs.
 func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
@@ -68,12 +67,12 @@ func IntPtr[T any](i T) *T {
 	return &i
 }
 
-// mergeMaps merges multiple map[string]string into one
+// MergeMaps merges multiple map[string]string into one
 // map[string]string.
 // If a map is nil, it skips it and moves on to the next one. For each
 // non-nil map, it iterates over its key-value pairs and adds them to
 // the merged map. Finally, it returns the merged map.
-func mergeMaps(maps ...map[string]string) map[string]string {
+func MergeMaps(maps ...map[string]string) map[string]string {
 	merged := make(map[string]string)
 
 	for _, m := range maps {
@@ -88,9 +87,9 @@ func mergeMaps(maps ...map[string]string) map[string]string {
 	return merged
 }
 
-// kubernetesResourceID returns the unique ID of a Kubernetes resource
+// KubernetesResourceID returns the unique ID of a Kubernetes resource
 // based on its type and metadata.
-func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
+func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta) string {
 	// resource id example: apps/v1:Deployment:code-city:code-citydev
 	id := typeMeta.APIVersion + ":" + typeMeta.Kind + ":"
 	if objectMeta.Namespace != "" {
@@ -100,9 +99,9 @@ func kubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// appendToSpec adds a Kubernetes resource to a spec's resources
+// AppendToSpec adds a Kubernetes resource to a spec's resources
 // slice.
-func appendToSpec(resourceID string, resource any, spec *models.Spec) error {
+func AppendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
 		return err
@@ -118,49 +117,17 @@ func appendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	return nil
 }
 
-// uniqueAppName returns a unique name for a workload based on
+// UniqueAppName returns a unique name for a workload based on
 // its project and app name.
-func uniqueAppName(projectName, appName string) string {
+func UniqueAppName(projectName, appName string) string {
 	return projectName + appName
 }
 
-// uniqueAppLabels returns a map of labels that identify a
+// UniqueAppLabels returns a map of labels that identify a
 // app based on its project and name.
-func uniqueAppLabels(projectName, appName string) map[string]string {
+func UniqueAppLabels(projectName, appName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/part-of": projectName,
 		"app.kubernetes.io/name":    appName,
 	}
-}
-
-func toOrderedContainers(appContainers map[string]container.Container) ([]corev1.Container, error) {
-	// Create a slice of containers based on the app's
-	// containers.
-	containers := []corev1.Container{}
-	if err := ForeachOrdered(appContainers, func(containerName string, c container.Container) error {
-		// Create a slice of env vars based on the container's
-		// envvars.
-		envs := []corev1.EnvVar{}
-		for k, v := range c.Env {
-			envs = append(envs, corev1.EnvVar{
-				Name:  k,
-				Value: v,
-			})
-		}
-
-		// Create a container object and append it to the containers
-		// slice.
-		containers = append(containers, corev1.Container{
-			Name:       containerName,
-			Image:      c.Image,
-			Command:    c.Command,
-			Args:       c.Args,
-			WorkingDir: c.WorkingDir,
-			Env:        envs,
-		})
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-	return containers, nil
 }

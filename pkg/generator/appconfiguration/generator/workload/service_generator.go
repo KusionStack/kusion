@@ -1,4 +1,4 @@
-package generators
+package workload
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 )
@@ -25,7 +26,7 @@ func NewWorkloadServiceGenerator(
 	projectName string,
 	appName string,
 	service *workload.Service,
-) (Generator, error) {
+) (appconfiguration.Generator, error) {
 	if len(projectName) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -51,8 +52,8 @@ func NewWorkloadServiceGeneratorFunc(
 	projectName string,
 	appName string,
 	service *workload.Service,
-) NewGeneratorFunc {
-	return func() (Generator, error) {
+) appconfiguration.NewGeneratorFunc {
+	return func() (appconfiguration.Generator, error) {
 		return NewWorkloadServiceGenerator(projectName, appName, service)
 	}
 }
@@ -84,28 +85,28 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			Kind:       "Deployment",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: mergeMaps(
-				uniqueAppLabels(g.projectName, g.appName),
+			Labels: appconfiguration.MergeMaps(
+				appconfiguration.UniqueAppLabels(g.projectName, g.appName),
 				g.service.Labels,
 			),
-			Annotations: mergeMaps(
+			Annotations: appconfiguration.MergeMaps(
 				g.service.Annotations,
 			),
-			Name:      uniqueAppName(g.projectName, g.appName),
+			Name:      appconfiguration.UniqueAppName(g.projectName, g.appName),
 			Namespace: g.projectName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: IntPtr(int32(lrs.Replicas)),
+			Replicas: appconfiguration.IntPtr(int32(lrs.Replicas)),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: uniqueAppLabels(g.projectName, g.appName),
+				MatchLabels: appconfiguration.UniqueAppLabels(g.projectName, g.appName),
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: mergeMaps(
-						uniqueAppLabels(g.projectName, g.appName),
+					Labels: appconfiguration.MergeMaps(
+						appconfiguration.UniqueAppLabels(g.projectName, g.appName),
 						g.service.Labels,
 					),
-					Annotations: mergeMaps(
+					Annotations: appconfiguration.MergeMaps(
 						g.service.Annotations,
 					),
 				},
@@ -117,8 +118,8 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 	}
 
 	// Add the Deployment resource to the spec.
-	return appendToSpec(
-		kubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
+	return appconfiguration.AppendToSpec(
+		appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
 		resource,
 		spec,
 	)
