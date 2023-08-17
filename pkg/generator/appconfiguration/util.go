@@ -41,10 +41,7 @@ func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error 
 
 // ForeachOrdered executes the given function on each
 // item in the map in order of their keys.
-func ForeachOrdered[T any](
-	m map[string]T,
-	f func(key string, value T) error,
-) error {
+func ForeachOrdered[T any](m map[string]T, f func(key string, value T) error) error {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -62,8 +59,8 @@ func ForeachOrdered[T any](
 	return nil
 }
 
-// IntPtr returns a pointer to the provided value.
-func IntPtr[T any](i T) *T {
+// GenericPtr returns a pointer to the provided value.
+func GenericPtr[T any](i T) *T {
 	return &i
 }
 
@@ -99,8 +96,7 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// AppendToSpec adds a Kubernetes resource to a spec's resources
-// slice.
+// AppendToSpec adds a Kubernetes resource to a spec's resources slice.
 func AppendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
@@ -117,14 +113,12 @@ func AppendToSpec(resourceID string, resource any, spec *models.Spec) error {
 	return nil
 }
 
-// UniqueAppName returns a unique name for a workload based on
-// its project and app name.
-func UniqueAppName(projectName, appName string) string {
-	return projectName + appName
+// UniqueAppName returns a unique name for a workload based on its project and app name.
+func UniqueAppName(projectName, stackName, appName string) string {
+	return projectName + "-" + stackName + "-" + appName
 }
 
-// UniqueAppLabels returns a map of labels that identify a
-// app based on its project and name.
+// UniqueAppLabels returns a map of labels that identify an app based on its project and name.
 func UniqueAppLabels(projectName, appName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/part-of": projectName,
