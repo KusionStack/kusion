@@ -9,29 +9,42 @@ import (
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 type workloadGenerator struct {
-	projectName string
-	appName     string
-	workload    *workload.Workload
+	project  *projectstack.Project
+	stack    *projectstack.Stack
+	appName  string
+	workload *workload.Workload
 }
 
-func NewWorkloadGenerator(projectName, appName string, workload *workload.Workload) (appconfiguration.Generator, error) {
-	if len(projectName) == 0 {
+func NewWorkloadGenerator(
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	workload *workload.Workload,
+	appName string,
+) (appconfiguration.Generator, error) {
+	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
 	return &workloadGenerator{
-		projectName: projectName,
-		appName:     appName,
-		workload:    workload,
+		project:  project,
+		stack:    stack,
+		appName:  appName,
+		workload: workload,
 	}, nil
 }
 
-func NewWorkloadGeneratorFunc(projectName, appName string, workload *workload.Workload) appconfiguration.NewGeneratorFunc {
+func NewWorkloadGeneratorFunc(
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	workload *workload.Workload,
+	appName string,
+) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadGenerator(projectName, appName, workload)
+		return NewWorkloadGenerator(project, stack, workload, appName)
 	}
 }
 
@@ -41,13 +54,13 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 	}
 
 	if g.workload != nil {
-		gfs := []appconfiguration.NewGeneratorFunc{}
+		var gfs []appconfiguration.NewGeneratorFunc
 
 		switch g.workload.Type {
 		case workload.WorkloadTypeService:
-			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.projectName, g.appName, g.workload.Service))
+			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service))
 		case workload.WorkloadTypeJob:
-			gfs = append(gfs, NewJobGeneratorFunc(g.projectName, g.appName, g.workload.Job))
+			gfs = append(gfs, NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job))
 		}
 
 		if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
@@ -61,11 +74,10 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 func toOrderedContainers(appContainers map[string]container.Container) ([]corev1.Container, error) {
 	// Create a slice of containers based on the app's
 	// containers.
-	containers := []corev1.Container{}
+	var containers []corev1.Container
 	if err := appconfiguration.ForeachOrdered(appContainers, func(containerName string, c container.Container) error {
-		// Create a slice of env vars based on the container's
-		// envvars.
-		envs := []corev1.EnvVar{}
+		// Create a slice of env vars based on the container's env vars.
+		var envs []corev1.EnvVar
 		for k, v := range c.Env {
 			envs = append(envs, corev1.EnvVar{
 				Name:  k,

@@ -8,25 +8,38 @@ import (
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 type jobGenerator struct {
-	projectName string
-	appName     string
-	job         *workload.Job
+	project *projectstack.Project
+	stack   *projectstack.Stack
+	appName string
+	job     *workload.Job
 }
 
-func NewJobGenerator(projectName, appName string, job *workload.Job) (appconfiguration.Generator, error) {
+func NewJobGenerator(
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	appName string,
+	job *workload.Job,
+) (appconfiguration.Generator, error) {
 	return &jobGenerator{
-		projectName: projectName,
-		appName:     appName,
-		job:         job,
+		project: project,
+		stack:   stack,
+		appName: appName,
+		job:     job,
 	}, nil
 }
 
-func NewJobGeneratorFunc(projectName, appName string, job *workload.Job) appconfiguration.NewGeneratorFunc {
+func NewJobGeneratorFunc(
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	appName string,
+	job *workload.Job,
+) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewJobGenerator(projectName, appName, job)
+		return NewJobGenerator(project, stack, appName, job)
 	}
 }
 
@@ -41,10 +54,10 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	}
 
 	meta := metav1.ObjectMeta{
-		Namespace: g.projectName,
-		Name:      appconfiguration.UniqueAppName(g.projectName, g.appName),
+		Namespace: g.project.Name,
+		Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
 		Labels: appconfiguration.MergeMaps(
-			appconfiguration.UniqueAppLabels(g.projectName, g.appName),
+			appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 			g.job.Labels,
 		),
 		Annotations: appconfiguration.MergeMaps(
@@ -60,7 +73,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
 				Labels: appconfiguration.MergeMaps(
-					appconfiguration.UniqueAppLabels(g.projectName, g.appName),
+					appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 					g.job.Labels,
 				),
 				Annotations: appconfiguration.MergeMaps(

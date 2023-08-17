@@ -10,24 +10,27 @@ import (
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 // workloadServiceGenerator is a struct for generating service
 // workload resources.
 type workloadServiceGenerator struct {
-	projectName string
-	appName     string
-	service     *workload.Service
+	project *projectstack.Project
+	stack   *projectstack.Stack
+	appName string
+	service *workload.Service
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator
 // instance.
 func NewWorkloadServiceGenerator(
-	projectName string,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
 	appName string,
 	service *workload.Service,
 ) (appconfiguration.Generator, error) {
-	if len(projectName) == 0 {
+	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
@@ -40,28 +43,30 @@ func NewWorkloadServiceGenerator(
 	}
 
 	return &workloadServiceGenerator{
-		projectName: projectName,
-		appName:     appName,
-		service:     service,
+		project: project,
+		stack:   stack,
+		appName: appName,
+		service: service,
 	}, nil
 }
 
 // NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that
 // returns a workloadServiceGenerator instance.
 func NewWorkloadServiceGeneratorFunc(
-	projectName string,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
 	appName string,
 	service *workload.Service,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadServiceGenerator(projectName, appName, service)
+		return NewWorkloadServiceGenerator(project, stack, appName, service)
 	}
 }
 
 // Generate generates a service workload resource to the given spec.
 func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
-	lrs := g.service
-	if lrs == nil {
+	service := g.service
+	if service == nil {
 		return nil
 	}
 
@@ -72,7 +77,7 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 
 	// Create a slice of containers based on the app's
 	// containers.
-	containers, err := toOrderedContainers(lrs.Containers)
+	containers, err := toOrderedContainers(service.Containers)
 	if err != nil {
 		return err
 	}
@@ -86,24 +91,24 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: appconfiguration.MergeMaps(
-				appconfiguration.UniqueAppLabels(g.projectName, g.appName),
+				appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 				g.service.Labels,
 			),
 			Annotations: appconfiguration.MergeMaps(
 				g.service.Annotations,
 			),
-			Name:      appconfiguration.UniqueAppName(g.projectName, g.appName),
-			Namespace: g.projectName,
+			Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+			Namespace: g.project.Name,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: appconfiguration.IntPtr(int32(lrs.Replicas)),
+			Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: appconfiguration.UniqueAppLabels(g.projectName, g.appName),
+				MatchLabels: appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: appconfiguration.MergeMaps(
-						appconfiguration.UniqueAppLabels(g.projectName, g.appName),
+						appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 						g.service.Labels,
 					),
 					Annotations: appconfiguration.MergeMaps(

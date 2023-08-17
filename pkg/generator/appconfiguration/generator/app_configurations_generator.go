@@ -16,7 +16,7 @@ type AppsGenerator struct {
 }
 
 func (acg *AppsGenerator) GenerateSpec(
-	o *generator.Options,
+	_ *generator.Options,
 	project *projectstack.Project,
 	stack *projectstack.Stack,
 ) (*models.Spec, error) {
@@ -24,11 +24,14 @@ func (acg *AppsGenerator) GenerateSpec(
 		Resources: []models.Resource{},
 	}
 
-	gfs := []appconfiguration.NewGeneratorFunc{}
-	appconfiguration.ForeachOrdered(acg.Apps, func(appName string, app appmodel.AppConfiguration) error {
-		gfs = append(gfs, NewAppConfigurationGeneratorFunc(project.Name, appName, &app))
+	var gfs []appconfiguration.NewGeneratorFunc
+	err := appconfiguration.ForeachOrdered(acg.Apps, func(appName string, app appmodel.AppConfiguration) error {
+		gfs = append(gfs, NewAppConfigurationGeneratorFunc(project, stack, appName, &app))
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
 		return nil, err
 	}
@@ -37,16 +40,19 @@ func (acg *AppsGenerator) GenerateSpec(
 }
 
 type appConfigurationGenerator struct {
-	projectName string
-	appName     string
-	app         *appmodel.AppConfiguration
+	project *projectstack.Project
+	stack   *projectstack.Stack
+	appName string
+	app     *appmodel.AppConfiguration
 }
 
 func NewAppConfigurationGenerator(
-	projectName, appName string,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
 	app *appmodel.AppConfiguration,
+	appName string,
 ) (appconfiguration.Generator, error) {
-	if len(projectName) == 0 {
+	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
@@ -59,18 +65,21 @@ func NewAppConfigurationGenerator(
 	}
 
 	return &appConfigurationGenerator{
-		projectName: projectName,
-		appName:     appName,
-		app:         app,
+		project: project,
+		stack:   stack,
+		appName: appName,
+		app:     app,
 	}, nil
 }
 
 func NewAppConfigurationGeneratorFunc(
-	projectName, appName string,
+	project *projectstack.Project,
+	stack *projectstack.Stack,
+	appName string,
 	app *appmodel.AppConfiguration,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewAppConfigurationGenerator(projectName, appName, app)
+		return NewAppConfigurationGenerator(project, stack, app, appName)
 	}
 }
 
@@ -80,8 +89,8 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 	}
 
 	gfs := []appconfiguration.NewGeneratorFunc{
-		NewNamespaceGeneratorFunc(g.projectName),
-		workload.NewWorkloadGeneratorFunc(g.projectName, g.appName, g.app.Workload),
+		NewNamespaceGeneratorFunc(g.project.Name),
+		workload.NewWorkloadGeneratorFunc(g.project, nil, g.app.Workload, g.appName),
 	}
 
 	if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
