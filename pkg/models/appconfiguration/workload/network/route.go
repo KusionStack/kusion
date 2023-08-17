@@ -1,9 +1,11 @@
 package network
 
+/*
 const (
 	pathTypeExact  = "Exact"
 	pathTypePrefix = "Prefix"
 )
+*/
 
 // Route enables exposed container ports accessible by HTTP/HTTPS routing paths, then
 // the container can be accessed outside the cluster.

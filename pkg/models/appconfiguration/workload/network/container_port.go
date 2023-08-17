@@ -1,11 +1,13 @@
 package network
 
+/*
 const (
 	accessModeInternal = "Internal"
 	accessModeExposed  = "Exposed"
 	accessProtocolTCP  = "TCP"
 	accessProtocolUDP  = "UDP"
 )
+*/
 
 // ContainerPort defines the available port on the container, and how the other
 // containers access the port.
@@ -17,7 +19,7 @@ type ContainerPort struct {
 	AccessMode string `yaml:"accessMode,omitempty" json:"accessMode,omitempty"`
 
 	// AccessPort is the port exposed within the cluster.
-	AccessPort int `yaml:"accessPort,omitempty" json:"accessPort, omitempty"`
+	AccessPort int `yaml:"accessPort,omitempty" json:"accessPort,omitempty"`
 
 	// AccessProtocol is the protocol of accessPort.
 	AccessProtocol string `yaml:"accessProtocol,omitempty" json:"accessProtocol,omitempty"`
