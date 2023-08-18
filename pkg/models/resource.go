@@ -4,6 +4,11 @@ import "encoding/json"
 
 type Type string
 
+const (
+	Kubernetes Type = "Kubernetes"
+	Terraform  Type = "Terraform"
+)
+
 type Resources []Resource
 
 type Resource struct {

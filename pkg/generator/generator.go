@@ -11,10 +11,6 @@ type Generator interface {
 	GenerateSpec(o *Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error)
 }
 
-const (
-	Kubernetes = "Kubernetes"
-)
-
 type Options struct {
 	// WorkDir represent the filesystem path where the operation is invoked
 	WorkDir string

@@ -12,11 +12,11 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	appgenerator "kusionstack.io/kusion/pkg/generator/appconfiguration/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
-	appconfigmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
+	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -59,7 +59,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	var g generator.Generator
 	pg := project.Generator
 
-	// default Generator
+	// default AppsGenerator
 	if pg == nil {
 		g = &kcl.Generator{}
 	} else {
@@ -69,11 +69,11 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 		case projectstack.KCLGenerator:
 			g = &kcl.Generator{}
 		case projectstack.AppConfigurationGenerator:
-			appConfig, err := buildAppConfig(o, stack)
+			appConfigs, err := buildAppConfigs(o, stack)
 			if err != nil {
 				return nil, err
 			}
-			g = &appconfiguration.Generator{AppConfiguration: appConfig}
+			g = &appgenerator.AppsGenerator{Apps: appConfigs}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
@@ -86,15 +86,15 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	return spec, nil
 }
 
-func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfigmodel.AppConfiguration, error) {
+func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appmodel.AppConfiguration, error) {
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
 		return nil, err
 	}
 
 	documents := compileResult.Documents
-	if len(documents) != 1 {
-		return nil, fmt.Errorf("invalide more than one AppConfiguration are found in the compile result")
+	if len(documents) == 0 {
+		return nil, fmt.Errorf("no AppConfiguration is found in the compile result")
 	}
 
 	out, err := yaml.Marshal(documents[0])
@@ -102,14 +102,14 @@ func buildAppConfig(o *generator.Options, stack *projectstack.Stack) (*appconfig
 		return nil, err
 	}
 
-	log.Debugf("unmarshal %s to app config", out)
-	appConfig := &appconfigmodel.AppConfiguration{}
-	err = yaml.Unmarshal(out, appConfig)
+	log.Debugf("unmarshal %s to app configs", out)
+	appConfigs := map[string]appmodel.AppConfiguration{}
+	err = yaml.Unmarshal(out, appConfigs)
 	if err != nil {
 		return nil, err
 	}
 
-	return appConfig, nil
+	return appConfigs, nil
 }
 
 func GenerateSpecFromFile(filePath string) (*models.Spec, error) {

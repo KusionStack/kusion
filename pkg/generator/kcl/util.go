@@ -8,8 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/util/io"
 	kyaml "kusionstack.io/kusion/pkg/util/yaml"
 )
@@ -94,7 +94,7 @@ func k8sResource2ResourceMap(resource map[string]interface{}) (map[string]interf
 
 	return map[string]interface{}{
 		ID:         engine.BuildID(apiVersion, kind, metadataNamespace, metadataName),
-		Type:       generator.Kubernetes,
+		Type:       models.Kubernetes,
 		Attributes: resource,
 	}, nil
 }

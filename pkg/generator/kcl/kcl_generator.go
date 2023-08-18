@@ -187,6 +187,12 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	}
 	optList = append(optList, opt)
 
+	opt = kcl.WithIncludeSchemaTypePath(true)
+	if opt.Err != nil {
+		return nil, opt.Err
+	}
+	optList = append(optList, opt)
+
 	return optList, nil
 }
 

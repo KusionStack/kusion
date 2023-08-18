@@ -51,7 +51,7 @@ func NewCmdCompile() *cobra.Command {
 		Aliases: []string{"cl"},
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
-			o.Complete(args)
+			util.CheckErr(o.Complete(args))
 			util.CheckErr(o.Validate())
 			util.CheckErr(o.Run())
 			return

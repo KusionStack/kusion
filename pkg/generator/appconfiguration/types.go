@@ -1,4 +1,4 @@
-package generators
+package appconfiguration
 
 import "kusionstack.io/kusion/pkg/models"
 
