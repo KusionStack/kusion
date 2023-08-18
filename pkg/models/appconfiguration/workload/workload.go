@@ -5,40 +5,40 @@ import (
 	"errors"
 )
 
-type WorkloadType string
+type Type string
 
 const (
-	WorkloadTypeJob     = "Job"
-	WorkloadTypeService = "Service"
+	TypeJob     = "Job"
+	TypeService = "Service"
 )
 
-type WorkloadHeader struct {
-	Type WorkloadType `yaml:"_type" json:"_type"`
+type Header struct {
+	Type Type `yaml:"_type" json:"_type"`
 }
 
 type Workload struct {
-	WorkloadHeader `yaml:",inline" json:",inline"`
-	*Service       `yaml:",inline" json:",inline"`
-	*Job           `yaml:",inline" json:",inline"`
+	Header   `yaml:",inline" json:",inline"`
+	*Service `yaml:",inline" json:",inline"`
+	*Job     `yaml:",inline" json:",inline"`
 }
 
-func (w Workload) MarshalJSON() ([]byte, error) {
-	switch w.Type {
-	case WorkloadTypeService:
+func (w *Workload) MarshalJSON() ([]byte, error) {
+	switch w.Header.Type {
+	case TypeService:
 		return json.Marshal(struct {
-			WorkloadHeader `yaml:",inline" json:",inline"`
-			*Service       `json:",inline"`
+			Header   `yaml:",inline" json:",inline"`
+			*Service `json:",inline"`
 		}{
-			WorkloadHeader: WorkloadHeader{w.Type},
-			Service:        w.Service,
+			Header:  Header{w.Header.Type},
+			Service: w.Service,
 		})
-	case WorkloadTypeJob:
+	case TypeJob:
 		return json.Marshal(struct {
-			WorkloadHeader `yaml:",inline" json:",inline"`
-			*Job           `json:",inline"`
+			Header `yaml:",inline" json:",inline"`
+			*Job   `json:",inline"`
 		}{
-			WorkloadHeader: WorkloadHeader{w.Type},
-			Job:            w.Job,
+			Header: Header{w.Header.Type},
+			Job:    w.Job,
 		})
 	default:
 		return nil, errors.New("unknown workload type")
@@ -46,19 +46,19 @@ func (w Workload) MarshalJSON() ([]byte, error) {
 }
 
 func (w *Workload) UnmarshalJSON(data []byte) error {
-	var workloadData WorkloadHeader
+	var workloadData Header
 	err := json.Unmarshal(data, &workloadData)
 	if err != nil {
 		return err
 	}
 
-	w.Type = workloadData.Type
-	switch w.Type {
-	case WorkloadTypeJob:
+	w.Header.Type = workloadData.Type
+	switch w.Header.Type {
+	case TypeJob:
 		var v Job
 		err = json.Unmarshal(data, &v)
 		w.Job = &v
-	case WorkloadTypeService:
+	case TypeService:
 		var v Service
 		err = json.Unmarshal(data, &v)
 		w.Service = &v
@@ -69,23 +69,23 @@ func (w *Workload) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-func (w Workload) MarshalYAML() (interface{}, error) {
-	switch w.Type {
-	case WorkloadTypeService:
+func (w *Workload) MarshalYAML() (interface{}, error) {
+	switch w.Header.Type {
+	case TypeService:
 		return struct {
-			WorkloadHeader `yaml:",inline" json:",inline"`
-			Service        `yaml:",inline" json:",inline"`
+			Header  `yaml:",inline" json:",inline"`
+			Service `yaml:",inline" json:",inline"`
 		}{
-			WorkloadHeader: WorkloadHeader{w.Type},
-			Service:        *w.Service,
+			Header:  Header{w.Header.Type},
+			Service: *w.Service,
 		}, nil
-	case WorkloadTypeJob:
+	case TypeJob:
 		return struct {
-			WorkloadHeader `yaml:",inline" json:",inline"`
-			*Job           `yaml:",inline" json:",inline"`
+			Header `yaml:",inline" json:",inline"`
+			*Job   `yaml:",inline" json:",inline"`
 		}{
-			WorkloadHeader: WorkloadHeader{w.Type},
-			Job:            w.Job,
+			Header: Header{w.Header.Type},
+			Job:    w.Job,
 		}, nil
 	default:
 		return nil, errors.New("unknown workload type")
@@ -93,19 +93,19 @@ func (w Workload) MarshalYAML() (interface{}, error) {
 }
 
 func (w *Workload) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var workloadData WorkloadHeader
+	var workloadData Header
 	err := unmarshal(&workloadData)
 	if err != nil {
 		return err
 	}
 
-	w.Type = workloadData.Type
-	switch w.Type {
-	case WorkloadTypeJob:
+	w.Header.Type = workloadData.Type
+	switch w.Header.Type {
+	case TypeJob:
 		var v Job
 		err = unmarshal(&v)
 		w.Job = &v
-	case WorkloadTypeService:
+	case TypeService:
 		var v Service
 		err = unmarshal(&v)
 		w.Service = &v

@@ -10,12 +10,13 @@ import (
 )
 
 func TestWorkload_MarshalJSON(t *testing.T) {
-	data := Workload{
-		WorkloadHeader: WorkloadHeader{
-			Type: WorkloadTypeService,
+	data := &Workload{
+		Header: Header{
+			Type: TypeService,
 		},
 		Service: &Service{
-			WorkloadBase: WorkloadBase{
+			Type: "Deployment",
+			Base: Base{
 				Replicas: 2,
 				Labels: map[string]string{
 					"app": "my-service",
@@ -27,7 +28,7 @@ func TestWorkload_MarshalJSON(t *testing.T) {
 		},
 	}
 
-	expected := `{"_type":"Service","replicas":2,"labels":{"app":"my-service"}}`
+	expected := `{"_type":"Service","replicas":2,"labels":{"app":"my-service"},"type":"Deployment"}`
 	actual, err := json.Marshal(data)
 	if err != nil {
 		t.Errorf("Error while marshaling workload: %v", err)
@@ -42,11 +43,11 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 	data := `{"_type":"Service","replicas":1,"labels":{},"annotations":{},"dirs":{},"schedule":"* * * * *"}`
 
 	expected := Workload{
-		WorkloadHeader: WorkloadHeader{
-			Type: WorkloadTypeService,
+		Header: Header{
+			Type: TypeService,
 		},
 		Service: &Service{
-			WorkloadBase: WorkloadBase{
+			Base: Base{
 				Replicas:    1,
 				Labels:      map[string]string{},
 				Annotations: map[string]string{},
@@ -60,8 +61,8 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 		t.Errorf("Error while unmarshaling JSON: %v", err)
 	}
 
-	if actual.Type != expected.Type {
-		t.Errorf("Expected workload type: %s, got: %s", expected.Type, actual.Type)
+	if actual.Header.Type != expected.Header.Type {
+		t.Errorf("Expected workload type: %s, got: %s", expected.Header.Type, actual.Header.Type)
 	}
 
 	if actual.Service == nil {
@@ -89,12 +90,13 @@ func TestWorkload_UnmarshalJSON_UnknownType(t *testing.T) {
 }
 
 func TestWorkload_MarshalYAML(t *testing.T) {
-	data := Workload{
-		WorkloadHeader: WorkloadHeader{
-			Type: WorkloadTypeService,
+	data := &Workload{
+		Header: Header{
+			Type: TypeService,
 		},
 		Service: &Service{
-			WorkloadBase: WorkloadBase{
+			Type: "Deployment",
+			Base: Base{
 				Replicas: 2,
 				Labels: map[string]string{
 					"app": "my-service",
@@ -110,6 +112,7 @@ func TestWorkload_MarshalYAML(t *testing.T) {
 replicas: 2
 labels:
     app: my-service
+type: Deployment
 `
 	actual, err := yaml.Marshal(data)
 	if err != nil {
@@ -129,12 +132,12 @@ dirs: {}
 schedule: "* * * * *"
 `
 
-	expected := Workload{
-		WorkloadHeader: WorkloadHeader{
-			Type: WorkloadTypeService,
+	expected := &Workload{
+		Header: Header{
+			Type: TypeService,
 		},
 		Service: &Service{
-			WorkloadBase: WorkloadBase{
+			Base: Base{
 				Replicas:    1,
 				Labels:      map[string]string{},
 				Annotations: map[string]string{},
@@ -148,7 +151,7 @@ schedule: "* * * * *"
 		t.Errorf("Error while unmarshaling YAML: %v", err)
 	}
 
-	if !reflect.DeepEqual(actual, expected) {
+	if !reflect.DeepEqual(&actual, expected) {
 		t.Errorf("Unexpected YAML deserialization result.\nExpected: %v\nActual: %v", expected, actual)
 	}
 }

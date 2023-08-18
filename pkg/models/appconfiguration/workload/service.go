@@ -5,5 +5,6 @@ package workload
 // applications that should "never" go down, and handle short-lived
 // latency-sensitive web requests, or events.
 type Service struct {
-	WorkloadBase `yaml:",inline" json:",inline"`
+	Base `yaml:",inline" json:",inline"`
+	Type string `yaml:"type" json:"type"`
 }

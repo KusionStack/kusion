@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 )
@@ -24,11 +25,11 @@ var (
 `
 	appStruct = AppConfiguration{
 		Workload: &workload.Workload{
-			WorkloadHeader: workload.WorkloadHeader{
-				Type: workload.WorkloadTypeJob,
+			Header: workload.Header{
+				Type: workload.TypeJob,
 			},
 			Job: &workload.Job{
-				WorkloadBase: workload.WorkloadBase{
+				Base: workload.Base{
 					Containers: map[string]container.Container{
 						"busybox": {
 							Image:   "busybox:1.28",

@@ -95,11 +95,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			},
 			Spec: jobSpec,
 		}
-		return appconfiguration.AppendToSpec(
-			appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
-			resource,
-			spec,
-		)
+		return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
 
 	resource := &batchv1.CronJob{
@@ -115,9 +111,5 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			Schedule: job.Schedule,
 		},
 	}
-	return appconfiguration.AppendToSpec(
-		appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
-		resource,
-		spec,
-	)
+	return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 }

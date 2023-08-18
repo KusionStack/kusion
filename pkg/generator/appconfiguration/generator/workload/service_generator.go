@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
@@ -82,13 +83,20 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		return err
 	}
 
-	// Create a Deployment object based on the app's
-	// configuration.
-	resource := &appsv1.Deployment{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       "Deployment",
-		},
+	// Create a K8s workload object based on the app's configuration.
+	// common parts
+	objectMeta := metav1.ObjectMeta{
+		Labels: appconfiguration.MergeMaps(
+			appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
+			g.service.Labels,
+		),
+		Annotations: appconfiguration.MergeMaps(
+			g.service.Annotations,
+		),
+		Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+		Namespace: g.project.Name,
+	}
+	podTemplateSpec := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: appconfiguration.MergeMaps(
 				appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
@@ -97,35 +105,54 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			Annotations: appconfiguration.MergeMaps(
 				g.service.Annotations,
 			),
-			Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
-			Namespace: g.project.Name,
 		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
-			Selector: &metav1.LabelSelector{
-				MatchLabels: appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
-			},
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: appconfiguration.MergeMaps(
-						appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
-						g.service.Labels,
-					),
-					Annotations: appconfiguration.MergeMaps(
-						g.service.Annotations,
-					),
-				},
-				Spec: v1.PodSpec{
-					Containers: containers,
-				},
-			},
+		Spec: v1.PodSpec{
+			Containers: containers,
 		},
+	}
+	selector := &metav1.LabelSelector{
+		MatchLabels: appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
+	}
+
+	var resource any
+	typeMeta := metav1.TypeMeta{}
+
+	const (
+		deploy   = "Deployment"
+		collaset = "CollaSet"
+	)
+
+	switch service.Type {
+	case deploy:
+		typeMeta = metav1.TypeMeta{
+			APIVersion: appsv1.SchemeGroupVersion.String(),
+			Kind:       deploy,
+		}
+		resource = &appsv1.Deployment{
+			TypeMeta:   typeMeta,
+			ObjectMeta: objectMeta,
+			Spec: appsv1.DeploymentSpec{
+				Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
+				Selector: selector,
+				Template: podTemplateSpec,
+			},
+		}
+	case collaset:
+		typeMeta = metav1.TypeMeta{
+			APIVersion: v1alpha1.GroupVersion.String(),
+			Kind:       collaset,
+		}
+		resource = &v1alpha1.CollaSet{
+			TypeMeta:   typeMeta,
+			ObjectMeta: objectMeta,
+			Spec: v1alpha1.CollaSetSpec{
+				Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
+				Selector: selector,
+				Template: podTemplateSpec,
+			},
+		}
 	}
 
 	// Add the Deployment resource to the spec.
-	return appconfiguration.AppendToSpec(
-		appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
-		resource,
-		spec,
-	)
+	return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(typeMeta, objectMeta), spec, resource)
 }

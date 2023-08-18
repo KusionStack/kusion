@@ -2,10 +2,10 @@ package workload
 
 import "kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 
-// WorkloadBase defines set of attributes shared by different workload
+// Base defines set of attributes shared by different workload
 // profile, e.g Service and Job. You can inherit this Schema to reuse
 // these common attributes.
-type WorkloadBase struct {
+type Base struct {
 	// The templates of containers to be ran.
 	Containers map[string]container.Container `yaml:"containers,omitempty" json:"containers,omitempty"`
 
