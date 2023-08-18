@@ -27,6 +27,6 @@ type RoutePath struct {
 	// PathType defines how the URL matches path, support empty, PathTypeExact, PathTypePrefix.
 	PathType string `yaml:"pathType,omitempty" json:"pathType,omitempty"`
 
-	// ContainerAccessPort is the backend container accessPort.
-	ContainerAccessPort string `yaml:"containerAccessPort,omitempty" json:"containerAccessPort,omitempty"`
+	// AccessPort is the backend container accessPort.
+	AccessPort string `yaml:"accessPort,omitempty" json:"accessPort,omitempty"`
 }

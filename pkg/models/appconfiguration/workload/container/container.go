@@ -24,5 +24,5 @@ type Container struct {
 	WorkingDir string `yaml:"workingDir,omitempty" json:"workingDir,omitempty"`
 
 	// Ports defines which ports are available on the container.
-	Ports map[string]network.ContainerPort `yaml:"ports,omitempty" json:"ports,omitempty"`
+	Ports []network.ContainerPort `yaml:"ports,omitempty" json:"ports,omitempty"`
 }

@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload/network"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -75,6 +76,12 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		spec.Resources = make(models.Resources, 0)
 	}
 
+	// Containers inside an application cannot use the same port.
+	completeContainerPorts(service.Containers)
+	if err := validContainerPorts(service.Containers); err != nil {
+		return err
+	}
+
 	// Create a slice of containers based on the app's
 	// containers.
 	containers, err := toOrderedContainers(service.Containers)
@@ -123,9 +130,20 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 	}
 
 	// Add the Deployment resource to the spec.
-	return appconfiguration.AppendToSpec(
+	if err = appconfiguration.AppendToSpec(
 		appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta),
 		resource,
 		spec,
-	)
+	); err != nil {
+		return err
+	}
+
+	var gfs []appconfiguration.NewGeneratorFunc
+	// call ContainerPortsGenerator generate spec.
+	cps := toContainerPorts(g.service.Containers)
+	if len(cps) != 0 {
+		gfs = append(gfs, network.NewContainerPortsGeneratorFunc(g.project, g.stack, g.appName, g.service.Labels, cps))
+	}
+
+	return appconfiguration.CallGenerators(spec, gfs...)
 }
