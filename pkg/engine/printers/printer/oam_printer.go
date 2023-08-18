@@ -9,7 +9,7 @@ import (
 )
 
 func AddOAMHandlers(h PrintHandler) {
-	_ = h.TableHandler(printApplication)
+	h.TableHandler(printApplication)
 }
 
 func printApplication(obj *oamv1beta1.Application) (string, bool) {
