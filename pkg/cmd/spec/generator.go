@@ -93,8 +93,8 @@ func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[strin
 	}
 
 	documents := compileResult.Documents
-	if len(documents) != 1 {
-		return nil, fmt.Errorf("invalide more than one AppConfiguration are found in the compile result")
+	if len(documents) == 0 {
+		return nil, fmt.Errorf("no AppConfiguration is found in the compile result")
 	}
 
 	out, err := yaml.Marshal(documents[0])

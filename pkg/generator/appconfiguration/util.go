@@ -6,7 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -97,14 +96,14 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 }
 
 // AppendToSpec adds a Kubernetes resource to a spec's resources slice.
-func AppendToSpec(resourceID string, resource any, spec *models.Spec) error {
+func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
 		return err
 	}
 	r := models.Resource{
 		ID:         resourceID,
-		Type:       generator.Kubernetes,
+		Type:       resourceType,
 		Attributes: unstructured,
 		DependsOn:  nil,
 		Extensions: nil,

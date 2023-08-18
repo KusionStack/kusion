@@ -43,9 +43,5 @@ func (g *namespaceGenerator) Generate(spec *models.Spec) error {
 		ObjectMeta: metav1.ObjectMeta{Name: g.projectName},
 	}
 
-	return appconfiguration.AppendToSpec(
-		appconfiguration.KubernetesResourceID(ns.TypeMeta, ns.ObjectMeta),
-		ns,
-		spec,
-	)
+	return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(ns.TypeMeta, ns.ObjectMeta), spec, ns)
 }

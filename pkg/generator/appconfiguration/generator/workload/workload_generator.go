@@ -56,10 +56,10 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 	if g.workload != nil {
 		var gfs []appconfiguration.NewGeneratorFunc
 
-		switch g.workload.Type {
-		case workload.WorkloadTypeService:
+		switch g.workload.Header.Type {
+		case workload.TypeService:
 			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service))
-		case workload.WorkloadTypeJob:
+		case workload.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job))
 		}
 
