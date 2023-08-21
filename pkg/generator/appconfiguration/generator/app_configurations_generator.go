@@ -90,7 +90,7 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 
 	gfs := []appconfiguration.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.app.Workload, g.appName),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
 	}
 
 	if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {

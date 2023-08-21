@@ -72,7 +72,7 @@ func MergeMaps(maps ...map[string]string) map[string]string {
 	merged := make(map[string]string)
 
 	for _, m := range maps {
-		if m == nil {
+		if len(m) == 0 {
 			continue
 		}
 		for k, v := range m {
@@ -80,6 +80,9 @@ func MergeMaps(maps ...map[string]string) map[string]string {
 		}
 	}
 
+	if len(merged) == 0 {
+		return nil
+	}
 	return merged
 }
 

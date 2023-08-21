@@ -22,8 +22,8 @@ type workloadGenerator struct {
 func NewWorkloadGenerator(
 	project *projectstack.Project,
 	stack *projectstack.Stack,
-	workload *workload.Workload,
 	appName string,
+	workload *workload.Workload,
 ) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -40,11 +40,11 @@ func NewWorkloadGenerator(
 func NewWorkloadGeneratorFunc(
 	project *projectstack.Project,
 	stack *projectstack.Stack,
-	workload *workload.Workload,
 	appName string,
+	workload *workload.Workload,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadGenerator(project, stack, workload, appName)
+		return NewWorkloadGenerator(project, stack, appName, workload)
 	}
 }
 
