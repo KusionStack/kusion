@@ -79,7 +79,7 @@ func toOrderedContainers(appContainers map[string]container.Container) ([]corev1
 		// Create a slice of env vars based on the container's env vars.
 		var envs []corev1.EnvVar
 		for k, v := range c.Env {
-			envs = append(envs, *appconfiguration.MagicEnv(k, v))
+			envs = append(envs, *MagicEnvVar(k, v))
 		}
 
 		// Create a container object and append it to the containers slice.
