@@ -22,8 +22,8 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 	return gs, nil
 }
 
-// CallGenerators calls the Generate method of each AppsGenerator
-// instance returned by the given NewGeneratorFuncs.
+// CallGenerators calls the Generate method of each AppsGenerator instance
+// returned by the given NewGeneratorFuncs.
 func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {

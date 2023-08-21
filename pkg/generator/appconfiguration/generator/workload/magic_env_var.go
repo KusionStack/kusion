@@ -10,16 +10,25 @@ var (
 	SecretEnvParser    MagicEnvParser = NewSecretEnvParser()
 	ConfigMapEnvParser                = NewConfigMapEnvParser()
 	RawEnvParser                      = NewRawEnvParser()
+
+	supportedParsers = []MagicEnvParser{
+		SecretEnvParser,
+		ConfigMapEnvParser,
+		// As the default parser, the RawEnvParser should be placed at
+		// the end.
+		RawEnvParser,
+	}
 )
 
 // MagicEnvVar generates a specialized EnvVar based on the key and
 // value of environment.
+//
+// Examples:
+//
+//	MagicEnvVar("secret_key", "secret://my_secret/my_key")
+//	MagicEnvVar("config_key", "configmap://my_configmap/my_key")
+//	MagicEnvVar("key", "value")
 func MagicEnvVar(k, v string) *corev1.EnvVar {
-	supportedParsers := []MagicEnvParser{
-		SecretEnvParser,
-		ConfigMapEnvParser,
-		RawEnvParser,
-	}
 	for _, p := range supportedParsers {
 		if p.Match(k, v) {
 			return p.Gen(k, v)
