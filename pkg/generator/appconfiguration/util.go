@@ -2,10 +2,11 @@ package appconfiguration
 
 import (
 	"sort"
+	"strings"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -23,8 +24,8 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 	return gs, nil
 }
 
-// CallGenerators calls the Generate method of each AppsGenerator instance
-// returned by the given NewGeneratorFuncs.
+// CallGenerators calls the Generate method of each AppsGenerator
+// instance returned by the given NewGeneratorFuncs.
 func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
@@ -95,7 +96,8 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// AppendToSpec adds a Kubernetes resource to a spec's resources slice.
+// AppendToSpec adds a Kubernetes resource to a spec's resources
+// slice.
 func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
@@ -112,15 +114,117 @@ func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec
 	return nil
 }
 
-// UniqueAppName returns a unique name for a workload based on its project and app name.
+// UniqueAppName returns a unique name for a workload based on its
+// project and app name.
 func UniqueAppName(projectName, stackName, appName string) string {
 	return projectName + "-" + stackName + "-" + appName
 }
 
-// UniqueAppLabels returns a map of labels that identify an app based on its project and name.
+// UniqueAppLabels returns a map of labels that identify an app based
+// on its project and name.
 func UniqueAppLabels(projectName, appName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/part-of": projectName,
 		"app.kubernetes.io/name":    appName,
+	}
+}
+
+// MagicEnv generates a corev1.EnvVar based on the given key (k) and
+// value (v) strings.
+func MagicEnv(k, v string) *corev1.EnvVar {
+	supportedParser := []MagicEnvParser{
+		&secretEnvParser{},
+		&configMapEnvParser{},
+		&rawEnvParser{},
+	}
+
+	for _, parser := range supportedParser {
+		if parser.Match(k, v) {
+			return parser.Gen(k, v)
+		}
+	}
+
+	return nil
+}
+
+type MagicEnvParser interface {
+	Match(k, v string) (matched bool)
+	Gen(k, v string) *corev1.EnvVar
+}
+
+var (
+	_ MagicEnvParser = &secretEnvParser{}
+	_ MagicEnvParser = &configMapEnvParser{}
+	_ MagicEnvParser = &rawEnvParser{}
+)
+
+type rawEnvParser struct{}
+
+func (*rawEnvParser) Match(_ string, v string) (matched bool) {
+	return true
+}
+
+func (*rawEnvParser) Gen(k string, v string) *corev1.EnvVar {
+	return &corev1.EnvVar{
+		Name:  k,
+		Value: v,
+	}
+}
+
+type secretEnvParser struct{}
+
+func (*secretEnvParser) Match(_ string, v string) (matched bool) {
+	const prefix = "secret://"
+	return strings.HasPrefix(v, prefix)
+}
+
+func (*secretEnvParser) Gen(k string, v string) *corev1.EnvVar {
+	const prefix = "secret://"
+
+	vv := strings.TrimPrefix(v, string(prefix))
+	vs := strings.Split(vv, "/")
+	if len(vs) != 2 {
+		return nil
+	}
+
+	return &corev1.EnvVar{
+		Name: k,
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: vs[0],
+				},
+				Key: vs[1],
+			},
+		},
+	}
+}
+
+type configMapEnvParser struct{}
+
+func (*configMapEnvParser) Match(_ string, v string) (matched bool) {
+	const prefix = "configmap://"
+	return strings.HasPrefix(v, prefix)
+}
+
+func (*configMapEnvParser) Gen(k string, v string) *corev1.EnvVar {
+	const prefix = "configmap://"
+
+	vv := strings.TrimPrefix(v, string(prefix))
+	vs := strings.Split(vv, "/")
+	if len(vs) != 2 {
+		return nil
+	}
+
+	return &corev1.EnvVar{
+		Name: k,
+		ValueFrom: &corev1.EnvVarSource{
+			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: vs[0],
+				},
+				Key: vs[1],
+			},
+		},
 	}
 }
