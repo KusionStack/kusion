@@ -3,12 +3,11 @@ package network
 import (
 	"fmt"
 
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	ac "kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -22,7 +21,7 @@ type containerPortsGenerator struct {
 	stack          *projectstack.Stack
 	appName        string
 	workloadLabels map[string]string
-	containerPorts []*network.ContainerPort
+	containerPorts []network.ContainerPort
 }
 
 // NewContainerPortsGenerator returns a new containerPortsGenerator instance.
@@ -31,8 +30,8 @@ func NewContainerPortsGenerator(
 	stack *projectstack.Stack,
 	appName string,
 	workloadLabels map[string]string,
-	cps []*network.ContainerPort,
-) (appconfiguration.Generator, error) {
+	cps []network.ContainerPort,
+) (ac.Generator, error) {
 	if project.Name == "" {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -62,9 +61,9 @@ func NewContainerPortsGeneratorFunc(
 	stack *projectstack.Stack,
 	appName string,
 	workloadLabels map[string]string,
-	cps []*network.ContainerPort,
-) appconfiguration.NewGeneratorFunc {
-	return func() (appconfiguration.Generator, error) {
+	cps []network.ContainerPort,
+) ac.NewGeneratorFunc {
+	return func() (ac.Generator, error) {
 		return NewContainerPortsGenerator(project, stack, appName, workloadLabels, cps)
 	}
 }
@@ -87,22 +86,22 @@ func (g *containerPortsGenerator) Generate(spec *models.Spec) error {
 
 	resource := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: appsv1.SchemeGroupVersion.String(),
+			APIVersion: v1.SchemeGroupVersion.String(),
 			Kind:       kindK8sService,
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+			Name:      ac.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
 			Namespace: g.project.Name,
 		},
 		Spec: v1.ServiceSpec{
 			Ports: svcPorts,
-			Selector: appconfiguration.MergeMaps(
-				appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
+			Selector: ac.MergeMaps(
+				ac.UniqueAppLabels(g.project.Name, g.appName),
 				g.workloadLabels,
 			),
 		},
 	}
-	resourceID := appconfiguration.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta)
+	resourceID := ac.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta)
 
-	return appconfiguration.AppendToSpec(resourceID, resource, spec)
+	return ac.AppendToSpec(resourceID, resource, spec)
 }

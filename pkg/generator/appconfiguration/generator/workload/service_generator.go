@@ -144,6 +144,9 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 	if len(cps) != 0 {
 		gfs = append(gfs, network.NewContainerPortsGeneratorFunc(g.project, g.stack, g.appName, g.service.Labels, cps))
 	}
+	if len(g.service.Routes) != 0 {
+		gfs = append(gfs, network.NewRouteGeneratorFunc(g.project, g.stack, g.appName, cps, g.service.Routes))
+	}
 
 	return appconfiguration.CallGenerators(spec, gfs...)
 }

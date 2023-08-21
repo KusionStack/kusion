@@ -1,12 +1,5 @@
 package network
 
-/*
-const (
-	pathTypeExact  = "Exact"
-	pathTypePrefix = "Prefix"
-)
-*/
-
 // Route enables exposed container ports accessible by HTTP/HTTPS routing paths, then
 // the container can be accessed outside the cluster.
 // There must be an IngressController in the cluster,so that the configuration of Route
@@ -28,5 +21,5 @@ type RoutePath struct {
 	PathType string `yaml:"pathType,omitempty" json:"pathType,omitempty"`
 
 	// AccessPort is the backend container accessPort.
-	AccessPort string `yaml:"accessPort,omitempty" json:"accessPort,omitempty"`
+	AccessPort int `yaml:"accessPort,omitempty" json:"accessPort,omitempty"`
 }

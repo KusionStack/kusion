@@ -151,11 +151,11 @@ func validContainerPorts(appContainers map[string]container.Container) error {
 	return nil
 }
 
-func toContainerPorts(appContainers map[string]container.Container) []*networkmodel.ContainerPort {
-	var cps []*networkmodel.ContainerPort
+func toContainerPorts(appContainers map[string]container.Container) []networkmodel.ContainerPort {
+	var cps []networkmodel.ContainerPort
 	for _, c := range appContainers {
 		for _, cp := range c.Ports {
-			cps = append(cps, &cp)
+			cps = append(cps, cp)
 		}
 	}
 	return cps
