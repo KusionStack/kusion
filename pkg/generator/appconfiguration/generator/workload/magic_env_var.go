@@ -7,13 +7,11 @@ import (
 )
 
 var (
-	SecretEnvParser    MagicEnvParser = NewSecretEnvParser()
-	ConfigMapEnvParser                = NewConfigMapEnvParser()
-	RawEnvParser                      = NewRawEnvParser()
+	SecretEnvParser MagicEnvParser = NewSecretEnvParser()
+	RawEnvParser                   = NewRawEnvParser()
 
 	supportedParsers = []MagicEnvParser{
 		SecretEnvParser,
-		ConfigMapEnvParser,
 		// As the default parser, the RawEnvParser should be placed at
 		// the end.
 		RawEnvParser,
@@ -26,7 +24,6 @@ var (
 // Examples:
 //
 //	MagicEnvVar("secret_key", "secret://my_secret/my_key")
-//	MagicEnvVar("config_key", "configmap://my_configmap/my_key")
 //	MagicEnvVar("key", "value")
 func MagicEnvVar(k, v string) *corev1.EnvVar {
 	for _, p := range supportedParsers {
@@ -93,45 +90,6 @@ func (p *secretEnvParser) Gen(k string, v string) *corev1.EnvVar {
 		Name: k,
 		ValueFrom: &corev1.EnvVarSource{
 			SecretKeyRef: &corev1.SecretKeySelector{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: vs[0],
-				},
-				Key: vs[1],
-			},
-		},
-	}
-}
-
-// configMapEnvParser is a parser for configmap-based environment
-// variables.
-type configMapEnvParser struct {
-	prefix string
-}
-
-// NewConfigMapEnvParser creates a new instance of ConfigMapEnvParser.
-func NewConfigMapEnvParser() MagicEnvParser {
-	return &configMapEnvParser{
-		prefix: "configmap://",
-	}
-}
-
-// Match checks if the value matches the configmap parser.
-func (p *configMapEnvParser) Match(_ string, v string) bool {
-	return strings.HasPrefix(v, p.prefix)
-}
-
-// Gen generates a configmap-based environment variable.
-func (p *configMapEnvParser) Gen(k string, v string) *corev1.EnvVar {
-	vv := strings.TrimPrefix(v, p.prefix)
-	vs := strings.Split(vv, "/")
-	if len(vs) != 2 {
-		return nil
-	}
-
-	return &corev1.EnvVar{
-		Name: k,
-		ValueFrom: &corev1.EnvVarSource{
-			ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: vs[0],
 				},
