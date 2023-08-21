@@ -129,41 +129,48 @@ func UniqueAppLabels(projectName, appName string) map[string]string {
 	}
 }
 
-// MagicEnv generates a corev1.EnvVar based on the given key (k) and
-// value (v) strings.
-func MagicEnv(k, v string) *corev1.EnvVar {
-	supportedParser := []MagicEnvParser{
-		&secretEnvParser{},
-		&configMapEnvParser{},
-		&rawEnvParser{},
+// MagicEnvVar generates a specialized EnvVar based on the key and
+// value of environment.
+func MagicEnvVar(k, v string) *corev1.EnvVar {
+	supportedParsers := []MagicEnvParser{
+		SecretEnvParser,
+		ConfigMapEnvParser,
+		RawEnvParser,
 	}
-
-	for _, parser := range supportedParser {
-		if parser.Match(k, v) {
-			return parser.Gen(k, v)
+	for _, p := range supportedParsers {
+		if p.Match(k, v) {
+			return p.Gen(k, v)
 		}
 	}
-
 	return nil
 }
 
+var (
+	SecretEnvParser    MagicEnvParser = NewSecretEnvParser()
+	ConfigMapEnvParser                = NewConfigMapEnvParser()
+	RawEnvParser                      = NewRawEnvParser()
+)
+
+// MagicEnvParser is an interface for environment variable parsers.
 type MagicEnvParser interface {
 	Match(k, v string) (matched bool)
 	Gen(k, v string) *corev1.EnvVar
 }
 
-var (
-	_ MagicEnvParser = &secretEnvParser{}
-	_ MagicEnvParser = &configMapEnvParser{}
-	_ MagicEnvParser = &rawEnvParser{}
-)
-
+// rawEnvParser is a parser for raw environment variables.
 type rawEnvParser struct{}
 
-func (*rawEnvParser) Match(_ string, v string) (matched bool) {
+// NewRawEnvParser creates a new instance of RawEnvParser.
+func NewRawEnvParser() MagicEnvParser {
+	return &rawEnvParser{}
+}
+
+// Match checks if the value matches the raw parser.
+func (*rawEnvParser) Match(_ string, _ string) bool {
 	return true
 }
 
+// Gen generates a raw environment variable.
 func (*rawEnvParser) Gen(k string, v string) *corev1.EnvVar {
 	return &corev1.EnvVar{
 		Name:  k,
@@ -171,17 +178,26 @@ func (*rawEnvParser) Gen(k string, v string) *corev1.EnvVar {
 	}
 }
 
-type secretEnvParser struct{}
-
-func (*secretEnvParser) Match(_ string, v string) (matched bool) {
-	const prefix = "secret://"
-	return strings.HasPrefix(v, prefix)
+// secretEnvParser is a parser for secret-based environment variables.
+type secretEnvParser struct {
+	prefix string
 }
 
-func (*secretEnvParser) Gen(k string, v string) *corev1.EnvVar {
-	const prefix = "secret://"
+// NewSecretEnvParser creates a new instance of SecretEnvParser.
+func NewSecretEnvParser() MagicEnvParser {
+	return &secretEnvParser{
+		prefix: "secret://",
+	}
+}
 
-	vv := strings.TrimPrefix(v, string(prefix))
+// Match checks if the value matches the secret parser.
+func (p *secretEnvParser) Match(_ string, v string) bool {
+	return strings.HasPrefix(v, p.prefix)
+}
+
+// Gen generates a secret-based environment variable.
+func (p *secretEnvParser) Gen(k string, v string) *corev1.EnvVar {
+	vv := strings.TrimPrefix(v, p.prefix)
 	vs := strings.Split(vv, "/")
 	if len(vs) != 2 {
 		return nil
@@ -200,17 +216,27 @@ func (*secretEnvParser) Gen(k string, v string) *corev1.EnvVar {
 	}
 }
 
-type configMapEnvParser struct{}
-
-func (*configMapEnvParser) Match(_ string, v string) (matched bool) {
-	const prefix = "configmap://"
-	return strings.HasPrefix(v, prefix)
+// configMapEnvParser is a parser for configmap-based environment
+// variables.
+type configMapEnvParser struct {
+	prefix string
 }
 
-func (*configMapEnvParser) Gen(k string, v string) *corev1.EnvVar {
-	const prefix = "configmap://"
+// NewConfigMapEnvParser creates a new instance of ConfigMapEnvParser.
+func NewConfigMapEnvParser() MagicEnvParser {
+	return &configMapEnvParser{
+		prefix: "configmap://",
+	}
+}
 
-	vv := strings.TrimPrefix(v, string(prefix))
+// Match checks if the value matches the configmap parser.
+func (p *configMapEnvParser) Match(_ string, v string) bool {
+	return strings.HasPrefix(v, p.prefix)
+}
+
+// Gen generates a configmap-based environment variable.
+func (p *configMapEnvParser) Gen(k string, v string) *corev1.EnvVar {
+	vv := strings.TrimPrefix(v, p.prefix)
 	vs := strings.Split(vv, "/")
 	if len(vs) != 2 {
 		return nil
