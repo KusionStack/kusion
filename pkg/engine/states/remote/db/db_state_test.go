@@ -5,12 +5,12 @@ package db
 
 import (
 	"database/sql"
+	"github.com/bytedance/mockey"
 	"reflect"
 	"testing"
 
 	"kusionstack.io/kusion/pkg/engine/states"
 
-	"bou.ke/monkey"
 	"github.com/didi/gendry/manager"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
@@ -38,40 +38,41 @@ func TestNewDBState(t *testing.T) {
 }
 
 func DBStateSetUp(t *testing.T) *DBState {
-	monkey.Patch((*manager.Option).Open, func(o *manager.Option, ping bool) (*sql.DB, error) {
+	mockey.Mock((*manager.Option).Open).To(func(o *manager.Option, ping bool) (*sql.DB, error) {
 		return &sql.DB{}, nil
-	})
+	}).Build()
 
 	stateDo := &mapper.StateDO{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}
 
-	monkey.Patch(mapper.GetOne, func(db *sql.DB, where map[string]interface{}) (*mapper.StateDO, error) {
+	mockey.Mock(mapper.GetOne).To(func(db *sql.DB, where map[string]interface{}) (*mapper.StateDO, error) {
 		return stateDo, nil
-	})
+	}).Build()
 
-	monkey.Patch(mapper.Insert, func(db *sql.DB, data []map[string]interface{}) (int64, error) {
+	mockey.Mock(mapper.Insert).To(func(db *sql.DB, data []map[string]interface{}) (int64, error) {
 		return 1, nil
-	})
+	}).Build()
 
 	return &DBState{DB: &sql.DB{}}
 }
 
 func TestDBState(t *testing.T) {
-	defer monkey.UnpatchAll()
-	dbState := DBStateSetUp(t)
+	mockey.PatchConvey("test DB state", t, func() {
+		dbState := DBStateSetUp(t)
 
-	_, err := dbState.GetLatestState(&states.StateQuery{Tenant: "test_global_tenant", Stack: "test_env", Project: "test_project"})
-	assert.NoError(t, err)
+		_, err := dbState.GetLatestState(&states.StateQuery{Tenant: "test_global_tenant", Stack: "test_env", Project: "test_project"})
+		assert.NoError(t, err)
 
-	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env", KusionVersion: "1.0.3"}
-	err = dbState.Apply(state)
-	assert.NoError(t, err)
+		state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env", KusionVersion: "1.0.3"}
+		err = dbState.Apply(state)
+		assert.NoError(t, err)
 
-	defer func() {
-		if r := recover(); r != "implement me" {
-			t.Errorf("Delete() got: %v, want: 'implement me'", r)
-		}
-	}()
-	dbState.Delete("test")
+		defer func() {
+			if r := recover(); r != "implement me" {
+				t.Errorf("Delete() got: %v, want: 'implement me'", r)
+			}
+		}()
+		dbState.Delete("test")
+	})
 }
 
 func TestDBState_do2Bo(t *testing.T) {

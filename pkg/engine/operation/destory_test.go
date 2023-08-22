@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bytedance/mockey"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -73,18 +74,18 @@ func TestOperation_Destroy(t *testing.T) {
 
 	t.Run("destroy success", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
-		})
+		}).Build()
 		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
 		})
-		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
-		})
+		}).Build()
 
 		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)
@@ -94,18 +95,18 @@ func TestOperation_Destroy(t *testing.T) {
 
 	t.Run("destroy failed", func(t *testing.T) {
 		defer monkey.UnpatchAll()
-		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
-		})
+		}).Build()
 		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
 		})
-		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
-		})
+		}).Build()
 
 		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)

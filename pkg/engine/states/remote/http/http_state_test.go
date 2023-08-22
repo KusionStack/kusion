@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/bytedance/mockey"
 	"io"
 	"net/http"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/states"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
 	json_util "kusionstack.io/kusion/pkg/util/json"
@@ -83,13 +83,13 @@ func TestHTTPState_Apply(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			s := &HTTPState{
 				urlPrefix:          tt.fields.urlPrefix,
 				applyURLFormat:     tt.fields.applyURLFormat,
 				getLatestURLFormat: tt.fields.getLatestURLFormat,
 			}
-			monkey.Patch((*http.Client).Do, tt.mockFunc)
+			mockey.Mock((*http.Client).Do).To(tt.mockFunc).Build()
 			err := s.Apply(tt.args.state)
 			if !tt.wantErr(t, err, fmt.Sprintf("Apply(%v)", tt.args.state)) {
 				t.Errorf("wantErrFuncFailed:%v", err)
@@ -171,13 +171,13 @@ func TestHTTPState_GetLatestState(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			s := &HTTPState{
 				urlPrefix:          tt.fields.urlPrefix,
 				applyURLFormat:     tt.fields.applyURLFormat,
 				getLatestURLFormat: tt.fields.getLatestURLFormat,
 			}
-			monkey.Patch((*http.Client).Do, tt.mockFunc)
+			mockey.Mock((*http.Client).Do).To(tt.mockFunc).Build()
 
 			got, err := s.GetLatestState(tt.args.query)
 			if !tt.wantErr(t, err, fmt.Sprintf("GetLatestState(%v)", tt.args.query)) {

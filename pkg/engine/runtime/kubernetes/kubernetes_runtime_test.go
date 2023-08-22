@@ -6,11 +6,11 @@ package kubernetes
 
 import (
 	"context"
+	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	yamlv3 "gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -80,11 +80,10 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 		}},
 	}
 
-	t.Run(tests[0].name, func(t *testing.T) {
+	mockey.PatchConvey(tests[0].name, t, func() {
 		k := &KubernetesRuntime{}
-		defer monkey.UnpatchAll()
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(
+		mockey.Mock(k.Read).To(func(
 			k *KubernetesRuntime,
 			ctx context.Context,
 			request *runtime.ReadRequest,
@@ -96,7 +95,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 				DependsOn:  planSvc.DependsOn,
 				Extensions: planSvc.Extensions,
 			}}
-		})
+		}).Build()
 
 		got := k.Import(tests[0].args.ctx, tests[0].args.request)
 		if !reflect.DeepEqual(jsonutil.Marshal2PrettyString(got.Resource), jsonutil.Marshal2PrettyString(tests[0].want.Resource)) {
@@ -104,9 +103,9 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 		}
 	})
 
-	t.Run(tests[1].name, func(t *testing.T) {
+	t.Run(tests[1].name, t, func() {
 		k := &KubernetesRuntime{}
-		monkey.PatchInstanceMethod(reflect.TypeOf(k), "Read", func(
+		mockey.Mock(k.Read).To(func(
 			k *KubernetesRuntime,
 			ctx context.Context,
 			request *runtime.ReadRequest,
@@ -118,8 +117,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 				DependsOn:  planSvc.DependsOn,
 				Extensions: planSvc.Extensions,
 			}}
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		if got := k.Import(tests[1].args.ctx, tests[1].args.request); !reflect.DeepEqual(jsonutil.Marshal2PrettyString(got), jsonutil.Marshal2PrettyString(tests[1].want)) {
 			t.Errorf("Import() = %v, want %v", jsonutil.Marshal2PrettyString(got), jsonutil.Marshal2PrettyString(tests[1].want))

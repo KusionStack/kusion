@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
@@ -36,7 +35,6 @@ func TestS3Backend_ConfigSchema(t *testing.T) {
 }
 
 func TestS3Backend_Configure(t *testing.T) {
-	defer monkey.UnpatchAll()
 	type args struct {
 		config map[string]interface{}
 	}
