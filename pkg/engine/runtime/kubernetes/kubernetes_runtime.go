@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/jsonmergepatch"
 	k8swatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
@@ -382,7 +383,11 @@ func getKubernetesClient() (dynamic.Interface, meta.RESTMapper, error) {
 	}
 
 	// DynamicRESTMapper can discover resource types at runtime dynamically
-	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
+	client, err := rest.HTTPClientFor(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	mapper, err := apiutil.NewDynamicRESTMapper(cfg, client)
 	if err != nil {
 		return nil, nil, err
 	}

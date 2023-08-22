@@ -9,12 +9,14 @@ import (
 
 	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
-
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/generator"
+	appgenerator "kusionstack.io/kusion/pkg/generator/appconfiguration/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
+	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -57,7 +59,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 	var g generator.Generator
 	pg := project.Generator
 
-	// default Generator
+	// default AppsGenerator
 	if pg == nil {
 		g = &kcl.Generator{}
 	} else {
@@ -66,16 +68,48 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 		switch gt {
 		case projectstack.KCLGenerator:
 			g = &kcl.Generator{}
+		case projectstack.AppConfigurationGenerator:
+			appConfigs, err := buildAppConfigs(o, stack)
+			if err != nil {
+				return nil, err
+			}
+			g = &appgenerator.AppsGenerator{Apps: appConfigs}
 		default:
 			return nil, fmt.Errorf("unknow generator type:%s", gt)
 		}
 	}
 
-	spec, err := g.GenerateSpec(o, stack)
+	spec, err := g.GenerateSpec(o, project, stack)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
 	return spec, nil
+}
+
+func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appmodel.AppConfiguration, error) {
+	compileResult, err := kcl.Run(o, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	documents := compileResult.Documents
+	if len(documents) == 0 {
+		return nil, fmt.Errorf("no AppConfiguration is found in the compile result")
+	}
+
+	out, err := yaml.Marshal(documents[0])
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("unmarshal %s to app configs", out)
+	appConfigs := map[string]appmodel.AppConfiguration{}
+	err = yaml.Unmarshal(out, appConfigs)
+	if err != nil {
+		return nil, err
+	}
+
+	return appConfigs, nil
 }
 
 func GenerateSpecFromFile(filePath string) (*models.Spec, error) {

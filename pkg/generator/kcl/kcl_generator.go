@@ -45,7 +45,7 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func (g *Generator) GenerateSpec(o *generator.Options, stack *projectstack.Stack) (*models.Spec, error) {
+func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 	compileResult, err := Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -182,6 +182,12 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 
 	// build workDir option
 	opt = kcl.WithWorkDir(workDir)
+	if opt.Err != nil {
+		return nil, opt.Err
+	}
+	optList = append(optList, opt)
+
+	opt = kcl.WithIncludeSchemaTypePath(true)
 	if opt.Err != nil {
 		return nil, opt.Err
 	}

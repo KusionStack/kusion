@@ -45,23 +45,26 @@ func TestCompileOptions_preSet(t *testing.T) {
 		Settings []string
 		Output   string
 	}
-
-	want := NewCompileOptions()
-	want.Settings = []string{"ci-test/settings.yaml", "kcl.yaml"}
-	want.Output = "ci-test/stdout.golden.yaml"
+	type want struct {
+		Settings []string
+		Output   string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
-		want   *CompileOptions
+		want   want
 	}{
 		{
-			name: "preset-noting",
+			name: "preset-nothing",
 			fields: fields{
 				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
 				Output:   "ci-test/stdout.golden.yaml",
 			},
-			want: want,
+			want: want{
+				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
+				Output:   "ci-test/stdout.golden.yaml",
+			},
 		},
 		{
 			name: "preset-everything",
@@ -69,11 +72,14 @@ func TestCompileOptions_preSet(t *testing.T) {
 				Settings: []string{},
 				Output:   "",
 			},
-			want: want,
+			want: want{
+				Settings: []string{"kcl.yaml"},
+				Output:   "ci-test/stdout.golden.yaml",
+			},
 		},
 	}
 	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
+		t.Run(tt.name, func(t *testing.T) {
 			o := NewCompileOptions()
 
 			o.Settings = tt.fields.Settings
@@ -82,7 +88,12 @@ func TestCompileOptions_preSet(t *testing.T) {
 			o.PreSet(func(cur string) bool {
 				return true
 			})
-			assert.Equal(t, tt.want, o)
+
+			wantOpt := NewCompileOptions()
+			wantOpt.Settings = tt.want.Settings
+			wantOpt.Output = tt.want.Output
+
+			assert.Equal(t, wantOpt, o)
 		})
 	}
 }
@@ -92,10 +103,13 @@ func TestCompileOptions_Run(t *testing.T) {
 		os.Remove("kusion_state.json")
 	}()
 
-	mockey.PatchConvey("no style is true", t, func() {
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockWriteFile()
+	t.Run("no style is true", func(t *testing.T) {
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpec()
+		m3 := mockWriteFile()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
 
 		o := NewCompileOptions()
 		o.NoStyle = true
@@ -104,7 +118,8 @@ func TestCompileOptions_Run(t *testing.T) {
 	})
 
 	mockey.PatchConvey("detect project and spec failed", t, func() {
-		mockDetectProjectAndStackFail()
+		m1 := mockDetectProjectAndStackFail()
+		defer m1.UnPatch()
 
 		o := NewCompileOptions()
 		o.NoStyle = true
@@ -113,9 +128,10 @@ func TestCompileOptions_Run(t *testing.T) {
 	})
 
 	mockey.PatchConvey("generate spec failed", t, func() {
-		mockDetectProjectAndStack()
-		mockGenerateSpecFail()
-
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpecFail()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
 		o := NewCompileOptions()
 		o.NoStyle = true
 		err := o.Run()
@@ -123,10 +139,12 @@ func TestCompileOptions_Run(t *testing.T) {
 	})
 
 	mockey.PatchConvey("write file failed", t, func() {
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockWriteFileFail()
-
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpec()
+		m3 := mockWriteFileFail()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		defer m3.UnPatch()
 		o := NewCompileOptions()
 		o.NoStyle = true
 		err := o.Run()
@@ -149,24 +167,24 @@ func newSA(name string) models.Resource {
 	}
 }
 
-func mockDetectProjectAndStack() {
-	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+func mockDetectProjectAndStack() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
 	}).Build()
 }
 
-func mockDetectProjectAndStackFail() {
-	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+func mockDetectProjectAndStackFail() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, errTest
 	}).Build()
 }
 
-func mockGenerateSpec() {
-	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
+func mockGenerateSpec() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
@@ -175,20 +193,21 @@ func mockGenerateSpec() {
 	}).Build()
 }
 
-func mockGenerateSpecFail() {
-	mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func mockGenerateSpecFail() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 
-func mockWriteFile() {
-	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
+func mockWriteFile() *mockey.Mocker {
+	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return nil
 	}).Build()
 }
 
-func mockWriteFileFail() {
-	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
+func mockWriteFileFail() *mockey.Mocker {
+	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return errTest
 	}).Build()
 }
+
