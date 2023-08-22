@@ -107,7 +107,7 @@ func findDependResources(dependKind string, rs []models.Resource) []*models.Reso
 }
 
 func (g *orderedResourcesGenerator) findDependKinds(curKind string) []string {
-	var dependKinds []string
+	dependKinds := make([]string, 0)
 	for _, previousKind := range g.orderedKinds {
 		if curKind == previousKind {
 			break
