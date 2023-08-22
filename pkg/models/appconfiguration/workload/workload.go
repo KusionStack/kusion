@@ -22,7 +22,7 @@ type Workload struct {
 	*Job     `yaml:",inline" json:",inline"`
 }
 
-func (w *Workload) MarshalJSON() ([]byte, error) {
+func (w Workload) MarshalJSON() ([]byte, error) {
 	switch w.Header.Type {
 	case TypeService:
 		return json.Marshal(struct {
@@ -69,7 +69,7 @@ func (w *Workload) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-func (w *Workload) MarshalYAML() (interface{}, error) {
+func (w Workload) MarshalYAML() (interface{}, error) {
 	switch w.Header.Type {
 	case TypeService:
 		return struct {
