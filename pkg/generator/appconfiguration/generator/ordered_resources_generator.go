@@ -41,10 +41,10 @@ type orderedResourcesGenerator struct {
 }
 
 // NewOrderedResourcesGenerator returns a new instance of orderedResourcesGenerator.
-func NewOrderedResourcesGenerator(orderedKindsList ...[]string) (appconfiguration.Generator, error) {
+func NewOrderedResourcesGenerator(multipleOrderedKinds ...[]string) (appconfiguration.Generator, error) {
 	orderedKinds := defaultOrderedKinds
-	if len(orderedKindsList) > 0 && len(orderedKindsList[0]) > 0 {
-		orderedKinds = orderedKindsList[0]
+	if len(multipleOrderedKinds) > 0 && len(multipleOrderedKinds[0]) > 0 {
+		orderedKinds = multipleOrderedKinds[0]
 	}
 	return &orderedResourcesGenerator{
 		orderedKinds: orderedKinds,
@@ -52,9 +52,9 @@ func NewOrderedResourcesGenerator(orderedKindsList ...[]string) (appconfiguratio
 }
 
 // NewOrderedResourcesGeneratorFunc returns a function that creates a new orderedResourcesGenerator.
-func NewOrderedResourcesGeneratorFunc(orderedKindsList ...[]string) appconfiguration.NewGeneratorFunc {
+func NewOrderedResourcesGeneratorFunc(multipleOrderedKinds ...[]string) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewOrderedResourcesGenerator(orderedKindsList...)
+		return NewOrderedResourcesGenerator(multipleOrderedKinds...)
 	}
 }
 
