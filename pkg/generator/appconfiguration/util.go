@@ -94,8 +94,7 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// AppendToSpec adds a Kubernetes resource to a spec's resources
-// slice.
+// AppendToSpec adds a Kubernetes resource to a spec's resources slice.
 func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
@@ -112,14 +111,12 @@ func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec
 	return nil
 }
 
-// UniqueAppName returns a unique name for a workload based on its
-// project and app name.
+// UniqueAppName returns a unique name for a workload based on its project and app name.
 func UniqueAppName(projectName, stackName, appName string) string {
 	return projectName + "-" + stackName + "-" + appName
 }
 
-// UniqueAppLabels returns a map of labels that identify an app based
-// on its project and name.
+// UniqueAppLabels returns a map of labels that identify an app based on its project and name.
 func UniqueAppLabels(projectName, appName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/part-of": projectName,
