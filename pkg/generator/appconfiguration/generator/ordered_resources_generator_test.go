@@ -73,7 +73,7 @@ var (
 )
 
 func TestOrderedResourcesGenerator_Generate(t *testing.T) {
-	orderedGenerator, err := NewOrderedResourcesGenerator(nil)
+	orderedGenerator, err := NewOrderedResourcesGenerator()
 	assert.NoError(t, err)
 
 	expected := genNewSpec()

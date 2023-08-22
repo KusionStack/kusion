@@ -38,18 +38,19 @@ type orderedResourcesGenerator struct {
 	orderedKinds []string
 }
 
-func NewOrderedResourcesGenerator(orderedKinds []string) (appconfiguration.Generator, error) {
-	if len(orderedKinds) == 0 {
-		orderedKinds = defaultOrderedKinds
+func NewOrderedResourcesGenerator(orderedKindsList ...[]string) (appconfiguration.Generator, error) {
+	orderedKinds := defaultOrderedKinds
+	if len(orderedKindsList) > 0 && len(orderedKindsList[0]) > 0 {
+		orderedKinds = orderedKindsList[0]
 	}
 	return &orderedResourcesGenerator{
 		orderedKinds: orderedKinds,
 	}, nil
 }
 
-func NewOrderedResourcesGeneratorFunc(orderedKinds []string) appconfiguration.NewGeneratorFunc {
+func NewOrderedResourcesGeneratorFunc(orderedKindsList ...[]string) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewOrderedResourcesGenerator(orderedKinds)
+		return NewOrderedResourcesGenerator(orderedKindsList...)
 	}
 }
 
