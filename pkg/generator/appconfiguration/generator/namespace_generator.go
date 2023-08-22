@@ -43,5 +43,13 @@ func (g *namespaceGenerator) Generate(spec *models.Spec) error {
 		ObjectMeta: metav1.ObjectMeta{Name: g.projectName},
 	}
 
-	return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(ns.TypeMeta, ns.ObjectMeta), spec, ns)
+	// Avoid generating duplicate namespaces with the same ID.
+	id := appconfiguration.KubernetesResourceID(ns.TypeMeta, ns.ObjectMeta)
+	for _, res := range spec.Resources {
+		if res.ID == id {
+			return nil
+		}
+	}
+
+	return appconfiguration.AppendToSpec(models.Kubernetes, id, spec, ns)
 }
