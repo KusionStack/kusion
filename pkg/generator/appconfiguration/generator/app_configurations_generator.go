@@ -90,7 +90,8 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 
 	gfs := []appconfiguration.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Monitoring),
+		NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
 	}

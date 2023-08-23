@@ -16,6 +16,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -23,10 +24,11 @@ import (
 )
 
 type workloadGenerator struct {
-	project  *projectstack.Project
-	stack    *projectstack.Stack
-	appName  string
-	workload *workload.Workload
+	project    *projectstack.Project
+	stack      *projectstack.Stack
+	appName    string
+	workload   *workload.Workload
+	monitoring *monitoring.Monitor
 }
 
 func NewWorkloadGenerator(
@@ -34,16 +36,18 @@ func NewWorkloadGenerator(
 	stack *projectstack.Stack,
 	appName string,
 	workload *workload.Workload,
+	monitoring *monitoring.Monitor,
 ) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
 	return &workloadGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
+		project:    project,
+		stack:      stack,
+		appName:    appName,
+		workload:   workload,
+		monitoring: monitoring,
 	}, nil
 }
 
@@ -52,9 +56,10 @@ func NewWorkloadGeneratorFunc(
 	stack *projectstack.Stack,
 	appName string,
 	workload *workload.Workload,
+	monitoring *monitoring.Monitor,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadGenerator(project, stack, appName, workload)
+		return NewWorkloadGenerator(project, stack, appName, workload, monitoring)
 	}
 }
 
@@ -68,7 +73,7 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 
 		switch g.workload.Header.Type {
 		case workload.TypeService:
-			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service))
+			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.monitoring))
 		case workload.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job))
 		}
