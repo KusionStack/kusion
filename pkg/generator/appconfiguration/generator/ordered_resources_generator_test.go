@@ -104,7 +104,7 @@ func TestOrderedResourcesGenerator_Generate(t *testing.T) {
 }
 
 func TestResourceKind(t *testing.T) {
-	resource := &models.Resource{
+	r := &resource{
 		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
 			"kind": "Deployment",
@@ -112,7 +112,7 @@ func TestResourceKind(t *testing.T) {
 	}
 
 	expected := "Deployment"
-	actual := resourceKind(resource)
+	actual := r.kubernetesKind()
 
 	assert.Equal(t, expected, actual)
 }
@@ -122,16 +122,18 @@ func TestInjectAllDependsOn(t *testing.T) {
 	dependKinds := []string{"Namespace"}
 
 	expected := []string{"v1:Namespace:foo"}
-	actual := []models.Resource(spec.Resources)[0]
-	injectAllDependsOn(&actual, dependKinds, spec.Resources)
+	actual := resource([]models.Resource(spec.Resources)[0])
+	actual.injectDependsOn(dependKinds, spec.Resources)
 
 	assert.Equal(t, expected, actual.DependsOn)
 }
 
 func TestFindDependKinds(t *testing.T) {
-	curKind := "Deployment"
-	g := &orderedResourcesGenerator{
-		orderedKinds: defaultOrderedKinds,
+	r := &resource{
+		Type: runtime.Kubernetes,
+		Attributes: map[string]interface{}{
+			"kind": "Deployment",
+		},
 	}
 
 	expected := []string{
@@ -154,7 +156,7 @@ func TestFindDependKinds(t *testing.T) {
 		"PersistentVolume",
 		"PersistentVolumeClaim",
 	}
-	actual := g.findDependKinds(curKind)
+	actual := r.findDependKinds(defaultOrderedKinds)
 
 	assert.Equal(t, expected, actual)
 }

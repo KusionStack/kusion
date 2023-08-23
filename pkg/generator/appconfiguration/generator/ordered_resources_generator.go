@@ -63,63 +63,66 @@ func (g *orderedResourcesGenerator) Generate(spec *models.Spec) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}
+
 	for i := 0; i < len(spec.Resources); i++ {
+		// Continue if the resource is not a kubernetes resource.
 		if spec.Resources[i].Type != runtime.Kubernetes {
 			continue
 		}
-		curResource := &spec.Resources[i]
-		curKind := resourceKind(curResource)
-		dependKinds := g.findDependKinds(curKind)
-		injectAllDependsOn(curResource, dependKinds, spec.Resources)
+
+		// Inject dependsOn of the resource.
+		r := (*resource)(&spec.Resources[i])
+		r.injectDependsOn(g.orderedKinds, spec.Resources)
 	}
+
 	return nil
 }
 
-// resourceKind returns the kind of the given resource.
-func resourceKind(r *models.Resource) string {
+type resource models.Resource
+
+// kubernetesKind returns the kubernetes kind of the given resource.
+func (r resource) kubernetesKind() string {
 	u := &unstructured.Unstructured{}
 	u.SetUnstructuredContent(r.Attributes)
 	return u.GetKind()
 }
 
-// injectAllDependsOn injects all dependsOn relationships for the given resource and dependent kinds.
-func injectAllDependsOn(curResource *models.Resource, dependKinds []string, rs []models.Resource) {
-	for _, dependKind := range dependKinds {
-		dependResources := findDependResources(dependKind, rs)
-		injectDependsOn(curResource, dependResources)
+// injectDependsOn injects all dependsOn relationships for the given resource and dependent kinds.
+func (r *resource) injectDependsOn(orderedKinds []string, rs []models.Resource) {
+	kinds := r.findDependKinds(orderedKinds)
+	for _, kind := range kinds {
+		drs := findDependResources(kind, rs)
+		r.appendDependsOn(drs)
 	}
 }
 
-// injectDependsOn injects dependsOn relationships for the given resource and dependent resources.
-func injectDependsOn(res *models.Resource, dependResources []*models.Resource) {
-	dependsOn := make([]string, 0, len(dependResources))
-	for i := 0; i < len(dependResources); i++ {
-		dependsOn = append(dependsOn, dependResources[i].ID)
+// appendDependsOn injects dependsOn relationships for the given resource and dependent resources.
+func (r *resource) appendDependsOn(dependResources []*models.Resource) {
+	for _, dr := range dependResources {
+		r.DependsOn = append(r.DependsOn, dr.ID)
 	}
-	if len(dependsOn) > 0 {
-		res.DependsOn = append(res.DependsOn, dependsOn...)
-	}
-}
-
-// findDependResources returns the dependent resources of the specified kind.
-func findDependResources(dependKind string, rs []models.Resource) []*models.Resource {
-	var dependResources []*models.Resource
-	for i := 0; i < len(rs); i++ {
-		if resourceKind(&rs[i]) == dependKind {
-			dependResources = append(dependResources, &rs[i])
-		}
-	}
-	return dependResources
 }
 
 // findDependKinds returns the dependent resource kinds for the specified kind.
-func (g *orderedResourcesGenerator) findDependKinds(curKind string) []string {
+func (r *resource) findDependKinds(orderedKinds []string) []string {
+	curKind := r.kubernetesKind()
 	dependKinds := make([]string, 0)
-	for _, previousKind := range g.orderedKinds {
+	for _, previousKind := range orderedKinds {
 		if curKind == previousKind {
 			break
 		}
 		dependKinds = append(dependKinds, previousKind)
 	}
 	return dependKinds
+}
+
+// findDependResources returns the dependent resources of the specified kind.
+func findDependResources(dependKind string, rs []models.Resource) []*models.Resource {
+	var dependResources []*models.Resource
+	for i := 0; i < len(rs); i++ {
+		if resource(rs[i]).kubernetesKind() == dependKind {
+			dependResources = append(dependResources, &rs[i])
+		}
+	}
+	return dependResources
 }
