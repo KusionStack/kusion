@@ -93,11 +93,11 @@ func injectAllDependsOn(curResource *models.Resource, dependKinds []string, rs [
 // injectDependsOn injects dependsOn relationships for the given resource and dependent resources.
 func injectDependsOn(res *models.Resource, dependResources []*models.Resource) {
 	dependsOn := make([]string, 0, len(dependResources))
-	for _, r := range dependResources {
-		res.DependsOn = append(res.DependsOn, r.ID)
+	for i := 0; i < len(dependResources); i++ {
+		dependsOn = append(dependsOn, dependResources[i].ID)
 	}
 	if len(dependsOn) > 0 {
-		res.DependsOn = dependsOn
+		res.DependsOn = append(res.DependsOn, dependsOn...)
 	}
 }
 

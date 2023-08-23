@@ -30,6 +30,14 @@ var (
 			},
 		},
 	}
+	fakeService = map[string]interface{}{
+		"apiVersion": "v1",
+		"kind":       "Service",
+		"metadata": map[string]interface{}{
+			"namespace": "foo",
+			"name":      "bar",
+		},
+	}
 	fakeNamespace = map[string]interface{}{
 		"apiVersion": "v1",
 		"kind":       "Namespace",
@@ -46,6 +54,11 @@ var (
 					Attributes: fakeDeployment,
 				},
 				{
+					ID:         "v1:Service:foo:bar",
+					Type:       runtime.Kubernetes,
+					Attributes: fakeService,
+				},
+				{
 					ID:         "v1:Namespace:foo",
 					Type:       runtime.Kubernetes,
 					Attributes: fakeNamespace,
@@ -60,6 +73,12 @@ var (
 					ID:         "apps/v1:Deployment:foo:bar",
 					Type:       runtime.Kubernetes,
 					Attributes: fakeDeployment,
+					DependsOn:  []string{"v1:Namespace:foo", "v1:Service:foo:bar"},
+				},
+				{
+					ID:         "v1:Service:foo:bar",
+					Type:       runtime.Kubernetes,
+					Attributes: fakeService,
 					DependsOn:  []string{"v1:Namespace:foo"},
 				},
 				{
