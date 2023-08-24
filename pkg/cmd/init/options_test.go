@@ -34,7 +34,7 @@ func TestRun(t *testing.T) {
 		patchPromptValue()
 		defer monkey.UnpatchAll()
 
-		o := &InitOptions{
+		o := &Options{
 			Force: true,
 		}
 		err := o.Complete(nil)

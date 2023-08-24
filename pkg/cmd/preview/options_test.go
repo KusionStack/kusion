@@ -332,7 +332,7 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o := PreviewOptions{}
+			o := Options{}
 			o.SpecFile = tt.specFile
 			o.WorkDir = tt.workDir
 			if tt.createSpecFile {
@@ -355,7 +355,7 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 }
 
 func TestPreviewOptions_Validate(t *testing.T) {
-	m := mockey.Mock((*compilecmd.CompileOptions).Validate).Return(nil).Build()
+	m := mockey.Mock((*compilecmd.Options).Validate).Return(nil).Build()
 	defer m.UnPatch()
 	tests := []struct {
 		name    string
@@ -385,7 +385,7 @@ func TestPreviewOptions_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o := &PreviewOptions{}
+			o := &Options{}
 			o.Output = tt.output
 			err := o.Validate()
 			if tt.wantErr {

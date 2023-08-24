@@ -9,21 +9,21 @@ import (
 	"strings"
 )
 
-type EnvOptions struct {
+type Options struct {
 	envJSON bool
 }
 
-func NewEnvOptions() *EnvOptions {
-	return &EnvOptions{}
+func NewEnvOptions() *Options {
+	return &Options{}
 }
 
-func (o *EnvOptions) Complete() {}
+func (o *Options) Complete() {}
 
-func (o *EnvOptions) Validate() error {
+func (o *Options) Validate() error {
 	return nil
 }
 
-func (o *EnvOptions) Run() error {
+func (o *Options) Run() error {
 	env := []EnvVar{
 		{Name: "KUSION_PATH", Value: os.Getenv("KUSION_PATH")},
 	}

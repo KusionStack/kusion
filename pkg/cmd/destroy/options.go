@@ -22,33 +22,33 @@ import (
 	"kusionstack.io/kusion/pkg/util/signals"
 )
 
-type DestroyOptions struct {
-	compilecmd.CompileOptions
+type Options struct {
+	compilecmd.Options
 	Operator string
 	Yes      bool
 	Detail   bool
 	backend.BackendOps
 }
 
-func NewDestroyOptions() *DestroyOptions {
-	return &DestroyOptions{
-		CompileOptions: *compilecmd.NewCompileOptions(),
+func NewDestroyOptions() *Options {
+	return &Options{
+		Options: *compilecmd.NewCompileOptions(),
 	}
 }
 
-func (o *DestroyOptions) Complete(args []string) {
-	o.CompileOptions.Complete(args)
+func (o *Options) Complete(args []string) {
+	o.Options.Complete(args)
 }
 
-func (o *DestroyOptions) Validate() error {
-	return o.CompileOptions.Validate()
+func (o *Options) Validate() error {
+	return o.Options.Validate()
 }
 
-func (o *DestroyOptions) Run() error {
+func (o *Options) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.CompileOptions.WorkDir)
+	project, stack, err := projectstack.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (o *DestroyOptions) Run() error {
 	return nil
 }
 
-func (o *DestroyOptions) preview(
+func (o *Options) preview(
 	planResources *models.Spec, project *projectstack.Project,
 	stack *projectstack.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
@@ -157,7 +157,7 @@ func (o *DestroyOptions) preview(
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *DestroyOptions) destroy(planResources *models.Spec, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
+func (o *Options) destroy(planResources *models.Spec, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),

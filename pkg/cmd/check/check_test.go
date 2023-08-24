@@ -13,11 +13,11 @@ func TestNewCmdCheck(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		defer monkey.UnpatchAll()
 
-		monkey.Patch((*compile.CompileOptions).Complete, func(o *compile.CompileOptions, args []string) error {
+		monkey.Patch((*compile.Options).Complete, func(o *compile.Options, args []string) error {
 			o.Output = "stdout"
 			return nil
 		})
-		monkey.Patch((*compile.CompileOptions).Run, func(*compile.CompileOptions) error {
+		monkey.Patch((*compile.Options).Run, func(*compile.Options) error {
 			return nil
 		})
 
