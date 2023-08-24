@@ -8,17 +8,17 @@ import (
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
-type LsOptions struct {
+type Options struct {
 	workDir      string
 	OutputFormat string
 	Level        int
 }
 
-func NewLsOptions() *LsOptions {
-	return &LsOptions{}
+func NewLsOptions() *Options {
+	return &Options{}
 }
 
-func (o *LsOptions) Complete(args []string) {
+func (o *Options) Complete(args []string) {
 	if len(args) > 0 {
 		o.workDir = args[0]
 	}
@@ -28,7 +28,7 @@ func (o *LsOptions) Complete(args []string) {
 	}
 }
 
-func (o *LsOptions) Validate() error {
+func (o *Options) Validate() error {
 	if o.OutputFormat != "json" && o.OutputFormat != "yaml" && o.OutputFormat != "tree" && o.OutputFormat != "human" {
 		return fmt.Errorf("invalid output format. supported formats: json, yaml, tree, human")
 	}
@@ -61,7 +61,7 @@ func filterProjectsByLevel(projects []*projectstack.Project, level int) []*proje
 	return newProjects
 }
 
-func (o *LsOptions) Run() error {
+func (o *Options) Run() error {
 	// Parse all projects and stacks
 	sp, err := pretty.SpinnerT.WithRemoveWhenDone(true).Start("Parsing projects and stacks ...")
 	if err != nil {

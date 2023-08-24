@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
-
 	kcl "kcl-lang.io/kcl-go"
+	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
@@ -60,7 +59,7 @@ func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, 
 }
 
 func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error) {
-	optList, err := BuildOptions(o.WorkDir, o.Settings, o.Arguments, o.Overrides, o.DisableNone, o.OverrideAST)
+	optList, err := BuildOptions(o.WorkDir, o.Settings, o.Overrides, o.Arguments, o.DisableNone, o.OverrideAST)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +130,13 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-func BuildOptions(workDir string, settings, arguments, overrides []string, disableNone, overrideAST bool) ([]kcl.Option, error) {
-	optList := []kcl.Option{}
+func BuildOptions(
+	workDir string,
+	settings, overrides []string,
+	arguments map[string]string,
+	disableNone, overrideAST bool,
+) ([]kcl.Option, error) {
+	optList := make([]kcl.Option, 0)
 	// build settings option
 	for _, setting := range settings {
 		if workDir != "" {
@@ -147,8 +151,9 @@ func BuildOptions(workDir string, settings, arguments, overrides []string, disab
 	}
 
 	// build arguments option
-	for _, arg := range arguments {
-		opt := kcl.WithOptions(arg)
+	for k, v := range arguments {
+		argStr := k + "=" + v
+		opt := kcl.WithOptions(argStr)
 		if opt.Err != nil {
 			return nil, opt.Err
 		}

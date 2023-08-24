@@ -12,7 +12,6 @@ import (
 
 	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/spec"
-	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -27,13 +26,13 @@ import (
 
 const jsonOutput = "json"
 
-type PreviewOptions struct {
-	compilecmd.CompileOptions
-	PreviewFlags
+type Options struct {
+	compilecmd.Options
+	Flags
 	backend.BackendOps
 }
 
-type PreviewFlags struct {
+type Flags struct {
 	Operator     string
 	Detail       bool
 	All          bool
@@ -43,18 +42,18 @@ type PreviewFlags struct {
 	IgnoreFields []string
 }
 
-func NewPreviewOptions() *PreviewOptions {
-	return &PreviewOptions{
-		CompileOptions: *compilecmd.NewCompileOptions(),
+func NewPreviewOptions() *Options {
+	return &Options{
+		Options: *compilecmd.NewCompileOptions(),
 	}
 }
 
-func (o *PreviewOptions) Complete(args []string) {
-	o.CompileOptions.Complete(args)
+func (o *Options) Complete(args []string) {
+	o.Options.Complete(args)
 }
 
-func (o *PreviewOptions) Validate() error {
-	if err := o.CompileOptions.Validate(); err != nil {
+func (o *Options) Validate() error {
+	if err := o.Options.Validate(); err != nil {
 		return err
 	}
 	if o.Output != "" && o.Output != jsonOutput {
@@ -66,7 +65,7 @@ func (o *PreviewOptions) Validate() error {
 	return nil
 }
 
-func (o *PreviewOptions) ValidateSpecFile() error {
+func (o *Options) ValidateSpecFile() error {
 	if o.SpecFile == "" {
 		return nil
 	}
@@ -97,7 +96,7 @@ func (o *PreviewOptions) ValidateSpecFile() error {
 	return nil
 }
 
-func (o *PreviewOptions) Run() error {
+func (o *Options) Run() error {
 	// Set no style
 	if o.NoStyle || o.Output == jsonOutput {
 		pterm.DisableStyling()
@@ -211,7 +210,7 @@ func (o *PreviewOptions) Run() error {
 //	    return err
 //	}
 func Preview(
-	o *PreviewOptions,
+	o *Options,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	project *projectstack.Project,
@@ -239,7 +238,7 @@ func Preview(
 	log.Info("Start call pc.Preview() ...")
 
 	// parse cluster in arguments
-	cluster := util.ParseClusterArgument(o.Arguments)
+	cluster := o.Arguments["cluster"]
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
 			Tenant:   project.Tenant,

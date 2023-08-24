@@ -63,7 +63,7 @@ func NewCmdPreview() *cobra.Command {
 	return cmd
 }
 
-func (o *PreviewOptions) AddPreviewFlags(cmd *cobra.Command) {
+func (o *Options) AddPreviewFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,

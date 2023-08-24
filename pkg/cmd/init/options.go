@@ -17,7 +17,7 @@ import (
 
 const jsonOutput = "json"
 
-type InitOptions struct {
+type Options struct {
 	TemplateRepoPath string
 	TemplateName     string
 	Online           bool
@@ -27,11 +27,11 @@ type InitOptions struct {
 	CustomParamsJSON string
 }
 
-func NewInitOptions() *InitOptions {
-	return &InitOptions{}
+func NewInitOptions() *Options {
+	return &Options{}
 }
 
-func (o *InitOptions) Complete(args []string) error {
+func (o *Options) Complete(args []string) error {
 	if o.Online { // use online templates, official link or user-specified link
 		o.TemplateRepoPath = onlineTemplateRepoPath(args)
 	} else { // use offline templates, internal templates or user-specified local dir
@@ -44,7 +44,7 @@ func (o *InitOptions) Complete(args []string) error {
 	return nil
 }
 
-func (o *InitOptions) Validate() error {
+func (o *Options) Validate() error {
 	if o.Online {
 		return nil
 	}
@@ -55,7 +55,7 @@ func (o *InitOptions) Validate() error {
 	return nil
 }
 
-func (o *InitOptions) Run() error {
+func (o *Options) Run() error {
 	// Retrieve the template repo.
 	repo, err := retrieveTemplateRepo(o.TemplateRepoPath, o.Online)
 	if err != nil {

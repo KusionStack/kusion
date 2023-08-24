@@ -38,7 +38,7 @@ func NewCmdCompile() *cobra.Command {
 		# Compile main.k and write result into output.yaml
 		kusion compile main.k -o output.yaml
 		
-		# Complie without output style and color
+		# Compile without output style and color
 		kusion compile --no-style=true`)
 	)
 
@@ -71,12 +71,12 @@ func NewCmdCompile() *cobra.Command {
 	return cmd
 }
 
-func (o *CompileOptions) AddCompileFlags(cmd *cobra.Command) {
+func (o *Options) AddCompileFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
 		i18n.T("Specify the work directory"))
 	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
 		i18n.T("Specify the command line setting files"))
-	cmd.Flags().StringArrayVarP(&o.Arguments, "argument", "D", []string{},
+	cmd.Flags().StringToStringVarP(&o.Arguments, "argument", "D", map[string]string{},
 		i18n.T("Specify the top-level argument"))
 	cmd.Flags().StringSliceVarP(&o.Overrides, "overrides", "O", []string{},
 		i18n.T("Specify the configuration override path and value"))

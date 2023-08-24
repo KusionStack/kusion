@@ -70,7 +70,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 
 	// Console writer
 	writer := uilive.New()
-	writer.RefreshInterval = time.Minute * 1
+	writer.RefreshInterval = time.Second * 10
 	writer.Start()
 	defer writer.Stop()
 

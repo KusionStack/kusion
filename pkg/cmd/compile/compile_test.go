@@ -8,11 +8,11 @@ import (
 )
 
 func TestNewCmdCompile(t *testing.T) {
-	m1 := mockey.Mock((*CompileOptions).Complete).To(func(o *CompileOptions, args []string) error {
+	m1 := mockey.Mock((*Options).Complete).To(func(o *Options, args []string) error {
 		o.Output = "stdout"
 		return nil
 	}).Build()
-	m2 := mockey.Mock((*CompileOptions).Run).To(func(*CompileOptions) error {
+	m2 := mockey.Mock((*Options).Run).To(func(*Options) error {
 		return nil
 	}).Build()
 	defer m1.UnPatch()
