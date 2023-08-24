@@ -21,8 +21,12 @@ func updateDependencies(resource *models.Resource) ([]string, status.Status) {
 
 	// handle implicit dependency
 	v := reflect.ValueOf(resource.Attributes)
-	implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(map[string]*models.Resource, string) (reflect.Value, status.Status) {
-		return v, nil
+	implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(
+		res map[string]*models.Resource,
+		ref string,
+	) (reflect.Value, status.Status) {
+		// don't replace anything when parsing dependencies
+		return reflect.ValueOf(ref), nil
 	})
 	if status.IsErr(s) {
 		return nil, s

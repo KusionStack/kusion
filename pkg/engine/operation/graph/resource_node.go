@@ -321,9 +321,9 @@ func ReplaceImplicitRef(
 func ReplaceRef(
 	v reflect.Value,
 	resourceIndex map[string]*models.Resource,
-	replaceImplicitDependencyFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+	repImplDepFunc func(map[string]*models.Resource, string) (reflect.Value, status.Status),
 	ss *vals.SecretStores,
-	replaceSecretFun func(string, string, *vals.SecretStores) (string, error),
+	repSecretFunc func(string, string, *vals.SecretStores) (string, error),
 ) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {
@@ -335,10 +335,10 @@ func ReplaceRef(
 		if v.IsNil() {
 			return nil, v, nil
 		}
-		return ReplaceRef(v.Elem(), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
+		return ReplaceRef(v.Elem(), resourceIndex, repImplDepFunc, ss, repSecretFunc)
 	case reflect.String:
 		vStr := v.String()
-		if replaceImplicitDependencyFun != nil {
+		if repImplDepFunc != nil {
 			if strings.HasPrefix(vStr, ImplicitRefPrefix) {
 				ref := strings.TrimPrefix(vStr, ImplicitRefPrefix)
 				util.CheckArgument(len(ref) > 0,
@@ -346,8 +346,8 @@ func ReplaceRef(
 				split := strings.Split(ref, ".")
 				result = append(result, split[0])
 				log.Infof("add implicit ref:%s", split[0])
-				// replace v with output
-				tv, s := replaceImplicitDependencyFun(resourceIndex, ref)
+				// replace ref with actual value
+				tv, s := repImplDepFunc(resourceIndex, ref)
 				if status.IsErr(s) {
 					return nil, v, s
 				}
@@ -355,9 +355,9 @@ func ReplaceRef(
 			}
 		}
 
-		if ss != nil && replaceSecretFun != nil {
+		if ss != nil && repSecretFunc != nil {
 			if prefix, ok := vals.IsSecured(vStr); ok {
-				tStr, err := replaceSecretFun(prefix, vStr, ss)
+				tStr, err := repSecretFunc(prefix, vStr, ss)
 				if err != nil {
 					return nil, v, status.NewErrorStatus(err)
 				}
@@ -374,7 +374,7 @@ func ReplaceRef(
 		vs := reflect.MakeSlice(v.Type(), 0, 0)
 
 		for i := 0; i < v.Len(); i++ {
-			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
+			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, repImplDepFunc, ss, repSecretFunc)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
@@ -392,7 +392,7 @@ func ReplaceRef(
 
 		iter := v.MapRange()
 		for iter.Next() {
-			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, replaceImplicitDependencyFun, ss, replaceSecretFun)
+			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, repImplDepFunc, ss, repSecretFunc)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
