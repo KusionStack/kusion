@@ -16,15 +16,25 @@ func TestContainerMarshalJSON(t *testing.T) {
 		{
 			input: Container{
 				Image: "nginx:v1",
+				Resources: map[string]string{
+					"cpu":    "4",
+					"memory": "8Gi",
+				},
+				Files: map[string]FileSpec{
+					"/tmp/test.txt": {
+						Content: "hello world",
+						Mode:    "0644",
+					},
+				},
 			},
-			result: `{"image":"nginx:v1"}`,
+			result: `{"image":"nginx:v1","resources":{"cpu":"4","memory":"8Gi"},"files":{"/tmp/test.txt":{"content":"hello world","mode":"0644"}}}`,
 		},
 		{
 			input: Container{
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Http"},
+						TypeWrapper: TypeWrapper{"Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -39,7 +49,7 @@ func TestContainerMarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Exec"},
+						TypeWrapper: TypeWrapper{"Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -54,7 +64,7 @@ func TestContainerMarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Tcp"},
+						TypeWrapper: TypeWrapper{Type: "Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
@@ -63,6 +73,46 @@ func TestContainerMarshalJSON(t *testing.T) {
 				},
 			},
 			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"Tcp","url":"127.0.0.1:8080"},"initialDelaySeconds":10}}`,
+		},
+		{
+			input: Container{
+				Image: "nginx:v1",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
+						},
+					},
+				},
+			},
+			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"Exec","command":["/bin/sh","-c","echo Hello from the postStart handler \u003e /usr/share/message"]},"postStart":{"_type":"Exec","command":["/bin/sh","-c","nginx -s quit; while killall -0 nginx; do sleep 1; done"]}}}`,
+		},
+		{
+			input: Container{
+				Image: "nginx:v1",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+				},
+			},
+			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"Http","url":"http://localhost:80"},"postStart":{"_type":"Http","url":"http://localhost:80"}}}`,
 		},
 	}
 
@@ -83,9 +133,19 @@ func TestContainerUnmarshalJSON(t *testing.T) {
 		result Container
 	}{
 		{
-			input: `{"image":"nginx:v1"}`,
+			input: `{"image":"nginx:v1","resources":{"cpu":"4","memory":"8Gi"},"files":{"/tmp/test.txt":{"content":"hello world","mode":"0644"}}}`,
 			result: Container{
 				Image: "nginx:v1",
+				Resources: map[string]string{
+					"cpu":    "4",
+					"memory": "8Gi",
+				},
+				Files: map[string]FileSpec{
+					"/tmp/test.txt": {
+						Content: "hello world",
+						Mode:    "0644",
+					},
+				},
 			},
 		},
 		{
@@ -94,7 +154,7 @@ func TestContainerUnmarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Http"},
+						TypeWrapper: TypeWrapper{Type: "Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -109,7 +169,7 @@ func TestContainerUnmarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Exec"},
+						TypeWrapper: TypeWrapper{Type: "Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -124,12 +184,52 @@ func TestContainerUnmarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Tcp"},
+						TypeWrapper: TypeWrapper{Type: "Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
 					},
 					InitialDelaySeconds: 10,
+				},
+			},
+		},
+		{
+			input: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"Exec","command":["/bin/sh","-c","echo Hello from the postStart handler \u003e /usr/share/message"]},"postStart":{"_type":"Exec","command":["/bin/sh","-c","nginx -s quit; while killall -0 nginx; do sleep 1; done"]}}}`,
+			result: Container{
+				Image: "nginx:v1",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
+						},
+					},
+				},
+			},
+		},
+		{
+			input: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"Http","url":"http://localhost:80"},"postStart":{"_type":"Http","url":"http://localhost:80"}}}`,
+			result: Container{
+				Image: "nginx:v1",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
 				},
 			},
 		},
@@ -186,7 +286,7 @@ workingDir: /tmp
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Http"},
+						TypeWrapper: TypeWrapper{Type: "Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -224,7 +324,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Exec"},
+						TypeWrapper: TypeWrapper{Type: "Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -264,7 +364,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Tcp"},
+						TypeWrapper: TypeWrapper{Type: "Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
@@ -289,6 +389,102 @@ readinessProbe:
     _type: Tcp
     url: 127.0.0.1:8080
   initialDelaySeconds: 10
+`,
+		},
+		{
+			input: Container{
+				Image:   "nginx:v1",
+				Command: []string{"/bin/sh", "-c", "echo hi"},
+				Args:    []string{"/bin/sh", "-c", "echo hi"},
+				Env: map[string]string{
+					"env1": "VALUE",
+				},
+				WorkingDir: "/tmp",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
+						},
+					},
+				},
+			},
+			result: `image: nginx:v1
+command:
+- /bin/sh
+- -c
+- echo hi
+args:
+- /bin/sh
+- -c
+- echo hi
+env:
+  env1: VALUE
+workingDir: /tmp
+lifecycle:
+  preStop:
+    _type: Exec
+    command:
+    - /bin/sh
+    - -c
+    - echo Hello from the postStart handler > /usr/share/message
+  postStart:
+    _type: Exec
+    command:
+    - /bin/sh
+    - -c
+    - nginx -s quit; while killall -0 nginx; do sleep 1; done
+`,
+		},
+		{
+			input: Container{
+				Image:   "nginx:v1",
+				Command: []string{"/bin/sh", "-c", "echo hi"},
+				Args:    []string{"/bin/sh", "-c", "echo hi"},
+				Env: map[string]string{
+					"env1": "VALUE",
+				},
+				WorkingDir: "/tmp",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+				},
+			},
+			result: `image: nginx:v1
+command:
+- /bin/sh
+- -c
+- echo hi
+args:
+- /bin/sh
+- -c
+- echo hi
+env:
+  env1: VALUE
+workingDir: /tmp
+lifecycle:
+  preStop:
+    _type: Http
+    url: http://localhost:80
+  postStart:
+    _type: Http
+    url: http://localhost:80
 `,
 		},
 	}
@@ -362,7 +558,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Http"},
+						TypeWrapper: TypeWrapper{Type: "Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -402,7 +598,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Exec"},
+						TypeWrapper: TypeWrapper{Type: "Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -440,12 +636,108 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						ProbeType: ProbeType{Type: "Tcp"},
+						TypeWrapper: TypeWrapper{Type: "Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
 					},
 					InitialDelaySeconds: 10,
+				},
+			},
+		},
+		{
+			input: `image: nginx:v1
+command:
+- /bin/sh
+- -c
+- echo hi
+args:
+- /bin/sh
+- -c
+- echo hi
+env:
+  env1: VALUE
+workingDir: /tmp
+lifecycle:
+  preStop:
+    _type: Exec
+    command:
+    - /bin/sh
+    - -c
+    - echo Hello from the postStart handler > /usr/share/message
+  postStart:
+    _type: Exec
+    command:
+    - /bin/sh
+    - -c
+    - nginx -s quit; while killall -0 nginx; do sleep 1; done
+`,
+			result: Container{
+				Image:   "nginx:v1",
+				Command: []string{"/bin/sh", "-c", "echo hi"},
+				Args:    []string{"/bin/sh", "-c", "echo hi"},
+				Env: map[string]string{
+					"env1": "VALUE",
+				},
+				WorkingDir: "/tmp",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Exec"},
+						ExecAction: &ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
+						},
+					},
+				},
+			},
+		},
+		{
+			input: `image: nginx:v1
+command:
+- /bin/sh
+- -c
+- echo hi
+args:
+- /bin/sh
+- -c
+- echo hi
+env:
+  env1: VALUE
+workingDir: /tmp
+lifecycle:
+  preStop:
+    _type: Http
+    url: http://localhost:80
+  postStart:
+    _type: Http
+    url: http://localhost:80
+`,
+			result: Container{
+				Image:   "nginx:v1",
+				Command: []string{"/bin/sh", "-c", "echo hi"},
+				Args:    []string{"/bin/sh", "-c", "echo hi"},
+				Env: map[string]string{
+					"env1": "VALUE",
+				},
+				WorkingDir: "/tmp",
+				Lifecycle: &Lifecycle{
+					PostStart: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
+					PreStop: &LifecycleHandler{
+						TypeWrapper: TypeWrapper{"Http"},
+						HTTPGetAction: &HTTPGetAction{
+							URL: "http://localhost:80",
+						},
+					},
 				},
 			},
 		},
