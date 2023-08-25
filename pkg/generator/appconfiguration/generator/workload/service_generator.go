@@ -117,16 +117,11 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 	var resource any
 	typeMeta := metav1.TypeMeta{}
 
-	const (
-		deploy   = "Deployment"
-		collaset = "CollaSet"
-	)
-
 	switch service.Type {
-	case deploy:
+	case workload.TypeDeploy:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       deploy,
+			Kind:       workload.TypeDeploy,
 		}
 		resource = &appsv1.Deployment{
 			TypeMeta:   typeMeta,
@@ -137,10 +132,10 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 				Template: podTemplateSpec,
 			},
 		}
-	case collaset:
+	case workload.TypeCollaset:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       collaset,
+			Kind:       workload.TypeCollaset,
 		}
 		resource = &v1alpha1.CollaSet{
 			TypeMeta:   typeMeta,
