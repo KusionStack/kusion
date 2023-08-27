@@ -72,7 +72,7 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 	}
 
-	t.Run("destroy success", func(t *testing.T) {
+	mockey.PatchConvey("destroy success", t, func() {
 		defer monkey.UnpatchAll()
 		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
@@ -93,7 +93,7 @@ func TestOperation_Destroy(t *testing.T) {
 		assert.Nil(t, st)
 	})
 
-	t.Run("destroy failed", func(t *testing.T) {
+	mockey.PatchConvey("destroy failed", t, func() {
 		defer monkey.UnpatchAll()
 		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))

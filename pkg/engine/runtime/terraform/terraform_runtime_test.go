@@ -64,7 +64,7 @@ func TestTerraformRuntime(t *testing.T) {
 				return nil, fmt.Errorf("json umarshal plan representation failed: %v", err)
 			}
 			return s, nil
-		})
+		}).Build()
 
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: true, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Apply")
@@ -81,7 +81,7 @@ func TestTerraformRuntime(t *testing.T) {
 
 		mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
-		})
+		}).Build()
 
 		response := tfRuntime.Read(context.TODO(), &runtime.ReadRequest{PlanResource: &testResource, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Read")
