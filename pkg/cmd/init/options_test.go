@@ -33,7 +33,7 @@ func TestRun(t *testing.T) {
 		patchChooseTemplate()
 		patchPromptValue()
 
-		o := &InitOptions{
+		o := &Options{
 			Force: true,
 		}
 		err := o.Complete(nil)

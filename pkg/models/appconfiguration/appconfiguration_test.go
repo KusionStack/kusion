@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
+	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 )
@@ -22,6 +23,8 @@ var (
                 - echo hello
     replicas: 2
     schedule: 0 * * * *
+opsRule:
+    maxUnavailable: 30%
 `
 	appStruct = AppConfiguration{
 		Workload: &workload.Workload{
@@ -40,6 +43,9 @@ var (
 				},
 				Schedule: "0 * * * *",
 			},
+		},
+		OpsRule: &trait.OpsRule{
+			MaxUnavailable: "30%",
 		},
 	}
 )

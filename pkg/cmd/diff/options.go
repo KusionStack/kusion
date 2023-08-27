@@ -15,12 +15,12 @@ import (
 
 // supported diff-mode option values
 const (
-	DiffModeNormal      = "normal"
-	DiffModeIgnoreAdded = "ignore-added"
-	DiffModeLive        = "live"
+	ModeNormal      = "normal"
+	ModeIgnoreAdded = "ignore-added"
+	ModeLive        = "live"
 )
 
-type DiffOptions struct {
+type Options struct {
 	swap                     bool
 	translateListToDocuments bool
 	fromLocation             string
@@ -39,11 +39,11 @@ type DiffOptions struct {
 	// exitWithCount      bool
 }
 
-func NewDiffOptions() *DiffOptions {
-	return &DiffOptions{}
+func NewDiffOptions() *Options {
+	return &Options{}
 }
 
-func (o *DiffOptions) Complete(args []string) error {
+func (o *Options) Complete(args []string) error {
 	// diffed content from files
 	switch {
 	case len(args) == 1:
@@ -69,11 +69,11 @@ func (o *DiffOptions) Complete(args []string) error {
 	return nil
 }
 
-func (o *DiffOptions) Validate() error {
+func (o *Options) Validate() error {
 	switch strings.ToLower(o.diffMode) {
-	case DiffModeLive:
-	case DiffModeNormal:
-	case DiffModeIgnoreAdded:
+	case ModeLive:
+	case ModeNormal:
+	case ModeIgnoreAdded:
 		break
 	default:
 		return fmt.Errorf("invalid diff mode `%s`", o.diffMode)
@@ -90,10 +90,10 @@ func (o *DiffOptions) Validate() error {
 	return nil
 }
 
-func (o *DiffOptions) Run() error {
+func (o *Options) Run() error {
 	var err error
 
-	if strings.ToLower(o.diffMode) == DiffModeLive {
+	if strings.ToLower(o.diffMode) == ModeLive {
 		if ytbx.IsStdin(o.fromLocation) {
 			return liveDiffWithStdin()
 		}
@@ -161,8 +161,8 @@ func (o *DiffOptions) Run() error {
 
 	// handle diff-mode option
 	switch strings.ToLower(o.diffMode) {
-	case DiffModeNormal:
-	case DiffModeIgnoreAdded:
+	case ModeNormal:
+	case ModeIgnoreAdded:
 		report = removeAddedElements(report)
 	}
 

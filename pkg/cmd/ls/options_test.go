@@ -10,7 +10,7 @@ import (
 )
 
 func TestLsOptions_Run(t *testing.T) {
-	o := &LsOptions{
+	o := &Options{
 		workDir: project.Path,
 		Level:   2,
 	}

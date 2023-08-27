@@ -8,14 +8,17 @@ import (
 )
 
 func TestNewCmdCompile(t *testing.T) {
-	mockey.PatchConvey("compile success", t, func() {
-		mockey.Mock((*CompileOptions).Complete).To(func(o *CompileOptions, args []string) error {
-			o.Output = "stdout"
-			return nil
-		}).Build()
-		mockey.Mock((*CompileOptions).Run).To(func(*CompileOptions) error {
-			return nil
-		}).Build()
+	m1 := mockey.Mock((*Options).Complete).To(func(o *Options, args []string) error {
+		o.Output = "stdout"
+		return nil
+	}).Build()
+	m2 := mockey.Mock((*Options).Run).To(func(*Options) error {
+		return nil
+	}).Build()
+	defer m1.UnPatch()
+	defer m2.UnPatch()
+
+	t.Run("compile success", func(t *testing.T) {
 		cmd := NewCmdCompile()
 		err := cmd.Execute()
 		assert.Nil(t, err)

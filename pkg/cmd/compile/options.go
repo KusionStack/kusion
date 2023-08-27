@@ -14,17 +14,17 @@ import (
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
-type CompileOptions struct {
+type Options struct {
 	IsCheck   bool
 	Filenames []string
-	CompileFlags
+	Flags
 }
 
-type CompileFlags struct {
+type Flags struct {
 	Output      string
 	WorkDir     string
 	Settings    []string
-	Arguments   []string
+	Arguments   map[string]string
 	Overrides   []string
 	DisableNone bool
 	OverrideAST bool
@@ -33,23 +33,23 @@ type CompileFlags struct {
 
 const Stdout = "stdout"
 
-func NewCompileOptions() *CompileOptions {
-	return &CompileOptions{
+func NewCompileOptions() *Options {
+	return &Options{
 		Filenames: []string{},
-		CompileFlags: CompileFlags{
+		Flags: Flags{
 			Settings:  []string{},
-			Arguments: []string{},
+			Arguments: map[string]string{},
 			Overrides: []string{},
 		},
 	}
 }
 
-func (o *CompileOptions) Complete(args []string) error {
+func (o *Options) Complete(args []string) error {
 	o.Filenames = args
 	return o.PreSet(projectstack.IsStack)
 }
 
-func (o *CompileOptions) Validate() error {
+func (o *Options) Validate() error {
 	var wrongFiles []string
 	for _, filename := range o.Filenames {
 		if filepath.Ext(filename) != ".k" {
@@ -62,7 +62,7 @@ func (o *CompileOptions) Validate() error {
 	return nil
 }
 
-func (o *CompileOptions) Run() error {
+func (o *Options) Run() error {
 	// Set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
@@ -114,7 +114,7 @@ func (o *CompileOptions) Run() error {
 	return nil
 }
 
-func (o *CompileOptions) PreSet(preCheck func(cur string) bool) error {
+func (o *Options) PreSet(preCheck func(cur string) bool) error {
 	curDir := o.WorkDir
 	if o.WorkDir == "" {
 		curDir, _ = os.Getwd()

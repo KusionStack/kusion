@@ -80,7 +80,7 @@ func TestDepsOptions_Validate(t *testing.T) {
 	}
 	for _, tc := range tCases {
 		t.Run(tc.name, func(t *testing.T) {
-			opt := DepsOptions{
+			opt := Options{
 				workDir: tc.workDir,
 				Direct:  tc.direct,
 				Only:    tc.only,
@@ -143,7 +143,7 @@ func TestDepsOptions_Run(t *testing.T) {
 	}
 	for _, tc := range tCases {
 		t.Run(tc.direct, func(t *testing.T) {
-			opt := DepsOptions{
+			opt := Options{
 				workDir: tc.workDir,
 				Direct:  tc.direct,
 				Only:    tc.only,
@@ -156,7 +156,7 @@ func TestDepsOptions_Run(t *testing.T) {
 }
 
 func TestDepsOptions_Run2(t *testing.T) {
-	opt := DepsOptions{
+	opt := Options{
 		workDir: workDir,
 		Direct:  "up",
 		Focus: []string{

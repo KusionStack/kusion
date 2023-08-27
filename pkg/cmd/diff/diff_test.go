@@ -72,7 +72,7 @@ func TestNewCmdDiff(t *testing.T) {
 		defer func() { os.Stdin = originalOSStdin }()
 
 		cmd := NewCmdDiff()
-		assert.Nil(t, cmd.Flags().Set("diff-mode", DiffModeLive))
+		assert.Nil(t, cmd.Flags().Set("diff-mode", ModeLive))
 		cmd.SetArgs([]string{"testdata/pod-full.yaml"})
 		err = cmd.Execute()
 		assert.Nil(t, err)
@@ -80,7 +80,7 @@ func TestNewCmdDiff(t *testing.T) {
 
 	mockey.PatchConvey("diff by files with flags", t, func() {
 		cmd := NewCmdDiff()
-		assert.Nil(t, cmd.Flags().Set("diff-mode", DiffModeIgnoreAdded))
+		assert.Nil(t, cmd.Flags().Set("diff-mode", ModeIgnoreAdded))
 		assert.Nil(t, cmd.Flags().Set("output", diffutil.OutputRaw))
 		assert.Nil(t, cmd.Flags().Set("sort-by-kubernetes-resource", "true"))
 		assert.Nil(t, cmd.Flags().Set("swap", "true"))
@@ -101,7 +101,7 @@ func TestNewCmdDiff(t *testing.T) {
 		defer func() { os.Stdin = originalOSStdin }()
 
 		cmd := NewCmdDiff()
-		assert.Nil(t, cmd.Flags().Set("diff-mode", DiffModeIgnoreAdded))
+		assert.Nil(t, cmd.Flags().Set("diff-mode", ModeIgnoreAdded))
 		assert.Nil(t, cmd.Flags().Set("output", diffutil.OutputRaw))
 		assert.Nil(t, cmd.Flags().Set("sort-by-kubernetes-resource", "true"))
 		assert.Nil(t, cmd.Flags().Set("swap", "true"))

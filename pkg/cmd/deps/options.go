@@ -13,7 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
-type DepsOptions struct {
+type Options struct {
 	workDir string
 	Direct  string
 	Focus   []string
@@ -55,11 +55,11 @@ func (s stringSet) toSlice() []string {
 	return result
 }
 
-func NewDepsOptions() *DepsOptions {
-	return &DepsOptions{}
+func NewDepsOptions() *Options {
+	return &Options{}
 }
 
-func (o *DepsOptions) Complete(args []string) {
+func (o *Options) Complete(args []string) {
 	if len(args) > 0 {
 		o.workDir = args[0]
 	}
@@ -69,7 +69,7 @@ func (o *DepsOptions) Complete(args []string) {
 	}
 }
 
-func (o *DepsOptions) Validate() error {
+func (o *Options) Validate() error {
 	if o.Only != "project" && o.Only != "stack" {
 		return fmt.Errorf("invalid output downstream type. supported types: project, stack")
 	}
@@ -94,7 +94,7 @@ func (o *DepsOptions) Validate() error {
 	return nil
 }
 
-func (o *DepsOptions) Run() (err error) {
+func (o *Options) Run() (err error) {
 	workDir, err := filepath.Abs(o.workDir)
 	if err != nil {
 		return
@@ -177,7 +177,12 @@ func (o *DepsOptions) Run() (err error) {
 //
 // This is a very time-consuming function based on the FindAllProjectsFrom API of kusion and the ListDownStreamFiles API of kcl.
 // Do not call this function with high frequency and please ensure at least 10 seconds interval when calling.
-func findDownStreams(workDir string, projects []*projectstack.Project, focusPaths, shouldIgnore stringSet, projectOnly bool) (downStreams stringSet, err error) {
+func findDownStreams(
+	workDir string,
+	projects []*projectstack.Project,
+	focusPaths, shouldIgnore stringSet,
+	projectOnly bool,
+) (downStreams stringSet, err error) {
 	entrances := emptyStringSet()               // all the entrance files in the work directory
 	entranceIndex := make(map[string]stringSet) // entrance file index to the corresponding projects/stacks
 	downStreams = emptyStringSet()              // might be downstream projects or downstream stacks, according to the projectOnly option

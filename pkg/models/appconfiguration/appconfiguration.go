@@ -1,6 +1,9 @@
 package appconfiguration
 
-import "kusionstack.io/kusion/pkg/models/appconfiguration/workload"
+import (
+	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
+)
 
 // AppConfiguration is a developer-centric definition that describes
 // how to run an Application.
@@ -26,7 +29,8 @@ import "kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 type AppConfiguration struct {
 	// Workload defines how to run your application code.
 	Workload *workload.Workload `json:"workload" yaml:"workload"`
-
+	// OpsRule specifies collection of rules that will be checked for Day-2 operation.
+	OpsRule *trait.OpsRule `json:"opsRule,omitempty" yaml:"opsRule,omitempty"`
 	// Labels and annotations can be used to attach arbitrary metadata
 	// as key-value pairs to resources.
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`

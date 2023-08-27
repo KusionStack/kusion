@@ -12,7 +12,6 @@ import (
 
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/spec"
-	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -26,34 +25,34 @@ import (
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
-// ApplyOptions defines flags for the `apply` command
-type ApplyOptions struct {
-	previewcmd.PreviewOptions
-	ApplyFlag
+// Options defines flags for the `apply` command
+type Options struct {
+	previewcmd.Options
+	Flag
 }
 
-type ApplyFlag struct {
+type Flag struct {
 	Yes    bool
 	DryRun bool
 	Watch  bool
 }
 
 // NewApplyOptions returns a new ApplyOptions instance
-func NewApplyOptions() *ApplyOptions {
-	return &ApplyOptions{
-		PreviewOptions: *previewcmd.NewPreviewOptions(),
+func NewApplyOptions() *Options {
+	return &Options{
+		Options: *previewcmd.NewPreviewOptions(),
 	}
 }
 
-func (o *ApplyOptions) Complete(args []string) {
-	o.CompileOptions.Complete(args)
+func (o *Options) Complete(args []string) {
+	o.Options.Complete(args)
 }
 
-func (o *ApplyOptions) Validate() error {
-	return o.CompileOptions.Validate()
+func (o *Options) Validate() error {
+	return o.Options.Validate()
 }
 
-func (o *ApplyOptions) Run() error {
+func (o *Options) Run() error {
 	// Set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
@@ -61,7 +60,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.CompileOptions.WorkDir)
+	project, stack, err := projectstack.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
@@ -101,7 +100,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := previewcmd.Preview(&o.PreviewOptions, stateStorage, sp, project, stack)
+	changes, err := previewcmd.Preview(&o.Options, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
 	}
@@ -188,7 +187,7 @@ func (o *ApplyOptions) Run() error {
 //	    return err
 //	}
 func Apply(
-	o *ApplyOptions,
+	o *Options,
 	storage states.StateStorage,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
@@ -293,7 +292,7 @@ func Apply(
 		close(ac.MsgCh)
 	} else {
 		// parse cluster in arguments
-		cluster := util.ParseClusterArgument(o.Arguments)
+		cluster := o.Arguments["cluster"]
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
 				Tenant:   changes.Project().Tenant,
@@ -332,7 +331,7 @@ func Apply(
 //	    return err
 //	}
 func Watch(
-	o *ApplyOptions,
+	o *Options,
 	planResources *models.Spec,
 	changes *opsmodels.Changes,
 ) error {

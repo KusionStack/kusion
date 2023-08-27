@@ -22,7 +22,7 @@ type Options struct {
 	Settings []string
 
 	// Arguments are args used for a specified Generator. All Generator related args should be passed through this field
-	Arguments []string
+	Arguments map[string]string
 
 	// Overrides contains all override args of this operation
 	Overrides []string

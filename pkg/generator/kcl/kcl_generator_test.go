@@ -47,7 +47,7 @@ func TestGenerateSpec(t *testing.T) {
 		workDir     string
 		filenames   []string
 		settings    []string
-		arguments   []string
+		arguments   map[string]string
 		overrides   []string
 		disableNone bool
 		overrideAST bool
@@ -55,7 +55,7 @@ func TestGenerateSpec(t *testing.T) {
 	testArgs := args{
 		filenames:   []string{},
 		settings:    []string{"testdata/kcl.yaml"},
-		arguments:   []string{"image=nginx:latest"},
+		arguments:   map[string]string{"image": "nginx:latest"},
 		disableNone: true,
 	}
 	tests := []struct {
