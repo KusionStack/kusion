@@ -1,6 +1,7 @@
 package appconfiguration
 
 import (
+	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -33,6 +34,10 @@ type AppConfiguration struct {
 	// OpsRule specifies collection of rules that will be checked for Day-2 operation.
 	OpsRule    *trait.OpsRule      `json:"opsRule,omitempty" yaml:"opsRule,omitempty"`
 	Monitoring *monitoring.Monitor `json:"monitoring,omitempty" yaml:"monitoring,omitempty"`
+
+	// Database defines a locally deployed or a cloud provider managed
+	// database instance for the workload.
+	Database *database.Database `json:"database,omitempty" yaml:"database,omitempty"`
 
 	// Labels and annotations can be used to attach arbitrary metadata
 	// as key-value pairs to resources.
