@@ -49,6 +49,7 @@ require (
 	github.com/variantdev/vals v0.21.0
 	github.com/zclconf/go-cty v1.12.1
 	go.uber.org/zap v1.24.0
+	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
