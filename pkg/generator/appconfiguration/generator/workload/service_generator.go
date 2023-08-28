@@ -76,11 +76,27 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		spec.Resources = make(models.Resources, 0)
 	}
 
+	uniqueAppName := appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
+
 	// Create a slice of containers based on the app's
-	// containers.
-	containers, err := toOrderedContainers(service.Containers)
+	// containers along with related volumes and configMaps.
+	containers, volumes, configMaps, err := toOrderedContainers(service.Containers, uniqueAppName)
 	if err != nil {
 		return err
+	}
+
+	// Create ConfigMap objects based on the app's configuration.
+	for _, cm := range configMaps {
+		cmObj := cm
+		cmObj.Namespace = g.project.Name
+		if err = appconfiguration.AppendToSpec(
+			models.Kubernetes,
+			appconfiguration.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
+			spec,
+			&cmObj,
+		); err != nil {
+			return err
+		}
 	}
 
 	// Create a K8s workload object based on the app's configuration.
@@ -93,7 +109,7 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		Annotations: appconfiguration.MergeMaps(
 			g.service.Annotations,
 		),
-		Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+		Name:      uniqueAppName,
 		Namespace: g.project.Name,
 	}
 	podTemplateSpec := v1.PodTemplateSpec{
@@ -108,6 +124,7 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		},
 		Spec: v1.PodSpec{
 			Containers: containers,
+			Volumes:    volumes,
 		},
 	}
 	selector := &metav1.LabelSelector{

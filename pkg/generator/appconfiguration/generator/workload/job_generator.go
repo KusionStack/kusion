@@ -53,9 +53,11 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		spec.Resources = make(models.Resources, 0)
 	}
 
+	uniqueAppName := appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
+
 	meta := metav1.ObjectMeta{
 		Namespace: g.project.Name,
-		Name:      appconfiguration.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+		Name:      uniqueAppName,
 		Labels: appconfiguration.MergeMaps(
 			appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 			g.job.Labels,
@@ -65,10 +67,23 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 		),
 	}
 
-	containers, err := toOrderedContainers(job.Containers)
+	containers, volumes, configMaps, err := toOrderedContainers(job.Containers, uniqueAppName)
 	if err != nil {
 		return err
 	}
+
+	for _, cm := range configMaps {
+		cm.Namespace = g.project.Name
+		if err = appconfiguration.AppendToSpec(
+			models.Kubernetes,
+			appconfiguration.KubernetesResourceID(cm.TypeMeta, cm.ObjectMeta),
+			spec,
+			&cm,
+		); err != nil {
+			return err
+		}
+	}
+
 	jobSpec := batchv1.JobSpec{
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
@@ -82,6 +97,7 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 			},
 			Spec: corev1.PodSpec{
 				Containers: containers,
+				Volumes:    volumes,
 			},
 		},
 	}
