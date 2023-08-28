@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -146,5 +147,135 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Len(t, actualContainers[1].Env, 1, "Number of env vars mismatch")
 		assert.Equal(t, "key", actualContainers[1].Env[0].Name, "Env var name mismatch")
 		assert.Equal(t, "value", actualContainers[1].Env[0].Value, "Env var value mismatch")
+	})
+	t.Run("toOrderedContainers should convert app containers with probe to ordered containers", func(t *testing.T) {
+		appContainers := map[string]container.Container{
+			"nginx": {
+				Image: "nginx:v1",
+				Resources: map[string]string{
+					"cpu":    "2-4",
+					"memory": "4Gi-8Gi",
+				},
+				LivenessProbe: &container.Probe{
+					ProbeHandler: &container.ProbeHandler{
+						TypeWrapper: container.TypeWrapper{
+							Type: "Exec",
+						},
+						ExecAction: &container.ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo live"},
+						},
+					},
+				},
+				ReadinessProbe: &container.Probe{
+					ProbeHandler: &container.ProbeHandler{
+						TypeWrapper: container.TypeWrapper{
+							Type: "Http",
+						},
+						HTTPGetAction: &container.HTTPGetAction{
+							URL: "http://localhost:8080/readiness",
+							Headers: map[string]string{
+								"header": "value",
+							},
+						},
+					},
+					InitialDelaySeconds: 10,
+				},
+				StartupProbe: &container.Probe{
+					ProbeHandler: &container.ProbeHandler{
+						TypeWrapper: container.TypeWrapper{
+							Type: "Tcp",
+						},
+						TCPSocketAction: &container.TCPSocketAction{
+							URL: "10.0.0.1:8888",
+						},
+					},
+				},
+			},
+		}
+
+		actualContainers, err := toOrderedContainers(appContainers)
+
+		assert.NoError(t, err, "Error should be nil")
+		assert.Len(t, actualContainers, 1, "Number of containers mismatch")
+		assert.Equal(t, "nginx", actualContainers[0].Name, "Container name mismatch")
+		assert.Equal(t, "nginx:v1", actualContainers[0].Image, "Container image mismatch")
+		assert.Len(t, actualContainers[0].Resources.Requests, 2, "Number of resource requests mismatch")
+
+		// Assert request resources
+		rQuantity := actualContainers[0].Resources.Requests["cpu"]
+		assert.Equal(t, "2", (&rQuantity).String(), "CPU request mismatch")
+		rQuantity = actualContainers[0].Resources.Requests["memory"]
+		assert.Equal(t, "4Gi", (&rQuantity).String(), "CPU request mismatch")
+
+		// Assert limit resources
+		rQuantity = actualContainers[0].Resources.Limits["cpu"]
+		assert.Equal(t, "4", (&rQuantity).String(), "CPU request mismatch")
+		rQuantity = actualContainers[0].Resources.Limits["memory"]
+		assert.Equal(t, "8Gi", (&rQuantity).String(), "CPU request mismatch")
+
+		assert.NotNil(t, actualContainers[0].ReadinessProbe, "ReadinessProbe should not be nil")
+		assert.NotNil(t, actualContainers[0].ReadinessProbe.HTTPGet, "ReadinessProbe.HTTPGet action should not be nil")
+		assert.Equal(t, "HTTP", string(actualContainers[0].ReadinessProbe.HTTPGet.Scheme), "HTTPGet.Scheme mismatch")
+		assert.Equal(t, "/readiness", actualContainers[0].ReadinessProbe.HTTPGet.Path, "HTTPGet.Path mismatch")
+		assert.Equal(t, "8080", actualContainers[0].ReadinessProbe.HTTPGet.Port.String(), "HTTPGet.Port mismatch")
+		assert.Equal(t, "localhost", actualContainers[0].ReadinessProbe.HTTPGet.Host, "HTTPGet.Host mismatch")
+		assert.Equal(t, 1, len(actualContainers[0].ReadinessProbe.HTTPGet.HTTPHeaders), "HTTPGet.HTTPHeaders length mismatch")
+
+		assert.NotNil(t, actualContainers[0].LivenessProbe, "LivenessProbe should not be nil")
+		assert.NotNil(t, actualContainers[0].LivenessProbe.Exec, "LivenessProbe.Exec action should not be nil")
+		assert.Len(t, actualContainers[0].LivenessProbe.Exec.Command, 3, "LivenessProbe.Exec commands length mismatch")
+		assert.Equal(t, []string{"/bin/sh", "-c", "echo live"}, actualContainers[0].LivenessProbe.Exec.Command, "LivenessProbe.Exec commands mismatch")
+
+		assert.NotNil(t, actualContainers[0].StartupProbe, "StartupProbe should not be nil")
+		assert.NotNil(t, actualContainers[0].StartupProbe.TCPSocket, "StartupProbe.TCPSocket action should not be nil")
+		assert.Equal(t, "10.0.0.1", actualContainers[0].StartupProbe.TCPSocket.Host, "TCPSocket.Host mismatch")
+		assert.Equal(t, "8888", actualContainers[0].StartupProbe.TCPSocket.Port.String(), "TCPSocket.Port mismatch")
+	})
+	t.Run("toOrderedContainers should convert app containers with lifecycle to ordered containers", func(t *testing.T) {
+		appContainers := map[string]container.Container{
+			"nginx": {
+				Image: "nginx:v1",
+				Lifecycle: &container.Lifecycle{
+					PreStop: &container.LifecycleHandler{
+						TypeWrapper: container.TypeWrapper{
+							Type: "Exec",
+						},
+						ExecAction: &container.ExecAction{
+							Command: []string{"/bin/sh", "-c", "echo live"},
+						},
+					},
+					PostStart: &container.LifecycleHandler{
+						TypeWrapper: container.TypeWrapper{
+							Type: "Http",
+						},
+						HTTPGetAction: &container.HTTPGetAction{
+							URL: "http://localhost:8080/readiness",
+							Headers: map[string]string{
+								"header": "value",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		actualContainers, err := toOrderedContainers(appContainers)
+
+		assert.NoError(t, err, "Error should be nil")
+		assert.Len(t, actualContainers, 1, "Number of containers mismatch")
+		assert.Equal(t, "nginx", actualContainers[0].Name, "Container name mismatch")
+		assert.Equal(t, "nginx:v1", actualContainers[0].Image, "Container image mismatch")
+
+		assert.NotNil(t, actualContainers[0].Lifecycle, "Lifecycle should not be nil")
+		assert.NotNil(t, actualContainers[0].Lifecycle.PreStop, "Lifecycle.PreStop should not be nil")
+		assert.NotNil(t, actualContainers[0].Lifecycle.PreStop.Exec, "PreStop.Exec action should not be nil")
+		assert.Len(t, actualContainers[0].Lifecycle.PreStop.Exec.Command, 3, "PreStop.Exec commands length mismatch")
+		assert.Equal(t, []string{"/bin/sh", "-c", "echo live"}, actualContainers[0].Lifecycle.PreStop.Exec.Command, "PreStop.Exec commands mismatch")
+		assert.NotNil(t, actualContainers[0].Lifecycle.PostStart, "Lifecycle.PostStart should not be nil")
+		assert.Equal(t, "HTTP", string(actualContainers[0].Lifecycle.PostStart.HTTPGet.Scheme), "PostStart.HTTPGet.Scheme mismatch")
+		assert.Equal(t, "/readiness", actualContainers[0].Lifecycle.PostStart.HTTPGet.Path, "PostStart.HTTPGet.Path mismatch")
+		assert.Equal(t, "8080", actualContainers[0].Lifecycle.PostStart.HTTPGet.Port.String(), "PostStart.HTTPGet.Port mismatch")
+		assert.Equal(t, "localhost", actualContainers[0].Lifecycle.PostStart.HTTPGet.Host, "PostStart.HTTPGet.Host mismatch")
+		assert.Equal(t, 1, len(actualContainers[0].Lifecycle.PostStart.HTTPGet.HTTPHeaders), "PostStart.HTTPGet.HTTPHeaders length mismatch")
 	})
 }
