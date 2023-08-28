@@ -20,8 +20,8 @@ type Database struct {
 	Username string `json:"username,omitempty" yaml:"username,omitempty"`
 	// The list of IP addresses allowed to access the rds instance provided by the cloud vendor.
 	SecurityIPs []string `json:"securityIPs,omitempty" yaml:"securityIPs,omitempty"`
-	// The virtual switch ID to launch an alicloud rds instance.
-	AlicloudVSwitchID string `json:"alicloudVSwitchID,omitempty" yaml:"alicloudVSwitchID,omitempty"`
+	// The virtual subnet ID associated with the VPC that the rds instance will be created in.
+	SubnetID string `json:"subnetID,omitempty" yaml:"subnetID,omitempty"`
 	// Whether the host address of the rds instance for the workload to connect with is via
 	// public network or priviate network of the cloud vendor.
 	PrivateLink bool `json:"privateLink,omitempty" yaml:"privateLink,omitempty"`

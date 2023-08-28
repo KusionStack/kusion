@@ -138,6 +138,10 @@ func (g *databaseGenerator) generateAWSDBInstance(region, awsSecurityGroupID, ra
 		},
 	}
 
+	if db.SubnetID != "" {
+		dbAttrs["db_subnet_group_name"] = db.SubnetID
+	}
+
 	id := appconfiguration.TerraformResourceID(provider, awsDBInstance, g.appName)
 	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
 		Region: region,

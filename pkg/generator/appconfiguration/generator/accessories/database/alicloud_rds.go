@@ -100,7 +100,7 @@ func (g *databaseGenerator) generateAlicloudDBInstance(region string,
 		"instance_storage": db.Size,
 		"instance_type":    db.InstanceType,
 		"security_ips":     db.SecurityIPs,
-		"vswitch_id":       db.AlicloudVSwitchID,
+		"vswitch_id":       db.SubnetID,
 	}
 
 	// Set serverless specific attributes.
