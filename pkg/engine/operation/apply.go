@@ -136,23 +136,6 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 	}
 	o := &ao.Operation
 
-	defer func() {
-		if e := recover(); e != nil {
-			log.Errorf("applyWalkFun panic:%v", e)
-
-			var err error
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf("applyWalkFun panic:%s", e)
-			case error:
-				err = x
-			default:
-				err = errors.New("unknown panic")
-			}
-			s = status.NewErrorStatus(err)
-		}
-	}()
-
 	if node, ok := v.(graph.ExecutableNode); ok {
 		if rn, ok2 := v.(*graph.ResourceNode); ok2 {
 			o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string)}

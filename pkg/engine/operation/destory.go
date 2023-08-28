@@ -1,15 +1,12 @@
 package operation
 
 import (
-	"errors"
-	"fmt"
 	"sync"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -40,22 +37,7 @@ func NewDestroyGraph(resource models.Resources) (*dag.AcyclicGraph, status.Statu
 // but every node's execution is deleting the resource.
 func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) {
 	o := do.Operation
-
-	defer func() {
-		close(o.MsgCh)
-		if e := recover(); e != nil {
-			log.Error("destroy panic:%v", e)
-
-			switch x := e.(type) {
-			case string:
-				st = status.NewErrorStatus(fmt.Errorf("destroy panic:%s", e))
-			case error:
-				st = status.NewErrorStatus(x)
-			default:
-				st = status.NewErrorStatusWithCode(status.Unknown, errors.New("unknown panic"))
-			}
-		}
-	}()
+	defer close(o.MsgCh)
 
 	if st = validateRequest(&request.Request); status.IsErr(st) {
 		return st
