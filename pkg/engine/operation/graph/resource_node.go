@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -40,6 +41,7 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 		if len(o.PriorStateResourceIndex) == 0 {
 			_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
 		} else {
+			// fixme what if the last apply is failed
 			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
 		}
 	case opsmodels.Apply:
@@ -57,11 +59,29 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
+func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status) {
 	log.Debugf("executing resource node:%s", rn.ID)
-	defer log.Debugf("resource node:%s has been executed", rn.ID)
 
-	if s := rn.PreExecute(operation); status.IsErr(s) {
+	defer func() {
+		log.Debugf("resource node:%s has been executed", rn.ID)
+
+		if e := recover(); e != nil {
+			log.Errorf("resource node execution panic:%v", e)
+
+			var err error
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf("resource node execution panic:%s", e)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknown panic")
+			}
+			s = status.NewErrorStatus(err)
+		}
+	}()
+
+	if s = rn.PreExecute(operation); status.IsErr(s) {
 		return s
 	}
 

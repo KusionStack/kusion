@@ -123,22 +123,6 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 	if v == nil {
 		return nil
 	}
-	defer func() {
-		if e := recover(); e != nil {
-			log.Errorf("previewWalkFun panic:%v", e)
-
-			var err error
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf("previewWalkFun panic:%s", e)
-			case error:
-				err = x
-			default:
-				err = errors.New("unknown panic")
-			}
-			s = status.NewErrorStatus(err)
-		}
-	}()
 
 	if node, ok := v.(graph.ExecutableNode); ok {
 		s = node.Execute(&po.Operation)
