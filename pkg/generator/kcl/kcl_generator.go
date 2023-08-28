@@ -31,6 +31,8 @@ var (
 	enableRest bool
 )
 
+const IncludeSchemaTypePath = "include_schema_type_path"
+
 func Init() error {
 	_, err := rest.New()
 	if err != nil {
@@ -192,11 +194,13 @@ func BuildOptions(
 	}
 	optList = append(optList, opt)
 
-	opt = kcl.WithIncludeSchemaTypePath(true)
-	if opt.Err != nil {
-		return nil, opt.Err
+	if arguments[IncludeSchemaTypePath] == "true" {
+		opt = kcl.WithIncludeSchemaTypePath(true)
+		if opt.Err != nil {
+			return nil, opt.Err
+		}
+		optList = append(optList, opt)
 	}
-	optList = append(optList, opt)
 
 	return optList, nil
 }

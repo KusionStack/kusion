@@ -87,6 +87,7 @@ func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *pr
 }
 
 func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[string]appmodel.AppConfiguration, error) {
+	o.Arguments[kcl.IncludeSchemaTypePath] = "true"
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
 		return nil, err

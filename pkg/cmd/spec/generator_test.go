@@ -197,7 +197,7 @@ func TestGenerateSpec(t *testing.T) {
 				stack   *projectstack.Stack
 				mocker  *mockey.MockBuilder
 			}{
-				o: &generator.Options{},
+				o: &generator.Options{Arguments: map[string]string{}},
 				project: &projectstack.Project{
 					ProjectConfiguration: projectstack.ProjectConfiguration{
 						Name: "default",
