@@ -113,7 +113,7 @@ func TerraformResource(id string, dependsOn []string, attrs, exts map[string]int
 // based on its provider, type and name.
 func TerraformResourceID(provider *models.Provider, resourceType string, resourceName string) string {
 	// resource id example: hashicorp:aws:aws_db_instance:wordpressdev
-	return provider.Namespace + ":" + provider.Name + ":" + string(resourceType) + ":" + resourceName
+	return provider.Namespace + ":" + provider.Name + ":" + resourceType + ":" + resourceName
 }
 
 // ProviderExtensions returns the extended information of provider based on
