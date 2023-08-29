@@ -73,12 +73,13 @@ func (g *jobGenerator) Generate(spec *models.Spec) error {
 	}
 
 	for _, cm := range configMaps {
-		cm.Namespace = g.project.Name
+		cmObj := cm
+		cmObj.Namespace = g.project.Name
 		if err = appconfiguration.AppendToSpec(
 			models.Kubernetes,
-			appconfiguration.KubernetesResourceID(cm.TypeMeta, cm.ObjectMeta),
+			appconfiguration.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
-			&cm,
+			&cmObj,
 		); err != nil {
 			return err
 		}
