@@ -3,10 +3,9 @@ package workload
 import (
 	"fmt"
 	"net/url"
-	"strings"
-
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/api/resource"
