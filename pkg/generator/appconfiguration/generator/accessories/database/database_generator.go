@@ -128,7 +128,7 @@ func (g *databaseGenerator) generateTFRandomPassword(provider *models.Provider) 
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, randomPassword, g.appName+dbResSuffix)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{}, randomPassword)
+	pvdExts := appconfiguration.ProviderExtensions(provider, nil, randomPassword)
 
 	return id, appconfiguration.TerraformResource(id, nil, pswAttrs, pvdExts)
 }

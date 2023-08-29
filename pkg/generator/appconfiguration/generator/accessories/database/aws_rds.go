@@ -113,8 +113,8 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, awsSecurityGroup, g.appName+dbResSuffix)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
-		Region: region,
+	pvdExts := appconfiguration.ProviderExtensions(provider, map[string]any{
+		"region": region,
 	}, awsSecurityGroup)
 
 	return id, appconfiguration.TerraformResource(id, nil, sgAttrs, pvdExts), nil
@@ -143,8 +143,8 @@ func (g *databaseGenerator) generateAWSDBInstance(region, awsSecurityGroupID, ra
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, awsDBInstance, g.appName)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
-		Region: region,
+	pvdExts := appconfiguration.ProviderExtensions(provider, map[string]any{
+		"region": region,
 	}, awsDBInstance)
 
 	return id, appconfiguration.TerraformResource(id, nil, dbAttrs, pvdExts)

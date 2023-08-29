@@ -20,15 +20,10 @@ type Provider struct {
 	Version string
 }
 
-// ProviderMeta records the metadata to declare a provider
-// in Kusion's spec resources.
-type ProviderMeta struct {
-	// The region of provider resources.
-	Region string `yaml:"region,omitempty" json:"region,omitempty"`
-}
-
 // SetString sets the attributes into the provider object.
 func (provider *Provider) SetString(providerURL string) error {
+	// An example of the provider URL is shown below
+	// registry.terraform.io/hashicorp/aws/5.0.1
 	attrs := strings.Split(providerURL, "/")
 	if len(attrs) != 4 {
 		return fmt.Errorf("wrong provider url format: %s", providerURL)

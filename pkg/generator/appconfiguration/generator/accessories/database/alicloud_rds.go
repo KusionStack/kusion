@@ -25,9 +25,9 @@ var (
 
 type alicloudServerlessConfig struct {
 	AutoPause   bool `yaml:"auto_pause" json:"auto_pause"`
+	SwitchForce bool `yaml:"switch_force" json:"switch_force"`
 	MaxCapacity int  `yaml:"max_capacity,omitempty" json:"max_capacity,omitempty"`
 	MinCapacity int  `yaml:"min_capacity,omitempty" json:"min_capacity,omitempty"`
-	SwitchForce bool `yaml:"switch_force" json:"switch_force"`
 }
 
 func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
@@ -82,7 +82,7 @@ func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spe
 	// Inject the host address, username and password into k8s secret.
 	password := appconfiguration.KusionPathDependency(randomPasswordID, "result")
 	hostAddress := appconfiguration.KusionPathDependency(alicloudDBInstanceID, "connection_string")
-	if !db.PrivateLink {
+	if !db.PrivateRouting {
 		// Set the public network connection string as the host address.
 		hostAddress = appconfiguration.KusionPathDependency(alicloudDBConnectionID, "connection_string")
 	}
@@ -124,8 +124,8 @@ func (g *databaseGenerator) generateAlicloudDBInstance(region string,
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, alicloudDBInstance, g.appName)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
-		Region: region,
+	pvdExts := appconfiguration.ProviderExtensions(provider, map[string]any{
+		"region": region,
 	}, alicloudDBInstance)
 
 	return id, appconfiguration.TerraformResource(id, nil, dbAttrs, pvdExts)
@@ -139,8 +139,8 @@ func (g *databaseGenerator) generateAlicloudDBConnection(dbInstanceID, region st
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, alicloudDBConnection, g.appName)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
-		Region: region,
+	pvdExts := appconfiguration.ProviderExtensions(provider, map[string]any{
+		"region": region,
 	}, alicloudDBConnection)
 
 	return id, appconfiguration.TerraformResource(id, nil, dbConnectionAttrs, pvdExts)
@@ -157,8 +157,8 @@ func (g *databaseGenerator) generateAlicloudRDSAccount(accountName, randomPasswo
 	}
 
 	id := appconfiguration.TerraformResourceID(provider, alicloudRDSAccount, g.appName)
-	pvdExts := appconfiguration.ProviderExtensions(provider, models.ProviderMeta{
-		Region: region,
+	pvdExts := appconfiguration.ProviderExtensions(provider, map[string]any{
+		"region": region,
 	}, alicloudRDSAccount)
 
 	return appconfiguration.TerraformResource(id, nil, rdsAccountAttrs, pvdExts)

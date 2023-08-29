@@ -24,7 +24,7 @@ type Database struct {
 	SubnetID string `json:"subnetID,omitempty" yaml:"subnetID,omitempty"`
 	// Whether the host address of the rds instance for the workload to connect with is via
 	// public network or priviate network of the cloud vendor.
-	PrivateLink bool `json:"privateLink,omitempty" yaml:"privateLink,omitempty"`
+	PrivateRouting bool `json:"privateRouting,omitempty" yaml:"privateRouting,omitempty"`
 	// The diversified rds configuration items from different cloud vendors.
 	ExtraMap map[string]string `json:"extraMap,omitempty" yaml:"extraMap,omitempty"`
 }

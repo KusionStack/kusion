@@ -118,7 +118,7 @@ func TerraformResourceID(provider *models.Provider, resourceType string, resourc
 
 // ProviderExtensions returns the extended information of provider based on
 // the provider and type of the resource.
-func ProviderExtensions(provider *models.Provider, providerMeta models.ProviderMeta, resourceType string) map[string]interface{} {
+func ProviderExtensions(provider *models.Provider, providerMeta map[string]any, resourceType string) map[string]interface{} {
 	return map[string]interface{}{
 		"provider":     provider.URL,
 		"providerMeta": providerMeta,
