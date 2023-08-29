@@ -30,15 +30,8 @@ type awsSecurityGroupTraffic struct {
 
 func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
 	// Set the terraform random and aws provider.
-	var providerURL string
 	randomProvider := &models.Provider{}
-	if tfProviderRandom == "" {
-		providerURL = defaultRandomProvider
-	} else {
-		providerURL = tfProviderRandom
-	}
-
-	if err := randomProvider.SetString(providerURL); err != nil {
+	if err := randomProvider.SetString(randomProviderURL); err != nil {
 		return nil, err
 	}
 
@@ -47,6 +40,7 @@ func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *mo
 		return nil, fmt.Errorf("the region of the aws provider must be set")
 	}
 
+	var providerURL string
 	awsProvider := &models.Provider{}
 	if tfProviderAWS == "" {
 		providerURL = defaultAWSProvider

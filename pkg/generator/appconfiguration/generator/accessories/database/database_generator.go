@@ -3,7 +3,6 @@ package accessories
 import (
 	"fmt"
 	"net"
-	"os"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
@@ -16,15 +15,13 @@ import (
 )
 
 const (
-	dbResSuffix           = "-db"
-	randomPassword        = "random_password"
-	defaultRandomProvider = "registry.terraform.io/hashicorp/random/3.5.1"
-	dbHostAddressEnv      = "KUSION_DB_HOST"
-	dbUsernameEnv         = "KUSION_DB_USERNAME"
-	dbPasswordEnv         = "KUSION_DB_PASSWORD"
+	dbResSuffix       = "-db"
+	randomPassword    = "random_password"
+	randomProviderURL = "registry.terraform.io/hashicorp/random/3.5.1"
+	dbHostAddressEnv  = "KUSION_DB_HOST"
+	dbUsernameEnv     = "KUSION_DB_USERNAME"
+	dbPasswordEnv     = "KUSION_DB_PASSWORD"
 )
-
-var tfProviderRandom = os.Getenv("TF_PROVIDER_RANDOM")
 
 type databaseGenerator struct {
 	project  *projectstack.Project

@@ -32,15 +32,8 @@ type alicloudServerlessConfig struct {
 
 func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
 	// Set the terraform random and alicloud provider.
-	var providerURL string
 	randomProvider := &models.Provider{}
-	if tfProviderRandom == "" {
-		providerURL = defaultRandomProvider
-	} else {
-		providerURL = tfProviderRandom
-	}
-
-	if err := randomProvider.SetString(providerURL); err != nil {
+	if err := randomProvider.SetString(randomProviderURL); err != nil {
 		return nil, err
 	}
 
@@ -49,6 +42,7 @@ func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spe
 		return nil, fmt.Errorf("the region of the alicloud provider must be set")
 	}
 
+	var providerURL string
 	alicloudProvider := &models.Provider{}
 	if tfProviderAlicloud == "" {
 		providerURL = defaultAlicloudProvider
