@@ -96,6 +96,10 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			expectedProject := &projectstack.Project{
 				ProjectConfiguration: projectstack.ProjectConfiguration{
 					Name: "test",
+					Prometheus: &projectstack.PrometheusConfig{
+						OperatorMode: false,
+						MonitorType:  "Pod",
+					},
 				},
 			}
 			expectedStack := &projectstack.Stack{}

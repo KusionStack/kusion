@@ -1,15 +1,16 @@
 package monitoring
 
 import (
-	prometheusV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
 type Monitor struct {
-	Interval     prometheusV1.Duration `yaml:"interval,omitempty" json:"interval,omitempty"`
-	Timeout      prometheusV1.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty"`
-	Path         string                `yaml:"path,omitempty" json:"path,omitempty"`
-	Port         string                `yaml:"port,omitempty" json:"port,omitempty"`
-	Scheme       string                `yaml:"scheme,omitempty" json:"scheme,omitempty"`
-	OperatorMode bool                  `yaml:"operatorMode,omitempty" json:"operatorMode,omitempty"`
-	MonitorType  string                `yaml:"monitorType,omitempty" json:"monitorType,omitempty"`
+	Interval prometheusv1.Duration `yaml:"interval,omitempty" json:"interval,omitempty"`
+	Timeout  prometheusv1.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty"`
+	Path     string                `yaml:"path,omitempty" json:"path,omitempty"`
+	// Despite what the name suggests, PodMonitor and ServiceMonitor actually
+	// only accept port names as the input. So in operator mode, this port field
+	// need to be the user-provided port name.
+	Port   string `yaml:"port,omitempty" json:"port,omitempty"`
+	Scheme string `yaml:"scheme,omitempty" json:"scheme,omitempty"`
 }

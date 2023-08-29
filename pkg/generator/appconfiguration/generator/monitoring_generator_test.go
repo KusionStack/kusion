@@ -2,9 +2,10 @@ package generator
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
-	Prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 
 	"kusionstack.io/kusion/pkg/models"
@@ -32,15 +33,17 @@ type TestCase struct {
 
 func BuildMonitoringTestCase(
 	projectName, appName string,
-	interval, timeout Prometheusv1.Duration,
-	path, port, scheme, monitorType string,
+	interval, timeout prometheusv1.Duration,
+	path, port, scheme string,
+	monitorType projectstack.MonitorType,
 	operatorMode bool,
 ) *TestCase {
-	var monitorKind, endpointType string
-	if monitorType == "service" {
+	var endpointType string
+	var monitorKind projectstack.MonitorType
+	if monitorType == "Service" {
 		monitorKind = "ServiceMonitor"
 		endpointType = "endpoints"
-	} else if monitorType == "pod" {
+	} else if monitorType == "Pod" {
 		monitorKind = "PodMonitor"
 		endpointType = "podMetricsEndpoints"
 	}
@@ -48,14 +51,14 @@ func BuildMonitoringTestCase(
 	if operatorMode {
 		expectedResources = []models.Resource{
 			{
-				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, appName, monitorType),
+				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, appName, strings.ToLower(string(monitorType))),
 				Type: "Kubernetes",
 				Attributes: map[string]interface{}{
 					"apiVersion": "monitoring.coreos.com/v1",
-					"kind":       monitorKind,
+					"kind":       string(monitorKind),
 					"metadata": map[string]interface{}{
 						"creationTimestamp": nil,
-						"name":              fmt.Sprintf("%s-%s-monitor", appName, monitorType),
+						"name":              fmt.Sprintf("%s-%s-monitor", appName, strings.ToLower(string(monitorType))),
 						"namespace":         projectName,
 					},
 					"spec": map[string]interface{}{
@@ -90,17 +93,19 @@ func BuildMonitoringTestCase(
 			project: &projectstack.Project{
 				ProjectConfiguration: projectstack.ProjectConfiguration{
 					Name: projectName,
+					Prometheus: &projectstack.PrometheusConfig{
+						OperatorMode: operatorMode,
+						MonitorType:  monitorType,
+					},
 				},
 				Path: "/test-project",
 			},
 			monitor: &monitoring.Monitor{
-				Interval:     interval,
-				Timeout:      timeout,
-				Path:         path,
-				Port:         port,
-				Scheme:       scheme,
-				OperatorMode: operatorMode,
-				MonitorType:  monitorType,
+				Interval: interval,
+				Timeout:  timeout,
+				Path:     path,
+				Port:     port,
+				Scheme:   scheme,
 			},
 			appName: appName,
 		},
@@ -115,12 +120,12 @@ func BuildMonitoringTestCase(
 	return testCase
 }
 
-func Test_monitoringGenerator_Generate(t *testing.T) {
+func TestMonitoringGenerator_Generate(t *testing.T) {
 	tests := []TestCase{
-		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "service", true),
-		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "pod", true),
-		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "service", false),
-		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "pod", false),
+		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "Service", true),
+		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "Pod", true),
+		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "Service", false),
+		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "Pod", false),
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -3,7 +3,7 @@ package generator
 import (
 	"fmt"
 
-	prometheusV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
@@ -43,27 +43,38 @@ func (g *monitoringGenerator) Generate(spec *models.Spec) error {
 		spec.Resources = make(models.Resources, 0)
 	}
 
+	// If Prometheus runs as an operator, it relies on Custom Resources to
+	// manage the scrape configs. CRs (ServiceMonitors and PodMonitors) rely on
+	// corresponding resources (Services and Pods) to have labels that can be
+	// used as part of the label selector for the CR to determine which
+	// service/pods to scrape from.
+	// Here we choose the label name kusion_monitoring_appname for two reasons:
+	// 1. Unlike the label validation in Kubernetes, the label name accepted by
+	// Prometheus cannot contain non-alphanumeric characters except underscore:
+	// https://github.com/prometheus/common/blob/main/model/labels.go#L94
+	// 2. The name should be unique enough that is only created by Kusion and
+	// used to identify a certain application
 	monitoringLabels := map[string]string{
 		"kusion_monitoring_appname": g.appName,
 	}
 
-	if g.monitor != nil && g.monitor.OperatorMode {
-		if g.monitor.MonitorType == "service" {
-			serviceEndpoint := prometheusV1.Endpoint{
+	if g.project.ProjectConfiguration.Prometheus != nil && g.project.ProjectConfiguration.Prometheus.OperatorMode && g.monitor != nil {
+		if g.project.ProjectConfiguration.Prometheus.MonitorType == projectstack.ServiceMonitorType {
+			serviceEndpoint := prometheusv1.Endpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
 				Port:          g.monitor.Port,
 				Path:          g.monitor.Path,
 				Scheme:        g.monitor.Scheme,
 			}
-			serviceEndpointList := []prometheusV1.Endpoint{serviceEndpoint}
-			serviceMonitor := &prometheusV1.ServiceMonitor{
+			serviceEndpointList := []prometheusv1.Endpoint{serviceEndpoint}
+			serviceMonitor := &prometheusv1.ServiceMonitor{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "ServiceMonitor",
-					APIVersion: prometheusV1.SchemeGroupVersion.String(),
+					APIVersion: prometheusv1.SchemeGroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-service-monitor", g.appName), Namespace: g.project.Name},
-				Spec: prometheusV1.ServiceMonitorSpec{
+				Spec: prometheusv1.ServiceMonitorSpec{
 					Selector: metav1.LabelSelector{
 						MatchLabels: monitoringLabels,
 					},
@@ -79,23 +90,23 @@ func (g *monitoringGenerator) Generate(spec *models.Spec) error {
 			if err != nil {
 				return err
 			}
-		} else if g.monitor != nil && g.monitor.MonitorType == "pod" {
-			podMetricsEndpoint := prometheusV1.PodMetricsEndpoint{
+		} else if g.project.ProjectConfiguration.Prometheus.MonitorType == projectstack.PodMonitorType {
+			podMetricsEndpoint := prometheusv1.PodMetricsEndpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
 				Port:          g.monitor.Port,
 				Path:          g.monitor.Path,
 				Scheme:        g.monitor.Scheme,
 			}
-			podMetricsEndpointList := []prometheusV1.PodMetricsEndpoint{podMetricsEndpoint}
+			podMetricsEndpointList := []prometheusv1.PodMetricsEndpoint{podMetricsEndpoint}
 
-			podMonitor := &prometheusV1.PodMonitor{
+			podMonitor := &prometheusv1.PodMonitor{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "PodMonitor",
-					APIVersion: prometheusV1.SchemeGroupVersion.String(),
+					APIVersion: prometheusv1.SchemeGroupVersion.String(),
 				},
 				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-pod-monitor", g.appName), Namespace: g.project.Name},
-				Spec: prometheusV1.PodMonitorSpec{
+				Spec: prometheusv1.PodMonitorSpec{
 					Selector: metav1.LabelSelector{
 						MatchLabels: monitoringLabels,
 					},
@@ -113,7 +124,7 @@ func (g *monitoringGenerator) Generate(spec *models.Spec) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("MonitorType should either be service or pod %s", g.monitor.MonitorType)
+			return fmt.Errorf("MonitorType should either be service or pod %s", g.project.ProjectConfiguration.Prometheus.MonitorType)
 		}
 	}
 
