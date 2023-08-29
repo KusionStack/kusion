@@ -221,7 +221,7 @@ func splitPorts(ports []network.Port) ([]network.Port, []network.Port) {
 }
 
 func toSvcPorts(name string, ports []network.Port) []v1.ServicePort {
-	var svcPorts []v1.ServicePort
+	svcPorts := make([]v1.ServicePort, len(ports))
 	for _, port := range ports {
 		svcPorts = append(svcPorts, v1.ServicePort{
 			Name:       fmt.Sprintf("%s-%d-%s", name, port.Port, strings.ToLower(port.Protocol)),
