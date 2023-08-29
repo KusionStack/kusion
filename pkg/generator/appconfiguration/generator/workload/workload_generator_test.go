@@ -135,11 +135,25 @@ func TestToOrderedContainers(t *testing.T) {
 			Image: "image2",
 			Env:   map[string]string{"key": "value"},
 		}
+		appContainers["container3"] = container.Container{
+			Image: "image3",
+			Files: map[string]container.FileSpec{
+				"/tmp/example1/file.txt": {
+					Content: "some file contents",
+					Mode:    "0777",
+				},
+				"/tmp/example2/file.txt": {
+					Content: "some file contents",
+					Mode:    "0644",
+				},
+			},
+		}
 
-		actualContainers, err := toOrderedContainers(appContainers)
+		actualContainers, actualVolumes, actualConfigMaps, err := toOrderedContainers(appContainers, "mock-app-name")
+		wantedConfigMapData := map[string]string{"file.txt": "some file contents"}
 
 		assert.NoError(t, err, "Error should be nil")
-		assert.Len(t, actualContainers, 2, "Number of containers mismatch")
+		assert.Len(t, actualContainers, 3, "Number of containers mismatch")
 		assert.Equal(t, "container1", actualContainers[0].Name, "Container name mismatch")
 		assert.Equal(t, "image1", actualContainers[0].Image, "Container image mismatch")
 		assert.Equal(t, "container2", actualContainers[1].Name, "Container name mismatch")
@@ -147,6 +161,15 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Len(t, actualContainers[1].Env, 1, "Number of env vars mismatch")
 		assert.Equal(t, "key", actualContainers[1].Env[0].Name, "Env var name mismatch")
 		assert.Equal(t, "value", actualContainers[1].Env[0].Value, "Env var value mismatch")
+		assert.Equal(t, "container3", actualContainers[2].Name, "Container name mismatch")
+		assert.Equal(t, "image3", actualContainers[2].Image, "Container image mismatch")
+		assert.Equal(t, "mock-app-name-container3-0", actualContainers[2].VolumeMounts[0].Name, "Container volumeMount name mismatch")
+		assert.Equal(t, "/tmp/example1", actualContainers[2].VolumeMounts[0].MountPath, "Container volumeMount path mismatch")
+		assert.Equal(t, "/tmp/example2", actualContainers[2].VolumeMounts[1].MountPath, "Container volumeMount path mismatch")
+		assert.Equal(t, int32(511), *actualVolumes[0].ConfigMap.DefaultMode, "Volume mode mismatch")
+		assert.Equal(t, int32(420), *actualVolumes[1].ConfigMap.DefaultMode, "Volume mode mismatch")
+		assert.Equal(t, wantedConfigMapData, actualConfigMaps[0].Data, "ConfigMap data mismatch")
+		assert.Equal(t, wantedConfigMapData, actualConfigMaps[1].Data, "ConfigMap data mismatch")
 	})
 	t.Run("toOrderedContainers should convert app containers with probe to ordered containers", func(t *testing.T) {
 		appContainers := map[string]container.Container{
@@ -193,7 +216,7 @@ func TestToOrderedContainers(t *testing.T) {
 			},
 		}
 
-		actualContainers, err := toOrderedContainers(appContainers)
+		actualContainers, _, _, err := toOrderedContainers(appContainers, "mock-app-name")
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.Len(t, actualContainers, 1, "Number of containers mismatch")
@@ -259,7 +282,7 @@ func TestToOrderedContainers(t *testing.T) {
 			},
 		}
 
-		actualContainers, err := toOrderedContainers(appContainers)
+		actualContainers, _, _, err := toOrderedContainers(appContainers, "mock-app-name")
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.Len(t, actualContainers, 1, "Number of containers mismatch")

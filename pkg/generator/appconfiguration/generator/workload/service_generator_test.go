@@ -16,6 +16,7 @@ import (
 
 func Test_workloadServiceGenerator_Generate(t *testing.T) {
 	replica := int32(2)
+	mode := int32(511)
 	cs := &v1alpha1.CollaSet{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "CollaSet",
@@ -49,6 +50,25 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 						{
 							Name:  "nginx",
 							Image: "nginx:v1",
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "default-dev-foo-nginx-0",
+									MountPath: "/tmp",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "default-dev-foo-nginx-0",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "default-dev-foo-nginx-0",
+									},
+									DefaultMode: &mode,
+								},
+							},
 						},
 					},
 				},
@@ -56,6 +76,22 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 		},
 	}
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(cs)
+	assert.NoError(t, err)
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "default-dev-foo-nginx-0",
+			Namespace: "default",
+		},
+		Data: map[string]string{
+			"example.txt": "some file contents",
+		},
+	}
+	unstructuredConfigMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(cm)
 	assert.NoError(t, err)
 
 	type fields struct {
@@ -96,6 +132,12 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 						Containers: map[string]container.Container{
 							"nginx": {
 								Image: "nginx:v1",
+								Files: map[string]container.FileSpec{
+									"/tmp/example.txt": {
+										Content: "some file contents",
+										Mode:    "0777",
+									},
+								},
 							},
 						},
 						Replicas: 2,
@@ -121,7 +163,8 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			assert.Equal(t, unstructured, tt.args.spec.Resources[0].Attributes)
+			assert.Equal(t, unstructuredConfigMap, tt.args.spec.Resources[0].Attributes)
+			assert.Equal(t, unstructured, tt.args.spec.Resources[1].Attributes)
 		})
 	}
 }
