@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
 	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -84,6 +86,13 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 			Service: &workload.Service{
 				Base: workload.Base{},
 				Type: "Deployment",
+				Ports: []network.Port{
+					{
+						Port:     80,
+						Protocol: "TCP",
+						Public:   true,
+					},
+				},
 			},
 		},
 	}

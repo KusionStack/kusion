@@ -26,10 +26,10 @@ const (
 
 var (
 	ErrEmptyAppName          = errors.New("app name must not be empty")
-	ErrEmptyProjectName      = errors.New("project name must be empty")
-	ErrEmptyStackName        = errors.New("stack name must be empty")
-	ErrEmptySelectors        = errors.New("selectors must be empty")
-	ErrEmptyPorts            = errors.New("ports must be empty")
+	ErrEmptyProjectName      = errors.New("project name must not be empty")
+	ErrEmptyStackName        = errors.New("stack name must not be empty")
+	ErrEmptySelectors        = errors.New("selectors must not be empty")
+	ErrEmptyPorts            = errors.New("ports must not be empty")
 	ErrInvalidPort           = errors.New("port must be between 1 and 65535")
 	ErrInvalidTargetPort     = errors.New("targetPort must be between 1 and 65535 if exist")
 	ErrInvalidProtocol       = errors.New("protocol must be TCP or UDP")

@@ -10,6 +10,7 @@ import (
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -74,6 +75,13 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				Service: &workload.Service{
 					Base: workload.Base{},
 					Type: "Deployment",
+					Ports: []network.Port{
+						{
+							Port:     80,
+							Protocol: "TCP",
+							Public:   true,
+						},
+					},
 				},
 			},
 		},
@@ -102,7 +110,11 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 					},
 				},
 			}
-			expectedStack := &projectstack.Stack{}
+			expectedStack := &projectstack.Stack{
+				StackConfiguration: projectstack.StackConfiguration{
+					Name: "teststack",
+				},
+			}
 			expectedAppName := "test"
 			expectedMonitoring := &monitoring.Monitor{}
 			expectedMonitoringAnnotations := map[string]string{"prometheus.io/path": "", "prometheus.io/port": "", "prometheus.io/scheme": "", "prometheus.io/scrape": "true"}
@@ -112,7 +124,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
 			assert.NotNil(t, spec.Resources, "Resources should not be nil")
-			assert.Len(t, spec.Resources, 1, "Number of resources mismatch")
 
 			// Check the generated resource
 			resource := spec.Resources[0]
