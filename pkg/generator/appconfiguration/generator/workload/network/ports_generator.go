@@ -48,9 +48,11 @@ type portsGenerator struct {
 }
 
 // NewPortsGenerator returns a new portsGenerator instance, and do the validation and completion job.
-func NewPortsGenerator(appName, projectName, stackName string,
+func NewPortsGenerator(
+	appName, projectName, stackName string,
 	selectors, labels, annotations map[string]string,
-	ports []network.Port) (ac.Generator, error) {
+	ports []network.Port,
+) (ac.Generator, error) {
 	generator := &portsGenerator{
 		appName:     appName,
 		projectName: projectName,
@@ -70,9 +72,11 @@ func NewPortsGenerator(appName, projectName, stackName string,
 }
 
 // NewPortsGeneratorFunc returns a new NewGeneratorFunc that returns a portsGenerator instance.
-func NewPortsGeneratorFunc(appName, projectName, stackName string,
+func NewPortsGeneratorFunc(
+	appName, projectName, stackName string,
 	selectors, labels, annotations map[string]string,
-	ports []network.Port) ac.NewGeneratorFunc {
+	ports []network.Port,
+) ac.NewGeneratorFunc {
 	return func() (ac.Generator, error) {
 		return NewPortsGenerator(appName, projectName, stackName, selectors, labels, annotations, ports)
 	}
