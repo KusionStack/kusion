@@ -1,5 +1,9 @@
 package workload
 
+import (
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
+)
+
 const (
 	TypeDeploy   = "Deployment"
 	TypeCollaset = "CollaSet"
@@ -12,4 +16,7 @@ const (
 type Service struct {
 	Base `yaml:",inline" json:",inline"`
 	Type string `yaml:"type" json:"type"`
+
+	// Ports describe the list of ports need getting exposed.
+	Ports []network.Port `yaml:"ports,omitempty" json:"ports,omitempty"`
 }

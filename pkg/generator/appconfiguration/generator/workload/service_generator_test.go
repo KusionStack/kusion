@@ -7,10 +7,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kube-api/apps/v1alpha1"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
@@ -94,6 +97,41 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 	unstructuredConfigMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(cm)
 	assert.NoError(t, err)
 
+	svc := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: corev1.SchemeGroupVersion.String(),
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "default-dev-foo-public",
+			Namespace: "default",
+			Labels: map[string]string{
+				"app.kubernetes.io/name":    "foo",
+				"app.kubernetes.io/part-of": "default",
+			},
+			Annotations: map[string]string{
+				"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "default-dev-foo-public-80-tcp",
+					Port:       80,
+					TargetPort: intstr.FromInt(80),
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: map[string]string{
+				"app.kubernetes.io/name":    "foo",
+				"app.kubernetes.io/part-of": "default",
+			},
+			Type: corev1.ServiceTypeLoadBalancer,
+		},
+	}
+	unstructuredSvc, err := runtime.DefaultUnstructuredConverter.ToUnstructured(svc)
+	assert.NoError(t, err)
+
 	type fields struct {
 		project *projectstack.Project
 		stack   *projectstack.Stack
@@ -143,6 +181,13 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 						Replicas: 2,
 					},
 					Type: "CollaSet",
+					Ports: []network.Port{
+						{
+							Port:     80,
+							Protocol: "TCP",
+							Public:   true,
+						},
+					},
 				},
 			},
 			args: struct {
@@ -160,11 +205,12 @@ func Test_workloadServiceGenerator_Generate(t *testing.T) {
 				appName: tt.fields.appName,
 				service: tt.fields.service,
 			}
-			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
+			if err = g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			assert.Equal(t, unstructuredConfigMap, tt.args.spec.Resources[0].Attributes)
 			assert.Equal(t, unstructured, tt.args.spec.Resources[1].Attributes)
+			assert.Equal(t, unstructuredSvc, tt.args.spec.Resources[2].Attributes)
 		})
 	}
 }

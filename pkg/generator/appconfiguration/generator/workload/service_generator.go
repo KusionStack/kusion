@@ -9,6 +9,7 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload/network"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -132,40 +133,27 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		}
 	}
 
+	labels := appconfiguration.MergeMaps(appconfiguration.UniqueAppLabels(g.project.Name, g.appName), g.service.Labels,monitoringLabels)
+	annotations := appconfiguration.MergeMaps(g.service.Annotations,monitoringAnnotations)
+	selector := appconfiguration.UniqueAppLabels(g.project.Name, g.appName)
+
 	// Create a K8s workload object based on the app's configuration.
 	// common parts
 	objectMeta := metav1.ObjectMeta{
-		Labels: appconfiguration.MergeMaps(
-			appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
-			g.service.Labels,
-			monitoringLabels,
-		),
-		Annotations: appconfiguration.MergeMaps(
-			g.service.Annotations,
-			monitoringAnnotations,
-		),
-		Name:      uniqueAppName,
-		Namespace: g.project.Name,
+		Labels:      labels,
+		Annotations: annotations,
+		Name:        uniqueAppName,
+		Namespace:   g.project.Name,
 	}
 	podTemplateSpec := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: appconfiguration.MergeMaps(
-				appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
-				g.service.Labels,
-				monitoringLabels,
-			),
-			Annotations: appconfiguration.MergeMaps(
-				g.service.Annotations,
-				monitoringAnnotations,
-			),
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: v1.PodSpec{
 			Containers: containers,
 			Volumes:    volumes,
 		},
-	}
-	selector := &metav1.LabelSelector{
-		MatchLabels: appconfiguration.UniqueAppLabels(g.project.Name, g.appName),
 	}
 
 	var resource any
@@ -182,7 +170,7 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			ObjectMeta: objectMeta,
 			Spec: appsv1.DeploymentSpec{
 				Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
-				Selector: selector,
+				Selector: &metav1.LabelSelector{MatchLabels: selector},
 				Template: podTemplateSpec,
 			},
 		}
@@ -196,12 +184,22 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			ObjectMeta: objectMeta,
 			Spec: v1alpha1.CollaSetSpec{
 				Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
-				Selector: selector,
+				Selector: &metav1.LabelSelector{MatchLabels: selector},
 				Template: podTemplateSpec,
 			},
 		}
 	}
 
 	// Add the Deployment resource to the spec.
-	return appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(typeMeta, objectMeta), spec, resource)
+	if err = appconfiguration.AppendToSpec(models.Kubernetes, appconfiguration.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
+		return err
+	}
+
+	// generate K8s Service from ports config.
+	portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports)
+	if err = appconfiguration.CallGenerators(spec, portsGeneratorFunc); err != nil {
+		return err
+	}
+
+	return nil
 }
