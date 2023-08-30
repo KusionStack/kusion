@@ -304,7 +304,7 @@ func httpGetAction(urlstr string, headers map[string]string) (*corev1.HTTPGetAct
 
 	return &corev1.HTTPGetAction{
 		Path:        u.Path,
-		Port:        intstr.FromString(u.Port()),
+		Port:        intstr.Parse(u.Port()),
 		Host:        u.Hostname(),
 		Scheme:      corev1.URIScheme(strings.ToUpper(u.Scheme)),
 		HTTPHeaders: httpHeaders,
@@ -318,7 +318,7 @@ func tcpSocketAction(urlstr string) (*corev1.TCPSocketAction, error) {
 	}
 
 	return &corev1.TCPSocketAction{
-		Port: intstr.FromString(port),
+		Port: intstr.Parse(port),
 		Host: host,
 	}, nil
 }
