@@ -27,14 +27,25 @@ const (
 	KclFile                                 = "kcl.yaml"
 	KCLGenerator              GeneratorType = "KCL"
 	AppConfigurationGenerator GeneratorType = "AppConfiguration"
+	PodMonitorType            MonitorType   = "Pod"
+	ServiceMonitorType        MonitorType   = "Service"
 )
 
-type GeneratorType string
+type (
+	GeneratorType string
+	MonitorType   string
+)
 
 // GeneratorConfig represent Generator configs saved in project.yaml
 type GeneratorConfig struct {
 	Type    GeneratorType          `json:"type"`
 	Configs map[string]interface{} `json:"configs,omitempty"`
+}
+
+// PrometheusConfig represent Prometheus configs saved in project.yaml
+type PrometheusConfig struct {
+	OperatorMode bool        `yaml:"operatorMode,omitempty" json:"operatorMode,omitempty"`
+	MonitorType  MonitorType `yaml:"monitorType,omitempty" json:"monitorType,omitempty"`
 }
 
 // ProjectConfiguration is the project configuration
@@ -50,6 +61,9 @@ type ProjectConfiguration struct {
 
 	// SpecGenerator configs
 	Generator *GeneratorConfig `json:"generator,omitempty" yaml:"generator,omitempty"`
+
+	// Prometheus configs
+	Prometheus *PrometheusConfig `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
 
 	// Secret stores
 	SecretStores *vals.SecretStores `json:"secret_stores,omitempty" yaml:"secret_stores,omitempty"`
