@@ -4,6 +4,7 @@
 package rest
 
 import (
+	"github.com/bytedance/mockey"
 	"net/http"
 	"reflect"
 	"testing"
@@ -26,9 +27,8 @@ func (b *bytesReadCloser) Close() error {
 }
 
 func TestNew(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	mockey.PatchConvey("success", t, func() {
 		mockPing(nil)
-		defer monkey.UnpatchAll()
 		_, err := New()
 		assert.Nil(t, err)
 	})
@@ -92,9 +92,9 @@ func TestCompile(t *testing.T) {
 }
 
 func mockPing(mockErr error) {
-	monkey.Patch(Ping, func(_ *Client) error {
+	mockey.Mock(Ping).To(func(_ *Client) error {
 		return mockErr
-	})
+	}).Build()
 }
 
 func mockPost(client *Client, mockErr error) {

@@ -6,28 +6,28 @@ package io
 import (
 	"bufio"
 	"bytes"
+	"github.com/bytedance/mockey"
 	"io"
 	"os"
 	"testing"
 	"time"
 
-	"bou.ke/monkey"
-
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReadStdinInput(t *testing.T) {
-	defer monkey.UnpatchAll()
-	monkey.Patch((*os.File).Stat, func(file *os.File) (os.FileInfo, error) {
-		return mockInfo{}, nil
+	mockey.PatchConvey("test read stdin input", t, func() {
+		mockey.Mock((*os.File).Stat).To(func(file *os.File) (os.FileInfo, error) {
+			return mockInfo{}, nil
+		}).Build()
+		input := "hello world!"
+		mockey.Mock(bufio.NewReader).To(func(rd io.Reader) *bufio.Reader {
+			return bufio.NewReaderSize(bytes.NewReader([]byte(input)), 4096)
+		}).Build()
+		result, err := ReadStdinInput()
+		assert.Equal(t, input, result)
+		assert.Nil(t, err)
 	})
-	input := "hello world!"
-	monkey.Patch(bufio.NewReader, func(rd io.Reader) *bufio.Reader {
-		return bufio.NewReaderSize(bytes.NewReader([]byte(input)), 4096)
-	})
-	result, err := ReadStdinInput()
-	assert.Equal(t, input, result)
-	assert.Nil(t, err)
 }
 
 type mockInfo struct{}

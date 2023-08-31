@@ -5,11 +5,11 @@ package scaffold
 
 import (
 	"fmt"
+	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/jinzhu/copier"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
@@ -170,13 +170,12 @@ func TestRetrieveTemplates(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("kusion templates", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("kusion templates", t, func() {
 		// gitutil.GitCloneOrPull has internet issue occasionally
 		// mock as always succeed
-		monkey.Patch(gitutil.GitCloneOrPull, func(url string, referenceName plumbing.ReferenceName, path string, shallow bool) error {
+		mockey.Mock(gitutil.GitCloneOrPull).To(func(url string, referenceName plumbing.ReferenceName, path string, shallow bool) error {
 			return nil
-		})
+		}).Build()
 
 		_, err := RetrieveTemplates("", true)
 		assert.Nil(t, err)
@@ -184,11 +183,10 @@ func TestRetrieveTemplates(t *testing.T) {
 }
 
 func Test_cleanupLegacyTemplateDir(t *testing.T) {
-	t.Run("repo not exist", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		monkey.Patch(GetTemplateDir, func(subDir string) (string, error) {
+	mockey.PatchConvey("repo not exist", t, func() {
+		mockey.Mock(GetTemplateDir).To(func(subDir string) (string, error) {
 			return os.MkdirTemp("", "tmp-dir-for-test")
-		})
+		}).Build()
 
 		err = cleanupLegacyTemplateDir()
 		assert.Nil(t, err)
