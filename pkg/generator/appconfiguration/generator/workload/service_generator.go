@@ -16,8 +16,7 @@ import (
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
-// workloadServiceGenerator is a struct for generating service
-// workload resources.
+// workloadServiceGenerator is a struct for generating service workload resources.
 type workloadServiceGenerator struct {
 	project    *projectstack.Project
 	stack      *projectstack.Stack
@@ -26,8 +25,7 @@ type workloadServiceGenerator struct {
 	monitoring *monitoring.Monitor
 }
 
-// NewWorkloadServiceGenerator returns a new workloadServiceGenerator
-// instance.
+// NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
 func NewWorkloadServiceGenerator(
 	project *projectstack.Project,
 	stack *projectstack.Stack,
@@ -56,8 +54,7 @@ func NewWorkloadServiceGenerator(
 	}, nil
 }
 
-// NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that
-// returns a workloadServiceGenerator instance.
+// NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that returns a workloadServiceGenerator instance.
 func NewWorkloadServiceGeneratorFunc(
 	project *projectstack.Project,
 	stack *projectstack.Stack,
@@ -133,8 +130,8 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 		}
 	}
 
-	labels := appconfiguration.MergeMaps(appconfiguration.UniqueAppLabels(g.project.Name, g.appName), g.service.Labels,monitoringLabels)
-	annotations := appconfiguration.MergeMaps(g.service.Annotations,monitoringAnnotations)
+	labels := appconfiguration.MergeMaps(appconfiguration.UniqueAppLabels(g.project.Name, g.appName), g.service.Labels, monitoringLabels)
+	annotations := appconfiguration.MergeMaps(g.service.Annotations, monitoringAnnotations)
 	selector := appconfiguration.UniqueAppLabels(g.project.Name, g.appName)
 
 	// Create a K8s workload object based on the app's configuration.
