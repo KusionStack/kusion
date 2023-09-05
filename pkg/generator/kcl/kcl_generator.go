@@ -10,9 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	// TODO: workarounds for kcl-lang.io/kpm/pkg/api
+	"github.com/elliotxx/kpm/pkg/api"
 	kcl "kcl-lang.io/kcl-go"
+	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
-
+	"kcl-lang.io/kpm/pkg/opt"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl/rest"
@@ -65,12 +68,19 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 	if err != nil {
 		return nil, err
 	}
-
 	log.Debugf("Compile filenames: %v", o.Filenames)
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
-	// call kcl run
-	result, err := kcl.RunFiles(o.Filenames, optList...)
+	var result *kcl.KCLResultList
+	if _, pkgerr := api.GetKclPackage(o.WorkDir); pkgerr == nil {
+		result, err = api.RunPkg(&opt.CompileOptions{
+			Option: kclpkg.NewOption().Merge(optList...),
+		})
+	} else {
+		// call kcl run
+		log.Warnf("The current directory is not a KCL Package, use kcl run instead. Cause: %s", err.Error())
+		result, err = kcl.RunFiles(o.Filenames, optList...)
+	}
 	if err != nil {
 		return nil, err
 	}

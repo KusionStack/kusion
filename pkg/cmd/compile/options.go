@@ -7,6 +7,7 @@ import (
 
 	"github.com/pterm/pterm"
 	yamlv2 "gopkg.in/yaml.v2"
+	"kcl-lang.io/kpm/pkg/api"
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/generator"
@@ -15,6 +16,7 @@ import (
 )
 
 type Options struct {
+	IsKclPkg  bool
 	IsCheck   bool
 	Filenames []string
 	Flags
@@ -123,6 +125,11 @@ func (o *Options) PreSet(preCheck func(cur string) bool) error {
 		if o.Output == "" {
 			o.Output = Stdout
 		}
+		return nil
+	}
+
+	if _, err := api.GetKclPackage(o.WorkDir); err == nil {
+		o.IsKclPkg = true
 		return nil
 	}
 
