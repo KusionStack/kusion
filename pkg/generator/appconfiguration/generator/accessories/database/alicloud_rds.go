@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
@@ -15,7 +16,7 @@ const (
 	alicloudDBInstance      = "alicloud_db_instance"
 	alicloudDBConnection    = "alicloud_db_connection"
 	alicloudRDSAccount      = "alicloud_rds_account"
-	defaultAlicloudProvider = "registry.terraform.io/aliyun/alicloud/1.209.0"
+	defaultAlicloudProvider = "registry.terraform.io/aliyun/alicloud/1.209.1"
 )
 
 var (
@@ -61,7 +62,7 @@ func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spe
 	// Build alicloud_db_connection for alicloud_db_instance.
 	var alicloudDBConnectionID string
 	if isPublicAccessible(db.SecurityIPs) {
-		alicloudDBConnectionID, r = g.generateAlicloudDBConnection(alicloudDBInstanceID, alicloudProviderRegion, alicloudProvider, db)
+		alicloudDBConnectionID, r = g.generateAlicloudDBConnection(alicloudDBInstanceID, alicloudProviderRegion, alicloudProvider)
 		spec.Resources = append(spec.Resources, r)
 	}
 
@@ -84,8 +85,10 @@ func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spe
 	return g.generateDBSecret(hostAddress, db.Username, password, spec)
 }
 
-func (g *databaseGenerator) generateAlicloudDBInstance(region string,
-	provider *models.Provider, db *database.Database,
+func (g *databaseGenerator) generateAlicloudDBInstance(
+	region string,
+	provider *models.Provider,
+	db *database.Database,
 ) (string, models.Resource) {
 	dbAttrs := map[string]interface{}{
 		"category":         db.Category,
@@ -125,8 +128,9 @@ func (g *databaseGenerator) generateAlicloudDBInstance(region string,
 	return id, appconfiguration.TerraformResource(id, nil, dbAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateAlicloudDBConnection(dbInstanceID, region string,
-	provider *models.Provider, db *database.Database,
+func (g *databaseGenerator) generateAlicloudDBConnection(
+	dbInstanceID, region string,
+	provider *models.Provider,
 ) (string, models.Resource) {
 	dbConnectionAttrs := map[string]interface{}{
 		"instance_id": appconfiguration.KusionPathDependency(dbInstanceID, "id"),
@@ -140,8 +144,8 @@ func (g *databaseGenerator) generateAlicloudDBConnection(dbInstanceID, region st
 	return id, appconfiguration.TerraformResource(id, nil, dbConnectionAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateAlicloudRDSAccount(accountName, randomPasswordID, dbInstanceID, region string,
-	provider *models.Provider, db *database.Database,
+func (g *databaseGenerator) generateAlicloudRDSAccount(
+	accountName, randomPasswordID, dbInstanceID, region string, provider *models.Provider, db *database.Database,
 ) models.Resource {
 	rdsAccountAttrs := map[string]interface{}{
 		"account_name":     accountName,
