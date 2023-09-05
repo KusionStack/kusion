@@ -72,13 +72,13 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
 	var result *kcl.KCLResultList
-	if _, pkgerr := api.GetKclPackage(o.WorkDir); pkgerr == nil {
+	if o.IsKclPkg {
 		result, err = api.RunPkg(&opt.CompileOptions{
 			Option: kclpkg.NewOption().Merge(optList...),
 		})
 	} else {
 		// call kcl run
-		log.Warnf("The current directory is not a KCL Package, use kcl run instead. Cause: %s", err.Error())
+		log.Debug("The current directory is not a KCL Package, use kcl run instead")
 		result, err = kcl.RunFiles(o.Filenames, optList...)
 	}
 	if err != nil {
