@@ -1,0 +1,8 @@
+[dependencies]
+  [dependencies.catalog]
+    name = "catalog"
+    full_name = "catalog_0.1.0"
+    version = "0.1.0"
+    sum = "9nAzXsUVVbIJieEc+8x97Sb7AxfdU7RyEm5mNYLTP3M="
+    url = "https://github.com/KusionStack/catalog.git"
+    git_tag = "0.1.0"

@@ -39,6 +39,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.7
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.1
 	github.com/pterm/pterm v0.12.60
 	github.com/pulumi/pulumi/sdk/v3 v3.68.0
 	github.com/sergi/go-diff v1.2.0
@@ -58,6 +59,7 @@ require (
 	k8s.io/client-go v0.27.2
 	k8s.io/component-base v0.27.2
 	k8s.io/kubectl v0.27.1
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	kcl-lang.io/kcl-go v0.5.4
 	kcl-lang.io/kcl-plugin v0.5.0
 	kusionstack.io/kube-api v0.0.0-20230817144216-4714955f3801
@@ -204,7 +206,6 @@ require (
 	github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/powerman/rpc-codec v1.2.2 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.1 // indirect
 	github.com/qri-io/jsonpointer v0.1.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
@@ -254,7 +255,6 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	kcl-lang.io/kcl-artifact-go v0.5.6 // indirect
 	lukechampine.com/frand v1.4.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

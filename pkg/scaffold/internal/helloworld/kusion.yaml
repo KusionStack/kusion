@@ -1,0 +1,22 @@
+projectName: helloworld
+description: A minimal kusion project of single stack
+quickstart: kusion apply
+projectFields:
+  # base/base.k
+  - name: AppName
+    description: application name
+    type: string
+    default: nginx
+  # project.yaml
+  - name: ProjectName
+    description: project name
+    type: string
+    default: helloworld
+stacks:
+  - name: dev
+    fields:
+      # stack/main.k
+      - name: Image
+        description: The Image Address. Default to 'nginx'
+        type: string
+        default: nginx
