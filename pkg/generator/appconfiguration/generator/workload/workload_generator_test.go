@@ -8,6 +8,7 @@ import (
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
@@ -25,8 +26,9 @@ func TestNewWorkloadGenerator(t *testing.T) {
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
 		expectedMonitoring := &monitoring.Monitor{}
+		expectedOpsRule := &trait.OpsRule{}
 
-		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring)
+		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring, expectedOpsRule)
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.NotNil(t, actualGenerator, "Generator should not be nil")
@@ -48,8 +50,9 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
 		expectedMonitoring := &monitoring.Monitor{}
+		expectedOpsRule := &trait.OpsRule{}
 
-		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring)
+		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring, expectedOpsRule)
 		actualGenerator, err := generatorFunc()
 
 		assert.NoError(t, err, "Error should be nil")
@@ -118,8 +121,9 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			expectedAppName := "test"
 			expectedMonitoring := &monitoring.Monitor{}
 			expectedMonitoringAnnotations := map[string]string{"prometheus.io/path": "", "prometheus.io/port": "", "prometheus.io/scheme": "", "prometheus.io/scrape": "true"}
+			expectedOpsRule := &trait.OpsRule{}
 
-			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedMonitoring)
+			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedMonitoring, expectedOpsRule)
 			spec := &models.Spec{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")

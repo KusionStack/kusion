@@ -17,6 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -29,6 +30,7 @@ type workloadGenerator struct {
 	appName    string
 	workload   *workload.Workload
 	monitoring *monitoring.Monitor
+	opsRule    *trait.OpsRule
 }
 
 func NewWorkloadGenerator(
@@ -37,6 +39,7 @@ func NewWorkloadGenerator(
 	appName string,
 	workload *workload.Workload,
 	monitoring *monitoring.Monitor,
+	opsRule *trait.OpsRule,
 ) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -48,6 +51,7 @@ func NewWorkloadGenerator(
 		appName:    appName,
 		workload:   workload,
 		monitoring: monitoring,
+		opsRule:    opsRule,
 	}, nil
 }
 
@@ -57,9 +61,10 @@ func NewWorkloadGeneratorFunc(
 	appName string,
 	workload *workload.Workload,
 	monitoring *monitoring.Monitor,
+	opsRule *trait.OpsRule,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadGenerator(project, stack, appName, workload, monitoring)
+		return NewWorkloadGenerator(project, stack, appName, workload, monitoring, opsRule)
 	}
 }
 
@@ -73,7 +78,7 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 
 		switch g.workload.Header.Type {
 		case workload.TypeService:
-			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.monitoring))
+			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.monitoring, g.opsRule))
 		case workload.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job))
 		}

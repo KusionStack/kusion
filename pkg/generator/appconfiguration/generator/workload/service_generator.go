@@ -8,10 +8,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload/network"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
+	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
@@ -23,6 +25,7 @@ type workloadServiceGenerator struct {
 	appName    string
 	service    *workload.Service
 	monitoring *monitoring.Monitor
+	opsRule    *trait.OpsRule
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
@@ -32,6 +35,7 @@ func NewWorkloadServiceGenerator(
 	appName string,
 	service *workload.Service,
 	monitoring *monitoring.Monitor,
+	opsRule *trait.OpsRule,
 ) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -51,6 +55,7 @@ func NewWorkloadServiceGenerator(
 		appName:    appName,
 		service:    service,
 		monitoring: monitoring,
+		opsRule:    opsRule,
 	}, nil
 }
 
@@ -61,9 +66,10 @@ func NewWorkloadServiceGeneratorFunc(
 	appName string,
 	service *workload.Service,
 	monitoring *monitoring.Monitor,
+	opsRule *trait.OpsRule,
 ) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
-		return NewWorkloadServiceGenerator(project, stack, appName, service, monitoring)
+		return NewWorkloadServiceGenerator(project, stack, appName, service, monitoring, opsRule)
 	}
 }
 
@@ -162,14 +168,24 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 			APIVersion: appsv1.SchemeGroupVersion.String(),
 			Kind:       workload.TypeDeploy,
 		}
+		spec := appsv1.DeploymentSpec{
+			Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
+			Selector: &metav1.LabelSelector{MatchLabels: selector},
+			Template: podTemplateSpec,
+		}
+		if g.opsRule != nil && g.opsRule.MaxUnavailable != "" {
+			maxUnavailable := intstr.Parse(g.opsRule.MaxUnavailable)
+			spec.Strategy = appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateDeployment{
+					MaxUnavailable: &maxUnavailable,
+				},
+			}
+		}
 		resource = &appsv1.Deployment{
 			TypeMeta:   typeMeta,
 			ObjectMeta: objectMeta,
-			Spec: appsv1.DeploymentSpec{
-				Replicas: appconfiguration.GenericPtr(int32(service.Replicas)),
-				Selector: &metav1.LabelSelector{MatchLabels: selector},
-				Template: podTemplateSpec,
-			},
+			Spec:       spec,
 		}
 	case workload.TypeCollaset:
 		typeMeta = metav1.TypeMeta{
