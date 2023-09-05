@@ -78,6 +78,7 @@ func (o *Options) Run() error {
 	}
 
 	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
+		IsKclPkg:    o.IsKclPkg,
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,
@@ -101,7 +102,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return err
 	}
-	if o.Output == Stdout {
+	if o.Output == Stdout || o.Output == "" {
 		fmt.Print(string(yaml))
 	} else {
 		if o.WorkDir != "" {
