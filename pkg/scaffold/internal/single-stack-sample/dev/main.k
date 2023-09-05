@@ -1,23 +1,20 @@
 import catalog.models.schema.v1 as ac
-import catalog.models.schema.v1.trait as t
 import catalog.models.schema.v1.workload as wl
-import catalog.models.schema.v1.workload.container as c
-import catalog.models.schema.v1.workload.container.probe as p
-import catalog.models.schema.v1.workload.secret as sec
 import catalog.models.schema.v1.workload.network as n
+import catalog.models.schema.v1.workload.container as c
 
-# base.k declares reuseable configurations for all stacks.
 {{ .AppName }}: ac.AppConfiguration {
     workload: wl.Service {
         containers: {
             "{{ .AppName }}": c.Container {
+                image = "{{ .Image }}"
                 resources: {
-                    "cpu": "2"
-                    "memory": "4Gi"
+                    "cpu": "500m"
+                    "memory": "512Mi"
                 }
             }
         }
-        replicas: 2
+        replicas: 1
         ports: [
             n.Port {
                 port: 80
@@ -25,4 +22,3 @@ import catalog.models.schema.v1.workload.network as n
         ]
     }
 }
-
