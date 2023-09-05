@@ -235,7 +235,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: prior, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
-			log.Debugf("delete resource:%s, resource: %v", planed.ID, s.String())
+			log.Debugf("delete resource:%s, resource: %v", prior.ID, s.String())
 		}
 	case opsmodels.UnChanged:
 		log.Infof("planed resource and live resource are equal")
