@@ -380,7 +380,7 @@ func (w *Walker) walkVertex(v Vertex, info *walkerVertex) {
 	if depsSuccess {
 		diags = w.Callback(v)
 	} else {
-		log.Info("[TRACE] dag/walk: upstream of %q errored, so skipping", VertexName(v))
+		log.Infof("[TRACE] dag/walk: upstream of %s errored, so skipping", VertexName(v))
 		// This won't be displayed to the user because we'll set upstreamFailed,
 		// but we need to ensure there's at least one error in here so that
 		// the failures will cascade downstream.
@@ -426,8 +426,7 @@ func (w *Walker) waitDeps(
 				return
 
 			case <-time.After(time.Second * 5):
-				log.Info("[TRACE] dag/walk: vertex %q is waiting for %q",
-					VertexName(v), VertexName(dep))
+				log.Infof("[TRACE] dag/walk: vertex %s is waiting for %s", VertexName(v), VertexName(dep))
 			}
 		}
 	}
