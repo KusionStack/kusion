@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"kusionstack.io/kusion/pkg/models"
 	appmodule "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
@@ -85,30 +86,32 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 			},
 			wantErr: false,
 			exp: &models.Spec{
-				Resources: []models.Resource{
-					{
+				Resources: models.Resources{
+					models.Resource{
 						ID:   "apps.kusionstack.io/v1alpha1:RuleSet:default:default-dev-foo",
 						Type: "Kubernetes",
 						Attributes: map[string]interface{}{
 							"apiVersion": "apps.kusionstack.io/v1alpha1",
 							"kind":       "RuleSet",
 							"metadata": map[string]interface{}{
-								"creationTimestamp": nil,
+								"creationTimestamp": interface{}(nil),
 								"name":              "default-dev-foo",
 								"namespace":         "default",
 							},
 							"spec": map[string]interface{}{
+								"rules": []interface{}{map[string]interface{}{
+									"availablePolicy": map[string]interface{}{
+										"maxUnavailableValue": "30%",
+									},
+									"name": "maxUnavailable",
+								}},
 								"selector": map[string]interface{}{
 									"matchLabels": map[string]interface{}{
-										"app.kubernetes.io/name":    "foo",
-										"app.kubernetes.io/part-of": "default",
+										"app.kubernetes.io/name": "foo", "app.kubernetes.io/part-of": "default",
 									},
 								},
-							},
-							"status": map[string]interface{}{},
-						},
-						DependsOn:  nil,
-						Extensions: nil,
+							}, "status": map[string]interface{}{},
+						}, DependsOn: []string(nil), Extensions: map[string]interface{}(nil),
 					},
 				},
 			},
