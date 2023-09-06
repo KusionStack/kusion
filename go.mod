@@ -15,7 +15,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/didi/gendry v1.7.0
 	github.com/djherbis/times v1.5.0
-	github.com/elliotxx/kpm v0.1.1
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/go-git/go-git/v5 v5.8.1
 	github.com/go-sql-driver/mysql v1.6.0
@@ -63,7 +62,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	kcl-lang.io/kcl-go v0.5.6
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.3.4
+	kcl-lang.io/kpm v0.3.5
 	kusionstack.io/kube-api v0.0.0-20230817144216-4714955f3801
 	sigs.k8s.io/controller-runtime v0.15.1
 	sigs.k8s.io/kustomize/kyaml v0.14.1

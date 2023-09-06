@@ -10,11 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	// TODO: workarounds for kcl-lang.io/kpm/pkg/api
-	"github.com/elliotxx/kpm/pkg/api"
 	kcl "kcl-lang.io/kcl-go"
 	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
+	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/opt"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
@@ -73,7 +72,7 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 
 	var result *kcl.KCLResultList
 	if o.IsKclPkg {
-		result, err = api.RunPkg(&opt.CompileOptions{
+		result, err = api.RunCurrentPkg(&opt.CompileOptions{
 			Option: kclpkg.NewOption().Merge(optList...),
 		})
 	} else {
