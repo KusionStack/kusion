@@ -312,10 +312,15 @@ func httpGetAction(urlstr string, headers map[string]string) (*corev1.HTTPGetAct
 		})
 	}
 
+	host := u.Hostname()
+	if host == "localhost" || host == "127.0.0.1" {
+		host = ""
+	}
+
 	return &corev1.HTTPGetAction{
 		Path:        u.Path,
 		Port:        intstr.Parse(u.Port()),
-		Host:        u.Hostname(),
+		Host:        host,
 		Scheme:      corev1.URIScheme(strings.ToUpper(u.Scheme)),
 		HTTPHeaders: httpHeaders,
 	}, nil

@@ -266,7 +266,7 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Equal(t, "HTTP", string(actualContainers[0].ReadinessProbe.HTTPGet.Scheme), "HTTPGet.Scheme mismatch")
 		assert.Equal(t, "/readiness", actualContainers[0].ReadinessProbe.HTTPGet.Path, "HTTPGet.Path mismatch")
 		assert.Equal(t, "8080", actualContainers[0].ReadinessProbe.HTTPGet.Port.String(), "HTTPGet.Port mismatch")
-		assert.Equal(t, "localhost", actualContainers[0].ReadinessProbe.HTTPGet.Host, "HTTPGet.Host mismatch")
+		assert.Equal(t, "", actualContainers[0].ReadinessProbe.HTTPGet.Host, "HTTPGet.Host mismatch")
 		assert.Equal(t, 1, len(actualContainers[0].ReadinessProbe.HTTPGet.HTTPHeaders), "HTTPGet.HTTPHeaders length mismatch")
 
 		assert.NotNil(t, actualContainers[0].LivenessProbe, "LivenessProbe should not be nil")
@@ -323,7 +323,7 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Equal(t, "HTTP", string(actualContainers[0].Lifecycle.PostStart.HTTPGet.Scheme), "PostStart.HTTPGet.Scheme mismatch")
 		assert.Equal(t, "/readiness", actualContainers[0].Lifecycle.PostStart.HTTPGet.Path, "PostStart.HTTPGet.Path mismatch")
 		assert.Equal(t, "8080", actualContainers[0].Lifecycle.PostStart.HTTPGet.Port.String(), "PostStart.HTTPGet.Port mismatch")
-		assert.Equal(t, "localhost", actualContainers[0].Lifecycle.PostStart.HTTPGet.Host, "PostStart.HTTPGet.Host mismatch")
+		assert.Equal(t, "", actualContainers[0].Lifecycle.PostStart.HTTPGet.Host, "PostStart.HTTPGet.Host mismatch")
 		assert.Equal(t, 1, len(actualContainers[0].Lifecycle.PostStart.HTTPGet.HTTPHeaders), "PostStart.HTTPGet.HTTPHeaders length mismatch")
 	})
 }
