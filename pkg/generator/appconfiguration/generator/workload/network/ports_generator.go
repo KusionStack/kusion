@@ -19,9 +19,10 @@ const (
 	suffixPublic   = "public"
 	suffixPrivate  = "private"
 
-	// aliyun SLB annotations, ref: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/add-annotations-to-the-yaml-file-of-a-service-to-configure-clb-instances?spm=a2c4g.11186623.0.0.59e26219ESUbqe
+	// aliyun SLB annotations, ref: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/add-annotations-to-the-yaml-file-of-a-service-to-configure-clb-instances
 	aliyunLBSpec     = "service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec"
 	aliyunSLBS1Small = "slb.s1.small"
+	kusionControl    = "kusionstack.io/control"
 )
 
 var (
@@ -29,7 +30,6 @@ var (
 	ErrEmptyProjectName      = errors.New("project name must not be empty")
 	ErrEmptyStackName        = errors.New("stack name must not be empty")
 	ErrEmptySelectors        = errors.New("selectors must not be empty")
-	ErrEmptyPorts            = errors.New("ports must not be empty")
 	ErrInvalidPort           = errors.New("port must be between 1 and 65535")
 	ErrInvalidTargetPort     = errors.New("targetPort must be between 1 and 65535 if exist")
 	ErrInvalidProtocol       = errors.New("protocol must be TCP or UDP")
@@ -163,16 +163,13 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 
 		// only support Aliyun SLB for now, and set SLB spec by default.
 		svc.Annotations[aliyunLBSpec] = aliyunSLBS1Small
+		svc.Labels[kusionControl] = "true"
 	}
 
 	return svc
 }
 
 func validatePorts(ports []network.Port) error {
-	if len(ports) == 0 {
-		return ErrEmptyPorts
-	}
-
 	portProtocolRecord := make(map[string]struct{})
 	for _, port := range ports {
 		if err := validatePort(&port); err != nil {

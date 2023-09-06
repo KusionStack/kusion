@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
@@ -31,6 +32,7 @@ metadata:
     labels:
         app.kubernetes.io/name: foo
         app.kubernetes.io/part-of: default
+        kusionstack.io/control: "true"
     name: default-dev-foo-public
     namespace: default
 spec:
