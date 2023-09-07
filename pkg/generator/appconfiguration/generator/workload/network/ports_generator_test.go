@@ -175,7 +175,8 @@ func TestPortsGenerator_Generate(t *testing.T) {
 			Name:      "testProject-testStack-testApp-public",
 			Namespace: "testProject",
 			Labels: map[string]string{
-				"test-l-key": "test-l-value",
+				"test-l-key":  "test-l-value",
+				kusionControl: "true",
 			},
 			Annotations: map[string]string{
 				"test-a-key": "test-a-value",
