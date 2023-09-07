@@ -45,6 +45,10 @@ func NewOpsRuleGeneratorFunc(
 }
 
 func (g *opsRuleGenerator) Generate(spec *models.Spec) error {
+	if g.app.OpsRule == nil {
+		return nil
+	}
+
 	if g.app.Workload.Header.Type != workload.TypeService {
 		return nil
 	}
