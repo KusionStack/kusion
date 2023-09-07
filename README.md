@@ -35,7 +35,7 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 
 <div align="center">
 
-![arch](docs/arch.png)
+![workflow](docs/workflow.png)
 </div>
 
 ## Quick Start
@@ -46,12 +46,6 @@ Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecas
 App with one Kusion command
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
-
-### Demo Video
-
-<a href="http://www.youtube.com/watch?v=QHzKKsoKLQ0" target="_blank">
- <img src="http://img.youtube.com/vi/QHzKKsoKLQ0/sddefault.jpg" alt="Watch the video" width="512" height="384" border="1" />
-</a>
 
 ## Installation
 
