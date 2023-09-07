@@ -31,7 +31,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 <div align="center">
 
-![arch](docs/arch.png)
+![workflow](docs/workflow.png)
 </div>
 
 ## 快速开始
@@ -42,12 +42,6 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 部署您的第一个应用
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
-
-### 演示视频
-
-<a href="http://www.youtube.com/watch?v=QHzKKsoKLQ0" target="_blank">
- <img src="http://img.youtube.com/vi/QHzKKsoKLQ0/sddefault.jpg" alt="Watch the video" width="512" height="384" border="1" />
-</a>
 
 ## 安装
 
