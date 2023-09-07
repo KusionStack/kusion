@@ -19,7 +19,7 @@ import (
 
 const (
 	templateDir  = "internal"
-	templateName = "deployment-single-stack"
+	templateName = "single-stack-sample"
 )
 
 var (
@@ -30,29 +30,23 @@ var (
 	}
 	localTemplate = Template{
 		Dir:  filepath.Join(localRoot, templateName),
-		Name: "deployment-single-stack",
+		Name: "single-stack-sample",
 		ProjectTemplate: &ProjectTemplate{
-			ProjectName: "my-app",
+			ProjectName: "single-stack-sample",
 			Description: "A minimal kusion project of single stack",
-			Quickstart:  "kusion compile main.k -Y ci-test/settings.yaml",
+			Quickstart:  "kusion apply",
 			ProjectFields: []*FieldTemplate{
 				{
-					Name:        "ServiceName",
-					Description: "service name",
+					Name:        "AppName",
+					Description: "The Application Name.",
 					Type:        StringField,
-					Default:     "frontend-svc",
-				},
-				{
-					Name:        "NodePort",
-					Description: "node port",
-					Type:        IntField,
-					Default:     30000,
+					Default:     "nginx",
 				},
 				{
 					Name:        "ProjectName",
-					Description: "project name",
+					Description: "The Project Name.",
 					Type:        StringField,
-					Default:     "my-app",
+					Default:     "helloworld",
 				},
 			},
 			StackTemplates: []*StackTemplate{
@@ -60,22 +54,10 @@ var (
 					Name: "dev",
 					Fields: []*FieldTemplate{
 						{
-							Name:        "Stack",
-							Description: "stack env. One of dev,test,stable,pre,sim,gray,prod.",
-							Type:        StringField,
-							Default:     "dev",
-						},
-						{
 							Name:        "Image",
-							Description: "The Image Address. Default to 'gcr.io/google-samples/gb-frontend:v4'",
+							Description: "The Image Address. Default to 'nginx'.",
 							Type:        StringField,
-							Default:     "gcr.io/google-samples/gb-frontend:v4",
-						},
-						{
-							Name:        "ClusterName",
-							Description: "The Cluster Name. Default to 'kubernetes-dev'",
-							Type:        StringField,
-							Default:     "kubernetes-dev",
+							Default:     "nginx",
 						},
 					},
 				},
@@ -132,7 +114,7 @@ func TestLoadTemplate(t *testing.T) {
 		{
 			name: "deployment",
 			args: args{
-				path: "internal/deployment-single-stack",
+				path: "internal/single-stack-sample",
 			},
 			want: localTemplate,
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
@@ -279,7 +261,7 @@ func Test_RenderMemTemplateFiles(t *testing.T) {
 	prj := "test-proj"
 	srcFS, _ := Transfer(GetInternalTemplates())
 	err := RenderFSTemplate(
-		srcFS, "internal/deployment-single-stack",
+		srcFS, "internal/single-stack-sample",
 		memMapFs, prj,
 		&TemplateConfig{
 			ProjectName: prj,

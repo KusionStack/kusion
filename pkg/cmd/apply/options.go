@@ -66,6 +66,7 @@ func (o *Options) Run() error {
 	}
 
 	options := &generator.Options{
+		IsKclPkg:    o.IsKclPkg,
 		WorkDir:     o.WorkDir,
 		Filenames:   o.Filenames,
 		Settings:    o.Settings,

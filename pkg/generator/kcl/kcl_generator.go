@@ -11,8 +11,10 @@ import (
 	"strings"
 
 	kcl "kcl-lang.io/kcl-go"
+	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
-
+	"kcl-lang.io/kpm/pkg/api"
+	"kcl-lang.io/kpm/pkg/opt"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/kcl/rest"
@@ -65,12 +67,19 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 	if err != nil {
 		return nil, err
 	}
-
 	log.Debugf("Compile filenames: %v", o.Filenames)
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
-	// call kcl run
-	result, err := kcl.RunFiles(o.Filenames, optList...)
+	var result *kcl.KCLResultList
+	if o.IsKclPkg {
+		result, err = api.RunCurrentPkg(&opt.CompileOptions{
+			Option: kclpkg.NewOption().Merge(optList...),
+		})
+	} else {
+		// call kcl run
+		log.Debug("The current directory is not a KCL Package, use kcl run instead")
+		result, err = kcl.RunFiles(o.Filenames, optList...)
+	}
 	if err != nil {
 		return nil, err
 	}

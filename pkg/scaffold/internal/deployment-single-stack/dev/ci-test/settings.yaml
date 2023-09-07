@@ -1,3 +1,0 @@
-kcl_options:
-  - key: cluster
-    value: {{.ClusterName}}

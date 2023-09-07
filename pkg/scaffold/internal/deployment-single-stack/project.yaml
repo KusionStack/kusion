@@ -1,2 +1,0 @@
-# The project basic info
-name: {{ .ProjectName }}

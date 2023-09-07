@@ -81,18 +81,15 @@ func Test_readIntoFS(t *testing.T) {
 	assert.Nil(t, err)
 
 	want := []string{
-		"internal/deployment-single-stack",
-		"internal/deployment-single-stack/README.md",
-		"internal/deployment-single-stack/base",
-		"internal/deployment-single-stack/base/base.k",
-		"internal/deployment-single-stack/dev",
-		"internal/deployment-single-stack/dev/ci-test",
-		"internal/deployment-single-stack/dev/ci-test/settings.yaml",
-		"internal/deployment-single-stack/dev/kcl.yaml",
-		"internal/deployment-single-stack/dev/main.k",
-		"internal/deployment-single-stack/dev/stack.yaml",
-		"internal/deployment-single-stack/kusion.yaml",
-		"internal/deployment-single-stack/project.yaml",
+		"internal/single-stack-sample",
+		"internal/single-stack-sample/README.md",
+		"internal/single-stack-sample/dev",
+		"internal/single-stack-sample/dev/kcl.mod",
+		"internal/single-stack-sample/dev/kcl.mod.lock",
+		"internal/single-stack-sample/dev/main.k",
+		"internal/single-stack-sample/dev/stack.yaml",
+		"internal/single-stack-sample/kusion.yaml",
+		"internal/single-stack-sample/project.yaml",
 	}
 	assert.Equal(t, want, got)
 }
