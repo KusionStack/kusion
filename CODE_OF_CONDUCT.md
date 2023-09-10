@@ -71,6 +71,7 @@ This Code of Conduct is adapted from the,code of convenant available at https://
 
 Community Impact Guidelines were inspired by https://github.com/mozilla/diversity.
 
+For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
 ## Conclusion
 
 By participating in this project, you agree to adhere to this Code of Conduct. We are committed to fostering a welcoming and inclusive community for all, and we appreciate your help in achieving this goal. Together, we can make this open-source project a positive and productive space for everyone.
