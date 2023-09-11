@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - main
-      - fix-e2e-bug
   pull_request:
     branches:
       - main
-      - fix-e2e-bug
 jobs:
   e2e:
     name: e2e test
