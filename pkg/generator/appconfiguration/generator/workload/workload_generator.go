@@ -347,11 +347,11 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 	err error,
 ) {
 	var idx int
-	for k, v := range c.Files {
+	err = appconfiguration.ForeachOrdered(c.Files, func(k string, v container.FileSpec) error {
+		// for k, v := range c.Files {
 		// The declared file path needs to include the file name.
 		if filepath.Base(k) == "." || filepath.Base(k) == "/" {
-			err = fmt.Errorf("the declared file path needs to include the file name")
-			return
+			return fmt.Errorf("the declared file path needs to include the file name")
 		}
 
 		// Specify the name of the configMap and volume to be created.
@@ -360,9 +360,8 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 
 		// Change the mode attribute from string into int32.
 		var modeInt32 int32
-		var modeInt64 int64
-		if modeInt64, err = strconv.ParseInt(v.Mode, 0, 64); err != nil {
-			return
+		if modeInt64, err2 := strconv.ParseInt(v.Mode, 0, 64); err2 != nil {
+			return err2
 		} else {
 			modeInt32 = int32(modeInt64)
 		}
@@ -403,6 +402,7 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 				MountPath: filepath.Dir(k),
 			})
 		}
-	}
+		return nil
+	})
 	return
 }
