@@ -51,7 +51,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig")
 			output, err := ExecKusionWithWorkDir("kusion deps --focus code-city/dev/main.k", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("kusion_models"))
+			gomega.Expect(output).To(gomega.ContainSubstring("catalog/models/schema/v1"))
 		})
 	})
 })
@@ -77,7 +77,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.AppsV1().Deployments("code-city").Get(context.TODO(), "code-citydev", metav1.GetOptions{})
+				_, err := clusterClient.AppsV1().Deployments("gocity").Get(context.TODO(), "gocity-dev-gocity", metav1.GetOptions{})
 				return err == nil
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
@@ -95,7 +95,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "code-city", metav1.GetOptions{})
+				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "gocity", metav1.GetOptions{})
 				return apierrors.IsNotFound(err)
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
