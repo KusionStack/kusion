@@ -77,7 +77,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.AppsV1().Deployments("code-city").Get(context.TODO(), "code-citydev", metav1.GetOptions{})
+				_, err := clusterClient.AppsV1().Deployments("gocity").Get(context.TODO(), "gocity-dev-gocity", metav1.GetOptions{})
 				return err == nil
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
