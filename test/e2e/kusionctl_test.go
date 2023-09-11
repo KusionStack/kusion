@@ -51,7 +51,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig")
 			output, err := ExecKusionWithWorkDir("kusion deps --focus code-city/dev/main.k", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("kusion_models"))
+			gomega.Expect(output).To(gomega.ContainSubstring("catalog/models/schema/v1"))
 		})
 	})
 })
