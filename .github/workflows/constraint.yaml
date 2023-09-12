@@ -36,6 +36,6 @@ jobs:
           disallowed_prefixes: 'WIP,[WIP]' # title should not start with the given prefix
           prefix_case_sensitive: false # title prefix are case insensitive
           min_length: 5 # Min length of the title
-          max_length: 80 # Max length of the title
+          max_length: 256 # Max length of the title
           github_token: ${{ github.token }} # Default: ${{ github.token }}
 
