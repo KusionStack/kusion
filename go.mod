@@ -62,7 +62,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	kcl-lang.io/kcl-go v0.6.0-alpha.1
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.3.5
+	kcl-lang.io/kpm v0.3.6
 	kusionstack.io/kube-api v0.0.0-20230817144216-4714955f3801
 	sigs.k8s.io/controller-runtime v0.15.1
 	sigs.k8s.io/kustomize/kyaml v0.14.1
@@ -150,6 +150,7 @@ require (
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
