@@ -172,8 +172,7 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 			svc.Annotations = make(map[string]string)
 		}
 		portType := ports[0].Type
-		switch portType {
-		case network.CSPAliyun:
+		if portType == network.CSPAliyun {
 			// for aliyun, set SLB spec by default.
 			svc.Annotations[aliyunLBSpec] = aliyunSLBS1Small
 		}
@@ -205,11 +204,10 @@ func validatePort(port *network.Port, portType *string) error {
 		if port.Type != network.CSPAliyun && port.Type != network.CSPAWS {
 			return ErrUnsupportedType
 		}
-		if *portType != "" && port.Type != *portType {
+		if *portType == "" {
+			*portType = port.Type
+		} else if port.Type != *portType {
 			return ErrInconsistentType
-		} else if *portType == "" {
-			pType := port.Type
-			portType = &pType
 		}
 	}
 	if port.Port < 1 || port.Port > 65535 {
