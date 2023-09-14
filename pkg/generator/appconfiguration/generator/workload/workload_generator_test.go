@@ -80,6 +80,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 					Type: "Deployment",
 					Ports: []network.Port{
 						{
+							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,

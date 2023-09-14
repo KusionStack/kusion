@@ -171,6 +171,7 @@ status: {}
 					Type: "CollaSet",
 					Ports: []network.Port{
 						{
+							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -215,6 +216,7 @@ status: {}
 					Type: "Deployment",
 					Ports: []network.Port{
 						{
+							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
