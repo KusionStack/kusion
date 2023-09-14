@@ -120,6 +120,9 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 		return nil, err
 	}
 
+	// TODO: here we use decoder in yaml.v3 to parse resources because it converts
+	// map into map[string]interface{} by default which is inconsistent with yaml.v2.
+	// The use of yaml.v2 and yaml.v3 should be unified in the future.
 	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
 	var resources models.Resources
