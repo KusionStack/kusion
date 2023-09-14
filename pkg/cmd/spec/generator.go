@@ -103,6 +103,9 @@ func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[strin
 
 	log.Debugf("unmarshal %s to app configs", out)
 	appConfigs := map[string]appmodel.AppConfiguration{}
+
+	// Note: we use the type of MapSlice in yaml.v2 to maintain the order of container
+	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
 	err = yaml.Unmarshal([]byte(out), appConfigs)
 	if err != nil {
 		return nil, err
