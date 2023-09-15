@@ -112,16 +112,13 @@ func (g *databaseGenerator) injectSecret(secret *v1.Secret) error {
 		},
 	}
 
-	// Inject the database information into the containers of service workload.
+	// Inject the database information into the containers of service/job workload.
 	if g.workload.Service != nil {
 		for k, v := range g.workload.Service.Containers {
 			v.Env = append(secEnvs, v.Env...)
 			g.workload.Service.Containers[k] = v
 		}
-	}
-
-	// Inject the database information into the containers of job workload.
-	if g.workload.Job != nil {
+	} else if g.workload.Job != nil {
 		for k, v := range g.workload.Job.Containers {
 			v.Env = append(secEnvs, v.Env...)
 			g.workload.Service.Containers[k] = v
