@@ -30,7 +30,7 @@ Here are some things you can do today to get started contributing:
 * Write test coverage
 * Help triage issues
 
-We use [issues](https://github.com/KusionStack/kusion/issues) to track tasks. Choose an existed issue with label `help wanted` is a good choice, or you can open a new issue. Now, Kusion provides three issue templates as follows, please choose one according to your need:
+We use [issues](https://github.com/KusionStack/kusion/issues) to track tasks. Choose an existed issue with label `good first issue` or`help wanted` is a good choice, or you can open a new issue. Now, Kusion provides three issue templates as follows, please choose one according to your need:
 
 * Bug Report: Report a bug encountered while operating Kusion
 * Enhancement Tracking Issue: Provide supporting details for a feature in development
@@ -75,7 +75,7 @@ After the development is completed, commit and push to your own forked repositor
 
 ### Open a Pull Request
 
-[Open a pull request](https://github.com/KusionStack/kusion/pulls) from the develop branch of your forked repository to the main branch of Kusion. You should clearly describe what you do in the PR, and link it to an issue. Besides, the PR title should also follow the commit conventions described above, and must be 5-80 characters in length.
+[Open a pull request](https://github.com/KusionStack/kusion/pulls) from the develop branch of your forked repository to the main branch of Kusion. You should clearly describe what you do in the PR, and link it to an issue. Besides, the PR title should also follow the commit conventions described above, and must be 5-256 characters in length, prefix `WIP` and `[WIP]` is not allowed.
 
 ### Sign CLA
 
