@@ -75,7 +75,7 @@ After the development is completed, commit and push to your own forked repositor
 
 ### Open a Pull Request
 
-[Open a pull request](https://github.com/KusionStack/kusion/pulls) from the develop branch of your forked repository to the main branch of Kusion. You should clearly describe what you do in the PR, and link it to an issue. Besides, the PR title should also follow the commit conventions described above, and must be 5-256 characters in length, prefix `WIP` and `[WIP]` is not allowed.
+[Open a pull request](https://github.com/KusionStack/kusion/pulls) from the develop branch of your forked repository to the main branch of Kusion. You should clearly describe what you do in the PR, and link it to an issue. Besides, the PR title should also follow the commit conventions described above, and must be 5-256 characters in length, prefix `WIP` and `[WIP]` are not allowed.
 
 ### Sign CLA
 
