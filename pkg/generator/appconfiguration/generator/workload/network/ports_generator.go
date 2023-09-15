@@ -187,6 +187,7 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 
 func validatePorts(ports []network.Port) error {
 	portProtocolRecord := make(map[string]struct{})
+	// portType is the correct type for public port, it gets assigned a value when calling validatePort.
 	var portType string
 	for _, port := range ports {
 		if err := validatePort(&port, &portType); err != nil {
