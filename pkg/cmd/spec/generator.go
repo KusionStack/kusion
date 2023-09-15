@@ -9,7 +9,8 @@ import (
 
 	"github.com/acarl005/stripansi"
 	"github.com/pterm/pterm"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/generator"
 	appgenerator "kusionstack.io/kusion/pkg/generator/appconfiguration/generator"
@@ -98,14 +99,14 @@ func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[strin
 		return nil, fmt.Errorf("no AppConfiguration is found in the compile result")
 	}
 
-	out, err := yaml.Marshal(documents[0])
-	if err != nil {
-		return nil, err
-	}
+	out := documents[0].YAMLString()
 
 	log.Debugf("unmarshal %s to app configs", out)
 	appConfigs := map[string]appmodel.AppConfiguration{}
-	err = yaml.Unmarshal(out, appConfigs)
+
+	// Note: we use the type of MapSlice in yaml.v2 to maintain the order of container
+	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
+	err = yaml.Unmarshal([]byte(out), appConfigs)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +120,10 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 		return nil, err
 	}
 
-	decoder := yaml.NewDecoder(bytes.NewBuffer(b))
+	// TODO: here we use decoder in yaml.v3 to parse resources because it converts
+	// map into map[string]interface{} by default which is inconsistent with yaml.v2.
+	// The use of yaml.v2 and yaml.v3 should be unified in the future.
+	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
 	var resources models.Resources
 	if err = decoder.Decode(&resources); err != nil && err != io.EOF {

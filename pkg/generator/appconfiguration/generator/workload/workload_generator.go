@@ -104,8 +104,8 @@ func toOrderedContainers(appContainers map[string]container.Container, uniqueApp
 	if err := appconfiguration.ForeachOrdered(appContainers, func(containerName string, c container.Container) error {
 		// Create a slice of env vars based on the container's env vars.
 		var envs []corev1.EnvVar
-		for k, v := range c.Env {
-			envs = append(envs, *MagicEnvVar(k, v))
+		for _, m := range c.Env {
+			envs = append(envs, *MagicEnvVar(m.Key.(string), m.Value.(string)))
 		}
 
 		resourceRequirements, err := handleResourceRequirementsV1(c.Resources)

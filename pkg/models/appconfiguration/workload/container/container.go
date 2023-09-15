@@ -3,6 +3,8 @@ package container
 import (
 	"encoding/json"
 	"errors"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Container describes how the Application's tasks are expected to be run.
@@ -17,7 +19,7 @@ type Container struct {
 	Args []string `yaml:"args,omitempty" json:"args,omitempty"`
 	// Collection of environment variables to set in the container.
 	// The value of environment variable may be static text or a value from a secret.
-	Env map[string]string `yaml:"env,omitempty" json:"env,omitempty"`
+	Env yaml.MapSlice `yaml:"env,omitempty" json:"env,omitempty"`
 	// The current working directory of the running process defined in entrypoint.
 	WorkingDir string `yaml:"workingDir,omitempty" json:"workingDir,omitempty"`
 	// Resource requirements for this container.

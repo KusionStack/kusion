@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
@@ -154,11 +155,16 @@ func TestToOrderedContainers(t *testing.T) {
 		appContainers := make(map[string]container.Container)
 		appContainers["container1"] = container.Container{
 			Image: "image1",
-			Env:   make(map[string]string),
+			Env:   make(yaml.MapSlice, 0),
 		}
 		appContainers["container2"] = container.Container{
 			Image: "image2",
-			Env:   map[string]string{"key": "value"},
+			Env: yaml.MapSlice{
+				{
+					Key:   "key",
+					Value: "value",
+				},
+			},
 		}
 		appContainers["container3"] = container.Container{
 			Image: "image3",
