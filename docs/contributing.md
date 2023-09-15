@@ -30,7 +30,7 @@ Here are some things you can do today to get started contributing:
 * Write test coverage
 * Help triage issues
 
-After finding an interested task, you need to [open an issue](https://github.com/KusionStack/kusion/issues) to track it. Now, Kusion provides three issue templates as follows, please choose one according to your need:
+We use [issues](https://github.com/KusionStack/kusion/issues) to track tasks. Choose an existed issue with label `help wanted` is a good choice, or you can open a new issue. Now, Kusion provides three issue templates as follows, please choose one according to your need:
 
 * Bug Report: Report a bug encountered while operating Kusion
 * Enhancement Tracking Issue: Provide supporting details for a feature in development
@@ -81,15 +81,7 @@ After the development is completed, commit and push to your own forked repositor
 
 If it was your first pull request, you need to sign our [CLA(Contributor License Agreement)](https://github.com/KusionStack/.github/blob/main/CLA.md). The only thing you need to do is to post a pull request comment same as the below format:
 
----
-
-<!-- MarkdownTOC autolink="true" -->
-
-I have read the CLA Document and I hereby sign the CLA
-
----
-
-<!-- MarkdownTOC autolink="true" -->
+`I have read the CLA Document and I hereby sign the CLA`
 
 If your CLA signature failed, you may find the solutions as below:
 
@@ -104,5 +96,6 @@ To keep the reliability of the Kusion project, the following check will get trig
 * E2E Test
 * Golang Lint
 * Commit Lint
+* PR Title lint
 
 Please make sure your PR passes these checks.
