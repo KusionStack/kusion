@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
@@ -96,21 +97,31 @@ func (g *databaseGenerator) Generate(spec *models.Spec) error {
 }
 
 func (g *databaseGenerator) injectSecret(secret *v1.Secret) error {
-	// Inject the database information into the containers of service workload.
-	if g.workload.Service != nil {
-		for _, v := range g.workload.Service.Containers {
-			v.Env[dbHostAddressEnv] = "secret://" + secret.Name + "/hostAddress"
-			v.Env[dbUsernameEnv] = "secret://" + secret.Name + "/username"
-			v.Env[dbPasswordEnv] = "secret://" + secret.Name + "/password"
-		}
+	secEnvs := yaml.MapSlice{
+		{
+			Key:   dbHostAddressEnv,
+			Value: "secret://" + secret.Name + "/hostAddress",
+		},
+		{
+			Key:   dbUsernameEnv,
+			Value: "secret://" + secret.Name + "/username",
+		},
+		{
+			Key:   dbPasswordEnv,
+			Value: "secret://" + secret.Name + "/password",
+		},
 	}
 
-	// Inject the database information into the containers of job workload.
-	if g.workload.Job != nil {
-		for _, v := range g.workload.Job.Containers {
-			v.Env[dbHostAddressEnv] = "secret://" + secret.Name + "/hostAddress"
-			v.Env[dbUsernameEnv] = "secret://" + secret.Name + "/username"
-			v.Env[dbPasswordEnv] = "secret://" + secret.Name + "/password"
+	// Inject the database information into the containers of service/job workload.
+	if g.workload.Service != nil {
+		for k, v := range g.workload.Service.Containers {
+			v.Env = append(secEnvs, v.Env...)
+			g.workload.Service.Containers[k] = v
+		}
+	} else if g.workload.Job != nil {
+		for k, v := range g.workload.Job.Containers {
+			v.Env = append(secEnvs, v.Env...)
+			g.workload.Service.Containers[k] = v
 		}
 	}
 

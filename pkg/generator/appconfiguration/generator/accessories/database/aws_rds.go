@@ -22,10 +22,15 @@ var (
 )
 
 type awsSecurityGroupTraffic struct {
-	CidrBlocks []string `yaml:"cidr_blocks,omitempty" json:"cidr_blocks,omitempty"`
-	Protocol   string   `yaml:"protocol,omitempty" json:"protoco,omitempty"`
-	FromPort   int      `yaml:"from_port,omitempty" json:"from_port,omitempty"`
-	ToPort     int      `yaml:"to_port,omitempty" json:"to_port,omitempty"`
+	CidrBlocks     []string `yaml:"cidr_blocks" json:"cidr_blocks"`
+	Description    string   `yaml:"description" json:"description"`
+	FromPort       int      `yaml:"from_port" json:"from_port"`
+	IPv6CIDRBlocks []string `yaml:"ipv6_cidr_blocks" json:"ipv6_cidr_blocks"`
+	PrefixListIDs  []string `yaml:"prefix_list_ids" json:"prefix_list_ids"`
+	Protocol       string   `yaml:"protocol" json:"protocol"`
+	SecurityGroups []string `yaml:"security_groups" json:"security_groups"`
+	Self           bool     `yaml:"self" json:"self"`
+	ToPort         int      `yaml:"to_port" json:"to_port"`
 }
 
 func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
@@ -127,7 +132,7 @@ func (g *databaseGenerator) generateAWSDBInstance(region, awsSecurityGroupID, ra
 		"publicly_accessible": isPublicAccessible(db.SecurityIPs),
 		"skip_final_snapshot": true,
 		"username":            db.Username,
-		"vpc_security_groups_ids": []string{
+		"vpc_security_group_ids": []string{
 			appconfiguration.KusionPathDependency(awsSecurityGroupID, "id"),
 		},
 	}
