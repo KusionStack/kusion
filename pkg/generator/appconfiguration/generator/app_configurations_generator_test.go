@@ -88,6 +88,7 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 				Type: "Deployment",
 				Ports: []network.Port{
 					{
+						Type:     network.CSPAliyun,
 						Port:     80,
 						Protocol: "TCP",
 						Public:   true,

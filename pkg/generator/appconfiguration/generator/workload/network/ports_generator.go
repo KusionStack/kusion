@@ -22,7 +22,9 @@ const (
 	// aliyun SLB annotations, ref: https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/add-annotations-to-the-yaml-file-of-a-service-to-configure-clb-instances
 	aliyunLBSpec     = "service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec"
 	aliyunSLBS1Small = "slb.s1.small"
-	kusionControl    = "kusionstack.io/control"
+
+	// the label used for KafeD service controller
+	kusionControl = "kusionstack.io/control"
 )
 
 var (
@@ -30,6 +32,10 @@ var (
 	ErrEmptyProjectName      = errors.New("project name must not be empty")
 	ErrEmptyStackName        = errors.New("stack name must not be empty")
 	ErrEmptySelectors        = errors.New("selectors must not be empty")
+	ErrEmptyPorts            = errors.New("ports must not be empty")
+	ErrEmptyType             = errors.New("type must not be empty when public")
+	ErrUnsupportedType       = errors.New("type only support aliyun and aws for now")
+	ErrInconsistentType      = errors.New("public ports must use same type")
 	ErrInvalidPort           = errors.New("port must be between 1 and 65535")
 	ErrInvalidTargetPort     = errors.New("targetPort must be between 1 and 65535 if exist")
 	ErrInvalidProtocol       = errors.New("protocol must be TCP or UDP")
@@ -113,6 +119,9 @@ func (g *portsGenerator) validate() error {
 	if len(g.selector) == 0 {
 		return ErrEmptySelectors
 	}
+	if len(g.ports) == 0 {
+		return ErrEmptyPorts
+	}
 	if err := validatePorts(g.ports); err != nil {
 		return err
 	}
@@ -157,13 +166,20 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 	}
 
 	if public {
+		if len(svc.Labels) == 0 {
+			svc.Labels = make(map[string]string)
+		}
 		if len(svc.Annotations) == 0 {
 			svc.Annotations = make(map[string]string)
 		}
 
-		// only support Aliyun SLB for now, and set SLB spec by default.
-		svc.Annotations[aliyunLBSpec] = aliyunSLBS1Small
-		svc.Labels[kusionControl] = "true"
+		portType := ports[0].Type
+		if portType == network.CSPAliyun {
+			// for aliyun, set SLB spec by default.
+			svc.Annotations[aliyunLBSpec] = aliyunSLBS1Small
+			// kafeD service controller only support aliyun SLB, automatically add the label.
+			svc.Labels[kusionControl] = "true"
+		}
 	}
 
 	return svc
@@ -171,9 +187,11 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 
 func validatePorts(ports []network.Port) error {
 	portProtocolRecord := make(map[string]struct{})
+	// portType is the correct type for public port, it gets assigned a value when calling validatePort.
+	var portType string
 	for _, port := range ports {
-		if err := validatePort(&port); err != nil {
-			return fmt.Errorf("invalid port config %+v, %v", port, err)
+		if err := validatePort(&port, &portType); err != nil {
+			return fmt.Errorf("invalid port config %+v, %w", port, err)
 		}
 
 		// duplicate "port-protocol" pairs are not allowed.
@@ -186,7 +204,20 @@ func validatePorts(ports []network.Port) error {
 	return nil
 }
 
-func validatePort(port *network.Port) error {
+func validatePort(port *network.Port, portType *string) error {
+	if port.Public {
+		if port.Type == "" {
+			return ErrEmptyType
+		}
+		if port.Type != network.CSPAliyun && port.Type != network.CSPAWS {
+			return ErrUnsupportedType
+		}
+		if *portType == "" {
+			*portType = port.Type
+		} else if port.Type != *portType {
+			return ErrInconsistentType
+		}
+	}
 	if port.Port < 1 || port.Port > 65535 {
 		return ErrInvalidPort
 	}
