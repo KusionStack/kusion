@@ -165,23 +165,6 @@ func TestRetrieveTemplates(t *testing.T) {
 	})
 }
 
-func Test_cleanupLegacyTemplateDir(t *testing.T) {
-	t.Run("repo not exist", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		monkey.Patch(GetTemplateDir, func(subDir string) (string, error) {
-			return os.MkdirTemp("", "tmp-dir-for-test")
-		})
-
-		err = cleanupLegacyTemplateDir()
-		assert.Nil(t, err)
-	})
-
-	t.Run("clean nothing", func(t *testing.T) {
-		err = cleanupLegacyTemplateDir()
-		assert.Nil(t, err)
-	})
-}
-
 func TestValidateProjectName(t *testing.T) {
 	type args struct {
 		s string
