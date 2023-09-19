@@ -9,6 +9,7 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload/network"
 	"kusionstack.io/kusion/pkg/models"
@@ -209,9 +210,11 @@ func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
 	}
 
 	// generate K8s Service from ports config.
-	portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports)
-	if err = appconfiguration.CallGenerators(spec, portsGeneratorFunc); err != nil {
-		return err
+	if len(g.service.Ports) != 0 {
+		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports)
+		if err = appconfiguration.CallGenerators(spec, portsGeneratorFunc); err != nil {
+			return err
+		}
 	}
 
 	return nil

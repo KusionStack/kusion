@@ -110,6 +110,7 @@ func TestPortsGenerator_Generate(t *testing.T) {
 					},
 					ports: []network.Port{
 						{
+							Type:       network.CSPAliyun,
 							Port:       80,
 							TargetPort: 80,
 							Protocol:   "TCP",
