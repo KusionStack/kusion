@@ -18,6 +18,9 @@ type Base struct {
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 
+	// Secret
+	Secrets map[string]Secret `json:"secrets,omitempty" yaml:"secrets,omitempty"`
+
 	// Dirs configures one or more volumes to be mounted to the
 	// specified folder.
 	Dirs map[string]string `json:"dirs,omitempty" yaml:"dirs,omitempty"`
