@@ -78,9 +78,13 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 
 		switch g.workload.Header.Type {
 		case workload.TypeService:
-			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.monitoring, g.opsRule))
+			gfs = append(gfs,
+				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.monitoring, g.opsRule),
+				NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets, g.project.Name))
 		case workload.TypeJob:
-			gfs = append(gfs, NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job))
+			gfs = append(gfs,
+				NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job),
+				NewSecretGeneratorFunc(g.project, g.workload.Job.Secrets, g.project.Name))
 		}
 
 		if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
