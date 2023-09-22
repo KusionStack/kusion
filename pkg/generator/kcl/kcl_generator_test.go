@@ -2,12 +2,12 @@
 package kcl
 
 import (
+	"github.com/bytedance/mockey"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
@@ -19,22 +19,19 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	mockey.PatchConvey("success", t, func() {
 		mockNew(nil)
-		defer monkey.UnpatchAll()
 		err := Init()
 		assert.Nil(t, err)
 	})
-	t.Run("failed", func(t *testing.T) {
+	mockey.PatchConvey("failed", t, func() {
 		mockNew(assert.AnError)
-		defer monkey.UnpatchAll()
 		err := Init()
 		assert.NotNil(t, err)
 	})
 }
 
 func TestGenerateSpec(t *testing.T) {
-	defer monkey.UnpatchAll()
 
 	fakeStack := &projectstack.Stack{
 		StackConfiguration: projectstack.StackConfiguration{
@@ -81,7 +78,7 @@ func TestGenerateSpec(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			if tt.prefunc != nil {
 				tt.prefunc()
 			}
@@ -108,7 +105,7 @@ func TestGenerateSpec(t *testing.T) {
 }
 
 func TestEnableRPC(t *testing.T) {
-	t.Run("t1", func(t *testing.T) {
+	mockey.PatchConvey("t1", t, func() {
 		result := EnableRPC()
 		assert.False(t, result)
 	})
@@ -166,7 +163,7 @@ func Test_normResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			got, err := normResult(tt.args.resp)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("normResult() error = %v, wantErr %v", err, tt.wantErr)
@@ -180,37 +177,35 @@ func Test_normResult(t *testing.T) {
 }
 
 func TestCompileUsingCmd(t *testing.T) {
-	monkey.PatchInstanceMethod(reflect.TypeOf(new(exec.Cmd)), "Run", func(_ *exec.Cmd) error {
+	mockey.Mock(mockey.GetMethod(new(exec.Cmd), "Run")).To(func(_ *exec.Cmd) error {
 		return nil
-	})
-	defer monkey.UnpatchAll()
+	}).Build()
 	_, _, err := CompileUsingCmd([]string{}, "", map[string]string{"a": "b"}, []string{"kcl.yaml"})
 	assert.Nil(t, err)
 }
 
 func TestOverwrite(t *testing.T) {
-	monkey.Patch(kcl.OverrideFile, func(filename string, _, _ []string) (bool, error) {
+	mockey.Mock(kcl.OverrideFile).To(func(filename string, _, _ []string) (bool, error) {
 		return false, nil
-	})
-	defer monkey.UnpatchAll()
+	}).Build()
 	_, err := Overwrite("", []string{})
 	assert.Nil(t, err)
 }
 
 func mockNew(mockErr error) {
-	monkey.Patch(rest.New, func() (*rest.Client, error) {
+	mockey.Mock(rest.New).To(func() (*rest.Client, error) {
 		return nil, mockErr
-	})
+	}).Build()
 }
 
 func mockRunFiles(mockErr error) {
-	monkey.Patch(kcl.RunFiles, func(paths []string, opts ...kcl.Option) (*kcl.KCLResultList, error) {
+	mockey.Mock(kcl.RunFiles).To(func(paths []string, opts ...kcl.Option) (*kcl.KCLResultList, error) {
 		return &kcl.KCLResultList{}, mockErr
-	})
+	}).Build()
 }
 
 func Test_appendCRDs(t *testing.T) {
-	t.Run("append one CRD", func(t *testing.T) {
+	mockey.PatchConvey("append one CRD", t, func() {
 		cs := &CompileResult{}
 		err := appendCRDs("./testdata/crd", cs)
 		assert.Nil(t, err)
@@ -218,7 +213,7 @@ func Test_appendCRDs(t *testing.T) {
 		assert.NotEmpty(t, cs.RawYAMLResult)
 	})
 
-	t.Run("no CRD to append", func(t *testing.T) {
+	mockey.PatchConvey("no CRD to append", t, func() {
 		cs := &CompileResult{}
 		err := appendCRDs("./testdata", cs)
 		assert.Nil(t, err)
@@ -228,12 +223,12 @@ func Test_appendCRDs(t *testing.T) {
 }
 
 func Test_readCRDsIfExists(t *testing.T) {
-	t.Run("read CRDs", func(t *testing.T) {
+	mockey.PatchConvey("read CRDs", t, func() {
 		crds, err := readCRDs("./testdata/crd")
 		assert.Nil(t, err)
 		assert.NotNil(t, crds)
 	})
-	t.Run("no CRDs", func(t *testing.T) {
+	mockey.PatchConvey("no CRDs", t, func() {
 		crds, err := readCRDs("./testdata")
 		assert.Nil(t, err)
 		assert.Nil(t, crds)

@@ -83,7 +83,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 	mockey.PatchConvey(tests[0].name, t, func() {
 		k := &KubernetesRuntime{}
 
-		mockey.Mock(k.Read).To(func(
+		mockey.Mock(mockey.GetMethod(k, "Read")).To(func(
 			k *KubernetesRuntime,
 			ctx context.Context,
 			request *runtime.ReadRequest,
@@ -103,9 +103,9 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 		}
 	})
 
-	t.Run(tests[1].name, t, func() {
+	mockey.PatchConvey(tests[1].name, t, func() {
 		k := &KubernetesRuntime{}
-		mockey.Mock(k.Read).To(func(
+		mockey.Mock(mockey.GetMethod(k, "Read")).To(func(
 			k *KubernetesRuntime,
 			ctx context.Context,
 			request *runtime.ReadRequest,

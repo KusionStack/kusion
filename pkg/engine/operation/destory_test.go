@@ -9,10 +9,8 @@ import (
 	"fmt"
 	"github.com/bytedance/mockey"
 	"path/filepath"
-	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -73,16 +71,15 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 
 	mockey.PatchConvey("destroy success", t, func() {
-		defer monkey.UnpatchAll()
 		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
 		}).Build()
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
-		})
+		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
 		}).Build()
@@ -94,16 +91,15 @@ func TestOperation_Destroy(t *testing.T) {
 	})
 
 	mockey.PatchConvey("destroy failed", t, func() {
-		defer monkey.UnpatchAll()
 		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
 		}).Build()
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
-		})
+		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
 		}).Build()
