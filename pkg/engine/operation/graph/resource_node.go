@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -40,11 +41,11 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 		if len(o.PriorStateResourceIndex) == 0 {
 			_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
 		} else {
-			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, OptionalImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
 		}
 	case opsmodels.Apply:
 		// replace secret ref and implicit ref
-		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, ImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
 	default:
 		return nil
 	}
@@ -57,11 +58,29 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) Execute(operation *opsmodels.Operation) status.Status {
+func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status) {
 	log.Debugf("executing resource node:%s", rn.ID)
-	defer log.Debugf("resource node:%s has been executed", rn.ID)
 
-	if s := rn.PreExecute(operation); status.IsErr(s) {
+	defer func() {
+		log.Debugf("resource node:%s has been executed", rn.ID)
+
+		if e := recover(); e != nil {
+			log.Errorf("resource node execution panic:%v", e)
+
+			var err error
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf("resource node execution panic:%s", e)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknown panic")
+			}
+			s = status.NewErrorStatus(err)
+		}
+	}()
+
+	if s = rn.PreExecute(operation); status.IsErr(s) {
 		return s
 	}
 
@@ -215,7 +234,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 		response := rt.Delete(context.Background(), &runtime.DeleteRequest{Resource: prior, Stack: operation.Stack})
 		s = response.Status
 		if s != nil {
-			log.Debugf("delete resource:%s, resource: %v", planed.ID, s.String())
+			log.Debugf("delete resource:%s, resource: %v", prior.ID, s.String())
 		}
 	case opsmodels.UnChanged:
 		log.Infof("planed resource and live resource are equal")
@@ -281,7 +300,20 @@ func ReplaceSecretRef(v reflect.Value, ss *vals.SecretStores) ([]string, reflect
 	return ReplaceRef(v, nil, nil, ss, vals.ParseSecretRef)
 }
 
-var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
+var MustImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
+	return implicitReplaceFun(true, resourceIndex, refPath)
+}
+
+var OptionalImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
+	return implicitReplaceFun(false, resourceIndex, refPath)
+}
+
+// implicitReplaceFun will replace implicit dependency references. If force is true, this function will return an error when replace references failed
+var implicitReplaceFun = func(
+	force bool,
+	resourceIndex map[string]*models.Resource,
+	refPath string,
+) (reflect.Value, status.Status) {
 	const Sep = "."
 	split := strings.Split(refPath, Sep)
 	key := split[0]
@@ -301,8 +333,13 @@ var ImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath
 		split := split[1:]
 		for _, k := range split {
 			if valueMap.(map[string]interface{})[k] == nil {
-				msg := fmt.Sprintf("can't find specified value in resource:%s by ref:%s", key, refPath)
-				return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
+				if force {
+					// only throw errors when force replacing operations like apply
+					msg := fmt.Sprintf("can't find specified value in resource:%s by ref:%s", key, refPath)
+					return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
+				} else {
+					break
+				}
 			}
 			valueMap = valueMap.(map[string]interface{})[k]
 		}

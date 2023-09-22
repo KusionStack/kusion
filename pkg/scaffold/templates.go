@@ -2,6 +2,7 @@ package scaffold
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,9 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/pkg/errors"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/workspace"
 	"github.com/spf13/afero"
@@ -26,7 +25,7 @@ import (
 // These are variables instead of constants in order that they can be set using the `-X`
 // `ldflag` at build time, if necessary.
 var (
-	// The Git URL for Kusion program templates
+	// KusionTemplateGitRepository is the Git URL for Kusion program templates
 	KusionTemplateGitRepository = "https://github.com/KusionStack/kusion-templates"
 	// The branch name for the template repository
 	kusionTemplateBranch = "main"
@@ -104,7 +103,7 @@ func LoadTemplate(path string) (Template, error) {
 		return Template{}, err
 	}
 	if !info.IsDir() {
-		return Template{}, errors.Errorf("%s is not a directory", path)
+		return Template{}, fmt.Errorf("%s is not a directory", path)
 	}
 
 	proj, err := LoadProjectTemplate(filepath.Join(path, KusionYaml))
@@ -152,7 +151,7 @@ func IsTemplateURL(templateNamePathOrURL string) bool {
 // retrieveURLTemplates retrieves the "template repository" at the specified URL.
 func retrieveURLTemplates(rawurl string, online bool) (TemplateRepository, error) {
 	if !online {
-		return TemplateRepository{}, errors.Errorf("cannot use %s offline", rawurl)
+		return TemplateRepository{}, fmt.Errorf("cannot use %s offline", rawurl)
 	}
 
 	var err error
@@ -192,14 +191,9 @@ func retrieveFileTemplates(path string) (TemplateRepository, error) {
 
 // retrieveKusionTemplates retrieves the "template repository" for Kusion templates.
 // Instead of retrieving to a temporary directory, the Kusion templates are managed from
-// ~/.kusionup/current/templates.
+// ~/.kusion/templates.
 func retrieveKusionTemplates(templateName string, online bool) (TemplateRepository, error) {
 	templateName = strings.ToLower(templateName)
-
-	// Cleanup the template directory.
-	if err := cleanupLegacyTemplateDir(); err != nil {
-		return TemplateRepository{}, err
-	}
 
 	// Get the template directory.
 	templateDir, err := GetTemplateDir(ExternalTemplateDir)
@@ -208,7 +202,7 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 	}
 
 	// Ensure the template directory exists.
-	if err := os.MkdirAll(templateDir, DefaultDirectoryPermission); err != nil {
+	if err = os.MkdirAll(templateDir, DefaultDirectoryPermission); err != nil {
 		return TemplateRepository{}, err
 	}
 
@@ -216,9 +210,12 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 		// Clone or update the kusion/templates repo.
 		repo := KusionTemplateGitRepository
 		branch := plumbing.NewBranchReferenceName(kusionTemplateBranch)
-		err := gitutil.GitCloneOrPull(repo, branch, templateDir, false /*shallow*/)
+		err = gitutil.GitCloneOrPull(repo, branch, templateDir, false /*shallow*/)
 		if err != nil {
-			return TemplateRepository{}, fmt.Errorf("cloning templates repo: %w", err)
+			if removeErr := os.RemoveAll(templateDir); removeErr != nil {
+				return TemplateRepository{}, removeErr
+			}
+			return TemplateRepository{}, fmt.Errorf("cloning templates failed. Please try again: %w", err)
 		}
 	}
 
@@ -241,42 +238,6 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 		SubDirectory: subDir,
 		ShouldDelete: false,
 	}, nil
-}
-
-// cleanupLegacyTemplateDir deletes an existing ~/.kusionup/current/templates directory if it isn't a git repository.
-func cleanupLegacyTemplateDir() error {
-	templateDir, err := GetTemplateDir(ExternalTemplateDir)
-	if err != nil {
-		return err
-	}
-
-	// See if the template directory is a Git repository.
-	repo, err := git.PlainOpen(templateDir)
-	if err != nil {
-		// If the repository doesn't exist, it's a legacy directory.
-		// Delete the entire template directory and all children.
-		if err == git.ErrRepositoryNotExists {
-			return os.RemoveAll(templateDir)
-		}
-
-		return err
-	}
-
-	// The template directory is a Git repository. We want to make sure that it has the same remote as the one that
-	// we want to pull from. If it doesn't have the same remote, we'll delete it, so that the clone later succeeds.
-	url := KusionTemplateGitRepository
-
-	remotes, err := repo.Remotes()
-	if err != nil {
-		return fmt.Errorf("getting template repo remotes: %w", err)
-	}
-
-	// If the repo exists, and it doesn't have exactly one remote that matches our URL, wipe the templates' directory.
-	if len(remotes) != 1 || remotes[0] == nil || !strings.Contains(remotes[0].String(), url) {
-		return os.RemoveAll(templateDir)
-	}
-
-	return nil
 }
 
 // GetTemplateDir returns the directory in which templates on the current machine are stored.
@@ -351,15 +312,15 @@ var (
 // for display to an end user.
 func ValidateProjectName(s string) error {
 	if s == "" {
-		return errors.New("A project name may not be empty")
+		return errors.New("the project name must not be empty")
 	}
 
 	if len(s) > 100 {
-		return errors.New("A project name must be 100 characters or less")
+		return errors.New("the project name must be less than 100 characters")
 	}
 
 	if !validProjectNameRegexp.MatchString(s) {
-		return errors.New("A project name may only contain alphanumeric, hyphens, underscores, and periods")
+		return errors.New("the project name can only contain alphanumeric, hyphens, underscores, and periods")
 	}
 
 	return nil

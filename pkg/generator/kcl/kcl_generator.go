@@ -11,7 +11,10 @@ import (
 	"strings"
 
 	kcl "kcl-lang.io/kcl-go"
+	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
+	"kcl-lang.io/kpm/pkg/api"
+	"kcl-lang.io/kpm/pkg/opt"
 
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
@@ -30,6 +33,8 @@ var (
 	_          generator.Generator = (*Generator)(nil)
 	enableRest bool
 )
+
+const IncludeSchemaTypePath = "include_schema_type_path"
 
 func Init() error {
 	_, err := rest.New()
@@ -63,12 +68,21 @@ func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error
 	if err != nil {
 		return nil, err
 	}
-
 	log.Debugf("Compile filenames: %v", o.Filenames)
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
-	// call kcl run
-	result, err := kcl.RunFiles(o.Filenames, optList...)
+	var result *kcl.KCLResultList
+	if o.IsKclPkg {
+		result, err = api.RunPkgWithOpt(
+			&opt.CompileOptions{
+				Option: kclpkg.NewOption().Merge(optList...),
+			},
+		)
+	} else {
+		// call kcl run
+		log.Debug("The current directory is not a KCL Package, use kcl run instead")
+		result, err = kcl.RunFiles(o.Filenames, optList...)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -192,11 +206,13 @@ func BuildOptions(
 	}
 	optList = append(optList, opt)
 
-	opt = kcl.WithIncludeSchemaTypePath(true)
-	if opt.Err != nil {
-		return nil, opt.Err
+	if arguments[IncludeSchemaTypePath] == "true" {
+		opt = kcl.WithIncludeSchemaTypePath(true)
+		if opt.Err != nil {
+			return nil, opt.Err
+		}
+		optList = append(optList, opt)
 	}
-	optList = append(optList, opt)
 
 	return optList, nil
 }

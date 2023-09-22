@@ -12,6 +12,9 @@ type Generator interface {
 }
 
 type Options struct {
+	// IsKclPkg represents whether the operation is invoked in a KCL package
+	IsKclPkg bool
+
 	// WorkDir represent the filesystem path where the operation is invoked
 	WorkDir string
 

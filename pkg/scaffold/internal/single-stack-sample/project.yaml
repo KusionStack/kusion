@@ -1,0 +1,4 @@
+# The project basic info
+name: {{ .ProjectName }}
+generator:
+  type: AppConfiguration

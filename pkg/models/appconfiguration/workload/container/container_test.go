@@ -256,8 +256,11 @@ func TestContainerMarshalYAML(t *testing.T) {
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 			},
@@ -280,8 +283,11 @@ workingDir: /tmp
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -318,8 +324,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -358,8 +367,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -396,8 +408,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{
@@ -447,8 +462,11 @@ lifecycle:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{
@@ -523,8 +541,11 @@ workingDir: /tmp
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 			},
@@ -552,8 +573,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -592,8 +616,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -630,8 +657,11 @@ readinessProbe:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
@@ -676,8 +706,11 @@ lifecycle:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{
@@ -721,8 +754,11 @@ lifecycle:
 				Image:   "nginx:v1",
 				Command: []string{"/bin/sh", "-c", "echo hi"},
 				Args:    []string{"/bin/sh", "-c", "echo hi"},
-				Env: map[string]string{
-					"env1": "VALUE",
+				Env: yaml.MapSlice{
+					{
+						Key:   "env1",
+						Value: "VALUE",
+					},
 				},
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{

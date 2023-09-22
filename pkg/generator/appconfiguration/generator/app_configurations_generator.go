@@ -5,6 +5,8 @@ import (
 
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	accessories "kusionstack.io/kusion/pkg/generator/appconfiguration/generator/accessories/database"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/trait"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload"
 	"kusionstack.io/kusion/pkg/models"
 	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
@@ -90,7 +92,10 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 
 	gfs := []appconfiguration.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
+		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Monitoring, g.app.OpsRule),
+		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
+		NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
 	}

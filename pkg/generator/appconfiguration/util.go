@@ -97,6 +97,41 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
+// TerraformResource returns the Terraform resource in the form of
+// Kusion's spec resource.
+func TerraformResource(id string, dependsOn []string, attrs, exts map[string]interface{}) models.Resource {
+	return models.Resource{
+		ID:         id,
+		Type:       models.Terraform,
+		Attributes: attrs,
+		DependsOn:  dependsOn,
+		Extensions: exts,
+	}
+}
+
+// TerraformResourceID returns the unique ID of a Terraform resource
+// based on its provider, type and name.
+func TerraformResourceID(provider *models.Provider, resourceType string, resourceName string) string {
+	// resource id example: hashicorp:aws:aws_db_instance:wordpressdev
+	return provider.Namespace + ":" + provider.Name + ":" + resourceType + ":" + resourceName
+}
+
+// ProviderExtensions returns the extended information of provider based on
+// the provider and type of the resource.
+func ProviderExtensions(provider *models.Provider, providerMeta map[string]any, resourceType string) map[string]interface{} {
+	return map[string]interface{}{
+		"provider":     provider.URL,
+		"providerMeta": providerMeta,
+		"resourceType": resourceType,
+	}
+}
+
+// KusionPathDependency returns the implicit resource dependency path based on
+// the resource id and name with the "$kusion_path" prefix.
+func KusionPathDependency(id, name string) string {
+	return "$kusion_path." + id + "." + name
+}
+
 // AppendToSpec adds a Kubernetes resource to a spec's resources slice.
 func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
