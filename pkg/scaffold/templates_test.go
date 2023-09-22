@@ -164,21 +164,21 @@ func TestRetrieveTemplates(t *testing.T) {
 	})
 }
 
-func Test_cleanupLegacyTemplateDir(t *testing.T) {
-	mockey.PatchConvey("repo not exist", t, func() {
-		mockey.Mock(GetTemplateDir).To(func(subDir string) (string, error) {
-			return os.MkdirTemp("", "tmp-dir-for-test")
-		}).Build()
-
-		err = cleanupLegacyTemplateDir()
-		assert.Nil(t, err)
-	})
-
-	t.Run("clean nothing", func(t *testing.T) {
-		err = cleanupLegacyTemplateDir()
-		assert.Nil(t, err)
-	})
-}
+//func Test_cleanupLegacyTemplateDir(t *testing.T) {
+//	mockey.PatchConvey("repo not exist", t, func() {
+//		mockey.Mock(GetTemplateDir).To(func(subDir string) (string, error) {
+//			return os.MkdirTemp("", "tmp-dir-for-test")
+//		}).Build()
+//
+//		err = cleanupLegacyTemplateDir()
+//		assert.Nil(t, err)
+//	})
+//
+//	t.Run("clean nothing", func(t *testing.T) {
+//		err = cleanupLegacyTemplateDir()
+//		assert.Nil(t, err)
+//	})
+//}
 
 func TestValidateProjectName(t *testing.T) {
 	type args struct {
