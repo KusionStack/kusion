@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
-	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -57,7 +56,9 @@ func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *
 }
 
 func (g *databaseGenerator) generateLocalSecret(spec *models.Spec) (string, error) {
-	rand.Seed(time.Now().UnixNano())
+	// Fixme: use random seed for local database secret generating and avoid
+	// live-diff changes when re-applying the application.
+	rand.Seed(int64(0))
 	password := randomString(16)
 
 	data := make(map[string]string)
@@ -76,7 +77,8 @@ func (g *databaseGenerator) generateLocalSecret(spec *models.Spec) (string, erro
 	}
 	secID := appconfiguration.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
 
-	return appconfiguration.KusionPathDependency(secID, "stringData.password"), appconfiguration.AppendToSpec(
+	// Fixme: return $kusion_path with `stringData.password` of local database secret id.
+	return password, appconfiguration.AppendToSpec(
 		models.Kubernetes,
 		secID,
 		spec,

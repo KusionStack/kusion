@@ -45,7 +45,8 @@ func TestGenerateLocalResources(t *testing.T) {
 
 	hostAddress := "testapp-db-local-service"
 	username := database.Username
-	password := "$kusion_path.v1:Secret:testproject:testapp-db-local-secret.stringData.password"
+	// Fixme: use $kusion_path with `stringData.password` of local database secret id.
+	password := "mUNERA9rI2cvTK4U"
 	data := make(map[string]string)
 	data["hostAddress"] = hostAddress
 	data["username"] = username
@@ -95,11 +96,12 @@ func TestGenerateLocalSecret(t *testing.T) {
 	}
 
 	spec := &models.Spec{}
-	kusionPathSecret, err := generator.generateLocalSecret(spec)
-	expectedKusionPathSec := "$kusion_path.v1:Secret:testproject:testapp-db-local-secret.stringData.password"
+	// Fixme: use $kusion_path with `stringData.password` of local database secret id.
+	password, err := generator.generateLocalSecret(spec)
+	expectedPassword := "mUNERA9rI2cvTK4U"
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedKusionPathSec, kusionPathSecret)
+	assert.Equal(t, expectedPassword, password)
 }
 
 func TestGenerateLocalPVC(t *testing.T) {
