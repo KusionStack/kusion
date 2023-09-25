@@ -197,6 +197,29 @@ func (g *databaseGenerator) generateLocalPodSpec(db *database.Database) (v1.PodS
 
 	image := strings.ToLower(db.Engine) + ":" + db.Version
 	secretName := g.appName + dbResSuffix + localSecretSuffix
+	ports = []v1.ContainerPort{
+		{
+			Name:          localDatabaseName,
+			ContainerPort: int32(3306),
+		},
+	}
+	volumes = []v1.Volume{
+		{
+			Name: localDatabaseName,
+			VolumeSource: v1.VolumeSource{
+				PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+					ClaimName: g.appName + dbResSuffix + localPVCSuffix,
+				},
+			},
+		},
+	}
+	volumeMounts = []v1.VolumeMount{
+		{
+			Name:      localDatabaseName,
+			MountPath: "/var/lib/mysql",
+		},
+	}
+
 	switch strings.ToLower(db.Engine) {
 	case "mysql":
 		if db.Username != "root" {
@@ -231,41 +254,6 @@ func (g *databaseGenerator) generateLocalPodSpec(db *database.Database) (v1.PodS
 					},
 				},
 			}
-		}
-		ports = []v1.ContainerPort{
-			{
-				Name:          localDatabaseName,
-				ContainerPort: int32(3306),
-			},
-		}
-		volumes = []v1.Volume{
-			{
-				Name: localDatabaseName,
-				VolumeSource: v1.VolumeSource{
-					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-						ClaimName: g.appName + dbResSuffix + localPVCSuffix,
-					},
-				},
-			},
-		}
-		volumeMounts = []v1.VolumeMount{
-			{
-				Name:      localDatabaseName,
-				MountPath: "/var/lib/mysql",
-			},
-		}
-
-		podSpec = v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:         localDatabaseName,
-					Image:        image,
-					Env:          env,
-					Ports:        ports,
-					VolumeMounts: volumeMounts,
-				},
-			},
-			Volumes: volumes,
 		}
 
 	case "mariadb":
@@ -302,44 +290,22 @@ func (g *databaseGenerator) generateLocalPodSpec(db *database.Database) (v1.PodS
 				},
 			}
 		}
-		ports = []v1.ContainerPort{
-			{
-				Name:          localDatabaseName,
-				ContainerPort: int32(3306),
-			},
-		}
-		volumes = []v1.Volume{
-			{
-				Name: localDatabaseName,
-				VolumeSource: v1.VolumeSource{
-					PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-						ClaimName: g.appName + dbResSuffix + localPVCSuffix,
-					},
-				},
-			},
-		}
-		volumeMounts = []v1.VolumeMount{
-			{
-				Name:      localDatabaseName,
-				MountPath: "/var/lib/mysql",
-			},
-		}
-
-		podSpec = v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:         localDatabaseName,
-					Image:        image,
-					Env:          env,
-					Ports:        ports,
-					VolumeMounts: volumeMounts,
-				},
-			},
-			Volumes: volumes,
-		}
 
 	default:
 		return v1.PodSpec{}, fmt.Errorf("unsupported local database engine type: %s", db.Engine)
+	}
+
+	podSpec = v1.PodSpec{
+		Containers: []v1.Container{
+			{
+				Name:         localDatabaseName,
+				Image:        image,
+				Env:          env,
+				Ports:        ports,
+				VolumeMounts: volumeMounts,
+			},
+		},
+		Volumes: volumes,
 	}
 
 	return podSpec, nil
