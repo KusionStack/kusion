@@ -19,7 +19,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 	ginkgo.Context("kusion compile testing", func() {
 		ginkgo.It("kusion compile", func() {
 			// kusion compile testing
-			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
 			output, err := ExecKusionWithWorkDir("kusion compile", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			gomega.Expect(output).To(gomega.ContainSubstring("Generating Spec"))
@@ -29,7 +29,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 	ginkgo.Context("kusion check testing", func() {
 		ginkgo.It("kusion check", func() {
 			// kusion check testing
-			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
 			output, err := ExecKusionWithWorkDir("kusion check", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			gomega.Expect(output).To(gomega.ContainSubstring("Generating Spec"))
@@ -41,7 +41,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig")
 			output, err := ExecKusionWithWorkDir("kusion ls --format=json", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("code-city"))
+			gomega.Expect(output).To(gomega.ContainSubstring("example", "multi-stack"))
 		})
 	})
 
@@ -49,7 +49,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 		ginkgo.It("kusion deps", func() {
 			// kusion deps testing
 			path := filepath.Join(GetWorkDir(), "konfig")
-			output, err := ExecKusionWithWorkDir("kusion deps --focus code-city/dev/main.k", path)
+			output, err := ExecKusionWithWorkDir("kusion deps --focus example/multi-stack/dev/main.k", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			gomega.Expect(output).To(gomega.ContainSubstring("catalog/models/schema/v1"))
 		})
@@ -58,44 +58,44 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 
 var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 	ginkgo.It("kusion preview", func() {
-		path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
+		path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
 		_, err := ExecKusionWithWorkDir("kusion preview -d", path)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	})
 
 	ginkgo.It("kusion apply", func() {
 		ginkgo.By("kusion apply", func() {
-			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
 			_, err := ExecKusionWithWorkDir("kusion apply -y=true", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 
-		ginkgo.By("wait code city deploy", func() {
+		ginkgo.By("wait multi-stack deploy", func() {
 			homedir := os.Getenv("HOME")
 			configPath := fmt.Sprintf("%s/.kube/config", homedir)
 			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.AppsV1().Deployments("gocity").Get(context.TODO(), "gocity-dev-gocity", metav1.GetOptions{})
+				_, err := clusterClient.AppsV1().Deployments("multi-stack").Get(context.TODO(), "multi-stack-dev-multi-stack", metav1.GetOptions{})
 				return err == nil
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
 
 		ginkgo.By("kusion destroy", func() {
-			path := filepath.Join(GetWorkDir(), "konfig", "code-city", "dev")
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
 			_, err := ExecKusionWithWorkDir("kusion destroy -y=true", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 
-		ginkgo.By("wait code city destroy", func() {
+		ginkgo.By("wait multi-stack destroy", func() {
 			homedir := os.Getenv("HOME")
 			configPath := fmt.Sprintf("%s/.kube/config", homedir)
 			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "gocity", metav1.GetOptions{})
+				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "multi-stack", metav1.GetOptions{})
 				return apierrors.IsNotFound(err)
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
