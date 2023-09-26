@@ -20,6 +20,7 @@ import (
 
 var (
 	spec1 = `
+resources:
 - id: v1:Namespace:default
   type: Kubernetes
   attributes:
@@ -51,6 +52,7 @@ var (
 	}
 
 	spec2 = `
+resources:
 - id: v1:Namespace:default
   type: Kubernetes
   attributes:
