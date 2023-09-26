@@ -3,12 +3,13 @@ package apply
 import (
 	"context"
 	"errors"
+	"github.com/bytedance/mockey"
+	"kusionstack.io/kusion/pkg/status"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/stretchr/testify/assert"
 
@@ -22,16 +23,14 @@ import (
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestApplyOptions_Run(t *testing.T) {
-	t.Run("Detail is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
+	mockey.PatchConvey("Detail is true", t, func() {
+		mockeyPatchDetectProjectAndStack()
+		mockeyPatchGenerateSpec()
+		mockeyPatchNewKubernetesRuntime()
+		mockeyPatchOperationPreview()
 
 		o := NewApplyOptions()
 		o.Detail = true
@@ -41,12 +40,11 @@ func TestApplyOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("DryRun is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		mockDetectProjectAndStack()
-		mockGenerateSpec()
-		mockNewKubernetesRuntime()
-		mockOperationPreview()
+	mockey.PatchConvey("DryRun is true", t, func() {
+		mockeyPatchDetectProjectAndStack()
+		mockeyPatchGenerateSpec()
+		mockeyPatchNewKubernetesRuntime()
+		mockeyPatchOperationPreview()
 		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
@@ -71,28 +69,28 @@ var (
 	}
 )
 
-func mockDetectProjectAndStack() {
-	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+func mockeyPatchDetectProjectAndStack() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
-	})
+	}).Build()
 }
 
-func mockGenerateSpec() {
-	monkey.Patch(spec.GenerateSpecWithSpinner, func(
+func mockeyPatchGenerateSpec() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpec).To(func(
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
 	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
-	})
+	}).Build()
 }
 
-func mockNewKubernetesRuntime() {
-	monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+func mockeyPatchNewKubernetesRuntime() *mockey.Mocker {
+	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fakerRuntime{}, nil
-	})
+	}).Build()
 }
 
 var _ runtime.Runtime = (*fakerRuntime)(nil)
@@ -131,33 +129,31 @@ func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest)
 	return nil
 }
 
-func mockOperationPreview() {
-	monkey.Patch((*operation.PreviewOperation).Preview,
-		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
-			return &operation.PreviewResponse{
-				Order: &opsmodels.ChangeOrder{
-					StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-					ChangeSteps: map[string]*opsmodels.ChangeStep{
-						sa1.ID: {
-							ID:     sa1.ID,
-							Action: opsmodels.Create,
-							From:   &sa1,
-						},
-						sa2.ID: {
-							ID:     sa2.ID,
-							Action: opsmodels.UnChanged,
-							From:   &sa2,
-						},
-						sa3.ID: {
-							ID:     sa3.ID,
-							Action: opsmodels.Undefined,
-							From:   &sa1,
-						},
+func mockeyPatchOperationPreview() *mockey.Mocker {
+	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+		return &operation.PreviewResponse{
+			Order: &opsmodels.ChangeOrder{
+				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
+				ChangeSteps: map[string]*opsmodels.ChangeStep{
+					sa1.ID: {
+						ID:     sa1.ID,
+						Action: opsmodels.Create,
+						From:   &sa1,
+					},
+					sa2.ID: {
+						ID:     sa2.ID,
+						Action: opsmodels.UnChanged,
+						From:   &sa2,
+					},
+					sa3.ID: {
+						ID:     sa3.ID,
+						Action: opsmodels.Undefined,
+						From:   &sa1,
 					},
 				},
-			}, nil
-		},
-	)
+			},
+		}, nil
+	}).Build()
 }
 
 const (
@@ -189,8 +185,7 @@ func newSA(name string) models.Resource {
 
 func Test_apply(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
-	t.Run("dry run", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("dry run", t, func() {
 
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
@@ -209,8 +204,7 @@ func Test_apply(t *testing.T) {
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
-	t.Run("apply success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
@@ -235,8 +229,7 @@ func Test_apply(t *testing.T) {
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
-	t.Run("apply failed", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("apply failed", t, func() {
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
@@ -259,7 +252,7 @@ func Test_apply(t *testing.T) {
 }
 
 func mockOperationApply(res opsmodels.OpResult) {
-	monkey.Patch((*operation.ApplyOperation).Apply,
+	mockey.Mock((*operation.ApplyOperation).Apply).To(
 		func(o *operation.ApplyOperation, request *operation.ApplyRequest) (*operation.ApplyResponse, status.Status) {
 			var err error
 			if res == opsmodels.Failed {
@@ -283,22 +276,17 @@ func mockOperationApply(res opsmodels.OpResult) {
 				return nil, status.NewErrorStatus(err)
 			}
 			return &operation.ApplyResponse{}, nil
-		})
+		}).Build()
 }
 
 func Test_prompt(t *testing.T) {
-	t.Run("prompt error", func(t *testing.T) {
-		monkey.Patch(
-			survey.AskOne,
-			func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
-				return errors.New("mock error")
-			},
-		)
+	mockey.PatchConvey("prompt error", t, func() {
+		mockey.Mock(survey.AskOne).Return(errors.New("mock error")).Build()
 		_, err := prompt()
 		assert.NotNil(t, err)
 	})
 
-	t.Run("prompt yes", func(t *testing.T) {
+	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
 		_, err := prompt()
 		assert.Nil(t, err)
@@ -306,11 +294,8 @@ func Test_prompt(t *testing.T) {
 }
 
 func mockPromptOutput(res string) {
-	monkey.Patch(
-		survey.AskOne,
-		func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
-			reflect.ValueOf(response).Elem().Set(reflect.ValueOf(res))
-			return nil
-		},
-	)
+	mockey.Mock(survey.AskOne).To(func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
+		reflect.ValueOf(response).Elem().Set(reflect.ValueOf(res))
+		return nil
+	}).Build()
 }

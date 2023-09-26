@@ -7,11 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bytedance/mockey"
 	"path/filepath"
-	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
@@ -71,20 +70,19 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 	}
 
-	t.Run("destroy success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+	mockey.PatchConvey("destroy success", t, func() {
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return nil
-		})
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+		}).Build()
+		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
-		})
-		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+		}).Build()
+		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
-		})
+		}).Build()
 
 		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)
@@ -92,20 +90,19 @@ func TestOperation_Destroy(t *testing.T) {
 		assert.Nil(t, st)
 	})
 
-	t.Run("destroy failed", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-		monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+	mockey.PatchConvey("destroy failed", t, func() {
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 			return status.NewErrorStatus(errors.New("mock error"))
-		})
-		monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+		}).Build()
+		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
 			return &states.State{Resources: []models.Resource{resourceState}}, nil
-		})
-		monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+		}).Build()
+		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
-		})
+		}).Build()
 
 		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)

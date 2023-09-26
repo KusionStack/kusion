@@ -1,26 +1,23 @@
 package check
 
 import (
+	"github.com/bytedance/mockey"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/cmd/compile"
 )
 
 func TestNewCmdCheck(t *testing.T) {
-	t.Run("", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-
-		monkey.Patch((*compile.Options).Complete, func(o *compile.Options, args []string) error {
+	mockey.PatchConvey("", t, func() {
+		mockey.Mock((*compile.Options).Complete).To(func(o *compile.Options, args []string) error {
 			o.Output = "stdout"
 			return nil
-		})
-		monkey.Patch((*compile.Options).Run, func(*compile.Options) error {
+		}).Build()
+		mockey.Mock((*compile.Options).Run).To(func(*compile.Options) error {
 			return nil
-		})
-
+		}).Build()
 		cmd := NewCmdCheck()
 		err := cmd.Execute()
 		assert.Nil(t, err)

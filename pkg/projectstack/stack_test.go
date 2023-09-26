@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
-
 	"kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -302,9 +300,7 @@ func TestGetStack(t *testing.T) {
 			preRun: func() {
 				mockGetStackFrom(ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 	}
 	for _, tt := range tests {

@@ -2,9 +2,9 @@ package operation
 
 import (
 	"context"
+	"github.com/bytedance/mockey"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
@@ -17,25 +17,27 @@ import (
 )
 
 func TestWatchOperation_Watch(t *testing.T) {
-	req := &WatchRequest{
-		Request: opsmodels.Request{
-			Spec: &models.Spec{
-				Resources: models.Resources{
-					{
-						ID:         "apps/v1:Deployment:foo:bar",
-						Type:       runtime.Kubernetes,
-						Attributes: barDeployment,
+	mockey.PatchConvey("test watch operation: watch", t, func() {
+		req := &WatchRequest{
+			Request: opsmodels.Request{
+				Spec: &models.Spec{
+					Resources: models.Resources{
+						{
+							ID:         "apps/v1:Deployment:foo:bar",
+							Type:       runtime.Kubernetes,
+							Attributes: barDeployment,
+						},
 					},
 				},
 			},
-		},
-	}
-	monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
-		return map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
+		}
+		mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+			return map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
+		}).Build()
+		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
+		err := wo.Watch(req)
+		assert.Nil(t, err)
 	})
-	wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
-	err := wo.Watch(req)
-	assert.Nil(t, err)
 }
 
 var barDeployment = map[string]interface{}{

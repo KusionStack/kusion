@@ -5,11 +5,11 @@ package scaffold
 
 import (
 	"fmt"
+	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/jinzhu/copier"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
@@ -152,13 +152,12 @@ func TestRetrieveTemplates(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("kusion templates", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("kusion templates", t, func() {
 		// gitutil.GitCloneOrPull has internet issue occasionally
 		// mock as always succeed
-		monkey.Patch(gitutil.GitCloneOrPull, func(url string, referenceName plumbing.ReferenceName, path string, shallow bool) error {
+		mockey.Mock(gitutil.GitCloneOrPull).To(func(url string, referenceName plumbing.ReferenceName, path string, shallow bool) error {
 			return nil
-		})
+		}).Build()
 
 		_, err := RetrieveTemplates("", true)
 		assert.Nil(t, err)

@@ -2,12 +2,11 @@ package operation
 
 import (
 	"context"
+	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"sync"
 	"testing"
-
-	"bou.ke/monkey"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -248,7 +247,7 @@ func TestOperation_Preview(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			o := &PreviewOperation{
 				Operation: opsmodels.Operation{
 					OperationType:           tt.fields.OperationType,
@@ -264,9 +263,9 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			}
 
-			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
 				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
-			})
+			}).Build()
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
 				t.Errorf("Operation.Preview() gotRsp = %v, want %v", jsonutil.Marshal2PrettyString(gotRsp), jsonutil.Marshal2PrettyString(tt.wantRsp))

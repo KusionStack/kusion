@@ -5,10 +5,10 @@ package diff
 
 import (
 	"errors"
+	"github.com/bytedance/mockey"
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/gonvenience/ytbx"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -18,18 +18,17 @@ import (
 )
 
 func TestNewCmdDiff(t *testing.T) {
-	t.Run("diff by files", func(t *testing.T) {
+	mockey.PatchConvey("diff by files", t, func() {
 		cmd := NewCmdDiff()
 		cmd.SetArgs([]string{"testdata/pod1.yaml", "testdata/pod2.yaml"})
 		err := cmd.Execute()
 		assert.Nil(t, err)
 	})
 
-	t.Run("diff by stdin with docs size < 2", func(t *testing.T) {
-		monkey.Patch(ytbx.IsStdin, func(location string) bool {
+	mockey.PatchConvey("diff by stdin with docs size < 2", t, func() {
+		mockey.Mock(ytbx.IsStdin).To(func(location string) bool {
 			return true
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		cmd := NewCmdDiff()
 		cmd.SetArgs([]string{"testdata/namespace.yaml"})
@@ -37,11 +36,10 @@ func TestNewCmdDiff(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("diff by stdin with error diff-mode", func(t *testing.T) {
-		monkey.Patch(ytbx.IsStdin, func(location string) bool {
+	mockey.PatchConvey("diff by stdin with error diff-mode", t, func() {
+		mockey.Mock(ytbx.IsStdin).To(func(location string) bool {
 			return true
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		cmd := NewCmdDiff()
 		assert.Nil(t, cmd.Flags().Set("diff-mode", "xxx"))
@@ -50,11 +48,10 @@ func TestNewCmdDiff(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("diff by stdin with error output", func(t *testing.T) {
-		monkey.Patch(ytbx.IsStdin, func(location string) bool {
+	mockey.PatchConvey("diff by stdin with error output", t, func() {
+		mockey.Mock(ytbx.IsStdin).To(func(location string) bool {
 			return true
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		cmd := NewCmdDiff()
 		assert.Nil(t, cmd.Flags().Set("output", "xxx"))
@@ -63,11 +60,10 @@ func TestNewCmdDiff(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("diff by stdin with diff-mode", func(t *testing.T) {
-		monkey.Patch(ytbx.IsStdin, func(location string) bool {
+	mockey.PatchConvey("diff by stdin with diff-mode", t, func() {
+		mockey.Mock(ytbx.IsStdin).To(func(location string) bool {
 			return true
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		err := mockStdin("testdata/pod-full.yaml")
 		if err != nil {
@@ -82,7 +78,7 @@ func TestNewCmdDiff(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("diff by files with flags", func(t *testing.T) {
+	mockey.PatchConvey("diff by files with flags", t, func() {
 		cmd := NewCmdDiff()
 		assert.Nil(t, cmd.Flags().Set("diff-mode", ModeIgnoreAdded))
 		assert.Nil(t, cmd.Flags().Set("output", diffutil.OutputRaw))
@@ -93,11 +89,10 @@ func TestNewCmdDiff(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("diff by os.stdin with flags", func(t *testing.T) {
-		monkey.Patch(ytbx.IsStdin, func(location string) bool {
+	mockey.PatchConvey("diff by os.stdin with flags", t, func() {
+		mockey.Mock(ytbx.IsStdin).To(func(location string) bool {
 			return true
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		err := mockStdin("testdata/pod-full.yaml")
 		if err != nil {
@@ -117,11 +112,10 @@ func TestNewCmdDiff(t *testing.T) {
 }
 
 func Test_liveDiffWithStdin(t *testing.T) {
-	t.Run("create normalizer failed", func(t *testing.T) {
-		monkey.Patch(diff.NewDefaultIgnoreNormalizer, func(paths []string) (diff.Normalizer, error) {
+	mockey.PatchConvey("create normalizer failed", t, func() {
+		mockey.Mock(diff.NewDefaultIgnoreNormalizer).To(func(paths []string) (diff.Normalizer, error) {
 			return nil, errors.New("mock create normalizer error")
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		err := mockStdin("testdata/pod-full.yaml")
 		if err != nil {
@@ -133,14 +127,13 @@ func Test_liveDiffWithStdin(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("calculate diff failed", func(t *testing.T) {
-		monkey.Patch(
-			diff.Diff,
+	mockey.PatchConvey("calculate diff failed", t, func() {
+		mockey.Mock(
+			diff.Diff).To(
 			func(config, live *unstructured.Unstructured, opts ...diff.Option) (*diff.DiffResult, error) {
 				return nil, errors.New("mock calculate diff error")
 			},
-		)
-		defer monkey.UnpatchAll()
+		).Build()
 
 		err := mockStdin("testdata/pod-full.yaml")
 		if err != nil {
@@ -152,7 +145,7 @@ func Test_liveDiffWithStdin(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("liveDiffWithStdin success", func(t *testing.T) {
+	mockey.PatchConvey("liveDiffWithStdin success", t, func() {
 		err := mockStdin("testdata/pod-full.yaml")
 		if err != nil {
 			panic(err)
@@ -178,52 +171,50 @@ func mockStdin(file string) error {
 }
 
 func Test_liveDiffWithFile(t *testing.T) {
-	t.Run("read fromLocation error", func(t *testing.T) {
+	mockey.PatchConvey("read fromLocation error", t, func() {
 		err := liveDiffWithFile("no/such/file", "no/such/file")
 		assert.NotNil(t, err)
 	})
 
-	t.Run("read toLocation error", func(t *testing.T) {
+	mockey.PatchConvey("read toLocation error", t, func() {
 		err := liveDiffWithFile("testdata/pod1.yaml", "no/such/file")
 		assert.NotNil(t, err)
 	})
 
-	t.Run("create normalizer failed", func(t *testing.T) {
-		monkey.Patch(diff.NewDefaultIgnoreNormalizer, func(paths []string) (diff.Normalizer, error) {
+	mockey.PatchConvey("create normalizer failed", t, func() {
+		mockey.Mock(diff.NewDefaultIgnoreNormalizer).To(func(paths []string) (diff.Normalizer, error) {
 			return nil, errors.New("mock create normalizer error")
-		})
-		defer monkey.UnpatchAll()
+		}).Build()
 
 		err := liveDiffWithFile("testdata/pod1.yaml", "testdata/pod1.yaml")
 		assert.NotNil(t, err)
 	})
 
-	t.Run("calculate diff failed", func(t *testing.T) {
-		monkey.Patch(
-			diff.Diff,
+	mockey.PatchConvey("calculate diff failed", t, func() {
+		mockey.Mock(
+			diff.Diff).To(
 			func(config, live *unstructured.Unstructured, opts ...diff.Option) (*diff.DiffResult, error) {
 				return nil, errors.New("mock calculate diff error")
 			},
-		)
-		defer monkey.UnpatchAll()
+		).Build()
 
 		err := liveDiffWithFile("testdata/pod1.yaml", "testdata/pod1.yaml")
 		assert.NotNil(t, err)
 	})
 
-	t.Run("liveDiffWithFile success", func(t *testing.T) {
+	mockey.PatchConvey("liveDiffWithFile success", t, func() {
 		err := liveDiffWithFile("testdata/pod1.yaml", "testdata/pod1.yaml")
 		assert.Nil(t, err)
 	})
 }
 
 func Test_loadFile(t *testing.T) {
-	t.Run("load failed", func(t *testing.T) {
+	mockey.PatchConvey("load failed", t, func() {
 		_, err := loadFile("no/such/file")
 		assert.NotNil(t, err)
 	})
 
-	t.Run("load success", func(t *testing.T) {
+	mockey.PatchConvey("load success", t, func() {
 		_, err := loadFile("testdata/pod1.yaml")
 		assert.Nil(t, err)
 	})
