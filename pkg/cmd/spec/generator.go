@@ -121,9 +121,9 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 
 	decoder := yaml.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	var resources models.Resources
-	if err = decoder.Decode(&resources); err != nil && err != io.EOF {
+	spec := &models.Spec{}
+	if err = decoder.Decode(spec); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("failed to parse the spec file, please check if the file content is valid")
 	}
-	return &models.Spec{Resources: resources}, nil
+	return spec, nil
 }
