@@ -31,7 +31,7 @@ func NewCmdApply() *cobra.Command {
 		kusion apply -Y settings.yaml
 
 		# Apply with specifying spec file
-		kusion apply --spec-file ci-test/stdout.golden.yaml
+		kusion apply --spec-file spec.yaml 
 	
 		# Skip interactive approval of plan details before applying
 		kusion apply --yes
