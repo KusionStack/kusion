@@ -1,8 +1,9 @@
 package accessories
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
 
@@ -14,10 +15,6 @@ import (
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
-)
-
-const (
-	charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 var (
@@ -56,10 +53,7 @@ func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *
 }
 
 func (g *databaseGenerator) generateLocalSecret(spec *models.Spec) (string, error) {
-	// Fixme: use random seed for local database secret generating and avoid
-	// live-diff changes when re-applying the application.
-	rand.Seed(int64(0))
-	password := randomString(16)
+	password := g.generateLocalPassword(16)
 
 	data := make(map[string]string)
 	data["password"] = password
@@ -330,12 +324,11 @@ func (g *databaseGenerator) generateLocalSvcPort(db *database.Database) ([]v1.Se
 	return svcPort, nil
 }
 
-func randomString(n int) string {
-	strBuilder := strings.Builder{}
-	strBuilder.Grow(n)
-	for i := 0; i < n; i++ {
-		strBuilder.WriteByte(charSet[rand.Intn(len(charSet))])
-	}
+func (g *databaseGenerator) generateLocalPassword(n int) string {
+	hashInput := g.appName + g.project.Name + g.stack.Name
+	hash := md5.Sum([]byte(hashInput))
 
-	return strBuilder.String()
+	hashString := hex.EncodeToString(hash[:])
+
+	return hashString[:n]
 }

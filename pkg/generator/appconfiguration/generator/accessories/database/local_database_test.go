@@ -45,8 +45,7 @@ func TestGenerateLocalResources(t *testing.T) {
 
 	hostAddress := "testapp-db-local-service"
 	username := database.Username
-	// Fixme: use $kusion_path with `stringData.password` of local database secret id.
-	password := "mUNERA9rI2cvTK4U"
+	password := generator.generateLocalPassword(16)
 	data := make(map[string]string)
 	data["hostAddress"] = hostAddress
 	data["username"] = username
@@ -96,9 +95,8 @@ func TestGenerateLocalSecret(t *testing.T) {
 	}
 
 	spec := &models.Spec{}
-	// Fixme: use $kusion_path with `stringData.password` of local database secret id.
 	password, err := generator.generateLocalSecret(spec)
-	expectedPassword := "mUNERA9rI2cvTK4U"
+	expectedPassword := generator.generateLocalPassword(16)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPassword, password)
