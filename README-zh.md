@@ -38,7 +38,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 ### 部署第一个应用
 
-参考 [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) 通过 Kusion
+参考 [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/deliver-the-wordpress-application-on-kubernetes/) 通过 Kusion
 部署您的第一个应用
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
@@ -49,13 +49,6 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎�
 
 ```shell
 brew install KusionStack/tap/kusion
-```
-
-### Scoop (Windows)
-
-```bash
-scoop add bucket KusionStack https://github.com/KusionStack/scoop-bucket.git
-scoop install KusionStack/kusion
 ```
 
 ### Go Install
