@@ -41,7 +41,7 @@ Kusion is the platform engineering engine of [KusionStack](https://github.com/Ku
 
 ### Deploy your first App
 
-Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/usecases/deliver-first-project) to deliver an
+Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/deliver-the-wordpress-application-on-kubernetes/) to deliver an
 App with one Kusion command
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
@@ -53,13 +53,6 @@ App with one Kusion command
 ```shell
 brew install KusionStack/tap/kusion
 ```
-
-### Scoop (Windows)
-
-```bash
-scoop add bucket KusionStack https://github.com/KusionStack/scoop-bucket.git
-scoop install KusionStack/kusion
-``` 
 
 ### Go Install
 
