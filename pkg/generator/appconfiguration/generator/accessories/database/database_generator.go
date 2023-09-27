@@ -83,6 +83,8 @@ func (g *databaseGenerator) Generate(spec *models.Spec) error {
 		secret, err = g.generateAWSResources(db, spec)
 	case "alicloud":
 		secret, err = g.generateAlicloudResources(db, spec)
+	case "local":
+		secret, err = g.generateLocalResources(db, spec)
 	default:
 		return fmt.Errorf("unsupported database type: %s", db.Type)
 	}
