@@ -29,7 +29,7 @@ func NewCmdPreview() *cobra.Command {
 		kusion preview -Y settings.yaml
 
 		# Preview with specifying spec file
-		kuions preview --spec-file ci-test/stdout.golden.yaml
+		kusion preview --spec-file spec.yaml
 	
 		# Preview with ignored fields
 		kusion preview --ignore-fields="metadata.generation,metadata.managedFields

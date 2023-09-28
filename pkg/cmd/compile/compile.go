@@ -10,33 +10,31 @@ import (
 
 func NewCmdCompile() *cobra.Command {
 	var (
-		compileShort = i18n.T(`Compile KCL into YAML`)
+		compileShort = i18n.T(`Compile Kusion models to the Spec (intent)`)
 
 		compileLong = i18n.T(`
-		Compile one or more KCL files.
+		Compile Kusion models in a Stack to the Spec (intent)
 	
-		The KCL filename must be specified.
+		The command must be executed in a Stack or specifying a Stack dir with the -w flag. 
 		You can specify a list of arguments to replace the placeholders defined in KCL,
 		and output the compiled results to a file when using --output flag.`)
 
 		compileExample = i18n.T(`
-		# Compile configuration in main.k into YAML format
-		kusion compile main.k
 	
 		# Compile main.k with arguments
-		kusion compile main.k -D name=test -D age=18
+		kusion compile -D name=test -D age=18
 	
 		# Compile main.k with arguments from settings.yaml
-		kusion compile main.k -Y settings.yaml
+		kusion compile -Y settings.yaml
 	
 		# Compile main.k with work directory
-		kusion compile main.k -w appops/demo/dev
+		kusion compile -w appops/demo/dev
 	
 		# Compile with override
 		kusion compile -O __main__:appConfiguration.image=nginx:latest -a
 	
 		# Compile main.k and write result into output.yaml
-		kusion compile main.k -o output.yaml
+		kusion compile -o output.yaml
 		
 		# Compile without output style and color
 		kusion compile --no-style=true`)
