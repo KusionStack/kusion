@@ -150,6 +150,9 @@ func TestGenerate(t *testing.T) {
 						"username":    database.Username,
 					},
 				},
+				Extensions: map[string]interface{}{
+					"GVK": "/v1, Kind=Secret",
+				},
 			},
 		},
 	}

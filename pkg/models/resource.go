@@ -9,6 +9,12 @@ const (
 	Terraform  Type = "Terraform"
 )
 
+const (
+	// ResourceExtensionGVK is the key for resource extension, which is used to
+	// store the GVK of the resource.
+	ResourceExtensionGVK = "GVK"
+)
+
 type Resources []Resource
 
 type Resource struct {
@@ -48,6 +54,20 @@ func (rs Resources) Index() map[string]*Resource {
 	m := make(map[string]*Resource)
 	for i := range rs {
 		m[rs[i].ResourceKey()] = &rs[i]
+	}
+	return m
+}
+
+// GVKIndex returns a map of GVK to resources, for now, only Kubernetes resources.
+func (rs Resources) GVKIndex() map[string][]*Resource {
+	m := make(map[string][]*Resource)
+	for i := range rs {
+		resource := &rs[i]
+		if resource.Type != Kubernetes {
+			continue
+		}
+		gvk := resource.Extensions[ResourceExtensionGVK].(string)
+		m[gvk] = append(m[gvk], resource)
 	}
 	return m
 }

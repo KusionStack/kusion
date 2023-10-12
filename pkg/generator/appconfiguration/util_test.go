@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -14,6 +16,14 @@ type mockGenerator struct {
 
 func (m *mockGenerator) Generate(spec *models.Spec) error {
 	return m.GenerateFunc(spec)
+}
+
+type mockPatcher struct {
+	PatchFunc func(resources map[string][]*models.Resource) error
+}
+
+func (m *mockPatcher) Patch(resources map[string][]*models.Resource) error {
+	return m.PatchFunc(resources)
 }
 
 func TestCallGenerators(t *testing.T) {
@@ -35,6 +45,29 @@ func TestCallGenerators(t *testing.T) {
 	)
 
 	err := CallGenerators(spec, gf1, gf2)
+	assert.Error(t, err)
+	assert.EqualError(t, err, assert.AnError.Error())
+}
+
+func TestCallPatchers(t *testing.T) {
+	var (
+		patcher1 Patcher = &mockPatcher{
+			PatchFunc: func(resources map[string][]*models.Resource) error {
+				return nil
+			},
+		}
+		patcher2 Patcher = &mockPatcher{
+			PatchFunc: func(resources map[string][]*models.Resource) error {
+				return assert.AnError
+			},
+		}
+		pf1 = func() (Patcher, error) { return patcher1, nil }
+		pf2 = func() (Patcher, error) { return patcher2, nil }
+	)
+	err := CallPatchers(nil, pf1)
+	assert.NoError(t, err)
+
+	err = CallPatchers(nil, pf1, pf2)
 	assert.Error(t, err)
 	assert.EqualError(t, err, assert.AnError.Error())
 }
@@ -137,12 +170,24 @@ func TestAppendToSpec(t *testing.T) {
 		Extensions: nil,
 	}
 
-	err := AppendToSpec(models.Kubernetes, "resource-id", spec, resource)
+	ns := &corev1.Namespace{
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: "v1",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name: "fake-project",
+		},
+	}
+
+	err := AppendToSpec(models.Kubernetes, resource.ID, spec, ns)
 
 	assert.NoError(t, err)
 	assert.Len(t, spec.Resources, 1)
-	assert.Equal(t, "resource-id", spec.Resources[0].ID)
-	assert.Equal(t, models.Kubernetes, spec.Resources[0].Type)
+	assert.Equal(t, resource.ID, spec.Resources[0].ID)
+	assert.Equal(t, resource.Type, spec.Resources[0].Type)
+	assert.Equal(t, resource.Attributes, spec.Resources[0].Attributes)
+	assert.Equal(t, ns.GroupVersionKind().String(), spec.Resources[0].Extensions[models.ResourceExtensionGVK])
 }
 
 func TestUniqueAppName(t *testing.T) {
@@ -168,4 +213,41 @@ func TestUniqueAppLabels(t *testing.T) {
 	result := UniqueAppLabels(projectName, appName)
 
 	assert.Equal(t, expected, result)
+}
+
+func TestPatchResource(t *testing.T) {
+	resources := map[string][]*models.Resource{
+		"/v1, Kind=Namespace": {
+			{
+				ID:   "v1:Namespace:default",
+				Type: "Kubernetes",
+				Attributes: map[string]interface{}{
+					"apiVersion": "v1",
+					"kind":       "Namespace",
+					"metadata": map[string]interface{}{
+						"name": "default",
+					},
+				},
+				Extensions: map[string]interface{}{
+					"GVK": "/v1, Kind=Namespace",
+				},
+			},
+		},
+	}
+	assert.NoError(
+		t,
+		PatchResource(resources, "/v1, Kind=Namespace", func(ns *corev1.Namespace) error {
+			ns.Labels = map[string]string{
+				"foo": "bar",
+			}
+			return nil
+		}),
+	)
+	assert.Equal(
+		t,
+		map[string]interface{}{
+			"foo": "bar",
+		},
+		resources["/v1, Kind=Namespace"][0].Attributes["metadata"].(map[string]interface{})["labels"].(map[string]interface{}),
+	)
 }

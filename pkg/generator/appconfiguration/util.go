@@ -1,6 +1,7 @@
 package appconfiguration
 
 import (
+	"errors"
 	"sort"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,6 +32,25 @@ func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error 
 	}
 	for _, g := range gs {
 		if err := g.Generate(spec); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// CallPatchers calls the Patch method of each AppsGenerator instance
+// returned by the given NewPatcherFuncs.
+func CallPatchers(resources map[string][]*models.Resource, newPatchers ...NewPatcherFunc) error {
+	ps := make([]Patcher, 0, len(newPatchers))
+	for _, newPatcher := range newPatchers {
+		if p, err := newPatcher(); err != nil {
+			return err
+		} else {
+			ps = append(ps, p)
+		}
+	}
+	for _, p := range ps {
+		if err := p.Patch(resources); err != nil {
 			return err
 		}
 	}
@@ -134,6 +154,12 @@ func KusionPathDependency(id, name string) string {
 
 // AppendToSpec adds a Kubernetes resource to a spec's resources slice.
 func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
+	// this function is only used for Kubernetes resources
+	if resourceType != models.Kubernetes {
+		return errors.New("AppendToSpec is only used for Kubernetes resources")
+	}
+
+	gvk := resource.(runtime.Object).GetObjectKind().GroupVersionKind().String()
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
 		return err
@@ -143,7 +169,9 @@ func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec
 		Type:       resourceType,
 		Attributes: unstructured,
 		DependsOn:  nil,
-		Extensions: nil,
+		Extensions: map[string]any{
+			models.ResourceExtensionGVK: gvk,
+		},
 	}
 	spec.Resources = append(spec.Resources, r)
 	return nil
@@ -160,4 +188,27 @@ func UniqueAppLabels(projectName, appName string) map[string]string {
 		"app.kubernetes.io/part-of": projectName,
 		"app.kubernetes.io/name":    appName,
 	}
+}
+
+// PatchResource patches the resource with the given patch.
+func PatchResource[T any](resources map[string][]*models.Resource, gvk string, patchFunc func(*T) error) error {
+	var obj T
+	for _, r := range resources[gvk] {
+		// convert unstructured to typed object
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(r.Attributes, &obj); err != nil {
+			return err
+		}
+
+		if err := patchFunc(&obj); err != nil {
+			return err
+		}
+
+		// convert typed object to unstructured
+		updated, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&obj)
+		if err != nil {
+			return err
+		}
+		r.Attributes = updated
+	}
+	return nil
 }

@@ -45,8 +45,10 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 							"spec":   make(map[string]interface{}),
 							"status": make(map[string]interface{}),
 						},
-						DependsOn:  nil,
-						Extensions: nil,
+						DependsOn: nil,
+						Extensions: map[string]interface{}{
+							"GVK": "/v1, Kind=Namespace",
+						},
 					},
 				},
 			},

@@ -8,8 +8,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
-	"kusionstack.io/kusion/pkg/models/appconfiguration/trait"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/network"
@@ -26,10 +24,8 @@ func TestNewWorkloadGenerator(t *testing.T) {
 		expectedStack := &projectstack.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
-		expectedMonitoring := &monitoring.Monitor{}
-		expectedOpsRule := &trait.OpsRule{}
 
-		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring, expectedOpsRule)
+		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload)
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.NotNil(t, actualGenerator, "Generator should not be nil")
@@ -50,10 +46,8 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 		expectedStack := &projectstack.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
-		expectedMonitoring := &monitoring.Monitor{}
-		expectedOpsRule := &trait.OpsRule{}
 
-		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedMonitoring, expectedOpsRule)
+		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload)
 		actualGenerator, err := generatorFunc()
 
 		assert.NoError(t, err, "Error should be nil")
@@ -121,11 +115,8 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				},
 			}
 			expectedAppName := "test"
-			expectedMonitoring := &monitoring.Monitor{}
-			expectedMonitoringAnnotations := map[string]string{"prometheus.io/path": "", "prometheus.io/port": "", "prometheus.io/scheme": "", "prometheus.io/scrape": "true"}
-			expectedOpsRule := &trait.OpsRule{}
 
-			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedMonitoring, expectedOpsRule)
+			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload)
 			spec := &models.Spec{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
@@ -141,7 +132,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			if tc.expectedWorkload.Header.Type == "Service" {
 				assert.Equal(t, "Deployment", actual.GetKind(), "Resource kind mismatch")
 				assert.Equal(t, appconfiguration.MergeMaps(appconfiguration.UniqueAppLabels(expectedProject.Name, expectedAppName), tc.expectedWorkload.Service.Labels), actual.GetLabels(), "Labels mismatch")
-				assert.Equal(t, appconfiguration.MergeMaps(tc.expectedWorkload.Service.Annotations, expectedMonitoringAnnotations), actual.GetAnnotations(), "Annotations mismatch")
 			} else if tc.expectedWorkload.Header.Type == "Job" {
 				assert.Equal(t, "CronJob", actual.GetKind(), "Resource kind mismatch")
 				assert.Equal(t, appconfiguration.MergeMaps(appconfiguration.UniqueAppLabels(expectedProject.Name, expectedAppName), tc.expectedWorkload.Job.Labels), actual.GetLabels(), "Labels mismatch")

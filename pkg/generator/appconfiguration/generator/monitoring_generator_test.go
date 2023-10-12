@@ -82,8 +82,10 @@ func BuildMonitoringTestCase(
 						},
 					},
 				},
-				DependsOn:  nil,
-				Extensions: nil,
+				DependsOn: nil,
+				Extensions: map[string]interface{}{
+					"GVK": fmt.Sprintf("monitoring.coreos.com/v1, Kind=%s", string(monitorKind)),
+				},
 			},
 		}
 	}

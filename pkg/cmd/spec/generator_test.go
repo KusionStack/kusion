@@ -94,6 +94,28 @@ resources:
 			},
 		},
 	}
+
+	specModel3 = &models.Spec{
+		Resources: []models.Resource{
+			{
+				ID:   "v1:Namespace:default",
+				Type: "Kubernetes",
+				Attributes: map[string]interface{}{
+					"apiVersion": "v1",
+					"kind":       "Namespace",
+					"spec":       make(map[string]interface{}),
+					"status":     make(map[string]interface{}),
+					"metadata": map[string]interface{}{
+						"name":              "default",
+						"creationTimestamp": nil,
+					},
+				},
+				Extensions: map[string]interface{}{
+					"GVK": "/v1, Kind=Namespace",
+				},
+			},
+		},
+	}
 )
 
 func TestGenerateSpecFromFile(t *testing.T) {
@@ -212,7 +234,7 @@ func TestGenerateSpec(t *testing.T) {
 					Documents: []kclgo.KCLResult{apcMap},
 				}, nil),
 			},
-			want: specModel1,
+			want: specModel3,
 		},
 	}
 
