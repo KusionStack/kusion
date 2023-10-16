@@ -396,7 +396,7 @@ func TestWorkSpace_ShowPlan(t *testing.T) {
 
 			mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
 				return data, nil
-			})
+			}).Build()
 
 			got, err := w.ShowPlan(tt.args.ctx)
 			if (err != nil) != tt.wantErr {

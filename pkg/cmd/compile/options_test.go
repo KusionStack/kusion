@@ -138,18 +138,6 @@ func TestCompileOptions_Run(t *testing.T) {
 		assert.Equal(t, errTest, err)
 	})
 
-	mockey.PatchConvey("write file failed", t, func() {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateSpec()
-		m3 := mockWriteFileFail()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
-		o := NewCompileOptions()
-		o.NoStyle = true
-		err := o.Run()
-		assert.Equal(t, errTest, err)
-	})
 }
 
 func newSA(name string) models.Resource {

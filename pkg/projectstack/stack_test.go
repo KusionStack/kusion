@@ -4,6 +4,7 @@
 package projectstack
 
 import (
+	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -304,7 +305,7 @@ func TestGetStack(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			tt.preRun()
 			got, err := GetStack()
 			tt.postRun()
