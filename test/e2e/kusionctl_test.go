@@ -41,15 +41,15 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			path := filepath.Join(GetWorkDir(), "konfig")
 			output, err := ExecKusionWithWorkDir("kusion ls --format=json", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("example", "multi-stack"))
+			gomega.Expect(output).To(gomega.ContainSubstring("multi-stack"))
 		})
 	})
 
 	ginkgo.Context("kusion deps testing", func() {
 		ginkgo.It("kusion deps", func() {
 			// kusion deps testing
-			path := filepath.Join(GetWorkDir(), "konfig")
-			output, err := ExecKusionWithWorkDir("kusion deps --focus example/multi-stack/dev/main.k", path)
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
+			output, err := ExecKusionWithWorkDir("kusion deps --focus main.k", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			gomega.Expect(output).To(gomega.ContainSubstring("catalog/models/schema/v1"))
 		})
@@ -77,7 +77,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
-				_, err := clusterClient.AppsV1().Deployments("multi-stack").Get(context.TODO(), "multi-stack-dev-multi-stack", metav1.GetOptions{})
+				_, err := clusterClient.AppsV1().Deployments("multi-stack").Get(context.TODO(), "multi-stack-dev-helloworld", metav1.GetOptions{})
 				return err == nil
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})

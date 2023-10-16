@@ -69,7 +69,17 @@ func (o *Options) ValidateSpecFile() error {
 	if o.SpecFile == "" {
 		return nil
 	}
-	absSF, _ := filepath.Abs(o.SpecFile)
+
+	// calculate the absolute path of the specFile
+	var absSF string
+	if o.WorkDir == "" {
+		absSF, _ = filepath.Abs(o.SpecFile)
+	} else if filepath.IsAbs(o.SpecFile) {
+		absSF = o.SpecFile
+	} else {
+		absSF = filepath.Join(o.WorkDir, o.SpecFile)
+	}
+
 	fi, err := os.Stat(absSF)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -81,11 +91,11 @@ func (o *Options) ValidateSpecFile() error {
 	if fi.IsDir() || !fi.Mode().IsRegular() {
 		return fmt.Errorf("spec file must be a regular file")
 	}
-	absWD, _ := filepath.Abs(o.WorkDir)
 
 	// calculate the relative path between absWD and absSF,
 	// if absSF is not located in the directory or subdirectory specified by absWD,
 	// an error will be returned
+	absWD, _ := filepath.Abs(o.WorkDir)
 	rel, err := filepath.Rel(absWD, absSF)
 	if err != nil {
 		return err
@@ -93,6 +103,9 @@ func (o *Options) ValidateSpecFile() error {
 	if rel[:3] == ".."+string(filepath.Separator) {
 		return fmt.Errorf("the spec file must be located in the working directory or its subdirectories")
 	}
+
+	// set the spec file to the absolute path for further processing
+	o.SpecFile = absSF
 	return nil
 }
 
