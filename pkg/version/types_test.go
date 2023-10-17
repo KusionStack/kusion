@@ -273,7 +273,7 @@ func mockRuntime() {
 	mockey.Mock(runtime.Version).To(func() string {
 		return "go1.16.5"
 	}).Build()
-	mockey.Mock(runtime.NumCPU).To(func() int {
+	mockey.Mock(numCPU).To(func() int {
 		return 8
 	}).Build()
 }

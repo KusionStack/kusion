@@ -5,11 +5,12 @@ package kfile
 
 import (
 	"fmt"
-	"github.com/bytedance/mockey"
 	"os"
 	"os/user"
 	"path/filepath"
 	"testing"
+
+	"github.com/bytedance/mockey"
 )
 
 const (
@@ -59,7 +60,6 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestKusionDataFolder(t *testing.T) {
-
 	// Run test
 	tests := []struct {
 		name    string
@@ -91,7 +91,6 @@ func TestKusionDataFolder(t *testing.T) {
 }
 
 func TestGetCredentialsToken(t *testing.T) {
-
 	// Run test
 	tests := []struct {
 		name string

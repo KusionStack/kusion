@@ -152,7 +152,6 @@ func TestInitWorkspace(t *testing.T) {
 }
 
 func TestApply(t *testing.T) {
-
 	type args struct {
 		w *WorkSpace
 	}
@@ -302,7 +301,6 @@ func mockProviderAddr() {
 }
 
 func TestWorkSpace_Plan(t *testing.T) {
-
 	type fields struct {
 		resource   *models.Resource
 		fs         afero.Afero
@@ -354,7 +352,6 @@ func TestWorkSpace_Plan(t *testing.T) {
 }
 
 func TestWorkSpace_ShowPlan(t *testing.T) {
-
 	type fields struct {
 		resource   *models.Resource
 		fs         afero.Afero
