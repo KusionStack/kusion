@@ -137,7 +137,6 @@ func TestCompileOptions_Run(t *testing.T) {
 		err := o.Run()
 		assert.Equal(t, errTest, err)
 	})
-
 }
 
 func newSA(name string) models.Resource {

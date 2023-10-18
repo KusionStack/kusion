@@ -186,7 +186,6 @@ func newSA(name string) models.Resource {
 func Test_apply(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	mockey.PatchConvey("dry run", t, func() {
-
 		planResources := &models.Spec{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
