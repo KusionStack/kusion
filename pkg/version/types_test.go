@@ -1,6 +1,3 @@
-//go:build !arm64
-// +build !arm64
-
 package version
 
 import (
@@ -33,7 +30,7 @@ func TestKusionVersionNormal(t *testing.T) {
 		mockRuntime()
 
 		versionJSON := `{
-		"releaseVersion": "v0.3.11-alpha",
+		"releaseVersion": "0.3.11-alpha",
 		"gitInfo": {
 			"latestTag": "v0.3.11-alpha",
 			"commit": "af79cd231e7ed1dbb00e860da9615febf5f17bf0",
@@ -46,10 +43,6 @@ func TestKusionVersionNormal(t *testing.T) {
 			"numCPU": 8,
 			"compiler": "` + runtime.Compiler + `",
 			"buildTime": "2006-01-02 15:04:05"
-		},
-		"dependency": {
-			"kclGoVersion": "stable",
-			"kclPluginVersion": "stable"
 		}
 	}`
 
@@ -179,7 +172,7 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		}).Build()
 
 		versionJSON := `{
-	"releaseVersion": "v0.3.11-alpha+af79cd23",
+	"releaseVersion": "0.3.11-alpha+af79cd23",
 	"gitInfo": {
 		"latestTag": "v0.3.11-alpha",
 		"commit": "af79cd231e7ed1dbb00e860da9615febf5f17bf0",
@@ -192,10 +185,6 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 		"numCPU": 8,
 		"compiler": "` + runtime.Compiler + `",
 		"buildTime": "2006-01-02 15:04:05"
-	},
-	"dependency": {
-		"kclGoVersion": "stable",
-		"kclPluginVersion": "stable"
 	}
 }`
 
