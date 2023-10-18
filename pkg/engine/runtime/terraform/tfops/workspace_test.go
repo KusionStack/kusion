@@ -2,13 +2,13 @@ package tfops
 
 import (
 	"context"
-	"github.com/bytedance/mockey"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"

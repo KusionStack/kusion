@@ -2,12 +2,12 @@
 package kcl
 
 import (
-	"github.com/bytedance/mockey"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
@@ -32,7 +32,6 @@ func TestInit(t *testing.T) {
 }
 
 func TestGenerateSpec(t *testing.T) {
-
 	fakeStack := &projectstack.Stack{
 		StackConfiguration: projectstack.StackConfiguration{
 			Name: "fake-stack",

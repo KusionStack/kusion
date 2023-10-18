@@ -2,16 +2,15 @@ package http
 
 import (
 	"fmt"
-	"github.com/bytedance/mockey"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/engine/states"
 	json_util "kusionstack.io/kusion/pkg/util/json"
 )
 

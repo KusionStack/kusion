@@ -6,10 +6,10 @@ package gitutil
 import (
 	"errors"
 	"fmt"
-	"github.com/bytedance/mockey"
 	"os/exec"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 

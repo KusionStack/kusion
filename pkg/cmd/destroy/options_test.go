@@ -3,12 +3,12 @@ package destroy
 import (
 	"context"
 	"errors"
-	"github.com/bytedance/mockey"
 	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine"

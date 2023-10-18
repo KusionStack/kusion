@@ -5,11 +5,11 @@ package scaffold
 
 import (
 	"fmt"
-	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/jinzhu/copier"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"

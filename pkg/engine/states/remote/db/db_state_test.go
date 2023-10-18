@@ -5,17 +5,16 @@ package db
 
 import (
 	"database/sql"
-	"github.com/bytedance/mockey"
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
+	"github.com/bytedance/mockey"
 	"github.com/didi/gendry/manager"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 func TestNewDBState(t *testing.T) {

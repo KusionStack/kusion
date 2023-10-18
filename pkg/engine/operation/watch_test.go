@@ -2,9 +2,9 @@ package operation
 
 import (
 	"context"
-	"github.com/bytedance/mockey"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"

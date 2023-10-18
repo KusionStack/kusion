@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"sync"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
@@ -51,9 +51,7 @@ func TestTerraformRuntime(t *testing.T) {
 	}
 
 	mockey.PatchConvey("ApplyDryRun", t, func() {
-
 		mockApplySetup()
-
 		data, err := os.ReadFile(filepath.Join("tfops", "test_data", "plan.out.json"))
 		if err != nil {
 			panic(err)
@@ -65,30 +63,24 @@ func TestTerraformRuntime(t *testing.T) {
 			}
 			return s, nil
 		}).Build()
-
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: true, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Apply")
 	})
 	mockey.PatchConvey("Apply", t, func() {
-
 		mockApplySetup()
-
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: false, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Apply")
 	})
 
 	mockey.PatchConvey("Read", t, func() {
-
 		mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
 		}).Build()
-
 		response := tfRuntime.Read(context.TODO(), &runtime.ReadRequest{PlanResource: &testResource, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Read")
 	})
 
 	mockey.PatchConvey("Delete", t, func() {
-
 		mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
 		}).Build()
@@ -96,7 +88,6 @@ func TestTerraformRuntime(t *testing.T) {
 		mockey.Mock((*tfops.WorkSpace).Destroy).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
 		}).Build()
-
 		response := tfRuntime.Delete(context.TODO(), &runtime.DeleteRequest{Resource: &testResource, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Delete")
 	})

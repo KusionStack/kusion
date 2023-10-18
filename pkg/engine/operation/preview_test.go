@@ -2,11 +2,12 @@ package operation
 
 import (
 	"context"
-	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"sync"
 	"testing"
+
+	"github.com/bytedance/mockey"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"

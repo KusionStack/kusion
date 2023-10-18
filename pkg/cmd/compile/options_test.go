@@ -2,11 +2,11 @@ package compile
 
 import (
 	"errors"
-	"github.com/bytedance/mockey"
 	"io/fs"
 	"os"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
@@ -190,11 +190,5 @@ func mockGenerateSpecFail() *mockey.Mocker {
 func mockWriteFile() *mockey.Mocker {
 	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return nil
-	}).Build()
-}
-
-func mockWriteFileFail() *mockey.Mocker {
-	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
-		return errTest
 	}).Build()
 }

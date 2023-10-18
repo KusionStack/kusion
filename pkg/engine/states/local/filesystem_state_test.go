@@ -4,16 +4,16 @@
 package local
 
 import (
-	"github.com/bytedance/mockey"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 var stateFile string

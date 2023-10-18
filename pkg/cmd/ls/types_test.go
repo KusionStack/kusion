@@ -4,9 +4,9 @@
 package ls
 
 import (
-	"github.com/bytedance/mockey"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 

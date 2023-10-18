@@ -2,10 +2,10 @@ package graph
 
 import (
 	"context"
-	"github.com/bytedance/mockey"
 	"sync"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"

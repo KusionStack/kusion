@@ -3,14 +3,13 @@ package apply
 import (
 	"context"
 	"errors"
-	"github.com/bytedance/mockey"
-	"kusionstack.io/kusion/pkg/status"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
@@ -23,6 +22,7 @@ import (
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestApplyOptions_Run(t *testing.T) {
@@ -206,7 +206,6 @@ func Test_apply(t *testing.T) {
 	})
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(opsmodels.Success)
-
 		o := NewApplyOptions()
 		planResources := &models.Spec{Resources: []models.Resource{sa1, sa2}}
 		order := &opsmodels.ChangeOrder{

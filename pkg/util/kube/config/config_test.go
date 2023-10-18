@@ -4,10 +4,10 @@
 package config
 
 import (
-	"github.com/bytedance/mockey"
 	"os"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 

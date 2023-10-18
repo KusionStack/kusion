@@ -6,11 +6,11 @@ package kubernetes
 
 import (
 	"context"
-	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	yamlv3 "gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -82,7 +82,6 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 
 	mockey.PatchConvey(tests[0].name, t, func() {
 		k := &KubernetesRuntime{}
-
 		mockey.Mock(mockey.GetMethod(k, "Read")).To(func(
 			k *KubernetesRuntime,
 			ctx context.Context,

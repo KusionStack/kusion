@@ -6,7 +6,6 @@ package version
 import (
 	"encoding/json"
 	"errors"
-	"github.com/bytedance/mockey"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -14,6 +13,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/bytedance/mockey"
 	goversion "github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/assert"
 

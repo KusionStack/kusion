@@ -8,7 +8,6 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/require"
-
 	kclgo "kcl-lang.io/kcl-go"
 
 	"kusionstack.io/kusion/pkg/generator"

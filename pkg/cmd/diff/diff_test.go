@@ -5,10 +5,10 @@ package diff
 
 import (
 	"errors"
-	"github.com/bytedance/mockey"
 	"os"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/gonvenience/ytbx"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

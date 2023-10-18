@@ -5,18 +5,18 @@ package s3
 
 import (
 	"encoding/json"
-	"github.com/bytedance/mockey"
 	"testing"
 	"time"
-
-	"kusionstack.io/kusion/pkg/engine/states"
 
 	"github.com/Azure/go-autorest/autorest/mocks"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 func S3StateSetUp(t *testing.T) *S3State {

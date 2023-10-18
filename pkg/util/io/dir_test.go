@@ -4,9 +4,10 @@
 package io
 
 import (
-	"github.com/bytedance/mockey"
 	"os"
 	"testing"
+
+	"github.com/bytedance/mockey"
 )
 
 func TestCreateDirIfNotExist(t *testing.T) {

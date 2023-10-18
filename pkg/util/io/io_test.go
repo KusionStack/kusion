@@ -6,12 +6,12 @@ package io
 import (
 	"bufio"
 	"bytes"
-	"github.com/bytedance/mockey"
 	"io"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 

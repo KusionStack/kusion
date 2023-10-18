@@ -1,9 +1,9 @@
 package check
 
 import (
-	"github.com/bytedance/mockey"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/cmd/compile"

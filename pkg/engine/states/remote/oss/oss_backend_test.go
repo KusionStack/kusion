@@ -1,11 +1,11 @@
 package oss
 
 import (
-	"github.com/bytedance/mockey"
 	"reflect"
 	"testing"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/bytedance/mockey"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )

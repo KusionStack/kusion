@@ -4,11 +4,11 @@
 package ls
 
 import (
-	"github.com/bytedance/mockey"
 	"reflect"
 	"testing"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/projectstack"

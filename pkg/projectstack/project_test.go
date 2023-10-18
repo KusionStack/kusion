@@ -5,11 +5,12 @@ package projectstack
 
 import (
 	"errors"
-	"github.com/bytedance/mockey"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/bytedance/mockey"
 
 	"kusionstack.io/kusion/pkg/util/json"
 )

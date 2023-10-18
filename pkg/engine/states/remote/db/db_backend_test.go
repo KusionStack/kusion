@@ -2,10 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"github.com/bytedance/mockey"
 	"reflect"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/didi/gendry/manager"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"

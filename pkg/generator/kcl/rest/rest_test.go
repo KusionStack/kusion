@@ -4,10 +4,10 @@
 package rest
 
 import (
-	"github.com/bytedance/mockey"
 	"net/http"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 

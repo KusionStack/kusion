@@ -5,16 +5,16 @@ package oss
 
 import (
 	"encoding/json"
-	"github.com/bytedance/mockey"
 	"io"
 	"testing"
 	"time"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
 	"github.com/Azure/go-autorest/autorest/mocks"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 func SetUp(t *testing.T) *OssState {

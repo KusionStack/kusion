@@ -4,12 +4,12 @@
 package operation
 
 import (
-	"github.com/bytedance/mockey"
 	"path/filepath"
 	"reflect"
 	"sync"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 

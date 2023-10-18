@@ -5,12 +5,12 @@ package init
 
 import (
 	"fmt"
-	"github.com/bytedance/mockey"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/scaffold"
