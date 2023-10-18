@@ -211,28 +211,24 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 	})
 }
 
-// 模拟获取git头部哈希值
 func mockGetHeadHash() {
 	mockey.Mock(git.GetHeadHash).To(func() (string, error) {
 		return "af79cd231e7ed1dbb00e860da9615febf5f17bf0", nil
 	}).Build()
 }
 
-// 模拟获取git短头部哈希值
 func mockGetHeadHashShort() {
 	mockey.Mock(git.GetHeadHashShort).To(func() (string, error) {
 		return "af79cd23", nil
 	}).Build()
 }
 
-// 模拟获取git最新标签
 func mockGetLatestTag() {
 	mockey.Mock(git.GetLatestTag).To(func() (string, error) {
 		return "v0.3.11-alpha", nil
 	}).Build()
 }
 
-// 模拟获取git版本
 func mockNewVersion() {
 	mockey.Mock(goversion.NewVersion).To(func(v string) (*goversion.Version, error) {
 		version := &goversion.Version{}
@@ -242,14 +238,12 @@ func mockNewVersion() {
 	}).Build()
 }
 
-// 模拟检查git头部是否在标签处
 func mockIsHeadAtTag() {
 	mockey.Mock(git.IsHeadAtTag).To(func(tag string) (bool, error) {
 		return true, nil
 	}).Build()
 }
 
-// 模拟检查git是否有未提交的更改
 func mockIsDirty() {
 	mockey.Mock(git.IsDirty).To(func() (bool, error) {
 		return false, nil
