@@ -27,7 +27,7 @@ var (
 )
 
 func Test_lsReport_Human(t *testing.T) {
-	mockey.PatchConvey("test le report human", t, func() {
+	mockey.PatchConvey("test lsReport human", t, func() {
 		mockPromptOutput()
 
 		got, err := report.Human()
