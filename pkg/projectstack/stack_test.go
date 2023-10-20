@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 
 	"kusionstack.io/kusion/pkg/util/json"
 )
@@ -302,13 +302,11 @@ func TestGetStack(t *testing.T) {
 			preRun: func() {
 				mockGetStackFrom(ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			tt.preRun()
 			got, err := GetStack()
 			tt.postRun()

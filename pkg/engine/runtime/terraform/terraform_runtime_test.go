@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
@@ -50,70 +50,57 @@ func TestTerraformRuntime(t *testing.T) {
 		mu:        &sync.Mutex{},
 	}
 
-	t.Run("ApplyDryRun", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-
+	mockey.PatchConvey("ApplyDryRun", t, func() {
 		mockApplySetup()
-
 		data, err := os.ReadFile(filepath.Join("tfops", "test_data", "plan.out.json"))
 		if err != nil {
 			panic(err)
 		}
-		monkey.Patch((*tfops.WorkSpace).Plan, func(ws *tfops.WorkSpace, ctx context.Context) (*tfops.PlanRepresentation, error) {
+		mockey.Mock((*tfops.WorkSpace).Plan).To(func(ws *tfops.WorkSpace, ctx context.Context) (*tfops.PlanRepresentation, error) {
 			s := &tfops.PlanRepresentation{}
 			if err = json.Unmarshal(data, s); err != nil {
 				return nil, fmt.Errorf("json umarshal plan representation failed: %v", err)
 			}
 			return s, nil
-		})
-
+		}).Build()
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: true, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Apply")
 	})
-	t.Run("Apply", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-
+	mockey.PatchConvey("Apply", t, func() {
 		mockApplySetup()
-
 		response := tfRuntime.Apply(context.TODO(), &runtime.ApplyRequest{PlanResource: &testResource, DryRun: false, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Apply")
 	})
 
-	t.Run("Read", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-
-		monkey.Patch((*tfops.WorkSpace).InitWorkSpace, func(ws *tfops.WorkSpace, ctx context.Context) error {
+	mockey.PatchConvey("Read", t, func() {
+		mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
-		})
-
+		}).Build()
 		response := tfRuntime.Read(context.TODO(), &runtime.ReadRequest{PlanResource: &testResource, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Read")
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		defer monkey.UnpatchAll()
-
-		monkey.Patch((*tfops.WorkSpace).InitWorkSpace, func(ws *tfops.WorkSpace, ctx context.Context) error {
+	mockey.PatchConvey("Delete", t, func() {
+		mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
-		})
+		}).Build()
 		// mock destroy
-		monkey.Patch((*tfops.WorkSpace).Destroy, func(ws *tfops.WorkSpace, ctx context.Context) error {
+		mockey.Mock((*tfops.WorkSpace).Destroy).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 			return nil
-		})
-
+		}).Build()
 		response := tfRuntime.Delete(context.TODO(), &runtime.DeleteRequest{Resource: &testResource, Stack: stack})
 		assert.Equalf(t, nil, response.Status, "Execute(%v)", "Delete")
 	})
 }
 
 func mockApplySetup() {
-	monkey.Patch((*tfops.WorkSpace).InitWorkSpace, func(ws *tfops.WorkSpace, ctx context.Context) error {
+	mockey.Mock((*tfops.WorkSpace).InitWorkSpace).To(func(ws *tfops.WorkSpace, ctx context.Context) error {
 		return nil
-	})
-	monkey.Patch((*tfops.WorkSpace).Apply, func(ws *tfops.WorkSpace, ctx context.Context) (*tfops.StateRepresentation, error) {
+	}).Build()
+	mockey.Mock((*tfops.WorkSpace).Apply).To(func(ws *tfops.WorkSpace, ctx context.Context) (*tfops.StateRepresentation, error) {
 		return fakeSR, nil
-	})
-	monkey.Patch((*tfops.WorkSpace).GetProvider, func(ws *tfops.WorkSpace) (string, error) {
+	}).Build()
+	mockey.Mock((*tfops.WorkSpace).GetProvider).To(func(ws *tfops.WorkSpace) (string, error) {
 		return "registry.terraform.io/hashicorp/local/2.2.3", nil
-	})
+	}).Build()
 }

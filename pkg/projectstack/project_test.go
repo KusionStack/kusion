@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 
 	"kusionstack.io/kusion/pkg/util/json"
 )
@@ -342,13 +342,11 @@ func TestGetProject(t *testing.T) {
 			preRun: func() {
 				mockGetProjectFrom(ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			tt.preRun()
 			got, err := GetProject()
 			tt.postRun()
@@ -521,9 +519,7 @@ func TestDetectProjectAndStack(t *testing.T) {
 			preRun: func() {
 				mockAbs("", ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 		{
 			name: "fail-for-GetStackFrom",
@@ -536,9 +532,7 @@ func TestDetectProjectAndStack(t *testing.T) {
 			preRun: func() {
 				mockGetStackFrom(ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 		{
 			name: "fail-for-FindProjectPathFrom",
@@ -551,9 +545,7 @@ func TestDetectProjectAndStack(t *testing.T) {
 			preRun: func() {
 				mockFindProjectPathFrom("", ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 		{
 			name: "fail-for-GetProjectFrom",
@@ -566,13 +558,11 @@ func TestDetectProjectAndStack(t *testing.T) {
 			preRun: func() {
 				mockGetProjectFrom(ErrFake)
 			},
-			postRun: func() {
-				defer monkey.UnpatchAll()
-			},
+			postRun: func() {},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			tt.preRun()
 			got, gosuccess, err := DetectProjectAndStack(tt.args.stackDir)
 			tt.postRun()
@@ -591,34 +581,34 @@ func TestDetectProjectAndStack(t *testing.T) {
 }
 
 func mockAbs(mockAbs string, mockErr error) {
-	monkey.Patch(filepath.Abs, func(_ string) (string, error) {
+	mockey.Mock(filepath.Abs).To(func(_ string) (string, error) {
 		return mockAbs, mockErr
-	})
+	}).Build()
 }
 
 func mockGetStackFrom(mockErr error) {
-	monkey.Patch(GetStackFrom, func(_ string) (*Stack, error) {
+	mockey.Mock(GetStackFrom).To(func(_ string) (*Stack, error) {
 		if mockErr == nil {
 			return &Stack{}, nil
 		}
 		return nil, mockErr
-	})
+	}).Build()
 }
 
 func mockGetProjectFrom(mockErr error) {
-	monkey.Patch(GetProjectFrom, func(_ string) (*Project, error) {
+	mockey.Mock(GetProjectFrom).To(func(_ string) (*Project, error) {
 		if mockErr == nil {
 			return &Project{}, nil
 		}
 		return nil, mockErr
-	})
+	}).Build()
 }
 
 func mockFindProjectPathFrom(mockProjectDir string, mockErr error) {
-	monkey.Patch(FindProjectPathFrom, func(_ string) (string, error) {
+	mockey.Mock(FindProjectPathFrom).To(func(_ string) (string, error) {
 		if mockErr == nil {
 			return mockProjectDir, nil
 		}
 		return "", mockErr
-	})
+	}).Build()
 }

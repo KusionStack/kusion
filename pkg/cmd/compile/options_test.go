@@ -1,13 +1,14 @@
 package compile
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/bytedance/mockey"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/generator"
@@ -35,6 +36,8 @@ var (
 	sa1 = newSA("sa1")
 	sa2 = newSA("sa2")
 	sa3 = newSA("sa3")
+
+	errTest = errors.New("test error")
 )
 
 func TestCompileOptions_preSet(t *testing.T) {
@@ -113,6 +116,27 @@ func TestCompileOptions_Run(t *testing.T) {
 		err := o.Run()
 		assert.Nil(t, err)
 	})
+
+	mockey.PatchConvey("detect project and spec failed", t, func() {
+		m1 := mockDetectProjectAndStackFail()
+		defer m1.UnPatch()
+
+		o := NewCompileOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Equal(t, errTest, err)
+	})
+
+	mockey.PatchConvey("generate spec failed", t, func() {
+		m1 := mockDetectProjectAndStack()
+		m2 := mockGenerateSpecFail()
+		defer m1.UnPatch()
+		defer m2.UnPatch()
+		o := NewCompileOptions()
+		o.NoStyle = true
+		err := o.Run()
+		assert.Equal(t, errTest, err)
+	})
 }
 
 func newSA(name string) models.Resource {
@@ -138,6 +162,14 @@ func mockDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
+func mockDetectProjectAndStackFail() *mockey.Mocker {
+	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+		project.Path = stackDir
+		stack.Path = stackDir
+		return project, stack, errTest
+	}).Build()
+}
+
 func mockGenerateSpec() *mockey.Mocker {
 	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
 		o *generator.Options,
@@ -145,6 +177,12 @@ func mockGenerateSpec() *mockey.Mocker {
 		stack *projectstack.Stack,
 	) (*models.Spec, error) {
 		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	}).Build()
+}
+
+func mockGenerateSpecFail() *mockey.Mocker {
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 

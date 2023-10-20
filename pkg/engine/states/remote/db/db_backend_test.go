@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/didi/gendry/manager"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
@@ -38,7 +38,6 @@ func TestDBBackend_ConfigSchema(t *testing.T) {
 }
 
 func TestDBBackend_Configure(t *testing.T) {
-	defer monkey.UnpatchAll()
 	type args struct {
 		config map[string]interface{}
 	}
@@ -62,7 +61,7 @@ func TestDBBackend_Configure(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			s := NewDBBackend()
 			mockDBOpen()
 			obj, _ := gocty.ToCtyValue(tt.args.config, s.ConfigSchema())
@@ -74,7 +73,7 @@ func TestDBBackend_Configure(t *testing.T) {
 }
 
 func mockDBOpen() {
-	monkey.Patch((*manager.Option).Open, func(o *manager.Option, ping bool) (*sql.DB, error) {
+	mockey.Mock((*manager.Option).Open).To(func(o *manager.Option, ping bool) (*sql.DB, error) {
 		return &sql.DB{}, nil
-	})
+	}).Build()
 }

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/bytedance/mockey"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
@@ -36,7 +36,6 @@ func TestOssBackend_ConfigSchema(t *testing.T) {
 }
 
 func TestOssBackend_Configure(t *testing.T) {
-	defer monkey.UnpatchAll()
 	type args struct {
 		config map[string]interface{}
 	}
@@ -59,7 +58,7 @@ func TestOssBackend_Configure(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			s := NewOssBackend()
 			mockOssNew()
 			obj, _ := gocty.ToCtyValue(tt.args.config, s.ConfigSchema())
@@ -71,7 +70,7 @@ func TestOssBackend_Configure(t *testing.T) {
 }
 
 func mockOssNew() {
-	monkey.Patch(oss.New, func(endpoint, accessKeyID, accessKeySecret string, options ...oss.ClientOption) (*oss.Client, error) {
+	mockey.Mock(oss.New).To(func(endpoint, accessKeyID, accessKeySecret string, options ...oss.ClientOption) (*oss.Client, error) {
 		return &oss.Client{}, nil
-	})
+	}).Build()
 }

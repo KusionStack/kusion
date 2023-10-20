@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/engine"
@@ -24,8 +24,7 @@ import (
 )
 
 func TestDestroyOptions_Run(t *testing.T) {
-	t.Run("Detail is true", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("Detail is true", t, func() {
 		mockDetectProjectAndStack()
 		mockGetLatestState()
 		mockNewKubernetesRuntime()
@@ -37,8 +36,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("prompt no", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("prompt no", t, func() {
 		mockDetectProjectAndStack()
 		mockGetLatestState()
 		mockNewKubernetesRuntime()
@@ -50,8 +48,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("prompt yes", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("prompt yes", t, func() {
 		mockDetectProjectAndStack()
 		mockGetLatestState()
 		mockNewKubernetesRuntime()
@@ -80,25 +77,24 @@ var (
 )
 
 func mockDetectProjectAndStack() {
-	monkey.Patch(projectstack.DetectProjectAndStack, func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
+	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
 		project.Path = stackDir
 		stack.Path = stackDir
 		return project, stack, nil
-	})
+	}).Build()
 }
 
 func mockGetLatestState() {
-	monkey.PatchInstanceMethod(reflect.TypeOf(local.NewFileSystemState()), "GetLatestState", func(
+	mockey.Mock((*local.FileSystemState).GetLatestState).To(func(
 		f *local.FileSystemState,
 		query *states.StateQuery,
 	) (*states.State, error) {
 		return &states.State{Resources: []models.Resource{sa1}}, nil
-	})
+	}).Build()
 }
 
 func Test_preview(t *testing.T) {
-	t.Run("preview success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("preview success", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -110,9 +106,9 @@ func Test_preview(t *testing.T) {
 }
 
 func mockNewKubernetesRuntime() {
-	monkey.Patch(kubernetes.NewKubernetesRuntime, func() (runtime.Runtime, error) {
+	mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fakerRuntime{}, nil
-	})
+	}).Build()
 }
 
 var _ runtime.Runtime = (*fakerRuntime)(nil)
@@ -152,7 +148,7 @@ func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest)
 }
 
 func mockOperationPreview() {
-	monkey.Patch((*operation.PreviewOperation).Preview,
+	mockey.Mock((*operation.PreviewOperation).Preview).To(
 		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
 			return &operation.PreviewResponse{
 				Order: &opsmodels.ChangeOrder{
@@ -167,7 +163,7 @@ func mockOperationPreview() {
 				},
 			}, nil
 		},
-	)
+	).Build()
 }
 
 const (
@@ -197,8 +193,7 @@ func newSA(name string) models.Resource {
 }
 
 func Test_destroy(t *testing.T) {
-	t.Run("destroy success", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("destroy success", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(opsmodels.Success)
 
@@ -226,8 +221,7 @@ func Test_destroy(t *testing.T) {
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.Nil(t, err)
 	})
-	t.Run("destroy failed", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("destroy failed", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(opsmodels.Failed)
 
@@ -252,7 +246,7 @@ func Test_destroy(t *testing.T) {
 }
 
 func mockOperationDestroy(res opsmodels.OpResult) {
-	monkey.Patch((*operation.DestroyOperation).Destroy,
+	mockey.Mock((*operation.DestroyOperation).Destroy).To(
 		func(o *operation.DestroyOperation, request *operation.DestroyRequest) status.Status {
 			var err error
 			if res == opsmodels.Failed {
@@ -276,22 +270,22 @@ func mockOperationDestroy(res opsmodels.OpResult) {
 				return status.NewErrorStatus(err)
 			}
 			return nil
-		})
+		}).Build()
 }
 
 func Test_prompt(t *testing.T) {
-	t.Run("prompt error", func(t *testing.T) {
-		monkey.Patch(
-			survey.AskOne,
+	mockey.PatchConvey("prompt error", t, func() {
+		mockey.Mock(
+			survey.AskOne).To(
 			func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 				return errors.New("mock error")
 			},
-		)
+		).Build()
 		_, err := prompt()
 		assert.NotNil(t, err)
 	})
 
-	t.Run("prompt yes", func(t *testing.T) {
+	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
 		_, err := prompt()
 		assert.Nil(t, err)
@@ -299,11 +293,11 @@ func Test_prompt(t *testing.T) {
 }
 
 func mockPromptOutput(res string) {
-	monkey.Patch(
-		survey.AskOne,
+	mockey.Mock(
+		survey.AskOne).To(
 		func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 			reflect.ValueOf(response).Elem().Set(reflect.ValueOf(res))
 			return nil
 		},
-	)
+	).Build()
 }

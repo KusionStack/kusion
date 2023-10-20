@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 )
 
 const (
@@ -60,12 +60,6 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestKusionDataFolder(t *testing.T) {
-	// Mock data
-	os.Setenv(EnvKusionPath, "")
-	mockUserCurrent()
-	mockMkdirall()
-	defer monkey.UnpatchAll()
-
 	// Run test
 	tests := []struct {
 		name    string
@@ -79,7 +73,11 @@ func TestKusionDataFolder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
+			// Mock data
+			os.Setenv(EnvKusionPath, "")
+			mockUserCurrent()
+			mockMkdirall()
 			got, err := KusionDataFolder()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("KusionDataFolder() error = %v, wantErr %v", err, tt.wantErr)
@@ -93,12 +91,6 @@ func TestKusionDataFolder(t *testing.T) {
 }
 
 func TestGetCredentialsToken(t *testing.T) {
-	// Mock data
-	mockUserCurrent()
-	mockMkdirall()
-	mockReadFile()
-	defer monkey.UnpatchAll()
-
 	// Run test
 	tests := []struct {
 		name string
@@ -110,7 +102,11 @@ func TestGetCredentialsToken(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
+			// Mock data
+			mockUserCurrent()
+			mockMkdirall()
+			mockReadFile()
 			if got := GetCredentialsToken(); got != tt.want {
 				t.Errorf("GetCredentialsToken() = %v, want %v", got, tt.want)
 			}
@@ -119,21 +115,21 @@ func TestGetCredentialsToken(t *testing.T) {
 }
 
 func mockUserCurrent() {
-	monkey.Patch(user.Current, func() (*user.User, error) {
+	mockey.Mock(user.Current).To(func() (*user.User, error) {
 		return &user.User{
 			HomeDir: mockHomeDir,
 		}, nil
-	})
+	}).Build()
 }
 
 func mockMkdirall() {
-	monkey.Patch(os.MkdirAll, func(path string, perm os.FileMode) error {
+	mockey.Mock(os.MkdirAll).To(func(path string, perm os.FileMode) error {
 		return nil
-	})
+	}).Build()
 }
 
 func mockReadFile() {
-	monkey.Patch(os.ReadFile, func(filename string) ([]byte, error) {
+	mockey.Mock(os.ReadFile).To(func(filename string) ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"token": "%s"}`, mockToken)), nil
-	})
+	}).Build()
 }

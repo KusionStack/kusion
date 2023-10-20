@@ -7,18 +7,19 @@ import (
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 )
 
 func TestCreateDirIfNotExist(t *testing.T) {
-	defer monkey.UnpatchAll()
-	monkey.Patch(os.MkdirAll, func(path string, perm os.FileMode) error {
-		return nil
+	mockey.PatchConvey("test create dir if not exist", t, func() {
+		mockey.Mock(os.MkdirAll).To(func(path string, perm os.FileMode) error {
+			return nil
+		}).Build()
+		err := CreateDirIfNotExist("./nondir/nonfile")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
-	err := CreateDirIfNotExist("./nondir/nonfile")
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestValidDir(t *testing.T) {

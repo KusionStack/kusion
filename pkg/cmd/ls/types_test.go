@@ -6,7 +6,7 @@ package ls
 import (
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
@@ -27,12 +27,13 @@ var (
 )
 
 func Test_lsReport_Human(t *testing.T) {
-	defer monkey.UnpatchAll()
-	mockPromptOutput()
+	mockey.PatchConvey("test lsReport human", t, func() {
+		mockPromptOutput()
 
-	got, err := report.Human()
-	assert.Nil(t, err)
-	assert.Equal(t, humanReport, pterm.RemoveColorFromString(got))
+		got, err := report.Human()
+		assert.Nil(t, err)
+		assert.Equal(t, humanReport, pterm.RemoveColorFromString(got))
+	})
 }
 
 func Test_lsReport_Tree(t *testing.T) {

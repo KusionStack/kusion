@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
@@ -154,7 +154,7 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			o := &opsmodels.Operation{
 				OperationType:           tt.fields.OperationType,
 				StateStorage:            tt.fields.StateStorage,
@@ -172,13 +172,13 @@ func TestOperation_Apply(t *testing.T) {
 				Operation: *o,
 			}
 
-			monkey.Patch((*graph.ResourceNode).Execute, func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+			mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
 				o.ResultState = rs
 				return nil
-			})
-			monkey.Patch(runtimeinit.Runtimes, func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+			}).Build()
+			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
 				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
-			})
+			}).Build()
 
 			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)
 			assert.Equalf(t, tt.wantRsp.State.Stack, gotRsp.State.Stack, "Apply(%v)", tt.args.applyRequest)

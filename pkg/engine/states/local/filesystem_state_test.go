@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/engine/states"
-
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+
+	"kusionstack.io/kusion/pkg/engine/states"
 )
 
 var stateFile string
@@ -89,18 +89,17 @@ func TestFileSystemState_GetLatestState(t *testing.T) {
 }
 
 func FileSystemStateSetUp(t *testing.T) *FileSystemState {
-	monkey.Patch(os.WriteFile, func(filename string, data []byte, perm fs.FileMode) error {
+	mockey.Mock(os.WriteFile).To(func(filename string, data []byte, perm fs.FileMode) error {
 		return nil
-	})
-	monkey.Patch(os.Remove, func(name string) error {
+	}).Build()
+	mockey.Mock(os.Remove).To(func(name string) error {
 		return nil
-	})
+	}).Build()
 
 	return &FileSystemState{Path: "kusion_state_filesystem.json"}
 }
 
 func TestFileSystemState(t *testing.T) {
-	defer monkey.UnpatchAll()
 	fileSystemState := FileSystemStateSetUp(t)
 
 	state := &states.State{Tenant: "test_global_tenant", Project: "test_project", Stack: "test_env"}

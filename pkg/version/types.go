@@ -53,7 +53,7 @@ func NewDefaultVersionInfo() *Info {
 			GoVersion: runtime.Version(),
 			GOOS:      runtime.GOOS,
 			GOARCH:    runtime.GOARCH,
-			NumCPU:    runtime.NumCPU(),
+			NumCPU:    numCPU(),
 			Compiler:  runtime.Compiler,
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
@@ -185,7 +185,7 @@ func NewInfo() (*Info, error) {
 			GoVersion: runtime.Version(),
 			GOOS:      runtime.GOOS,
 			GOARCH:    runtime.GOARCH,
-			NumCPU:    runtime.NumCPU(),
+			NumCPU:    numCPU(),
 			Compiler:  runtime.Compiler,
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
@@ -216,4 +216,11 @@ func (v *Info) YAML() string {
 	}
 
 	return string(data)
+}
+
+// numCpu returns runtime.NumCPU() due to the function line flaw of "bytedance/mockey"
+// refer to https://github.com/bytedance/mockey
+func numCPU() int {
+	cpu := runtime.NumCPU()
+	return cpu
 }

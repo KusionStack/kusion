@@ -2,11 +2,10 @@ package graph
 
 import (
 	"context"
-	"reflect"
 	"sync"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -156,33 +155,32 @@ func TestResourceNode_Execute(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			rn := &ResourceNode{
 				baseNode: &tt.fields.BaseNode,
 				Action:   tt.fields.Action,
 				resource: tt.fields.state,
 			}
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Apply",
+			mockey.Mock(mockey.GetMethod(tt.args.operation.RuntimeMap[runtime.Kubernetes], "Apply")).To(
 				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 					mockState := *newResourceState
 					mockState.Attributes["a"] = "c"
 					return &runtime.ApplyResponse{
 						Resource: &mockState,
 					}
-				})
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Delete",
+				}).Build()
+			mockey.Mock(mockey.GetMethod(tt.args.operation.RuntimeMap[runtime.Kubernetes], "Delete")).To(
 				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
 					return &runtime.DeleteResponse{Status: nil}
-				})
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.RuntimeMap[runtime.Kubernetes]), "Read",
+				}).Build()
+			mockey.Mock(mockey.GetMethod(tt.args.operation.RuntimeMap[runtime.Kubernetes], "Read")).To(
 				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
-				})
-			monkey.PatchInstanceMethod(reflect.TypeOf(tt.args.operation.StateStorage), "Apply",
+				}).Build()
+			mockey.Mock(mockey.GetMethod(tt.args.operation.StateStorage, "Apply")).To(
 				func(f *local.FileSystemState, state *states.State) error {
 					return nil
-				})
-			defer monkey.UnpatchAll()
+				}).Build()
 
 			assert.Equalf(t, tt.want, rn.Execute(&tt.args.operation), "Execute(%v)", tt.args.operation)
 		})

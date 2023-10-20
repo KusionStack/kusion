@@ -7,21 +7,24 @@ import (
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 
 func mockGetenv(result string) {
-	monkey.Patch(os.Getenv, func(key string) string {
+	mockey.Mock(os.Getenv).To(func(key string) string {
 		return result
-	})
+	}).Build()
 }
 
 func TestGetKubeConfig(t *testing.T) {
 	// Mock
-	defer monkey.UnpatchAll()
-	mockGetenv("")
-	assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig())
-	mockGetenv("test")
-	assert.Equal(t, "test", GetKubeConfig())
+	mockey.PatchConvey("test null env config", t, func() {
+		mockGetenv("")
+		assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig())
+	})
+	mockey.PatchConvey("test env config", t, func() {
+		mockGetenv("test")
+		assert.Equal(t, "test", GetKubeConfig())
+	})
 }

@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -142,14 +142,6 @@ func TestIsFileOrDirExist(t *testing.T) {
 }
 
 func TestRenamePath(t *testing.T) {
-	defer monkey.UnpatchAll()
-	monkey.Patch(os.MkdirAll, func(string, os.FileMode) error {
-		return nil
-	})
-	monkey.Patch(os.Rename, func(oldpath, newpath string) error {
-		return nil
-	})
-
 	type args struct {
 		oldPath string
 		newPath string
@@ -168,7 +160,13 @@ func TestRenamePath(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
+			mockey.Mock(os.MkdirAll).To(func(string, os.FileMode) error {
+				return nil
+			}).Build()
+			mockey.Mock(os.Rename).To(func(oldpath, newpath string) error {
+				return nil
+			}).Build()
 			err := RenamePath(tt.args.oldPath, tt.args.newPath)
 			assert.Nil(t, err)
 		})

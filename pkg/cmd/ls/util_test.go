@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -65,8 +65,7 @@ var (
 )
 
 func Test_promptProjectOrStack(t *testing.T) {
-	t.Run("prompt project", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("prompt project", t, func() {
 		mockPromptOutput()
 
 		items := []NameAndPath{project}
@@ -75,8 +74,7 @@ func Test_promptProjectOrStack(t *testing.T) {
 		assert.Equal(t, project, got)
 	})
 
-	t.Run("prompt stack", func(t *testing.T) {
-		defer monkey.UnpatchAll()
+	mockey.PatchConvey("prompt stack", t, func() {
 		mockPromptOutput()
 
 		items := []NameAndPath{stack}
@@ -87,12 +85,12 @@ func Test_promptProjectOrStack(t *testing.T) {
 }
 
 func mockPromptOutput() {
-	monkey.Patch(
-		survey.AskOne,
+	mockey.Mock(
+		survey.AskOne).To(
 		func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 			s := p.(*survey.Select)
 			reflect.ValueOf(response).Elem().Set(reflect.ValueOf(s.Options[0]))
 			return nil
 		},
-	)
+	).Build()
 }

@@ -3,7 +3,6 @@ module kusionstack.io/kusion
 go 1.19
 
 require (
-	bou.ke/monkey v1.0.2
 	github.com/AlecAivazis/survey/v2 v2.3.4
 	github.com/Azure/go-autorest/autorest/mocks v0.4.1
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d

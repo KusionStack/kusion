@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"bou.ke/monkey"
+	"github.com/bytedance/mockey"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
@@ -152,8 +152,6 @@ func TestInitWorkspace(t *testing.T) {
 }
 
 func TestApply(t *testing.T) {
-	defer monkey.UnpatchAll()
-
 	type args struct {
 		w *WorkSpace
 	}
@@ -168,7 +166,7 @@ func TestApply(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
+		mockey.PatchConvey(name, t, func() {
 			mockProviderAddr()
 			tt.w.SetResource(&resourceTest)
 			tt.w.SetCacheDir(cacheDir)
@@ -200,7 +198,7 @@ func TestRead(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
+		mockey.PatchConvey(name, t, func() {
 			tt.args.w.SetResource(&resourceTest)
 			tt.args.w.SetCacheDir(cacheDir)
 			tt.args.w.SetStackDir(stackDir)
@@ -225,7 +223,7 @@ func TestRefreshOnly(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
+		mockey.PatchConvey(name, t, func() {
 			tt.args.w.SetResource(&resourceTest)
 			tt.args.w.SetCacheDir(cacheDir)
 			tt.args.w.SetStackDir(stackDir)
@@ -237,7 +235,6 @@ func TestRefreshOnly(t *testing.T) {
 }
 
 func TestGerProvider(t *testing.T) {
-	defer monkey.UnpatchAll()
 	type args struct {
 		w *WorkSpace
 	}
@@ -261,7 +258,7 @@ func TestGerProvider(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
+		mockey.PatchConvey(name, t, func() {
 			mockProviderAddr()
 			addr, err := tt.args.w.GetProvider()
 			if diff := cmp.Diff(tt.want.addr, addr); diff != "" {
@@ -275,7 +272,7 @@ func TestGerProvider(t *testing.T) {
 }
 
 func mockProviderAddr() {
-	monkey.Patch((*hclparse.Parser).ParseHCLFile, func(parse *hclparse.Parser, fileName string) (*hcl.File, hcl.Diagnostics) {
+	mockey.Mock((*hclparse.Parser).ParseHCLFile).To(func(parse *hclparse.Parser, fileName string) (*hcl.File, hcl.Diagnostics) {
 		return &hcl.File{
 			Body: &hclsyntax.Body{
 				Blocks: []*hclsyntax.Block{
@@ -300,12 +297,10 @@ func mockProviderAddr() {
 				},
 			},
 		}, nil
-	})
+	}).Build()
 }
 
 func TestWorkSpace_Plan(t *testing.T) {
-	defer monkey.UnpatchAll()
-
 	type fields struct {
 		resource   *models.Resource
 		fs         afero.Afero
@@ -336,7 +331,7 @@ func TestWorkSpace_Plan(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			w := &WorkSpace{
 				resource:   tt.fields.resource,
 				fs:         tt.fields.fs,
@@ -357,8 +352,6 @@ func TestWorkSpace_Plan(t *testing.T) {
 }
 
 func TestWorkSpace_ShowPlan(t *testing.T) {
-	defer monkey.UnpatchAll()
-
 	type fields struct {
 		resource   *models.Resource
 		fs         afero.Afero
@@ -384,7 +377,7 @@ func TestWorkSpace_ShowPlan(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		mockey.PatchConvey(tt.name, t, func() {
 			w := &WorkSpace{
 				resource:   tt.fields.resource,
 				fs:         tt.fields.fs,
@@ -398,9 +391,9 @@ func TestWorkSpace_ShowPlan(t *testing.T) {
 				panic(err)
 			}
 
-			monkey.Patch((*exec.Cmd).CombinedOutput, func(*exec.Cmd) ([]byte, error) {
+			mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
 				return data, nil
-			})
+			}).Build()
 
 			got, err := w.ShowPlan(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
@@ -440,7 +433,7 @@ func TestDestroy(t *testing.T) {
 		},
 	}
 	for name, tt := range cases {
-		t.Run(name, func(t *testing.T) {
+		mockey.PatchConvey(name, t, func() {
 			tt.args.w.SetResource(&resourceTest)
 			tt.args.w.SetCacheDir(cacheDir)
 			tt.args.w.SetStackDir(stackDir)

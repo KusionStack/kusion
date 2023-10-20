@@ -13,8 +13,7 @@ import (
 	"time"
 	"unsafe"
 
-	"bou.ke/monkey"
-
+	"github.com/bytedance/mockey"
 	goversion "github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/assert"
 
@@ -22,13 +21,18 @@ import (
 )
 
 func TestKusionVersionNormal(t *testing.T) {
-	defer monkey.UnpatchAll()
-	mockGit()
-	mockDependency()
-	mockTime()
-	mockRuntime()
+	mockey.PatchConvey("test kusion version normal", t, func() {
+		mockGetHeadHash()
+		mockGetHeadHashShort()
+		mockGetLatestTag()
+		mockNewVersion()
+		mockIsHeadAtTag()
+		mockIsDirty()
+		mockDependency()
+		mockTime()
+		mockRuntime()
 
-	versionJSON := `{
+		versionJSON := `{
 		"releaseVersion": "v0.3.11-alpha",
 		"gitInfo": {
 			"latestTag": "v0.3.11-alpha",
@@ -49,23 +53,19 @@ func TestKusionVersionNormal(t *testing.T) {
 		}
 	}`
 
-	var want Info
-	err := json.Unmarshal([]byte(versionJSON), &want)
-	if err != nil {
-		t.Fatal("unmarshal versionJSON failed", err)
-	}
-	version, _ := NewInfo()
-	assert.Equal(t, want.JSON(), version.JSON())
-	assert.Equal(t, want.YAML(), version.YAML())
-	assert.Equal(t, want.String(), version.String())
+		var want Info
+		err := json.Unmarshal([]byte(versionJSON), &want)
+		if err != nil {
+			t.Fatal("unmarshal versionJSON failed", err)
+		}
+		version, _ := NewInfo()
+		assert.Equal(t, want.JSON(), version.JSON())
+		assert.Equal(t, want.YAML(), version.YAML())
+		assert.Equal(t, want.String(), version.String())
+	})
 }
 
 func TestKusionVersionReturnError(t *testing.T) {
-	defer monkey.UnpatchAll()
-	mockGit()
-	mockDependency()
-	mockTime()
-	mockRuntime()
 	tests := []struct {
 		name        string
 		specialMock func()
@@ -73,56 +73,84 @@ func TestKusionVersionReturnError(t *testing.T) {
 		{
 			name: "head-hash-error",
 			specialMock: func() {
-				monkey.Patch(git.GetHeadHash, func() (string, error) {
+				mockey.Mock(git.GetHeadHash).To(func() (string, error) {
 					return "", errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHashShort()
+				mockGetLatestTag()
+				mockNewVersion()
+				mockIsHeadAtTag()
+				mockIsDirty()
 			},
 		},
 		{
 			name: "head-hash-short-error",
 			specialMock: func() {
-				monkey.Patch(git.GetHeadHashShort, func() (string, error) {
+				mockey.Mock(git.GetHeadHashShort).To(func() (string, error) {
 					return "", errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHash()
+				mockGetLatestTag()
+				mockNewVersion()
+				mockIsHeadAtTag()
+				mockIsDirty()
 			},
 		},
 		{
 			name: "latest-tag-error",
 			specialMock: func() {
-				monkey.Patch(git.GetLatestTag, func() (string, error) {
+				mockey.Mock(git.GetLatestTag).To(func() (string, error) {
 					return "", errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHash()
+				mockGetHeadHashShort()
+				mockNewVersion()
+				mockIsHeadAtTag()
+				mockIsDirty()
 			},
 		},
 		{
 			name: "git-version-error",
 			specialMock: func() {
-				monkey.Patch(goversion.NewVersion, func(v string) (*goversion.Version, error) {
+				mockey.Mock(goversion.NewVersion).To(func(v string) (*goversion.Version, error) {
 					return nil, errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHash()
+				mockGetHeadHashShort()
+				mockGetLatestTag()
+				mockIsHeadAtTag()
+				mockIsDirty()
 			},
 		},
 		{
 			name: "is-head-at-tag-error",
 			specialMock: func() {
-				monkey.Patch(git.IsHeadAtTag, func(tag string) (bool, error) {
+				mockey.Mock(git.IsHeadAtTag).To(func(tag string) (bool, error) {
 					return false, errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHash()
+				mockGetHeadHashShort()
+				mockGetLatestTag()
+				mockNewVersion()
+				mockIsDirty()
 			},
 		},
 		{
 			name: "is-dirty-error",
 			specialMock: func() {
-				monkey.Patch(git.IsDirty, func() (bool, error) {
+				mockey.Mock(git.IsDirty).To(func() (bool, error) {
 					return false, errors.New("test error")
-				})
+				}).Build()
+				mockGetHeadHash()
+				mockGetHeadHashShort()
+				mockGetLatestTag()
+				mockNewVersion()
+				mockIsHeadAtTag()
 			},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			monkey.UnpatchAll()
-			mockGit()
+		mockey.PatchConvey(tt.name, t, func() {
 			mockDependency()
 			mockTime()
 			mockRuntime()
@@ -136,17 +164,21 @@ func TestKusionVersionReturnError(t *testing.T) {
 }
 
 func TestKusionVersionNotHeadTag(t *testing.T) {
-	defer monkey.UnpatchAll()
-	mockGit()
-	mockDependency()
-	mockTime()
-	mockRuntime()
+	mockey.PatchConvey("test kusion version not head tag", t, func() {
+		mockGetHeadHash()
+		mockGetHeadHashShort()
+		mockGetLatestTag()
+		mockNewVersion()
+		mockIsDirty()
+		mockDependency()
+		mockTime()
+		mockRuntime()
 
-	monkey.Patch(git.IsHeadAtTag, func(tag string) (bool, error) {
-		return false, nil
-	})
+		mockey.Mock(git.IsHeadAtTag).To(func(tag string) (bool, error) {
+			return false, nil
+		}).Build()
 
-	versionJSON := `{
+		versionJSON := `{
 	"releaseVersion": "v0.3.11-alpha+af79cd23",
 	"gitInfo": {
 		"latestTag": "v0.3.11-alpha",
@@ -167,59 +199,75 @@ func TestKusionVersionNotHeadTag(t *testing.T) {
 	}
 }`
 
-	var want Info
-	err := json.Unmarshal([]byte(versionJSON), &want)
-	if err != nil {
-		t.Fatal("unmarshal versionJSON failed", err)
-	}
-	version, _ := NewInfo()
-	assert.Equal(t, want.JSON(), version.JSON())
-	assert.Equal(t, want.YAML(), version.YAML())
-	assert.Equal(t, want.String(), version.String())
+		var want Info
+		err := json.Unmarshal([]byte(versionJSON), &want)
+		if err != nil {
+			t.Fatal("unmarshal versionJSON failed", err)
+		}
+		version, _ := NewInfo()
+		assert.Equal(t, want.JSON(), version.JSON())
+		assert.Equal(t, want.YAML(), version.YAML())
+		assert.Equal(t, want.String(), version.String())
+	})
 }
 
-func mockGit() {
-	monkey.Patch(git.GetHeadHash, func() (string, error) {
+func mockGetHeadHash() {
+	mockey.Mock(git.GetHeadHash).To(func() (string, error) {
 		return "af79cd231e7ed1dbb00e860da9615febf5f17bf0", nil
-	})
-	monkey.Patch(git.GetHeadHashShort, func() (string, error) {
+	}).Build()
+}
+
+func mockGetHeadHashShort() {
+	mockey.Mock(git.GetHeadHashShort).To(func() (string, error) {
 		return "af79cd23", nil
-	})
-	monkey.Patch(git.GetLatestTag, func() (string, error) {
+	}).Build()
+}
+
+func mockGetLatestTag() {
+	mockey.Mock(git.GetLatestTag).To(func() (string, error) {
 		return "v0.3.11-alpha", nil
-	})
-	monkey.Patch(goversion.NewVersion, func(v string) (*goversion.Version, error) {
+	}).Build()
+}
+
+func mockNewVersion() {
+	mockey.Mock(goversion.NewVersion).To(func(v string) (*goversion.Version, error) {
 		version := &goversion.Version{}
 		val := reflect.ValueOf(version).Elem().FieldByName("original")
 		reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Set(reflect.ValueOf("v0.3.11-alpha"))
 		return version, nil
-	})
-	monkey.Patch(git.IsHeadAtTag, func(tag string) (bool, error) {
+	}).Build()
+}
+
+func mockIsHeadAtTag() {
+	mockey.Mock(git.IsHeadAtTag).To(func(tag string) (bool, error) {
 		return true, nil
-	})
-	monkey.Patch(git.IsDirty, func() (bool, error) {
+	}).Build()
+}
+
+func mockIsDirty() {
+	mockey.Mock(git.IsDirty).To(func() (bool, error) {
 		return false, nil
-	})
+	}).Build()
 }
 
 func mockDependency() {
-	monkey.Patch(debug.ReadBuildInfo, func() (*debug.BuildInfo, bool) {
+	mockey.Mock(debug.ReadBuildInfo).To(func() (*debug.BuildInfo, bool) {
 		return &debug.BuildInfo{Deps: []*debug.Module{{Path: KclGoModulePath, Version: "stable"}, {Path: KclPluginModulePath, Version: "stable"}}}, true
-	})
+	}).Build()
 }
 
 func mockTime() {
-	monkey.Patch(time.Now, func() time.Time {
+	mockey.Mock(time.Now).To(func() time.Time {
 		t, _ := time.Parse("2006-01-02 15:04:05", "2006-01-02 15:04:05")
 		return t
-	})
+	}).Build()
 }
 
 func mockRuntime() {
-	monkey.Patch(runtime.Version, func() string {
+	mockey.Mock(runtime.Version).To(func() string {
 		return "go1.16.5"
-	})
-	monkey.Patch(runtime.NumCPU, func() int {
+	}).Build()
+	mockey.Mock(numCPU).To(func() int {
 		return 8
-	})
+	}).Build()
 }
