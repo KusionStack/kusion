@@ -57,23 +57,18 @@ func NewDefaultVersionInfo() *Info {
 			Compiler:  runtime.Compiler,
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
 		},
-		Dependency: &DependencyVersion{
-			KclGoVersion:     "",
-			KclPluginVersion: "",
-		},
 	}
 }
 
 // Info contains versioning information.
 // following attributes:
 //
-//	ReleaseVersion - "vX.Y.Z-00000000" used to indicate the last release version,
+//	ReleaseVersion - "X.Y.Z-00000000" used to indicate the last release version,
 //	containing GitVersion and GitCommitShort.
 type Info struct {
-	ReleaseVersion string             `json:"releaseVersion" yaml:"releaseVersion"` // Such as "v1.2.3-3836f877"
-	GitInfo        *GitInfo           `json:"gitInfo,omitempty" yaml:"gitInfo,omitempty"`
-	BuildInfo      *BuildInfo         `json:"buildInfo,omitempty" yaml:"buildInfo,omitempty"`
-	Dependency     *DependencyVersion `json:"dependency,omitempty" yaml:"dependency,omitempty"`
+	ReleaseVersion string     `json:"releaseVersion" yaml:"releaseVersion"` // Such as "1.2.3-3836f877"
+	GitInfo        *GitInfo   `json:"gitInfo,omitempty" yaml:"gitInfo,omitempty"`
+	BuildInfo      *BuildInfo `json:"buildInfo,omitempty" yaml:"buildInfo,omitempty"`
 }
 
 // GitInfo contains git information.
@@ -98,24 +93,17 @@ type BuildInfo struct {
 	BuildTime string `json:"buildTime,omitempty" yaml:"buildTime,omitempty"` // Such as "2021-10-20 18:24:03"
 }
 
-type DependencyVersion struct {
-	KclGoVersion     string `json:"kclGoVersion,omitempty" yaml:"kclGoVersion,omitempty"`
-	KclPluginVersion string `json:"kclPluginVersion,omitempty" yaml:"kclPluginVersion,omitempty"`
-}
-
 func NewInfo() (*Info, error) {
 	var (
-		isHeadAtTag       bool
-		headHash          string
-		headHashShort     string
-		latestTag         string
-		gitVersion        *goversion.Version
-		releaseVersion    string
-		KclGoVersion      string
-		kclPluginsVersion string
-		isDirty           bool
-		gitTreeState      string
-		err               error
+		isHeadAtTag    bool
+		headHash       string
+		headHashShort  string
+		latestTag      string
+		gitVersion     *goversion.Version
+		releaseVersion string
+		isDirty        bool
+		gitTreeState   string
+		err            error
 	)
 
 	// Get git info
@@ -152,26 +140,9 @@ func NewInfo() (*Info, error) {
 
 	// Get release version
 	if isHeadAtTag {
-		releaseVersion = gitVersion.Original()
+		releaseVersion = gitVersion.Original()[1:]
 	} else {
-		releaseVersion = fmt.Sprintf("%s+%s", gitVersion.Original(), headHashShort)
-	}
-
-	// Get dependency version
-	if bi, ok := debug.ReadBuildInfo(); ok {
-		for _, v := range bi.Deps {
-			if v.Path == KclGoModulePath {
-				KclGoVersion = v.Version
-				if v.Replace != nil {
-					KclGoVersion = v.Replace.Version
-				}
-			} else if v.Path == KclPluginModulePath {
-				kclPluginsVersion = v.Version
-				if v.Replace != nil {
-					kclPluginsVersion = v.Replace.Version
-				}
-			}
-		}
+		releaseVersion = fmt.Sprintf("%s+%s", gitVersion.Original()[1:], headHashShort)
 	}
 
 	return &Info{
@@ -188,10 +159,6 @@ func NewInfo() (*Info, error) {
 			NumCPU:    numCPU(),
 			Compiler:  runtime.Compiler,
 			BuildTime: time.Now().Format("2006-01-02 15:04:05"),
-		},
-		Dependency: &DependencyVersion{
-			KclGoVersion:     KclGoVersion,
-			KclPluginVersion: kclPluginsVersion,
 		},
 	}, nil
 }

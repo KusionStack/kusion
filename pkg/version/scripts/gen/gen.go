@@ -57,10 +57,6 @@ func init() {
 			Compiler:  %q,
 			BuildTime: %q,
 		},
-		Dependency: &DependencyVersion{
-			KclGoVersion:     %q,
-			KclPluginVersion: %q,
-		},
 	}
 }
 `,
@@ -74,7 +70,5 @@ func init() {
 		v.BuildInfo.NumCPU,
 		v.BuildInfo.Compiler,
 		v.BuildInfo.BuildTime,
-		v.Dependency.KclGoVersion,
-		v.Dependency.KclPluginVersion,
 	)
 }
