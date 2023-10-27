@@ -45,7 +45,14 @@ func (s *OssState) Apply(state *states.State) error {
 	if err != nil {
 		return err
 	}
-	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + OSSStateName
+
+	var prefix string
+	if state.Tenant != "" {
+		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + OSSStateName
+	} else {
+		prefix = state.Project + "/" + state.Stack + "/" + OSSStateName
+	}
+
 	err = s.bucket.PutObject(prefix, bytes.NewReader(jsonByte))
 	if err != nil {
 		return err
@@ -58,7 +65,13 @@ func (s *OssState) Delete(id string) error {
 }
 
 func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, error) {
-	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + OSSStateName
+	var prefix string
+	if query.Tenant != "" {
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + OSSStateName
+	} else {
+		prefix = query.Project + "/" + query.Stack + "/" + OSSStateName
+	}
+
 	objects, err := s.bucket.ListObjects(oss.Delimiter("/"), oss.Prefix(prefix))
 	if err != nil {
 		return nil, err
