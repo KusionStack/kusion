@@ -58,8 +58,10 @@ func BuildSecretTestCase(
 				"immutable": immutable,
 				"type":      string(secretType),
 			},
-			DependsOn:  nil,
-			Extensions: nil,
+			DependsOn: nil,
+			Extensions: map[string]interface{}{
+				"GVK": "/v1, Kind=Secret",
+			},
 		},
 	}
 	testCase := &TestCase{

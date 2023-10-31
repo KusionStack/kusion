@@ -111,7 +111,11 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 									},
 								},
 							}, "status": map[string]interface{}{},
-						}, DependsOn: []string(nil), Extensions: map[string]interface{}(nil),
+						},
+						DependsOn: []string(nil),
+						Extensions: map[string]interface{}{
+							"GVK": "apps.kusionstack.io/v1alpha1, Kind=RuleSet",
+						},
 					},
 				},
 			},

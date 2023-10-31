@@ -6,8 +6,11 @@ import (
 	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	accessories "kusionstack.io/kusion/pkg/generator/appconfiguration/generator/accessories/database"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/monitoring"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/trait"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload"
+	patmonitoring "kusionstack.io/kusion/pkg/generator/appconfiguration/patcher/monitoring"
+	pattrait "kusionstack.io/kusion/pkg/generator/appconfiguration/patcher/trait"
 	"kusionstack.io/kusion/pkg/models"
 	appmodel "kusionstack.io/kusion/pkg/models/appconfiguration"
 	"kusionstack.io/kusion/pkg/projectstack"
@@ -90,17 +93,26 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 		spec.Resources = make(models.Resources, 0)
 	}
 
+	// Generate resources
 	gfs := []appconfiguration.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Monitoring, g.app.OpsRule),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
 		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
-		NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
+		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
 	}
-
 	if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
+		return err
+	}
+
+	// Patcher logic patches generated resources
+	pfs := []appconfiguration.NewPatcherFunc{
+		pattrait.NewOpsRulePatcherFunc(g.app),
+		patmonitoring.NewMonitoringPatcherFunc(g.appName, g.app, g.project),
+	}
+	if err := appconfiguration.CallPatchers(spec.Resources.GVKIndex(), pfs...); err != nil {
 		return err
 	}
 
