@@ -48,7 +48,14 @@ func (s *S3State) Apply(state *states.State) error {
 	if err != nil {
 		return err
 	}
-	prefix := state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + S3StateName
+
+	var prefix string
+	if state.Tenant != "" {
+		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + S3StateName
+	} else {
+		prefix = state.Project + "/" + state.Stack + "/" + S3StateName
+	}
+
 	s3Client := s3.New(s.sess)
 	_, err = s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(s.bucketName),
@@ -67,7 +74,12 @@ func (s *S3State) Delete(id string) error {
 }
 
 func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error) {
-	prefix := query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + S3StateName
+	var prefix string
+	if query.Tenant != "" {
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + S3StateName
+	} else {
+		prefix = query.Project + "/" + query.Stack + "/" + S3StateName
+	}
 	s3Client := s3.New(s.sess)
 
 	params := &s3.ListObjectsInput{
