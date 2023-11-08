@@ -264,7 +264,7 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			}
 
-			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
 				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()
 			gotRsp, gotS := o.Preview(tt.args.request)

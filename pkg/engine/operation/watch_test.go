@@ -13,6 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -31,7 +32,7 @@ func TestWatchOperation_Watch(t *testing.T) {
 				},
 			},
 		}
-		mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources) (map[models.Type]runtime.Runtime, status.Status) {
+		mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
 			return map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
 		}).Build()
 		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
