@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 )
 
@@ -22,7 +23,7 @@ type TerraformRuntime struct {
 	mu *sync.Mutex
 }
 
-func NewTerraformRuntime() (runtime.Runtime, error) {
+func NewTerraformRuntime(_ *projectstack.Stack) (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
 	ws := tfops.NewWorkSpace(fs)
 	TFRuntime := &TerraformRuntime{

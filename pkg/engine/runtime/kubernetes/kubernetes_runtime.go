@@ -30,6 +30,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/status"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
@@ -43,8 +44,8 @@ type KubernetesRuntime struct {
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
-func NewKubernetesRuntime() (runtime.Runtime, error) {
-	client, mapper, err := getKubernetesClient()
+func NewKubernetesRuntime(stack *projectstack.Stack) (runtime.Runtime, error) {
+	client, mapper, err := getKubernetesClient(stack)
 	if err != nil {
 		return nil, err
 	}
@@ -375,9 +376,9 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient() (dynamic.Interface, meta.RESTMapper, error) {
+func getKubernetesClient(stack *projectstack.Stack) (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
-	cfg, err := clientcmd.BuildConfigFromFlags("", config.GetKubeConfig())
+	cfg, err := clientcmd.BuildConfigFromFlags("", config.GetKubeConfig(stack))
 	if err != nil {
 		return nil, nil, err
 	}

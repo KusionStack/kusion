@@ -54,7 +54,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 
 	// only destroy resources we have recorded
 	resources := priorState.Resources
-	runtimesMap, s := runtimeinit.Runtimes(resources)
+	runtimesMap, s := runtimeinit.Runtimes(resources, o.Stack)
 	if status.IsErr(s) {
 		return s
 	}
