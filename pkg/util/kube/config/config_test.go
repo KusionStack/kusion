@@ -36,7 +36,7 @@ func TestGetKubeConfig(t *testing.T) {
 	})
 	mockey.PatchConvey("test stack config", t, func() {
 		mockGetenv("")
-		stack.KubeConfig = "test"
-		assert.Equal(t, "test", GetKubeConfig(stack))
+		stack.KubeConfig = "/home/test/kubeconfig"
+		assert.Equal(t, "/home/test/kubeconfig", GetKubeConfig(stack))
 	})
 }
