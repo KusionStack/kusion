@@ -25,9 +25,11 @@ var (
 func GetKubeConfig(stack *projectstack.Stack) string {
 	if kubeConfigFile := os.Getenv(RecommendedConfigPathEnvVar); kubeConfigFile != "" {
 		return kubeConfigFile
-	} else if kubeConfigFile, _ := filepath.Abs(stack.KubeConfig); kubeConfigFile != "" {
-		return kubeConfigFile
-	} else {
-		return RecommendedKubeConfigFile
+	} else if stack.KubeConfig != "" {
+		kubeConfigFile, _ := filepath.Abs(stack.KubeConfig)
+		if kubeConfigFile != "" {
+			return kubeConfigFile
+		}
 	}
+	return RecommendedKubeConfigFile
 }
