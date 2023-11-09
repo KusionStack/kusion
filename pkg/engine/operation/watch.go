@@ -36,7 +36,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 
 	// init runtimes
 	resources := req.Spec.Resources
-	runtimes, s := runtimeinit.Runtimes(resources)
+	runtimes, s := runtimeinit.Runtimes(resources, wo.Stack)
 	if status.IsErr(s) {
 		return errors.New(s.Message())
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 func mockGetenv(result string) {
@@ -18,13 +19,24 @@ func mockGetenv(result string) {
 }
 
 func TestGetKubeConfig(t *testing.T) {
+	stack := &projectstack.Stack{
+		StackConfiguration: projectstack.StackConfiguration{
+			KubeConfig: "",
+		},
+	}
+
 	// Mock
 	mockey.PatchConvey("test null env config", t, func() {
 		mockGetenv("")
-		assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig())
+		assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig(stack))
 	})
 	mockey.PatchConvey("test env config", t, func() {
 		mockGetenv("test")
-		assert.Equal(t, "test", GetKubeConfig())
+		assert.Equal(t, "test", GetKubeConfig(stack))
+	})
+	mockey.PatchConvey("test stack config", t, func() {
+		mockGetenv("")
+		stack.KubeConfig = "/home/test/kubeconfig"
+		assert.Equal(t, "/home/test/kubeconfig", GetKubeConfig(stack))
 	})
 }

@@ -131,7 +131,8 @@ func (p *Project) TableReport() string {
 
 // StackConfiguration is the stack configuration
 type StackConfiguration struct {
-	Name string `json:"name" yaml:"name"` // Stack name
+	Name       string `json:"name" yaml:"name"`             // Stack name
+	KubeConfig string `json:"kubeConfig" yaml:"kubeConfig"` // KubeConfig file path for this stack
 }
 
 type Stack struct {
