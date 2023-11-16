@@ -2,6 +2,7 @@ package appconfiguration
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -10,7 +11,7 @@ var GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
 
 // Generator is the interface that wraps the Generate method.
 type Generator interface {
-	Generate(spec *models.Spec) error
+	Generate(spec *models.Intent) error
 }
 
 // Patcher is the interface that wraps the Patch method.

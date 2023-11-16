@@ -5,6 +5,7 @@ import (
 
 	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/monitoring"
@@ -17,7 +18,11 @@ type monitoringGenerator struct {
 	appName string
 }
 
-func NewMonitoringGenerator(project *projectstack.Project, monitor *monitoring.Monitor, appName string) (appconfiguration.Generator, error) {
+func NewMonitoringGenerator(
+	project *projectstack.Project,
+	monitor *monitoring.Monitor,
+	appName string,
+) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -32,13 +37,17 @@ func NewMonitoringGenerator(project *projectstack.Project, monitor *monitoring.M
 	}, nil
 }
 
-func NewMonitoringGeneratorFunc(project *projectstack.Project, monitor *monitoring.Monitor, appName string) appconfiguration.NewGeneratorFunc {
+func NewMonitoringGeneratorFunc(
+	project *projectstack.Project,
+	monitor *monitoring.Monitor,
+	appName string,
+) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
 		return NewMonitoringGenerator(project, monitor, appName)
 	}
 }
 
-func (g *monitoringGenerator) Generate(spec *models.Spec) error {
+func (g *monitoringGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}

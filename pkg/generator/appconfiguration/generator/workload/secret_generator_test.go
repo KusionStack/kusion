@@ -20,14 +20,14 @@ type Fields struct {
 }
 
 type Args struct {
-	spec *models.Spec
+	spec *models.Intent
 }
 
 type TestCase struct {
 	name    string
 	fields  Fields
 	args    Args
-	want    *models.Spec
+	want    *models.Intent
 	wantErr bool
 }
 
@@ -82,9 +82,9 @@ func BuildSecretTestCase(
 			appName: appName,
 		},
 		args: Args{
-			spec: &models.Spec{},
+			spec: &models.Intent{},
 		},
-		want: &models.Spec{
+		want: &models.Intent{
 			Resources: expectedResources,
 		},
 		wantErr: false,
@@ -104,9 +104,9 @@ func TestSecretGenerator_Generate(t *testing.T) {
 				secrets: nil,
 			},
 			args: Args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
-			want: &models.Spec{
+			want: &models.Intent{
 				Resources: models.Resources{},
 			},
 			wantErr: false,

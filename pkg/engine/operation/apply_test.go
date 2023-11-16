@@ -40,13 +40,13 @@ func Test_validateRequest(t *testing.T) {
 				request: &opsmodels.Request{},
 			},
 			want: status.NewErrorStatusWithMsg(status.InvalidArgument,
-				"request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
+				"request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "t2",
 			args: args{
 				request: &opsmodels.Request{
-					Spec: &models.Spec{Resources: []models.Resource{}},
+					Spec: &models.Intent{Resources: []models.Resource{}},
 				},
 			},
 			want: nil,
@@ -80,7 +80,7 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	const Jack = "jack"
-	mf := &models.Spec{Resources: []models.Resource{
+	mf := &models.Intent{Resources: []models.Resource{
 		{
 			ID:   Jack,
 			Type: runtime.Kubernetes,
@@ -176,7 +176,10 @@ func TestOperation_Apply(t *testing.T) {
 				o.ResultState = rs
 				return nil
 			}).Build()
-			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
+			mockey.Mock(runtimeinit.Runtimes).To(func(
+				resources models.Resources,
+				stack *projectstack.Stack,
+			) (map[models.Type]runtime.Runtime, status.Status) {
 				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()
 

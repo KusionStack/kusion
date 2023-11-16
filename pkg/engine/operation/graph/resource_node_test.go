@@ -31,7 +31,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &models.Spec{Resources: []models.Resource{
+	mf := &models.Intent{Resources: []models.Resource{
 		{
 			ID:   Pony,
 			Type: runtime.Kubernetes,

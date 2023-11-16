@@ -22,13 +22,13 @@ import (
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
-func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
-		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
+		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
 	} else {
 		sp = &pretty.SpinnerT
-		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
+		sp, _ = sp.Start(fmt.Sprintf("Generating Intent in the Stack %s...", stack.Name))
 	}
 
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
@@ -55,7 +55,7 @@ func GenerateSpecWithSpinner(o *generator.Options, project *projectstack.Project
 	return spec, nil
 }
 
-func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func GenerateSpec(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Intent, error) {
 	// Choose the generator
 	var g generator.Generator
 	pg := project.Generator
@@ -114,7 +114,7 @@ func buildAppConfigs(o *generator.Options, stack *projectstack.Stack) (map[strin
 	return appConfigs, nil
 }
 
-func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
+func GenerateSpecFromFile(filePath string) (*models.Intent, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func GenerateSpecFromFile(filePath string) (*models.Spec, error) {
 	// The use of yaml.v2 and yaml.v3 should be unified in the future.
 	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	if err = decoder.Decode(spec); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("failed to parse the spec file, please check if the file content is valid")
 	}

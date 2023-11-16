@@ -130,7 +130,7 @@ status: {}
 		service *workload.Service
 	}
 	type args struct {
-		spec *models.Spec
+		spec *models.Intent
 	}
 
 	tests := []struct {
@@ -180,7 +180,7 @@ status: {}
 				},
 			},
 			args: args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
 			wantErr: false,
 			want:    []string{cm, cs, svc},
@@ -225,7 +225,7 @@ status: {}
 				},
 			},
 			args: args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
 			wantErr: false,
 			want:    []string{cm, deploy, svc},

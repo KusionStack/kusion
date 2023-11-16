@@ -1,7 +1,7 @@
 # AppConfiguration Generator Proposal
 
 ## Motivation
-Currently(v0.9.0), `AppConfigurationGenerator` is composed of a series of `GeneratorFunc`. Each `GeneratorFunc` creates a corresponding `Generator` for a subresource, and then the `Generate` method of each Generator is called to generate the resource and add it to the `spec`.
+Currently(v0.9.0), `AppConfigurationGenerator` is composed of a series of `GeneratorFunc`. Each `GeneratorFunc` creates a corresponding `Generator` for a subresource, and then the `Generate` method of each Generator is called to generate the resource and add it to the `intent`.
 
 ```
 AppConfigurationGenerator
@@ -32,7 +32,7 @@ Each `NewXXXGeneratorFunc` call chain is as follows:
             |  (generate)                                                          
             v                                                            
 +------------------------+                                                
-|         spec           |                                                
+|         Intent         |                                                
 |                        |                                                
 +------------------------+
 ```
@@ -108,14 +108,14 @@ func (g *databaseGenerator) injectSecret(secret *v1.Secret) error {
 
 We introduce a new `XXXPatcherFunc`. The current `XXXGeneratorFunc` is used only to generate new resources, while the `XXXPatcherFunc` is used only for additional patching of resources.
 ```go
-func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
+func (g *appConfigurationGenerator) Generate(intent *models.Intent) error {
 	// Generator logic only generates new resources
 	gfs := []appconfiguration.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
 		...
 	}
-	if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
+	if err := appconfiguration.CallGenerators(intent, gfs...); err != nil {
 		return err
 	}
 	
@@ -123,7 +123,7 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 	pfs := []appconfiguration.NewPatcherFunc{
 		trait.NewPatcherFunc(g.project, g.stack, g.appName, g.app),
 	}
-	if err := appconfiguration.CallPatchers(spec.Resources.KubernetesKinds(), pfs...); err != nil {
+	if err := appconfiguration.CallPatchers(intent.Resources.KubernetesKinds(), pfs...); err != nil {
 		return err
 	}
 	return nil
@@ -134,7 +134,7 @@ func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
 ### Render Order
 Perform all `GeneratorFunc` tasks first, followed by all `PatcherFunc` tasks.
 ### Patcher Logic
-First, classify the resources in the spec by resource type (if it is a Kubernetes type), and perform patching on the specified resource types. For example, the opsRulePatcher needs to patch the MaxUnavailable field for resources of the deployment type.
+First, classify the resources in the intent by resource type (if it is a Kubernetes type), and perform patching on the specified resource types. For example, the opsRulePatcher needs to patch the MaxUnavailable field for resources of the deployment type.
 ```go
 // Patch implements Patcher interface.
 func (p *opsRulePatcher) Patch(resources map[string][]*models.Resource) error {

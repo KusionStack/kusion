@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -48,7 +49,7 @@ func TestGenerateAlicloudResources(t *testing.T) {
 	}
 
 	alicloudProviderRegion = "cn-beijing"
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	secret, err := generator.generateAlicloudResources(database, spec)
 
 	hostAddress := "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.connection_string"

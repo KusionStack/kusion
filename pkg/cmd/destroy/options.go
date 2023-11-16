@@ -79,7 +79,7 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	spec := &models.Spec{Resources: destroyResources}
+	spec := &models.Intent{Resources: destroyResources}
 	changes, err := o.preview(spec, project, stack, stateStorage)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) preview(
-	planResources *models.Spec, project *projectstack.Project,
+	planResources *models.Intent, project *projectstack.Project,
 	stack *projectstack.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
@@ -157,7 +157,7 @@ func (o *Options) preview(
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *Options) destroy(planResources *models.Spec, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
+func (o *Options) destroy(planResources *models.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),

@@ -136,7 +136,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    stack,
 						Project:  project,
 						Operator: "fake-operator",
-						Spec: &models.Spec{
+						Spec: &models.Intent{
 							Resources: []models.Resource{
 								FakeResourceState,
 							},
@@ -174,7 +174,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    stack,
 						Project:  project,
 						Operator: "fake-operator",
-						Spec: &models.Spec{
+						Spec: &models.Intent{
 							Resources: []models.Resource{
 								FakeResourceState2,
 							},
@@ -213,7 +213,7 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			},
 			wantRsp: nil,
-			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Spec is empty. If you want to delete all resources, please use command 'destroy'"),
+			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "fail-because-nonexistent-id",
@@ -230,7 +230,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    stack,
 						Project:  project,
 						Operator: "fake-operator",
-						Spec: &models.Spec{
+						Spec: &models.Intent{
 							Resources: []models.Resource{
 								{
 									ID:         "fake-id",
@@ -264,7 +264,10 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			}
 
-			mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
+			mockey.Mock(runtimeinit.Runtimes).To(func(
+				resources models.Resources,
+				stack *projectstack.Stack,
+			) (map[models.Type]runtime.Runtime, status.Status) {
 				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()
 			gotRsp, gotS := o.Preview(tt.args.request)

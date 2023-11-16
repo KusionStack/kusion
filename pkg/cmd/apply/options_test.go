@@ -82,8 +82,8 @@ func mockeyPatchGenerateSpec() *mockey.Mocker {
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
-	) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	) (*models.Intent, error) {
+		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -130,7 +130,10 @@ func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest)
 }
 
 func mockeyPatchOperationPreview() *mockey.Mocker {
-	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
+		*operation.PreviewOperation,
+		*operation.PreviewRequest,
+	) (rsp *operation.PreviewResponse, s status.Status) {
 		return &operation.PreviewResponse{
 			Order: &opsmodels.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
@@ -186,7 +189,7 @@ func newSA(name string) models.Resource {
 func Test_apply(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	mockey.PatchConvey("dry run", t, func() {
-		planResources := &models.Spec{Resources: []models.Resource{sa1}}
+		planResources := &models.Intent{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -206,7 +209,7 @@ func Test_apply(t *testing.T) {
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(opsmodels.Success)
 		o := NewApplyOptions()
-		planResources := &models.Spec{Resources: []models.Resource{sa1, sa2}}
+		planResources := &models.Intent{Resources: []models.Resource{sa1, sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -231,7 +234,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
-		planResources := &models.Spec{Resources: []models.Resource{sa1}}
+		planResources := &models.Intent{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{

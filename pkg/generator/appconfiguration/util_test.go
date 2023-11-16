@@ -11,10 +11,10 @@ import (
 )
 
 type mockGenerator struct {
-	GenerateFunc func(spec *models.Spec) error
+	GenerateFunc func(spec *models.Intent) error
 }
 
-func (m *mockGenerator) Generate(spec *models.Spec) error {
+func (m *mockGenerator) Generate(spec *models.Intent) error {
 	return m.GenerateFunc(spec)
 }
 
@@ -27,16 +27,16 @@ func (m *mockPatcher) Patch(resources map[string][]*models.Resource) error {
 }
 
 func TestCallGenerators(t *testing.T) {
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 
 	var (
 		generator1 Generator = &mockGenerator{
-			GenerateFunc: func(spec *models.Spec) error {
+			GenerateFunc: func(spec *models.Intent) error {
 				return nil
 			},
 		}
 		generator2 Generator = &mockGenerator{
-			GenerateFunc: func(spec *models.Spec) error {
+			GenerateFunc: func(spec *models.Intent) error {
 				return assert.AnError
 			},
 		}
@@ -152,7 +152,7 @@ func TestKubernetesResourceID(t *testing.T) {
 }
 
 func TestAppendToSpec(t *testing.T) {
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	resource := &models.Resource{
 		ID:   "v1:Namespace:fake-project",
 		Type: "Kubernetes",

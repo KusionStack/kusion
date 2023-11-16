@@ -8,6 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
@@ -64,7 +65,7 @@ func NewDatabaseGeneratorFunc(
 	}
 }
 
-func (g *databaseGenerator) Generate(spec *models.Spec) error {
+func (g *databaseGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}
@@ -143,7 +144,7 @@ func (g *databaseGenerator) generateTFRandomPassword(provider *models.Provider) 
 	return id, appconfiguration.TerraformResource(id, nil, pswAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateDBSecret(hostAddress, username, password string, spec *models.Spec) (*v1.Secret, error) {
+func (g *databaseGenerator) generateDBSecret(hostAddress, username, password string, spec *models.Intent) (*v1.Secret, error) {
 	// Create the data map of k8s secret storing the database host address, username
 	// and password.
 	data := make(map[string]string)

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	v1 "k8s.io/api/core/v1"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
@@ -33,7 +34,7 @@ type awsSecurityGroupTraffic struct {
 	ToPort         int      `yaml:"to_port" json:"to_port"`
 }
 
-func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
+func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *models.Intent) (*v1.Secret, error) {
 	// Set the terraform random and aws provider.
 	randomProvider := &models.Provider{}
 	if err := randomProvider.SetString(randomProviderURL); err != nil {
@@ -119,7 +120,8 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 	return id, appconfiguration.TerraformResource(id, nil, sgAttrs, pvdExts), nil
 }
 
-func (g *databaseGenerator) generateAWSDBInstance(region, awsSecurityGroupID, randomPasswordID string,
+func (g *databaseGenerator) generateAWSDBInstance(
+	region, awsSecurityGroupID, randomPasswordID string,
 	provider *models.Provider, db *database.Database,
 ) (string, models.Resource) {
 	dbAttrs := map[string]interface{}{

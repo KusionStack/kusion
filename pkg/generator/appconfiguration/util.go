@@ -6,6 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
 	"kusionstack.io/kusion/pkg/models"
 )
 
@@ -25,7 +26,7 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 
 // CallGenerators calls the Generate method of each AppsGenerator instance
 // returned by the given NewGeneratorFuncs.
-func CallGenerators(spec *models.Spec, newGenerators ...NewGeneratorFunc) error {
+func CallGenerators(spec *models.Intent, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
 		return err
@@ -153,7 +154,7 @@ func KusionPathDependency(id, name string) string {
 }
 
 // AppendToSpec adds a Kubernetes resource to a spec's resources slice.
-func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Spec, resource any) error {
+func AppendToSpec(resourceType models.Type, resourceID string, spec *models.Intent, resource any) error {
 	// this function is only used for Kubernetes resources
 	if resourceType != models.Kubernetes {
 		return errors.New("AppendToSpec is only used for Kubernetes resources")

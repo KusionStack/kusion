@@ -117,7 +117,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			expectedAppName := "test"
 
 			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload)
-			spec := &models.Spec{}
+			spec := &models.Intent{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
 			assert.NotNil(t, spec.Resources, "Resources should not be nil")

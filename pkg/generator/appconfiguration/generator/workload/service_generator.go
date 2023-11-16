@@ -63,7 +63,7 @@ func NewWorkloadServiceGeneratorFunc(
 }
 
 // Generate generates a service workload resource to the given spec.
-func (g *workloadServiceGenerator) Generate(spec *models.Spec) error {
+func (g *workloadServiceGenerator) Generate(spec *models.Intent) error {
 	service := g.service
 	if service == nil {
 		return nil

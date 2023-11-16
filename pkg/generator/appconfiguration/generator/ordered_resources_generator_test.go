@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/models"
 )
@@ -45,8 +46,8 @@ var (
 			"name": "foo",
 		},
 	}
-	genOldSpec = func() *models.Spec {
-		return &models.Spec{
+	genOldSpec = func() *models.Intent {
+		return &models.Intent{
 			Resources: models.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",
@@ -66,8 +67,8 @@ var (
 			},
 		}
 	}
-	genNewSpec = func() *models.Spec {
-		return &models.Spec{
+	genNewSpec = func() *models.Intent {
+		return &models.Intent{
 			Resources: models.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",

@@ -18,15 +18,15 @@ import (
 )
 
 var (
-	localDatabaseName     string            = "local-database"
-	localSecretSuffix     string            = "-local-secret"
-	localPVCSuffix        string            = "-local-pvc"
-	localDeploymentSuffix string            = "-local-deployment"
-	localServiceSuffix    string            = "-local-service"
-	localMatchLabels      map[string]string = map[string]string{"accessory": localDatabaseName}
+	localDatabaseName     = "local-database"
+	localSecretSuffix     = "-local-secret"
+	localPVCSuffix        = "-local-pvc"
+	localDeploymentSuffix = "-local-deployment"
+	localServiceSuffix    = "-local-service"
+	localMatchLabels      = map[string]string{"accessory": localDatabaseName}
 )
 
-func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
+func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *models.Intent) (*v1.Secret, error) {
 	// Build k8s secret for local database's random password.
 	password, err := g.generateLocalSecret(spec)
 	if err != nil {
@@ -52,7 +52,7 @@ func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *
 	return g.generateDBSecret(hostAddress, db.Username, password, spec)
 }
 
-func (g *databaseGenerator) generateLocalSecret(spec *models.Spec) (string, error) {
+func (g *databaseGenerator) generateLocalSecret(spec *models.Intent) (string, error) {
 	password := g.generateLocalPassword(16)
 
 	data := make(map[string]string)
@@ -80,7 +80,7 @@ func (g *databaseGenerator) generateLocalSecret(spec *models.Spec) (string, erro
 	)
 }
 
-func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *models.Spec) error {
+func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *models.Intent) error {
 	// Create the k8s pvc with the storage size of `db.Size`.
 	pvc := &v1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
@@ -112,7 +112,7 @@ func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *models
 	)
 }
 
-func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec *models.Spec) error {
+func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec *models.Intent) error {
 	// Prepare the pod spec for specific local database.
 	podSpec, err := g.generateLocalPodSpec(db)
 	if err != nil {
@@ -150,7 +150,7 @@ func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec 
 	)
 }
 
-func (g *databaseGenerator) generateLocalService(db *database.Database, spec *models.Spec) (string, error) {
+func (g *databaseGenerator) generateLocalService(db *database.Database, spec *models.Intent) (string, error) {
 	// Prepare the service port for specific local database.
 	svcPort, err := g.generateLocalSvcPort(db)
 	if err != nil {
