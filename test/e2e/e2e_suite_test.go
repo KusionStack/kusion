@@ -37,7 +37,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	})
 })
 
-// AfterSuite clean kubenretes
+// AfterSuite clean kubernetes
 var _ = ginkgo.AfterSuite(func() {
 	ginkgo.By("clean up k3s cluster", func() {
 		cli := "k3d cluster delete kusion-e2e"
