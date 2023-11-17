@@ -54,7 +54,7 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	return DiffWithRequestResourceAndState(plan, latestState)
 }
 
-func DiffWithRequestResourceAndState(plan *models.Spec, latest *states.State) (string, error) {
+func DiffWithRequestResourceAndState(plan *models.Intent, latest *states.State) (string, error) {
 	planString := jsonutil.MustMarshal2String(plan.Resources)
 	var report *dyff.Report
 	var err error

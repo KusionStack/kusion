@@ -133,8 +133,8 @@ func (o *Options) Run() error {
 		NoStyle:     o.NoStyle,
 	}
 
-	// Generate Spec
-	var sp *models.Spec
+	// Generate Intent
+	var sp *models.Intent
 	if o.SpecFile != "" {
 		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
 	} else if o.Output == jsonOutput {
@@ -226,7 +226,7 @@ func (o *Options) Run() error {
 func Preview(
 	o *Options,
 	storage states.StateStorage,
-	planResources *models.Spec,
+	planResources *models.Intent,
 	project *projectstack.Project,
 	stack *projectstack.Stack,
 ) (*opsmodels.Changes, error) {

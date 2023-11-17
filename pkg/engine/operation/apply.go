@@ -29,7 +29,7 @@ type ApplyResponse struct {
 	State *states.State
 }
 
-func NewApplyGraph(m *models.Spec, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
+func NewApplyGraph(m *models.Intent, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
 	specParser := parser.NewSpecParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
@@ -167,7 +167,7 @@ func validateRequest(request *opsmodels.Request) status.Status {
 	}
 	if request.Spec == nil {
 		return status.NewErrorStatusWithMsg(status.InvalidArgument,
-			"request.Spec is empty. If you want to delete all resources, please use command 'destroy'")
+			"request.Intent is empty. If you want to delete all resources, please use command 'destroy'")
 	}
 	resourceKeyMap := make(map[string]bool)
 

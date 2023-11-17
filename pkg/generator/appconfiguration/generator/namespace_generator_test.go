@@ -13,13 +13,13 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 		projectName string
 	}
 	type args struct {
-		spec *models.Spec
+		spec *models.Intent
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *models.Spec
+		want    *models.Intent
 		wantErr bool
 	}{
 		{
@@ -28,9 +28,9 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 				projectName: "fake-project",
 			},
 			args: args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
-			want: &models.Spec{
+			want: &models.Intent{
 				Resources: []models.Resource{
 					{
 						ID:   "v1:Namespace:fake-project",

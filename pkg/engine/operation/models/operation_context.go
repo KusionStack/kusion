@@ -71,7 +71,7 @@ type Request struct {
 	Stack    *projectstack.Stack   `json:"stack"`
 	Cluster  string                `json:"cluster"`
 	Operator string                `json:"operator"`
-	Spec     *models.Spec          `json:"spec"`
+	Spec     *models.Intent        `json:"spec"`
 }
 
 type OpResult string

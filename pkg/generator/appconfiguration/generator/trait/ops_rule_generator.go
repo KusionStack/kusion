@@ -44,7 +44,7 @@ func NewOpsRuleGeneratorFunc(
 	}
 }
 
-func (g *opsRuleGenerator) Generate(spec *models.Spec) error {
+func (g *opsRuleGenerator) Generate(spec *models.Intent) error {
 	if g.app.OpsRule == nil {
 		return nil
 	}

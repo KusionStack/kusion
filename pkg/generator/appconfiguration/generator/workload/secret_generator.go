@@ -5,6 +5,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -17,7 +18,11 @@ type secretGenerator struct {
 	appName string
 }
 
-func NewSecretGenerator(project *projectstack.Project, secrets map[string]workload.Secret, appName string) (appconfiguration.Generator, error) {
+func NewSecretGenerator(
+	project *projectstack.Project,
+	secrets map[string]workload.Secret,
+	appName string,
+) (appconfiguration.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -32,13 +37,17 @@ func NewSecretGenerator(project *projectstack.Project, secrets map[string]worklo
 	}, nil
 }
 
-func NewSecretGeneratorFunc(project *projectstack.Project, secrets map[string]workload.Secret, appName string) appconfiguration.NewGeneratorFunc {
+func NewSecretGeneratorFunc(
+	project *projectstack.Project,
+	secrets map[string]workload.Secret,
+	appName string,
+) appconfiguration.NewGeneratorFunc {
 	return func() (appconfiguration.Generator, error) {
 		return NewSecretGenerator(project, secrets, appName)
 	}
 }
 
-func (g *secretGenerator) Generate(spec *models.Spec) error {
+func (g *secretGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}

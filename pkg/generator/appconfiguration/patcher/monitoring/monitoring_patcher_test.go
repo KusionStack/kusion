@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
 	modelsapp "kusionstack.io/kusion/pkg/models/appconfiguration"
@@ -16,7 +17,7 @@ import (
 )
 
 func Test_monitoringPatcher_Patch(t *testing.T) {
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	err := appconfiguration.AppendToSpec(models.Kubernetes, "id", spec, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)

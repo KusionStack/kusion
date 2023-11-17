@@ -79,7 +79,7 @@ func (w *WorkSpace) WriteHCL() error {
 	resourceType := w.resource.Extensions["resourceType"].(string)
 	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
 	if len(resourceNames) < 4 {
-		return fmt.Errorf("illegial resource id:%s in Spec. "+
+		return fmt.Errorf("illegial resource id:%s in Intent. "+
 			"Resource id format: providerNamespace:providerName:resourceType:resourceName", w.resource.ResourceKey())
 	}
 

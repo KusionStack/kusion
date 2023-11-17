@@ -100,7 +100,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
-		_, err := o.preview(&models.Spec{Resources: []models.Resource{sa1}}, project, stack, stateStorage)
+		_, err := o.preview(&models.Intent{Resources: []models.Resource{sa1}}, project, stack, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -198,7 +198,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Success)
 
 		o := NewDestroyOptions()
-		planResources := &models.Spec{Resources: []models.Resource{sa2}}
+		planResources := &models.Intent{Resources: []models.Resource{sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -226,7 +226,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Failed)
 
 		o := NewDestroyOptions()
-		planResources := &models.Spec{Resources: []models.Resource{sa1}}
+		planResources := &models.Intent{Resources: []models.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{

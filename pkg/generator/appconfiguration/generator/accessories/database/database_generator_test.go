@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -58,12 +59,12 @@ func TestGenerate(t *testing.T) {
 	generator, _ := NewDatabaseGenerator(project, stack, appName, workload, database)
 
 	awsProviderRegion = "us-east-1"
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	err := generator.Generate(spec)
 
 	var providerMeta map[string]interface{}
 	var cidrBlocks []string
-	expectedSpec := &models.Spec{
+	expectedSpec := &models.Intent{
 		Resources: models.Resources{
 			models.Resource{
 				ID:   "hashicorp:random:random_password:testapp-db",
@@ -310,7 +311,7 @@ func TestGenerateDBSeret(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"
 	username := database.Username
 	password := "$kusion_path.hashicorp:random:random_password:testapp-db.result"

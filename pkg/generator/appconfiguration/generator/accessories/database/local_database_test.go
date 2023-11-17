@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -40,7 +41,7 @@ func TestGenerateLocalResources(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	secret, err := generator.generateLocalResources(database, spec)
 
 	hostAddress := "testapp-db-local-service"
@@ -94,7 +95,7 @@ func TestGenerateLocalSecret(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	password, err := generator.generateLocalSecret(spec)
 	expectedPassword := generator.generateLocalPassword(16)
 
@@ -130,7 +131,7 @@ func TestGenerateLocalPVC(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	err := generator.generateLocalPVC(database, spec)
 
 	assert.NoError(t, err)
@@ -164,7 +165,7 @@ func TestGenerateLocalDeployment(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	err := generator.generateLocalDeployment(database, spec)
 
 	assert.NoError(t, err)
@@ -198,7 +199,7 @@ func TestGenerateLocalService(t *testing.T) {
 		database: database,
 	}
 
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	svcName, err := generator.generateLocalService(database, spec)
 	expectedSvcName := "testapp-db-local-service"
 

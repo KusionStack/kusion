@@ -21,7 +21,7 @@ func TestWatchOperation_Watch(t *testing.T) {
 	mockey.PatchConvey("test watch operation: watch", t, func() {
 		req := &WatchRequest{
 			Request: opsmodels.Request{
-				Spec: &models.Spec{
+				Spec: &models.Intent{
 					Resources: models.Resources{
 						{
 							ID:         "apps/v1:Deployment:foo:bar",
@@ -32,7 +32,10 @@ func TestWatchOperation_Watch(t *testing.T) {
 				},
 			},
 		}
-		mockey.Mock(runtimeinit.Runtimes).To(func(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
+		mockey.Mock(runtimeinit.Runtimes).To(func(
+			resources models.Resources,
+			stack *projectstack.Stack,
+		) (map[models.Type]runtime.Runtime, status.Status) {
 			return map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
 		}).Build()
 		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[models.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}

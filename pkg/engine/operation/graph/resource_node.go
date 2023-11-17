@@ -170,7 +170,7 @@ func (rn *ResourceNode) computeActionType(
 func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*models.Resource, *models.Resource, *models.Resource, status.Status) {
 	// 1. prepare planed resource that we want to execute
 	planedResource := rn.resource
-	// When a resource is deleted in Spec but exists in PriorState,
+	// When a resource is deleted in Intent but exists in PriorState,
 	// this node should be regarded as a deleted node, and rn.resource stores the PriorState
 	if rn.Action == opsmodels.Delete {
 		planedResource = nil

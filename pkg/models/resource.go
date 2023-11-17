@@ -20,9 +20,10 @@ type Resources []Resource
 type Resource struct {
 	// ID is the unique key of this resource in the whole State.
 	// ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
+	// providerNamespace:providerName:resourceType:resourceName for Terraform resources
 	ID string `json:"id" yaml:"id"`
 
-	// Type represents all Runtimes we supported
+	// Type represents all Runtimes we supported like Kubernetes and Terraform
 	Type Type `json:"type" yaml:"type"`
 
 	// Attributes represents all specified attributes of this resource

@@ -43,7 +43,7 @@ func NewJobGeneratorFunc(
 	}
 }
 
-func (g *jobGenerator) Generate(spec *models.Spec) error {
+func (g *jobGenerator) Generate(spec *models.Intent) error {
 	job := g.job
 	if job == nil {
 		return nil

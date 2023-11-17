@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/accessories/database"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
@@ -42,7 +43,7 @@ func TestGenerateAWSResources(t *testing.T) {
 	}
 
 	awsProviderRegion = "us-east-1"
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	secret, err := generator.generateAWSResources(database, spec)
 
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"

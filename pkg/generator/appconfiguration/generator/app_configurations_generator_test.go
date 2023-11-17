@@ -38,7 +38,7 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		app:     app,
 	}
 
-	spec := &models.Spec{
+	spec := &models.Intent{
 		Resources: []models.Resource{},
 	}
 
@@ -65,7 +65,7 @@ func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 
 	t.Run("Nil app", func(t *testing.T) {
 		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, nil)()
-		assert.EqualError(t, err, "can not find app configuration when generating the Spec")
+		assert.EqualError(t, err, "can not find app configuration when generating the Intent")
 		assert.Nil(t, g)
 	})
 

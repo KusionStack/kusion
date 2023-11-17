@@ -75,7 +75,7 @@ func TestJobGenerator_Generate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			generator, _ := NewJobGenerator(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob)
-			spec := &models.Spec{}
+			spec := &models.Intent{}
 			err := generator.Generate(spec)
 
 			assert.NoError(t, err, "Error should be nil")

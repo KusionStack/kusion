@@ -13,7 +13,7 @@ func TestSpecParser_Parse(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &models.Spec{Resources: []models.Resource{
+	mf := &models.Intent{Resources: []models.Resource{
 		{
 			ID: Pony,
 

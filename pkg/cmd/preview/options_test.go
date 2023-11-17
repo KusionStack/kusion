@@ -53,7 +53,7 @@ func Test_preview(t *testing.T) {
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
+		_, err := Preview(o, stateStorage, &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, project, stack)
 		assert.Nil(t, err)
 	})
 }
@@ -241,8 +241,8 @@ func mockGenerateSpec() *mockey.Mocker {
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
-	) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	) (*models.Intent, error) {
+		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -251,8 +251,8 @@ func mockPatchGenerateSpecWithSpinner() *mockey.Mocker {
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
-	) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	) (*models.Intent, error) {
+		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 

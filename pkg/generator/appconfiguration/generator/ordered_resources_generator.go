@@ -2,6 +2,7 @@ package generator
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
 	"kusionstack.io/kusion/pkg/models"
@@ -59,7 +60,7 @@ func NewOrderedResourcesGeneratorFunc(multipleOrderedKinds ...[]string) appconfi
 }
 
 // Generate inject the dependsOn of resources in a specified order.
-func (g *orderedResourcesGenerator) Generate(spec *models.Spec) error {
+func (g *orderedResourcesGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}

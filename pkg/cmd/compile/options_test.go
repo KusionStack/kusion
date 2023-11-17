@@ -175,14 +175,18 @@ func mockGenerateSpec() *mockey.Mocker {
 		o *generator.Options,
 		project *projectstack.Project,
 		stack *projectstack.Stack,
-	) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	) (*models.Intent, error) {
+		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
 func mockGenerateSpecFail() *mockey.Mocker {
-	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(o *generator.Options, project *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
-		return &models.Spec{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
+	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
+		o *generator.Options,
+		project *projectstack.Project,
+		stack *projectstack.Stack,
+	) (*models.Intent, error) {
+		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 

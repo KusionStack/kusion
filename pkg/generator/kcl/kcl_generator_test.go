@@ -57,14 +57,14 @@ func TestGenerateSpec(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *models.Spec
+		want    *models.Intent
 		wantErr bool
 		prefunc func()
 	}{
 		{
 			name:    "success",
 			args:    testArgs,
-			want:    &models.Spec{Resources: []models.Resource{}},
+			want:    &models.Intent{Resources: []models.Resource{}},
 			wantErr: false,
 			prefunc: func() { mockRunFiles(nil) },
 		},

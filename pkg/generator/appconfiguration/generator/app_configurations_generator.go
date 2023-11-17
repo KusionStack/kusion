@@ -24,8 +24,8 @@ func (acg *AppsGenerator) GenerateSpec(
 	_ *generator.Options,
 	project *projectstack.Project,
 	stack *projectstack.Stack,
-) (*models.Spec, error) {
-	spec := &models.Spec{
+) (*models.Intent, error) {
+	spec := &models.Intent{
 		Resources: []models.Resource{},
 	}
 
@@ -66,7 +66,7 @@ func NewAppConfigurationGenerator(
 	}
 
 	if app == nil {
-		return nil, fmt.Errorf("can not find app configuration when generating the Spec")
+		return nil, fmt.Errorf("can not find app configuration when generating the Intent")
 	}
 
 	return &appConfigurationGenerator{
@@ -88,7 +88,7 @@ func NewAppConfigurationGeneratorFunc(
 	}
 }
 
-func (g *appConfigurationGenerator) Generate(spec *models.Spec) error {
+func (g *appConfigurationGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}

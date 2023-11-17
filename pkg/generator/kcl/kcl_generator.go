@@ -49,7 +49,7 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, stack *projectstack.Stack) (*models.Spec, error) {
+func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, stack *projectstack.Stack) (*models.Intent, error) {
 	compileResult, err := Run(o, stack)
 	if err != nil {
 		return nil, err

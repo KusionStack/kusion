@@ -16,7 +16,7 @@ import (
 )
 
 func Test_opsRulePatcher_Patch(t *testing.T) {
-	spec := &models.Spec{}
+	spec := &models.Intent{}
 	err := appconfiguration.AppendToSpec(models.Kubernetes, "id", spec, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)

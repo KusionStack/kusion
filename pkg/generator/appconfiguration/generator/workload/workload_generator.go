@@ -58,7 +58,7 @@ func NewWorkloadGeneratorFunc(
 	}
 }
 
-func (g *workloadGenerator) Generate(spec *models.Spec) error {
+func (g *workloadGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}
@@ -85,7 +85,10 @@ func (g *workloadGenerator) Generate(spec *models.Spec) error {
 	return nil
 }
 
-func toOrderedContainers(appContainers map[string]container.Container, uniqueAppName string) ([]corev1.Container, []corev1.Volume, []corev1.ConfigMap, error) {
+func toOrderedContainers(
+	appContainers map[string]container.Container,
+	uniqueAppName string,
+) ([]corev1.Container, []corev1.Volume, []corev1.ConfigMap, error) {
 	// Create a slice of containers based on the app's
 	// containers.
 	var containers []corev1.Container

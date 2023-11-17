@@ -31,7 +31,7 @@ type alicloudServerlessConfig struct {
 	MinCapacity int  `yaml:"min_capacity,omitempty" json:"min_capacity,omitempty"`
 }
 
-func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *models.Spec) (*v1.Secret, error) {
+func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *models.Intent) (*v1.Secret, error) {
 	// Set the terraform random and alicloud provider.
 	randomProvider := &models.Provider{}
 	if err := randomProvider.SetString(randomProviderURL); err != nil {

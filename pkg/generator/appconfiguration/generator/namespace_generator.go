@@ -30,7 +30,7 @@ func NewNamespaceGeneratorFunc(projectName string) appconfiguration.NewGenerator
 	}
 }
 
-func (g *namespaceGenerator) Generate(spec *models.Spec) error {
+func (g *namespaceGenerator) Generate(spec *models.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(models.Resources, 0)
 	}

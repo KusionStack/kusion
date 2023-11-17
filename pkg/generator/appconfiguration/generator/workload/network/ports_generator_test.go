@@ -81,7 +81,7 @@ func TestPortsGenerator_Generate(t *testing.T) {
 		portsGenerator
 	}
 	type args struct {
-		spec *models.Spec
+		spec *models.Intent
 	}
 
 	tests := []struct {
@@ -126,9 +126,9 @@ func TestPortsGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: struct {
-				spec *models.Spec
+				spec *models.Intent
 			}{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
 			wantErr: false,
 		},

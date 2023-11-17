@@ -13,10 +13,10 @@ import (
 )
 
 type SpecParser struct {
-	spec *models.Spec
+	spec *models.Intent
 }
 
-func NewSpecParser(spec *models.Spec) *SpecParser {
+func NewSpecParser(spec *models.Intent) *SpecParser {
 	return &SpecParser{spec: spec}
 }
 

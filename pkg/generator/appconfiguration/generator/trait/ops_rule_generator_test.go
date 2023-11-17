@@ -20,7 +20,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		app     *appmodule.AppConfiguration
 	}
 	type args struct {
-		spec *models.Spec
+		spec *models.Intent
 	}
 	project := &projectstack.Project{
 		ProjectConfiguration: projectstack.ProjectConfiguration{
@@ -36,7 +36,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		exp     *models.Spec
+		exp     *models.Intent
 	}{
 		{
 			name: "test Job",
@@ -56,10 +56,10 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
 			wantErr: false,
-			exp:     &models.Spec{},
+			exp:     &models.Intent{},
 		},
 		{
 			name: "test CollaSet",
@@ -82,10 +82,10 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: args{
-				spec: &models.Spec{},
+				spec: &models.Intent{},
 			},
 			wantErr: false,
-			exp: &models.Spec{
+			exp: &models.Intent{
 				Resources: models.Resources{
 					models.Resource{
 						ID:   "apps.kusionstack.io/v1alpha1:RuleSet:default:default-dev-foo",

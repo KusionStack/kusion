@@ -77,8 +77,8 @@ func (o *Options) Run() error {
 		NoStyle:     o.NoStyle,
 	}
 
-	// Generate Spec
-	var sp *models.Spec
+	// Generate Intent
+	var sp *models.Intent
 	if o.SpecFile != "" {
 		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
 	} else {
@@ -190,7 +190,7 @@ func (o *Options) Run() error {
 func Apply(
 	o *Options,
 	storage states.StateStorage,
-	planResources *models.Spec,
+	planResources *models.Intent,
 	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
@@ -333,7 +333,7 @@ func Apply(
 //	}
 func Watch(
 	o *Options,
-	planResources *models.Spec,
+	planResources *models.Intent,
 	changes *opsmodels.Changes,
 ) error {
 	if o.DryRun {
@@ -355,7 +355,7 @@ func Watch(
 		Request: opsmodels.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Spec:    &models.Spec{Resources: toBeWatched},
+			Spec:    &models.Intent{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

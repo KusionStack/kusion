@@ -52,7 +52,7 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 		DependsOn: nil,
 	}
-	mf := &models.Spec{Resources: []models.Resource{resourceState}}
+	mf := &models.Intent{Resources: []models.Resource{resourceState}}
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: opsmodels.Destroy,

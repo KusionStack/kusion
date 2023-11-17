@@ -11,7 +11,7 @@ import (
 
 const MaxLogLength = 3751
 
-func KCLResult2Spec(kclResults []kcl.KCLResult) (*models.Spec, error) {
+func KCLResult2Spec(kclResults []kcl.KCLResult) (*models.Intent, error) {
 	resources := make([]models.Resource, len(kclResults))
 
 	for i, result := range kclResults {
@@ -36,5 +36,5 @@ func KCLResult2Spec(kclResults []kcl.KCLResult) (*models.Spec, error) {
 		resources[i] = item
 	}
 
-	return &models.Spec{Resources: resources}, nil
+	return &models.Intent{Resources: resources}, nil
 }

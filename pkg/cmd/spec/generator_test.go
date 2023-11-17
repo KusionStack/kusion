@@ -31,7 +31,7 @@ resources:
     spec: {}
     status: {}
 `
-	specModel1 = &models.Spec{
+	specModel1 = &models.Intent{
 		Resources: []models.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -68,7 +68,7 @@ resources:
       name: kube-system
 `
 
-	specModel2 = &models.Spec{
+	specModel2 = &models.Intent{
 		Resources: []models.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -95,7 +95,7 @@ resources:
 		},
 	}
 
-	specModel3 = &models.Spec{
+	specModel3 = &models.Intent{
 		Resources: []models.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -123,7 +123,7 @@ func TestGenerateSpecFromFile(t *testing.T) {
 		name    string
 		path    string
 		content string
-		want    *models.Spec
+		want    *models.Intent
 		wantErr bool
 	}{
 		{
@@ -176,7 +176,7 @@ func TestGenerateSpec(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *models.Spec
+		want    *models.Intent
 		wantErr bool
 	}{
 		{

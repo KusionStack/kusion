@@ -89,7 +89,7 @@ func NewPortsGeneratorFunc(
 }
 
 // Generate renders k8s ClusterIP or LoadBalancer service from the portsGenerator.
-func (g *portsGenerator) Generate(spec *models.Spec) error {
+func (g *portsGenerator) Generate(spec *models.Intent) error {
 	privatePorts, publicPorts := splitPorts(g.ports)
 	if len(privatePorts) != 0 {
 		svc := g.generateK8sSvc(false, privatePorts)
@@ -261,7 +261,7 @@ func toSvcPorts(name string, ports []network.Port) []v1.ServicePort {
 	return svcPorts
 }
 
-func appendToSpec(spec *models.Spec, svc *v1.Service) error {
+func appendToSpec(spec *models.Intent, svc *v1.Service) error {
 	id := ac.KubernetesResourceID(svc.TypeMeta, svc.ObjectMeta)
 	return ac.AppendToSpec(models.Kubernetes, id, spec, svc)
 }
