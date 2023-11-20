@@ -9,7 +9,7 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
-	"kusionstack.io/kusion/pkg/cmd/check"
+	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/compile"
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
@@ -73,7 +73,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 			Commands: []*cobra.Command{
 				cmdinit.NewCmdInit(),
 				compile.NewCmdCompile(),
-				check.NewCmdCheck(),
+				build.NewCmdBuild(),
 				ls.NewCmdLs(),
 				deps.NewCmdDeps(),
 			},

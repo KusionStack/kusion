@@ -1,4 +1,4 @@
-package compile
+package build
 
 import (
 	"errors"
@@ -80,17 +80,14 @@ func TestCompileOptions_preSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o := NewCompileOptions()
+			o := NewBuildOptions()
 
-			o.Settings = tt.fields.Settings
 			o.Output = tt.fields.Output
-
 			o.PreSet(func(cur string) bool {
 				return true
 			})
 
-			wantOpt := NewCompileOptions()
-			wantOpt.Settings = tt.want.Settings
+			wantOpt := NewBuildOptions()
 			wantOpt.Output = tt.want.Output
 
 			assert.Equal(t, wantOpt, o)
@@ -111,7 +108,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		defer m2.UnPatch()
 		defer m3.UnPatch()
 
-		o := NewCompileOptions()
+		o := NewBuildOptions()
 		o.NoStyle = true
 		err := o.Run()
 		assert.Nil(t, err)
@@ -121,7 +118,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		m1 := mockDetectProjectAndStackFail()
 		defer m1.UnPatch()
 
-		o := NewCompileOptions()
+		o := NewBuildOptions()
 		o.NoStyle = true
 		err := o.Run()
 		assert.Equal(t, errTest, err)
@@ -132,7 +129,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		m2 := mockGenerateSpecFail()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
-		o := NewCompileOptions()
+		o := NewBuildOptions()
 		o.NoStyle = true
 		err := o.Run()
 		assert.Equal(t, errTest, err)

@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
+	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -27,7 +27,7 @@ import (
 const jsonOutput = "json"
 
 type Options struct {
-	compilecmd.Options
+	build.Options
 	Flags
 	backend.BackendOps
 }
@@ -44,7 +44,7 @@ type Flags struct {
 
 func NewPreviewOptions() *Options {
 	return &Options{
-		Options: *compilecmd.NewCompileOptions(),
+		Options: *build.NewBuildOptions(),
 	}
 }
 
@@ -122,15 +122,11 @@ func (o *Options) Run() error {
 	}
 
 	options := &generator.Options{
-		IsKclPkg:    o.IsKclPkg,
-		WorkDir:     o.WorkDir,
-		Filenames:   o.Filenames,
-		Settings:    o.Settings,
-		Arguments:   o.Arguments,
-		Overrides:   o.Overrides,
-		DisableNone: o.DisableNone,
-		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle,
+		IsKclPkg:  o.IsKclPkg,
+		WorkDir:   o.WorkDir,
+		Filenames: o.Filenames,
+		Arguments: o.Arguments,
+		NoStyle:   o.NoStyle,
 	}
 
 	// Generate Intent

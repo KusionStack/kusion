@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 
 	kcl "kcl-lang.io/kcl-go"
@@ -64,7 +63,7 @@ func (g *Generator) GenerateSpec(o *generator.Options, _ *projectstack.Project, 
 }
 
 func Run(o *generator.Options, stack *projectstack.Stack) (*CompileResult, error) {
-	optList, err := BuildOptions(o.WorkDir, o.Settings, o.Overrides, o.Arguments, o.DisableNone, o.OverrideAST)
+	optList, err := BuildOptions(o.WorkDir, o.Arguments)
 	if err != nil {
 		return nil, err
 	}
@@ -144,74 +143,41 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-func BuildOptions(
-	workDir string,
-	settings, overrides []string,
-	arguments map[string]string,
-	disableNone, overrideAST bool,
-) ([]kcl.Option, error) {
+func BuildOptions(workDir string, arguments map[string]string) ([]kcl.Option, error) {
 	optList := make([]kcl.Option, 0)
-	// build settings option
-	for _, setting := range settings {
-		if workDir != "" {
-			setting = filepath.Join(workDir, setting)
-		}
-		opt := kcl.WithSettings(setting)
-		if opt.Err != nil {
-			return nil, opt.Err
-		}
-
-		optList = append(optList, opt)
-	}
 
 	// build arguments option
 	for k, v := range arguments {
 		argStr := k + "=" + v
-		opt := kcl.WithOptions(argStr)
-		if opt.Err != nil {
-			return nil, opt.Err
+		withOpt := kcl.WithOptions(argStr)
+		if withOpt.Err != nil {
+			return nil, withOpt.Err
 		}
 
-		optList = append(optList, opt)
+		optList = append(optList, withOpt)
 	}
-
-	// build overrides option
-	opt := kcl.WithOverrides(overrides...)
-	if opt.Err != nil {
-		return nil, opt.Err
-	}
-
-	optList = append(optList, opt)
-
-	// build disable none option
-	opt = kcl.WithDisableNone(disableNone)
-	if opt.Err != nil {
-		return nil, opt.Err
-	}
-
-	optList = append(optList, opt)
-
-	// open PrintOverride option
-	opt = kcl.WithPrintOverridesAST(overrideAST)
-	if opt.Err != nil {
-		return nil, opt.Err
-	}
-
-	optList = append(optList, opt)
 
 	// build workDir option
-	opt = kcl.WithWorkDir(workDir)
-	if opt.Err != nil {
-		return nil, opt.Err
+	withOpt := kcl.WithWorkDir(workDir)
+	if withOpt.Err != nil {
+		return nil, withOpt.Err
 	}
-	optList = append(optList, opt)
+	optList = append(optList, withOpt)
+
+	// eliminate null values in the result
+	withOpt = kcl.WithDisableNone(true)
+	if withOpt.Err != nil {
+		return nil, withOpt.Err
+	}
+
+	optList = append(optList, withOpt)
 
 	if arguments[IncludeSchemaTypePath] == "true" {
-		opt = kcl.WithIncludeSchemaTypePath(true)
-		if opt.Err != nil {
-			return nil, opt.Err
+		withOpt = kcl.WithIncludeSchemaTypePath(true)
+		if withOpt.Err != nil {
+			return nil, withOpt.Err
 		}
-		optList = append(optList, opt)
+		optList = append(optList, withOpt)
 	}
 
 	return optList, nil
@@ -272,14 +238,4 @@ func genKclArgs(args map[string]string, settings []string) string {
 
 func Overwrite(fileName string, overrides []string) (bool, error) {
 	return kcl.OverrideFile(fileName, overrides, []string{})
-}
-
-// Get kcl cli path
-func GetKclPath() string {
-	return kclAppPath
-}
-
-// Get kclvm cli path
-func GetKclvmPath() string {
-	return filepath.Join(filepath.Dir(kclAppPath), "kclvm")
 }

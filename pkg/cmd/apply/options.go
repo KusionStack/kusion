@@ -66,15 +66,11 @@ func (o *Options) Run() error {
 	}
 
 	options := &generator.Options{
-		IsKclPkg:    o.IsKclPkg,
-		WorkDir:     o.WorkDir,
-		Filenames:   o.Filenames,
-		Settings:    o.Settings,
-		Arguments:   o.Arguments,
-		Overrides:   o.Overrides,
-		DisableNone: o.DisableNone,
-		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle,
+		IsKclPkg:  o.IsKclPkg,
+		WorkDir:   o.WorkDir,
+		Filenames: o.Filenames,
+		Arguments: o.Arguments,
+		NoStyle:   o.NoStyle,
 	}
 
 	// Generate Intent

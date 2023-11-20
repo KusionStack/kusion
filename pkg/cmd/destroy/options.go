@@ -9,7 +9,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
+	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -23,7 +23,7 @@ import (
 )
 
 type Options struct {
-	compilecmd.Options
+	build.Options
 	Operator string
 	Yes      bool
 	Detail   bool
@@ -32,7 +32,7 @@ type Options struct {
 
 func NewDestroyOptions() *Options {
 	return &Options{
-		Options: *compilecmd.NewCompileOptions(),
+		Options: *build.NewBuildOptions(),
 	}
 }
 

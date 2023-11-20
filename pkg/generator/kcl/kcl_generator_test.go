@@ -84,13 +84,10 @@ func TestGenerateSpec(t *testing.T) {
 
 			g := &Generator{}
 			got, err := g.GenerateSpec(&generator.Options{
-				WorkDir:     tt.args.workDir,
-				Filenames:   tt.args.filenames,
-				Settings:    tt.args.settings,
-				Arguments:   tt.args.arguments,
-				Overrides:   tt.args.overrides,
-				DisableNone: tt.args.disableNone,
-				OverrideAST: tt.args.overrideAST,
+				WorkDir:   tt.args.workDir,
+				Filenames: tt.args.filenames,
+				Settings:  tt.args.settings,
+				Arguments: tt.args.arguments,
 			}, nil, fakeStack)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Compile() error = %v, wantErr %v", err, tt.wantErr)
