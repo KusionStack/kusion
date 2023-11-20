@@ -16,8 +16,6 @@
 
 # graph
 *.dot
-*.png
-*.jpeg
 
 # ide
 .idea/
