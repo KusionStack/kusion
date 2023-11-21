@@ -10,7 +10,8 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/compile"
+	// we need to import the compile pkg to keep the compile command available
+	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/env"

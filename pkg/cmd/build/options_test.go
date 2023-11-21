@@ -42,12 +42,10 @@ var (
 
 func TestCompileOptions_preSet(t *testing.T) {
 	type fields struct {
-		Settings []string
-		Output   string
+		Output string
 	}
 	type want struct {
-		Settings []string
-		Output   string
+		Output string
 	}
 
 	tests := []struct {
@@ -56,25 +54,12 @@ func TestCompileOptions_preSet(t *testing.T) {
 		want   want
 	}{
 		{
-			name: "preset-nothing",
-			fields: fields{
-				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
-				Output:   "ci-test/stdout.golden.yaml",
-			},
-			want: want{
-				Settings: []string{"ci-test/settings.yaml", "kcl.yaml"},
-				Output:   "ci-test/stdout.golden.yaml",
-			},
-		},
-		{
 			name: "preset-everything",
 			fields: fields{
-				Settings: []string{},
-				Output:   "",
+				Output: "",
 			},
 			want: want{
-				Settings: []string{"kcl.yaml"},
-				Output:   "ci-test/stdout.golden.yaml",
+				Output: "",
 			},
 		},
 	}

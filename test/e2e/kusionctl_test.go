@@ -26,16 +26,6 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 		})
 	})
 
-	ginkgo.Context("kusion check testing", func() {
-		ginkgo.It("kusion check", func() {
-			// kusion check testing
-			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
-			output, err := ExecKusionWithWorkDir("kusion check", path)
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("Generating Intent"))
-		})
-	})
-
 	ginkgo.Context("kusion ls testing", func() {
 		ginkgo.It("kusion ls", func() {
 			path := filepath.Join(GetWorkDir(), "konfig")
