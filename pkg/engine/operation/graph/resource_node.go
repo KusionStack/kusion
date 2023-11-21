@@ -15,7 +15,6 @@ import (
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/diff"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/vals"
 )
 
 type ResourceNode struct {
@@ -39,13 +38,13 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	case opsmodels.ApplyPreview:
 		// first time apply. Do not replace implicit dependency ref
 		if len(o.PriorStateResourceIndex) == 0 {
-			_, replaced, s = ReplaceSecretRef(value, o.SecretStores)
+			_, replaced, s = ReplaceSecretRef(value)
 		} else {
-			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, OptionalImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, OptionalImplicitReplaceFun)
 		}
 	case opsmodels.Apply:
 		// replace secret ref and implicit ref
-		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun, o.SecretStores, vals.ParseSecretRef)
+		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun)
 	default:
 		return nil
 	}
@@ -296,8 +295,8 @@ func updateChangeOrder(ops *opsmodels.Operation, rn *ResourceNode, plan, live in
 	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, plan, live)
 }
 
-func ReplaceSecretRef(v reflect.Value, ss *vals.SecretStores) ([]string, reflect.Value, status.Status) {
-	return ReplaceRef(v, nil, nil, ss, vals.ParseSecretRef)
+func ReplaceSecretRef(v reflect.Value) ([]string, reflect.Value, status.Status) {
+	return ReplaceRef(v, nil, nil)
 }
 
 var MustImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
@@ -352,15 +351,13 @@ func ReplaceImplicitRef(
 	resourceIndex map[string]*models.Resource,
 	replaceFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
 ) ([]string, reflect.Value, status.Status) {
-	return ReplaceRef(v, resourceIndex, replaceFun, nil, nil)
+	return ReplaceRef(v, resourceIndex, replaceFun)
 }
 
 func ReplaceRef(
 	v reflect.Value,
 	resourceIndex map[string]*models.Resource,
 	repImplDepFunc func(map[string]*models.Resource, string) (reflect.Value, status.Status),
-	ss *vals.SecretStores,
-	repSecretFunc func(string, string, *vals.SecretStores) (string, error),
 ) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {
@@ -372,7 +369,7 @@ func ReplaceRef(
 		if v.IsNil() {
 			return nil, v, nil
 		}
-		return ReplaceRef(v.Elem(), resourceIndex, repImplDepFunc, ss, repSecretFunc)
+		return ReplaceRef(v.Elem(), resourceIndex, repImplDepFunc)
 	case reflect.String:
 		vStr := v.String()
 		if repImplDepFunc != nil {
@@ -391,18 +388,6 @@ func ReplaceRef(
 				v = tv
 			}
 		}
-
-		if ss != nil && repSecretFunc != nil {
-			if prefix, ok := vals.IsSecured(vStr); ok {
-				tStr, err := repSecretFunc(prefix, vStr, ss)
-				if err != nil {
-					return nil, v, status.NewErrorStatus(err)
-				}
-				tv := reflect.New(v.Type()).Elem()
-				tv.SetString(tStr)
-				v = tv
-			}
-		}
 	case reflect.Slice, reflect.Array:
 		if v.Len() == 0 {
 			return nil, v, nil
@@ -411,7 +396,7 @@ func ReplaceRef(
 		vs := reflect.MakeSlice(v.Type(), 0, 0)
 
 		for i := 0; i < v.Len(); i++ {
-			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, repImplDepFunc, ss, repSecretFunc)
+			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, repImplDepFunc)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}
@@ -429,7 +414,7 @@ func ReplaceRef(
 
 		iter := v.MapRange()
 		for iter.Next() {
-			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, repImplDepFunc, ss, repSecretFunc)
+			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, repImplDepFunc)
 			if status.IsErr(s) {
 				return nil, tv, s
 			}

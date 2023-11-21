@@ -13,7 +13,6 @@ import (
 	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/vals"
 )
 
 // Operation is the base model for all operations
@@ -54,9 +53,6 @@ type Operation struct {
 
 	// ResultState is the final State build by this operation, and this State will be saved in the StateStorage
 	ResultState *states.State
-
-	// SecretStores contains all available secret stores
-	SecretStores *vals.SecretStores
 }
 
 type Message struct {

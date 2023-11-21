@@ -8,7 +8,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/vals"
 )
 
 var (
@@ -64,9 +63,6 @@ type ProjectConfiguration struct {
 
 	// Prometheus configs
 	Prometheus *PrometheusConfig `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
-
-	// Secret stores
-	SecretStores *vals.SecretStores `json:"secret_stores,omitempty" yaml:"secret_stores,omitempty"`
 }
 
 type Project struct {
