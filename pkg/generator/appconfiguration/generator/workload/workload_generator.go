@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"kusionstack.io/kusion/pkg/generator/appconfiguration"
+	"kusionstack.io/kusion/pkg/generator/appconfiguration/generator/workload/secret"
 	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload"
 	"kusionstack.io/kusion/pkg/models/appconfiguration/workload/container"
@@ -70,11 +71,11 @@ func (g *workloadGenerator) Generate(spec *models.Intent) error {
 		case workload.TypeService:
 			gfs = append(gfs,
 				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service),
-				NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets, g.project.Name))
+				secret.NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets))
 		case workload.TypeJob:
 			gfs = append(gfs,
 				NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job),
-				NewSecretGeneratorFunc(g.project, g.workload.Job.Secrets, g.project.Name))
+				secret.NewSecretGeneratorFunc(g.project, g.workload.Job.Secrets))
 		}
 
 		if err := appconfiguration.CallGenerators(spec, gfs...); err != nil {
