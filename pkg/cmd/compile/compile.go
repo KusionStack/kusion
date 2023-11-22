@@ -12,19 +12,12 @@ import (
 )
 
 func NewCmdCompile() *cobra.Command {
-	msg := "Deprecated: Use 'kusion build' to generate the Intent instead"
-	var (
-		compileShort = i18n.T(msg)
-
-		compileLong = i18n.T(msg)
-
-		compileExample = i18n.T("")
-	)
+	compileShort := i18n.T("Deprecated: Use 'kusion build' to generate the Intent instead")
+	compileExample := i18n.T("")
 
 	cmd := &cobra.Command{
 		Use:     "compile",
 		Short:   compileShort,
-		Long:    templates.LongDesc(compileLong),
 		Example: templates.Examples(compileExample),
 		Aliases: []string{"cl"},
 		RunE: func(_ *cobra.Command, args []string) (err error) {

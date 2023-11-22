@@ -313,7 +313,7 @@ msgstr "Kusion 是 KusionStack 的平台工程引擎"
 #, fuzzy
 msgid ""
 "\n"
-"\t\tCompile Kusion models in a Stack to the Spec (intent)\n"
+"\t\tCompile Kusion modules in a Stack to the Spec (intent)\n"
 "\t\n"
 "\t\tThe command must be executed in a Stack or specifying a Stack dir with "
 "the -w flag. \n"
@@ -377,7 +377,7 @@ msgstr ""
 "\t\tkusion check main.k -w appops/demo/dev"
 
 #: pkg/cmd/compile/compile.go:13
-msgid "Compile Kusion models to the Spec (intent)"
+msgid "Compile Kusion modules to the Spec (intent)"
 msgstr ""
 
 #: pkg/cmd/deps/deps.go:55
