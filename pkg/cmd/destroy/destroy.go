@@ -42,7 +42,7 @@ func NewCmdDestroy() *cobra.Command {
 		},
 	}
 
-	o.AddCompileFlags(cmd)
+	o.AddBuildFlags(cmd)
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,

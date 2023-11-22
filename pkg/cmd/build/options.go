@@ -1,4 +1,4 @@
-package compile
+package build
 
 import (
 	"fmt"
@@ -11,37 +11,29 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 type Options struct {
 	IsKclPkg  bool
-	IsCheck   bool
 	Filenames []string
 	Flags
 }
 
 type Flags struct {
-	Output      string
-	WorkDir     string
-	Settings    []string
-	Arguments   map[string]string
-	Overrides   []string
-	DisableNone bool
-	OverrideAST bool
-	NoStyle     bool
+	Output    string
+	WorkDir   string
+	Arguments map[string]string
+	NoStyle   bool
 }
 
 const Stdout = "stdout"
 
-func NewCompileOptions() *Options {
+func NewBuildOptions() *Options {
 	return &Options{
 		Filenames: []string{},
 		Flags: Flags{
-			Settings:  []string{},
 			Arguments: map[string]string{},
-			Overrides: []string{},
 		},
 	}
 }
@@ -77,25 +69,19 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	sp, err := spec.GenerateSpecWithSpinner(&generator.Options{
-		IsKclPkg:    o.IsKclPkg,
-		WorkDir:     o.WorkDir,
-		Filenames:   o.Filenames,
-		Settings:    o.Settings,
-		Arguments:   o.Arguments,
-		Overrides:   o.Overrides,
-		DisableNone: o.DisableNone,
-		OverrideAST: o.OverrideAST,
-		NoStyle:     o.NoStyle,
-	}, project, stack)
+	sp, err := spec.GenerateSpecWithSpinner(
+		&generator.Options{
+			IsKclPkg:  o.IsKclPkg,
+			WorkDir:   o.WorkDir,
+			Filenames: o.Filenames,
+			Arguments: o.Arguments,
+			NoStyle:   o.NoStyle,
+		},
+		project,
+		stack,
+	)
 	if err != nil {
-		// only print err in the check command
-		if o.IsCheck {
-			fmt.Println(err)
-			return nil
-		} else {
-			return err
-		}
+		return err
 	}
 
 	yaml, err := yamlv2.Marshal(sp)
@@ -132,33 +118,6 @@ func (o *Options) PreSet(preCheck func(cur string) bool) error {
 	if _, err := api.GetKclPackage(o.WorkDir); err == nil {
 		o.IsKclPkg = true
 		return nil
-	}
-
-	if len(o.Settings) == 0 {
-		o.Settings = []string{projectstack.KclFile}
-		info, err := os.Stat(filepath.Join(curDir, projectstack.CiTestDir, projectstack.SettingsFile))
-		switch {
-		case err != nil && os.IsNotExist(err):
-			log.Warnf("%s is not exist", projectstack.SettingsFile)
-		case err != nil && !os.IsNotExist(err):
-			return err
-		case err == nil && info.Mode().IsRegular():
-			o.Settings = append(o.Settings, filepath.Join(projectstack.CiTestDir, projectstack.SettingsFile))
-		case err == nil && !info.Mode().IsRegular():
-			log.Warnf("%s is not a regular file", projectstack.SettingsFile)
-		}
-	}
-
-	if o.Output == "" {
-		absCiTestDir := filepath.Join(curDir, projectstack.CiTestDir)
-		_, err := os.Stat(absCiTestDir)
-		if err != nil {
-			if !os.IsNotExist(err) {
-				return err
-			}
-			_ = os.Mkdir(absCiTestDir, 0o750)
-		}
-		o.Output = filepath.Join(projectstack.CiTestDir, projectstack.StdoutGoldenFile)
 	}
 	return nil
 }

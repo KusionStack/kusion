@@ -16,21 +16,11 @@ import (
 )
 
 var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
-	ginkgo.Context("kusion compile testing", func() {
-		ginkgo.It("kusion compile", func() {
-			// kusion compile testing
+	ginkgo.Context("kusion build testing", func() {
+		ginkgo.It("kusion build", func() {
+			// kusion build testing
 			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
-			output, err := ExecKusionWithWorkDir("kusion compile", path)
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("Generating Intent"))
-		})
-	})
-
-	ginkgo.Context("kusion check testing", func() {
-		ginkgo.It("kusion check", func() {
-			// kusion check testing
-			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
-			output, err := ExecKusionWithWorkDir("kusion check", path)
+			output, err := ExecKusionWithWorkDir("kusion build", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			gomega.Expect(output).To(gomega.ContainSubstring("Generating Intent"))
 		})

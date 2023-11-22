@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	compilecmd "kusionstack.io/kusion/pkg/cmd/compile"
+	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -355,7 +355,7 @@ func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
 }
 
 func TestPreviewOptions_Validate(t *testing.T) {
-	m := mockey.Mock((*compilecmd.Options).Validate).Return(nil).Build()
+	m := mockey.Mock((*build.Options).Validate).Return(nil).Build()
 	defer m.UnPatch()
 	tests := []struct {
 		name    string

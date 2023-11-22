@@ -40,19 +40,15 @@ func TestGenerateSpec(t *testing.T) {
 	}
 
 	type args struct {
-		workDir     string
-		filenames   []string
-		settings    []string
-		arguments   map[string]string
-		overrides   []string
-		disableNone bool
-		overrideAST bool
+		workDir   string
+		filenames []string
+		settings  []string
+		arguments map[string]string
 	}
 	testArgs := args{
-		filenames:   []string{},
-		settings:    []string{"testdata/kcl.yaml"},
-		arguments:   map[string]string{"image": "nginx:latest"},
-		disableNone: true,
+		filenames: []string{},
+		settings:  []string{"testdata/kcl.yaml"},
+		arguments: map[string]string{"image": "nginx:latest"},
 	}
 	tests := []struct {
 		name    string
@@ -84,13 +80,10 @@ func TestGenerateSpec(t *testing.T) {
 
 			g := &Generator{}
 			got, err := g.GenerateSpec(&generator.Options{
-				WorkDir:     tt.args.workDir,
-				Filenames:   tt.args.filenames,
-				Settings:    tt.args.settings,
-				Arguments:   tt.args.arguments,
-				Overrides:   tt.args.overrides,
-				DisableNone: tt.args.disableNone,
-				OverrideAST: tt.args.overrideAST,
+				WorkDir:   tt.args.workDir,
+				Filenames: tt.args.filenames,
+				Settings:  tt.args.settings,
+				Arguments: tt.args.arguments,
 			}, nil, fakeStack)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Compile() error = %v, wantErr %v", err, tt.wantErr)

@@ -9,8 +9,9 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
-	"kusionstack.io/kusion/pkg/cmd/check"
-	"kusionstack.io/kusion/pkg/cmd/compile"
+	"kusionstack.io/kusion/pkg/cmd/build"
+	// we need to import the compile pkg to keep the compile command available
+	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/env"
@@ -73,7 +74,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 			Commands: []*cobra.Command{
 				cmdinit.NewCmdInit(),
 				compile.NewCmdCompile(),
-				check.NewCmdCheck(),
+				build.NewCmdBuild(),
 				ls.NewCmdLs(),
 				deps.NewCmdDeps(),
 			},

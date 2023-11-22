@@ -56,7 +56,7 @@ func NewCmdPreview() *cobra.Command {
 		},
 	}
 
-	o.AddCompileFlags(cmd)
+	o.AddBuildFlags(cmd)
 	o.AddPreviewFlags(cmd)
 	o.AddBackendFlags(cmd)
 

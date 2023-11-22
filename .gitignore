@@ -26,7 +26,6 @@ vendor/
 
 # build
 _build*
-build/
 build/bundles/
 build/yamls/
 build/charts/
