@@ -10,10 +10,10 @@ import (
 
 func NewCmdBuild() *cobra.Command {
 	var (
-		short = i18n.T(`Build Kusion models in a Stack to the Intent`)
+		short = i18n.T(`Build Kusion modules in a Stack to the Intent`)
 
 		long = i18n.T(`
-		Build Kusion models in a Stack to the Intent 
+		Build Kusion modules in a Stack to the Intent 
 	
 		The command must be executed in a Stack or by specifying a Stack directory with the -w flag.
 		You can provide a list of arguments to replace the placeholders defined in KCL, 
