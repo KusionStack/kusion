@@ -1,9 +1,4 @@
-// Copyright 2021 The Kusion Authors. All rights reserved.
-
-//go:build ignore
-// +build ignore
-
-// 计算文件的 md5
+// compute the md5 of the new binary
 package main
 
 import (
