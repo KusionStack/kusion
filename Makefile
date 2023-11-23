@@ -77,11 +77,7 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
 		-ldflags="-s -w" .
 
-build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for macOS
-	# Build kcl-openapi
-	cd ./scripts/install-kcl-openapi && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin/bin/kcl-openapi
-
+build-local-darwin-all: build-local-darwin ## Build kusion for macOS
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-darwin/docs
 	
@@ -89,7 +85,7 @@ build-local-darwin-all: build-local-darwin ## Build kusion & kcl tool chain for 
 	cp ./README.md ./_build/bundles/kusion-darwin
 	# Build tgz
 	cd ./_build/bundles/kusion-darwin && tar -zcvf ../kusion-darwin.tgz .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-darwin.tgz > kusion-darwin.tgz.md5.txt
+	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-darwin.tgz > kusion-darwin.tgz.md5.txt
 
 build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 	# Delete old artifacts
@@ -106,11 +102,7 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 		go build -o ./_build/bundles/kusion-darwin-arm64/bin/kusion \
 		-ldflags="-s -w" .
 
-build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl tool chain for macOS arm64
-	# Build kcl-openapi
-	cd ./scripts/install-kcl-openapi && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-darwin-arm64/bin/kcl-openapi
-
+build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion for macOS arm64
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-darwin-arm64/docs
 
@@ -118,7 +110,7 @@ build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion & kcl too
 	cp ./README.md ./_build/bundles/kusion-darwin-arm64
 	# Build tgz
 	cd ./_build/bundles/kusion-darwin-arm64 && tar -zcvf ../kusion-darwin-arm64.tgz .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-darwin-arm64.tgz > kusion-darwin-arm64.tgz.md5.txt
+	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-darwin-arm64.tgz > kusion-darwin-arm64.tgz.md5.txt
 
 build-local-linux-in-docker: ## Build kusionctl-linux in docker
 	${RUN_IN_DOCKER} make build-local-linux
@@ -140,11 +132,7 @@ build-local-linux:  ## Build kusion tool chain for linux
 		go build -o ./_build/bundles/kusion-linux/bin/kusion \
 		-ldflags="-s -w" .
 
-build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for linux
-	# Build kcl-openapi
-	cd ./scripts/install-kcl-openapi && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-linux/bin/kcl-openapi
-
+build-local-linux-all: build-local-linux  ## Build kusion for linux
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-linux/docs
 
@@ -153,7 +141,7 @@ build-local-linux-all: build-local-linux  ## Build kusion & kcl tool chain for l
 
 	# Build tgz
 	cd ./_build/bundles/kusion-linux && tar -zcvf ../kusion-linux.tgz  .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-linux.tgz > kusion-linux.tgz.md5.txt
+	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-linux.tgz > kusion-linux.tgz.md5.txt
 
 build-local-windows:  ## Build kusion tool chain for windows
 	# Delete old artifacts
@@ -170,11 +158,7 @@ build-local-windows:  ## Build kusion tool chain for windows
 		go build -o ./_build/bundles/kusion-windows/bin/kusion.exe \
 		-ldflags="-s -w" .
 
-build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain for windows
-	# Build kcl-openapi
-	cd ./scripts/install-kcl-openapi && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
-		go build -o ${PWD}/_build/bundles/kusion-windows/kcl-openapi.exe
-
+build-local-windows-all: build-local-windows  ## Build kusion for windows
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-windows/docs
 
@@ -182,7 +166,7 @@ build-local-windows-all: build-local-windows  ## Build kusion & kcl tool chain f
 	cp ./README.md ./_build/bundles/kusion-windows
 	# Build zip
 	cd ./_build/bundles/kusion-windows && zip -r ../kusion-windows.zip .
-	cd ./_build/bundles && go run ../../scripts/md5file/main.go kusion-windows.zip > kusion-windows.zip.md5.txt
+	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-windows.zip > kusion-windows.zip.md5.txt
 
 build-image:  ## Build kusion image
 	make build-local-linux-all
