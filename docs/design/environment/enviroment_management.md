@@ -4,7 +4,7 @@
 
 Towards the version 0.10.0, Kusion is about to make a huge upgrade: the unambiguous definition of responsibility and collaboration paradigm between platform engineers and application developers through the application delivery process. The platform engineers firstly define modules and corresponding application-oriented schemas, where the latter constitute the application schema [AppConfiguration](https://www.kusionstack.io/docs/user_docs/config-walkthrough/overview#appconfiguration-model), and secondly initialize environments and corresponding configurations. The application developers select environment and fill in the fields of AppConfiguration. Then, executing the delivery action in a trusted environment, e.g. a CD pipeline, to apply the application intent from both the platform engineers and application developers. 
 
-The upgrade defines the role of platform engineers and the concepts of **Module** and **Environment**. The Module is a building block enabling the delivery of a set of resources from **Schema Configuration** and **Environment Configuration**. While the Environment is a collection of application-independent configurations, and an environment configuration is composed of a set of module inputs, which forms the entire module inputs combined with schema configuration.
+The upgrade defines the role of platform engineers and the concepts of **Module** and **Environment**. The Module is a building block enabling the building the intent of a set of resources from **Schema Configuration** and **Environment Configuration**. While the Environment is a collection of application-independent configurations, and an environment configuration is composed of a set of module inputs, which forms the entire module inputs combined with schema configuration.
 
 <br />![workflow](workflow.png)
 
@@ -92,7 +92,7 @@ Kusion provides the management of environment by sub command `kusion env`, the d
 
 #### kusion env create \<name> -f \<configFilePath>
 
-Create an environment.
+Create an environment. A new environment configuration file named `<name>.yaml` will be created, and the validation will be done before the creation.
 
 #### kusion env update \<name> -f \<configFilePath>
 
