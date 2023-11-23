@@ -119,8 +119,46 @@ Limited by the Kusion CLI format, in the collaboration scenario, application dev
 
 ### SDK of Parsing Environment Configuration
 
+**Option 1**
+
 Environment configuration only includes module configuration for now, then there should be the sdk which can parse specified structured module input from environment configuration.
 
 ```Go
 func ParseEnvModule(project *projectstack.Project, stack *projectstack.Stack, moduleName string, module any) error
+```
+
+**Option 2**
+
+When calling `kusion build`, do the following two things to interact with environment configurations:
+
+1. Get the corresponding environment configurations according to stack name;
+2. Inject the module inputs specified in the environment config to construct the full module input before calling `Generate`, which will be called in the funtion `CallGenerators` to avoid manually call for every generator.
+
+The definition of `Generator` need update to assign the Module that the generator uses. Compared to the R&D progress of generator for now, the only one thing need change is to add a `Module` function.
+
+```GO
+// Generator is the interface that wraps the Generate method.
+type Generator interface {
+	Generate(spec *models.Spec) error
+	
+	// Module that the Generator uses, [new added]
+	Module() any
+}
+
+// take database for an example
+
+type databaseGenerator struct {
+    project  *projectstack.Project
+    stack    *projectstack.Stack
+    appName  string
+    workload *workload.Workload
+    database *database.Database
+}
+
+// [new added]
+func (g *databaseGenerator) Module() any {
+    return g.database
+}
+
+func (g *databaseGenerator) Generate(spec *models.Spec) error {...}
 ```
