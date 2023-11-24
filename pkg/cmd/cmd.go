@@ -14,9 +14,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
-	"kusionstack.io/kusion/pkg/cmd/env"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
-	"kusionstack.io/kusion/pkg/cmd/ls"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/util/i18n"
@@ -75,7 +73,6 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 				cmdinit.NewCmdInit(),
 				compile.NewCmdCompile(),
 				build.NewCmdBuild(),
-				ls.NewCmdLs(),
 				deps.NewCmdDeps(),
 			},
 		},
@@ -93,11 +90,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 	filters := []string{"options"}
 
 	templates.ActsAsRootCommand(cmds, filters, groups...)
-	// Add other subcommands
-	// TODO: add plugin subcommand
-	// cmds.AddCommand(plugin.NewCmdPlugin(f, ioStreams))
 	cmds.AddCommand(version.NewCmdVersion())
-	cmds.AddCommand(env.NewCmdEnv())
 
 	return cmds
 }
