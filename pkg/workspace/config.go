@@ -16,6 +16,7 @@ type Config struct {
 	Backends map[string]models.BackendConfig `yaml:"backends,omitempty" json:"backends,omitempty"`
 }
 
+/*
 // unstructuredConfig is the Config without specified structure, used as the intermedia between
 // YAML file and structured Config.
 type unstructuredConfig struct {
@@ -23,9 +24,10 @@ type unstructuredConfig struct {
 	Runtimes map[string]any `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
 	Backends map[string]any `yaml:"backends,omitempty" json:"backends,omitempty"`
 }
+*/
 
 /*
-todo: the following functions are to provided.
+todo: the following functions are to get provided.
 func ParseConfig(data []byte) (*Config, error) {}
 func ParseConfigFromYamlFile(path string) (*Config, error) {}
 func (c *Config) Validate() error {}

@@ -22,7 +22,7 @@ func NewDefaultOperator() *Operator {
 }
 
 /*
-todo: The following are the functions to provide.
+todo: The following are the functions to get provided.
 func (o *Operator) GetWorkspaces() ([]string, error) {}
 func (o *Operator) GetWorkspaceConfig(name string) (*Config, error) {}
 func (o *Operator) GetUnstructuredWorkspaceConfig(name string) (*unstructuredConfig, error) {}
