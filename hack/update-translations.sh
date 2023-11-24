@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 
 CMD_FILES=("pkg/cmd/cmd.go" "pkg/cmd/apply/apply.go" "pkg/cmd/compile/compile.go" "pkg/cmd/deps/deps.go" "pkg/cmd/destroy/destroy.go" \
-"pkg/cmd/diff/diff.go" "pkg/cmd/env/env.go" "pkg/cmd/init/init.go" "pkg/cmd/ls/ls.go" "pkg/cmd/preview/preview.go" "pkg/cmd/version/version.go" "pkg/engine/backend/backend.go")
+"pkg/cmd/init/init.go" "pkg/cmd/preview/preview.go" "pkg/cmd/version/version.go" "pkg/engine/backend/backend.go")
 TRANSLATIONS_DIR=${TRANSLATIONS_BASE_DIR:-"pkg/util/i18n/translations/kusion"}
 TRANSLATIONS_FOLDER=${TRANSLATIONS_FOLDER:-"LC_MESSAGES"}
 TRANSLATIONS_FUNC=${TRANSLATIONS_FUNC:-"i18n.T"}

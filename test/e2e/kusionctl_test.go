@@ -26,15 +26,6 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 		})
 	})
 
-	ginkgo.Context("kusion ls testing", func() {
-		ginkgo.It("kusion ls", func() {
-			path := filepath.Join(GetWorkDir(), "konfig")
-			output, err := ExecKusionWithWorkDir("kusion ls --format=json", path)
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("multi-stack"))
-		})
-	})
-
 	ginkgo.Context("kusion deps testing", func() {
 		ginkgo.It("kusion deps", func() {
 			// kusion deps testing
@@ -93,20 +84,6 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 })
 
 var _ = ginkgo.Describe("Kusion Other Commands", func() {
-	ginkgo.Context("kusion env testing", func() {
-		ginkgo.It("kusion env", func() {
-			output, err := ExecKusion("kusion env")
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("KUSION_PATH"))
-		})
-
-		ginkgo.It("kusion env json", func() {
-			output, err := ExecKusion("kusion env --json")
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("KUSION_PATH"))
-		})
-	})
-
 	ginkgo.Context("kusion version testing", func() {
 		ginkgo.It("kusion version", func() {
 			output, err := ExecKusion("kusion version")
