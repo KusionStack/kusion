@@ -1,6 +1,6 @@
 package models
 
-// ModuleConfig is an interface to describe the config of a module, which is organized in the
+// ModuleConfig is a struct to describe the config of a module, which is organized in the
 // ModuleConfigs to be provided in the workspace.Config.
 type ModuleConfig struct {
 	Module

@@ -33,6 +33,6 @@ func ParseConfigFromYamlFile(path string) (*Config, error) {}
 func (c *Config) Validate() error {}
 func (c *Config) GetModule(projectName, moduleName string) (models.Module, error) {}
 func (c *Config) GetRuntimeConfig(runtimeName string) (models.RuntimeConfig, error) {}
-func (c *Config) GetRuntimeConfigs() (map[string]RuntimeConfig, error) {}
+func (c *Config) GetRuntimeConfigs() (map[string]models.RuntimeConfig, error) {}
 func (c *Config) GetBackendConfig() (string, models.BackendConfig, error) {}
 */
