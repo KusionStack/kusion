@@ -1,5 +1,7 @@
 package database
 
+const moduleName = "database"
+
 // As an important supporting accessory, Database describes the attributes to
 // locally deploy or create a cloud provider managed database instance for the workload.
 type Database struct {
@@ -27,4 +29,8 @@ type Database struct {
 	PrivateRouting bool `json:"privateRouting,omitempty" yaml:"privateRouting,omitempty"`
 	// The diversified rds configuration items from different cloud vendors.
 	ExtraMap map[string]string `json:"extraMap,omitempty" yaml:"extraMap,omitempty"`
+}
+
+func (d *Database) ModuleName() string {
+	return moduleName
 }
