@@ -135,7 +135,7 @@ Before we dive into details, it is necessary to clarify certain terms.
 - [Stack](https://kusionstack.io/docs/user_docs/concepts/glossary#stack): A stack is a logical concept that provides a mechanism to isolate multiple deploys of the same application. It is the smallest operational unit that can be configured and deployed independently and must be linked with one environment.
 
 <p align="center">
-<img src="env-project-stack.png" width="50%"/>
+<img src="../workspace-project-stack.png" width="50%"/>
 </>
 
 ## Platform developer's workflow
@@ -252,7 +252,7 @@ wordpress: ac.AppConfiguration {
 The application developer should choose an environment provided by platform engineers by setting the environment config file path into the OS environment variables `KUSION_ENV`. This step links the application developer's config with an environment config and Kusion will combine them and convert them into the inputs of Kusion module generators.
 
 <p align="center">
-<img src="collaboration-workflow.png"/>
+<img src="../collaboration-workflow.png"/>
 </>
 
 Summary
