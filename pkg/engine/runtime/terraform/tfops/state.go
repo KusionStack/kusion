@@ -5,7 +5,7 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/apis/intent"
 )
 
 // StateRepresentation is the top-level representation of the json format of a terraform
@@ -108,16 +108,16 @@ type resource struct {
 type attributeValues map[string]interface{}
 
 // ConvertTFState convert Terraform State to kusion State
-func ConvertTFState(tfState *StateRepresentation, providerAddr string) models.Resource {
+func ConvertTFState(tfState *StateRepresentation, providerAddr string) intent.Resource {
 	if tfState == nil || tfState.Values == nil {
-		return models.Resource{}
+		return intent.Resource{}
 	}
 	// terraform runtime execute single node
 	tResource := tfState.Values.RootModule.Resources[0]
 	extension := make(map[string]interface{})
 	extension["resourceType"] = tResource.Type
 	extension["provider"] = providerAddr
-	r := models.Resource{
+	r := intent.Resource{
 		ID:         tResource.Name,
 		Type:       "Terraform",
 		Attributes: tResource.AttributeValues,

@@ -13,15 +13,16 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestOperation_Destroy(t *testing.T) {
@@ -30,21 +31,21 @@ func TestOperation_Destroy(t *testing.T) {
 		operator = "foo_user"
 	)
 
-	stack := &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{Name: "fake-name"},
-		Path:               "fake-path",
+	s := &stack.Stack{
+		Configuration: stack.Configuration{Name: "fake-name"},
+		Path:          "fake-path",
 	}
-	project := &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p := &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:    "fake-name",
 			Tenant:  "fake-tenant",
 			Backend: nil,
 		},
 		Path:   "fake-path",
-		Stacks: []*projectstack.Stack{stack},
+		Stacks: []*stack.Stack{s},
 	}
 
-	resourceState := models.Resource{
+	resourceState := intent.Resource{
 		ID:   "id1",
 		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
@@ -52,19 +53,19 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 		DependsOn: nil,
 	}
-	mf := &models.Intent{Resources: []models.Resource{resourceState}}
+	mf := &intent.Intent{Resources: []intent.Resource{resourceState}}
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: opsmodels.Destroy,
 			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
-			RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+			RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 		},
 	}
 	r := &DestroyRequest{
 		opsmodels.Request{
 			Tenant:   tenant,
-			Stack:    stack,
-			Project:  project,
+			Stack:    s,
+			Project:  p,
 			Operator: operator,
 			Spec:     mf,
 		},
@@ -78,7 +79,7 @@ func TestOperation_Destroy(t *testing.T) {
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
-			return &states.State{Resources: []models.Resource{resourceState}}, nil
+			return &states.State{Resources: []intent.Resource{resourceState}}, nil
 		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
@@ -98,7 +99,7 @@ func TestOperation_Destroy(t *testing.T) {
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
-			return &states.State{Resources: []models.Resource{resourceState}}, nil
+			return &states.State{Resources: []intent.Resource{resourceState}}, nil
 		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil

@@ -3,7 +3,7 @@ package states
 import (
 	"time"
 
-	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/version"
 )
 
@@ -64,7 +64,7 @@ type State struct {
 	Operator string `json:"operator,omitempty" yaml:"operator,omitempty"`
 
 	// Resources records all resources in this operation
-	Resources models.Resources `json:"resources" yaml:"resources"`
+	Resources intent.Resources `json:"resources" yaml:"resources"`
 
 	// CreateTime is the time State is created
 	CreateTime time.Time `json:"createTime" yaml:"createTime"`
@@ -77,7 +77,7 @@ func NewState() *State {
 	s := &State{
 		KusionVersion: version.ReleaseVersion(),
 		Version:       1,
-		Resources:     []models.Resource{},
+		Resources:     []intent.Resource{},
 	}
 	return s
 }

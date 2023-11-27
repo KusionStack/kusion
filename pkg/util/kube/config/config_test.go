@@ -9,7 +9,8 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-	"kusionstack.io/kusion/pkg/projectstack"
+
+	"kusionstack.io/kusion/pkg/apis/stack"
 )
 
 func mockGetenv(result string) {
@@ -19,8 +20,8 @@ func mockGetenv(result string) {
 }
 
 func TestGetKubeConfig(t *testing.T) {
-	stack := &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{
+	stack := &stack.Stack{
+		Configuration: stack.Configuration{
 			KubeConfig: "",
 		},
 	}

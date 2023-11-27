@@ -10,18 +10,18 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/status"
+	"kusionstack.io/kusion/pkg/cmd/build"
+	cmdintent "kusionstack.io/kusion/pkg/cmd/build/builders"
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
-	"kusionstack.io/kusion/pkg/cmd/spec"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -60,12 +60,12 @@ func (o *Options) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.Options.WorkDir)
+	project, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	options := &generator.Options{
+	options := &cmdintent.Options{
 		IsKclPkg:  o.IsKclPkg,
 		WorkDir:   o.WorkDir,
 		Filenames: o.Filenames,
@@ -74,11 +74,11 @@ func (o *Options) Run() error {
 	}
 
 	// Generate Intent
-	var sp *models.Intent
+	var sp *intent.Intent
 	if o.SpecFile != "" {
-		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+		sp, err = build.GenerateSpecFromFile(o.SpecFile)
 	} else {
-		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
+		sp, err = build.GenerateSpecWithSpinner(options, project, stack)
 	}
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func (o *Options) Run() error {
 func Apply(
 	o *Options,
 	storage states.StateStorage,
-	planResources *models.Intent,
+	planResources *intent.Intent,
 	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
@@ -322,7 +322,7 @@ func Apply(
 //	}
 func Watch(
 	o *Options,
-	planResources *models.Intent,
+	planResources *intent.Intent,
 	changes *opsmodels.Changes,
 ) error {
 	if o.DryRun {
@@ -331,7 +331,7 @@ func Watch(
 	}
 
 	// Filter out unchanged resources
-	toBeWatched := models.Resources{}
+	toBeWatched := intent.Resources{}
 	for _, res := range planResources.Resources {
 		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChanged {
 			toBeWatched = append(toBeWatched, res)
@@ -344,7 +344,7 @@ func Watch(
 		Request: opsmodels.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Spec:    &models.Intent{Resources: toBeWatched},
+			Spec:    &intent.Intent{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

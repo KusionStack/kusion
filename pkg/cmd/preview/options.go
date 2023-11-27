@@ -10,17 +10,17 @@ import (
 
 	"github.com/pkg/errors"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/generator"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -116,12 +116,12 @@ func (o *Options) Run() error {
 		pterm.DisableColor()
 	}
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	project, stack, err := project.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	options := &generator.Options{
+	options := &builders.Options{
 		IsKclPkg:  o.IsKclPkg,
 		WorkDir:   o.WorkDir,
 		Filenames: o.Filenames,
@@ -130,13 +130,13 @@ func (o *Options) Run() error {
 	}
 
 	// Generate Intent
-	var sp *models.Intent
+	var sp *intent.Intent
 	if o.SpecFile != "" {
-		sp, err = spec.GenerateSpecFromFile(o.SpecFile)
+		sp, err = build.GenerateSpecFromFile(o.SpecFile)
 	} else if o.Output == jsonOutput {
-		sp, err = spec.GenerateSpec(options, project, stack)
+		sp, err = build.GenerateSpec(options, project, stack)
 	} else {
-		sp, err = spec.GenerateSpecWithSpinner(options, project, stack)
+		sp, err = build.GenerateSpecWithSpinner(options, project, stack)
 	}
 	if err != nil {
 		return err
@@ -222,9 +222,9 @@ func (o *Options) Run() error {
 func Preview(
 	o *Options,
 	storage states.StateStorage,
-	planResources *models.Intent,
-	project *projectstack.Project,
-	stack *projectstack.Stack,
+	planResources *intent.Intent,
+	project *project.Project,
+	stack *stack.Stack,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 

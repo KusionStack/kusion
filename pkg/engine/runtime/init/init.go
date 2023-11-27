@@ -4,24 +4,24 @@ import (
 	"fmt"
 	"reflect"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
-var SupportRuntimes = map[models.Type]InitFn{
+var SupportRuntimes = map[intent.Type]InitFn{
 	runtime.Kubernetes: kubernetes.NewKubernetesRuntime,
 	runtime.Terraform:  terraform.NewTerraformRuntime,
 }
 
 // InitFn runtime init func
-type InitFn func(stack *projectstack.Stack) (runtime.Runtime, error)
+type InitFn func(stack *stack.Stack) (runtime.Runtime, error)
 
-func Runtimes(resources models.Resources, stack *projectstack.Stack) (map[models.Type]runtime.Runtime, status.Status) {
-	runtimesMap := map[models.Type]runtime.Runtime{}
+func Runtimes(resources intent.Resources, stack *stack.Stack) (map[intent.Type]runtime.Runtime, status.Status) {
+	runtimesMap := map[intent.Type]runtime.Runtime{}
 	if resources == nil {
 		return runtimesMap, nil
 	}

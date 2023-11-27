@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
@@ -54,7 +54,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 
 	var (
 		priorState, resultState *states.State
-		priorStateResourceIndex map[string]*models.Resource
+		priorStateResourceIndex map[string]*intent.Resource
 		ag                      *dag.AcyclicGraph
 	)
 
@@ -83,7 +83,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		return nil, s
 	}
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*models.Resource{}
+	stateResourceIndex := map[string]*intent.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -95,7 +95,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		Operation: opsmodels.Operation{
 			OperationType:           o.OperationType,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*models.Resource{},
+			CtxResourceIndex:        map[string]*intent.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			IgnoreFields:            o.IgnoreFields,

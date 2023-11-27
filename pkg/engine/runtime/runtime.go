@@ -5,14 +5,14 @@ import (
 
 	"k8s.io/apimachinery/pkg/watch"
 
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 )
 
 const (
-	Kubernetes models.Type = "Kubernetes"
-	Terraform  models.Type = "Terraform"
+	Kubernetes intent.Type = "Kubernetes"
+	Terraform  intent.Type = "Terraform"
 )
 
 // Runtime represents an actual infrastructure runtime managed by Kusion and every runtime implements this interface can be orchestrated
@@ -44,13 +44,13 @@ type Runtime interface {
 
 type ApplyRequest struct {
 	// PriorResource is the last applied resource saved in state storage
-	PriorResource *models.Resource
+	PriorResource *intent.Resource
 
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *models.Resource
+	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *projectstack.Stack
+	Stack *stack.Stack
 
 	// DryRun means this a dry-run request and will not make any changes in actual infra
 	DryRun bool
@@ -58,7 +58,7 @@ type ApplyRequest struct {
 
 type ApplyResponse struct {
 	// Resource is the result returned by Runtime
-	Resource *models.Resource
+	Resource *intent.Resource
 
 	// Status contains messages will show to users
 	Status status.Status
@@ -66,18 +66,18 @@ type ApplyResponse struct {
 
 type ReadRequest struct {
 	// PriorResource is the last applied resource saved in state storage
-	PriorResource *models.Resource
+	PriorResource *intent.Resource
 
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *models.Resource
+	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *projectstack.Stack
+	Stack *stack.Stack
 }
 
 type ReadResponse struct {
 	// Resource is the result read from the actual infra
-	Resource *models.Resource
+	Resource *intent.Resource
 
 	// Status contains messages will show to users
 	Status status.Status
@@ -85,15 +85,15 @@ type ReadResponse struct {
 
 type ImportRequest struct {
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *models.Resource
+	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *projectstack.Stack
+	Stack *stack.Stack
 }
 
 type ImportResponse struct {
 	// Resource is the result returned by Runtime
-	Resource *models.Resource
+	Resource *intent.Resource
 
 	// Status contains messages will show to users
 	Status status.Status
@@ -101,10 +101,10 @@ type ImportResponse struct {
 
 type DeleteRequest struct {
 	// Resource represents the resource we want to delete from the actual infra
-	Resource *models.Resource
+	Resource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *projectstack.Stack
+	Stack *stack.Stack
 }
 
 type DeleteResponse struct {
@@ -114,7 +114,7 @@ type DeleteResponse struct {
 
 type WatchRequest struct {
 	// Resource represents the resource we want to watch from the actual infra
-	Resource *models.Resource
+	Resource *intent.Resource
 }
 
 type WatchResponse struct {

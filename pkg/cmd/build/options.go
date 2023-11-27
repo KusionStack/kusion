@@ -9,9 +9,9 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"kcl-lang.io/kpm/pkg/api"
 
-	"kusionstack.io/kusion/pkg/cmd/spec"
-	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/cmd/build/builders"
 )
 
 type Options struct {
@@ -40,7 +40,7 @@ func NewBuildOptions() *Options {
 
 func (o *Options) Complete(args []string) error {
 	o.Filenames = args
-	return o.PreSet(projectstack.IsStack)
+	return o.PreSet(stack.IsStack)
 }
 
 func (o *Options) Validate() error {
@@ -64,13 +64,13 @@ func (o *Options) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.WorkDir)
+	project, stack, err := project.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	sp, err := spec.GenerateSpecWithSpinner(
-		&generator.Options{
+	sp, err := GenerateSpecWithSpinner(
+		&builders.Options{
 			IsKclPkg:  o.IsKclPkg,
 			WorkDir:   o.WorkDir,
 			Filenames: o.Filenames,

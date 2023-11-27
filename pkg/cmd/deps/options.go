@@ -10,7 +10,7 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/tools/list"
 
-	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/apis/project"
 )
 
 type Options struct {
@@ -140,8 +140,8 @@ func (o *Options) Run() (err error) {
 		}
 
 		// 3. Find all the projects under the workdir
-		var projects []*projectstack.Project
-		if projects, err = projectstack.FindAllProjectsFrom(workDir); err != nil {
+		var projects []*project.Project
+		if projects, err = project.FindAllProjectsFrom(workDir); err != nil {
 			return
 		}
 
@@ -179,7 +179,7 @@ func (o *Options) Run() (err error) {
 // Do not call this function with high frequency and please ensure at least 10 seconds interval when calling.
 func findDownStreams(
 	workDir string,
-	projects []*projectstack.Project,
+	projects []*project.Project,
 	focusPaths, shouldIgnore stringSet,
 	projectOnly bool,
 ) (downStreams stringSet, err error) {
@@ -190,9 +190,9 @@ func findDownStreams(
 	// 1. For each project/stack, check if there are files changed in it or collect all the entrance files in them
 	// To list downstream stacks/projects, wee need to go through all the entrance files under each project/stack,
 	// then filter out the ones that are downstream of the focus files
-	for _, project := range projects {
-		projectRel, _ := filepath.Rel(workDir, project.GetPath())
-		for _, stack := range project.Stacks {
+	for _, p := range projects {
+		projectRel, _ := filepath.Rel(workDir, p.GetPath())
+		for _, stack := range p.Stacks {
 			// 1.1 Get the relative path of project/stack
 			stackRel, _ := filepath.Rel(workDir, stack.GetPath())
 			var stackProjectPath string
@@ -222,7 +222,7 @@ func findDownStreams(
 				continue
 			}
 			// 1.3 Collect and index all the entrance files of the stack by loading the settings file
-			settingsPath := filepath.Join(stack.GetPath(), projectstack.KclFile)
+			settingsPath := filepath.Join(stack.GetPath(), project.KclFile)
 			opt := kcl.WithSettings(settingsPath)
 			if opt.Err != nil {
 				// The stack settings is invalid

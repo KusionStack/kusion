@@ -13,6 +13,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -20,9 +24,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 func Test_validateRequest(t *testing.T) {
@@ -46,7 +47,7 @@ func Test_validateRequest(t *testing.T) {
 			name: "t2",
 			args: args{
 				request: &opsmodels.Request{
-					Spec: &models.Intent{Resources: []models.Resource{}},
+					Spec: &intent.Intent{Resources: []intent.Resource{}},
 				},
 			},
 			want: nil,
@@ -65,12 +66,12 @@ func TestOperation_Apply(t *testing.T) {
 	type fields struct {
 		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*models.Resource
-		PriorStateResourceIndex map[string]*models.Resource
-		StateResourceIndex      map[string]*models.Resource
+		CtxResourceIndex        map[string]*intent.Resource
+		PriorStateResourceIndex map[string]*intent.Resource
+		StateResourceIndex      map[string]*intent.Resource
 		Order                   *opsmodels.ChangeOrder
-		RuntimeMap              map[models.Type]runtime.Runtime
-		Stack                   *projectstack.Stack
+		RuntimeMap              map[intent.Type]runtime.Runtime
+		Stack                   *stack.Stack
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -80,7 +81,7 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	const Jack = "jack"
-	mf := &models.Intent{Resources: []models.Resource{
+	mf := &intent.Intent{Resources: []intent.Resource{
 		{
 			ID:   Jack,
 			Type: runtime.Kubernetes,
@@ -100,7 +101,7 @@ func TestOperation_Apply(t *testing.T) {
 		KusionVersion: "",
 		Serial:        1,
 		Operator:      "faker",
-		Resources: []models.Resource{
+		Resources: []intent.Resource{
 			{
 				ID:   Jack,
 				Type: runtime.Kubernetes,
@@ -112,18 +113,18 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}
 
-	stack := &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{Name: "fakeStack"},
-		Path:               "fakePath",
+	s := &stack.Stack{
+		Configuration: stack.Configuration{Name: "fakeStack"},
+		Path:          "fakePath",
 	}
-	project := &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p := &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:    "fakeProject",
 			Tenant:  "fakeTenant",
 			Backend: nil,
 		},
 		Path:   "fakePath",
-		Stacks: []*projectstack.Stack{stack},
+		Stacks: []*stack.Stack{s},
 	}
 
 	tests := []struct {
@@ -138,13 +139,13 @@ func TestOperation_Apply(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.Apply,
 				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},
 			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
 				Tenant:   "fakeTenant",
-				Stack:    stack,
-				Project:  project,
+				Stack:    s,
+				Project:  p,
 				Operator: "faker",
 				Spec:     mf,
 			}}},
@@ -177,10 +178,10 @@ func TestOperation_Apply(t *testing.T) {
 				return nil
 			}).Build()
 			mockey.Mock(runtimeinit.Runtimes).To(func(
-				resources models.Resources,
-				stack *projectstack.Stack,
-			) (map[models.Type]runtime.Runtime, status.Status) {
-				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
+				resources intent.Resources,
+				stack *stack.Stack,
+			) (map[intent.Type]runtime.Runtime, status.Status) {
+				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()
 
 			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)

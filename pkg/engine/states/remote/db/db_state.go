@@ -12,10 +12,10 @@ import (
 	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v3"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/engine/dal/mapper"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
@@ -90,7 +90,7 @@ func (s *DBState) GetLatestState(q *states.StateQuery) (*states.State, error) {
 }
 
 func do2Bo(dbState *mapper.StateDO) *states.State {
-	var resStateList []models.Resource
+	var resStateList []intent.Resource
 
 	// JSON is a subset of YAML. Please check FileSystemState.GetLatestState for detail explanation
 	parseErr := yaml.Unmarshal([]byte(dbState.Resources), &resStateList)
