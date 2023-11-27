@@ -1,5 +1,17 @@
 package secrets
 
+// ExternalSecretRef contains information that points to the secret store data location.
+type ExternalSecretRef struct {
+	// Specifies the path of the secret to read.
+	Path string `yaml:"path" json:"path"`
+
+	// Used to select a specific property of the secret data (if a map), if supported.
+	Property string `yaml:"property,omitempty" json:"property,omitempty"`
+
+	// Specifies the version of the secret to return, if supported.
+	Version string `yaml:"version,omitempty" json:"version,omitempty"`
+}
+
 // SecretStoreSpec contains configuration to describe target secret store.
 type SecretStoreSpec struct {
 	Provider *ProviderSpec `yaml:"provider" json:"provider"`

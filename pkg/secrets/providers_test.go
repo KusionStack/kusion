@@ -13,20 +13,15 @@ import (
 type FakeSecretStore struct{}
 
 // Fake implementation of SecretStore.GetSecret.
-func (fss *FakeSecretStore) GetSecret(_ context.Context, _ string) ([]byte, error) {
+func (fss *FakeSecretStore) GetSecret(_ context.Context, _ secrets.ExternalSecretRef) ([]byte, error) {
 	return []byte("NOOP"), nil
 }
 
-// FakeSecretStoreProvider is the fake implementation of SecretStoreProvider.
-type FakeSecretStoreProvider struct{}
+// FakeSecretStoreFactory is the fake implementation of SecretStoreFactory.
+type FakeSecretStoreFactory struct{}
 
-// Fake implementation of SecretStoreProvider.Type.
-func (fsp *FakeSecretStoreProvider) Type() string {
-	return "fake"
-}
-
-// Fake implementation of SecretStoreProvider.NewSecretStore.
-func (fsp *FakeSecretStoreProvider) NewSecretStore(_ *secrets.SecretStoreSpec) (SecretStore, error) {
+// Fake implementation of SecretStoreFactory.NewSecretStore.
+func (fsf *FakeSecretStoreFactory) NewSecretStore(_ secrets.SecretStoreSpec) (SecretStore, error) {
 	return &FakeSecretStore{}, nil
 }
 
@@ -55,7 +50,7 @@ func TestRegister(t *testing.T) {
 	}
 
 	providers := NewProviders()
-	fsp := &FakeSecretStoreProvider{}
+	fsp := &FakeSecretStoreFactory{}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.shouldPanic {

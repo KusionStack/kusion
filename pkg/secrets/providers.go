@@ -13,7 +13,7 @@ import (
 
 type Providers struct {
 	lock     sync.RWMutex
-	registry map[string]SecretStoreProvider
+	registry map[string]SecretStoreFactory
 }
 
 func NewProviders() *Providers {
@@ -22,7 +22,7 @@ func NewProviders() *Providers {
 
 // Register registers a provider with associated spec. This
 // is expected to happen during app startup.
-func (ps *Providers) Register(sp SecretStoreProvider, spec *secrets.ProviderSpec) {
+func (ps *Providers) Register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
 	providerName, err := getProviderName(spec)
 	if err != nil {
 		panic(fmt.Sprintf("provider registery failed to parse spec: %s", err.Error()))
@@ -36,15 +36,15 @@ func (ps *Providers) Register(sp SecretStoreProvider, spec *secrets.ProviderSpec
 			log.Warnf("Provider %s was registered twice", providerName)
 		}
 	} else {
-		ps.registry = map[string]SecretStoreProvider{}
+		ps.registry = map[string]SecretStoreFactory{}
 	}
 
 	log.Infof("Registered secret store provider %s", providerName)
-	ps.registry[providerName] = sp
+	ps.registry[providerName] = ssf
 }
 
 // GetProviderByName returns registered provider by name.
-func (ps *Providers) GetProviderByName(providerName string) (SecretStoreProvider, bool) {
+func (ps *Providers) GetProviderByName(providerName string) (SecretStoreFactory, bool) {
 	ps.lock.RLock()
 	defer ps.lock.RUnlock()
 	provider, found := ps.registry[providerName]
