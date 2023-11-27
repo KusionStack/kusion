@@ -47,7 +47,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 	ginkgo.It("kusion apply", func() {
 		ginkgo.By("kusion apply", func() {
 			path := filepath.Join(GetWorkDir(), "konfig", "example", "multi-stack", "dev")
-			_, err := ExecKusionWithWorkDir("kusion apply -y=true", path)
+			_, err := ExecKusionWithWorkDir("kusion apply -y=true --watch=true", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 
