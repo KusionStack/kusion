@@ -1,5 +1,12 @@
 package secrets
 
+type VaultKVStoreVersion string
+
+const (
+	VaultKVStoreV1 VaultKVStoreVersion = "v1"
+	VaultKVStoreV2 VaultKVStoreVersion = "v2"
+)
+
 // ExternalSecretRef contains information that points to the secret store data location.
 type ExternalSecretRef struct {
 	// Specifies the path of the secret to read.
@@ -41,5 +48,9 @@ type VaultProvider struct {
 	Server string `yaml:"server" json:"server"`
 
 	// Path is the mount path of the Vault KV backend endpoint, e.g: "secret".
-	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	Path *string `yaml:"path,omitempty" json:"path,omitempty"`
+
+	// Version is the Vault KV secret engine version. Version can be either "v1" or
+	// "v2", defaults to "v2".
+	Version VaultKVStoreVersion `yaml:"version" json:"version"`
 }

@@ -11,6 +11,8 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 )
 
+var SecretStoreProviders = NewProviders()
+
 type Providers struct {
 	lock     sync.RWMutex
 	registry map[string]SecretStoreFactory
