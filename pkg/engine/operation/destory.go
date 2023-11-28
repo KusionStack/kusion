@@ -3,12 +3,12 @@ package operation
 import (
 	"sync"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
@@ -21,7 +21,7 @@ type DestroyRequest struct {
 	opsmodels.Request `json:",inline" yaml:",inline"`
 }
 
-func NewDestroyGraph(resource models.Resources) (*dag.AcyclicGraph, status.Status) {
+func NewDestroyGraph(resource intent.Resources) (*dag.AcyclicGraph, status.Status) {
 	ag := &dag.AcyclicGraph{}
 	ag.Add(&graph.RootNode{})
 	deleteResourceParser := parser.NewDeleteResourceParser(resource)
@@ -47,7 +47,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*models.Resource{}
+	stateResourceIndex := map[string]*intent.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -70,7 +70,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 		Operation: opsmodels.Operation{
 			OperationType:           opsmodels.Destroy,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*models.Resource{},
+			CtxResourceIndex:        map[string]*intent.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,

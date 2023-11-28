@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -13,7 +13,7 @@ func TestSpecParser_Parse(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &models.Intent{Resources: []models.Resource{
+	mf := &intent.Intent{Resources: []intent.Resource{
 		{
 			ID: Pony,
 

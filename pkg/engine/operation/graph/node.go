@@ -1,6 +1,8 @@
 package graph
 
-import "kusionstack.io/kusion/pkg/status"
+import (
+	"kusionstack.io/kusion/pkg/apis/status"
+)
 
 type baseNode struct {
 	ID string

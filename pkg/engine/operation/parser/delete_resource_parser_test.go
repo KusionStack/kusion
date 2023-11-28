@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -14,7 +14,7 @@ func TestDeleteResourceParser_Parse(t *testing.T) {
 	const VSwitch = "vswitch"
 	const VSecutiry = "vsecurity"
 	const Instance = "instance"
-	resources := []models.Resource{
+	resources := []intent.Resource{
 		{
 			ID: VPC,
 

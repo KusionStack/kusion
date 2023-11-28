@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
 )
 
-var testResource = models.Resource{
+var testResource = intent.Resource{
 	ID:   "hashicorp:local:local_file:kusion_example",
 	Type: "Terraform",
 	Attributes: map[string]interface{}{
@@ -40,9 +40,9 @@ var fakeSR = &tfops.StateRepresentation{
 
 func TestTerraformRuntime(t *testing.T) {
 	cwd, _ := os.Getwd()
-	stack := &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{Name: "fakeStack"},
-		Path:               filepath.Join(cwd, "fakePath"),
+	stack := &stack.Stack{
+		Configuration: stack.Configuration{Name: "fakeStack"},
+		Path:          filepath.Join(cwd, "fakePath"),
 	}
 	defer os.RemoveAll(stack.GetPath())
 	tfRuntime := TerraformRuntime{

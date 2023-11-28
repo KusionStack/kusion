@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/version"
 )
 
@@ -18,7 +18,7 @@ func TestNewState(t *testing.T) {
 			want: &State{
 				KusionVersion: version.ReleaseVersion(),
 				Version:       1,
-				Resources:     []models.Resource{},
+				Resources:     []intent.Resource{},
 			},
 		},
 	}
@@ -35,12 +35,12 @@ func TestResourceKey(t *testing.T) {
 	tests := []struct {
 		name          string
 		want          string
-		resourceState *models.Resource
+		resourceState *intent.Resource
 	}{
 		{
 			name: "t1",
 			want: "kusion_test",
-			resourceState: &models.Resource{
+			resourceState: &intent.Resource{
 				ID:         "kusion_test",
 				Attributes: nil,
 			},
@@ -59,17 +59,17 @@ func TestResourceKey(t *testing.T) {
 func TestResources_Index(t *testing.T) {
 	tests := []struct {
 		name string
-		rs   models.Resources
-		want map[string]*models.Resource
+		rs   intent.Resources
+		want map[string]*intent.Resource
 	}{
 		{
 			name: "t1",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "a",
 				},
 			},
-			want: map[string]*models.Resource{
+			want: map[string]*intent.Resource{
 				"a": {
 					ID: "a",
 				},
@@ -89,12 +89,12 @@ func TestResources_Index(t *testing.T) {
 func TestResources_Len(t *testing.T) {
 	tests := []struct {
 		name string
-		rs   models.Resources
+		rs   intent.Resources
 		want int
 	}{
 		{
 			name: "t1",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "c",
 				},
@@ -118,12 +118,12 @@ func TestResources_Swap(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		rs   models.Resources
+		rs   intent.Resources
 		args args
 	}{
 		{
 			name: "t1",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "test",
 				},
@@ -145,13 +145,13 @@ func TestResources_Less(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		rs   models.Resources
+		rs   intent.Resources
 		args args
 		want bool
 	}{
 		{
 			name: "t1",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "a",
 				},
@@ -164,7 +164,7 @@ func TestResources_Less(t *testing.T) {
 		},
 		{
 			name: "t2",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "a",
 				},
@@ -177,7 +177,7 @@ func TestResources_Less(t *testing.T) {
 		},
 		{
 			name: "t3",
-			rs: []models.Resource{
+			rs: []intent.Resource{
 				{
 					ID: "a",
 				},

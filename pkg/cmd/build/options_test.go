@@ -9,11 +9,11 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
 )
 
 var (
@@ -21,14 +21,14 @@ var (
 	kind       = "ServiceAccount"
 	namespace  = "test-ns"
 
-	project = &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p = &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:   "testdata",
 			Tenant: "admin",
 		},
 	}
-	stack = &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{
+	s = &stack.Stack{
+		Configuration: stack.Configuration{
 			Name: "dev",
 		},
 	}
@@ -121,8 +121,8 @@ func TestCompileOptions_Run(t *testing.T) {
 	})
 }
 
-func newSA(name string) models.Resource {
-	return models.Resource{
+func newSA(name string) intent.Resource {
+	return intent.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -137,38 +137,38 @@ func newSA(name string) models.Resource {
 }
 
 func mockDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
-		project.Path = stackDir
-		stack.Path = stackDir
-		return project, stack, nil
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+		p.Path = stackDir
+		s.Path = stackDir
+		return p, s, nil
 	}).Build()
 }
 
 func mockDetectProjectAndStackFail() *mockey.Mocker {
-	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
-		project.Path = stackDir
-		stack.Path = stackDir
-		return project, stack, errTest
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+		p.Path = stackDir
+		s.Path = stackDir
+		return p, s, errTest
 	}).Build()
 }
 
 func mockGenerateSpec() *mockey.Mocker {
-	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
-		o *generator.Options,
-		project *projectstack.Project,
-		stack *projectstack.Stack,
-	) (*models.Intent, error) {
-		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	return mockey.Mock(GenerateSpecWithSpinner).To(func(
+		o *builders.Options,
+		project *project.Project,
+		stack *stack.Stack,
+	) (*intent.Intent, error) {
+		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
 func mockGenerateSpecFail() *mockey.Mocker {
-	return mockey.Mock(spec.GenerateSpecWithSpinner).To(func(
-		o *generator.Options,
-		project *projectstack.Project,
-		stack *projectstack.Stack,
-	) (*models.Intent, error) {
-		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, errTest
+	return mockey.Mock(GenerateSpecWithSpinner).To(func(
+		o *builders.Options,
+		project *project.Project,
+		stack *stack.Stack,
+	) (*intent.Intent, error) {
+		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 

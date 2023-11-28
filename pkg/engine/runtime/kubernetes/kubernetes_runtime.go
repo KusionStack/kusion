@@ -25,13 +25,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kube/config"
 )
@@ -44,7 +44,7 @@ type KubernetesRuntime struct {
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
-func NewKubernetesRuntime(stack *projectstack.Stack) (runtime.Runtime, error) {
+func NewKubernetesRuntime(stack *stack.Stack) (runtime.Runtime, error) {
 	client, mapper, err := getKubernetesClient(stack)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 		res = planObj
 	}
 
-	return &runtime.ApplyResponse{Resource: &models.Resource{
+	return &runtime.ApplyResponse{Resource: &intent.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
 		Attributes: res.Object,
@@ -195,7 +195,7 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 		return &runtime.ReadResponse{Status: status.NewErrorStatus(err)}
 	}
 
-	return &runtime.ReadResponse{Resource: &models.Resource{
+	return &runtime.ReadResponse{Resource: &intent.Resource{
 		ID:         requestResource.ResourceKey(),
 		Type:       requestResource.Type,
 		Attributes: v.Object,
@@ -376,7 +376,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient(stack *projectstack.Stack) (dynamic.Interface, meta.RESTMapper, error) {
+func getKubernetesClient(stack *stack.Stack) (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
 	cfg, err := clientcmd.BuildConfigFromFlags("", config.GetKubeConfig(stack))
 	if err != nil {
@@ -403,7 +403,7 @@ func getKubernetesClient(stack *projectstack.Stack) (dynamic.Interface, meta.RES
 }
 
 // buildKubernetesResourceByState get resource by attribute
-func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *models.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
+func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *intent.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
 	// Convert interface{} to unstructured
 	rYaml, err := yamlv2.Marshal(resourceState.Attributes)
 	if err != nil {

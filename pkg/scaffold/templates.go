@@ -17,8 +17,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 
+	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -414,7 +414,7 @@ func RenderFSTemplate(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir st
 		dest := filepath.Join(destDir, d.Name())
 		if d.IsDir() {
 			// Base dir or stack dir
-			fileInfo, err := srcFS.Stat(filepath.Join(src, projectstack.StackFile))
+			fileInfo, err := srcFS.Stat(filepath.Join(src, stack.File))
 			if err == nil && fileInfo.Mode().IsRegular() {
 				// Project config can be overridden
 				configs := make(map[string]interface{}, len(tc.ProjectConfig))

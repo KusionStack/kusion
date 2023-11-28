@@ -12,17 +12,18 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/cmd/spec"
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
+	"kusionstack.io/kusion/pkg/cmd/build"
+	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/generator"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestApplyOptions_Run(t *testing.T) {
@@ -56,34 +57,34 @@ func TestApplyOptions_Run(t *testing.T) {
 }
 
 var (
-	project = &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p = &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:   "testdata",
 			Tenant: "admin",
 		},
 	}
-	stack = &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{
+	s = &stack.Stack{
+		Configuration: stack.Configuration{
 			Name: "dev",
 		},
 	}
 )
 
 func mockeyPatchDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
-		project.Path = stackDir
-		stack.Path = stackDir
-		return project, stack, nil
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+		p.Path = stackDir
+		s.Path = stackDir
+		return p, s, nil
 	}).Build()
 }
 
 func mockeyPatchGenerateSpec() *mockey.Mocker {
-	return mockey.Mock(spec.GenerateSpec).To(func(
-		o *generator.Options,
-		project *projectstack.Project,
-		stack *projectstack.Stack,
-	) (*models.Intent, error) {
-		return &models.Intent{Resources: []models.Resource{sa1, sa2, sa3}}, nil
+	return mockey.Mock(build.GenerateSpec).To(func(
+		o *builders.Options,
+		project *project.Project,
+		stack *stack.Stack,
+	) (*intent.Intent, error) {
+		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -171,8 +172,8 @@ var (
 	sa3 = newSA("sa3")
 )
 
-func newSA(name string) models.Resource {
-	return models.Resource{
+func newSA(name string) intent.Resource {
+	return intent.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -189,7 +190,7 @@ func newSA(name string) models.Resource {
 func Test_apply(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
 	mockey.PatchConvey("dry run", t, func() {
-		planResources := &models.Intent{Resources: []models.Resource{sa1}}
+		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -200,7 +201,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(p, s, order)
 		o := NewApplyOptions()
 		o.DryRun = true
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
@@ -209,7 +210,7 @@ func Test_apply(t *testing.T) {
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(opsmodels.Success)
 		o := NewApplyOptions()
-		planResources := &models.Intent{Resources: []models.Resource{sa1, sa2}}
+		planResources := &intent.Intent{Resources: []intent.Resource{sa1, sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -225,7 +226,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(p, s, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
@@ -234,7 +235,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
-		planResources := &models.Intent{Resources: []models.Resource{sa1}}
+		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -245,7 +246,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(p, s, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)

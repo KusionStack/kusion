@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"strings"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/diff"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
@@ -20,7 +20,7 @@ import (
 type ResourceNode struct {
 	*baseNode
 	Action   opsmodels.ActionType
-	resource *models.Resource
+	resource *intent.Resource
 }
 
 var _ ExecutableNode = (*ResourceNode)(nil)
@@ -119,10 +119,10 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status
 // dryRunResource is a middle result during the process of computing ActionType. We will use it to perform live diff latter
 func (rn *ResourceNode) computeActionType(
 	operation *opsmodels.Operation,
-	planedResource *models.Resource,
-	priorResource *models.Resource,
-	liveResource *models.Resource,
-) (*models.Resource, status.Status) {
+	planedResource *intent.Resource,
+	priorResource *intent.Resource,
+	liveResource *intent.Resource,
+) (*intent.Resource, status.Status) {
 	dryRunResource := planedResource
 	switch operation.OperationType {
 	case opsmodels.Destroy, opsmodels.DestroyPreview:
@@ -166,7 +166,7 @@ func (rn *ResourceNode) computeActionType(
 	return dryRunResource, nil
 }
 
-func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*models.Resource, *models.Resource, *models.Resource, status.Status) {
+func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*intent.Resource, *intent.Resource, *intent.Resource, status.Status) {
 	// 1. prepare planed resource that we want to execute
 	planedResource := rn.resource
 	// When a resource is deleted in Intent but exists in PriorState,
@@ -214,11 +214,11 @@ func removeNestedField(obj interface{}, fields ...string) {
 	}
 }
 
-func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, planed, live *models.Resource) status.Status {
+func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, planed, live *intent.Resource) status.Status {
 	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(prior),
 		jsonutil.Marshal2String(planed), jsonutil.Marshal2String(live))
 
-	var res *models.Resource
+	var res *intent.Resource
 	var s status.Status
 	resourceType := rn.resource.Type
 
@@ -264,11 +264,11 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 	return nil
 }
 
-func (rn *ResourceNode) State() *models.Resource {
+func (rn *ResourceNode) State() *intent.Resource {
 	return rn.resource
 }
 
-func NewResourceNode(key string, state *models.Resource, action opsmodels.ActionType) (*ResourceNode, status.Status) {
+func NewResourceNode(key string, state *intent.Resource, action opsmodels.ActionType) (*ResourceNode, status.Status) {
 	node, s := NewBaseNode(key)
 	if status.IsErr(s) {
 		return nil, s
@@ -299,18 +299,18 @@ func ReplaceSecretRef(v reflect.Value) ([]string, reflect.Value, status.Status) 
 	return ReplaceRef(v, nil, nil)
 }
 
-var MustImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
+var MustImplicitReplaceFun = func(resourceIndex map[string]*intent.Resource, refPath string) (reflect.Value, status.Status) {
 	return implicitReplaceFun(true, resourceIndex, refPath)
 }
 
-var OptionalImplicitReplaceFun = func(resourceIndex map[string]*models.Resource, refPath string) (reflect.Value, status.Status) {
+var OptionalImplicitReplaceFun = func(resourceIndex map[string]*intent.Resource, refPath string) (reflect.Value, status.Status) {
 	return implicitReplaceFun(false, resourceIndex, refPath)
 }
 
 // implicitReplaceFun will replace implicit dependency references. If force is true, this function will return an error when replace references failed
 var implicitReplaceFun = func(
 	force bool,
-	resourceIndex map[string]*models.Resource,
+	resourceIndex map[string]*intent.Resource,
 	refPath string,
 ) (reflect.Value, status.Status) {
 	const Sep = "."
@@ -348,16 +348,16 @@ var implicitReplaceFun = func(
 
 func ReplaceImplicitRef(
 	v reflect.Value,
-	resourceIndex map[string]*models.Resource,
-	replaceFun func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+	resourceIndex map[string]*intent.Resource,
+	replaceFun func(map[string]*intent.Resource, string) (reflect.Value, status.Status),
 ) ([]string, reflect.Value, status.Status) {
 	return ReplaceRef(v, resourceIndex, replaceFun)
 }
 
 func ReplaceRef(
 	v reflect.Value,
-	resourceIndex map[string]*models.Resource,
-	repImplDepFunc func(map[string]*models.Resource, string) (reflect.Value, status.Status),
+	resourceIndex map[string]*intent.Resource,
+	repImplDepFunc func(map[string]*intent.Resource, string) (reflect.Value, status.Status),
 ) ([]string, reflect.Value, status.Status) {
 	var result []string
 	if !v.IsValid() {

@@ -6,11 +6,12 @@ import (
 
 	"github.com/jinzhu/copier"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
 	"kusionstack.io/kusion/pkg/util"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
@@ -24,13 +25,13 @@ type Operation struct {
 	StateStorage states.StateStorage
 
 	// CtxResourceIndex represents resources updated by this operation
-	CtxResourceIndex map[string]*models.Resource
+	CtxResourceIndex map[string]*intent.Resource
 
 	// PriorStateResourceIndex represents resource state saved during the last operation
-	PriorStateResourceIndex map[string]*models.Resource
+	PriorStateResourceIndex map[string]*intent.Resource
 
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
-	StateResourceIndex map[string]*models.Resource
+	StateResourceIndex map[string]*intent.Resource
 
 	// IgnoreFields will be ignored in preview stage
 	IgnoreFields []string
@@ -39,10 +40,10 @@ type Operation struct {
 	ChangeOrder *ChangeOrder
 
 	// RuntimeMap contains all infrastructure runtimes involved this operation. The key of this map is the Runtime type
-	RuntimeMap map[models.Type]runtime.Runtime
+	RuntimeMap map[intent.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
-	Stack *projectstack.Stack
+	Stack *stack.Stack
 
 	// MsgCh is used to send operation status like Success, Failed or Skip to Kusion CTl,
 	// and this message will be displayed in the terminal
@@ -62,12 +63,12 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string                `json:"tenant"`
-	Project  *projectstack.Project `json:"project"`
-	Stack    *projectstack.Stack   `json:"stack"`
-	Cluster  string                `json:"cluster"`
-	Operator string                `json:"operator"`
-	Spec     *models.Intent        `json:"spec"`
+	Tenant   string           `json:"tenant"`
+	Project  *project.Project `json:"project"`
+	Stack    *stack.Stack     `json:"stack"`
+	Cluster  string           `json:"cluster"`
+	Operator string           `json:"operator"`
+	Spec     *intent.Intent   `json:"spec"`
 }
 
 type OpResult string
@@ -80,7 +81,7 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *models.Resource, actionType ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *intent.Resource, actionType ActionType) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -122,7 +123,7 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 	return latestState, resultState
 }
 
-func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error {
+func (o *Operation) UpdateState(resourceIndex map[string]*intent.Resource) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -130,7 +131,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*models.Resource) error
 	state.Serial += 1
 	state.Resources = nil
 
-	res := make([]models.Resource, 0, len(resourceIndex))
+	res := make([]intent.Resource, 0, len(resourceIndex))
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {

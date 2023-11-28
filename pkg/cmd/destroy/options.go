@@ -9,15 +9,16 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/signals"
 )
@@ -48,7 +49,7 @@ func (o *Options) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
 	// Parse project and stack of work directory
-	project, stack, err := projectstack.DetectProjectAndStack(o.Options.WorkDir)
+	project, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	spec := &models.Intent{Resources: destroyResources}
+	spec := &intent.Intent{Resources: destroyResources}
 	changes, err := o.preview(spec, project, stack, stateStorage)
 	if err != nil {
 		return err
@@ -125,8 +126,8 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) preview(
-	planResources *models.Intent, project *projectstack.Project,
-	stack *projectstack.Stack, stateStorage states.StateStorage,
+	planResources *intent.Intent, project *project.Project,
+	stack *stack.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -157,7 +158,7 @@ func (o *Options) preview(
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *Options) destroy(planResources *models.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
+func (o *Options) destroy(planResources *intent.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),

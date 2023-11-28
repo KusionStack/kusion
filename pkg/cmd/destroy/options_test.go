@@ -11,6 +11,10 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -18,9 +22,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 func TestDestroyOptions_Run(t *testing.T) {
@@ -63,24 +64,24 @@ func TestDestroyOptions_Run(t *testing.T) {
 }
 
 var (
-	project = &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p = &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:   "testdata",
 			Tenant: "admin",
 		},
 	}
-	stack = &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{
+	s = &stack.Stack{
+		Configuration: stack.Configuration{
 			Name: "dev",
 		},
 	}
 )
 
 func mockDetectProjectAndStack() {
-	mockey.Mock(projectstack.DetectProjectAndStack).To(func(stackDir string) (*projectstack.Project, *projectstack.Stack, error) {
-		project.Path = stackDir
-		stack.Path = stackDir
-		return project, stack, nil
+	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+		p.Path = stackDir
+		s.Path = stackDir
+		return p, s, nil
 	}).Build()
 }
 
@@ -89,7 +90,7 @@ func mockGetLatestState() {
 		f *local.FileSystemState,
 		query *states.StateQuery,
 	) (*states.State, error) {
-		return &states.State{Resources: []models.Resource{sa1}}, nil
+		return &states.State{Resources: []intent.Resource{sa1}}, nil
 	}).Build()
 }
 
@@ -100,7 +101,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
-		_, err := o.preview(&models.Intent{Resources: []models.Resource{sa1}}, project, stack, stateStorage)
+		_, err := o.preview(&intent.Intent{Resources: []intent.Resource{sa1}}, p, s, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -177,8 +178,8 @@ var (
 	sa2 = newSA("sa2")
 )
 
-func newSA(name string) models.Resource {
-	return models.Resource{
+func newSA(name string) intent.Resource {
+	return intent.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -198,7 +199,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Success)
 
 		o := NewDestroyOptions()
-		planResources := &models.Intent{Resources: []models.Resource{sa2}}
+		planResources := &intent.Intent{Resources: []intent.Resource{sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -214,7 +215,7 @@ func Test_destroy(t *testing.T) {
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(p, s, order)
 
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 
@@ -226,7 +227,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Failed)
 
 		o := NewDestroyOptions()
-		planResources := &models.Intent{Resources: []models.Resource{sa1}}
+		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -237,7 +238,7 @@ func Test_destroy(t *testing.T) {
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(project, stack, order)
+		changes := opsmodels.NewChanges(p, s, order)
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
 
 		err := o.destroy(planResources, changes, stateStorage)

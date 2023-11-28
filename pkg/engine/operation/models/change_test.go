@@ -7,8 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -149,8 +150,8 @@ func TestChangeStep_Diff(t *testing.T) {
 func TestChanges_Get(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	type args struct {
 		key string
@@ -193,8 +194,8 @@ func TestChanges_Get(t *testing.T) {
 func TestChanges_Values(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	type args struct {
 		filters []ChangeStepFilterFunc
@@ -275,28 +276,28 @@ func TestChanges_Values(t *testing.T) {
 func TestChanges_Stack(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *projectstack.Stack
+		want   *stack.Stack
 	}{
 		{
 			name: "t1",
 			fields: fields{
 				order:   &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
-				project: &projectstack.Project{},
-				stack: &projectstack.Stack{
-					StackConfiguration: projectstack.StackConfiguration{
+				project: &project.Project{},
+				stack: &stack.Stack{
+					Configuration: stack.Configuration{
 						Name: "test-name",
 					},
 					Path: "test-path",
 				},
 			},
-			want: &projectstack.Stack{
-				StackConfiguration: projectstack.StackConfiguration{
+			want: &stack.Stack{
+				Configuration: stack.Configuration{
 					Name: "test-name",
 				},
 				Path: "test-path",
@@ -320,27 +321,27 @@ func TestChanges_Stack(t *testing.T) {
 func TestChanges_Project(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *projectstack.Project
+		want   *project.Project
 	}{
 		{
 			name: "t1",
 			fields: fields{
-				project: &projectstack.Project{
-					ProjectConfiguration: projectstack.ProjectConfiguration{
+				project: &project.Project{
+					ProjectConfiguration: project.ProjectConfiguration{
 						Name:   "test-name",
 						Tenant: "test-tenant",
 					},
 					Path: "test-path",
 				},
 			},
-			want: &projectstack.Project{
-				ProjectConfiguration: projectstack.ProjectConfiguration{
+			want: &project.Project{
+				ProjectConfiguration: project.ProjectConfiguration{
 					Name:   "test-name",
 					Tenant: "test-tenant",
 				},
@@ -361,8 +362,8 @@ func TestChanges_Project(t *testing.T) {
 func TestChanges_Diffs(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -403,8 +404,8 @@ func TestChanges_Diffs(t *testing.T) {
 func TestChanges_Preview(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *projectstack.Project
-		stack   *projectstack.Stack
+		project *project.Project
+		stack   *stack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -419,8 +420,8 @@ func TestChanges_Preview(t *testing.T) {
 						"test-key": TestChangeStepOpCreate,
 					},
 				},
-				stack: &projectstack.Stack{
-					StackConfiguration: projectstack.StackConfiguration{
+				stack: &stack.Stack{
+					Configuration: stack.Configuration{
 						Name: "test-name",
 					},
 				},
@@ -441,19 +442,19 @@ func TestChanges_Preview(t *testing.T) {
 
 func Test_buildResourceStateMap(t *testing.T) {
 	type args struct {
-		rs []*models.Resource
+		rs []*intent.Resource
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]*models.Resource
+		want map[string]*intent.Resource
 	}{
 		{
 			name: "t1",
 			args: args{
-				rs: []*models.Resource{},
+				rs: []*intent.Resource{},
 			},
-			want: map[string]*models.Resource{},
+			want: map[string]*intent.Resource{},
 		},
 	}
 	for _, tt := range tests {

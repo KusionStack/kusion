@@ -8,12 +8,12 @@ import (
 
 	"github.com/spf13/afero"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 )
 
 var _ runtime.Runtime = &TerraformRuntime{}
@@ -23,7 +23,7 @@ type TerraformRuntime struct {
 	mu *sync.Mutex
 }
 
-func NewTerraformRuntime(_ *projectstack.Stack) (runtime.Runtime, error) {
+func NewTerraformRuntime(_ *stack.Stack) (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
 	ws := tfops.NewWorkSpace(fs)
 	TFRuntime := &TerraformRuntime{
@@ -69,11 +69,11 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		module := pr.PlannedValues.RootModule
 		if len(module.Resources) == 0 {
 			log.Debugf("no resource found in terraform plan file")
-			return &runtime.ApplyResponse{Resource: &models.Resource{}, Status: nil}
+			return &runtime.ApplyResponse{Resource: &intent.Resource{}, Status: nil}
 		}
 
 		return &runtime.ApplyResponse{
-			Resource: &models.Resource{
+			Resource: &intent.Resource{
 				ID:         plan.ID,
 				Type:       plan.Type,
 				Attributes: module.Resources[0].AttributeValues,
@@ -98,7 +98,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 
 	return &runtime.ApplyResponse{
-		Resource: &models.Resource{
+		Resource: &intent.Resource{
 			ID:         plan.ID,
 			Type:       plan.Type,
 			Attributes: r.Attributes,
@@ -122,7 +122,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
 		// Most fields in attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
 		// if fields copied from kusion_state.json but read-only in main.tf.json
-		planResource = &models.Resource{
+		planResource = &intent.Resource{
 			ID:         priorResource.ID,
 			Type:       priorResource.Type,
 			Attributes: nil,
@@ -179,7 +179,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 	return &runtime.ReadResponse{
-		Resource: &models.Resource{
+		Resource: &intent.Resource{
 			ID:         planResource.ID,
 			Type:       planResource.Type,
 			Attributes: r.Attributes,

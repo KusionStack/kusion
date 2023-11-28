@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -15,14 +15,14 @@ type Parser interface {
 	Parse(dag *dag.AcyclicGraph) status.Status
 }
 
-func updateDependencies(resource *models.Resource) ([]string, status.Status) {
+func updateDependencies(resource *intent.Resource) ([]string, status.Status) {
 	// handle explicate dependency
 	refNodeKeys := resource.DependsOn
 
 	// handle implicit dependency
 	v := reflect.ValueOf(resource.Attributes)
 	implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(
-		res map[string]*models.Resource,
+		res map[string]*intent.Resource,
 		ref string,
 	) (reflect.Value, status.Status) {
 		// don't replace anything when parsing dependencies
@@ -42,7 +42,7 @@ func updateDependencies(resource *models.Resource) ([]string, status.Status) {
 func LinkRefNodes(
 	ag *dag.AcyclicGraph,
 	refNodeKeys []string,
-	resourceIndex map[string]*models.Resource,
+	resourceIndex map[string]*intent.Resource,
 	rn dag.Vertex,
 	defaultAction opsmodels.ActionType,
 	manifestGraphMap map[string]interface{},

@@ -16,13 +16,13 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/models"
+	"kusionstack.io/kusion/pkg/apis/intent"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	// jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 var (
-	resourceTest = models.Resource{
+	resourceTest = intent.Resource{
 		ID:   "hashicorp:local:local_file:kusion_example",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
@@ -302,7 +302,7 @@ func mockProviderAddr() {
 
 func TestWorkSpace_Plan(t *testing.T) {
 	type fields struct {
-		resource   *models.Resource
+		resource   *intent.Resource
 		fs         afero.Afero
 		stackDir   string
 		tfCacheDir string
@@ -320,7 +320,7 @@ func TestWorkSpace_Plan(t *testing.T) {
 		{
 			name: "plan",
 			fields: struct {
-				resource   *models.Resource
+				resource   *intent.Resource
 				fs         afero.Afero
 				stackDir   string
 				tfCacheDir string
@@ -353,7 +353,7 @@ func TestWorkSpace_Plan(t *testing.T) {
 
 func TestWorkSpace_ShowPlan(t *testing.T) {
 	type fields struct {
-		resource   *models.Resource
+		resource   *intent.Resource
 		fs         afero.Afero
 		stackDir   string
 		tfCacheDir string

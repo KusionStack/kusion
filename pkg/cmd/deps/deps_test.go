@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/projectstack"
+	"kusionstack.io/kusion/pkg/apis/project"
 )
 
 var workDir string
@@ -261,7 +261,7 @@ var downstreamTestCases = []struct {
 }
 
 func TestFindDownStreams(t *testing.T) {
-	projects, err := projectstack.FindAllProjectsFrom(workDir)
+	projects, err := project.FindAllProjectsFrom(workDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,7 +279,7 @@ func TestFindDownStreams(t *testing.T) {
 func BenchmarkDownStream(b *testing.B) {
 	tc := downstreamTestCases[0]
 	for i := 0; i < b.N; i++ {
-		projects, err := projectstack.FindAllProjectsFrom(workDir)
+		projects, err := project.FindAllProjectsFrom(workDir)
 		if err != nil {
 			b.Fatal(err)
 		}

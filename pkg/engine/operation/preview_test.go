@@ -9,14 +9,15 @@ import (
 
 	"github.com/bytedance/mockey"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/status"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/projectstack"
-	"kusionstack.io/kusion/pkg/status"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -32,12 +33,12 @@ var (
 			"type": "NodePort",
 		},
 	}
-	FakeResourceState = models.Resource{
+	FakeResourceState = intent.Resource{
 		ID:         "fake-id",
 		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
 	}
-	FakeResourceState2 = models.Resource{
+	FakeResourceState2 = intent.Resource{
 		ID:         "fake-id-2",
 		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
@@ -89,11 +90,11 @@ func TestOperation_Preview(t *testing.T) {
 	type fields struct {
 		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*models.Resource
-		PriorStateResourceIndex map[string]*models.Resource
-		StateResourceIndex      map[string]*models.Resource
+		CtxResourceIndex        map[string]*intent.Resource
+		PriorStateResourceIndex map[string]*intent.Resource
+		StateResourceIndex      map[string]*intent.Resource
 		Order                   *opsmodels.ChangeOrder
-		RuntimeMap              map[models.Type]runtime.Runtime
+		RuntimeMap              map[intent.Type]runtime.Runtime
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -101,18 +102,18 @@ func TestOperation_Preview(t *testing.T) {
 	type args struct {
 		request *PreviewRequest
 	}
-	stack := &projectstack.Stack{
-		StackConfiguration: projectstack.StackConfiguration{Name: "fake-name"},
-		Path:               "fake-path",
+	s := &stack.Stack{
+		Configuration: stack.Configuration{Name: "fake-name"},
+		Path:          "fake-path",
 	}
-	project := &projectstack.Project{
-		ProjectConfiguration: projectstack.ProjectConfiguration{
+	p := &project.Project{
+		ProjectConfiguration: project.ProjectConfiguration{
 			Name:    "fake-name",
 			Tenant:  "fake-tenant",
 			Backend: nil,
 		},
 		Path:   "fake-path",
-		Stacks: []*projectstack.Stack{stack},
+		Stacks: []*stack.Stack{s},
 	}
 	tests := []struct {
 		name    string
@@ -125,7 +126,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-apply",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
@@ -133,11 +134,11 @@ func TestOperation_Preview(t *testing.T) {
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
-						Stack:    stack,
-						Project:  project,
+						Stack:    s,
+						Project:  p,
 						Operator: "fake-operator",
-						Spec: &models.Intent{
-							Resources: []models.Resource{
+						Spec: &intent.Intent{
+							Resources: []intent.Resource{
 								FakeResourceState,
 							},
 						},
@@ -151,7 +152,7 @@ func TestOperation_Preview(t *testing.T) {
 						"fake-id": {
 							ID:     "fake-id",
 							Action: opsmodels.Create,
-							From:   (*models.Resource)(nil),
+							From:   (*intent.Resource)(nil),
 							To:     &FakeResourceState,
 						},
 					},
@@ -163,7 +164,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-destroy",
 			fields: fields{
 				OperationType: opsmodels.DestroyPreview,
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -171,11 +172,11 @@ func TestOperation_Preview(t *testing.T) {
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
-						Stack:    stack,
-						Project:  project,
+						Stack:    s,
+						Project:  p,
 						Operator: "fake-operator",
-						Spec: &models.Intent{
-							Resources: []models.Resource{
+						Spec: &intent.Intent{
+							Resources: []intent.Resource{
 								FakeResourceState2,
 							},
 						},
@@ -190,7 +191,7 @@ func TestOperation_Preview(t *testing.T) {
 							ID:     "fake-id-2",
 							Action: opsmodels.Delete,
 							From:   &FakeResourceState2,
-							To:     (*models.Resource)(nil),
+							To:     (*intent.Resource)(nil),
 						},
 					},
 				},
@@ -201,7 +202,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-empty-models",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -219,7 +220,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-nonexistent-id",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionState},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -227,11 +228,11 @@ func TestOperation_Preview(t *testing.T) {
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
 						Tenant:   "fake-tenant",
-						Stack:    stack,
-						Project:  project,
+						Stack:    s,
+						Project:  p,
 						Operator: "fake-operator",
-						Spec: &models.Intent{
-							Resources: []models.Resource{
+						Spec: &intent.Intent{
+							Resources: []intent.Resource{
 								{
 									ID:         "fake-id",
 									Type:       runtime.Kubernetes,
@@ -265,10 +266,10 @@ func TestOperation_Preview(t *testing.T) {
 			}
 
 			mockey.Mock(runtimeinit.Runtimes).To(func(
-				resources models.Resources,
-				stack *projectstack.Stack,
-			) (map[models.Type]runtime.Runtime, status.Status) {
-				return map[models.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
+				resources intent.Resources,
+				stack *stack.Stack,
+			) (map[intent.Type]runtime.Runtime, status.Status) {
+				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {

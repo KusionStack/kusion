@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/spf13/afero"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
 	"kusionstack.io/kusion/pkg/util/io"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kfile"
@@ -40,14 +40,14 @@ const (
 var envTFLog = fmt.Sprintf("%s=%s", envLog, tfDebugLOG)
 
 type WorkSpace struct {
-	resource   *models.Resource
+	resource   *intent.Resource
 	fs         afero.Afero
 	stackDir   string
 	tfCacheDir string
 }
 
 // SetResource set workspace resource
-func (w *WorkSpace) SetResource(resource *models.Resource) {
+func (w *WorkSpace) SetResource(resource *intent.Resource) {
 	w.resource = resource
 }
 
@@ -122,7 +122,7 @@ func (w *WorkSpace) WriteHCL() error {
 }
 
 // WriteTFState writes StateRepresentation to the file, this function is for terraform apply refresh only
-func (w *WorkSpace) WriteTFState(priorState *models.Resource) error {
+func (w *WorkSpace) WriteTFState(priorState *intent.Resource) error {
 	provider := strings.Split(priorState.Extensions["provider"].(string), "/")
 	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
 	if len(resourceNames) < 4 {

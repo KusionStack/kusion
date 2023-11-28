@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sync"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
@@ -29,7 +29,7 @@ type ApplyResponse struct {
 	State *states.State
 }
 
-func NewApplyGraph(m *models.Intent, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
+func NewApplyGraph(m *intent.Intent, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
 	specParser := parser.NewSpecParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
@@ -81,7 +81,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*models.Resource{}
+	stateResourceIndex := map[string]*intent.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -105,7 +105,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 		Operation: opsmodels.Operation{
 			OperationType:           opsmodels.Apply,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*models.Resource{},
+			CtxResourceIndex:        map[string]*intent.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,

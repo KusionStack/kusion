@@ -3,21 +3,21 @@ package parser
 import (
 	"fmt"
 
+	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/models"
-	"kusionstack.io/kusion/pkg/status"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type DeleteResourceParser struct {
-	resources models.Resources
+	resources intent.Resources
 }
 
-func NewDeleteResourceParser(resources models.Resources) *DeleteResourceParser {
+func NewDeleteResourceParser(resources intent.Resources) *DeleteResourceParser {
 	return &DeleteResourceParser{resources: resources}
 }
 
