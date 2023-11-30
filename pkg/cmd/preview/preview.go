@@ -15,20 +15,17 @@ func NewCmdPreview() *cobra.Command {
 		previewLong = i18n.T(`
 		Preview a series of resource changes within the stack.
 	
-		Create or update or delete resources according to the KCL files within a stack. By default,
+		Create, update or delete resources according to the intent described in the a stack. By default,
 		Kusion will generate an execution plan and present it for your approval before taking any action.`)
 
 		previewExample = i18n.T(`
-		# Preview with specifying work directory
+		# Preview with specified work directory
 		kusion preview -w /path/to/workdir
 	
-		# Preview with specifying arguments
+		# Preview with specified arguments
 		kusion preview -D name=test -D age=18
-	
-		# Preview with specifying setting file
-		kusion preview -Y settings.yaml
 
-		# Preview with specifying intent file
+		# Preview with specified intent file
 		kusion preview --intent-file intent.yaml
 	
 		# Preview with ignored fields
