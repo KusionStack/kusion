@@ -13,7 +13,7 @@ import (
 
 func NewCmdCompile() *cobra.Command {
 	compileShort := i18n.T("Deprecated: Use 'kusion build' to generate the Intent instead")
-	compileExample := i18n.T("")
+	compileExample := i18n.T("Deprecated")
 
 	cmd := &cobra.Command{
 		Use:     "compile",

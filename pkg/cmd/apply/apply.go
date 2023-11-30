@@ -10,25 +10,24 @@ import (
 
 func NewCmdApply() *cobra.Command {
 	var (
-		applyShort = i18n.T(`Apply the operation intents of various resources to multiple runtimes`)
+		applyShort = i18n.T(`Apply the operational intent of various resources to multiple runtimes`)
 
 		applyLong = i18n.T(`
 		Apply a series of resource changes within the stack.
 	
-		Create or update or delete resources according to the KCL files within a stack.
-		By default, Kusion will generate an execution plan and present it for your approval before taking any action.
-	
-		You can check the plan details and then decide if the actions should be taken or aborted.`)
+		Create, update or delete resources according to the operational intent within a stack.
+		By default, Kusion will generate an execution plan and prompt for your approval before performing any actions.
+		You can review the plan details and make a decision to proceed with the actions or abort them.`)
 
 		applyExample = i18n.T(`
-		# Apply with specifying work directory
+		# Apply with specified work directory
 		kusion apply -w /path/to/workdir
 	
-		# Apply with specifying arguments
+		# Apply with specified arguments
 		kusion apply -D name=test -D age=18
-	
-		# Apply with specifying setting file
-		kusion apply -Y settings.yaml
+
+		# Apply with specified intent file
+		kusion apply --intent-file intent.yaml
 
 		# Apply with specifying intent file
 		kusion apply --intent-file intent.yaml 

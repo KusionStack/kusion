@@ -10,20 +10,17 @@ import (
 
 func NewCmdDestroy() *cobra.Command {
 	var (
-		destroyShort = i18n.T(`Delete the specified resources in runtime`)
+		destroyShort = i18n.T(`Destroy resources within the stack.`)
 
 		destroyLong = i18n.T(`
-		Delete resources by resource spec.
-	
-		Only KCL files are accepted. Only one type of arguments may be specified: filenames,
-		resources and names, or resources and label selector.
-	
-		Note that the destroy command does NOT do resource version checks, so if someone submits an
-		update to a resource right when you submit a destroy, their update will be lost along with the
-		rest of the resource.`)
+		Destroy resources within the stack.
+
+		Please note that the destroy command does NOT perform resource version checks.
+		Therefore, if someone submits an update to a resource at the same time you execute a destroy command, 
+		their update will be lost along with the rest of the resource.`)
 
 		destroyExample = i18n.T(`
-		# Delete the configuration of current stack
+		# Delete resources of current stack
 		kusion destroy`)
 	)
 
