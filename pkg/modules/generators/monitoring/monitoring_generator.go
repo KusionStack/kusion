@@ -90,7 +90,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 					Endpoints: serviceEndpointList,
 				},
 			}
-			err := modules.AppendToSpec(
+			err := modules.AppendToIntent(
 				intent.Kubernetes,
 				modules.KubernetesResourceID(serviceMonitor.TypeMeta, serviceMonitor.ObjectMeta),
 				spec,
@@ -123,7 +123,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 				},
 			}
 
-			err := modules.AppendToSpec(
+			err := modules.AppendToIntent(
 				intent.Kubernetes,
 				modules.KubernetesResourceID(podMonitor.TypeMeta, podMonitor.ObjectMeta),
 				spec,

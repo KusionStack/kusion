@@ -60,20 +60,20 @@ func NewOrderedResourcesGeneratorFunc(multipleOrderedKinds ...[]string) modules.
 }
 
 // Generate inject the dependsOn of resources in a specified order.
-func (g *orderedResourcesGenerator) Generate(spec *intent.Intent) error {
-	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+func (g *orderedResourcesGenerator) Generate(itt *intent.Intent) error {
+	if itt.Resources == nil {
+		itt.Resources = make(intent.Resources, 0)
 	}
 
-	for i := 0; i < len(spec.Resources); i++ {
+	for i := 0; i < len(itt.Resources); i++ {
 		// Continue if the resource is not a kubernetes resource.
-		if spec.Resources[i].Type != runtime.Kubernetes {
+		if itt.Resources[i].Type != runtime.Kubernetes {
 			continue
 		}
 
 		// Inject dependsOn of the resource.
-		r := (*resource)(&spec.Resources[i])
-		r.injectDependsOn(g.orderedKinds, spec.Resources)
+		r := (*resource)(&itt.Resources[i])
+		r.injectDependsOn(g.orderedKinds, itt.Resources)
 	}
 
 	return nil

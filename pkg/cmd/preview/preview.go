@@ -28,8 +28,8 @@ func NewCmdPreview() *cobra.Command {
 		# Preview with specifying setting file
 		kusion preview -Y settings.yaml
 
-		# Preview with specifying spec file
-		kusion preview --spec-file spec.yaml
+		# Preview with specifying intent file
+		kusion preview --intent-file intent.yaml
 	
 		# Preview with ignored fields
 		kusion preview --ignore-fields="metadata.generation,metadata.managedFields
@@ -76,6 +76,6 @@ func (o *Options) AddPreviewFlags(cmd *cobra.Command) {
 		i18n.T("Ignore differences of target fields"))
 	cmd.Flags().StringVarP(&o.Output, "output", "o", "",
 		i18n.T("Specify the output format"))
-	cmd.Flags().StringVarP(&o.SpecFile, "spec-file", "", "",
-		i18n.T("Specify the spec file path as input, and the spec file must be located in the working directory or its subdirectories"))
+	cmd.Flags().StringVarP(&o.IntentFile, "intent-file", "", "",
+		i18n.T("Specify the intent file path as input, and the intent file must be located in the working directory or its subdirectories"))
 }

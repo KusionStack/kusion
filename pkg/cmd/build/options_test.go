@@ -87,7 +87,7 @@ func TestCompileOptions_Run(t *testing.T) {
 
 	t.Run("no style is true", func(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateSpec()
+		m2 := mockGenerateIntent()
 		m3 := mockWriteFile()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
@@ -99,7 +99,7 @@ func TestCompileOptions_Run(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	mockey.PatchConvey("detect project and spec failed", t, func() {
+	mockey.PatchConvey("detect project and stack failed", t, func() {
 		m1 := mockDetectProjectAndStackFail()
 		defer m1.UnPatch()
 
@@ -109,9 +109,9 @@ func TestCompileOptions_Run(t *testing.T) {
 		assert.Equal(t, errTest, err)
 	})
 
-	mockey.PatchConvey("generate spec failed", t, func() {
+	mockey.PatchConvey("generate intent failed", t, func() {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateSpecFail()
+		m2 := mockGenerateIntentFail()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		o := NewBuildOptions()
@@ -152,8 +152,8 @@ func mockDetectProjectAndStackFail() *mockey.Mocker {
 	}).Build()
 }
 
-func mockGenerateSpec() *mockey.Mocker {
-	return mockey.Mock(GenerateSpecWithSpinner).To(func(
+func mockGenerateIntent() *mockey.Mocker {
+	return mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
 		project *project.Project,
 		stack *stack.Stack,
@@ -162,8 +162,8 @@ func mockGenerateSpec() *mockey.Mocker {
 	}).Build()
 }
 
-func mockGenerateSpecFail() *mockey.Mocker {
-	return mockey.Mock(GenerateSpecWithSpinner).To(func(
+func mockGenerateIntentFail() *mockey.Mocker {
+	return mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
 		project *project.Project,
 		stack *stack.Stack,

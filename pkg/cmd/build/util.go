@@ -23,7 +23,7 @@ import (
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
-func GenerateSpecWithSpinner(o *builders.Options, project *project.Project, stack *stack.Stack) (*intent.Intent, error) {
+func IntentWithSpinner(o *builders.Options, project *project.Project, stack *stack.Stack) (*intent.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -35,7 +35,7 @@ func GenerateSpecWithSpinner(o *builders.Options, project *project.Project, stac
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !o.NoStyle && sp != nil
 
-	spec, err := GenerateSpec(o, project, stack)
+	i, err := Intent(o, project, stack)
 	// failed
 	if err != nil {
 		if style {
@@ -53,10 +53,10 @@ func GenerateSpecWithSpinner(o *builders.Options, project *project.Project, stac
 	} else {
 		fmt.Println()
 	}
-	return spec, nil
+	return i, nil
 }
 
-func GenerateSpec(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.Intent, error) {
+func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
 	pg := p.Generator
@@ -81,11 +81,11 @@ func GenerateSpec(o *builders.Options, p *project.Project, s *stack.Stack) (*int
 		}
 	}
 
-	spec, err := builder.Build(o, p, s)
+	i, err := builder.Build(o, p, s)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
-	return spec, nil
+	return i, nil
 }
 
 func buildAppConfigs(o *builders.Options, stack *stack.Stack) (map[string]inputs.AppConfiguration, error) {
@@ -115,7 +115,7 @@ func buildAppConfigs(o *builders.Options, stack *stack.Stack) (map[string]inputs
 	return appConfigs, nil
 }
 
-func GenerateSpecFromFile(filePath string) (*intent.Intent, error) {
+func IntentFromFile(filePath string) (*intent.Intent, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -126,9 +126,9 @@ func GenerateSpecFromFile(filePath string) (*intent.Intent, error) {
 	// The use of yaml.v2 and yaml.v3 should be unified in the future.
 	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	spec := &intent.Intent{}
-	if err = decoder.Decode(spec); err != nil && err != io.EOF {
-		return nil, fmt.Errorf("failed to parse the spec file, please check if the file content is valid")
+	i := &intent.Intent{}
+	if err = decoder.Decode(i); err != nil && err != io.EOF {
+		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
 	}
-	return spec, nil
+	return i, nil
 }

@@ -89,7 +89,7 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	for _, cm := range configMaps {
 		cmObj := cm
 		cmObj.Namespace = g.project.Name
-		if err = modules.AppendToSpec(
+		if err = modules.AppendToIntent(
 			intent.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
@@ -158,7 +158,7 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	}
 
 	// Add the Deployment resource to the spec.
-	if err = modules.AppendToSpec(intent.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
+	if err = modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
 		return err
 	}
 

@@ -30,11 +30,11 @@ type ApplyResponse struct {
 }
 
 func NewApplyGraph(m *intent.Intent, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
-	specParser := parser.NewSpecParser(m)
+	intentParser := parser.NewIntentParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
 
-	s := specParser.Parse(g)
+	s := intentParser.Parse(g)
 	if status.IsErr(s) {
 		return nil, s
 	}
@@ -86,7 +86,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 		stateResourceIndex[k] = v
 	}
 
-	resources := request.Spec.Resources
+	resources := request.Intent.Resources
 	resources = append(resources, priorState.Resources...)
 	runtimesMap, s := runtimeinit.Runtimes(resources, o.Stack)
 	if status.IsErr(s) {
@@ -95,7 +95,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	o.RuntimeMap = runtimesMap
 
 	// 2. build & walk DAG
-	applyGraph, s := NewApplyGraph(request.Spec, priorState)
+	applyGraph, s := NewApplyGraph(request.Intent, priorState)
 	if status.IsErr(s) {
 		return nil, s
 	}
@@ -164,13 +164,13 @@ func validateRequest(request *opsmodels.Request) status.Status {
 	if request == nil {
 		return status.NewErrorStatusWithMsg(status.InvalidArgument, "request is nil")
 	}
-	if request.Spec == nil {
+	if request.Intent == nil {
 		return status.NewErrorStatusWithMsg(status.InvalidArgument,
 			"request.Intent is empty. If you want to delete all resources, please use command 'destroy'")
 	}
 	resourceKeyMap := make(map[string]bool)
 
-	for _, resource := range request.Spec.Resources {
+	for _, resource := range request.Intent.Resources {
 		key := resource.ResourceKey()
 		if _, ok := resourceKeyMap[key]; ok {
 			return status.NewErrorStatusWithMsg(status.InvalidArgument, fmt.Sprintf("Duplicate resource:%s in request.", key))

@@ -27,13 +27,13 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 
 // CallGenerators calls the Generate method of each Generator instance
 // returned by the given NewGeneratorFuncs.
-func CallGenerators(spec *intent.Intent, newGenerators ...NewGeneratorFunc) error {
+func CallGenerators(i *intent.Intent, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
 		return err
 	}
 	for _, g := range gs {
-		if err := g.Generate(spec); err != nil {
+		if err := g.Generate(i); err != nil {
 			return err
 		}
 	}
@@ -119,8 +119,7 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	return id
 }
 
-// TerraformResource returns the Terraform resource in the form of
-// Kusion's spec resource.
+// TerraformResource returns the Terraform resource in the form of Intent.Resource
 func TerraformResource(id string, dependsOn []string, attrs, exts map[string]interface{}) intent.Resource {
 	return intent.Resource{
 		ID:         id,
@@ -154,11 +153,11 @@ func KusionPathDependency(id, name string) string {
 	return "$kusion_path." + id + "." + name
 }
 
-// AppendToSpec adds a Kubernetes resource to a spec's resources slice.
-func AppendToSpec(resourceType intent.Type, resourceID string, spec *intent.Intent, resource any) error {
+// AppendToIntent adds a Kubernetes resource to the Intent resources slice.
+func AppendToIntent(resourceType intent.Type, resourceID string, i *intent.Intent, resource any) error {
 	// this function is only used for Kubernetes resources
 	if resourceType != intent.Kubernetes {
-		return errors.New("AppendToSpec is only used for Kubernetes resources")
+		return errors.New("AppendToIntent is only used for Kubernetes resources")
 	}
 
 	gvk := resource.(runtime.Object).GetObjectKind().GroupVersionKind().String()
@@ -175,7 +174,7 @@ func AppendToSpec(resourceType intent.Type, resourceID string, spec *intent.Inte
 			intent.ResourceExtensionGVK: gvk,
 		},
 	}
-	spec.Resources = append(spec.Resources, r)
+	i.Resources = append(i.Resources, r)
 	return nil
 }
 

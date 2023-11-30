@@ -30,9 +30,9 @@ func NewNamespaceGeneratorFunc(projectName string) modules.NewGeneratorFunc {
 	}
 }
 
-func (g *namespaceGenerator) Generate(spec *intent.Intent) error {
-	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+func (g *namespaceGenerator) Generate(i *intent.Intent) error {
+	if i.Resources == nil {
+		i.Resources = make(intent.Resources, 0)
 	}
 
 	ns := &v1.Namespace{
@@ -45,11 +45,11 @@ func (g *namespaceGenerator) Generate(spec *intent.Intent) error {
 
 	// Avoid generating duplicate namespaces with the same ID.
 	id := modules.KubernetesResourceID(ns.TypeMeta, ns.ObjectMeta)
-	for _, res := range spec.Resources {
+	for _, res := range i.Resources {
 		if res.ID == id {
 			return nil
 		}
 	}
 
-	return modules.AppendToSpec(intent.Kubernetes, id, spec, ns)
+	return modules.AppendToIntent(intent.Kubernetes, id, i, ns)
 }

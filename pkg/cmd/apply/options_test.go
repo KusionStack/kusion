@@ -29,7 +29,7 @@ import (
 func TestApplyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
 		mockeyPatchDetectProjectAndStack()
-		mockeyPatchGenerateSpec()
+		mockeyPatchBuildIntent()
 		mockeyPatchNewKubernetesRuntime()
 		mockeyPatchOperationPreview()
 
@@ -43,7 +43,7 @@ func TestApplyOptions_Run(t *testing.T) {
 
 	mockey.PatchConvey("DryRun is true", t, func() {
 		mockeyPatchDetectProjectAndStack()
-		mockeyPatchGenerateSpec()
+		mockeyPatchBuildIntent()
 		mockeyPatchNewKubernetesRuntime()
 		mockeyPatchOperationPreview()
 		mockOperationApply(opsmodels.Success)
@@ -78,8 +78,8 @@ func mockeyPatchDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
-func mockeyPatchGenerateSpec() *mockey.Mocker {
-	return mockey.Mock(build.GenerateSpec).To(func(
+func mockeyPatchBuildIntent() *mockey.Mocker {
+	return mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
 		project *project.Project,
 		stack *stack.Stack,
@@ -260,7 +260,7 @@ func mockOperationApply(res opsmodels.OpResult) {
 			if res == opsmodels.Failed {
 				err = errors.New("mock error")
 			}
-			for _, r := range request.Spec.Resources {
+			for _, r := range request.Intent.Resources {
 				// ing -> $res
 				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),

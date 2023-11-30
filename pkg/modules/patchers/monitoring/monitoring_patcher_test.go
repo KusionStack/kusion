@@ -17,8 +17,8 @@ import (
 )
 
 func Test_monitoringPatcher_Patch(t *testing.T) {
-	spec := &intent.Intent{}
-	err := modules.AppendToSpec(intent.Kubernetes, "id", spec, buildMockDeployment())
+	i := &intent.Intent{}
+	err := modules.AppendToIntent(intent.Kubernetes, "id", i, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 				},
 			},
 			args: args{
-				resources: spec.Resources.GVKIndex(),
+				resources: i.Resources.GVKIndex(),
 			},
 			wantErr: assert.NoError,
 		},
@@ -73,7 +73,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 				},
 			},
 			args: args{
-				resources: spec.Resources.GVKIndex(),
+				resources: i.Resources.GVKIndex(),
 			},
 			wantErr: assert.NoError,
 		},
@@ -88,7 +88,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 			tt.wantErr(t, p.Patch(tt.args.resources), fmt.Sprintf("Patch(%v)", tt.args.resources))
 			// check if the deployment is patched
 			var deployment appsv1.Deployment
-			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(spec.Resources[0].Attributes, &deployment); err != nil {
+			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(i.Resources[0].Attributes, &deployment); err != nil {
 				t.Fatal(err)
 			}
 			if tt.fields.project.Prometheus.OperatorMode {

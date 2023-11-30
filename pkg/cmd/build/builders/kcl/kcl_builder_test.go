@@ -30,7 +30,7 @@ func TestInit(t *testing.T) {
 	})
 }
 
-func TestGenerateSpec(t *testing.T) {
+func TestGenerateIntent(t *testing.T) {
 	fakeStack := &stack.Stack{
 		Configuration: stack.Configuration{
 			Name: "fake-stack",

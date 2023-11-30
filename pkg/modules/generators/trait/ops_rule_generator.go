@@ -84,5 +84,5 @@ func (g *opsRuleGenerator) Generate(spec *intent.Intent) error {
 			},
 		},
 	}
-	return modules.AppendToSpec(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+	return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 }

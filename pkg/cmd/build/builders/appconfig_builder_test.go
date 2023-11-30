@@ -21,9 +21,9 @@ func TestAppsConfigBuilder_Build(t *testing.T) {
 		},
 	}
 
-	spec, err := acg.Build(&Options{}, p, s)
+	intent, err := acg.Build(&Options{}, p, s)
 	assert.NoError(t, err)
-	assert.NotNil(t, spec)
+	assert.NotNil(t, intent)
 }
 
 func buildMockApp() (string, *appmodel.AppConfiguration) {

@@ -68,7 +68,7 @@ type Request struct {
 	Stack    *stack.Stack     `json:"stack"`
 	Cluster  string           `json:"cluster"`
 	Operator string           `json:"operator"`
-	Spec     *intent.Intent   `json:"spec"`
+	Intent   *intent.Intent   `json:"intent"`
 }
 
 type OpResult string

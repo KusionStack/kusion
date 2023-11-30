@@ -64,7 +64,7 @@ func TestOperation_Destroy(t *testing.T) {
 			Stack:    s,
 			Project:  p,
 			Operator: operator,
-			Spec:     mf,
+			Intent:   mf,
 		},
 	}
 

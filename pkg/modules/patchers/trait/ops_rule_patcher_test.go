@@ -16,8 +16,8 @@ import (
 )
 
 func Test_opsRulePatcher_Patch(t *testing.T) {
-	spec := &intent.Intent{}
-	err := modules.AppendToSpec(intent.Kubernetes, "id", spec, buildMockDeployment())
+	i := &intent.Intent{}
+	err := modules.AppendToIntent(intent.Kubernetes, "id", i, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 				},
 			},
 			args: args{
-				resources: spec.Resources.GVKIndex(),
+				resources: i.Resources.GVKIndex(),
 			},
 		},
 	}
@@ -58,7 +58,7 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 			}
 			// check if the deployment is patched
 			var deployment appsv1.Deployment
-			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(spec.Resources[0].Attributes, &deployment); err != nil {
+			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(i.Resources[0].Attributes, &deployment); err != nil {
 				t.Fatal(err)
 			}
 			assert.Equal(t, appsv1.RollingUpdateDeploymentStrategyType, deployment.Spec.Strategy.Type)

@@ -31,10 +31,10 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	}()
 
 	util.CheckNotNil(request, "request is nil")
-	util.CheckNotNil(request.Spec, "resource is nil")
+	util.CheckNotNil(request.Intent, "resource is nil")
 
 	// Get plan state resources
-	plan := request.Spec
+	plan := request.Intent
 
 	// Get the latest state resources
 	latestState, err := d.StateStorage.GetLatestState(

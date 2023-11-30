@@ -11,11 +11,11 @@ import (
 )
 
 type mockGenerator struct {
-	GenerateFunc func(spec *intent.Intent) error
+	GenerateFunc func(intent *intent.Intent) error
 }
 
-func (m *mockGenerator) Generate(spec *intent.Intent) error {
-	return m.GenerateFunc(spec)
+func (m *mockGenerator) Generate(i *intent.Intent) error {
+	return m.GenerateFunc(i)
 }
 
 type mockPatcher struct {
@@ -27,16 +27,16 @@ func (m *mockPatcher) Patch(resources map[string][]*intent.Resource) error {
 }
 
 func TestCallGenerators(t *testing.T) {
-	spec := &intent.Intent{}
+	i := &intent.Intent{}
 
 	var (
 		generator1 Generator = &mockGenerator{
-			GenerateFunc: func(spec *intent.Intent) error {
+			GenerateFunc: func(intent *intent.Intent) error {
 				return nil
 			},
 		}
 		generator2 Generator = &mockGenerator{
-			GenerateFunc: func(spec *intent.Intent) error {
+			GenerateFunc: func(intent *intent.Intent) error {
 				return assert.AnError
 			},
 		}
@@ -44,7 +44,7 @@ func TestCallGenerators(t *testing.T) {
 		gf2 = func() (Generator, error) { return generator2, nil }
 	)
 
-	err := CallGenerators(spec, gf1, gf2)
+	err := CallGenerators(i, gf1, gf2)
 	assert.Error(t, err)
 	assert.EqualError(t, err, assert.AnError.Error())
 }
@@ -151,8 +151,8 @@ func TestKubernetesResourceID(t *testing.T) {
 	assert.Equal(t, "apps/v1:Deployment:example:my-deployment", id)
 }
 
-func TestAppendToSpec(t *testing.T) {
-	spec := &intent.Intent{}
+func TestAppendToIntent(t *testing.T) {
+	i := &intent.Intent{}
 	resource := &intent.Resource{
 		ID:   "v1:Namespace:fake-project",
 		Type: "Kubernetes",
@@ -180,14 +180,14 @@ func TestAppendToSpec(t *testing.T) {
 		},
 	}
 
-	err := AppendToSpec(intent.Kubernetes, resource.ID, spec, ns)
+	err := AppendToIntent(intent.Kubernetes, resource.ID, i, ns)
 
 	assert.NoError(t, err)
-	assert.Len(t, spec.Resources, 1)
-	assert.Equal(t, resource.ID, spec.Resources[0].ID)
-	assert.Equal(t, resource.Type, spec.Resources[0].Type)
-	assert.Equal(t, resource.Attributes, spec.Resources[0].Attributes)
-	assert.Equal(t, ns.GroupVersionKind().String(), spec.Resources[0].Extensions[intent.ResourceExtensionGVK])
+	assert.Len(t, i.Resources, 1)
+	assert.Equal(t, resource.ID, i.Resources[0].ID)
+	assert.Equal(t, resource.Type, i.Resources[0].Type)
+	assert.Equal(t, resource.Attributes, i.Resources[0].Attributes)
+	assert.Equal(t, ns.GroupVersionKind().String(), i.Resources[0].Extensions[intent.ResourceExtensionGVK])
 }
 
 func TestUniqueAppName(t *testing.T) {

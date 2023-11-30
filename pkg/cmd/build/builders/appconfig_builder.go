@@ -18,7 +18,7 @@ func (acg *AppsConfigBuilder) Build(
 	project *project.Project,
 	stack *stack.Stack,
 ) (*intent.Intent, error) {
-	spec := &intent.Intent{
+	i := &intent.Intent{
 		Resources: []intent.Resource{},
 	}
 
@@ -30,9 +30,9 @@ func (acg *AppsConfigBuilder) Build(
 	if err != nil {
 		return nil, err
 	}
-	if err = modules.CallGenerators(spec, gfs...); err != nil {
+	if err = modules.CallGenerators(i, gfs...); err != nil {
 		return nil, err
 	}
 
-	return spec, nil
+	return i, nil
 }

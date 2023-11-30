@@ -237,7 +237,7 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 		}
 	case opsmodels.UnChanged:
 		log.Infof("planed resource and live resource are equal")
-		// auto import resources exist in spec and live cluster but no recorded in kusion_state.json
+		// auto import resources exist in intent and live cluster but no recorded in kusion_state.json
 		if prior == nil {
 			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planed})
 			s = response.Status

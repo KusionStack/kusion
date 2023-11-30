@@ -253,7 +253,7 @@ func mockOperationDestroy(res opsmodels.OpResult) {
 			if res == opsmodels.Failed {
 				err = errors.New("mock error")
 			}
-			for _, r := range request.Spec.Resources {
+			for _, r := range request.Intent.Resources {
 				// ing -> $res
 				o.MsgCh <- opsmodels.Message{
 					ResourceID: r.ResourceKey(),
