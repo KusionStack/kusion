@@ -76,7 +76,7 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 	for _, cm := range configMaps {
 		cmObj := cm
 		cmObj.Namespace = g.project.Name
-		if err = modules.AppendToSpec(
+		if err = modules.AppendToIntent(
 			intent.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
@@ -113,7 +113,7 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 			},
 			Spec: jobSpec,
 		}
-		return modules.AppendToSpec(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+		return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
 
 	resource := &batchv1.CronJob{
@@ -129,5 +129,5 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 			Schedule: job.Schedule,
 		},
 	}
-	return modules.AppendToSpec(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+	return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 }

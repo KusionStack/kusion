@@ -80,8 +80,8 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	spec := &intent.Intent{Resources: destroyResources}
-	changes, err := o.preview(spec, project, stack, stateStorage)
+	i := &intent.Intent{Resources: destroyResources}
+	changes, err := o.preview(i, project, stack, stateStorage)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (o *Options) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(spec, changes, stateStorage); err != nil {
+	if err := o.destroy(i, changes, stateStorage); err != nil {
 		return err
 	}
 	return nil
@@ -148,7 +148,7 @@ func (o *Options) preview(
 			Project:  project,
 			Operator: o.Operator,
 			Stack:    stack,
-			Spec:     planResources,
+			Intent:   planResources,
 		},
 	})
 	if status.IsErr(s) {
@@ -240,7 +240,7 @@ func (o *Options) destroy(planResources *intent.Intent, changes *opsmodels.Chang
 			Project:  changes.Project(),
 			Operator: o.Operator,
 			Stack:    changes.Stack(),
-			Spec:     planResources,
+			Intent:   planResources,
 		},
 	})
 	if status.IsErr(st) {

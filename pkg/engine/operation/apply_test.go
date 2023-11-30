@@ -44,7 +44,7 @@ func Test_validateRequest(t *testing.T) {
 			name: "t2",
 			args: args{
 				request: &opsmodels.Request{
-					Spec: &intent.Intent{Resources: []intent.Resource{}},
+					Intent: &intent.Intent{Resources: []intent.Resource{}},
 				},
 			},
 			want: nil,
@@ -144,7 +144,7 @@ func TestOperation_Apply(t *testing.T) {
 				Stack:    s,
 				Project:  p,
 				Operator: "faker",
-				Spec:     mf,
+				Intent:   mf,
 			}}},
 			wantRsp: &ApplyResponse{rs},
 			wantSt:  nil,

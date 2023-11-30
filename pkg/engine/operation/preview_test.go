@@ -137,7 +137,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Spec: &intent.Intent{
+						Intent: &intent.Intent{
 							Resources: []intent.Resource{
 								FakeResourceState,
 							},
@@ -175,7 +175,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Spec: &intent.Intent{
+						Intent: &intent.Intent{
 							Resources: []intent.Resource{
 								FakeResourceState2,
 							},
@@ -209,7 +209,7 @@ func TestOperation_Preview(t *testing.T) {
 			args: args{
 				request: &PreviewRequest{
 					Request: opsmodels.Request{
-						Spec: nil,
+						Intent: nil,
 					},
 				},
 			},
@@ -231,7 +231,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Spec: &intent.Intent{
+						Intent: &intent.Intent{
 							Resources: []intent.Resource{
 								{
 									ID:         "fake-id",

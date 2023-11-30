@@ -62,7 +62,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	priorState, resultState = po.InitStates(&request.Request)
 
 	// Kusion is a multi-runtime system. We initialize runtimes dynamically by resource types
-	resources := request.Spec.Resources
+	resources := request.Intent.Resources
 	resources = append(resources, priorState.Resources...)
 	runtimesMap, s := runtimeinit.Runtimes(resources, o.Stack)
 	if status.IsErr(s) {
@@ -73,9 +73,9 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	switch o.OperationType {
 	case opsmodels.ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
-		ag, s = NewApplyGraph(request.Spec, priorState)
+		ag, s = NewApplyGraph(request.Intent, priorState)
 	case opsmodels.DestroyPreview:
-		resources := request.Request.Spec.Resources
+		resources := request.Request.Intent.Resources
 		priorStateResourceIndex = resources.Index()
 		ag, s = NewDestroyGraph(resources)
 	}

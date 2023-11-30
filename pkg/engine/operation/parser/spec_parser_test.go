@@ -43,11 +43,11 @@ func TestSpecParser_Parse(t *testing.T) {
 	ag := &dag.AcyclicGraph{}
 	ag.Add(&graph.RootNode{})
 
-	spec := &SpecParser{
-		spec: mf,
+	i := &IntentParser{
+		intent: mf,
 	}
 
-	_ = spec.Parse(ag)
+	_ = i.Parse(ag)
 	actual := strings.TrimSpace(ag.String())
 	expected := strings.TrimSpace(testGraphTransReductionMultipleRootsStr)
 

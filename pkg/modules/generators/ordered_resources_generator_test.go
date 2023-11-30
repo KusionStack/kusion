@@ -17,10 +17,10 @@ var (
 			"namespace": "foo",
 			"name":      "bar",
 		},
-		"spec": map[string]interface{}{
+		"intent": map[string]interface{}{
 			"replica": 1,
 			"template": map[string]interface{}{
-				"spec": map[string]interface{}{
+				"intent": map[string]interface{}{
 					"containers": []map[string]interface{}{
 						{
 							"image": "foo.bar.com:v1",

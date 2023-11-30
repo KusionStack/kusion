@@ -11,7 +11,7 @@ var GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
 
 // Generator is the interface that wraps the Generate method.
 type Generator interface {
-	Generate(spec *intent.Intent) error
+	Generate(intent *intent.Intent) error
 }
 
 // Patcher is the interface that wraps the Patch method.

@@ -57,12 +57,12 @@ func (g *Builder) Build(o *builders.Options, _ *project.Project, stack *stack.St
 		return nil, err
 	}
 
-	// convert Run result to spec
-	spec, err := KCLResult2Spec(compileResult.Documents)
+	// convert Run result to i
+	i, err := KCLResult2Intent(compileResult.Documents)
 	if err != nil {
 		return nil, err
 	}
-	return spec, nil
+	return i, nil
 }
 
 func Run(o *builders.Options, stack *stack.Stack) (*CompileResult, error) {
@@ -243,7 +243,7 @@ func Overwrite(fileName string, overrides []string) (bool, error) {
 	return kcl.OverrideFile(fileName, overrides, []string{})
 }
 
-func KCLResult2Spec(kclResults []kcl.KCLResult) (*intent.Intent, error) {
+func KCLResult2Intent(kclResults []kcl.KCLResult) (*intent.Intent, error) {
 	resources := make([]intent.Resource, len(kclResults))
 
 	for i, result := range kclResults {

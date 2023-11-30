@@ -30,8 +30,8 @@ func NewCmdApply() *cobra.Command {
 		# Apply with specifying setting file
 		kusion apply -Y settings.yaml
 
-		# Apply with specifying spec file
-		kusion apply --spec-file spec.yaml 
+		# Apply with specifying intent file
+		kusion apply --intent-file intent.yaml 
 	
 		# Skip interactive approval of plan details before applying
 		kusion apply --yes

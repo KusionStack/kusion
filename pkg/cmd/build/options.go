@@ -69,7 +69,7 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	sp, err := GenerateSpecWithSpinner(
+	sp, err := IntentWithSpinner(
 		&builders.Options{
 			IsKclPkg:  o.IsKclPkg,
 			WorkDir:   o.WorkDir,

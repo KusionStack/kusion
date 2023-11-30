@@ -75,10 +75,10 @@ func (o *Options) Run() error {
 
 	// Generate Intent
 	var sp *intent.Intent
-	if o.SpecFile != "" {
-		sp, err = build.GenerateSpecFromFile(o.SpecFile)
+	if o.IntentFile != "" {
+		sp, err = build.IntentFromFile(o.IntentFile)
 	} else {
-		sp, err = build.GenerateSpecWithSpinner(options, project, stack)
+		sp, err = build.IntentWithSpinner(options, project, stack)
 	}
 	if err != nil {
 		return err
@@ -290,7 +290,7 @@ func Apply(
 				Stack:    changes.Stack(),
 				Cluster:  cluster,
 				Operator: o.Operator,
-				Spec:     planResources,
+				Intent:   planResources,
 			},
 		})
 		if status.IsErr(st) {
@@ -344,7 +344,7 @@ func Watch(
 		Request: opsmodels.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Spec:    &intent.Intent{Resources: toBeWatched},
+			Intent:  &intent.Intent{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

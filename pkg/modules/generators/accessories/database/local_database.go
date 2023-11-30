@@ -72,7 +72,7 @@ func (g *databaseGenerator) generateLocalSecret(spec *intent.Intent) (string, er
 	secID := modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
 
 	// Fixme: return $kusion_path with `stringData.password` of local database secret id.
-	return password, modules.AppendToSpec(
+	return password, modules.AppendToIntent(
 		intent.Kubernetes,
 		secID,
 		spec,
@@ -104,7 +104,7 @@ func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *intent
 		},
 	}
 
-	return modules.AppendToSpec(
+	return modules.AppendToIntent(
 		intent.Kubernetes,
 		modules.KubernetesResourceID(pvc.TypeMeta, pvc.ObjectMeta),
 		spec,
@@ -142,7 +142,7 @@ func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec 
 		},
 	}
 
-	return modules.AppendToSpec(
+	return modules.AppendToIntent(
 		intent.Kubernetes,
 		modules.KubernetesResourceID(deployment.TypeMeta, deployment.ObjectMeta),
 		spec,
@@ -176,7 +176,7 @@ func (g *databaseGenerator) generateLocalService(db *database.Database, spec *in
 		},
 	}
 
-	return svcName, modules.AppendToSpec(
+	return svcName, modules.AppendToIntent(
 		intent.Kubernetes,
 		modules.KubernetesResourceID(service.TypeMeta, service.ObjectMeta),
 		spec,

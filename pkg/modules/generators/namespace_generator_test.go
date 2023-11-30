@@ -13,7 +13,7 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 		projectName string
 	}
 	type args struct {
-		spec *intent.Intent
+		intent *intent.Intent
 	}
 	tests := []struct {
 		name    string
@@ -28,7 +28,7 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 				projectName: "fake-project",
 			},
 			args: args{
-				spec: &intent.Intent{},
+				intent: &intent.Intent{},
 			},
 			want: &intent.Intent{
 				Resources: []intent.Resource{
@@ -60,10 +60,10 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			g := &namespaceGenerator{
 				projectName: tt.fields.projectName,
 			}
-			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
+			if err := g.Generate(tt.args.intent); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			require.Equal(t, tt.want, tt.args.spec)
+			require.Equal(t, tt.want, tt.args.intent)
 		})
 	}
 }

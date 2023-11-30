@@ -21,7 +21,7 @@ func TestWatchOperation_Watch(t *testing.T) {
 	mockey.PatchConvey("test watch operation: watch", t, func() {
 		req := &WatchRequest{
 			Request: opsmodels.Request{
-				Spec: &intent.Intent{
+				Intent: &intent.Intent{
 					Resources: intent.Resources{
 						{
 							ID:         "apps/v1:Deployment:foo:bar",

@@ -263,5 +263,5 @@ func toSvcPorts(name string, ports []network.Port) []v1.ServicePort {
 
 func appendToSpec(spec *intent.Intent, svc *v1.Service) error {
 	id := modules.KubernetesResourceID(svc.TypeMeta, svc.ObjectMeta)
-	return modules.AppendToSpec(intent.Kubernetes, id, spec, svc)
+	return modules.AppendToIntent(intent.Kubernetes, id, spec, svc)
 }

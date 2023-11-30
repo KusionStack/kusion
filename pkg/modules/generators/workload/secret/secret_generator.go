@@ -53,7 +53,7 @@ func (g *secretGenerator) Generate(spec *intent.Intent) error {
 		}
 
 		resourceID := modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
-		err = modules.AppendToSpec(
+		err = modules.AppendToIntent(
 			intent.Kubernetes,
 			resourceID,
 			spec,

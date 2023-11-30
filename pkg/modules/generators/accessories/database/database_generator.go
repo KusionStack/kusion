@@ -167,7 +167,7 @@ func (g *databaseGenerator) generateDBSecret(hostAddress, username, password str
 		StringData: data,
 	}
 
-	return secret, modules.AppendToSpec(
+	return secret, modules.AppendToIntent(
 		intent.Kubernetes,
 		modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta),
 		spec,

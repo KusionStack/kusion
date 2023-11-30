@@ -129,19 +129,19 @@ func TestGenerateSpecFromFile(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			path:    "kusion_spec.yaml",
+			path:    "kusion_intent.yaml",
 			content: spec1,
 			want:    specModel1,
 		},
 		{
 			name:    "test2",
-			path:    "kusion_spec.yaml",
+			path:    "kusion_intent.yaml",
 			content: spec2,
 			want:    specModel2,
 		},
 		{
 			name:    "test3",
-			path:    "kusion_spec.yaml",
+			path:    "kusion_intent.yaml",
 			content: `k1: v1`,
 			wantErr: true,
 		},
@@ -151,7 +151,7 @@ func TestGenerateSpecFromFile(t *testing.T) {
 			file, _ := os.Create(tt.path)
 			file.Write([]byte(tt.content))
 			defer os.Remove(tt.path)
-			got, err := GenerateSpecFromFile(tt.path)
+			got, err := IntentFromFile(tt.path)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -244,7 +244,7 @@ func TestGenerateSpec(t *testing.T) {
 			m := tt.args.mocker.Build()
 			defer m.UnPatch()
 
-			got, err := GenerateSpec(tt.args.o, tt.args.project, tt.args.stack)
+			got, err := Intent(tt.args.o, tt.args.project, tt.args.stack)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
 				return

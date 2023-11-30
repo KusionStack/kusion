@@ -12,29 +12,29 @@ import (
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
-type SpecParser struct {
-	spec *intent.Intent
+type IntentParser struct {
+	intent *intent.Intent
 }
 
-func NewSpecParser(spec *intent.Intent) *SpecParser {
-	return &SpecParser{spec: spec}
+func NewIntentParser(i *intent.Intent) *IntentParser {
+	return &IntentParser{intent: i}
 }
 
-var _ Parser = (*SpecParser)(nil)
+var _ Parser = (*IntentParser)(nil)
 
-func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
+func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	util.CheckNotNil(g, "dag is nil")
-	sp := m.spec
-	util.CheckNotNil(sp, "models is nil")
-	if sp.Resources == nil {
-		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(sp))
+	i := m.intent
+	util.CheckNotNil(i, "models is nil")
+	if i.Resources == nil {
+		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(i))
 		return status.NewBaseStatus(status.Warning, status.NotFound, sprintf)
 	}
 
 	root, err := g.Root()
 	util.CheckNotError(err, "get dag root error")
 	util.CheckNotNil(root, fmt.Sprintf("No root in this DAG:%s", json.Marshal2String(g)))
-	resourceIndex := sp.Resources.Index()
+	resourceIndex := i.Resources.Index()
 	for key, resource := range resourceIndex {
 		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Update)
 		if status.IsErr(s) {

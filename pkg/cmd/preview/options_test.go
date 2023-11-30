@@ -82,7 +82,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 	t.Run("no changes", func(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchGenerateSpecWithSpinner()
+		m2 := mockPatchBuildIntentWithSpinner()
 		m3 := mockNewKubernetesRuntime()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
@@ -96,7 +96,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 	t.Run("detail is true", func(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchGenerateSpecWithSpinner()
+		m2 := mockPatchBuildIntentWithSpinner()
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
@@ -114,7 +114,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 	t.Run("json output is true", func(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateSpec()
+		m2 := mockBuildIntent()
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
@@ -132,7 +132,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 	t.Run("no style is true", func(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchGenerateSpecWithSpinner()
+		m2 := mockPatchBuildIntentWithSpinner()
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
@@ -236,8 +236,8 @@ func mockDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
-func mockGenerateSpec() *mockey.Mocker {
-	return mockey.Mock(build.GenerateSpec).To(func(
+func mockBuildIntent() *mockey.Mocker {
+	return mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
 		project *project.Project,
 		stack *stack.Stack,
@@ -246,8 +246,8 @@ func mockGenerateSpec() *mockey.Mocker {
 	}).Build()
 }
 
-func mockPatchGenerateSpecWithSpinner() *mockey.Mocker {
-	return mockey.Mock(build.GenerateSpecWithSpinner).To(func(
+func mockPatchBuildIntentWithSpinner() *mockey.Mocker {
+	return mockey.Mock(build.IntentWithSpinner).To(func(
 		o *builders.Options,
 		project *project.Project,
 		stack *stack.Stack,
@@ -268,83 +268,83 @@ func mockPromptDetail(input string) *mockey.Mocker {
 	}).Build()
 }
 
-func TestPreviewOptions_ValidateSpecFile(t *testing.T) {
+func TestPreviewOptions_ValidateIntentFile(t *testing.T) {
 	currDir, _ := os.Getwd()
 	tests := []struct {
-		name           string
-		specFile       string
-		workDir        string
-		createSpecFile bool
-		wantErr        bool
+		name             string
+		intentFile       string
+		workDir          string
+		createIntentFile bool
+		wantErr          bool
 	}{
 		{
-			name:           "test1",
-			specFile:       "kusion_spec.yaml",
-			workDir:        "",
-			createSpecFile: true,
+			name:             "test1",
+			intentFile:       "kusion_intent.yaml",
+			workDir:          "",
+			createIntentFile: true,
 		},
 		{
-			name:           "test2",
-			specFile:       filepath.Join(currDir, "kusion_spec.yaml"),
-			workDir:        "",
-			createSpecFile: true,
+			name:             "test2",
+			intentFile:       filepath.Join(currDir, "kusion_intent.yaml"),
+			workDir:          "",
+			createIntentFile: true,
 		},
 		{
-			name:           "test3",
-			specFile:       "kusion_spec.yaml",
-			workDir:        "",
-			createSpecFile: false,
-			wantErr:        true,
+			name:             "test3",
+			intentFile:       "kusion_intent.yaml",
+			workDir:          "",
+			createIntentFile: false,
+			wantErr:          true,
 		},
 		{
-			name:           "test4",
-			specFile:       "ci-test/stdout.golden.yaml",
-			workDir:        "",
-			createSpecFile: true,
+			name:             "test4",
+			intentFile:       "ci-test/stdout.golden.yaml",
+			workDir:          "",
+			createIntentFile: true,
 		},
 		{
-			name:           "test5",
-			specFile:       "../kusion_spec.yaml",
-			workDir:        "",
-			createSpecFile: true,
-			wantErr:        true,
+			name:             "test5",
+			intentFile:       "../kusion_intent.yaml",
+			workDir:          "",
+			createIntentFile: true,
+			wantErr:          true,
 		},
 		{
-			name:           "test6",
-			specFile:       filepath.Join(currDir, "../kusion_spec.yaml"),
-			workDir:        "",
-			createSpecFile: true,
-			wantErr:        true,
+			name:             "test6",
+			intentFile:       filepath.Join(currDir, "../kusion_intent.yaml"),
+			workDir:          "",
+			createIntentFile: true,
+			wantErr:          true,
 		},
 		{
-			name:     "test7",
-			specFile: "",
-			workDir:  "",
-			wantErr:  false,
+			name:       "test7",
+			intentFile: "",
+			workDir:    "",
+			wantErr:    false,
 		},
 		{
-			name:     "test8",
-			specFile: currDir,
-			workDir:  "",
-			wantErr:  true,
+			name:       "test8",
+			intentFile: currDir,
+			workDir:    "",
+			wantErr:    true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := Options{}
-			o.SpecFile = tt.specFile
+			o.IntentFile = tt.intentFile
 			o.WorkDir = tt.workDir
-			if tt.createSpecFile {
-				dir := filepath.Dir(tt.specFile)
+			if tt.createIntentFile {
+				dir := filepath.Dir(tt.intentFile)
 				if _, err := os.Stat(dir); os.IsNotExist(err) {
 					os.MkdirAll(dir, 0o755)
 					defer os.RemoveAll(dir)
 				}
-				os.Create(tt.specFile)
-				defer os.Remove(tt.specFile)
+				os.Create(tt.intentFile)
+				defer os.Remove(tt.intentFile)
 			}
-			err := o.ValidateSpecFile()
+			err := o.ValidateIntentFile()
 			if tt.wantErr {
 				require.Error(t, err)
 				return

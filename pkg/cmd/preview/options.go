@@ -38,7 +38,7 @@ type Flags struct {
 	All          bool
 	NoStyle      bool
 	Output       string
-	SpecFile     string
+	IntentFile   string
 	IgnoreFields []string
 }
 
@@ -59,37 +59,37 @@ func (o *Options) Validate() error {
 	if o.Output != "" && o.Output != jsonOutput {
 		return errors.New("invalid output type, supported types: json")
 	}
-	if err := o.ValidateSpecFile(); err != nil {
+	if err := o.ValidateIntentFile(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *Options) ValidateSpecFile() error {
-	if o.SpecFile == "" {
+func (o *Options) ValidateIntentFile() error {
+	if o.IntentFile == "" {
 		return nil
 	}
 
-	// calculate the absolute path of the specFile
+	// calculate the absolute path of the intentFile
 	var absSF string
 	if o.WorkDir == "" {
-		absSF, _ = filepath.Abs(o.SpecFile)
-	} else if filepath.IsAbs(o.SpecFile) {
-		absSF = o.SpecFile
+		absSF, _ = filepath.Abs(o.IntentFile)
+	} else if filepath.IsAbs(o.IntentFile) {
+		absSF = o.IntentFile
 	} else {
-		absSF = filepath.Join(o.WorkDir, o.SpecFile)
+		absSF = filepath.Join(o.WorkDir, o.IntentFile)
 	}
 
 	fi, err := os.Stat(absSF)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = fmt.Errorf("spec file not exist")
+			err = fmt.Errorf("intent file not exist")
 		}
 		return err
 	}
 
 	if fi.IsDir() || !fi.Mode().IsRegular() {
-		return fmt.Errorf("spec file must be a regular file")
+		return fmt.Errorf("intent file must be a regular file")
 	}
 
 	// calculate the relative path between absWD and absSF,
@@ -101,11 +101,11 @@ func (o *Options) ValidateSpecFile() error {
 		return err
 	}
 	if rel[:3] == ".."+string(filepath.Separator) {
-		return fmt.Errorf("the spec file must be located in the working directory or its subdirectories")
+		return fmt.Errorf("the intent file must be located in the working directory or its subdirectories")
 	}
 
-	// set the spec file to the absolute path for further processing
-	o.SpecFile = absSF
+	// set the intent file to the absolute path for further processing
+	o.IntentFile = absSF
 	return nil
 }
 
@@ -131,12 +131,12 @@ func (o *Options) Run() error {
 
 	// Generate Intent
 	var sp *intent.Intent
-	if o.SpecFile != "" {
-		sp, err = build.GenerateSpecFromFile(o.SpecFile)
+	if o.IntentFile != "" {
+		sp, err = build.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
-		sp, err = build.GenerateSpec(options, project, stack)
+		sp, err = build.Intent(options, project, stack)
 	} else {
-		sp, err = build.GenerateSpecWithSpinner(options, project, stack)
+		sp, err = build.IntentWithSpinner(options, project, stack)
 	}
 	if err != nil {
 		return err
@@ -249,7 +249,7 @@ func Preview(
 			Project:  project,
 			Stack:    stack,
 			Operator: o.Operator,
-			Spec:     planResources,
+			Intent:   planResources,
 			Cluster:  cluster,
 		},
 	})
