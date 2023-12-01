@@ -30,7 +30,7 @@ var (
 	namespace  = "test-ns"
 
 	p = &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name:   "testdata",
 			Tenant: "admin",
 		},

@@ -35,7 +35,7 @@ func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, p
 
 // Patch implements Patcher interface.
 func (p *monitoringPatcher) Patch(resources map[string][]*intent.Resource) error {
-	if p.app.Monitoring == nil || p.project.ProjectConfiguration.Prometheus == nil {
+	if p.app.Monitoring == nil || p.project.Configuration.Prometheus == nil {
 		return nil
 	}
 
@@ -53,7 +53,7 @@ func (p *monitoringPatcher) Patch(resources map[string][]*intent.Resource) error
 	monitoringLabels := make(map[string]string)
 	monitoringAnnotations := make(map[string]string)
 
-	if p.project.ProjectConfiguration.Prometheus.OperatorMode {
+	if p.project.Configuration.Prometheus.OperatorMode {
 		monitoringLabels["kusion_monitoring_appname"] = p.appName
 	} else {
 		// If Prometheus doesn't run as an operator, kusion will generate the

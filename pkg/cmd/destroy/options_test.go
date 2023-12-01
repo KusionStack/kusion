@@ -65,7 +65,7 @@ func TestDestroyOptions_Run(t *testing.T) {
 
 var (
 	p = &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name:   "testdata",
 			Tenant: "admin",
 		},

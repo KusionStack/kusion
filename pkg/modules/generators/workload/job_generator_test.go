@@ -15,7 +15,7 @@ import (
 
 func TestNewJobGenerator(t *testing.T) {
 	expectedProject := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "test",
 		},
 	}
@@ -34,7 +34,7 @@ func TestNewJobGenerator(t *testing.T) {
 
 func TestNewJobGeneratorFunc(t *testing.T) {
 	expectedProject := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "test",
 		},
 	}
@@ -63,7 +63,7 @@ func TestJobGenerator_Generate(t *testing.T) {
 		{
 			name: "test generate",
 			expectedProject: &project.Project{
-				ProjectConfiguration: project.ProjectConfiguration{
+				Configuration: project.Configuration{
 					Name: "test",
 				},
 			},

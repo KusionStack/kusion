@@ -42,8 +42,8 @@ type PrometheusConfig struct {
 	MonitorType  MonitorType `yaml:"monitorType,omitempty" json:"monitorType,omitempty"`
 }
 
-// ProjectConfiguration is the project configuration
-type ProjectConfiguration struct {
+// Configuration is the project configuration
+type Configuration struct {
 	// Project name
 	Name string `json:"name" yaml:"name"`
 
@@ -61,17 +61,17 @@ type ProjectConfiguration struct {
 }
 
 type Project struct {
-	ProjectConfiguration `json:",inline" yaml:",inline"`
-	Path                 string         `json:"path,omitempty" yaml:"path,omitempty"`     // Absolute path to the project directory
-	Stacks               []*stack.Stack `json:"stacks,omitempty" yaml:"stacks,omitempty"` // Stacks
+	Configuration `json:",inline" yaml:",inline"`
+	Path          string         `json:"path,omitempty" yaml:"path,omitempty"`     // Absolute path to the project directory
+	Stacks        []*stack.Stack `json:"stacks,omitempty" yaml:"stacks,omitempty"` // Stacks
 }
 
 // NewProject creates a new project
-func NewProject(config *ProjectConfiguration, path string, stacks []*stack.Stack) *Project {
+func NewProject(config *Configuration, path string, stacks []*stack.Stack) *Project {
 	return &Project{
-		ProjectConfiguration: *config,
-		Path:                 path,
-		Stacks:               stacks,
+		Configuration: *config,
+		Path:          path,
+		Stacks:        stacks,
 	}
 }
 

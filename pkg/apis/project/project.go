@@ -60,13 +60,13 @@ func FindProjectPathFrom(path string) (string, error) {
 	return filepath.Dir(file), nil
 }
 
-// ParseProjectConfiguration parse the project configuration by the given directory
-func ParseProjectConfiguration(path string) (*ProjectConfiguration, error) {
+// ParseConfiguration parse the project configuration by the given directory
+func ParseConfiguration(path string) (*Configuration, error) {
 	if !IsProject(path) {
 		return nil, ErrNotProjectDirectory
 	}
 
-	var config ProjectConfiguration
+	var config Configuration
 
 	err := yaml.ParseYamlFromFile(filepath.Join(path, ProjectFile), &config)
 	if err != nil {
@@ -98,7 +98,7 @@ func FindAllProjectsFrom(path string) ([]*Project, error) {
 	err := filepath.WalkDir(path, func(p string, _ fs.DirEntry, _ error) error {
 		if IsProject(p) && !s.Has(p) {
 			// Parse project configuration
-			config, err := ParseProjectConfiguration(p)
+			config, err := ParseConfiguration(p)
 			if err != nil {
 				log.Error(err)
 				return fmt.Errorf("parse project.yaml failed. %w", err)

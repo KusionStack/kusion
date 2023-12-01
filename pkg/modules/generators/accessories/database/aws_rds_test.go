@@ -17,7 +17,7 @@ import (
 
 func TestGenerateAWSResources(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -77,7 +77,7 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 	awsProviderRegion = "us-east-1"
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -148,7 +148,7 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 	awsProviderRegion = "us-east-1"
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}

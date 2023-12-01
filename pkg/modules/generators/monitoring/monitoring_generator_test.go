@@ -93,7 +93,7 @@ func BuildMonitoringTestCase(
 		name: fmt.Sprintf("%s-%s", projectName, appName),
 		fields: Fields{
 			project: &project.Project{
-				ProjectConfiguration: project.ProjectConfiguration{
+				Configuration: project.Configuration{
 					Name: projectName,
 					Prometheus: &project.PrometheusConfig{
 						OperatorMode: operatorMode,

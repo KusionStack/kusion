@@ -139,14 +139,14 @@ func TestIsProject(t *testing.T) {
 	}
 }
 
-func TestParseProjectConfiguration(t *testing.T) {
+func TestParseConfiguration(t *testing.T) {
 	type args struct {
 		path string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *ProjectConfiguration
+		want    *Configuration
 		wantErr bool
 	}{
 		{
@@ -154,7 +154,7 @@ func TestParseProjectConfiguration(t *testing.T) {
 			args: args{
 				path: "./testdata/appops/http-echo/",
 			},
-			want: &ProjectConfiguration{
+			want: &Configuration{
 				Name:   TestProjectA,
 				Tenant: "",
 			},
@@ -171,13 +171,13 @@ func TestParseProjectConfiguration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseProjectConfiguration(tt.args.path)
+			got, err := ParseConfiguration(tt.args.path)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseProjectConfiguration() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseConfiguration() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseProjectConfiguration() = %v, want %v", got, tt.want)
+				t.Errorf("ParseConfiguration() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -196,7 +196,7 @@ func TestFindAllProjects(t *testing.T) {
 			name: "given-project-path",
 			want: []*Project{
 				{
-					ProjectConfiguration: ProjectConfiguration{
+					Configuration: Configuration{
 						Name: TestProjectA,
 					},
 					Path: filepath.Join(TestCurrentDir, TestProjectPathA),
@@ -244,7 +244,7 @@ func TestFindAllProjectsFrom(t *testing.T) {
 			},
 			want: []*Project{
 				{
-					ProjectConfiguration: ProjectConfiguration{
+					Configuration: Configuration{
 						Name: TestProjectA,
 					},
 					Path: filepath.Join(TestCurrentDir, TestProjectPathA),
@@ -267,7 +267,7 @@ func TestFindAllProjectsFrom(t *testing.T) {
 			},
 			want: []*Project{
 				{
-					ProjectConfiguration: ProjectConfiguration{
+					Configuration: Configuration{
 						Name: TestProjectB,
 					},
 					Path: filepath.Join(TestCurrentDir, TestProjectPathB),
@@ -318,7 +318,7 @@ func TestGetProject(t *testing.T) {
 		{
 			name: "success",
 			want: &Project{
-				ProjectConfiguration: ProjectConfiguration{
+				Configuration: Configuration{
 					Name: TestProjectA,
 				},
 				Path: filepath.Join(TestCurrentDir, TestProjectPathA),
@@ -377,7 +377,7 @@ func TestGetProjectFrom(t *testing.T) {
 				path: filepath.Join(TestCurrentDir, TestProjectPathA),
 			},
 			want: &Project{
-				ProjectConfiguration: ProjectConfiguration{
+				Configuration: Configuration{
 					Name: TestProjectA,
 				},
 				Path: filepath.Join(TestCurrentDir, TestProjectPathA),
@@ -465,7 +465,7 @@ func TestIsProjectFile(t *testing.T) {
 
 func TestDetectProjectAndStack(t *testing.T) {
 	FakeProject := &Project{
-		ProjectConfiguration: ProjectConfiguration{
+		Configuration: Configuration{
 			Name: TestProjectA,
 		},
 		Path: filepath.Join(TestCurrentDir, TestProjectPathA),

@@ -16,7 +16,7 @@ import (
 
 func TestGenerateLocalResources(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -70,7 +70,7 @@ func TestGenerateLocalResources(t *testing.T) {
 
 func TestGenerateLocalSecret(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -106,7 +106,7 @@ func TestGenerateLocalSecret(t *testing.T) {
 
 func TestGenerateLocalPVC(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -140,7 +140,7 @@ func TestGenerateLocalPVC(t *testing.T) {
 
 func TestGenerateLocalDeployment(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -174,7 +174,7 @@ func TestGenerateLocalDeployment(t *testing.T) {
 
 func TestGenerateLocalService(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}

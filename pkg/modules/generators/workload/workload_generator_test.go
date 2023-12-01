@@ -18,7 +18,7 @@ import (
 func TestNewWorkloadGenerator(t *testing.T) {
 	t.Run("NewWorkloadGenerator should return a valid generator", func(t *testing.T) {
 		expectedProject := &project.Project{
-			ProjectConfiguration: project.ProjectConfiguration{
+			Configuration: project.Configuration{
 				Name: "test",
 			},
 		}
@@ -40,7 +40,7 @@ func TestNewWorkloadGenerator(t *testing.T) {
 func TestNewWorkloadGeneratorFunc(t *testing.T) {
 	t.Run("NewWorkloadGeneratorFunc should return a valid generator function", func(t *testing.T) {
 		expectedProject := &project.Project{
-			ProjectConfiguration: project.ProjectConfiguration{
+			Configuration: project.Configuration{
 				Name: "test",
 			},
 		}
@@ -102,7 +102,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			expectedProject := &project.Project{
-				ProjectConfiguration: project.ProjectConfiguration{
+				Configuration: project.Configuration{
 					Name: "test",
 					Prometheus: &project.PrometheusConfig{
 						OperatorMode: false,

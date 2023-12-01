@@ -67,8 +67,8 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 		"kusion_monitoring_appname": g.appName,
 	}
 
-	if g.project.ProjectConfiguration.Prometheus != nil && g.project.ProjectConfiguration.Prometheus.OperatorMode && g.monitor != nil {
-		if g.project.ProjectConfiguration.Prometheus.MonitorType == project.ServiceMonitorType {
+	if g.project.Configuration.Prometheus != nil && g.project.Configuration.Prometheus.OperatorMode && g.monitor != nil {
+		if g.project.Configuration.Prometheus.MonitorType == project.ServiceMonitorType {
 			serviceEndpoint := prometheusv1.Endpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
@@ -99,7 +99,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 			if err != nil {
 				return err
 			}
-		} else if g.project.ProjectConfiguration.Prometheus.MonitorType == project.PodMonitorType {
+		} else if g.project.Configuration.Prometheus.MonitorType == project.PodMonitorType {
 			podMetricsEndpoint := prometheusv1.PodMetricsEndpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
@@ -133,7 +133,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("MonitorType should either be service or pod %s", g.project.ProjectConfiguration.Prometheus.MonitorType)
+			return fmt.Errorf("MonitorType should either be service or pod %s", g.project.Configuration.Prometheus.MonitorType)
 		}
 	}
 

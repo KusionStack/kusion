@@ -11,7 +11,7 @@ import (
 
 func TestNewProject(t *testing.T) {
 	type args struct {
-		config *ProjectConfiguration
+		config *Configuration
 		path   string
 		stacks []*stack.Stack
 	}
@@ -23,14 +23,14 @@ func TestNewProject(t *testing.T) {
 		{
 			name: "success",
 			args: args{
-				config: &ProjectConfiguration{},
+				config: &Configuration{},
 				path:   "test",
 				stacks: []*stack.Stack{},
 			},
 			want: &Project{
-				ProjectConfiguration: ProjectConfiguration{},
-				Path:                 "test",
-				Stacks:               []*stack.Stack{},
+				Configuration: Configuration{},
+				Path:          "test",
+				Stacks:        []*stack.Stack{},
 			},
 		},
 	}
@@ -45,9 +45,9 @@ func TestNewProject(t *testing.T) {
 
 func TestProject_GetName(t *testing.T) {
 	type fields struct {
-		ProjectConfiguration ProjectConfiguration
-		Path                 string
-		Stacks               []*stack.Stack
+		Configuration Configuration
+		Path          string
+		Stacks        []*stack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -57,7 +57,7 @@ func TestProject_GetName(t *testing.T) {
 		{
 			name: "success",
 			fields: fields{
-				ProjectConfiguration: ProjectConfiguration{
+				Configuration: Configuration{
 					Name: "test",
 				},
 			},
@@ -67,9 +67,9 @@ func TestProject_GetName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Project{
-				ProjectConfiguration: tt.fields.ProjectConfiguration,
-				Path:                 tt.fields.Path,
-				Stacks:               tt.fields.Stacks,
+				Configuration: tt.fields.Configuration,
+				Path:          tt.fields.Path,
+				Stacks:        tt.fields.Stacks,
 			}
 			if got := p.GetName(); got != tt.want {
 				t.Errorf("Project.GetName() = %v, want %v", got, tt.want)
@@ -80,9 +80,9 @@ func TestProject_GetName(t *testing.T) {
 
 func TestProject_GetPath(t *testing.T) {
 	type fields struct {
-		ProjectConfiguration ProjectConfiguration
-		Path                 string
-		Stacks               []*stack.Stack
+		Configuration Configuration
+		Path          string
+		Stacks        []*stack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -100,9 +100,9 @@ func TestProject_GetPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Project{
-				ProjectConfiguration: tt.fields.ProjectConfiguration,
-				Path:                 tt.fields.Path,
-				Stacks:               tt.fields.Stacks,
+				Configuration: tt.fields.Configuration,
+				Path:          tt.fields.Path,
+				Stacks:        tt.fields.Stacks,
 			}
 			if got := p.GetPath(); got != tt.want {
 				t.Errorf("Project.GetPath() = %v, want %v", got, tt.want)
@@ -113,9 +113,9 @@ func TestProject_GetPath(t *testing.T) {
 
 func TestProject_TableReport(t *testing.T) {
 	type fields struct {
-		ProjectConfiguration ProjectConfiguration
-		Path                 string
-		Stacks               []*stack.Stack
+		Configuration Configuration
+		Path          string
+		Stacks        []*stack.Stack
 	}
 	tests := []struct {
 		name   string
@@ -125,7 +125,7 @@ func TestProject_TableReport(t *testing.T) {
 		{
 			name: "success",
 			fields: fields{
-				ProjectConfiguration: ProjectConfiguration{
+				Configuration: Configuration{
 					Name:   TestProjectA,
 					Tenant: "main",
 				},
@@ -151,9 +151,9 @@ func TestProject_TableReport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Project{
-				ProjectConfiguration: tt.fields.ProjectConfiguration,
-				Path:                 tt.fields.Path,
-				Stacks:               tt.fields.Stacks,
+				Configuration: tt.fields.Configuration,
+				Path:          tt.fields.Path,
+				Stacks:        tt.fields.Stacks,
 			}
 			got := pterm.RemoveColorFromString(p.TableReport())
 			if got != tt.want {
