@@ -203,7 +203,7 @@ func TestGenerateSpec(t *testing.T) {
 			}{
 				o: &builders.Options{},
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Generator: &project.GeneratorConfig{
 							Type: project.KCLBuilder,
 						},
@@ -223,7 +223,7 @@ func TestGenerateSpec(t *testing.T) {
 			}{
 				o: &builders.Options{Arguments: map[string]string{}},
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Name: "default",
 						Generator: &project.GeneratorConfig{
 							Type: project.AppConfigurationBuilder,

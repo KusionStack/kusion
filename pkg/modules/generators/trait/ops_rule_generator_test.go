@@ -24,7 +24,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		spec *intent.Intent
 	}
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "default",
 		},
 	}

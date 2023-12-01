@@ -115,7 +115,7 @@ func TestOperation_Apply(t *testing.T) {
 		Path:          "fakePath",
 	}
 	p := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name:    "fakeProject",
 			Tenant:  "fakeTenant",
 			Backend: nil,

@@ -71,7 +71,7 @@ func TestGenerateSecret(t *testing.T) {
 	}
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "helloworld",
 		},
 	}

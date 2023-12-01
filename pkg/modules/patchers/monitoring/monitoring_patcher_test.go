@@ -45,7 +45,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 					Monitoring: &monitoring.Monitor{},
 				},
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Prometheus: &project.PrometheusConfig{
 							OperatorMode: true,
 						},
@@ -65,7 +65,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 					Monitoring: &monitoring.Monitor{},
 				},
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Prometheus: &project.PrometheusConfig{
 							OperatorMode: false,
 						},

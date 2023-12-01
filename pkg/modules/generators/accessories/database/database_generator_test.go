@@ -19,7 +19,7 @@ import (
 
 func TestNewDatabaseGenerator(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -39,7 +39,7 @@ func TestNewDatabaseGenerator(t *testing.T) {
 
 func TestGenerate(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -167,7 +167,7 @@ func TestGenerate(t *testing.T) {
 
 func TestInjectSecret(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -247,7 +247,7 @@ func TestInjectSecret(t *testing.T) {
 
 func TestGenerateTFRandomPassword(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -293,7 +293,7 @@ func TestGenerateTFRandomPassword(t *testing.T) {
 
 func TestGenerateDBSeret(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}

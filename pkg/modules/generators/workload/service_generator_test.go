@@ -145,7 +145,7 @@ status: {}
 			name: "CollaSet",
 			fields: fields{
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Name: "default",
 					},
 					Path: "/test",
@@ -190,7 +190,7 @@ status: {}
 			name: "Deployment",
 			fields: fields{
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Name: "default",
 					},
 					Path: "/test",

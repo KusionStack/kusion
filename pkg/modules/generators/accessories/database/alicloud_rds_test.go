@@ -17,7 +17,7 @@ import (
 
 func TestGenerateAlicloudResources(t *testing.T) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -83,7 +83,7 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 	alicloudProvider.SetString(defaultAlicloudProvider)
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -159,7 +159,7 @@ func TestGenerateAlicloudDBConnection(t *testing.T) {
 	alicloudProvider.SetString(defaultAlicloudProvider)
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}
@@ -220,7 +220,7 @@ func TestGenerateAlicloudRDSAccount(t *testing.T) {
 	alicloudProvider.SetString(defaultAlicloudProvider)
 
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}

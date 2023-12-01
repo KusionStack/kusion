@@ -87,7 +87,7 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 
 func buildMockProjectAndStack() (*project.Project, *stack.Stack) {
 	project := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name: "testproject",
 		},
 	}

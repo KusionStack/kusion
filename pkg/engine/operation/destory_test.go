@@ -33,7 +33,7 @@ func TestOperation_Destroy(t *testing.T) {
 		Path:          "fake-path",
 	}
 	p := &project.Project{
-		ProjectConfiguration: project.ProjectConfiguration{
+		Configuration: project.Configuration{
 			Name:    "fake-name",
 			Tenant:  "fake-tenant",
 			Backend: nil,

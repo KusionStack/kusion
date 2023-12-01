@@ -333,7 +333,7 @@ func TestChanges_Project(t *testing.T) {
 			name: "t1",
 			fields: fields{
 				project: &project.Project{
-					ProjectConfiguration: project.ProjectConfiguration{
+					Configuration: project.Configuration{
 						Name:   "test-name",
 						Tenant: "test-tenant",
 					},
@@ -341,7 +341,7 @@ func TestChanges_Project(t *testing.T) {
 				},
 			},
 			want: &project.Project{
-				ProjectConfiguration: project.ProjectConfiguration{
+				Configuration: project.Configuration{
 					Name:   "test-name",
 					Tenant: "test-tenant",
 				},
