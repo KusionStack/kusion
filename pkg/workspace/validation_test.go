@@ -8,9 +8,9 @@ import (
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
-func mockValidWorkspace() *workspace.Workspace {
+func mockValidWorkspace(name string) *workspace.Workspace {
 	return &workspace.Workspace{
-		Name:     "dev",
+		Name:     name,
 		Modules:  mockValidModuleConfigs(),
 		Runtimes: mockValidRuntimeConfigs(),
 		Backends: mockValidBackendConfigs(),
@@ -27,7 +27,7 @@ func mockValidModuleConfigs() map[string]workspace.ModuleConfig {
 			},
 			"smallClass": {
 				"instanceType":    "db.t3.small",
-				"projectSelector": []string{"foo", "bar"},
+				"projectSelector": []any{"foo", "bar"},
 			},
 		},
 		"port": {
@@ -169,7 +169,7 @@ func TestWorkspace_Validate(t *testing.T) {
 		{
 			name:      "valid workspace",
 			success:   true,
-			workspace: mockValidWorkspace(),
+			workspace: mockValidWorkspace("dev"),
 		},
 		{
 			name:      "invalid workspace empty name",
