@@ -10,16 +10,15 @@ import (
 )
 
 var (
-	ErrEmptyQueryProjectName = errors.New("empty query project name")
+	ErrEmptyProjectName = errors.New("empty query project name")
 
-	ErrEmptyQueryTerraformProviderName = errors.New("empty query terraform provider name")
 	ErrNotExistTerraformProviderConfig = errors.New("not exist terraform provider config")
 )
 
 // GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name.
 func GetProjectModuleConfigs(configs *workspace.ModuleConfigs, projectName string) (map[string]workspace.GenericConfig, error) {
 	if projectName == "" {
-		return nil, ErrEmptyQueryProjectName
+		return nil, ErrEmptyProjectName
 	}
 
 	projectCfgs := make(map[string]workspace.GenericConfig)
@@ -38,7 +37,7 @@ func GetProjectModuleConfigs(configs *workspace.ModuleConfigs, projectName strin
 // GetProjectModuleConfig returns the module config of a specified project, should be called after Validate.
 func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
 	if projectName == "" {
-		return nil, ErrEmptyQueryProjectName
+		return nil, ErrEmptyProjectName
 	}
 
 	return getProjectModuleConfig(config, projectName)
@@ -101,7 +100,7 @@ func parseProjectsFromProjectSelector(unstructuredProjects any) ([]string, error
 // GetTerraformProviderConfig is used to get a specified provider config.
 func GetTerraformProviderConfig(config *workspace.TerraformConfig, providerName string) (workspace.GenericConfig, error) {
 	if providerName == "" {
-		return nil, ErrEmptyQueryTerraformProviderName
+		return nil, ErrEmptyTerraformProviderName
 	}
 	cfg, ok := (*config)[providerName]
 	if !ok {

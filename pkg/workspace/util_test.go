@@ -8,37 +8,6 @@ import (
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
-func mockModuleConfigs() map[string]workspace.ModuleConfig {
-	return map[string]workspace.ModuleConfig{
-		"database": {
-			"default": {
-				"type":         "aws",
-				"version":      "5.7",
-				"instanceType": "db.t3.micro",
-			},
-			"smallClass": {
-				"instanceType":    "db.t3.small",
-				"projectSelector": []string{"foo", "bar"},
-			},
-		},
-		"port": {
-			"default": {
-				"type": "aws",
-			},
-		},
-	}
-}
-
-func mockTerraformConfig() workspace.TerraformConfig {
-	return workspace.TerraformConfig{
-		"aws": {
-			"version": "1.0.4",
-			"source":  "hashicorp/aws",
-			"region":  "us-east-1",
-		},
-	}
-}
-
 func Test_GetProjectModuleConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
@@ -61,7 +30,7 @@ func Test_GetProjectModuleConfigs(t *testing.T) {
 					"type": "aws",
 				},
 			},
-			moduleConfigs: mockModuleConfigs(),
+			moduleConfigs: mockValidModuleConfigs(),
 		},
 	}
 
@@ -91,7 +60,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			moduleConfig: mockModuleConfigs()["database"],
+			moduleConfig: mockValidModuleConfigs()["database"],
 		},
 		{
 			name:        "successfully get override project module config",
@@ -102,14 +71,14 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 				"version":      "5.7",
 				"instanceType": "db.t3.small",
 			},
-			moduleConfig: mockModuleConfigs()["database"],
+			moduleConfig: mockValidModuleConfigs()["database"],
 		},
 		{
 			name:          "failed to get config empty project name",
 			success:       false,
 			projectName:   "",
 			projectConfig: nil,
-			moduleConfig:  mockModuleConfigs()["database"],
+			moduleConfig:  mockValidModuleConfigs()["database"],
 		},
 	}
 
@@ -139,14 +108,14 @@ func Test_GetTerraformProviderConfig(t *testing.T) {
 				"source":  "hashicorp/aws",
 				"region":  "us-east-1",
 			},
-			terraformConfig: mockTerraformConfig(),
+			terraformConfig: mockValidTerraformConfig(),
 		},
 		{
 			name:            "failed to get config not exist provider",
 			success:         false,
 			providerName:    "alicloud",
 			providerConfig:  nil,
-			terraformConfig: mockTerraformConfig(),
+			terraformConfig: mockValidTerraformConfig(),
 		},
 	}
 
