@@ -98,7 +98,7 @@ type vaultSecretStore struct {
 
 // GetSecret retrieves ref secret value from Vault server.
 func (v *vaultSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSecretRef) ([]byte, error) {
-	secretData, err := v.readSecret(ctx, ref.Path, ref.Version)
+	secretData, err := v.readSecret(ctx, ref.Name, ref.Version)
 	if err != nil {
 		return nil, err
 	}
