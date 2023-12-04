@@ -23,6 +23,7 @@ type Options struct {
 type Flags struct {
 	Output    string
 	WorkDir   string
+	Settings  []string
 	Arguments map[string]string
 	NoStyle   bool
 }
@@ -34,6 +35,7 @@ func NewBuildOptions() *Options {
 		Filenames: []string{},
 		Flags: Flags{
 			Arguments: map[string]string{},
+			Settings:  make([]string, 0),
 		},
 	}
 }
@@ -74,6 +76,7 @@ func (o *Options) Run() error {
 			IsKclPkg:  o.IsKclPkg,
 			WorkDir:   o.WorkDir,
 			Filenames: o.Filenames,
+			Settings:  o.Settings,
 			Arguments: o.Arguments,
 			NoStyle:   o.NoStyle,
 		},
@@ -118,6 +121,10 @@ func (o *Options) PreSet(preCheck func(cur string) bool) error {
 	if _, err := api.GetKclPackage(o.WorkDir); err == nil {
 		o.IsKclPkg = true
 		return nil
+	}
+
+	if len(o.Settings) == 0 {
+		o.Settings = []string{project.KclFile}
 	}
 	return nil
 }

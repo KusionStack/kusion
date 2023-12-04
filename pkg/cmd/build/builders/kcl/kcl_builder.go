@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	kcl "kcl-lang.io/kcl-go"
@@ -66,7 +67,7 @@ func (g *Builder) Build(o *builders.Options, _ *project.Project, stack *stack.St
 }
 
 func Run(o *builders.Options, stack *stack.Stack) (*CompileResult, error) {
-	optList, err := BuildOptions(o.WorkDir, o.Arguments)
+	optList, err := BuildKCLOptions(o)
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +147,23 @@ func readCRDs(workDir string) ([]interface{}, error) {
 	return visitor.Visit()
 }
 
-func BuildOptions(workDir string, arguments map[string]string) ([]kcl.Option, error) {
+func BuildKCLOptions(o *builders.Options) ([]kcl.Option, error) {
 	optList := make([]kcl.Option, 0)
+	settings := o.Settings
+	workDir := o.WorkDir
+	arguments := o.Arguments
+
+	// build settings option
+	for _, setting := range settings {
+		if workDir != "" {
+			setting = filepath.Join(workDir, setting)
+		}
+		settingOptions := kcl.WithSettings(setting)
+		if settingOptions.Err != nil {
+			return nil, settingOptions.Err
+		}
+		optList = append(optList, settingOptions)
+	}
 
 	// build arguments option
 	for k, v := range arguments {

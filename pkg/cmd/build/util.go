@@ -62,23 +62,25 @@ func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.In
 	pg := p.Generator
 
 	// default AppsConfigBuilder
+	var bt project.BuilderType
 	if pg == nil {
-		builder = &kcl.Builder{}
+		bt = project.AppConfigurationBuilder
 	} else {
-		gt := pg.Type
-		// we can add more generators here
-		switch gt {
-		case project.KCLBuilder:
-			builder = &kcl.Builder{}
-		case project.AppConfigurationBuilder:
-			appConfigs, err := buildAppConfigs(o, s)
-			if err != nil {
-				return nil, err
-			}
-			builder = &builders.AppsConfigBuilder{Apps: appConfigs}
-		default:
-			return nil, fmt.Errorf("unknow generator type:%s", gt)
+		bt = pg.Type
+	}
+
+	// we can add more generators here
+	switch bt {
+	case project.KCLBuilder:
+		builder = &kcl.Builder{}
+	case project.AppConfigurationBuilder:
+		appConfigs, err := buildAppConfigs(o, s)
+		if err != nil {
+			return nil, err
 		}
+		builder = &builders.AppsConfigBuilder{Apps: appConfigs}
+	default:
+		return nil, fmt.Errorf("unknow generator type:%s", bt)
 	}
 
 	i, err := builder.Build(o, p, s)
