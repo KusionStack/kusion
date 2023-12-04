@@ -27,7 +27,7 @@ func makeValidVaultSecretStore(v secretsapi.VaultKVStoreVersion) *vaultSecretSto
 
 func makeExternalSecretRef(path, property, version string) secretsapi.ExternalSecretRef {
 	return secretsapi.ExternalSecretRef{
-		Path:     path,
+		Name:     path,
 		Property: property,
 		Version:  version,
 	}
