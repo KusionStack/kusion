@@ -10,20 +10,34 @@ import (
 )
 
 var (
-	ErrEmptyProjectName = errors.New("empty query project name")
+	ErrEmptyProjectName             = errors.New("empty project name")
+	ErrEmptyModuleConfigs           = errors.New("empty module configs")
+	ErrNotExistProjectModuleConfigs = errors.New("not exist module configs of the project")
+	ErrNotExistProjectModuleConfig  = errors.New("not exist module config of the project")
 
+	ErrEmptyRuntimeConfigs             = errors.New("empty runtime configs")
+	ErrNotExistKubernetesConfig        = errors.New("not exist kubernetes config")
+	ErrNotExistTerraformConfig         = errors.New("not exist terraform config")
 	ErrNotExistTerraformProviderConfig = errors.New("not exist terraform provider config")
 )
 
-// GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name.
-func GetProjectModuleConfigs(configs *workspace.ModuleConfigs, projectName string) (map[string]workspace.GenericConfig, error) {
+// GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name,
+// should be called after ValidateModuleConfigs.
+// If got empty module configs, ErrNotExistProjectModuleConfigs will get returned.
+func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string) (map[string]workspace.GenericConfig, error) {
+	if len(configs) == 0 {
+		return nil, ErrEmptyModuleConfigs
+	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
 	}
 
 	projectCfgs := make(map[string]workspace.GenericConfig)
-	for name, cfg := range *configs {
-		projectCfg, err := getProjectModuleConfig(&cfg, projectName)
+	for name, cfg := range configs {
+		projectCfg, err := getProjectModuleConfig(cfg, projectName)
+		if errors.Is(err, ErrNotExistProjectModuleConfig) {
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("%w, module name: %s", err, name)
 		}
@@ -31,11 +45,20 @@ func GetProjectModuleConfigs(configs *workspace.ModuleConfigs, projectName strin
 			projectCfgs[name] = projectCfg
 		}
 	}
+
+	if len(projectCfgs) == 0 {
+		return nil, ErrNotExistProjectModuleConfigs
+	}
 	return projectCfgs, nil
 }
 
-// GetProjectModuleConfig returns the module config of a specified project, should be called after Validate.
-func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+// GetProjectModuleConfig returns the module config of a specified project, should be called after
+// ValidateModuleConfig.
+// If got empty module config, ErrNotExistProjectModuleConfig will get returned.
+func GetProjectModuleConfig(config workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+	if len(config) == 0 {
+		return nil, ErrEmptyModuleConfig
+	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
 	}
@@ -45,13 +68,13 @@ func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 
 // getProjectModuleConfig gets the module config of a specified project without checking the correctness
 // of project name.
-func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
-	projectCfg := (*config)[workspace.DefaultBlock]
+func getProjectModuleConfig(config workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+	projectCfg := config[workspace.DefaultBlock]
 	if len(projectCfg) == 0 {
 		projectCfg = make(workspace.GenericConfig)
 	}
 
-	for name, cfg := range *config {
+	for name, cfg := range config {
 		if name == workspace.DefaultBlock {
 			continue
 		}
@@ -78,6 +101,9 @@ func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 		}
 	}
 
+	if len(projectCfg) == 0 {
+		return nil, ErrNotExistProjectModuleConfig
+	}
 	return projectCfg, nil
 }
 
@@ -97,12 +123,45 @@ func parseProjectsFromProjectSelector(unstructuredProjects any) ([]string, error
 	return projects, nil
 }
 
-// GetTerraformProviderConfig is used to get a specified provider config.
-func GetTerraformProviderConfig(config *workspace.TerraformConfig, providerName string) (workspace.GenericConfig, error) {
+// GetKubernetesConfig returns kubernetes config from runtime config, should be called after
+// ValidateRuntimeConfigs.
+// If got empty kubernetes config, ErrNotExistKubernetesConfig will get returned.
+func GetKubernetesConfig(configs *workspace.RuntimeConfigs) (*workspace.KubernetesConfig, error) {
+	if configs == nil {
+		return nil, ErrEmptyRuntimeConfigs
+	}
+	if configs.Kubernetes == nil {
+		return nil, ErrNotExistKubernetesConfig
+	}
+	return configs.Kubernetes, nil
+}
+
+// GetTerraformConfig returns terraform config from runtime config, should be called after
+// ValidateRuntimeConfigs.
+// If got empty terraform config, ErrNotExistTerraformConfig will get returned.
+func GetTerraformConfig(configs *workspace.RuntimeConfigs) (workspace.TerraformConfig, error) {
+	if configs == nil {
+		return nil, ErrEmptyRuntimeConfigs
+	}
+	if len(configs.Terraform) == 0 {
+		return nil, ErrNotExistTerraformConfig
+	}
+	return configs.Terraform, nil
+}
+
+// GetTerraformProviderConfig returns the specified terraform provider config from runtime config, should
+// be called after ValidateRuntimeConfigs.
+// If got empty terraform config, ErrNotExistTerraformProviderConfig will get returned.
+func GetTerraformProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (workspace.GenericConfig, error) {
 	if providerName == "" {
 		return nil, ErrEmptyTerraformProviderName
 	}
-	cfg, ok := (*config)[providerName]
+	config, err := GetTerraformConfig(configs)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, ok := config[providerName]
 	if !ok {
 		return nil, ErrNotExistTerraformProviderConfig
 	}

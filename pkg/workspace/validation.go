@@ -3,7 +3,6 @@ package workspace
 import (
 	"errors"
 	"fmt"
-	"reflect"
 
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
@@ -33,18 +32,18 @@ func ValidateWorkspace(ws *workspace.Workspace) error {
 	if ws.Name == "" {
 		return ErrEmptyWorkspaceName
 	}
-	if !reflect.DeepEqual(ws.Modules, workspace.ModuleConfigs{}) {
-		if err := ValidateModuleConfigs(&ws.Modules); err != nil {
+	if len(ws.Modules) != 0 {
+		if err := ValidateModuleConfigs(ws.Modules); err != nil {
 			return err
 		}
 	}
-	if !reflect.DeepEqual(ws.Runtimes, workspace.RuntimeConfigs{}) {
-		if err := ValidateRuntimeConfigs(&ws.Runtimes); err != nil {
+	if ws.Runtimes != nil {
+		if err := ValidateRuntimeConfigs(ws.Runtimes); err != nil {
 			return err
 		}
 	}
-	if !reflect.DeepEqual(ws.Backends, workspace.BackendConfigs{}) {
-		if err := ValidateBackendConfigs(&ws.Backends); err != nil {
+	if ws.Backends != nil {
+		if err := ValidateBackendConfigs(ws.Backends); err != nil {
 			return err
 		}
 	}
@@ -52,15 +51,15 @@ func ValidateWorkspace(ws *workspace.Workspace) error {
 }
 
 // ValidateModuleConfigs validates the workspace.ModuleConfigs is valid or not.
-func ValidateModuleConfigs(configs *workspace.ModuleConfigs) error {
-	for name, cfg := range *configs {
+func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
+	for name, cfg := range configs {
 		if name == "" {
 			return ErrEmptyModuleName
 		}
 		if len(cfg) == 0 {
 			return fmt.Errorf("%w, module name: %s", ErrEmptyModuleConfig, name)
 		}
-		if err := ValidateModuleConfig(&cfg); err != nil {
+		if err := ValidateModuleConfig(cfg); err != nil {
 			return fmt.Errorf("%w, module name: %s", err, name)
 		}
 	}
@@ -69,11 +68,11 @@ func ValidateModuleConfigs(configs *workspace.ModuleConfigs) error {
 }
 
 // ValidateModuleConfig is used to validate the workspace.ModuleConfig is valid or not.
-func ValidateModuleConfig(config *workspace.ModuleConfig) error {
+func ValidateModuleConfig(config workspace.ModuleConfig) error {
 	// allProjects is used to inspect if there are repeated projects in projectSelector
 	// field or not.
 	allProjects := make(map[string]string)
-	for name, cfg := range *config {
+	for name, cfg := range config {
 		switch name {
 		case "":
 			return ErrEmptyModuleConfigBlockName
@@ -123,13 +122,13 @@ func ValidateModuleConfig(config *workspace.ModuleConfig) error {
 
 // ValidateRuntimeConfigs is used to validate the workspace.RuntimeConfigs is valid or not.
 func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
-	if !reflect.DeepEqual(configs.Kubernetes, workspace.KubernetesConfig{}) {
-		if err := ValidateKubernetesConfig(&configs.Kubernetes); err != nil {
+	if configs.Kubernetes != nil {
+		if err := ValidateKubernetesConfig(configs.Kubernetes); err != nil {
 			return err
 		}
 	}
 	if len(configs.Terraform) != 0 {
-		if err := ValidateTerraformConfig(&configs.Terraform); err != nil {
+		if err := ValidateTerraformConfig(configs.Terraform); err != nil {
 			return err
 		}
 	}
@@ -145,8 +144,8 @@ func ValidateKubernetesConfig(config *workspace.KubernetesConfig) error {
 }
 
 // ValidateTerraformConfig is used to validate the workspace.TerraformConfig is valid or not.
-func ValidateTerraformConfig(config *workspace.TerraformConfig) error {
-	for name, cfg := range *config {
+func ValidateTerraformConfig(config workspace.TerraformConfig) error {
+	for name, cfg := range config {
 		if name == "" {
 			return ErrEmptyTerraformProviderName
 		}
@@ -159,8 +158,8 @@ func ValidateTerraformConfig(config *workspace.TerraformConfig) error {
 
 // ValidateBackendConfigs is used to validate workspace.BackendConfigs is valid or not.
 func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
-	if !reflect.DeepEqual(configs.Local, workspace.LocalFileConfig{}) {
-		if err := ValidateLocalFileConfig(&configs.Local); err != nil {
+	if configs.Local != nil {
+		if err := ValidateLocalFileConfig(configs.Local); err != nil {
 			return err
 		}
 	}

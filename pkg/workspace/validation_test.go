@@ -8,8 +8,8 @@ import (
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
-func mockValidWorkspace() workspace.Workspace {
-	return workspace.Workspace{
+func mockValidWorkspace() *workspace.Workspace {
+	return &workspace.Workspace{
 		Name:     "dev",
 		Modules:  mockValidModuleConfigs(),
 		Runtimes: mockValidRuntimeConfigs(),
@@ -125,15 +125,15 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 	}
 }
 
-func mockValidRuntimeConfigs() workspace.RuntimeConfigs {
-	return workspace.RuntimeConfigs{
+func mockValidRuntimeConfigs() *workspace.RuntimeConfigs {
+	return &workspace.RuntimeConfigs{
 		Kubernetes: mockValidKubernetesConfig(),
 		Terraform:  mockValidTerraformConfig(),
 	}
 }
 
-func mockValidKubernetesConfig() workspace.KubernetesConfig {
-	return workspace.KubernetesConfig{
+func mockValidKubernetesConfig() *workspace.KubernetesConfig {
+	return &workspace.KubernetesConfig{
 		KubeConfig: "/etc/kubeconfig.yaml",
 	}
 }
@@ -148,14 +148,14 @@ func mockValidTerraformConfig() workspace.TerraformConfig {
 	}
 }
 
-func mockValidBackendConfigs() workspace.BackendConfigs {
-	return workspace.BackendConfigs{
+func mockValidBackendConfigs() *workspace.BackendConfigs {
+	return &workspace.BackendConfigs{
 		Local: mockValidLocalBackendConfig(),
 	}
 }
 
-func mockValidLocalBackendConfig() workspace.LocalFileConfig {
-	return workspace.LocalFileConfig{
+func mockValidLocalBackendConfig() *workspace.LocalFileConfig {
+	return &workspace.LocalFileConfig{
 		Path: "/etc/.kusion",
 	}
 }
@@ -164,7 +164,7 @@ func TestWorkspace_Validate(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
-		workspace workspace.Workspace
+		workspace *workspace.Workspace
 	}{
 		{
 			name:      "valid workspace",
@@ -174,13 +174,13 @@ func TestWorkspace_Validate(t *testing.T) {
 		{
 			name:      "invalid workspace empty name",
 			success:   false,
-			workspace: workspace.Workspace{},
+			workspace: &workspace.Workspace{},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateWorkspace(&tc.workspace)
+			err := ValidateWorkspace(tc.workspace)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -215,7 +215,7 @@ func TestModuleConfigs_Validate(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateModuleConfigs(&tc.moduleConfigs)
+			err := ValidateModuleConfigs(tc.moduleConfigs)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -247,7 +247,7 @@ func TestModuleConfig_Validate(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateModuleConfig(&tc.moduleConfig)
+			err := ValidateModuleConfig(tc.moduleConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -257,7 +257,7 @@ func TestRuntimeConfigs_Validate(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		runtimeConfigs workspace.RuntimeConfigs
+		runtimeConfigs *workspace.RuntimeConfigs
 	}{
 		{
 			name:           "valid runtime configs",
@@ -268,7 +268,7 @@ func TestRuntimeConfigs_Validate(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateRuntimeConfigs(&tc.runtimeConfigs)
+			err := ValidateRuntimeConfigs(tc.runtimeConfigs)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -278,7 +278,7 @@ func TestKubernetesConfig_Validate(t *testing.T) {
 	testcases := []struct {
 		name             string
 		success          bool
-		kubernetesConfig workspace.KubernetesConfig
+		kubernetesConfig *workspace.KubernetesConfig
 	}{
 		{
 			name:             "valid kubernetes config",
@@ -288,13 +288,13 @@ func TestKubernetesConfig_Validate(t *testing.T) {
 		{
 			name:             "invalid kubernetes config empty kubeconfig",
 			success:          false,
-			kubernetesConfig: workspace.KubernetesConfig{},
+			kubernetesConfig: &workspace.KubernetesConfig{},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateKubernetesConfig(&tc.kubernetesConfig)
+			err := ValidateKubernetesConfig(tc.kubernetesConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -333,7 +333,7 @@ func TestTerraformConfig_Validate(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateTerraformConfig(&tc.terraformConfig)
+			err := ValidateTerraformConfig(tc.terraformConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -343,7 +343,7 @@ func TestBackendConfigs_Validate(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		backendConfigs workspace.BackendConfigs
+		backendConfigs *workspace.BackendConfigs
 	}{
 		{
 			name:           "valid backend configs",
@@ -354,7 +354,7 @@ func TestBackendConfigs_Validate(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateBackendConfigs(&tc.backendConfigs)
+			err := ValidateBackendConfigs(tc.backendConfigs)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -364,7 +364,7 @@ func TestLocalBackendConfig_Validate(t *testing.T) {
 	testcases := []struct {
 		name               string
 		success            bool
-		localBackendConfig workspace.LocalFileConfig
+		localBackendConfig *workspace.LocalFileConfig
 	}{
 		{
 			name:               "valid local backend config",
@@ -374,13 +374,13 @@ func TestLocalBackendConfig_Validate(t *testing.T) {
 		{
 			name:               "invalid local backend config empty path",
 			success:            false,
-			localBackendConfig: workspace.LocalFileConfig{},
+			localBackendConfig: &workspace.LocalFileConfig{},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateLocalFileConfig(&tc.localBackendConfig)
+			err := ValidateLocalFileConfig(tc.localBackendConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

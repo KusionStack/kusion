@@ -17,10 +17,10 @@ type Workspace struct {
 	Modules ModuleConfigs `yaml:"modules,omitempty" json:"modules,omitempty"`
 
 	// Runtimes are the configs of a set of runtimes.
-	Runtimes RuntimeConfigs `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
+	Runtimes *RuntimeConfigs `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
 
 	// Backends are the configs of a set of backends.
-	Backends BackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
+	Backends *BackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
@@ -35,12 +35,26 @@ type ModuleConfigs map[string]ModuleConfig
 // configs. A project can only be assigned in a patcher's "projectSelector" field, the assignment
 // in multiple patchers is not allowed. For a project, if not specified in the patcher block's
 // "projectSelector" field, the default config will be used.
+//
+// Take the ModuleConfig of "database" for an example, which is shown as below:
+//
+//	 config := ModuleConfig {
+//		"default": {
+//			"type":         "aws",
+//			"version":      "5.7",
+//			"instanceType": "db.t3.micro",
+//		},
+//		"smallClass": {
+//		 	"instanceType":    "db.t3.small",
+//		 	"projectSelector": []string{"foo", "bar"},
+//		},
+//	}
 type ModuleConfig map[string]GenericConfig
 
 // RuntimeConfigs contains a set of runtime config.
 type RuntimeConfigs struct {
 	// Kubernetes contains the config to access a kubernetes cluster.
-	Kubernetes KubernetesConfig `yaml:"kubernetes,omitempty" json:"kubernetes,omitempty"`
+	Kubernetes *KubernetesConfig `yaml:"kubernetes,omitempty" json:"kubernetes,omitempty"`
 
 	// Terraform contains the config of multiple terraform providers.
 	Terraform TerraformConfig `yaml:"terraform,omitempty" json:"terraform,omitempty"`
@@ -61,7 +75,7 @@ type TerraformConfig map[string]GenericConfig
 // todo: add more backends declared in pkg/engine/backend
 type BackendConfigs struct {
 	// Local is backend to use local file system.
-	Local LocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
+	Local *LocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
 }
 
 // LocalFileConfig contains the config of using local file system as backend.
