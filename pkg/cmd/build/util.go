@@ -15,12 +15,13 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	apisworkspace "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	workspace "kusionstack.io/kusion/pkg/workspace"
 )
 
 func IntentWithSpinner(o *builders.Options, project *project.Project, stack *stack.Stack) (*intent.Intent, error) {
@@ -78,7 +79,14 @@ func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.In
 		if err != nil {
 			return nil, err
 		}
-		builder = &builders.AppsConfigBuilder{Apps: appConfigs}
+		ws, err := getWorkspace(s.GetName())
+		if err != nil {
+			return nil, err
+		}
+		builder = &builders.AppsConfigBuilder{
+			Apps:      appConfigs,
+			Workspace: ws,
+		}
 	default:
 		return nil, fmt.Errorf("unknow generator type:%s", bt)
 	}
@@ -115,6 +123,24 @@ func buildAppConfigs(o *builders.Options, stack *stack.Stack) (map[string]inputs
 	}
 
 	return appConfigs, nil
+}
+
+func getWorkspace(stackName string) (*apisworkspace.Workspace, error) {
+	wsOperator, err := workspace.NewDefaultOperator()
+	if err != nil {
+		return nil, fmt.Errorf("new workspace operator failed, %w", err)
+	}
+	// stack name should be same as the workspace name
+	ws, err := wsOperator.GetWorkspace(stackName)
+	// allow empty workspace
+	if errors.Is(err, workspace.ErrWorkspaceNotExist) {
+		return nil, nil
+	}
+	log.Infof("workspace %s does not exist", stackName)
+	if err != nil {
+		return nil, fmt.Errorf("get workspace %s failed, %w", stackName, err)
+	}
+	return ws, nil
 }
 
 func IntentFromFile(filePath string) (*intent.Intent, error) {
