@@ -132,11 +132,6 @@ func getWorkspace(stackName string) (*apisworkspace.Workspace, error) {
 	}
 	// stack name should be same as the workspace name
 	ws, err := wsOperator.GetWorkspace(stackName)
-	// allow empty workspace
-	if errors.Is(err, workspace.ErrWorkspaceNotExist) {
-		return nil, nil
-	}
-	log.Infof("workspace %s does not exist", stackName)
 	if err != nil {
 		return nil, fmt.Errorf("get workspace %s failed, %w", stackName, err)
 	}
