@@ -1,0 +1,25 @@
+modules:
+    database:
+        default:
+            instanceType: db.t3.micro
+            type: aws
+            version: "5.7"
+        smallClass:
+            instanceType: db.t3.small
+            projectSelector:
+                - foo
+                - bar
+    port:
+        default:
+            type: aws
+runtimes:
+    kubernetes:
+        kubeConfig: /etc/kubeconfig.yaml
+    terraform:
+        aws:
+            region: us-east-1
+            source: hashicorp/aws
+            version: 1.0.4
+backends:
+    local:
+        path: /etc/.kusion
