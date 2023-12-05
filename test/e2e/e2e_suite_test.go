@@ -7,6 +7,9 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
+
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 func TestE2e(t *testing.T) {
@@ -35,6 +38,11 @@ var _ = ginkgo.BeforeSuite(func() {
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		gomega.Expect(output).To(gomega.ContainSubstring("Created project"))
 	})
+
+	ginkgo.By("create sample workspace", func() {
+		err := createSampleWorkspace()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	})
 })
 
 // AfterSuite clean kubernetes
@@ -61,4 +69,49 @@ var _ = ginkgo.AfterSuite(func() {
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		gomega.Expect(output).To(gomega.BeEmpty())
 	})
+
+	ginkgo.By("clean up sample workspace", func() {
+		err := deleteSampleWorkspace()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	})
 })
+
+// createSampleWorkspace creates a sample workspace under default local path.
+// todo: 1, add REAL sample workspace in repo Konfig after splitting work; 2, use cli to create workspace after cli R&D work.
+func createSampleWorkspace() error {
+	wsOperator, err := workspace.NewDefaultOperator()
+	if err != nil {
+		return err
+	}
+	ws := &workspaceapi.Workspace{
+		Name: "dev",
+		Modules: workspaceapi.ModuleConfigs{
+			"database": {
+				"default": {
+					"type":         "aws",
+					"version":      "5.7",
+					"instanceType": "db.t3.micro",
+				},
+				"smallClass": {
+					"instanceType":    "db.t3.small",
+					"projectSelector": []any{"foo", "bar"},
+				},
+			},
+			"port": {
+				"default": {
+					"type": "aws",
+				},
+			},
+		},
+	}
+	return wsOperator.CreateWorkspace(ws)
+}
+
+// deleteSampleWorkspace deletes the sample workspace.
+func deleteSampleWorkspace() error {
+	wsOperator, err := workspace.NewDefaultOperator()
+	if err != nil {
+		return err
+	}
+	return wsOperator.DeleteWorkspace("dev")
+}
