@@ -27,8 +27,11 @@ func NewCmdBuild() *cobra.Command {
 		# Build main.k with work directory
 		kusion build -w appops/demo/dev
 	
-		# Build main.k and write result into output.yaml
+		# Build configurations and write result into an output.yaml
 		kusion build -o output.yaml
+
+		# Build configurations with arguments from settings.yaml
+		kusion build -Y settings.yaml
 		
 		# Build without output style and color
 		kusion build --no-style=true`)
@@ -61,6 +64,8 @@ func NewCmdBuild() *cobra.Command {
 func (o *Options) AddBuildFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.WorkDir, "workdir", "w", "",
 		i18n.T("Specify the work directory"))
+	cmd.Flags().StringSliceVarP(&o.Settings, "setting", "Y", []string{},
+		i18n.T("Specify the command line setting files"))
 	cmd.Flags().StringToStringVarP(&o.Arguments, "argument", "D", map[string]string{},
 		i18n.T("Specify the top-level argument"))
 }

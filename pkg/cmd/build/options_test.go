@@ -45,7 +45,8 @@ func TestCompileOptions_preSet(t *testing.T) {
 		Output string
 	}
 	type want struct {
-		Output string
+		Settings []string
+		Output   string
 	}
 
 	tests := []struct {
@@ -59,7 +60,8 @@ func TestCompileOptions_preSet(t *testing.T) {
 				Output: "",
 			},
 			want: want{
-				Output: "",
+				Output:   "",
+				Settings: []string{"kcl.yaml"},
 			},
 		},
 	}
@@ -74,6 +76,7 @@ func TestCompileOptions_preSet(t *testing.T) {
 
 			wantOpt := NewBuildOptions()
 			wantOpt.Output = tt.want.Output
+			wantOpt.Settings = tt.want.Settings
 
 			assert.Equal(t, wantOpt, o)
 		})

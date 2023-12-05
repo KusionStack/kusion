@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	spec1 = `
+	intent1 = `
 resources:
 - id: v1:Namespace:default
   type: Kubernetes
@@ -32,7 +32,7 @@ resources:
     spec: {}
     status: {}
 `
-	specModel1 = &intent.Intent{
+	intentModel1 = &intent.Intent{
 		Resources: []intent.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -51,7 +51,7 @@ resources:
 		},
 	}
 
-	spec2 = `
+	intent2 = `
 resources:
 - id: v1:Namespace:default
   type: Kubernetes
@@ -69,7 +69,7 @@ resources:
       name: kube-system
 `
 
-	specModel2 = &intent.Intent{
+	intentModel2 = &intent.Intent{
 		Resources: []intent.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -96,7 +96,7 @@ resources:
 		},
 	}
 
-	specModel3 = &intent.Intent{
+	intentModel3 = &intent.Intent{
 		Resources: []intent.Resource{
 			{
 				ID:   "v1:Namespace:default",
@@ -119,7 +119,7 @@ resources:
 	}
 )
 
-func TestGenerateSpecFromFile(t *testing.T) {
+func TestBuildIntentFromFile(t *testing.T) {
 	tests := []struct {
 		name    string
 		path    string
@@ -130,14 +130,14 @@ func TestGenerateSpecFromFile(t *testing.T) {
 		{
 			name:    "test1",
 			path:    "kusion_intent.yaml",
-			content: spec1,
-			want:    specModel1,
+			content: intent1,
+			want:    intentModel1,
 		},
 		{
 			name:    "test2",
 			path:    "kusion_intent.yaml",
-			content: spec2,
-			want:    specModel2,
+			content: intent2,
+			want:    intentModel2,
 		},
 		{
 			name:    "test3",
@@ -162,7 +162,7 @@ func TestGenerateSpecFromFile(t *testing.T) {
 	}
 }
 
-func TestGenerateSpec(t *testing.T) {
+func TestBuildIntent(t *testing.T) {
 	apc := &appconfigmodel.AppConfiguration{}
 	var apcMap map[string]interface{}
 	tmp, _ := json.Marshal(apc)
@@ -181,21 +181,26 @@ func TestGenerateSpec(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil generator", args: struct {
+			name: "nil builder", args: struct {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
 				mocker  *mockey.MockBuilder
 			}{
-				o:       &builders.Options{},
-				project: &project.Project{},
-				stack:   &stack.Stack{},
-				mocker:  mockey.Mock((*kcl.Builder).Build).Return(nil, nil),
+				o: &builders.Options{Arguments: map[string]string{}},
+				project: &project.Project{
+					Configuration: project.Configuration{
+						Name: "default",
+					},
+				}, stack: &stack.Stack{},
+				mocker: mockey.Mock(kcl.Run).Return(&kcl.CompileResult{
+					Documents: []kclgo.KCLResult{apcMap},
+				}, nil),
 			},
-			want: nil,
+			want: intentModel3,
 		},
 		{
-			name: "kcl generator", args: struct {
+			name: "kcl builder", args: struct {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
@@ -215,7 +220,7 @@ func TestGenerateSpec(t *testing.T) {
 			want: nil,
 		},
 		{
-			name: "app generator", args: struct {
+			name: "app builder", args: struct {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
@@ -235,7 +240,7 @@ func TestGenerateSpec(t *testing.T) {
 					Documents: []kclgo.KCLResult{apcMap},
 				}, nil),
 			},
-			want: specModel3,
+			want: intentModel3,
 		},
 	}
 

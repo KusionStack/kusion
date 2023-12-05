@@ -125,6 +125,7 @@ func (o *Options) Run() error {
 		IsKclPkg:  o.IsKclPkg,
 		WorkDir:   o.WorkDir,
 		Filenames: o.Filenames,
+		Settings:  o.Settings,
 		Arguments: o.Arguments,
 		NoStyle:   o.NoStyle,
 	}
