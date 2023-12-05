@@ -32,7 +32,7 @@ func ValidateWorkspace(ws *workspace.Workspace) error {
 	if ws.Name == "" {
 		return ErrEmptyWorkspaceName
 	}
-	if len(ws.Modules) != 0 {
+	if ws.Modules != nil {
 		if err := ValidateModuleConfigs(ws.Modules); err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
 			return err
 		}
 	}
-	if len(configs.Terraform) != 0 {
+	if configs.Terraform != nil {
 		if err := ValidateTerraformConfig(configs.Terraform); err != nil {
 			return err
 		}
