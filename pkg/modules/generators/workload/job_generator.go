@@ -98,8 +98,9 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 				),
 			},
 			Spec: corev1.PodSpec{
-				Containers: containers,
-				Volumes:    volumes,
+				Containers:    containers,
+				RestartPolicy: corev1.RestartPolicyNever,
+				Volumes:       volumes,
 			},
 		},
 	}
