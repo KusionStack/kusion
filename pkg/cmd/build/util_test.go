@@ -13,6 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
@@ -117,6 +118,38 @@ resources:
 			},
 		},
 	}
+
+	ws = &workspace.Workspace{
+		Name: "default",
+		Modules: workspace.ModuleConfigs{
+			"database": {
+				"default": {
+					"type":         "aws",
+					"version":      "5.7",
+					"instanceType": "db.t3.micro",
+				},
+				"smallClass": {
+					"instanceType":    "db.t3.small",
+					"projectSelector": []any{"foo", "bar"},
+				},
+			},
+			"port": {
+				"default": {
+					"type": "aws",
+				},
+			},
+		},
+		Runtimes: &workspace.RuntimeConfigs{
+			Kubernetes: &workspace.KubernetesConfig{
+				KubeConfig: "/etc/kubeconfig.yaml",
+			},
+		},
+		Backends: &workspace.BackendConfigs{
+			Local: &workspace.LocalFileConfig{
+				Path: "/etc/.kusion",
+			},
+		},
+	}
 )
 
 func TestBuildIntentFromFile(t *testing.T) {
@@ -172,7 +205,7 @@ func TestBuildIntent(t *testing.T) {
 		o       *builders.Options
 		project *project.Project
 		stack   *stack.Stack
-		mocker  *mockey.MockBuilder
+		mockers []*mockey.MockBuilder
 	}
 	tests := []struct {
 		name    string
@@ -185,7 +218,7 @@ func TestBuildIntent(t *testing.T) {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
-				mocker  *mockey.MockBuilder
+				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{Arguments: map[string]string{}},
 				project: &project.Project{
@@ -193,9 +226,10 @@ func TestBuildIntent(t *testing.T) {
 						Name: "default",
 					},
 				}, stack: &stack.Stack{},
-				mocker: mockey.Mock(kcl.Run).Return(&kcl.CompileResult{
-					Documents: []kclgo.KCLResult{apcMap},
-				}, nil),
+				mockers: []*mockey.MockBuilder{
+					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
+					mockey.Mock(getWorkspace).Return(ws, nil),
+				},
 			},
 			want: intentModel3,
 		},
@@ -204,7 +238,7 @@ func TestBuildIntent(t *testing.T) {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
-				mocker  *mockey.MockBuilder
+				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{},
 				project: &project.Project{
@@ -214,8 +248,10 @@ func TestBuildIntent(t *testing.T) {
 						},
 					},
 				},
-				stack:  &stack.Stack{},
-				mocker: mockey.Mock((*kcl.Builder).Build).Return(nil, nil),
+				stack: &stack.Stack{},
+				mockers: []*mockey.MockBuilder{
+					mockey.Mock((*kcl.Builder).Build).Return(nil, nil),
+				},
 			},
 			want: nil,
 		},
@@ -224,7 +260,7 @@ func TestBuildIntent(t *testing.T) {
 				o       *builders.Options
 				project *project.Project
 				stack   *stack.Stack
-				mocker  *mockey.MockBuilder
+				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{Arguments: map[string]string{}},
 				project: &project.Project{
@@ -235,10 +271,15 @@ func TestBuildIntent(t *testing.T) {
 						},
 					},
 				},
-				stack: &stack.Stack{},
-				mocker: mockey.Mock(kcl.Run).Return(&kcl.CompileResult{
-					Documents: []kclgo.KCLResult{apcMap},
-				}, nil),
+				stack: &stack.Stack{
+					Configuration: stack.Configuration{
+						Name: "default",
+					},
+				},
+				mockers: []*mockey.MockBuilder{
+					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
+					mockey.Mock(getWorkspace).Return(ws, nil),
+				},
 			},
 			want: intentModel3,
 		},
@@ -246,8 +287,16 @@ func TestBuildIntent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := tt.args.mocker.Build()
-			defer m.UnPatch()
+			var mList []*mockey.Mocker
+			for _, mocker := range tt.args.mockers {
+				m := mocker.Build()
+				mList = append(mList, m)
+			}
+			defer func() {
+				for _, m := range mList {
+					m.UnPatch()
+				}
+			}()
 
 			got, err := Intent(tt.args.o, tt.args.project, tt.args.stack)
 			if (err != nil) != tt.wantErr {

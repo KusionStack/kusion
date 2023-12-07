@@ -1,19 +1,22 @@
 package generators
 
 import (
+	"errors"
 	"fmt"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators/accessories/database"
+	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
 	"kusionstack.io/kusion/pkg/modules/generators/trait"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	patmonitoring "kusionstack.io/kusion/pkg/modules/patchers/monitoring"
 	pattrait "kusionstack.io/kusion/pkg/modules/patchers/trait"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type appConfigurationGenerator struct {
@@ -21,13 +24,15 @@ type appConfigurationGenerator struct {
 	stack   *stack.Stack
 	appName string
 	app     *inputs.AppConfiguration
+	ws      *workspaceapi.Workspace
 }
 
 func NewAppConfigurationGenerator(
 	project *project.Project,
 	stack *stack.Stack,
-	app *inputs.AppConfiguration,
 	appName string,
+	app *inputs.AppConfiguration,
+	ws *workspaceapi.Workspace,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -41,11 +46,19 @@ func NewAppConfigurationGenerator(
 		return nil, fmt.Errorf("can not find app configuration when generating the Intent")
 	}
 
+	if ws == nil {
+		return nil, errors.New("workspace must not be empty") // AppConfiguration asks for non-empty workspace
+	}
+	if err := workspace.ValidateWorkspace(ws); err != nil {
+		return nil, fmt.Errorf("invalid config of workspace %s, %w", stack.GetName(), err)
+	}
+
 	return &appConfigurationGenerator{
 		project: project,
 		stack:   stack,
 		appName: appName,
 		app:     app,
+		ws:      ws,
 	}, nil
 }
 
@@ -54,9 +67,10 @@ func NewAppConfigurationGeneratorFunc(
 	stack *stack.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
+	ws *workspaceapi.Workspace,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewAppConfigurationGenerator(project, stack, app, appName)
+		return NewAppConfigurationGenerator(project, stack, appName, app, ws)
 	}
 }
 
