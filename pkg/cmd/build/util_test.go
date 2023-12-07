@@ -145,9 +145,7 @@ resources:
 			},
 		},
 		Backends: &workspace.BackendConfigs{
-			Local: &workspace.LocalFileConfig{
-				Path: "/etc/.kusion",
-			},
+			Local: &workspace.LocalFileConfig{},
 		},
 	}
 )

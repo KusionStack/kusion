@@ -21,5 +21,4 @@ runtimes:
             source: hashicorp/aws
             version: 1.0.4
 backends:
-    local:
-        path: /etc/.kusion
+    local: {}

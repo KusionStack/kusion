@@ -150,17 +150,47 @@ func mockValidTerraformConfig() workspace.TerraformConfig {
 
 func mockValidBackendConfigs() *workspace.BackendConfigs {
 	return &workspace.BackendConfigs{
-		Local: mockValidLocalBackendConfig(),
+		Local: &workspace.LocalFileConfig{},
 	}
 }
 
-func mockValidLocalBackendConfig() *workspace.LocalFileConfig {
-	return &workspace.LocalFileConfig{
-		Path: "/etc/.kusion",
+func mockValidMysqlConfig() *workspace.MysqlConfig {
+	return &workspace.MysqlConfig{
+		DBName: "kusion_db",
+		User:   "kusion",
+		Host:   "127.0.0.1",
 	}
 }
 
-func TestWorkspace_Validate(t *testing.T) {
+func mockValidGenericObjectStorageConfig() *workspace.GenericObjectStorageConfig {
+	return &workspace.GenericObjectStorageConfig{
+		Bucket: "kusion_bucket",
+	}
+}
+
+func mockValidCompletedOssConfig() *workspace.OssConfig {
+	return &workspace.OssConfig{
+		GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
+			AccessKeyID:     "fake-access-key-id",
+			AccessKeySecret: "fake-access-key-secret",
+			Bucket:          "kusion_bucket",
+		},
+	}
+}
+
+func mockValidCompletedS3Config() *workspace.S3Config {
+	return &workspace.S3Config{
+		GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			AccessKeyID:     "fake-access-key-id",
+			AccessKeySecret: "fake-access-key-secret",
+			Bucket:          "kusion_bucket",
+		},
+		Region: "us-east-1",
+	}
+}
+
+func TestValidateWorkspace(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
@@ -186,7 +216,7 @@ func TestWorkspace_Validate(t *testing.T) {
 	}
 }
 
-func TestModuleConfigs_Validate(t *testing.T) {
+func TestValidateModuleConfigs(t *testing.T) {
 	testcases := []struct {
 		name          string
 		success       bool
@@ -221,7 +251,7 @@ func TestModuleConfigs_Validate(t *testing.T) {
 	}
 }
 
-func TestModuleConfig_Validate(t *testing.T) {
+func TestValidateModuleConfig(t *testing.T) {
 	testcases := []struct {
 		name         string
 		success      bool
@@ -253,7 +283,7 @@ func TestModuleConfig_Validate(t *testing.T) {
 	}
 }
 
-func TestRuntimeConfigs_Validate(t *testing.T) {
+func TestValidateRuntimeConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
@@ -274,7 +304,7 @@ func TestRuntimeConfigs_Validate(t *testing.T) {
 	}
 }
 
-func TestKubernetesConfig_Validate(t *testing.T) {
+func TestValidateKubernetesConfig(t *testing.T) {
 	testcases := []struct {
 		name             string
 		success          bool
@@ -300,7 +330,7 @@ func TestKubernetesConfig_Validate(t *testing.T) {
 	}
 }
 
-func TestTerraformConfig_Validate(t *testing.T) {
+func TestValidateTerraformConfig(t *testing.T) {
 	testcases := []struct {
 		name            string
 		success         bool
@@ -339,7 +369,7 @@ func TestTerraformConfig_Validate(t *testing.T) {
 	}
 }
 
-func TestBackendConfigs_Validate(t *testing.T) {
+func TestValidateBackendConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
@@ -349,6 +379,16 @@ func TestBackendConfigs_Validate(t *testing.T) {
 			name:           "valid backend configs",
 			success:        true,
 			backendConfigs: mockValidBackendConfigs(),
+		},
+		{
+			name:    "invalid backend configs multiple backends",
+			success: false,
+			backendConfigs: &workspace.BackendConfigs{
+				Local: &workspace.LocalFileConfig{},
+				Mysql: &workspace.MysqlConfig{
+					DBName: "test",
+				},
+			},
 		},
 	}
 
@@ -360,27 +400,176 @@ func TestBackendConfigs_Validate(t *testing.T) {
 	}
 }
 
-func TestLocalBackendConfig_Validate(t *testing.T) {
+func TestValidateMysqlConfig(t *testing.T) {
+	invalidPort := -1
 	testcases := []struct {
-		name               string
-		success            bool
-		localBackendConfig *workspace.LocalFileConfig
+		name        string
+		success     bool
+		mysqlConfig *workspace.MysqlConfig
 	}{
 		{
-			name:               "valid local backend config",
-			success:            true,
-			localBackendConfig: mockValidLocalBackendConfig(),
+			name:        "valid mysql config",
+			success:     true,
+			mysqlConfig: mockValidMysqlConfig(),
 		},
 		{
-			name:               "invalid local backend config empty path",
-			success:            false,
-			localBackendConfig: &workspace.LocalFileConfig{},
+			name:    "invalid mysql config empty dbName",
+			success: false,
+			mysqlConfig: &workspace.MysqlConfig{
+				DBName: "",
+				User:   "kusion",
+				Host:   "127.0.0.1",
+			},
+		},
+		{
+			name:    "invalid mysql config empty user",
+			success: false,
+			mysqlConfig: &workspace.MysqlConfig{
+				DBName: "kusion_db",
+				User:   "",
+				Host:   "127.0.0.1",
+			},
+		},
+		{
+			name:    "invalid mysql config empty host",
+			success: false,
+			mysqlConfig: &workspace.MysqlConfig{
+				DBName: "kusion_db",
+				User:   "kusion",
+				Host:   "",
+			},
+		},
+		{
+			name:    "invalid mysql config invalid port",
+			success: false,
+			mysqlConfig: &workspace.MysqlConfig{
+				DBName: "kusion_db",
+				User:   "kusion",
+				Host:   "127.0.0.1",
+				Port:   &invalidPort,
+			},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateLocalFileConfig(tc.localBackendConfig)
+			err := ValidateMysqlConfig(tc.mysqlConfig)
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestValidateValidateGenericObjectStorageConfig(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		config  *workspace.GenericObjectStorageConfig
+	}{
+		{
+			name:    "valid generic object storage config",
+			success: true,
+			config:  mockValidGenericObjectStorageConfig(),
+		},
+		{
+			name:    "invalid generic object storage config empty bucket",
+			success: false,
+			config:  &workspace.GenericObjectStorageConfig{},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateGenericObjectStorageConfig(tc.config)
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestValidateWholeOssConfig(t *testing.T) {
+	testcases := []struct {
+		name      string
+		success   bool
+		ossConfig *workspace.OssConfig
+	}{
+		{
+			name:      "valid oss config",
+			success:   true,
+			ossConfig: mockValidCompletedOssConfig(),
+		},
+		{
+			name:    "invalid oss config empty endpoint",
+			success: false,
+			ossConfig: &workspace.OssConfig{
+				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+					Endpoint:        "",
+					AccessKeyID:     "fake-access-key-id",
+					AccessKeySecret: "fake-access-key-secret",
+					Bucket:          "kusion_bucket",
+				},
+			},
+		},
+		{
+			name:    "invalid oss config empty access key id",
+			success: false,
+			ossConfig: &workspace.OssConfig{
+				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
+					AccessKeyID:     "",
+					AccessKeySecret: "fake-access-key-secret",
+					Bucket:          "kusion_bucket",
+				},
+			},
+		},
+		{
+			name:    "invalid oss config empty access key secret",
+			success: false,
+			ossConfig: &workspace.OssConfig{
+				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
+					AccessKeyID:     "fake-access-key-id",
+					AccessKeySecret: "",
+					Bucket:          "kusion_bucket",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateWholeOssConfig(tc.ossConfig)
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestValidateWholeS3Config(t *testing.T) {
+	testcases := []struct {
+		name     string
+		success  bool
+		s3Config *workspace.S3Config
+	}{
+		{
+			name:     "valid s3 config",
+			success:  true,
+			s3Config: mockValidCompletedS3Config(),
+		},
+		{
+			name:    "invalid s3 config empty region",
+			success: false,
+			s3Config: &workspace.S3Config{
+				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+					AccessKeyID:     "fake-access-key-id",
+					AccessKeySecret: "fake-access-key-secret",
+					Bucket:          "kusion_bucket",
+				},
+				Region: "",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateWholeS3Config(tc.s3Config)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

@@ -3,6 +3,7 @@ package workspace
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"gopkg.in/yaml.v3"
 
@@ -19,6 +20,17 @@ var (
 	ErrEmptyKubernetesConfig = errors.New("empty kubernetes config")
 	ErrEmptyTerraformConfig  = errors.New("empty terraform config")
 )
+
+// CompleteWorkspace sets the workspace name and default value of unset item, should be called after ValidateWorkspace.
+// The config items set as environment variables are not got by CompleteWorkspace.
+func CompleteWorkspace(ws *workspace.Workspace, name string) {
+	if ws.Name != "" {
+		ws.Name = name
+	}
+	if ws.Backends != nil && GetBackendName(ws.Backends) == workspace.BackendMysql {
+		CompleteMysqlConfig(ws.Backends.Mysql)
+	}
+}
 
 // GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name,
 // should be called after ValidateModuleConfigs.
@@ -165,4 +177,85 @@ func GetTerraformProviderConfig(configs *workspace.RuntimeConfigs, providerName 
 		return nil, ErrEmptyTerraformProviderConfig
 	}
 	return cfg, nil
+}
+
+// GetBackendName returns the backend name that is configured in BackendConfigs, should be called after
+// ValidateBackendConfigs.
+func GetBackendName(configs *workspace.BackendConfigs) string {
+	if configs == nil {
+		return workspace.BackendLocal
+	}
+	if configs.Local != nil {
+		return workspace.BackendLocal
+	}
+	if configs.Mysql != nil {
+		return workspace.BackendMysql
+	}
+	if configs.Oss != nil {
+		return workspace.BackendOss
+	}
+	if configs.S3 != nil {
+		return workspace.BackendS3
+	}
+	return workspace.BackendLocal
+}
+
+// GetMysqlPasswordFromEnv returns mysql password set by environment variables.
+func GetMysqlPasswordFromEnv() string {
+	return os.Getenv(workspace.EnvBackendMysqlPassword)
+}
+
+// GetOssSensitiveDataFromEnv returns oss accessKeyID, accessKeySecret set by environment variables.
+func GetOssSensitiveDataFromEnv() (string, string) {
+	return os.Getenv(workspace.EnvOssAccessKeyID), os.Getenv(workspace.EnvOssAccessKeySecret)
+}
+
+// GetS3SensitiveDataFromEnv returns s3 accessKeyID, accessKeySecret, region set by environment variables.
+func GetS3SensitiveDataFromEnv() (string, string, string) {
+	region := os.Getenv(workspace.EnvAwsRegion)
+	if region == "" {
+		region = os.Getenv(workspace.EnvAwsDefaultRegion)
+	}
+	return os.Getenv(workspace.EnvAwsAccessKeyID), os.Getenv(workspace.EnvAwsSecretAccessKey), region
+}
+
+// CompleteMysqlConfig sets default value of mysql config if not set.
+func CompleteMysqlConfig(config *workspace.MysqlConfig) {
+	if config.Port == nil {
+		port := workspace.DefaultMysqlPort
+		config.Port = &port
+	}
+}
+
+// CompleteWholeMysqlConfig constructs the whole mysql config by environment variables if set.
+func CompleteWholeMysqlConfig(config *workspace.MysqlConfig) {
+	password := GetMysqlPasswordFromEnv()
+	if password != "" {
+		config.Password = password
+	}
+}
+
+// CompleteWholeOssConfig constructs the whole oss config by environment variables if set.
+func CompleteWholeOssConfig(config *workspace.OssConfig) {
+	accessKeyID, accessKeySecret := GetOssSensitiveDataFromEnv()
+	if accessKeyID != "" {
+		config.AccessKeyID = accessKeyID
+	}
+	if accessKeySecret != "" {
+		config.AccessKeySecret = accessKeySecret
+	}
+}
+
+// CompleteWholeS3Config constructs the whole s3 config by environment variables if set.
+func CompleteWholeS3Config(config *workspace.S3Config) {
+	accessKeyID, accessKeySecret, region := GetS3SensitiveDataFromEnv()
+	if accessKeyID != "" {
+		config.AccessKeyID = accessKeyID
+	}
+	if accessKeySecret != "" {
+		config.AccessKeySecret = accessKeySecret
+	}
+	if region != "" {
+		config.Region = region
+	}
 }
