@@ -26,10 +26,19 @@ type SecretStoreSpec struct {
 
 // ProviderSpec contains provider-specific configuration.
 type ProviderSpec struct {
+	// Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.
+	Alicloud *AlicloudProvider `yaml:"alicloud,omitempty" json:"alicloud,omitempty"`
 	// AWS configures a store to retrieve secrets from AWS Secrets Manager.
 	AWS *AWSProvider `yaml:"aws,omitempty" json:"aws,omitempty"`
 	// Vault configures a store to retrieve secrets from HashiCorp Vault.
 	Vault *VaultProvider `yaml:"vault,omitempty" json:"vault,omitempty"`
+}
+
+// AlicloudProvider configures a store to retrieve secrets from Alicloud Secrets Manager.
+type AlicloudProvider struct {
+	// Alicloud Region to be used to interact with Alicloud Secrets Manager.
+	// Examples are cn-beijing, cn-shanghai, etc.
+	Region string `yaml:"region" json:"region"`
 }
 
 // AWSProvider configures a store to retrieve secrets from AWS Secrets Manager.
