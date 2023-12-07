@@ -7,7 +7,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/apis/stack"
-	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -49,9 +48,6 @@ type Configuration struct {
 
 	// Tenant name
 	Tenant string `json:"tenant,omitempty" yaml:"tenant,omitempty"`
-
-	// Backend storage config
-	Backend *backend.Storage `json:"backend,omitempty" yaml:"backend,omitempty"`
 
 	// SpecGenerator configs
 	Generator *GeneratorConfig `json:"generator,omitempty" yaml:"generator,omitempty"`

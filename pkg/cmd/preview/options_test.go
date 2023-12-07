@@ -47,7 +47,7 @@ var (
 )
 
 func Test_preview(t *testing.T) {
-	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionStateFileFile)}
 	t.Run("preview success", func(t *testing.T) {
 		m := mockOperationPreview()
 		defer m.UnPatch()

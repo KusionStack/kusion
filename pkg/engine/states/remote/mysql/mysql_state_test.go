@@ -1,4 +1,4 @@
-package db
+package mysql
 
 import (
 	"database/sql"
@@ -21,7 +21,7 @@ func TestNewDBState(t *testing.T) {
 	}{
 		{
 			name: "t1",
-			want: &DBState{},
+			want: &MysqlState{},
 		},
 	}
 	for _, tt := range tests {
@@ -33,7 +33,7 @@ func TestNewDBState(t *testing.T) {
 	}
 }
 
-func DBStateSetUp(t *testing.T) *DBState {
+func DBStateSetUp(t *testing.T) *MysqlState {
 	mockey.Mock((*manager.Option).Open).To(func(o *manager.Option, ping bool) (*sql.DB, error) {
 		return &sql.DB{}, nil
 	}).Build()
@@ -48,7 +48,7 @@ func DBStateSetUp(t *testing.T) *DBState {
 		return 1, nil
 	}).Build()
 
-	return &DBState{DB: &sql.DB{}}
+	return &MysqlState{DB: &sql.DB{}}
 }
 
 func TestDBState(t *testing.T) {

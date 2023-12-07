@@ -91,8 +91,8 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Get state storage from backend config to manage state
-	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
+	// Get state storage from cli backend options, environment variables, workspace backend configs
+	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
 	if err != nil {
 		return err
 	}

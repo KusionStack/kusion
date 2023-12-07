@@ -57,3 +57,43 @@ func TestOssState(t *testing.T) {
 		ossState.Delete("test")
 	})
 }
+
+func TestUsingDeprecatedStateFilePrefix(t *testing.T) {
+	testcases := []struct {
+		name           string
+		success        bool
+		query          *states.StateQuery
+		expectedPrefix string
+	}{
+		{
+			name:    "prefix with tenant",
+			success: true,
+			query: &states.StateQuery{
+				Tenant:  "test_tenant",
+				Project: "test_project",
+				Stack:   "test_stack",
+			},
+			expectedPrefix: "test_tenant/test_project/test_stack/kusion_state.json",
+		},
+		{
+			name:    "prefix without tenant",
+			success: true,
+			query: &states.StateQuery{
+				Project: "test_project",
+				Stack:   "test_stack",
+			},
+			expectedPrefix: "test_project/test_stack/kusion_state.json",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock oss state", t, func() {
+				ossState := SetUp(t)
+				prefix, err := ossState.usingDeprecatedStateFilePrefix(tc.query)
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedPrefix, prefix)
+			})
+		})
+	}
+}

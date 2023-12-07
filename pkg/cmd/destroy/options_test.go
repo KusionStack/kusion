@@ -100,7 +100,7 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
 		_, err := o.preview(&intent.Intent{Resources: []intent.Resource{sa1}}, p, s, stateStorage)
 		assert.Nil(t, err)
 	})
@@ -217,7 +217,7 @@ func Test_destroy(t *testing.T) {
 		}
 		changes := opsmodels.NewChanges(p, s, order)
 
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
 
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.Nil(t, err)
@@ -239,7 +239,7 @@ func Test_destroy(t *testing.T) {
 			},
 		}
 		changes := opsmodels.NewChanges(p, s, order)
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionState)}
+		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
 
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.NotNil(t, err)

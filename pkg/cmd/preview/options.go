@@ -29,7 +29,7 @@ const jsonOutput = "json"
 type Options struct {
 	build.Options
 	Flags
-	backend.BackendOps
+	backend.BackendOptions
 }
 
 type Flags struct {
@@ -61,6 +61,11 @@ func (o *Options) Validate() error {
 	}
 	if err := o.ValidateIntentFile(); err != nil {
 		return err
+	}
+	if !o.BackendOptions.IsEmpty() {
+		if err := o.BackendOptions.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -152,8 +157,8 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Get state storage from backend config to manage state
-	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
+	// Get state storage from cli backend options, environment variables, workspace backend configs
+	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
 	if err != nil {
 		return err
 	}
