@@ -55,14 +55,14 @@ func TestOperator_Validate(t *testing.T) {
 			name:    "invalid operator not yaml workspace",
 			success: false,
 			operator: &Operator{
-				storagePath: path.Join(testDataFolder(), ".invalid_workspace_not_yaml"),
+				storagePath: path.Join(testDataFolder(), "invalid_workspaces_not_yaml"),
 			},
 		},
 		{
 			name:    "invalid operator dir workspace",
 			success: false,
 			operator: &Operator{
-				storagePath: path.Join(testDataFolder(), ".invalid_workspace_dir"),
+				storagePath: path.Join(testDataFolder(), "invalid_workspaces_dir"),
 			},
 		},
 	}
@@ -76,7 +76,7 @@ func TestOperator_Validate(t *testing.T) {
 }
 
 func TestOperator_GetWorkspaceNames(t *testing.T) {
-	operator, _ := NewOperator(path.Join(testDataFolder(), ".workspace_for_list"))
+	operator, _ := NewOperator(path.Join(testDataFolder(), "workspaces_for_list"))
 	testcases := []struct {
 		name     string
 		success  bool

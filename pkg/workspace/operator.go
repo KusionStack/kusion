@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultRelativeStoragePath = ".workspaces"
+	defaultRelativeStoragePath = "workspaces"
 	suffixYAML                 = ".yaml"
 )
 
