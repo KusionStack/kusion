@@ -130,9 +130,9 @@ We introduce a set of Kusion modules to standardize deployment and the root modu
 
 Before we dive into details, it is necessary to clarify certain terms.
 
-- Environment: Environment is a logical concept representing a target that an application will be deployed to. We just recommend they be grouped by SDLC phases or cloud vendors. For example, it could be named as `dev`, `staging`, and `prod` or cloud vendors such as `AWS`, `Azure`, and `Aliyun` or a even combination of the two.
+- Workspace: A workspace is a logical concept representing a target that an application will be deployed to. We just recommend they be grouped by SDLC phases or cloud vendors. For example, it could be named as `dev`, `staging`, and `prod` or cloud vendors such as `AWS`, `Azure`, and `Aliyun` or a even combination of the two.
 - [Project](https://kusionstack.io/docs/user_docs/concepts/glossary#project): A project is a logical concept to bundle application configurations.
-- [Stack](https://kusionstack.io/docs/user_docs/concepts/glossary#stack): A stack is a logical concept that provides a mechanism to isolate multiple deploys of the same application. It is the smallest operational unit that can be configured and deployed independently and must be linked with one environment.
+- [Stack](https://kusionstack.io/docs/user_docs/concepts/glossary#stack): A stack is a logical concept that provides a mechanism to isolate multiple deploys of the same application. It is the smallest operational unit that can be configured and deployed independently. The name of each stack must be the same as one specific workspace.
 
 <p align="center">
 <img src="../workspace-project-stack.png" width="50%"/>
@@ -144,7 +144,7 @@ Before we dive into details, it is necessary to clarify certain terms.
 
 A Kusion module is a building block designed by platform engineers to standardize application deployments and it consists of two parts:
 
-- App developer-oriented schema: Fields in this schema are recommended to be understandable to application developers and environment-agnostic. For example, a database Kusion module schema only contains fields like database engine type and database version.
+- App developer-oriented schema: Fields in this schema are recommended to be understandable to application developers and workspace-agnostic. For example, a database Kusion module schema only contains fields like database engine type and database version.
 - Kusion module generator: As a building block, Kusion module hides the complexity of infrastructures. A database Kusion module not only represents a cloud RDS, but it also contains logic to configure other resources such as security groups and IAM policies. Additionally, it seamlessly injects the database host address, username, and password into the workload's environment variables. The generator logic can be very complex in some situations so we recommend implementing it in a GPL like `Go`.
 
 <p align="center">
@@ -185,11 +185,11 @@ schema Database:
 
 Application developers will choose Kusion modules they need and instantiate them in the AppConfiguration to describe their operation intentions. We have built some built-in Kusion modules in the repository [Catalog](https://github.com/KusionStack/catalog) and we warmly welcome you to join us in building this ecosystem together.
   
-### Instantiate and set up environments
+### Instantiate and set up workspaces
 
-Each environment includes a corresponding config file maintained by platform engineers. The environment config file contains values that are used to standardize applications but vary from different environments. For example, the subnets in the `prod` and `dev` environment of one application are usually different and platform engineers can change these platform standardizations easily by instantiating two different environment configs.
+Each workspace includes a corresponding config file maintained by platform engineers. The workspace config file contains values that are used to standardize applications but vary from different workspaces. For example, the subnets in the `prod` and `dev` workspace of one application are usually different and platform engineers can change these platform standardizations easily by instantiating two different workspace configs.
 
-Platform engineers should instantiate all environments and fulfill all fields with platform default values. An example is as follows.
+Platform engineers should instantiate all workspaces and fulfill all fields with platform default values. Kusion will merge the workspace configuration with AppConfiguration in the Stack of the same name. An example is as follows.
 
 ```yaml
 # default configs applied to all applications
@@ -207,7 +207,7 @@ app1:
     instanceClass: mysql.n2.serverless.2c
 ```
 
-The `database` block represents a Kusion module and the fields in it are inputs of the Kusion module generator. Configurations in the `default` block will be applied to all applications in this environment and configurations in the `app1` block will only be applied to application `app1` and they will override default configs with the same field name.
+The `database` block represents a Kusion module and the fields in it are inputs of the Kusion module generator. Configurations in the `default` block will be applied to all applications in this workspace and configurations in the `app1` block will only be applied to application `app1` and they will override default configs with the same field name.
 
 ## Application developer's workflow
 
@@ -247,15 +247,13 @@ wordpress: ac.AppConfiguration {
 
 `workload` and `database` are both Kusion modules provided by platform engineers and Kusion will convert them into actual infrastructure API calls eventually.
 
-### Choose an Environment
 
-The application developer should choose an environment provided by platform engineers by setting the environment config file path into the OS environment variables `KUSION_ENV`. This step links the application developer's config with an environment config and Kusion will combine them and convert them into the inputs of Kusion module generators.
+## Summary
 
 <p align="center">
 <img src="../collaboration-workflow.png"/>
 </>
 
-Summary
 This paradigm has three advantages:
 
 1. Separate concerns of application developers and platform engineers by using different Kusion modules to facilitate collaboration between them.
