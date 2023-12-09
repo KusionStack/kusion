@@ -32,3 +32,7 @@ func NewGetSecretInfoFn(secretValue interface{}, secretDataType string, err erro
 		return nil, err
 	}
 }
+
+func (sc *SecretsManagerClient) GetSecretInfo(secretName string) (*models.SecretInfo, error) {
+	return sc.GetSecretInfoFn(secretName)
+}
