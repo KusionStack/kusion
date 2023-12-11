@@ -123,12 +123,12 @@ type MysqlConfig struct {
 
 // OssConfig contains the config of using OSS as backend.
 type OssConfig struct {
-	GenericObjectStorageConfig // OSS asks for non-empty endpoint
+	GenericObjectStorageConfig `yaml:",inline" json:",inline"` // OSS asks for non-empty endpoint
 }
 
 // S3Config contains the config of using S3 as backend.
 type S3Config struct {
-	GenericObjectStorageConfig
+	GenericObjectStorageConfig `yaml:",inline" json:",inline"`
 
 	// Region of S3.
 	Region string `yaml:"region,omitempty" json:"region,omitempty"`
