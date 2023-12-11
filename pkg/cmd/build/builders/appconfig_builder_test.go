@@ -77,9 +77,7 @@ func buildMockWorkspace() *workspace.Workspace {
 			},
 		},
 		Backends: &workspace.BackendConfigs{
-			Local: &workspace.LocalFileConfig{
-				Path: "/etc/.kusion",
-			},
+			Local: &workspace.LocalFileConfig{},
 		},
 	}
 }

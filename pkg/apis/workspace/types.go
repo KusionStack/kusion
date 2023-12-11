@@ -3,6 +3,19 @@ package workspace
 const (
 	DefaultBlock         = "default"
 	ProjectSelectorField = "projectSelector"
+
+	BackendLocal            = "local"
+	BackendMysql            = "mysql"
+	BackendOss              = "oss"
+	BackendS3               = "s3"
+	EnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
+	EnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
+	EnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
+	EnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
+	EnvAwsRegion            = "AWS_REGION"
+	EnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
+	EnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
+	DefaultMysqlPort        = 3306
 )
 
 // Workspace is a logical concept representing a target that stacks will be deployed to.
@@ -72,16 +85,68 @@ type TerraformConfig map[string]GenericConfig
 
 // BackendConfigs contains config of the backend, which is used to store state, etc. Only one kind
 // backend can be configured.
-// todo: add more backends declared in pkg/engine/backend
 type BackendConfigs struct {
-	// Local is backend to use local file system.
+	// Local is the backend using local file system.
 	Local *LocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
+
+	// Mysql is the backend using mysql database.
+	Mysql *MysqlConfig `yaml:"mysql,omitempty" json:"mysql,omitempty"`
+
+	// Oss is the backend using OSS.
+	Oss *OssConfig `yaml:"oss,omitempty" json:"oss,omitempty"`
+
+	// S3 is the backend using S3.
+	S3 *S3Config `yaml:"s3,omitempty" json:"s3,omitempty"`
 }
 
-// LocalFileConfig contains the config of using local file system as backend.
-type LocalFileConfig struct {
-	// Path is place to store state, etc.
-	Path string `yaml:"path" json:"path"`
+// LocalFileConfig contains the config of using local file system as backend. Now there is no configuration
+// item for local file.
+type LocalFileConfig struct{}
+
+// MysqlConfig contains the config of using mysql database as backend.
+type MysqlConfig struct {
+	// DBName is the database name.
+	DBName string `yaml:"dbName" json:"dbName"`
+
+	// User of the database.
+	User string `yaml:"user" json:"user"`
+
+	// Password of the database.
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+
+	// Host of the database.
+	Host string `yaml:"host" json:"host"`
+
+	// Port of the database. If not set, then it will be set to DefaultMysqlPort.
+	Port *int `yaml:"port,omitempty" json:"port,omitempty"`
+}
+
+// OssConfig contains the config of using OSS as backend.
+type OssConfig struct {
+	GenericObjectStorageConfig // OSS asks for non-empty endpoint
+}
+
+// S3Config contains the config of using S3 as backend.
+type S3Config struct {
+	GenericObjectStorageConfig
+
+	// Region of S3.
+	Region string `yaml:"region,omitempty" json:"region,omitempty"`
+}
+
+// GenericObjectStorageConfig contains generic configs which can be reused by OssConfig and S3Config.
+type GenericObjectStorageConfig struct {
+	// Endpoint of the object storage service.
+	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+
+	// AccessKeyID of the object storage service.
+	AccessKeyID string `yaml:"accessKeyID,omitempty" json:"accessKeyID,omitempty"`
+
+	// AccessKeySecret of the object storage service.
+	AccessKeySecret string `yaml:"accessKeySecret,omitempty" json:"accessKeySecret,omitempty"`
+
+	// Bucket of the object storage service.
+	Bucket string `yaml:"bucket" json:"bucket"`
 }
 
 // GenericConfig is a generic model to describe config which shields the difference among multiple concrete

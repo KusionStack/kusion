@@ -24,10 +24,20 @@ var (
 	ErrEmptyTerraformProviderName   = errors.New("empty terraform provider name")
 	ErrEmptyTerraformProviderConfig = errors.New("empty terraform provider config")
 
-	ErrEmptyLocalFilePath = errors.New("empty local file path")
+	ErrMultipleBackends     = errors.New("more than one backend configured")
+	ErrEmptyMysqlDBName     = errors.New("empty db name")
+	ErrEmptyMysqlUser       = errors.New("empty mysql db user")
+	ErrEmptyMysqlHost       = errors.New("empty mysql host")
+	ErrInvalidMysqlPort     = errors.New("mysql port must be between 1 and 65535")
+	ErrEmptyBucket          = errors.New("empty bucket")
+	ErrEmptyAccessKeyID     = errors.New("empty access key id")
+	ErrEmptyAccessKeySecret = errors.New("empty access key secret")
+	ErrEmptyOssEndpoint     = errors.New("empty oss endpoint")
+	ErrEmptyS3Region        = errors.New("empty s3 region")
 )
 
-// ValidateWorkspace is used to validate the workspace.Workspace is valid or not.
+// ValidateWorkspace is used to validate the workspace get or set in the storage, and does not validate the
+// config which can get from environment variables, such as access key id in backend configs.
 func ValidateWorkspace(ws *workspace.Workspace) error {
 	if ws.Name == "" {
 		return ErrEmptyWorkspaceName
@@ -50,7 +60,7 @@ func ValidateWorkspace(ws *workspace.Workspace) error {
 	return nil
 }
 
-// ValidateModuleConfigs validates the workspace.ModuleConfigs is valid or not.
+// ValidateModuleConfigs validates the moduleConfigs is valid or not.
 func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
 	for name, cfg := range configs {
 		if name == "" {
@@ -67,7 +77,7 @@ func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
 	return nil
 }
 
-// ValidateModuleConfig is used to validate the workspace.ModuleConfig is valid or not.
+// ValidateModuleConfig is used to validate the moduleConfig is valid or not.
 func ValidateModuleConfig(config workspace.ModuleConfig) error {
 	// allProjects is used to inspect if there are repeated projects in projectSelector
 	// field or not.
@@ -120,7 +130,7 @@ func ValidateModuleConfig(config workspace.ModuleConfig) error {
 	return nil
 }
 
-// ValidateRuntimeConfigs is used to validate the workspace.RuntimeConfigs is valid or not.
+// ValidateRuntimeConfigs is used to validate the runtimeConfigs is valid or not.
 func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
 	if configs.Kubernetes != nil {
 		if err := ValidateKubernetesConfig(configs.Kubernetes); err != nil {
@@ -135,7 +145,7 @@ func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
 	return nil
 }
 
-// ValidateKubernetesConfig is used to validate the workspace.KubernetesConfig is valid or not.
+// ValidateKubernetesConfig is used to validate the kubernetesConfig is valid or not.
 func ValidateKubernetesConfig(config *workspace.KubernetesConfig) error {
 	if config.KubeConfig == "" {
 		return ErrEmptyKubeConfig
@@ -143,7 +153,7 @@ func ValidateKubernetesConfig(config *workspace.KubernetesConfig) error {
 	return nil
 }
 
-// ValidateTerraformConfig is used to validate the workspace.TerraformConfig is valid or not.
+// ValidateTerraformConfig is used to validate the terraformConfig is valid or not.
 func ValidateTerraformConfig(config workspace.TerraformConfig) error {
 	for name, cfg := range config {
 		if name == "" {
@@ -156,20 +166,113 @@ func ValidateTerraformConfig(config workspace.TerraformConfig) error {
 	return nil
 }
 
-// ValidateBackendConfigs is used to validate workspace.BackendConfigs is valid or not.
+// ValidateBackendConfigs is used to validate backendConfigs is valid or not, and does not validate the
+// configs which can get from environment variables, such as access key id, etc.
 func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
-	if configs.Local != nil {
-		if err := ValidateLocalFileConfig(configs.Local); err != nil {
-			return err
+	if configureMoreThanOneBackend(configs) {
+		return ErrMultipleBackends
+	}
+
+	// cause only one backend can be configured, hence the validity of the only one non-nil backend
+	// represents the validity of the backend.
+	if configs.Mysql != nil {
+		return ValidateMysqlConfig(configs.Mysql)
+	}
+	if configs.Oss != nil {
+		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
+			return fmt.Errorf("%w of %s", err, workspace.BackendOss)
 		}
+		return nil
+	}
+	if configs.S3 != nil {
+		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
+			return fmt.Errorf("%w of %s", err, workspace.BackendS3)
+		}
+		return nil
 	}
 	return nil
 }
 
-// ValidateLocalFileConfig is used to validate workspace.LocalFileConfig is valid or not.
-func ValidateLocalFileConfig(config *workspace.LocalFileConfig) error {
-	if config.Path == "" {
-		return ErrEmptyLocalFilePath
+// configureMoreThanOneBackend checks whether there are more than one backend configured.
+func configureMoreThanOneBackend(configs *workspace.BackendConfigs) bool {
+	// configCondition returns: 1, if the backend configured or not; 2, if configured more than one backend.
+	configCondition := func(configured bool, hasNewConfig bool) (bool, bool) {
+		return configured || hasNewConfig, configured && hasNewConfig
+	}
+
+	var configured, moreThanOneConfig bool
+	configured = configs.Local != nil
+	configured, moreThanOneConfig = configCondition(configured, configs.Mysql != nil)
+	if moreThanOneConfig {
+		return moreThanOneConfig
+	}
+	configured, moreThanOneConfig = configCondition(configured, configs.Oss != nil)
+	if moreThanOneConfig {
+		return moreThanOneConfig
+	}
+	_, moreThanOneConfig = configCondition(configured, configs.S3 != nil)
+	return moreThanOneConfig
+}
+
+// ValidateMysqlConfig is used to validate mysqlConfig is valid or not.
+func ValidateMysqlConfig(config *workspace.MysqlConfig) error {
+	if config.DBName == "" {
+		return ErrEmptyMysqlDBName
+	}
+	if config.User == "" {
+		return ErrEmptyMysqlUser
+	}
+	if config.Host == "" {
+		return ErrEmptyMysqlHost
+	}
+	if config.Port != nil && (*config.Port < 1 || *config.Port > 65535) {
+		return ErrInvalidMysqlPort
+	}
+	return nil
+}
+
+// ValidateGenericObjectStorageConfig is used to validate ossConfig and s3Config is valid or not, where the
+// sensitive data items set as environment variables are not included.
+func ValidateGenericObjectStorageConfig(config *workspace.GenericObjectStorageConfig) error {
+	if config.Bucket == "" {
+		return ErrEmptyBucket
+	}
+	return nil
+}
+
+// ValidateWholeOssConfig is used to validate ossConfig is valid or not, where all the items are included.
+// If valid, the config contains all valid items to new an oss client.
+func ValidateWholeOssConfig(config *workspace.OssConfig) error {
+	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
+		return fmt.Errorf("%w of %s", err, workspace.BackendOss)
+	}
+	if config.Endpoint == "" {
+		return ErrEmptyOssEndpoint
+	}
+	return nil
+}
+
+// ValidateWholeS3Config is used to validate s3Config is valid or not, where all the items are included.
+// If valid, the config  contains all valid items to new a s3 client.
+func ValidateWholeS3Config(config *workspace.S3Config) error {
+	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
+		return fmt.Errorf("%w of %s", err, workspace.BackendS3)
+	}
+	if config.Region == "" {
+		return ErrEmptyS3Region
+	}
+	return nil
+}
+
+func validateWholeGenericObjectStorageConfig(config *workspace.GenericObjectStorageConfig) error {
+	if err := ValidateGenericObjectStorageConfig(config); err != nil {
+		return err
+	}
+	if config.AccessKeyID == "" {
+		return ErrEmptyAccessKeyID
+	}
+	if config.AccessKeySecret == "" {
+		return ErrEmptyAccessKeySecret
 	}
 	return nil
 }
