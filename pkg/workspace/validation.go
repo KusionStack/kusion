@@ -20,9 +20,13 @@ var (
 	ErrRepeatedModuleConfigSelectedProjects = errors.New("project should not repeat in one patcher block's projectSelector")
 	ErrMultipleModuleConfigSelectedProjects = errors.New("a project cannot assign in more than one patcher block's projectSelector")
 
-	ErrEmptyKubeConfig              = errors.New("empty kubeconfig")
-	ErrEmptyTerraformProviderName   = errors.New("empty terraform provider name")
-	ErrEmptyTerraformProviderConfig = errors.New("empty terraform provider config")
+	ErrEmptyKubeConfig                   = errors.New("empty kubeconfig")
+	ErrEmptyTerraformProviderName        = errors.New("empty terraform provider name")
+	ErrEmptyTerraformProviderConfig      = errors.New("empty terraform provider config")
+	ErrEmptyTerraformProviderSource      = errors.New("empty provider source")
+	ErrEmptyTerraformProviderVersion     = errors.New("empty provider version")
+	ErrEmptyTerraformProviderConfigKey   = errors.New("empty provider config key")
+	ErrEmptyTerraformProviderConfigValue = errors.New("empty provider config value")
 
 	ErrMultipleBackends     = errors.New("more than one backend configured")
 	ErrEmptyMysqlDBName     = errors.New("empty db name")
@@ -159,8 +163,30 @@ func ValidateTerraformConfig(config workspace.TerraformConfig) error {
 		if name == "" {
 			return ErrEmptyTerraformProviderName
 		}
-		if len(cfg) == 0 {
-			return ErrEmptyTerraformProviderConfig
+		if cfg == nil {
+			return fmt.Errorf("%w of provider %s", ErrEmptyTerraformProviderConfig, name)
+		}
+		if err := ValidateProviderConfig(cfg); err != nil {
+			return fmt.Errorf("invalid terraform provider %s: %w", name, err)
+		}
+	}
+	return nil
+}
+
+// ValidateProviderConfig is used to validate the providerConfig is valid or not.
+func ValidateProviderConfig(config *workspace.ProviderConfig) error {
+	if config.Source == "" {
+		return ErrEmptyTerraformProviderSource
+	}
+	if config.Version == "" {
+		return ErrEmptyTerraformProviderVersion
+	}
+	for k, v := range config.GenericConfig {
+		if k == "" {
+			return ErrEmptyTerraformProviderConfigKey
+		}
+		if v == nil {
+			return fmt.Errorf("%w of field %s", ErrEmptyTerraformProviderConfigValue, k)
 		}
 	}
 	return nil

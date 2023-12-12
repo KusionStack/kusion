@@ -120,17 +120,19 @@ func Test_GetTerraformProviderConfig(t *testing.T) {
 		name           string
 		success        bool
 		providerName   string
-		providerConfig workspace.GenericConfig
+		providerConfig *workspace.ProviderConfig
 		runtimeConfigs *workspace.RuntimeConfigs
 	}{
 		{
 			name:         "successfully get terraform provider config",
 			success:      true,
 			providerName: "aws",
-			providerConfig: workspace.GenericConfig{
-				"version": "1.0.4",
-				"source":  "hashicorp/aws",
-				"region":  "us-east-1",
+			providerConfig: &workspace.ProviderConfig{
+				Source:  "hashicorp/aws",
+				Version: "1.0.4",
+				GenericConfig: workspace.GenericConfig{
+					"region": "us-east-1",
+				},
 			},
 			runtimeConfigs: mockValidRuntimeConfigs(),
 		},
@@ -145,7 +147,7 @@ func Test_GetTerraformProviderConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg, err := GetTerraformProviderConfig(tc.runtimeConfigs, tc.providerName)
+			cfg, err := GetProviderConfig(tc.runtimeConfigs, tc.providerName)
 			assert.Equal(t, tc.success, err == nil)
 			assert.Equal(t, tc.providerConfig, cfg)
 		})

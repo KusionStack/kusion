@@ -141,9 +141,11 @@ func mockValidKubernetesConfig() *workspace.KubernetesConfig {
 func mockValidTerraformConfig() workspace.TerraformConfig {
 	return workspace.TerraformConfig{
 		"aws": {
-			"version": "1.0.4",
-			"source":  "hashicorp/aws",
-			"region":  "us-east-1",
+			Source:  "hashicorp/aws",
+			Version: "1.0.4",
+			GenericConfig: workspace.GenericConfig{
+				"region": "us-east-1",
+			},
 		},
 	}
 }
@@ -346,9 +348,11 @@ func TestValidateTerraformConfig(t *testing.T) {
 			success: false,
 			terraformConfig: workspace.TerraformConfig{
 				"": {
-					"version": "1.0.4",
-					"source":  "hashicorp/aws",
-					"region":  "us-east-1",
+					Source:  "hashicorp/aws",
+					Version: "1.0.4",
+					GenericConfig: workspace.GenericConfig{
+						"region": "us-east-1",
+					},
 				},
 			},
 		},
@@ -356,7 +360,59 @@ func TestValidateTerraformConfig(t *testing.T) {
 			name:    "invalid terraform config empty provider config",
 			success: false,
 			terraformConfig: workspace.TerraformConfig{
-				"aws": {},
+				"aws": nil,
+			},
+		},
+		{
+			name:    "invalid terraform config empty provider source",
+			success: false,
+			terraformConfig: workspace.TerraformConfig{
+				"aws": {
+					Source:  "",
+					Version: "1.0.4",
+					GenericConfig: workspace.GenericConfig{
+						"region": "us-east-1",
+					},
+				},
+			},
+		},
+		{
+			name:    "invalid terraform config empty provider version",
+			success: false,
+			terraformConfig: workspace.TerraformConfig{
+				"aws": {
+					Source:  "hashicorp/aws",
+					Version: "",
+					GenericConfig: workspace.GenericConfig{
+						"region": "us-east-1",
+					},
+				},
+			},
+		},
+		{
+			name:    "invalid terraform config empty provider config key",
+			success: false,
+			terraformConfig: workspace.TerraformConfig{
+				"aws": {
+					Source:  "hashicorp/aws",
+					Version: "1.0.4",
+					GenericConfig: workspace.GenericConfig{
+						"": "us-east-1",
+					},
+				},
+			},
+		},
+		{
+			name:    "invalid terraform config empty provider config value",
+			success: false,
+			terraformConfig: workspace.TerraformConfig{
+				"aws": {
+					Source:  "hashicorp/aws",
+					Version: "1.0.4",
+					GenericConfig: workspace.GenericConfig{
+						"region": nil,
+					},
+				},
 			},
 		},
 	}
