@@ -6,7 +6,7 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
-	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
+	database "kusionstack.io/kusion/pkg/modules/generators/accessories"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
 	"kusionstack.io/kusion/pkg/modules/generators/trait"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
@@ -82,21 +82,25 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 		return err
 	}
 
+	// retrieve the provider configs for the terraform runtime
+	terraformConfig := workspace.GetTerraformConfig(g.ws.Runtimes)
+
 	// construct proper generator context
 	namespaceName := g.getNamespaceName(modulesConfig)
 	g.app.Name = g.appName
 	context := modules.GeneratorContext{
-		Project:      g.project,
-		Stack:        g.stack,
-		Application:  g.app,
-		Namespace:    namespaceName,
-		ModuleInputs: modulesConfig,
+		Project:         g.project,
+		Stack:           g.stack,
+		Application:     g.app,
+		Namespace:       namespaceName,
+		ModuleInputs:    modulesConfig,
+		TerraformConfig: terraformConfig,
 	}
 
 	// Generate resources
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(context),
-		accessories.NewDatabaseGeneratorFunc(context),
+		database.NewDatabaseGeneratorFunc(context),
 		workload.NewWorkloadGeneratorFunc(context),
 		trait.NewOpsRuleGeneratorFunc(context),
 		monitoring.NewMonitoringGeneratorFunc(context),

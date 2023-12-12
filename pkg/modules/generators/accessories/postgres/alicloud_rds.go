@@ -1,28 +1,20 @@
-package accessories
+package postgres
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
-
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
+	"kusionstack.io/kusion/pkg/modules/inputs/accessories/postgres"
 )
 
 const (
-	alicloudDBInstance      = "alicloud_db_instance"
-	alicloudDBConnection    = "alicloud_db_connection"
-	alicloudRDSAccount      = "alicloud_rds_account"
-	defaultAlicloudProvider = "registry.terraform.io/aliyun/alicloud/1.209.1"
-)
-
-var (
-	tfProviderAlicloud     = os.Getenv("TF_PROVIDER_ALICLOUD")
-	alicloudProviderRegion = os.Getenv("ALICLOUD_PROVIDER_REGION")
+	defaultAlicloudProviderURL = "registry.terraform.io/aliyun/alicloud/1.209.1"
+	alicloudDBInstance         = "alicloud_db_instance"
+	alicloudDBConnection       = "alicloud_db_connection"
+	alicloudRDSAccount         = "alicloud_rds_account"
 )
 
 type alicloudServerlessConfig struct {
@@ -32,27 +24,40 @@ type alicloudServerlessConfig struct {
 	MinCapacity int  `yaml:"min_capacity,omitempty" json:"min_capacity,omitempty"`
 }
 
-func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *apiv1.Intent) (*v1.Secret, error) {
+// generateAlicloudResources generates alicloud provided postgresql database instance.
+func (g *postgresGenerator) generateAlicloudResources(db *postgres.PostgreSQL, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Set the terraform random and alicloud provider.
-	randomProvider := &inputs.Provider{}
-	if err := randomProvider.SetString(randomProviderURL); err != nil {
-		return nil, err
-	}
+	randomProvider, alicloudProvider := &inputs.Provider{}, &inputs.Provider{}
 
-	// The region of the alicloud provider must be set.
-	if alicloudProviderRegion == "" {
-		return nil, fmt.Errorf("the region of the alicloud provider must be set")
-	}
-
-	var providerURL string
-	alicloudProvider := &inputs.Provider{}
-	if tfProviderAlicloud == "" {
-		providerURL = defaultAlicloudProvider
+	randomProviderCfg, ok := g.tfConfigs[inputs.RandomProvider]
+	if !ok {
+		randomProvider.SetString(defaultRandomProviderURL)
 	} else {
-		providerURL = tfProviderAlicloud
+		randomProviderURL, err := inputs.GetProviderURL(randomProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := randomProvider.SetString(randomProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := alicloudProvider.SetString(providerURL); err != nil {
+	alicloudProviderCfg, ok := g.tfConfigs[inputs.AlicloudProvider]
+	if !ok {
+		alicloudProvider.SetString(defaultAlicloudProviderURL)
+	} else {
+		alicloudProviderURL, err := inputs.GetProviderURL(alicloudProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := alicloudProvider.SetString(alicloudProviderURL); err != nil {
+			return nil, err
+		}
+	}
+
+	// Get the alicloud provider region, and the region of the alicloud provider must be set.
+	alicloudProviderRegion, err := inputs.GetProviderRegion(g.tfConfigs[inputs.AlicloudProvider])
+	if err != nil {
 		return nil, err
 	}
 
@@ -86,19 +91,20 @@ func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spe
 	return g.generateDBSecret(hostAddress, db.Username, password, spec)
 }
 
-func (g *databaseGenerator) generateAlicloudDBInstance(
+func (g *postgresGenerator) generateAlicloudDBInstance(
 	region string,
 	provider *inputs.Provider,
-	db *database.Database,
+	db *postgres.PostgreSQL,
 ) (string, apiv1.Resource) {
 	dbAttrs := map[string]interface{}{
 		"category":         db.Category,
-		"engine":           db.Engine,
+		"engine":           "PostgreSQL",
 		"engine_version":   db.Version,
 		"instance_storage": db.Size,
 		"instance_type":    db.InstanceType,
 		"security_ips":     db.SecurityIPs,
 		"vswitch_id":       db.SubnetID,
+		"instance_name":    db.DatabaseName,
 	}
 
 	// Set serverless specific attributes.
@@ -107,21 +113,18 @@ func (g *databaseGenerator) generateAlicloudDBInstance(
 		dbAttrs["instance_charge_type"] = "Serverless"
 
 		serverlessConfig := alicloudServerlessConfig{
-			MaxCapacity: 8,
+			MaxCapacity: 12,
 			MinCapacity: 1,
 		}
-		if db.Engine == "SQLServer" {
-			serverlessConfig.MinCapacity = 2
-		} else if db.Engine == "MySQL" {
-			serverlessConfig.AutoPause = false
-			serverlessConfig.SwitchForce = false
-		}
+		serverlessConfig.AutoPause = false
+		serverlessConfig.SwitchForce = false
+
 		dbAttrs["serverless_config"] = []alicloudServerlessConfig{
 			serverlessConfig,
 		}
 	}
 
-	id := modules.TerraformResourceID(provider, alicloudDBInstance, g.appName)
+	id := modules.TerraformResourceID(provider, alicloudDBInstance, db.DatabaseName)
 	pvdExts := modules.ProviderExtensions(provider, map[string]any{
 		"region": region,
 	}, alicloudDBInstance)
@@ -129,7 +132,7 @@ func (g *databaseGenerator) generateAlicloudDBInstance(
 	return id, modules.TerraformResource(id, nil, dbAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateAlicloudDBConnection(
+func (g *postgresGenerator) generateAlicloudDBConnection(
 	dbInstanceID, region string,
 	provider *inputs.Provider,
 ) (string, apiv1.Resource) {
@@ -137,7 +140,7 @@ func (g *databaseGenerator) generateAlicloudDBConnection(
 		"instance_id": modules.KusionPathDependency(dbInstanceID, "id"),
 	}
 
-	id := modules.TerraformResourceID(provider, alicloudDBConnection, g.appName)
+	id := modules.TerraformResourceID(provider, alicloudDBConnection, g.postgres.DatabaseName)
 	pvdExts := modules.ProviderExtensions(provider, map[string]any{
 		"region": region,
 	}, alicloudDBConnection)
@@ -145,8 +148,9 @@ func (g *databaseGenerator) generateAlicloudDBConnection(
 	return id, modules.TerraformResource(id, nil, dbConnectionAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateAlicloudRDSAccount(
-	accountName, randomPasswordID, dbInstanceID, region string, provider *inputs.Provider, db *database.Database,
+func (g *postgresGenerator) generateAlicloudRDSAccount(
+	accountName, randomPasswordID, dbInstanceID, region string,
+	provider *inputs.Provider, db *postgres.PostgreSQL,
 ) apiv1.Resource {
 	rdsAccountAttrs := map[string]interface{}{
 		"account_name":     accountName,
@@ -155,7 +159,7 @@ func (g *databaseGenerator) generateAlicloudRDSAccount(
 		"db_instance_id":   modules.KusionPathDependency(dbInstanceID, "id"),
 	}
 
-	id := modules.TerraformResourceID(provider, alicloudRDSAccount, g.appName)
+	id := modules.TerraformResourceID(provider, alicloudRDSAccount, db.DatabaseName)
 	pvdExts := modules.ProviderExtensions(provider, map[string]any{
 		"region": region,
 	}, alicloudRDSAccount)
