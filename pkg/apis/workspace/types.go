@@ -81,7 +81,22 @@ type KubernetesConfig struct {
 
 // TerraformConfig contains the config of multiple terraform provider config, whose key is
 // the provider name.
-type TerraformConfig map[string]GenericConfig
+type TerraformConfig map[string]*ProviderConfig
+
+// ProviderConfig contains the full configurations of a specified provider. It is the combination
+// of the specified provider's config in blocks "terraform/required_providers" and "providers" in
+// terraform hcl file, where the former is described by fields Source and Version, and the latter
+// is described by GenericConfig cause different provider has different config.
+type ProviderConfig struct {
+	// Source of the provider.
+	Source string `yaml:"source" json:"source"`
+
+	// Version of the provider.
+	Version string `yaml:"version" json:"version"`
+
+	// GenericConfig is used to describe the config of a specified terraform provider.
+	GenericConfig `yaml:",inline,omitempty" json:",inline,omitempty"`
+}
 
 // BackendConfigs contains config of the backend, which is used to store state, etc. Only one kind
 // backend can be configured.

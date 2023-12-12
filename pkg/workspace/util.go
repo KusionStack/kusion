@@ -160,10 +160,10 @@ func GetTerraformConfig(configs *workspace.RuntimeConfigs) (workspace.TerraformC
 	return configs.Terraform, nil
 }
 
-// GetTerraformProviderConfig returns the specified terraform provider config from runtime config, should
-// be called after ValidateRuntimeConfigs.
+// GetProviderConfig returns the specified terraform provider config from runtime config, should be called
+// after ValidateRuntimeConfigs.
 // If got empty terraform config, ErrEmptyTerraformProviderConfig will get returned.
-func GetTerraformProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (workspace.GenericConfig, error) {
+func GetProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (*workspace.ProviderConfig, error) {
 	if providerName == "" {
 		return nil, ErrEmptyTerraformProviderName
 	}

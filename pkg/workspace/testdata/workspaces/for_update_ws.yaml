@@ -17,8 +17,8 @@ runtimes:
         kubeConfig: /etc/kubeconfig.yaml
     terraform:
         aws:
-            region: us-east-1
             source: hashicorp/aws
             version: 1.0.4
+            region: us-east-1
 backends:
     local: {}
