@@ -114,7 +114,8 @@ resources:
 					},
 				},
 				Extensions: map[string]interface{}{
-					"GVK": "/v1, Kind=Namespace",
+					"GVK":        "/v1, Kind=Namespace",
+					"kubeConfig": "/etc/kubeconfig.yaml",
 				},
 			},
 		},

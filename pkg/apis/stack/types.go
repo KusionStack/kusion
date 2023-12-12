@@ -17,8 +17,7 @@ var (
 
 // Configuration is the stack configuration
 type Configuration struct {
-	Name       string `json:"name" yaml:"name"`             // Stack name
-	KubeConfig string `json:"kubeConfig" yaml:"kubeConfig"` // KubeConfig file path for this stack
+	Name string `json:"name" yaml:"name"` // Stack name
 }
 
 type Stack struct {
