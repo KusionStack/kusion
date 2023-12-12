@@ -1,4 +1,4 @@
-package config
+package kubeops
 
 import (
 	"os"
@@ -7,7 +7,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/stack"
+	"kusionstack.io/kusion/pkg/apis/intent"
 )
 
 func mockGetenv(result string) {
@@ -17,24 +17,23 @@ func mockGetenv(result string) {
 }
 
 func TestGetKubeConfig(t *testing.T) {
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			KubeConfig: "",
+	resource := &intent.Resource{
+		Extensions: map[string]any{
+			"kubeConfig": "/home/test/kubeconfig",
 		},
 	}
 
 	// Mock
 	mockey.PatchConvey("test null env config", t, func() {
 		mockGetenv("")
-		assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig(stack))
+		assert.Equal(t, RecommendedKubeConfigFile, GetKubeConfig(nil))
 	})
 	mockey.PatchConvey("test env config", t, func() {
 		mockGetenv("test")
-		assert.Equal(t, "test", GetKubeConfig(stack))
+		assert.Equal(t, "test", GetKubeConfig(resource))
 	})
-	mockey.PatchConvey("test stack config", t, func() {
+	mockey.PatchConvey("test resource config", t, func() {
 		mockGetenv("")
-		stack.KubeConfig = "/home/test/kubeconfig"
-		assert.Equal(t, "/home/test/kubeconfig", GetKubeConfig(stack))
+		assert.Equal(t, "/home/test/kubeconfig", GetKubeConfig(resource))
 	})
 }

@@ -88,7 +88,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 
 	resources := request.Intent.Resources
 	resources = append(resources, priorState.Resources...)
-	runtimesMap, s := runtimeinit.Runtimes(resources, o.Stack)
+	runtimesMap, s := runtimeinit.Runtimes(resources)
 	if status.IsErr(s) {
 		return nil, s
 	}

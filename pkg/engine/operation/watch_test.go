@@ -10,7 +10,6 @@ import (
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -34,7 +33,6 @@ func TestWatchOperation_Watch(t *testing.T) {
 		}
 		mockey.Mock(runtimeinit.Runtimes).To(func(
 			resources intent.Resources,
-			stack *stack.Stack,
 		) (map[intent.Type]runtime.Runtime, status.Status) {
 			return map[intent.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
 		}).Build()

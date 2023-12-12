@@ -176,7 +176,6 @@ func TestOperation_Apply(t *testing.T) {
 			}).Build()
 			mockey.Mock(runtimeinit.Runtimes).To(func(
 				resources intent.Resources,
-				stack *stack.Stack,
 			) (map[intent.Type]runtime.Runtime, status.Status) {
 				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()

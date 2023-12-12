@@ -13,6 +13,9 @@ const (
 	// ResourceExtensionGVK is the key for resource extension, which is used to
 	// store the GVK of the resource.
 	ResourceExtensionGVK = "GVK"
+	// ResourceExtensionKubeConfig is the key for resource extension, which is used
+	// to indicate the path of kubeConfig for Kubernetes type resource.
+	ResourceExtensionKubeConfig = "kubeConfig"
 )
 
 type Resources []Resource
