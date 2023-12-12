@@ -11,6 +11,7 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -31,7 +32,8 @@ func TestNewDatabaseGenerator(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := &database.Database{}
-	generator, err := NewDatabaseGenerator(project, stack, appName, workload, database)
+	ws := &workspaceapi.Workspace{}
+	generator, err := NewDatabaseGenerator(project, stack, appName, workload, database, ws)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, generator)
@@ -58,7 +60,8 @@ func TestGenerate(t *testing.T) {
 		Size:         10,
 		Username:     "root",
 	}
-	generator, _ := NewDatabaseGenerator(project, stack, appName, workload, database)
+	ws := workspaceapi.Workspace{}
+	generator, _ := NewDatabaseGenerator(project, stack, appName, workload, database, &ws)
 
 	awsProviderRegion = "us-east-1"
 	spec := &intent.Intent{}

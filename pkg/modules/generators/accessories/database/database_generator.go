@@ -1,6 +1,7 @@
 package accessories
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -12,10 +13,12 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 const (
@@ -33,6 +36,7 @@ type databaseGenerator struct {
 	appName  string
 	workload *workload.Workload
 	database *database.Database
+	ws       *workspaceapi.Workspace
 }
 
 func NewDatabaseGenerator(
@@ -41,6 +45,7 @@ func NewDatabaseGenerator(
 	appName string,
 	workload *workload.Workload,
 	database *database.Database,
+	ws *workspaceapi.Workspace,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -52,6 +57,7 @@ func NewDatabaseGenerator(
 		appName:  appName,
 		workload: workload,
 		database: database,
+		ws:       ws,
 	}, nil
 }
 
@@ -61,15 +67,23 @@ func NewDatabaseGeneratorFunc(
 	appName string,
 	workload *workload.Workload,
 	database *database.Database,
+	ws *workspaceapi.Workspace,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewDatabaseGenerator(project, stack, appName, workload, database)
+		return NewDatabaseGenerator(project, stack, appName, workload, database, ws)
 	}
 }
 
 func (g *databaseGenerator) Generate(spec *intent.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(intent.Resources, 0)
+	}
+
+	// Patch workspace configurations for database generator.
+	if err := g.patchWorkspaceConfig(); err != nil {
+		if !errors.Is(err, workspace.ErrEmptyModuleConfig) {
+			return err
+		}
 	}
 
 	// Skip rendering for empty database instance.
@@ -99,6 +113,19 @@ func (g *databaseGenerator) Generate(spec *intent.Intent) error {
 	// Inject the database host address, username and password into the containers
 	// of the workload as environment variables with Kubernetes Secret.
 	return g.injectSecret(secret)
+}
+
+func (g *databaseGenerator) patchWorkspaceConfig() error {
+	// Get the workspace configurations for database of the specified application.
+	databaseCfgs, _ := g.ws.Modules["database"]
+	databaseCfg, err := workspace.GetProjectModuleConfig(databaseCfgs, g.project.Name)
+	if err != nil {
+		return err
+	}
+
+	// Patch workspace configurations for database generator.
+	g.database.Type = databaseCfg["type"].(string)
+	return nil
 }
 
 func (g *databaseGenerator) injectSecret(secret *v1.Secret) error {
