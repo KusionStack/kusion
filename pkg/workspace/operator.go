@@ -28,23 +28,66 @@ var (
 	ErrWorkspaceAlreadyExist = errors.New("workspace has already existed")
 )
 
+// CheckWorkspaceExistenceByDefaultOperator checks the workspace exists or not by default operator.
+func CheckWorkspaceExistenceByDefaultOperator(name string) (bool, error) {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return false, err
+	}
+	return operator.WorkspaceExist(name), nil
+}
+
+// GetWorkspaceByDefaultOperator gets a workspace by default operator.
+func GetWorkspaceByDefaultOperator(name string) (*workspace.Workspace, error) {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return nil, err
+	}
+	return operator.GetWorkspace(name)
+}
+
+// GetWorkspaceNamesByDefaultOperator list all the workspace names by default operator.
+func GetWorkspaceNamesByDefaultOperator() ([]string, error) {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return nil, err
+	}
+	return operator.GetWorkspaceNames()
+}
+
+// CreateWorkspaceByDefaultOperator creates a workspace by default operator.
+func CreateWorkspaceByDefaultOperator(ws *workspace.Workspace) error {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return err
+	}
+	return operator.CreateWorkspace(ws)
+}
+
+// UpdateWorkspaceByDefaultOperator updates a workspace by default operator.
+func UpdateWorkspaceByDefaultOperator(ws *workspace.Workspace) error {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return err
+	}
+	return operator.UpdateWorkspace(ws)
+}
+
+// DeleteWorkspaceByDefaultOperator deletes a workspace by default operator
+func DeleteWorkspaceByDefaultOperator(name string) error {
+	operator, err := NewValidDefaultOperator()
+	if err != nil {
+		return err
+	}
+	return operator.DeleteWorkspace(name)
+}
+
 // Operator is used to handle the CURD operations of workspace. Operator only supports local file
 // system as backend for now.
 type Operator struct {
 	// storagePath is absolute path of the directory to store the workspace configs locally. The
 	// storagePath should only include workspace configuration files.
 	storagePath string
-}
-
-// NewDefaultOperator returns a default backend, whose storage path is the directory ".workspace"
-// under kfile.KusionDataFolder().
-func NewDefaultOperator() (*Operator, error) {
-	kusionDataDir, err := kfile.KusionDataFolder()
-	if err != nil {
-		return nil, fmt.Errorf("get kusion data folder failed, %w", err)
-	}
-	storagePath := path.Join(kusionDataDir, defaultRelativeStoragePath)
-	return NewOperator(storagePath)
 }
 
 // NewOperator news an Operator with the specified storage path. If the directory of the storage
@@ -57,6 +100,29 @@ func NewOperator(storagePath string) (*Operator, error) {
 		}
 	}
 	return &Operator{storagePath: storagePath}, nil
+}
+
+// NewDefaultOperator returns a default backend, whose storage path is the directory "workspace"
+// under kfile.KusionDataFolder().
+func NewDefaultOperator() (*Operator, error) {
+	kusionDataDir, err := kfile.KusionDataFolder()
+	if err != nil {
+		return nil, fmt.Errorf("get kusion data folder failed, %w", err)
+	}
+	storagePath := path.Join(kusionDataDir, defaultRelativeStoragePath)
+	return NewOperator(storagePath)
+}
+
+// NewValidDefaultOperator news a default operator and then do the validation work.
+func NewValidDefaultOperator() (*Operator, error) {
+	operator, err := NewDefaultOperator()
+	if err != nil {
+		return nil, err
+	}
+	if err = operator.Validate(); err != nil {
+		return nil, err
+	}
+	return operator, nil
 }
 
 // Validate is used to validate the Operator is valid or not.

@@ -24,14 +24,16 @@ func mockValidOperator() *Operator {
 }
 
 func TestNewDefaultOperator(t *testing.T) {
-	mockey.PatchConvey("new default operator successfully", t, func() {
-		mockey.Mock(kfile.KusionDataFolder).Return(testDataFolder(), nil).Build()
+	t.Run("new default operator successfully", func(t *testing.T) {
+		mockey.PatchConvey("mock kusion data folder", t, func() {
+			mockey.Mock(kfile.KusionDataFolder).Return(testDataFolder(), nil).Build()
 
-		operator, err := NewDefaultOperator()
-		storagePath := path.Join(testDataFolder(), defaultRelativeStoragePath)
-		assert.Nil(t, err)
-		assert.Equal(t, storagePath, operator.storagePath)
-		assert.DirExists(t, storagePath)
+			operator, err := NewDefaultOperator()
+			storagePath := path.Join(testDataFolder(), defaultRelativeStoragePath)
+			assert.Nil(t, err)
+			assert.Equal(t, storagePath, operator.storagePath)
+			assert.DirExists(t, storagePath)
+		})
 	})
 }
 

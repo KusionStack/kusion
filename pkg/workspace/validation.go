@@ -185,7 +185,7 @@ func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
 		return nil
 	}
 	if configs.S3 != nil {
-		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
+		if err := ValidateGenericObjectStorageConfig(&configs.S3.GenericObjectStorageConfig); err != nil {
 			return fmt.Errorf("%w of %s", err, workspace.BackendS3)
 		}
 		return nil
