@@ -15,7 +15,6 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	apisworkspace "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
@@ -79,7 +78,7 @@ func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.In
 		if err != nil {
 			return nil, err
 		}
-		ws, err := getWorkspace(s.GetName())
+		ws, err := workspace.GetWorkspaceByDefaultOperator(s.GetName())
 		if err != nil {
 			return nil, err
 		}
@@ -123,19 +122,6 @@ func buildAppConfigs(o *builders.Options, stack *stack.Stack) (map[string]inputs
 	}
 
 	return appConfigs, nil
-}
-
-func getWorkspace(stackName string) (*apisworkspace.Workspace, error) {
-	wsOperator, err := workspace.NewDefaultOperator()
-	if err != nil {
-		return nil, fmt.Errorf("new workspace operator failed, %w", err)
-	}
-	// stack name should be same as the workspace name
-	ws, err := wsOperator.GetWorkspace(stackName)
-	if err != nil {
-		return nil, fmt.Errorf("get workspace %s failed, %w", stackName, err)
-	}
-	return ws, nil
 }
 
 func IntentFromFile(filePath string) (*intent.Intent, error) {

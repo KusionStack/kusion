@@ -49,7 +49,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 		success       bool
 		projectName   string
 		projectConfig workspace.GenericConfig
-		moduleConfig  workspace.ModuleConfig
+		moduleConfig  *workspace.ModuleConfig
 	}{
 		{
 			name:        "successfully get default project module config",

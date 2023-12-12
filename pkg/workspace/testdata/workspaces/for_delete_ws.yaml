@@ -5,10 +5,10 @@ modules:
             type: aws
             version: "5.7"
         smallClass:
-            instanceType: db.t3.small
             projectSelector:
                 - foo
                 - bar
+            instanceType: db.t3.small
     port:
         default:
             type: aws

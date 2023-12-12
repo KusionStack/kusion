@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/yaml.v3"
-
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
@@ -66,8 +64,8 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 // GetProjectModuleConfig returns the module config of a specified project, should be called after
 // ValidateModuleConfig.
 // If got empty module config, ErrEmptyProjectModuleConfig will get returned.
-func GetProjectModuleConfig(config workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
-	if len(config) == 0 {
+func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+	if config == nil {
 		return nil, ErrEmptyModuleConfig
 	}
 	if projectName == "" {
@@ -79,30 +77,26 @@ func GetProjectModuleConfig(config workspace.ModuleConfig, projectName string) (
 
 // getProjectModuleConfig gets the module config of a specified project without checking the correctness
 // of project name.
-func getProjectModuleConfig(config workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
-	projectCfg := config[workspace.DefaultBlock]
+func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+	projectCfg := config.Default
 	if len(projectCfg) == 0 {
 		projectCfg = make(workspace.GenericConfig)
 	}
 
-	for name, cfg := range config {
+	for name, cfg := range config.ModulePatcherConfigs {
 		if name == workspace.DefaultBlock {
 			continue
 		}
-		projects, err := parseProjectsFromProjectSelector(cfg[workspace.ProjectSelectorField])
-		if err != nil {
-			return nil, fmt.Errorf("%w, patcher block: %s", err, name)
-		}
 		// check the project is assigned in the block or not.
 		var contain bool
-		for _, project := range projects {
+		for _, project := range cfg.ProjectSelector {
 			if projectName == project {
 				contain = true
 				break
 			}
 		}
 		if contain {
-			for k, v := range cfg {
+			for k, v := range cfg.GenericConfig {
 				if k == workspace.ProjectSelectorField {
 					continue
 				}
@@ -116,22 +110,6 @@ func getProjectModuleConfig(config workspace.ModuleConfig, projectName string) (
 		return nil, ErrEmptyProjectModuleConfig
 	}
 	return projectCfg, nil
-}
-
-// parseProjectsFromProjectSelector parses the projects in projectSelector field to string slice.
-func parseProjectsFromProjectSelector(unstructuredProjects any) ([]string, error) {
-	var projects []string
-	bytes, err := yaml.Marshal(unstructuredProjects)
-	if err != nil {
-		return nil, fmt.Errorf("%w, marshal failed: %v", ErrInvalidModuleConfigProjectSelector, err)
-	}
-	if err = yaml.Unmarshal(bytes, &projects); err != nil {
-		return nil, fmt.Errorf("%w, unmarshal failed: %v", ErrInvalidModuleConfigProjectSelector, err)
-	}
-	if len(projects) == 0 {
-		return nil, fmt.Errorf("%w, empty projects", ErrInvalidModuleConfigProjectSelector)
-	}
-	return projects, nil
 }
 
 // GetKubernetesConfig returns kubernetes config from runtime config, should be called after

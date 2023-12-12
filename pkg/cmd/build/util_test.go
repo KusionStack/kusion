@@ -13,10 +13,11 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 var (
@@ -119,33 +120,37 @@ resources:
 		},
 	}
 
-	ws = &workspace.Workspace{
+	ws = &workspaceapi.Workspace{
 		Name: "default",
-		Modules: workspace.ModuleConfigs{
+		Modules: workspaceapi.ModuleConfigs{
 			"database": {
-				"default": {
+				Default: workspaceapi.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				"smallClass": {
-					"instanceType":    "db.t3.small",
-					"projectSelector": []any{"foo", "bar"},
+				ModulePatcherConfigs: workspaceapi.ModulePatcherConfigs{
+					"smallClass": {
+						GenericConfig: workspaceapi.GenericConfig{
+							"instanceType": "db.t3.small",
+						},
+						ProjectSelector: []string{"foo", "bar"},
+					},
 				},
 			},
 			"port": {
-				"default": {
+				Default: workspaceapi.GenericConfig{
 					"type": "aws",
 				},
 			},
 		},
-		Runtimes: &workspace.RuntimeConfigs{
-			Kubernetes: &workspace.KubernetesConfig{
+		Runtimes: &workspaceapi.RuntimeConfigs{
+			Kubernetes: &workspaceapi.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &workspace.BackendConfigs{
-			Local: &workspace.LocalFileConfig{},
+		Backends: &workspaceapi.BackendConfigs{
+			Local: &workspaceapi.LocalFileConfig{},
 		},
 	}
 )
@@ -226,7 +231,7 @@ func TestBuildIntent(t *testing.T) {
 				}, stack: &stack.Stack{},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
-					mockey.Mock(getWorkspace).Return(ws, nil),
+					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
 				},
 			},
 			want: intentModel3,
@@ -276,7 +281,7 @@ func TestBuildIntent(t *testing.T) {
 				},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
-					mockey.Mock(getWorkspace).Return(ws, nil),
+					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
 				},
 			},
 			want: intentModel3,
