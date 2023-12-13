@@ -2,6 +2,7 @@ package inputs
 
 import (
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
+	"kusionstack.io/kusion/pkg/modules/inputs/accessories/mysql"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -38,6 +39,10 @@ type AppConfiguration struct {
 	// Database defines a locally deployed or a cloud provider managed
 	// database instance for the workload.
 	Database *database.Database `json:"database,omitempty" yaml:"database,omitempty"`
+
+	// MySQL defines a locally deployed or a cloud provider managed
+	// mysql database instance for the workload.
+	MySQL *mysql.MySQL `json:"mysql,omitempty" yaml:"mysql,omitempty"`
 
 	// Labels and annotations can be used to attach arbitrary metadata
 	// as key-value pairs to resources.

@@ -37,3 +37,6 @@ func (provider *Provider) SetString(providerURL string) error {
 
 	return nil
 }
+
+// GetProviderURL returns the complete provider address from provider config in workspace.
+func GetProviderURL() (string, error)
