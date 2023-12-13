@@ -55,18 +55,22 @@ func buildMockWorkspace() *workspace.Workspace {
 		Name: "test",
 		Modules: workspace.ModuleConfigs{
 			"database": {
-				"default": {
+				Default: workspace.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				"smallClass": {
-					"instanceType":    "db.t3.small",
-					"projectSelector": []any{"foo", "bar"},
+				ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+					"smallClass": {
+						GenericConfig: workspace.GenericConfig{
+							"instanceType": "db.t3.small",
+						},
+						ProjectSelector: []string{"foo", "bar"},
+					},
 				},
 			},
 			"port": {
-				"default": {
+				Default: workspace.GenericConfig{
 					"type": "aws",
 				},
 			},

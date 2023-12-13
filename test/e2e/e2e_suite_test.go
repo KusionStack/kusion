@@ -87,18 +87,22 @@ func createSampleWorkspace() error {
 		Name: "dev",
 		Modules: workspaceapi.ModuleConfigs{
 			"database": {
-				"default": {
+				Default: workspaceapi.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				"smallClass": {
-					"instanceType":    "db.t3.small",
-					"projectSelector": []any{"foo", "bar"},
+				ModulePatcherConfigs: workspaceapi.ModulePatcherConfigs{
+					"smallClass": {
+						GenericConfig: workspaceapi.GenericConfig{
+							"instanceType": "db.t3.small",
+						},
+						ProjectSelector: []string{"foo", "bar"},
+					},
 				},
 			},
 			"port": {
-				"default": {
+				Default: workspaceapi.GenericConfig{
 					"type": "aws",
 				},
 			},

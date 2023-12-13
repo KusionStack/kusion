@@ -12,11 +12,13 @@ var (
 
 	ErrEmptyModuleName                      = errors.New("empty module name")
 	ErrEmptyModuleConfig                    = errors.New("empty module config")
-	ErrEmptyModuleConfigBlockName           = errors.New("empty block name in module config")
-	ErrEmptyModuleConfigBlock               = errors.New("empty block in module config")
+	ErrEmptyModuleConfigBlock               = errors.New("empty config of a module block")
+	ErrEmptyModuleConfigPatcherBlock        = errors.New("empty patcher block in module config")
+	ErrEmptyModuleConfigPatcherBlockName    = errors.New("empty patcher block name in module config")
+	ErrInvalidModuleConfigPatcherBlockName  = errors.New("patcher name must not be default in module config")
 	ErrEmptyModuleConfigProjectSelector     = errors.New("empty projectSelector in module config patcher block")
 	ErrNotEmptyModuleConfigProjectSelector  = errors.New("not empty projectSelector in module config default block")
-	ErrInvalidModuleConfigProjectSelector   = errors.New("invalid projectSelector in module config patcher block")
+	ErrEmptyModuleConfigProjectName         = errors.New("empty project name at projectSelector in module config patcher block")
 	ErrRepeatedModuleConfigSelectedProjects = errors.New("project should not repeat in one patcher block's projectSelector")
 	ErrMultipleModuleConfigSelectedProjects = errors.New("a project cannot assign in more than one patcher block's projectSelector")
 
@@ -70,7 +72,7 @@ func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
 		if name == "" {
 			return ErrEmptyModuleName
 		}
-		if len(cfg) == 0 {
+		if cfg == nil {
 			return fmt.Errorf("%w, module name: %s", ErrEmptyModuleConfig, name)
 		}
 		if err := ValidateModuleConfig(cfg); err != nil {
@@ -82,43 +84,58 @@ func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
 }
 
 // ValidateModuleConfig is used to validate the moduleConfig is valid or not.
-func ValidateModuleConfig(config workspace.ModuleConfig) error {
+func ValidateModuleConfig(config *workspace.ModuleConfig) error {
+	if err := ValidateModuleDefaultConfig(config.Default); err != nil {
+		return err
+	}
+	if err := ValidateModulePatcherConfigs(config.ModulePatcherConfigs); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateModuleDefaultConfig(config workspace.GenericConfig) error {
+	if len(config) == 0 {
+		return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, workspace.DefaultBlock)
+	}
+	if _, ok := config[workspace.ProjectSelectorField]; ok {
+		return ErrNotEmptyModuleConfigProjectSelector
+	}
+	return nil
+}
+
+func ValidateModulePatcherConfigs(config workspace.ModulePatcherConfigs) error {
 	// allProjects is used to inspect if there are repeated projects in projectSelector
 	// field or not.
 	allProjects := make(map[string]string)
 	for name, cfg := range config {
 		switch name {
 		case "":
-			return ErrEmptyModuleConfigBlockName
+			return ErrEmptyModuleConfigPatcherBlockName
 
-		// default block must not be empty and not have field projectSelector
+		// name of patcher block must not be default.
 		case workspace.DefaultBlock:
-			if len(cfg) == 0 {
-				return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, workspace.DefaultBlock)
-			}
-			if _, ok := cfg[workspace.ProjectSelectorField]; ok {
-				return ErrNotEmptyModuleConfigProjectSelector
-			}
+			return ErrInvalidModuleConfigPatcherBlockName
 
-		// patcher block must have field projectSelector, can be deserialized to string slice,
-		// and there should be no repeated projects.
+		// repeated projects in different patcher blocks are not allowed.
 		default:
-			unstructuredProjects, ok := cfg[workspace.ProjectSelectorField]
-			if !ok {
-				return fmt.Errorf("%w, patcher block: %s", ErrEmptyModuleConfigProjectSelector, name)
+			if cfg == nil {
+				return fmt.Errorf("%w, patcher block: %s", ErrEmptyModuleConfigPatcherBlock, name)
 			}
-			if len(cfg) == 1 {
+			if len(cfg.GenericConfig) == 0 {
 				return fmt.Errorf("%w, patcher block: %s", ErrEmptyModuleConfigBlock, name)
 			}
-			// the projectSelector filed should be deserialized to a string slice.
-			projects, err := parseProjectsFromProjectSelector(unstructuredProjects)
-			if err != nil {
-				return fmt.Errorf("%w, patcher block: %s", err, name)
+			if len(cfg.ProjectSelector) == 0 {
+				return fmt.Errorf("%w, patcher block: %s", ErrEmptyModuleConfigProjectSelector, name)
 			}
+
 			// a project cannot assign in more than one patcher block.
-			for _, project := range projects {
-				var patcherName string
-				patcherName, ok = allProjects[project]
+			for _, project := range cfg.ProjectSelector {
+				if project == "" {
+					return fmt.Errorf("%w, patcher block: %s", ErrEmptyModuleConfigProjectName, name)
+				}
+
+				patcherName, ok := allProjects[project]
 				if ok {
 					if patcherName == name {
 						return fmt.Errorf("%w, patcher block: %s", ErrRepeatedModuleConfigSelectedProjects, name)

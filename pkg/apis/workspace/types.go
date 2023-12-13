@@ -37,7 +37,7 @@ type Workspace struct {
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
-type ModuleConfigs map[string]ModuleConfig
+type ModuleConfigs map[string]*ModuleConfig
 
 // ModuleConfig is the config of a module, which contains a default and several patcher blocks.
 //
@@ -62,7 +62,25 @@ type ModuleConfigs map[string]ModuleConfig
 //		 	"projectSelector": []string{"foo", "bar"},
 //		},
 //	}
-type ModuleConfig map[string]GenericConfig
+type ModuleConfig struct {
+	// Default is default block of the module config.
+	Default GenericConfig `yaml:"default" json:"default"`
+
+	// ModulePatcherConfigs are the patcher blocks of the module config.
+	ModulePatcherConfigs `yaml:",inline,omitempty" json:",inline,omitempty"`
+}
+
+// ModulePatcherConfigs is a group of ModulePatcherConfig.
+type ModulePatcherConfigs map[string]*ModulePatcherConfig
+
+// ModulePatcherConfig is a patcher block of the module config.
+type ModulePatcherConfig struct {
+	// GenericConfig contains the module configs.
+	GenericConfig `yaml:",inline" json:",inline"`
+
+	// ProjectSelector contains the selected projects.
+	ProjectSelector []string `yaml:"projectSelector" json:"projectSelector"`
+}
 
 // RuntimeConfigs contains a set of runtime config.
 type RuntimeConfigs struct {
