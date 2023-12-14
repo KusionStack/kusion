@@ -6,14 +6,14 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-
 	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
+	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 // workloadServiceGenerator is a struct for generating service workload resources.

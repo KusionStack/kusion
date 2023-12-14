@@ -5,22 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-var (
-	ErrEmptyProjectName          = errors.New("empty project name")
-	ErrEmptyModuleConfigs        = errors.New("empty module configs")
-	ErrEmptyProjectModuleConfigs = errors.New("empty module configs of the project")
-	ErrEmptyProjectModuleConfig  = errors.New("empty module config of the project")
+var ErrEmptyProjectName = errors.New("empty project name")
 
-	ErrEmptyRuntimeConfigs   = errors.New("empty runtime configs")
-	ErrEmptyKubernetesConfig = errors.New("empty kubernetes config")
-	ErrEmptyTerraformConfig  = errors.New("empty terraform config")
-)
-
-// CompleteWorkspace sets the workspace name and default value of unset item, should be called after ValidateWorkspace.
-// The config items set as environment variables are not got by CompleteWorkspace.
+// CompleteWorkspace sets the workspace name and default value of unset item, should be called after Validatev1.
+// The config items set as environment variables are not got by Completev1.
 func CompleteWorkspace(ws *v1.Workspace, name string) {
 	if ws.Name != "" {
 		ws.Name = name
@@ -32,10 +23,10 @@ func CompleteWorkspace(ws *v1.Workspace, name string) {
 
 // GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name,
 // should be called after ValidateModuleConfigs.
-// If got empty module configs, ErrEmptyProjectModuleConfigs will get returned.
+// If got empty module configs, return nil config and nil error.
 func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[string]v1.GenericConfig, error) {
 	if len(configs) == 0 {
-		return nil, ErrEmptyModuleConfigs
+		return nil, nil
 	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
@@ -44,7 +35,7 @@ func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[
 	projectCfgs := make(map[string]v1.GenericConfig)
 	for name, cfg := range configs {
 		projectCfg, err := getProjectModuleConfig(cfg, projectName)
-		if errors.Is(err, ErrEmptyProjectModuleConfig) {
+		if projectCfg == nil {
 			continue
 		}
 		if err != nil {
@@ -55,18 +46,15 @@ func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[
 		}
 	}
 
-	if len(projectCfgs) == 0 {
-		return nil, ErrEmptyProjectModuleConfigs
-	}
 	return projectCfgs, nil
 }
 
 // GetProjectModuleConfig returns the module config of a specified project, should be called after
 // ValidateModuleConfig.
-// If got empty module config, ErrEmptyProjectModuleConfig will get returned.
+// If got empty module config, return nil config and nil error.
 func GetProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
 	if config == nil {
-		return nil, ErrEmptyModuleConfig
+		return nil, nil
 	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
@@ -106,55 +94,41 @@ func getProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.Gen
 		}
 	}
 
-	if len(projectCfg) == 0 {
-		return nil, ErrEmptyProjectModuleConfig
-	}
 	return projectCfg, nil
 }
 
 // GetKubernetesConfig returns kubernetes config from runtime config, should be called after
 // ValidateRuntimeConfigs.
-// If got empty kubernetes config, ErrEmptyKubernetesConfig will get returned.
-func GetKubernetesConfig(configs *v1.RuntimeConfigs) (*v1.KubernetesConfig, error) {
+// If got empty kubernetes config, return nil.
+func GetKubernetesConfig(configs *v1.RuntimeConfigs) *v1.KubernetesConfig {
 	if configs == nil {
-		return nil, ErrEmptyRuntimeConfigs
+		return nil
 	}
-	if configs.Kubernetes == nil {
-		return nil, ErrEmptyKubernetesConfig
-	}
-	return configs.Kubernetes, nil
+	return configs.Kubernetes
 }
 
 // GetTerraformConfig returns terraform config from runtime config, should be called after
 // ValidateRuntimeConfigs.
-// If got empty terraform config, ErrEmptyTerraformConfig will get returned.
-func GetTerraformConfig(configs *v1.RuntimeConfigs) (v1.TerraformConfig, error) {
+// If got empty terraform config, return nil.
+func GetTerraformConfig(configs *v1.RuntimeConfigs) v1.TerraformConfig {
 	if configs == nil {
-		return nil, ErrEmptyRuntimeConfigs
+		return nil
 	}
-	if len(configs.Terraform) == 0 {
-		return nil, ErrEmptyTerraformConfig
-	}
-	return configs.Terraform, nil
+	return configs.Terraform
 }
 
 // GetProviderConfig returns the specified terraform provider config from runtime config, should be called
 // after ValidateRuntimeConfigs.
-// If got empty terraform config, ErrEmptyTerraformProviderConfig will get returned.
+// If got empty terraform config, return nil config and nil error.
 func GetProviderConfig(configs *v1.RuntimeConfigs, providerName string) (*v1.ProviderConfig, error) {
 	if providerName == "" {
 		return nil, ErrEmptyTerraformProviderName
 	}
-	config, err := GetTerraformConfig(configs)
-	if err != nil {
-		return nil, err
+	config := GetTerraformConfig(configs)
+	if config == nil {
+		return nil, nil
 	}
-
-	cfg, ok := config[providerName]
-	if !ok {
-		return nil, ErrEmptyTerraformProviderConfig
-	}
-	return cfg, nil
+	return config[providerName], nil
 }
 
 // GetBackendName returns the backend name that is configured in BackendConfigs, should be called after
@@ -236,4 +210,64 @@ func CompleteWholeS3Config(config *v1.S3Config) {
 	if region != "" {
 		config.Region = region
 	}
+}
+
+// GetIntFromGenericConfig returns the value of the key in config which should be of type int.
+// If exist but not int, return error. If not exist, return 0, nil.
+func GetIntFromGenericConfig(config v1.GenericConfig, key string) (int, error) {
+	value, ok := config[key]
+	if !ok {
+		return 0, nil
+	}
+	i, ok := value.(int)
+	if !ok {
+		return 0, fmt.Errorf("the value of %s is not map", key)
+	}
+	return i, nil
+}
+
+// GetStringFromGenericConfig returns the value of the key in config which should be of type string.
+// If exist but not string, return error; If not exist, return "", nil.
+func GetStringFromGenericConfig(config v1.GenericConfig, key string) (string, error) {
+	value, ok := config[key]
+	if !ok {
+		return "", nil
+	}
+	s, ok := value.(string)
+	if !ok {
+		return "", fmt.Errorf("the value of %s is not string", key)
+	}
+	return s, nil
+}
+
+// GetMapFromGenericConfig returns the value of the key in config which should be of type map[string]any.
+// If exist but not map[string]any, return error; If not exist, return nil, nil.
+func GetMapFromGenericConfig(config v1.GenericConfig, key string) (map[string]any, error) {
+	value, ok := config[key]
+	if !ok {
+		return nil, nil
+	}
+	m, ok := value.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("the value of %s is not map", key)
+	}
+	return m, nil
+}
+
+// GetStringMapFromGenericConfig returns the value of the key in config which should be of type map[string]string.
+// If exist but not map[string]string, return error; If not exist, return nil, nil.
+func GetStringMapFromGenericConfig(config v1.GenericConfig, key string) (map[string]string, error) {
+	m, err := GetMapFromGenericConfig(config, key)
+	if err != nil {
+		return nil, err
+	}
+	stringMap := make(map[string]string)
+	for k, v := range m {
+		stringValue, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("the value of %s.%s is not string", key, k)
+		}
+		stringMap[k] = stringValue
+	}
+	return stringMap, nil
 }
