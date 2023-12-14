@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/zclconf/go-cty/cty"
+
 	"kusionstack.io/kusion/pkg/engine/states"
 )
 
@@ -35,9 +36,6 @@ func (b *S3Backend) ConfigSchema() cty.Type {
 // within the S3State backend.
 func (b *S3Backend) Configure(obj cty.Value) error {
 	var endpoint, bucket, accessKeyID, accessKeySecret, region cty.Value
-	if endpoint = obj.GetAttr("endpoint"); endpoint.IsNull() {
-		return errors.New("s3 endpoint must be configure in backend config")
-	}
 	if bucket = obj.GetAttr("bucket"); bucket.IsNull() {
 		return errors.New("s3 bucket must be configure in backend config")
 	}
@@ -50,13 +48,16 @@ func (b *S3Backend) Configure(obj cty.Value) error {
 	if region = obj.GetAttr("region"); region.IsNull() {
 		return errors.New("s3 region must be configure in backend config")
 	}
-	sess, err := session.NewSession(&aws.Config{
+	config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(accessKeyID.AsString(), accessKeySecret.AsString(), ""),
-		Endpoint:         aws.String(endpoint.AsString()),
 		Region:           aws.String(region.AsString()),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
-	})
+	}
+	if endpoint = obj.GetAttr("endpoint"); !endpoint.IsNull() {
+		config.Endpoint = aws.String(endpoint.AsString())
+	}
+	sess, err := session.NewSession(config)
 	if err != nil {
 		return err
 	}

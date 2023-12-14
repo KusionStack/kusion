@@ -1,10 +1,11 @@
 package init
 
 import (
+	"kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
-	"kusionstack.io/kusion/pkg/engine/states/remote/db"
 	"kusionstack.io/kusion/pkg/engine/states/remote/http"
+	"kusionstack.io/kusion/pkg/engine/states/remote/mysql"
 	"kusionstack.io/kusion/pkg/engine/states/remote/oss"
 	"kusionstack.io/kusion/pkg/engine/states/remote/s3"
 )
@@ -15,11 +16,11 @@ var backends map[string]func() states.Backend
 // init backends map with all support backend
 func init() {
 	backends = map[string]func() states.Backend{
-		"local": local.NewLocalBackend,
-		"db":    db.NewDBBackend,
-		"oss":   oss.NewOssBackend,
-		"s3":    s3.NewS3Backend,
-		"http":  http.NewHTTPBackend,
+		workspace.BackendLocal: local.NewLocalBackend,
+		workspace.BackendMysql: mysql.NewMysqlBackend,
+		workspace.BackendOss:   oss.NewOssBackend,
+		workspace.BackendS3:    s3.NewS3Backend,
+		"http":                 http.NewHTTPBackend,
 	}
 }
 

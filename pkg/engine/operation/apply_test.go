@@ -116,9 +116,8 @@ func TestOperation_Apply(t *testing.T) {
 	}
 	p := &project.Project{
 		Configuration: project.Configuration{
-			Name:    "fakeProject",
-			Tenant:  "fakeTenant",
-			Backend: nil,
+			Name:   "fakeProject",
+			Tenant: "fakeTenant",
 		},
 		Path:   "fakePath",
 		Stacks: []*stack.Stack{s},
@@ -135,7 +134,7 @@ func TestOperation_Apply(t *testing.T) {
 			name: "apply test",
 			fields: fields{
 				OperationType: opsmodels.Apply,
-				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
+				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
 				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},

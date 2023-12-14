@@ -10,11 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/log"
 )
 
 var ErrOSSNoExist = errors.New("oss: key not exist")
 
-const OSSStateName = "kusion_state.json"
+const (
+	deprecatedKusionStateFile = "kusion_state.json"
+	KusionStateFile           = "kusion_state.yaml"
+)
 
 var _ states.StateStorage = &OssState{}
 
@@ -48,9 +52,9 @@ func (s *OssState) Apply(state *states.State) error {
 
 	var prefix string
 	if state.Tenant != "" {
-		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + OSSStateName
+		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + KusionStateFile
 	} else {
-		prefix = state.Project + "/" + state.Stack + "/" + OSSStateName
+		prefix = state.Project + "/" + state.Stack + "/" + KusionStateFile
 	}
 
 	err = s.bucket.PutObject(prefix, bytes.NewReader(jsonByte))
@@ -67,9 +71,9 @@ func (s *OssState) Delete(id string) error {
 func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	var prefix string
 	if query.Tenant != "" {
-		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + OSSStateName
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + KusionStateFile
 	} else {
-		prefix = query.Project + "/" + query.Stack + "/" + OSSStateName
+		prefix = query.Project + "/" + query.Stack + "/" + KusionStateFile
 	}
 
 	objects, err := s.bucket.ListObjects(oss.Delimiter("/"), oss.Prefix(prefix))
@@ -78,7 +82,16 @@ func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, erro
 	}
 
 	if len(objects.Objects) == 0 {
-		return nil, nil
+		var deprecatedPrefix string
+		deprecatedPrefix, err = s.usingDeprecatedStateFilePrefix(query)
+		if err != nil {
+			return nil, err
+		}
+		if deprecatedPrefix == "" {
+			return nil, nil
+		}
+		prefix = deprecatedPrefix
+		log.Infof("using deprecated oss kusion state file %s", prefix)
 	}
 
 	body, err := s.bucket.GetObject(prefix)
@@ -98,4 +111,22 @@ func (s *OssState) GetLatestState(query *states.StateQuery) (*states.State, erro
 		return nil, err
 	}
 	return state, nil
+}
+
+func (s *OssState) usingDeprecatedStateFilePrefix(query *states.StateQuery) (string, error) {
+	var prefix string
+	if query.Tenant != "" {
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + deprecatedKusionStateFile
+	} else {
+		prefix = query.Project + "/" + query.Stack + "/" + deprecatedKusionStateFile
+	}
+
+	objects, err := s.bucket.ListObjects(oss.Delimiter("/"), oss.Prefix(prefix))
+	if err != nil {
+		return "", err
+	}
+	if len(objects.Objects) == 0 {
+		return "", nil
+	}
+	return prefix, nil
 }

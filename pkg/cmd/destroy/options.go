@@ -28,7 +28,7 @@ type Options struct {
 	Operator string
 	Yes      bool
 	Detail   bool
-	backend.BackendOps
+	backend.BackendOptions
 }
 
 func NewDestroyOptions() *Options {
@@ -42,7 +42,15 @@ func (o *Options) Complete(args []string) {
 }
 
 func (o *Options) Validate() error {
-	return o.Options.Validate()
+	if err := o.Options.Validate(); err != nil {
+		return err
+	}
+	if !o.BackendOptions.IsEmpty() {
+		if err := o.BackendOptions.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (o *Options) Run() error {
@@ -54,8 +62,8 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	// Get stateStorage from backend config to manage state
-	stateStorage, err := backend.BackendFromConfig(project.Backend, o.BackendOps, o.WorkDir)
+	// Get state storage from cli backend options, environment variables, workspace backend configs
+	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
 	if err != nil {
 		return err
 	}

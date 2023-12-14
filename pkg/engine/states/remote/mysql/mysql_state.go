@@ -1,4 +1,4 @@
-package db
+package mysql
 
 import (
 	"database/sql"
@@ -20,19 +20,19 @@ import (
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
-var _ states.StateStorage = &DBState{}
+var _ states.StateStorage = &MysqlState{}
 
 func NewDBState() states.StateStorage {
-	result := &DBState{}
+	result := &MysqlState{}
 	return result
 }
 
-type DBState struct {
+type MysqlState struct {
 	DB *sql.DB
 }
 
 // Apply save state in DB by add-only strategy.
-func (s *DBState) Apply(state *states.State) error {
+func (s *MysqlState) Apply(state *states.State) error {
 	m := make(map[string]interface{})
 	sort.Stable(state.Resources)
 	marshal, err := json.Marshal(state)
@@ -54,11 +54,11 @@ func (s *DBState) Apply(state *states.State) error {
 	return err
 }
 
-func (s *DBState) Delete(id string) error {
+func (s *MysqlState) Delete(id string) error {
 	panic("implement me")
 }
 
-func (s *DBState) GetLatestState(q *states.StateQuery) (*states.State, error) {
+func (s *MysqlState) GetLatestState(q *states.StateQuery) (*states.State, error) {
 	where := make(map[string]interface{})
 
 	if len(q.Project) == 0 {

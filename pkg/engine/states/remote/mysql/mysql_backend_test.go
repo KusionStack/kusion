@@ -1,4 +1,4 @@
-package db
+package mysql
 
 import (
 	"database/sql"
@@ -19,19 +19,19 @@ func TestDBBackend_ConfigSchema(t *testing.T) {
 		{
 			name: "t1",
 			want: cty.Object(map[string]cty.Type{
-				"dbName":     cty.String,
-				"dbUser":     cty.String,
-				"dbPassword": cty.String,
-				"dbHost":     cty.String,
-				"dbPort":     cty.Number,
+				"dbName":   cty.String,
+				"user":     cty.String,
+				"password": cty.String,
+				"host":     cty.String,
+				"port":     cty.Number,
 			}),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewDBBackend()
+			s := NewMysqlBackend()
 			if got := s.ConfigSchema(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DBBackend.ConfigSchema() = %v, want %v", got, tt.want)
+				t.Errorf("MysqlBackend.ConfigSchema() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -50,11 +50,11 @@ func TestDBBackend_Configure(t *testing.T) {
 			name: "t1",
 			args: args{
 				config: map[string]interface{}{
-					"dbName":     "kusion-db",
-					"dbUser":     "kusion",
-					"dbPassword": "kusion",
-					"dbHost":     "kusion-host",
-					"dbPort":     3306,
+					"dbName":   "kusion-db",
+					"user":     "kusion",
+					"password": "kusion",
+					"host":     "kusion-host",
+					"port":     3306,
 				},
 			},
 			wantErr: false,
@@ -62,11 +62,11 @@ func TestDBBackend_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		mockey.PatchConvey(tt.name, t, func() {
-			s := NewDBBackend()
+			s := NewMysqlBackend()
 			mockDBOpen()
 			obj, _ := gocty.ToCtyValue(tt.args.config, s.ConfigSchema())
 			if err := s.Configure(obj); (err != nil) != tt.wantErr {
-				t.Errorf("DBBackend.Configure() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("MysqlBackend.Configure() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

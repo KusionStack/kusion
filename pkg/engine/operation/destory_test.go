@@ -34,9 +34,8 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 	p := &project.Project{
 		Configuration: project.Configuration{
-			Name:    "fake-name",
-			Tenant:  "fake-tenant",
-			Backend: nil,
+			Name:   "fake-name",
+			Tenant: "fake-tenant",
 		},
 		Path:   "fake-path",
 		Stacks: []*stack.Stack{s},
@@ -54,7 +53,7 @@ func TestOperation_Destroy(t *testing.T) {
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: opsmodels.Destroy,
-			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionState)},
+			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
 			RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 		},
 	}

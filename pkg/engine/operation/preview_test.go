@@ -108,9 +108,8 @@ func TestOperation_Preview(t *testing.T) {
 	}
 	p := &project.Project{
 		Configuration: project.Configuration{
-			Name:    "fake-name",
-			Tenant:  "fake-tenant",
-			Backend: nil,
+			Name:   "fake-name",
+			Tenant: "fake-tenant",
 		},
 		Path:   "fake-path",
 		Stacks: []*stack.Stack{s},
@@ -127,7 +126,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
 				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  &local.FileSystemState{Path: local.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
 			args: args{
@@ -165,7 +164,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.DestroyPreview,
 				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  &local.FileSystemState{Path: local.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
@@ -203,7 +202,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
 				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  &local.FileSystemState{Path: local.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{
@@ -221,7 +220,7 @@ func TestOperation_Preview(t *testing.T) {
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
 				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  &local.FileSystemState{Path: local.KusionState},
+				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
 			args: args{

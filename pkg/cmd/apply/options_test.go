@@ -188,7 +188,7 @@ func newSA(name string) intent.Resource {
 }
 
 func Test_apply(t *testing.T) {
-	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionState)}
+	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionStateFileFile)}
 	mockey.PatchConvey("dry run", t, func() {
 		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{

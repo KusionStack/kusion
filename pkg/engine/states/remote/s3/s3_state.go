@@ -12,11 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/log"
 )
 
 var ErrS3NoExist = errors.New("s3: key not exist")
 
-const S3StateName = "kusion_state.json"
+const (
+	deprecatedKusionStateFile = "kusion_state.json"
+	KusionStateFile           = "kusion_state.yaml"
+)
 
 var _ states.StateStorage = &S3State{}
 
@@ -25,14 +29,17 @@ type S3State struct {
 	bucketName string
 }
 
-func NewS3State(endPoint, accessKeyID, accessKeySecret, bucketName string, region string) (*S3State, error) {
-	sess, err := session.NewSession(&aws.Config{
+func NewS3State(endpoint, accessKeyID, accessKeySecret, bucketName string, region string) (*S3State, error) {
+	config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(accessKeyID, accessKeySecret, ""),
-		Endpoint:         aws.String(endPoint),
 		Region:           aws.String(region),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(false),
-	})
+	}
+	if endpoint != "" {
+		config.Endpoint = aws.String(endpoint)
+	}
+	sess, err := session.NewSession(config)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +58,9 @@ func (s *S3State) Apply(state *states.State) error {
 
 	var prefix string
 	if state.Tenant != "" {
-		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + S3StateName
+		prefix = state.Tenant + "/" + state.Project + "/" + state.Stack + "/" + KusionStateFile
 	} else {
-		prefix = state.Project + "/" + state.Stack + "/" + S3StateName
+		prefix = state.Project + "/" + state.Stack + "/" + KusionStateFile
 	}
 
 	s3Client := s3.New(s.sess)
@@ -76,9 +83,9 @@ func (s *S3State) Delete(id string) error {
 func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error) {
 	var prefix string
 	if query.Tenant != "" {
-		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + S3StateName
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + KusionStateFile
 	} else {
-		prefix = query.Project + "/" + query.Stack + "/" + S3StateName
+		prefix = query.Project + "/" + query.Stack + "/" + KusionStateFile
 	}
 	s3Client := s3.New(s.sess)
 
@@ -94,7 +101,16 @@ func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error
 	}
 
 	if len(objects.Contents) == 0 {
-		return nil, nil
+		var deprecatedPrefix string
+		deprecatedPrefix, err = s.usingDeprecatedStateFilePrefix(query)
+		if err != nil {
+			return nil, err
+		}
+		if deprecatedPrefix == "" {
+			return nil, nil
+		}
+		prefix = deprecatedPrefix
+		log.Infof("using deprecated s3 kusion state file %s", prefix)
 	}
 
 	out, err := s3Client.GetObject(&s3.GetObjectInput{
@@ -116,4 +132,29 @@ func (s *S3State) GetLatestState(query *states.StateQuery) (*states.State, error
 		return nil, err
 	}
 	return state, nil
+}
+
+func (s *S3State) usingDeprecatedStateFilePrefix(query *states.StateQuery) (string, error) {
+	var prefix string
+	if query.Tenant != "" {
+		prefix = query.Tenant + "/" + query.Project + "/" + query.Stack + "/" + deprecatedKusionStateFile
+	} else {
+		prefix = query.Project + "/" + query.Stack + "/" + deprecatedKusionStateFile
+	}
+	s3Client := s3.New(s.sess)
+
+	params := &s3.ListObjectsInput{
+		Bucket:    aws.String(s.bucketName),
+		Delimiter: aws.String("/"),
+		Prefix:    aws.String(prefix),
+	}
+
+	objects, err := s3Client.ListObjects(params)
+	if err != nil {
+		return "", err
+	}
+	if len(objects.Contents) == 0 {
+		return "", nil
+	}
+	return prefix, nil
 }

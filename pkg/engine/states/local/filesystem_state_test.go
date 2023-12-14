@@ -3,6 +3,7 @@ package local
 import (
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -13,11 +14,14 @@ import (
 	"kusionstack.io/kusion/pkg/engine/states"
 )
 
-var stateFile string
+var stateFile, stateFileForDelete, deprecatedStateFile, deprecatedStateFileForDelete string
 
 func TestMain(m *testing.M) {
 	currentDir, _ := os.Getwd()
-	stateFile = filepath.Join(currentDir, "testdata", "kusion_state.json")
+	stateFile = filepath.Join(currentDir, "testdata/test_stack", KusionStateFileFile)
+	stateFileForDelete = filepath.Join(currentDir, "testdata/test_stack_for_delete", KusionStateFileFile)
+	deprecatedStateFile = filepath.Join(currentDir, "testdata/deprecated_test_stack", KusionStateFileFile)
+	deprecatedStateFileForDelete = filepath.Join(currentDir, "testdata/deprecated_test_stack_for_delete", KusionStateFileFile)
 
 	m.Run()
 	os.Exit(0)
@@ -67,6 +71,17 @@ func TestFileSystemState_GetLatestState(t *testing.T) {
 			want:    nil,
 			wantErr: false,
 		},
+		{
+			name: "use deprecated kusion_state.json",
+			fields: fields{
+				Path: deprecatedStateFile,
+			},
+			args: args{
+				query: &states.StateQuery{},
+			},
+			want:    &states.State{ID: 1},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -93,7 +108,7 @@ func FileSystemStateSetUp(t *testing.T) *FileSystemState {
 		return nil
 	}).Build()
 
-	return &FileSystemState{Path: "kusion_state_filesystem.json"}
+	return &FileSystemState{Path: "kusion_state_filesystem.yaml"}
 }
 
 func TestFileSystemState(t *testing.T) {
@@ -103,6 +118,46 @@ func TestFileSystemState(t *testing.T) {
 	err := fileSystemState.Apply(state)
 	assert.NoError(t, err)
 
-	err = fileSystemState.Delete("kusion_state_filesystem.json")
+	err = fileSystemState.Delete("kusion_state_filesystem.yaml")
 	assert.NoError(t, err)
+}
+
+func TestFileSystem_Delete(t *testing.T) {
+	testcases := []struct {
+		name                   string
+		success                bool
+		stateFilePath          string
+		useDeprecatedStateFile bool
+	}{
+		{
+			name:                   "delete default state file",
+			success:                true,
+			stateFilePath:          stateFileForDelete,
+			useDeprecatedStateFile: false,
+		},
+		{
+			name:                   "delete both default and deprecated state file",
+			success:                true,
+			stateFilePath:          deprecatedStateFileForDelete,
+			useDeprecatedStateFile: true,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			fileSystemState := &FileSystemState{Path: tc.stateFilePath}
+			err := fileSystemState.Delete("")
+			assert.NoError(t, err)
+			assert.NoFileExists(t, tc.stateFilePath)
+			file, _ := os.Create(tc.stateFilePath)
+			_ = file.Close()
+			if tc.useDeprecatedStateFile {
+				dir := filepath.Dir(tc.stateFilePath)
+				deprecatedStateFilePath := path.Join(dir, deprecatedKusionStateFile)
+				assert.NoFileExists(t, deprecatedStateFilePath)
+				deprecatedFile, _ := os.Create(deprecatedStateFilePath)
+				_ = deprecatedFile.Close()
+			}
+		})
+	}
 }

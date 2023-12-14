@@ -1,7 +1,10 @@
 package local
 
 import (
+	"errors"
+
 	"github.com/zclconf/go-cty/cty"
+
 	"kusionstack.io/kusion/pkg/engine/states"
 )
 
@@ -26,10 +29,10 @@ func (f *LocalBackend) ConfigSchema() cty.Type {
 
 func (f *LocalBackend) Configure(obj cty.Value) error {
 	var path cty.Value
-	if path = obj.GetAttr("path"); !path.IsNull() && path.AsString() != "" {
-		f.Path = path.AsString()
-	} else {
-		f.Path = KusionState
+	// path should be configured by kusion, not by workspace or cli flags.
+	if path = obj.GetAttr("path"); path.IsNull() || path.AsString() == "" {
+		return errors.New("path must be configure in backend config")
 	}
+	f.Path = path.AsString()
 	return nil
 }
