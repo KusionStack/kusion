@@ -2,7 +2,16 @@ package inputs
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
+
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
+)
+
+const (
+	defaultTFHost            = "registry.terraform.io"
+	errInvalidProviderSource = "invalid provider source: %s"
+	errEmptyProviderVersion  = "empty provider version"
 )
 
 // Provider records the information of the Terraform provider
@@ -39,4 +48,21 @@ func (provider *Provider) SetString(providerURL string) error {
 }
 
 // GetProviderURL returns the complete provider address from provider config in workspace.
-func GetProviderURL() (string, error)
+func GetProviderURL(providerConfig *workspaceapi.ProviderConfig) (string, error) {
+	if providerConfig.Version == "" {
+		return "", fmt.Errorf(errEmptyProviderVersion)
+	}
+
+	// Conduct whether to use the default terraform provider registry host
+	// according to the source of the provider config.
+	// For example, "hashicorp/aws" means using the default tf provider registry,
+	// while "registry.customized.io/hashicorp/aws" implies to use a customized registry host.
+	attrs := strings.Split(providerConfig.Source, "/")
+	if len(attrs) == 3 {
+		return filepath.Join(providerConfig.Source, providerConfig.Version), nil
+	} else if len(attrs) == 2 {
+		return filepath.Join(defaultTFHost, providerConfig.Source, providerConfig.Version), nil
+	}
+
+	return "", fmt.Errorf(errInvalidProviderSource)
+}

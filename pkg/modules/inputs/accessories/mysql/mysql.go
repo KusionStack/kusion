@@ -1,5 +1,16 @@
 package mysql
 
+import "fmt"
+
+const (
+	CloudDBType = "cloud"
+	LocalDBType = "local"
+)
+
+const (
+	ErrEmptyInstanceTypeForCloudDB = "empty instance type for cloud managed mysql instance"
+)
+
 // MySQL describes the attributes to locally deploy or create a cloud provider
 // managed mysql database instance for the workload.
 type MySQL struct {
@@ -22,4 +33,13 @@ type MySQL struct {
 	// Whether the host address of the cloud mysql instance for the workload to connect with is via
 	// public network or private network of the cloud vendor.
 	PrivateRouting bool `json:"privateRouting,omitempty" yaml:"privateRouting,omitempty"`
+}
+
+// Validate validates whether the input of a mysql database instance is valid.
+func (db *MySQL) Validate() error {
+	if db.Type == CloudDBType && db.InstanceType == "" {
+		return fmt.Errorf(ErrEmptyInstanceTypeForCloudDB)
+	}
+
+	return nil
 }

@@ -22,6 +22,15 @@ const (
 	errEmptyProjectName      = "project name must not be empty"
 	errUnsupportedTFProvider = "unsupported terraform provider for mysql generator: %s"
 	errUnsupportedMySQLType  = "unsupported mysql type: %s"
+	errEmptyCloudInfo        = "empty cloud info in module config"
+)
+
+var (
+	defaultUsername       string   = "root"
+	defaultCategory       string   = "Basic"
+	defaultSecurityIPs    []string = []string{"0.0.0.0/0"}
+	defaultPrivateRouting bool     = true
+	defaultSize           int      = 10
 )
 
 var _ modules.Generator = &mysqlGenerator{}
@@ -82,25 +91,32 @@ func (g *mysqlGenerator) Generate(spec *intent.Intent) error {
 
 	// Patch workspace configurations for mysql generator.
 	if err := g.patchWorkspaceConfig(); err != nil {
-		if !errors.Is(err, workspace.ErrEmptyModuleConfig) {
+		if !errors.Is(err, workspace.ErrEmptyModuleConfigBlock) {
 			return err
 		}
 	}
 
-	// Skip rendering for empty mysql instance.
+	// Skip empty or invalid mysql database instance.
 	db := g.mysql
 	if db == nil {
 		return nil
+	}
+	if err := db.Validate(); err != nil {
+		return err
 	}
 
 	var secret *v1.Secret
 	var err error
 	// Generate the mysql resources based on the type and provider config.
 	switch strings.ToLower(db.Type) {
-	case "local":
+	case mysql.LocalDBType:
 		secret, err = g.generateLocalResources(db, spec)
-	case "cloud":
-		providerType := g.getTFProviderType()
+	case mysql.CloudDBType:
+		providerType, err := g.getTFProviderType()
+		if err != nil {
+			return err
+		}
+
 		switch providerType {
 		case "aws":
 			secret, err = g.generateAWSResources(db, spec)
@@ -121,10 +137,79 @@ func (g *mysqlGenerator) Generate(spec *intent.Intent) error {
 }
 
 // patchWorkspaceConfig patches the config items for mysql generator in workspace configurations.
-func (g *mysqlGenerator) patchWorkspaceConfig() error
+func (g *mysqlGenerator) patchWorkspaceConfig() error {
+	// Get the workspace configurations for mysql database instance of the workload.
+	mysqlCfgs, ok := g.ws.Modules["mysql"]
+	if !ok {
+		return workspace.ErrEmptyModuleConfigBlock
+	}
+
+	mysqlCfg, err := workspace.GetProjectModuleConfig(mysqlCfgs, g.project.Name)
+	if err != nil {
+		return err
+	}
+
+	// Patch workspace configurations for mysql generator.
+	if username, ok := mysqlCfg["username"]; ok {
+		g.mysql.Username = username.(string)
+	} else {
+		g.mysql.Username = defaultUsername
+	}
+
+	if category, ok := mysqlCfg["category"]; ok {
+		g.mysql.Category = category.(string)
+	} else {
+		g.mysql.Category = defaultCategory
+	}
+
+	if securityIPs, ok := mysqlCfg["securityIPs"]; ok {
+		g.mysql.SecurityIPs = securityIPs.([]string)
+	} else {
+		g.mysql.SecurityIPs = defaultSecurityIPs
+	}
+
+	if privateRouting, ok := mysqlCfg["privateRouting"]; ok {
+		g.mysql.PrivateRouting = privateRouting.(bool)
+	} else {
+		g.mysql.PrivateRouting = defaultPrivateRouting
+	}
+
+	if size, ok := mysqlCfg["size"]; ok {
+		g.mysql.Size = size.(int)
+	} else {
+		g.mysql.Size = defaultSize
+	}
+
+	if instanceType, ok := mysqlCfg["instanceType"]; ok {
+		g.mysql.InstanceType = instanceType.(string)
+	}
+
+	if subnetID, ok := mysqlCfg["subnetID"]; ok {
+		g.mysql.SubnetID = subnetID.(string)
+	}
+
+	return nil
+}
 
 // getTFProviderType returns the type of terraform provider, e.g. "aws", "alicloud" or "azure", etc.
-func (g *mysqlGenerator) getTFProviderType() string
+func (g *mysqlGenerator) getTFProviderType() (string, error) {
+	// Get the workspace configurations for mysql database instance of the workload.
+	mysqlCfgs, ok := g.ws.Modules["mysql"]
+	if !ok {
+		return "", workspace.ErrEmptyModuleConfigBlock
+	}
+
+	mysqlCfg, err := workspace.GetProjectModuleConfig(mysqlCfgs, g.project.Name)
+	if err != nil {
+		return "", err
+	}
+
+	if cloud, ok := mysqlCfg["cloud"]; ok {
+		return cloud.(string), nil
+	}
+
+	return "", fmt.Errorf(errEmptyCloudInfo)
+}
 
 // injectSecret injects the mysql instance host address, username and password into
 // the containers of the workload as environment variables with kubernetes secret.
