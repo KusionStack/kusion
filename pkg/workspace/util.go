@@ -1,23 +1,16 @@
 package workspace
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
-var (
-	ErrEmptyProjectName          = errors.New("empty project name")
-	ErrEmptyModuleConfigs        = errors.New("empty module configs")
-	ErrEmptyProjectModuleConfigs = errors.New("empty module configs of the project")
-	ErrEmptyProjectModuleConfig  = errors.New("empty module config of the project")
-
-	ErrEmptyRuntimeConfigs   = errors.New("empty runtime configs")
-	ErrEmptyKubernetesConfig = errors.New("empty kubernetes config")
-	ErrEmptyTerraformConfig  = errors.New("empty terraform config")
-)
+var ErrEmptyProjectName = errors.New("empty project name")
 
 // CompleteWorkspace sets the workspace name and default value of unset item, should be called after ValidateWorkspace.
 // The config items set as environment variables are not got by CompleteWorkspace.
@@ -35,7 +28,7 @@ func CompleteWorkspace(ws *workspace.Workspace, name string) {
 // If got empty module configs, ErrEmptyProjectModuleConfigs will get returned.
 func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string) (map[string]workspace.GenericConfig, error) {
 	if len(configs) == 0 {
-		return nil, ErrEmptyModuleConfigs
+		return nil, nil
 	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
@@ -44,7 +37,7 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 	projectCfgs := make(map[string]workspace.GenericConfig)
 	for name, cfg := range configs {
 		projectCfg, err := getProjectModuleConfig(cfg, projectName)
-		if errors.Is(err, ErrEmptyProjectModuleConfig) {
+		if projectCfg == nil {
 			continue
 		}
 		if err != nil {
@@ -55,9 +48,6 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 		}
 	}
 
-	if len(projectCfgs) == 0 {
-		return nil, ErrEmptyProjectModuleConfigs
-	}
 	return projectCfgs, nil
 }
 
@@ -66,7 +56,7 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 // If got empty module config, ErrEmptyProjectModuleConfig will get returned.
 func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
 	if config == nil {
-		return nil, ErrEmptyModuleConfig
+		return nil, nil
 	}
 	if projectName == "" {
 		return nil, ErrEmptyProjectName
@@ -106,9 +96,6 @@ func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 		}
 	}
 
-	if len(projectCfg) == 0 {
-		return nil, ErrEmptyProjectModuleConfig
-	}
 	return projectCfg, nil
 }
 
@@ -116,12 +103,6 @@ func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 // ValidateRuntimeConfigs.
 // If got empty kubernetes config, ErrEmptyKubernetesConfig will get returned.
 func GetKubernetesConfig(configs *workspace.RuntimeConfigs) (*workspace.KubernetesConfig, error) {
-	if configs == nil {
-		return nil, ErrEmptyRuntimeConfigs
-	}
-	if configs.Kubernetes == nil {
-		return nil, ErrEmptyKubernetesConfig
-	}
 	return configs.Kubernetes, nil
 }
 
@@ -129,12 +110,6 @@ func GetKubernetesConfig(configs *workspace.RuntimeConfigs) (*workspace.Kubernet
 // ValidateRuntimeConfigs.
 // If got empty terraform config, ErrEmptyTerraformConfig will get returned.
 func GetTerraformConfig(configs *workspace.RuntimeConfigs) (workspace.TerraformConfig, error) {
-	if configs == nil {
-		return nil, ErrEmptyRuntimeConfigs
-	}
-	if len(configs.Terraform) == 0 {
-		return nil, ErrEmptyTerraformConfig
-	}
 	return configs.Terraform, nil
 }
 
@@ -149,12 +124,7 @@ func GetProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (
 	if err != nil {
 		return nil, err
 	}
-
-	cfg, ok := config[providerName]
-	if !ok {
-		return nil, ErrEmptyTerraformProviderConfig
-	}
-	return cfg, nil
+	return config[providerName], nil
 }
 
 // GetBackendName returns the backend name that is configured in BackendConfigs, should be called after
@@ -236,4 +206,54 @@ func CompleteWholeS3Config(config *workspace.S3Config) {
 	if region != "" {
 		config.Region = region
 	}
+}
+
+/*
+func CompleteProjectModuleInput(input any, config *workspace.ModuleConfig, projectName string) error {
+	if config == nil {
+		return nil
+	}
+	cfg, err := GetProjectModuleConfig(config, projectName)
+	if errors.Is(err, ErrEmptyProjectModuleConfig) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return ConvertToStructedConfig(input, cfg)
+}
+*/
+
+// FormatGenericConfig converts the config in map[string]any to the one in a specified struct.The input
+// argument "dst" must be a pointer to a struct, and must be empty and initialized, which gives the format
+// of the struct that the generic config will convert to.
+func FormatGenericConfig(src workspace.GenericConfig, dst any) error {
+	// valid the dst is
+	if dst == nil {
+		return errors.New("destination is not initialized")
+	}
+	t := reflect.TypeOf(dst)
+	if t.Kind() != reflect.Ptr {
+		return errors.New("type of destination is not pointer of struct")
+	}
+	e := t.Elem()
+	if e.Kind() != reflect.Struct {
+		return errors.New("type of destination is not pointer of struct")
+	}
+	if !reflect.ValueOf(dst).Elem().IsZero() {
+		return errors.New("value of destination is not empty")
+	}
+
+	if len(src) == 0 {
+		return nil
+	}
+
+	data, err := json.Marshal(src)
+	if err != nil {
+		return fmt.Errorf("json marshal module config failed, %w", err)
+	}
+	if err = json.Unmarshal(data, dst); err != nil {
+		return fmt.Errorf("json unmarshal module config to destination failed, %w", err)
+	}
+	return nil
 }

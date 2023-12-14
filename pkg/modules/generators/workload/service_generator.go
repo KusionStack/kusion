@@ -6,6 +6,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
@@ -126,10 +127,10 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	typeMeta := metav1.TypeMeta{}
 
 	switch service.Type {
-	case workload.TypeDeploy:
+	case workload.TypeDeployment:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       workload.TypeDeploy,
+			Kind:       workload.TypeDeployment,
 		}
 		spec := appsv1.DeploymentSpec{
 			Replicas: modules.GenericPtr(int32(service.Replicas)),
