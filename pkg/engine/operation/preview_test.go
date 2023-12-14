@@ -267,7 +267,6 @@ func TestOperation_Preview(t *testing.T) {
 
 			mockey.Mock(runtimeinit.Runtimes).To(func(
 				resources intent.Resources,
-				stack *stack.Stack,
 			) (map[intent.Type]runtime.Runtime, status.Status) {
 				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()

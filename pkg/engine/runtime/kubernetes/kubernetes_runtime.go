@@ -26,14 +26,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes/kubeops"
 	"kusionstack.io/kusion/pkg/log"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/util/kube/config"
 )
 
 var _ runtime.Runtime = (*KubernetesRuntime)(nil)
@@ -44,8 +43,8 @@ type KubernetesRuntime struct {
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
-func NewKubernetesRuntime(stack *stack.Stack) (runtime.Runtime, error) {
-	client, mapper, err := getKubernetesClient(stack)
+func NewKubernetesRuntime(resource *intent.Resource) (runtime.Runtime, error) {
+	client, mapper, err := getKubernetesClient(resource)
 	if err != nil {
 		return nil, err
 	}
@@ -376,9 +375,9 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient(stack *stack.Stack) (dynamic.Interface, meta.RESTMapper, error) {
+func getKubernetesClient(resource *intent.Resource) (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
-	cfg, err := clientcmd.BuildConfigFromFlags("", config.GetKubeConfig(stack))
+	cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(resource))
 	if err != nil {
 		return nil, nil, err
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/afero"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
@@ -23,7 +22,7 @@ type TerraformRuntime struct {
 	mu *sync.Mutex
 }
 
-func NewTerraformRuntime(_ *stack.Stack) (runtime.Runtime, error) {
+func NewTerraformRuntime(_ *intent.Resource) (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
 	ws := tfops.NewWorkSpace(fs)
 	TFRuntime := &TerraformRuntime{
