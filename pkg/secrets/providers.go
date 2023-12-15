@@ -11,20 +11,37 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 )
 
-var SecretStoreProviders = NewProviders()
+var (
+	secretStoreProviders *Providers
+	createOnce           sync.Once
+)
+
+func init() {
+	createOnce.Do(func() {
+		secretStoreProviders = &Providers{
+			registry: make(map[string]SecretStoreFactory),
+		}
+	})
+}
+
+// Register a secret store provider with target spec.
+func Register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
+	secretStoreProviders.register(ssf, spec)
+}
+
+// GetProviderByName returns registered provider by name.
+func GetProviderByName(providerName string) (SecretStoreFactory, bool) {
+	return secretStoreProviders.getProviderByName(providerName)
+}
 
 type Providers struct {
 	lock     sync.RWMutex
 	registry map[string]SecretStoreFactory
 }
 
-func NewProviders() *Providers {
-	return &Providers{}
-}
-
-// Register registers a provider with associated spec. This
+// register registers a provider with associated spec. This
 // is expected to happen during app startup.
-func (ps *Providers) Register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
+func (ps *Providers) register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
 	providerName, err := getProviderName(spec)
 	if err != nil {
 		panic(fmt.Sprintf("provider registery failed to parse spec: %s", err.Error()))
@@ -45,8 +62,8 @@ func (ps *Providers) Register(ssf SecretStoreFactory, spec *secrets.ProviderSpec
 	ps.registry[providerName] = ssf
 }
 
-// GetProviderByName returns registered provider by name.
-func (ps *Providers) GetProviderByName(providerName string) (SecretStoreFactory, bool) {
+// getProviderByName returns registered provider by name.
+func (ps *Providers) getProviderByName(providerName string) (SecretStoreFactory, bool) {
 	ps.lock.RLock()
 	defer ps.lock.RUnlock()
 	provider, found := ps.registry[providerName]
