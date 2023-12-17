@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"io"
 	"os"
 
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	// we need to import the compile pkg to keep the compile command available
+	// we need to import compile pkg to keep the compile command available
 	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
@@ -20,51 +20,71 @@ import (
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
+type KusionctlOptions struct {
+	Arguments []string
+
+	genericclioptions.IOStreams
+}
+
 // NewDefaultKusionctlCommand creates the `kusionctl` command with default arguments
 func NewDefaultKusionctlCommand() *cobra.Command {
-	return NewDefaultKusionctlCommandWithArgs(os.Args, os.Stdin, os.Stdout, os.Stderr)
+	return NewDefaultKusionctlCommandWithArgs(KusionctlOptions{
+		Arguments: os.Args,
+		IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr},
+	})
 }
 
 // NewDefaultKusionctlCommandWithArgs creates the `kusionctl` command with arguments
-func NewDefaultKusionctlCommandWithArgs(args []string, in io.Reader, out, errOut io.Writer) *cobra.Command {
-	kusionctl := NewKusionctlCmd(in, out, errOut)
-	if len(args) <= 1 {
-		return kusionctl
+func NewDefaultKusionctlCommandWithArgs(o KusionctlOptions) *cobra.Command {
+	cmd := NewKusionctlCmd(o)
+
+	if len(o.Arguments) > 1 {
+		cmdPathPieces := o.Arguments[1:]
+		if _, _, err := cmd.Find(cmdPathPieces); err == nil {
+			// sub command exist
+			return cmd
+		}
 	}
-	cmdPathPieces := args[1:]
-	if _, _, err := kusionctl.Find(cmdPathPieces); err == nil {
-		// sub command exist
-		return kusionctl
-	}
-	return kusionctl
+
+	return cmd
 }
 
-func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
+func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 	// Sending in 'nil' for the getLanguageFn() results in using LANGUAGE, LC_ALL,
 	// LC_MESSAGES, or LANG environment variable in sequence.
 	_ = i18n.LoadTranslations(i18n.DomainKusion, nil)
 
-	var (
-		rootShort = i18n.T(`Kusion is the platform engineering engine of KusionStack`)
-
-		rootLong = i18n.T(`
-		Kusion is the platform engineering engine of KusionStack. 
-		It delivers intentions to Kubernetes, Clouds, and On-Premise resources.`)
-	)
-
 	// Parent command to which all subcommands are added.
 	cmds := &cobra.Command{
-		Use:           "kusion",
-		Short:         rootShort,
-		Long:          templates.LongDesc(rootLong),
+		Use:   "kusion",
+		Short: i18n.T(`Kusion is the Platform Orchestrator of Internal Developer Platform`),
+		Long: templates.LongDesc(`
+      As a Platform Orchestrator, Kusion delivers user intentions to Kubernetes, Clouds and On-Premise resources.
+      Also enables asynchronous cooperation between the development and the platform team and drives separation of concerns.
+
+      Find more information at:
+            https://www.kusionstack.io/docs/user_docs/reference/cli/kusion/`),
 		SilenceErrors: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			_ = cmd.Help()
+		Run:           runHelp,
+		// Hook before and after Run initialize and write profiles to disk,
+		// respectively.
+		PersistentPreRunE: func(*cobra.Command, []string) error {
+			return initProfiling()
+		},
+		PersistentPostRunE: func(*cobra.Command, []string) error {
+			if err := flushProfiling(); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 
 	// From this point and forward we get warnings on flags that contain "_" separators
 	cmds.SetGlobalNormalizationFunc(cliflag.WarnWordSepNormalizeFunc)
+
+	flags := cmds.PersistentFlags()
+
+	addProfilingFlags(flags)
 
 	groups := templates.CommandGroups{
 		{
@@ -77,7 +97,7 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 			},
 		},
 		{
-			Message: "RuntimeMap Commands:",
+			Message: "Runtime Commands:",
 			Commands: []*cobra.Command{
 				preview.NewCmdPreview(),
 				apply.NewCmdApply(),
@@ -93,4 +113,8 @@ func NewKusionctlCmd(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmds.AddCommand(version.NewCmdVersion())
 
 	return cmds
+}
+
+func runHelp(cmd *cobra.Command, args []string) {
+	_ = cmd.Help()
 }

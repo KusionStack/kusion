@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	_ "kcl-lang.io/kcl-plugin"
-
 	"kusionstack.io/kusion/pkg/cmd"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -17,6 +15,7 @@ func main() {
 	command := cmd.NewDefaultKusionctlCommand()
 
 	if err := command.Execute(); err != nil {
+		// Pretty-print the error and exit with an error.
 		pretty.Error.Println(err.Error())
 		os.Exit(1)
 	}

@@ -59,6 +59,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.2
 	k8s.io/apimachinery v0.27.2
+	k8s.io/cli-runtime v0.27.1
 	k8s.io/client-go v0.27.2
 	k8s.io/component-base v0.27.2
 	k8s.io/kubectl v0.27.1
@@ -84,9 +85,20 @@ require (
 	github.com/aliyun/alibabacloud-dkms-gcs-go-sdk v0.5.1 // indirect
 	github.com/aliyun/alibabacloud-dkms-transfer-go-sdk v0.1.8 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/go-errors/errors v1.4.2 // indirect
+	github.com/google/btree v1.0.1 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
+	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
+	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20210501183033-44dafcb38ecc // indirect
+	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
+	github.com/xlab/treeprint v1.1.0 // indirect
+	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
+	sigs.k8s.io/kustomize/api v0.13.2 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.14.1 // indirect
 )
 
 require (
