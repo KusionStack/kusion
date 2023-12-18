@@ -1,12 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra/doc"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"kusionstack.io/kusion/pkg/cmd"
 	"kusionstack.io/kusion/pkg/log"
@@ -54,7 +53,9 @@ func genDocs(rootDir, langEnvKey string) {
 		if err := os.Setenv(langEnvKey, lang); err != nil {
 			log.Fatal("set env 'LANG' to '%s' failed: %v", lang, err)
 		}
-		command := cmd.NewKusionctlCmd(bytes.NewReader(nil), io.Discard, io.Discard)
+		command := cmd.NewKusionctlCmd(cmd.KusionctlOptions{
+			IOStreams: genericclioptions.IOStreams{},
+		})
 		if err := doc.GenMarkdownTree(command, targetDir); err != nil {
 			log.Fatal("generate markdown tree failed: %v", err)
 		}
