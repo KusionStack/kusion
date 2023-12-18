@@ -9,9 +9,16 @@ import (
 )
 
 const (
-	defaultTFHost            = "registry.terraform.io"
 	errInvalidProviderSource = "invalid provider source: %s"
 	errEmptyProviderVersion  = "empty provider version"
+	errEmptyProviderRegion   = "empty provider region for : %s"
+)
+
+const (
+	RandomProvider   = "random"
+	AwsProvider      = "aws"
+	AlicloudProvider = "alicloud"
+	defaultTFHost    = "registry.terraform.io"
 )
 
 // Provider records the information of the Terraform provider
@@ -65,4 +72,14 @@ func GetProviderURL(providerConfig *workspaceapi.ProviderConfig) (string, error)
 	}
 
 	return "", fmt.Errorf(errInvalidProviderSource)
+}
+
+// GetProviderRegion returns the region of the terraform provider.
+func GetProviderRegion(providerConfig *workspaceapi.ProviderConfig) (string, error) {
+	region, ok := providerConfig.GenericConfig["region"]
+	if !ok {
+		return "", fmt.Errorf(errEmptyProviderRegion, providerConfig.Source)
+	}
+
+	return region.(string), nil
 }

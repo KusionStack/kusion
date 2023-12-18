@@ -6,7 +6,9 @@ import (
 	"net"
 	"strings"
 
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
@@ -23,6 +25,18 @@ const (
 	errUnsupportedTFProvider = "unsupported terraform provider for mysql generator: %s"
 	errUnsupportedMySQLType  = "unsupported mysql type: %s"
 	errEmptyCloudInfo        = "empty cloud info in module config"
+)
+
+const (
+	dbResSuffix      = "-db"
+	dbEngine         = "mysql"
+	dbHostAddressEnv = "KUSION_DB_HOST"
+	dbUsernameEnv    = "KUSION_DB_USERNAME"
+	dbPasswordEnv    = "KUSION_DB_PASSWORD"
+)
+
+const (
+	randomPassword = "random_password"
 )
 
 var (
@@ -139,7 +153,7 @@ func (g *mysqlGenerator) Generate(spec *intent.Intent) error {
 // patchWorkspaceConfig patches the config items for mysql generator in workspace configurations.
 func (g *mysqlGenerator) patchWorkspaceConfig() error {
 	// Get the workspace configurations for mysql database instance of the workload.
-	mysqlCfgs, ok := g.ws.Modules["mysql"]
+	mysqlCfgs, ok := g.ws.Modules[dbEngine]
 	if !ok {
 		return workspace.ErrEmptyModuleConfigBlock
 	}
@@ -194,7 +208,7 @@ func (g *mysqlGenerator) patchWorkspaceConfig() error {
 // getTFProviderType returns the type of terraform provider, e.g. "aws", "alicloud" or "azure", etc.
 func (g *mysqlGenerator) getTFProviderType() (string, error) {
 	// Get the workspace configurations for mysql database instance of the workload.
-	mysqlCfgs, ok := g.ws.Modules["mysql"]
+	mysqlCfgs, ok := g.ws.Modules[dbEngine]
 	if !ok {
 		return "", workspace.ErrEmptyModuleConfigBlock
 	}
@@ -213,15 +227,83 @@ func (g *mysqlGenerator) getTFProviderType() (string, error) {
 
 // injectSecret injects the mysql instance host address, username and password into
 // the containers of the workload as environment variables with kubernetes secret.
-func (g *mysqlGenerator) injectSecret(secret *v1.Secret) error
+func (g *mysqlGenerator) injectSecret(secret *v1.Secret) error {
+	secEnvs := yaml.MapSlice{
+		{
+			Key:   dbHostAddressEnv,
+			Value: "secret://" + secret.Name + "/hostAddress",
+		},
+		{
+			Key:   dbUsernameEnv,
+			Value: "secret://" + secret.Name + "/username",
+		},
+		{
+			Key:   dbPasswordEnv,
+			Value: "secret://" + secret.Name + "/password",
+		},
+	}
+
+	// Inject the database information into the containers of service/job workload.
+	if g.workload.Service != nil {
+		for k, v := range g.workload.Service.Containers {
+			v.Env = append(secEnvs, v.Env...)
+			g.workload.Service.Containers[k] = v
+		}
+	} else if g.workload.Job != nil {
+		for k, v := range g.workload.Job.Containers {
+			v.Env = append(secEnvs, v.Env...)
+			g.workload.Service.Containers[k] = v
+		}
+	}
+
+	return nil
+}
 
 // generateDBSecret generates kubernetes secret resource to store the host address,
 // username and password of the mysql database instance.
-func (g *mysqlGenerator) generateDBSecret(hostAddress, username, password string, spec *intent.Intent) (*v1.Secret, error)
+func (g *mysqlGenerator) generateDBSecret(hostAddress, username, password string, spec *intent.Intent) (*v1.Secret, error) {
+	// Create the data map of k8s secret storing the database host address, username
+	// and password.
+	data := make(map[string]string)
+	data["hostAddress"] = hostAddress
+	data["username"] = username
+	data["password"] = password
+
+	// Create the k8s secret and append to the spec.
+	secret := &v1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: v1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      g.appName + dbResSuffix,
+			Namespace: g.project.Name,
+		},
+		StringData: data,
+	}
+
+	return secret, modules.AppendToIntent(
+		intent.Kubernetes,
+		modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta),
+		spec,
+		secret,
+	)
+}
 
 // generateTFRandomPassword generates terraform random_password resource as the password
 // the mysql database instance.
-func (g *mysqlGenerator) generateTFRandomPassword(provider *inputs.Provider) (string, intent.Resource)
+func (g *mysqlGenerator) generateTFRandomPassword(provider *inputs.Provider) (string, intent.Resource) {
+	pswAttrs := map[string]interface{}{
+		"length":           16,
+		"special":          true,
+		"override_special": "_",
+	}
+
+	id := modules.TerraformResourceID(provider, randomPassword, g.appName+dbResSuffix)
+	pvdExts := modules.ProviderExtensions(provider, nil, randomPassword)
+
+	return id, modules.TerraformResource(id, nil, pswAttrs, pvdExts)
+}
 
 // isPublicAccessible returns whether the mysql database instance is publicly
 // accessible according to the securityIPs.
