@@ -205,7 +205,7 @@ func (g *mysqlGenerator) patchWorkspaceConfig() error {
 	return nil
 }
 
-// getTFProviderType returns the type of terraform provider, e.g. "aws", "alicloud" or "azure", etc.
+// getTFProviderType returns the type of terraform provider, e.g. "aws" or "alicloud", etc.
 func (g *mysqlGenerator) getTFProviderType() (string, error) {
 	// Get the workspace configurations for mysql database instance of the workload.
 	mysqlCfgs, ok := g.ws.Modules[dbEngine]

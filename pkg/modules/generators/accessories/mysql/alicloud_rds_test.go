@@ -16,54 +16,14 @@ import (
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
-var (
-	defaultAlicloudProvider = ""
-	alicloudProviderRegion  = ""
-)
-
 func TestGenerateAlicloudResources(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:         "alicloud",
-		Version:      "5.7",
-		Size:         20,
-		InstanceType: "mysql.n2.serverless.1c",
-		Category:     "serverless_basic",
-		Username:     "root",
-		SecurityIPs: []string{
-			"0.0.0.0/0",
-		},
-		PrivateRouting: true,
-		SubnetID:       "test_subnet_id",
-	}
-	ws := &workspaceapi.Workspace{}
+	g := genAlicloudMySQLGenerator()
 
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
-
-	alicloudProviderRegion = "cn-beijing"
 	spec := &intent.Intent{}
-	secret, err := generator.generateAlicloudResources(mysql, spec)
+	secret, err := g.generateAlicloudResources(g.mysql, spec)
 
-	hostAddress := "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.connection_string"
-	username := mysql.Username
+	hostAddress := "$kusion_path.aliyun:alicloud:alicloud_db_connection:testapp.connection_string"
+	username := g.mysql.Username
 	password := "$kusion_path.hashicorp:random:random_password:testapp-db.result"
 	data := make(map[string]string)
 	data["hostAddress"] = hostAddress
@@ -75,8 +35,8 @@ func TestGenerateAlicloudResources(t *testing.T) {
 			APIVersion: v1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName + dbResSuffix,
-			Namespace: project.Name,
+			Name:      g.appName + dbResSuffix,
+			Namespace: g.project.Name,
 		},
 		StringData: data,
 	}
@@ -86,60 +46,26 @@ func TestGenerateAlicloudResources(t *testing.T) {
 }
 
 func TestGenerateAlicloudDBInstance(t *testing.T) {
-	alicloudProviderRegion = "cn-beijing"
+	g := genAlicloudMySQLGenerator()
 	alicloudProvider := &inputs.Provider{}
-	alicloudProvider.SetString(defaultAlicloudProvider)
+	alicloudProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
+	_ = alicloudProvider.SetString(alicloudProviderURL)
+	alicloudProviderRegion, _ := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
 
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:         "alicloud",
-		Version:      "5.7",
-		Size:         20,
-		InstanceType: "mysql.n2.serverless.1c",
-		Category:     "serverless_basic",
-		Username:     "root",
-		SecurityIPs: []string{
-			"0.0.0.0/0",
-		},
-		PrivateRouting: true,
-		SubnetID:       "test_subnet_id",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
-
-	alicloudDBInstanceID, r := generator.generateAlicloudDBInstance(alicloudProviderRegion, alicloudProvider, mysql)
+	alicloudDBInstanceID, r := g.generateAlicloudDBInstance(alicloudProviderRegion, alicloudProvider, g.mysql)
 	expectedAlicloudDBInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
 	expectedRes := intent.Resource{
 		ID:   "aliyun:alicloud:alicloud_db_instance:testapp",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
-			"category":                 mysql.Category,
+			"category":                 g.mysql.Category,
 			"db_instance_storage_type": "cloud_essd",
 			"engine":                   dbEngine,
-			"engine_version":           mysql.Version,
+			"engine_version":           g.mysql.Version,
 			"instance_charge_type":     "Serverless",
-			"instance_storage":         mysql.Size,
-			"instance_type":            mysql.InstanceType,
-			"security_ips":             mysql.SecurityIPs,
+			"instance_storage":         g.mysql.Size,
+			"instance_type":            g.mysql.InstanceType,
+			"security_ips":             g.mysql.SecurityIPs,
 			"serverless_config": []alicloudServerlessConfig{
 				{
 					AutoPause:   false,
@@ -148,10 +74,10 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 					MinCapacity: 1,
 				},
 			},
-			"vswitch_id": mysql.SubnetID,
+			"vswitch_id": g.mysql.SubnetID,
 		},
 		Extensions: map[string]interface{}{
-			"provider": defaultAlicloudProvider,
+			"provider": alicloudProviderURL,
 			"providerMeta": map[string]interface{}{
 				"region": alicloudProviderRegion,
 			},
@@ -164,48 +90,14 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 }
 
 func TestGenerateAlicloudDBConnection(t *testing.T) {
-	alicloudProviderRegion = "cn-beijing"
+	g := genAlicloudMySQLGenerator()
 	alicloudProvider := &inputs.Provider{}
-	alicloudProvider.SetString(defaultAlicloudProvider)
-
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:         "alicloud",
-		Version:      "5.7",
-		Size:         20,
-		InstanceType: "mysql.n2.serverless.1c",
-		Category:     "serverless_basic",
-		Username:     "root",
-		SecurityIPs: []string{
-			"0.0.0.0/0",
-		},
-		PrivateRouting: true,
-		SubnetID:       "test_subnet_id",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	alicloudProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
+	_ = alicloudProvider.SetString(alicloudProviderURL)
+	alicloudProviderRegion, _ := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
 
 	dbInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
-	alicloudDBConnectionID, r := generator.generateAlicloudDBConnection(dbInstanceID, alicloudProviderRegion, alicloudProvider)
+	alicloudDBConnectionID, r := g.generateAlicloudDBConnection(dbInstanceID, alicloudProviderRegion, alicloudProvider)
 	expectedAlicloudDBConnectionID := "aliyun:alicloud:alicloud_db_connection:testapp"
 	expectedRes := intent.Resource{
 		ID:   "aliyun:alicloud:alicloud_db_connection:testapp",
@@ -214,7 +106,7 @@ func TestGenerateAlicloudDBConnection(t *testing.T) {
 			"instance_id": "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.id",
 		},
 		Extensions: map[string]interface{}{
-			"provider": defaultAlicloudProvider,
+			"provider": alicloudProviderURL,
 			"providerMeta": map[string]interface{}{
 				"region": alicloudProviderRegion,
 			},
@@ -227,10 +119,39 @@ func TestGenerateAlicloudDBConnection(t *testing.T) {
 }
 
 func TestGenerateAlicloudRDSAccount(t *testing.T) {
-	alicloudProviderRegion = "cn-beijing"
+	g := genAlicloudMySQLGenerator()
 	alicloudProvider := &inputs.Provider{}
-	alicloudProvider.SetString(defaultAlicloudProvider)
+	alicloudProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
+	_ = alicloudProvider.SetString(alicloudProviderURL)
+	alicloudProviderRegion, _ := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
 
+	accountName := g.mysql.Username
+	randomPasswordID := "hashicorp:random:random_password:testapp-db"
+	alicloudDBInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
+	r := g.generateAlicloudRDSAccount(accountName, randomPasswordID, alicloudDBInstanceID, alicloudProviderRegion, alicloudProvider, g.mysql)
+
+	expectedRes := intent.Resource{
+		ID:   "aliyun:alicloud:alicloud_rds_account:testapp",
+		Type: "Terraform",
+		Attributes: map[string]interface{}{
+			"account_name":     accountName,
+			"account_password": "$kusion_path.hashicorp:random:random_password:testapp-db.result",
+			"account_type":     "Super",
+			"db_instance_id":   "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.id",
+		},
+		Extensions: map[string]interface{}{
+			"provider": alicloudProviderURL,
+			"providerMeta": map[string]interface{}{
+				"region": alicloudProviderRegion,
+			},
+			"resourceType": "alicloud_rds_account",
+		},
+	}
+
+	assert.Equal(t, expectedRes, r)
+}
+
+func genAlicloudMySQLGenerator() *mysqlGenerator {
 	project := &project.Project{
 		Configuration: project.Configuration{
 			Name: "testproject",
@@ -244,21 +165,51 @@ func TestGenerateAlicloudRDSAccount(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	mysql := &mysql.MySQL{
-		Type:         "alicloud",
-		Version:      "5.7",
-		Size:         20,
-		InstanceType: "mysql.n2.serverless.1c",
-		Category:     "serverless_basic",
-		Username:     "root",
-		SecurityIPs: []string{
-			"0.0.0.0/0",
-		},
-		PrivateRouting: true,
+		Type:           "cloud",
+		Version:        "5.7",
+		Size:           20,
+		InstanceType:   "mysql.n2.serverless.1c",
+		Category:       "serverless_basic",
+		PrivateRouting: false,
 		SubnetID:       "test_subnet_id",
+		Username:       defaultUsername,
+		SecurityIPs:    defaultSecurityIPs,
 	}
-	ws := &workspaceapi.Workspace{}
+	ws := &workspaceapi.Workspace{
+		Name: "testworkspace",
+		Runtimes: &workspaceapi.RuntimeConfigs{
+			Kubernetes: &workspaceapi.KubernetesConfig{
+				KubeConfig: "/Users/username/testkubeconfig",
+			},
+			Terraform: workspaceapi.TerraformConfig{
+				"random": &workspaceapi.ProviderConfig{
+					Source:  "hashicorp/random",
+					Version: "3.5.1",
+				},
+				"alicloud": &workspaceapi.ProviderConfig{
+					Source:  "aliyun/alicloud",
+					Version: "1.209.1",
+					GenericConfig: workspaceapi.GenericConfig{
+						"region": "cn-beijing",
+					},
+				},
+			},
+		},
+		Modules: workspaceapi.ModuleConfigs{
+			"mysql": &workspaceapi.ModuleConfig{
+				Default: workspaceapi.GenericConfig{
+					"cloud":          "alicloud",
+					"size":           20,
+					"instanceType":   "mysql.n2.serverless.1c",
+					"category":       "serverless_basic",
+					"privateRouting": false,
+					"subnetID":       "test_subnet_id",
+				},
+			},
+		},
+	}
 
-	generator := &mysqlGenerator{
+	return &mysqlGenerator{
 		project:  project,
 		stack:    stack,
 		appName:  appName,
@@ -266,29 +217,4 @@ func TestGenerateAlicloudRDSAccount(t *testing.T) {
 		mysql:    mysql,
 		ws:       ws,
 	}
-
-	accountName := mysql.Username
-	randomPasswordID := "hashicorp:random:random_password:testapp-db"
-	alicloudDBInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
-	r := generator.generateAlicloudRDSAccount(accountName, randomPasswordID, alicloudDBInstanceID, alicloudProviderRegion, alicloudProvider, mysql)
-
-	expectedRes := intent.Resource{
-		ID:   "aliyun:alicloud:alicloud_rds_account:testapp",
-		Type: "Terraform",
-		Attributes: map[string]interface{}{
-			"account_name":     accountName,
-			"account_password": "$kusion_path.hashicorp:random:random_password:testapp-db.result",
-			"account_type":     "Super",
-			"db_instance_id":   "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.id",
-		},
-		Extensions: map[string]interface{}{
-			"provider": defaultAlicloudProvider,
-			"providerMeta": map[string]interface{}{
-				"region": alicloudProviderRegion,
-			},
-			"resourceType": "alicloud_rds_account",
-		},
-	}
-
-	assert.Equal(t, expectedRes, r)
 }

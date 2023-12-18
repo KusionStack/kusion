@@ -16,41 +16,14 @@ import (
 )
 
 func TestGenerateLocalResources(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:     "local",
-		Version:  "10.5",
-		Size:     10,
-		Username: "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	g := genLocalMySQLGenerator()
 
 	spec := &intent.Intent{}
-	secret, err := generator.generateLocalResources(mysql, spec)
+	secret, err := g.generateLocalResources(g.mysql, spec)
 
 	hostAddress := "testapp-db-local-service"
-	username := mysql.Username
-	password := generator.generateLocalPassword(16)
+	username := g.mysql.Username
+	password := g.generateLocalPassword(16)
 	data := make(map[string]string)
 	data["hostAddress"] = hostAddress
 	data["username"] = username
@@ -61,8 +34,8 @@ func TestGenerateLocalResources(t *testing.T) {
 			APIVersion: v1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName + dbResSuffix,
-			Namespace: project.Name,
+			Name:      g.appName + dbResSuffix,
+			Namespace: g.project.Name,
 		},
 		StringData: data,
 	}
@@ -72,116 +45,46 @@ func TestGenerateLocalResources(t *testing.T) {
 }
 
 func TestGenerateLocalSecret(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:     "local",
-		Version:  "10.5",
-		Size:     10,
-		Username: "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	g := genLocalMySQLGenerator()
 
 	spec := &intent.Intent{}
-	password, err := generator.generateLocalSecret(spec)
-	expectedPassword := generator.generateLocalPassword(16)
+	password, err := g.generateLocalSecret(spec)
+	expectedPassword := g.generateLocalPassword(16)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedPassword, password)
 }
 
 func TestGenerateLocalPVC(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:     "local",
-		Version:  "10.5",
-		Size:     10,
-		Username: "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	g := genLocalMySQLGenerator()
 
 	spec := &intent.Intent{}
-	err := generator.generateLocalPVC(mysql, spec)
+	err := g.generateLocalPVC(g.mysql, spec)
 
 	assert.NoError(t, err)
 }
 
 func TestGenerateLocalDeployment(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:     "local",
-		Version:  "10.5",
-		Size:     10,
-		Username: "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	g := genLocalMySQLGenerator()
 
 	spec := &intent.Intent{}
-	err := generator.generateLocalDeployment(mysql, spec)
+	err := g.generateLocalDeployment(g.mysql, spec)
 
 	assert.NoError(t, err)
 }
 
 func TestGenerateLocalService(t *testing.T) {
+	g := genLocalMySQLGenerator()
+
+	spec := &intent.Intent{}
+	svcName, err := g.generateLocalService(g.mysql, spec)
+	expectedSvcName := "testapp-db-local-service"
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedSvcName, svcName)
+}
+
+func genLocalMySQLGenerator() *mysqlGenerator {
 	project := &project.Project{
 		Configuration: project.Configuration{
 			Name: "testproject",
@@ -195,14 +98,19 @@ func TestGenerateLocalService(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	mysql := &mysql.MySQL{
-		Type:     "local",
-		Version:  "10.5",
-		Size:     10,
-		Username: "root",
+		Type:    "local",
+		Version: "8.0",
 	}
-	ws := &workspaceapi.Workspace{}
+	ws := &workspaceapi.Workspace{
+		Name: "testworkspace",
+		Runtimes: &workspaceapi.RuntimeConfigs{
+			Kubernetes: &workspaceapi.KubernetesConfig{
+				KubeConfig: "/Users/username/testkubeconfig",
+			},
+		},
+	}
 
-	generator := &mysqlGenerator{
+	return &mysqlGenerator{
 		project:  project,
 		stack:    stack,
 		appName:  appName,
@@ -210,11 +118,4 @@ func TestGenerateLocalService(t *testing.T) {
 		mysql:    mysql,
 		ws:       ws,
 	}
-
-	spec := &intent.Intent{}
-	svcName, err := generator.generateLocalService(mysql, spec)
-	expectedSvcName := "testapp-db-local-service"
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedSvcName, svcName)
 }

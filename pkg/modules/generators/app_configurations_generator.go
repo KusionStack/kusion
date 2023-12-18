@@ -9,7 +9,7 @@ import (
 	"kusionstack.io/kusion/pkg/apis/stack"
 	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
-	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
+	mysql "kusionstack.io/kusion/pkg/modules/generators/accessories/mysql"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
 	"kusionstack.io/kusion/pkg/modules/generators/trait"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
@@ -82,7 +82,7 @@ func (g *appConfigurationGenerator) Generate(spec *intent.Intent) error {
 	// Generate resources
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name),
-		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database, g.ws),
+		mysql.NewMySQLGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.MySQL, g.ws),
 		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
 		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
 		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),

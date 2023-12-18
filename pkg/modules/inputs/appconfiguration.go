@@ -1,7 +1,6 @@
 package inputs
 
 import (
-	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/mysql"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
@@ -35,10 +34,6 @@ type AppConfiguration struct {
 	// OpsRule specifies collection of rules that will be checked for Day-2 operation.
 	OpsRule    *trait.OpsRule      `json:"opsRule,omitempty" yaml:"opsRule,omitempty"`
 	Monitoring *monitoring.Monitor `json:"monitoring,omitempty" yaml:"monitoring,omitempty"`
-
-	// Database defines a locally deployed or a cloud provider managed
-	// database instance for the workload.
-	Database *database.Database `json:"database,omitempty" yaml:"database,omitempty"`
 
 	// MySQL defines a locally deployed or a cloud provider managed
 	// mysql database instance for the workload.

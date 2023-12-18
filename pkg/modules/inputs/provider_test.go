@@ -6,13 +6,9 @@ import (
 	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 )
 
-var (
-	awsProviderURL = "registry.terraform.io/hashicorp/aws/5.0.1"
-)
-
 func TestSetString(t *testing.T) {
 	provider := &Provider{}
-	if err := provider.SetString(awsProviderURL); err != nil {
+	if err := provider.SetString("registry.terraform.io/hashicorp/aws/5.0.1"); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
@@ -50,8 +46,28 @@ func TestGetProviderURL(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	expectedURL := awsProviderURL
+	expectedURL := "registry.terraform.io/hashicorp/aws/5.0.1"
 	if url != expectedURL {
-		t.Errorf("unexpected url, got: %s, want: %s", url, expectedURL)
+		t.Errorf("unexpected url, got: %s, expected: %s", url, expectedURL)
+	}
+}
+
+func TestGetProviderRegion(t *testing.T) {
+	providerConfig := &workspaceapi.ProviderConfig{
+		Source:  "hashicorp/aws",
+		Version: "5.0.1",
+		GenericConfig: workspaceapi.GenericConfig{
+			"region": "us-east-1",
+		},
+	}
+
+	region, err := GetProviderRegion(providerConfig)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	expectedRegion := "us-east-1"
+	if region != expectedRegion {
+		t.Errorf("unexpected region, got: %s, expected: %s", region, expectedRegion)
 	}
 }

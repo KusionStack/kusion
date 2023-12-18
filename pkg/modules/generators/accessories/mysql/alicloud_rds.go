@@ -26,7 +26,7 @@ type alicloudServerlessConfig struct {
 // generateAlicloudResources generates alicloud provided mysql database instance.
 func (g *mysqlGenerator) generateAlicloudResources(db *mysql.MySQL, spec *intent.Intent) (*v1.Secret, error) {
 	// Set the terraform random and alicloud provider.
-	var randomProvider, alicloudProvider *inputs.Provider
+	randomProvider, alicloudProvider := &inputs.Provider{}, &inputs.Provider{}
 
 	randomProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.RandomProvider])
 	if err != nil {

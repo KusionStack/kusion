@@ -16,47 +16,14 @@ import (
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
-var (
-	defaultAWSProvider = ""
-	awsProviderRegion  = ""
-)
-
 func TestGenerateAWSResources(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:         "aws",
-		Version:      "5.7",
-		InstanceType: "db.t3.micro",
-		Size:         10,
-		Username:     "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
+	g := genAWSMySQLGenerator()
 
 	spec := &intent.Intent{}
-	secret, err := generator.generateAWSResources(mysql, spec)
+	secret, err := g.generateAWSResources(g.mysql, spec)
 
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"
-	username := mysql.Username
+	username := g.mysql.Username
 	password := "$kusion_path.hashicorp:random:random_password:testapp-db.result"
 	data := make(map[string]string)
 	data["hostAddress"] = hostAddress
@@ -68,8 +35,8 @@ func TestGenerateAWSResources(t *testing.T) {
 			APIVersion: v1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      appName + dbResSuffix,
-			Namespace: project.Name,
+			Name:      g.appName + dbResSuffix,
+			Namespace: g.project.Name,
 		},
 		StringData: data,
 	}
@@ -79,40 +46,13 @@ func TestGenerateAWSResources(t *testing.T) {
 }
 
 func TestGenerateAWSSecurityGroup(t *testing.T) {
+	g := genAWSMySQLGenerator()
 	awsProvider := &inputs.Provider{}
+	awsProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AWSProvider])
+	_ = awsProvider.SetString(awsProviderURL)
+	awsProviderRegion, _ := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AWSProvider])
 
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:         "aws",
-		Version:      "5.7",
-		InstanceType: "db.t3.micro",
-		Size:         10,
-		Username:     "root",
-	}
-	ws := &workspaceapi.Workspace{}
-
-	generator := &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
-
-	var cidrBlocks []string
-	awsSecurityGroupID, r, err := generator.generateAWSSecurityGroup(awsProvider, awsProviderRegion, mysql)
+	awsSecurityGroupID, r, err := g.generateAWSSecurityGroup(awsProvider, awsProviderRegion, g.mysql)
 	expectedAWSSecurityGroupID := "hashicorp:aws:aws_security_group:testapp-db"
 	expectedRes := intent.Resource{
 		ID:   "hashicorp:aws:aws_security_group:testapp-db",
@@ -128,7 +68,7 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 			},
 			"ingress": []awsSecurityGroupTraffic{
 				{
-					CidrBlocks: cidrBlocks,
+					CidrBlocks: []string{"0.0.0.0/0"},
 					Protocol:   "tcp",
 					FromPort:   3306,
 					ToPort:     3306,
@@ -136,11 +76,11 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 			},
 		},
 		Extensions: map[string]interface{}{
-			"provider": defaultAWSProvider,
+			"provider": awsProviderURL,
 			"providerMeta": map[string]interface{}{
 				"region": awsProviderRegion,
 			},
-			"resourceType": "aws_security_group",
+			"resourceType": awsSecurityGroup,
 		},
 	}
 
@@ -150,10 +90,48 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 }
 
 func TestGenerateAWSDBInstance(t *testing.T) {
+	g := genAWSMySQLGenerator()
 	awsProvider := &inputs.Provider{}
-	awsProvider.SetString(defaultAWSProvider)
-	awsProviderRegion = "us-east-1"
+	awsProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AWSProvider])
+	_ = awsProvider.SetString(awsProviderURL)
+	awsProviderRegion, _ := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AWSProvider])
 
+	awsSecurityGroupID := "hashicorp:aws:aws_security_group:testapp-db"
+	randomPasswordID := "hashicorp:random:random_password:testapp-db"
+
+	awsDBInstanceID, r := g.generateAWSDBInstance(awsProviderRegion, awsSecurityGroupID, randomPasswordID, awsProvider, g.mysql)
+	expectedAWSDBInstanceID := "hashicorp:aws:aws_db_instance:testapp"
+	expectedRes := intent.Resource{
+		ID:   "hashicorp:aws:aws_db_instance:testapp",
+		Type: "Terraform",
+		Attributes: map[string]interface{}{
+			"allocated_storage":   g.mysql.Size,
+			"engine":              dbEngine,
+			"engine_version":      g.mysql.Version,
+			"identifier":          g.appName,
+			"instance_class":      g.mysql.InstanceType,
+			"password":            "$kusion_path.hashicorp:random:random_password:testapp-db.result",
+			"publicly_accessible": true,
+			"skip_final_snapshot": true,
+			"username":            g.mysql.Username,
+			"vpc_security_group_ids": []string{
+				"$kusion_path.hashicorp:aws:aws_security_group:testapp-db.id",
+			},
+		},
+		Extensions: map[string]interface{}{
+			"provider": awsProviderURL,
+			"providerMeta": map[string]interface{}{
+				"region": awsProviderRegion,
+			},
+			"resourceType": awsDBInstance,
+		},
+	}
+
+	assert.Equal(t, expectedAWSDBInstanceID, awsDBInstanceID)
+	assert.Equal(t, expectedRes, r)
+}
+
+func genAWSMySQLGenerator() *mysqlGenerator {
 	project := &project.Project{
 		Configuration: project.Configuration{
 			Name: "testproject",
@@ -167,15 +145,48 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	mysql := &mysql.MySQL{
-		Type:         "aws",
-		Version:      "5.7",
-		InstanceType: "db.t3.micro",
-		Size:         10,
-		Username:     "root",
+		Type:           "cloud",
+		Version:        "5.7",
+		Size:           20,
+		InstanceType:   "db.t3.micro",
+		PrivateRouting: false,
+		Username:       defaultUsername,
+		Category:       defaultCategory,
+		SecurityIPs:    defaultSecurityIPs,
 	}
-	ws := &workspaceapi.Workspace{}
+	ws := &workspaceapi.Workspace{
+		Name: "testworkspace",
+		Runtimes: &workspaceapi.RuntimeConfigs{
+			Kubernetes: &workspaceapi.KubernetesConfig{
+				KubeConfig: "/Users/username/testkubeconfig",
+			},
+			Terraform: workspaceapi.TerraformConfig{
+				"random": &workspaceapi.ProviderConfig{
+					Source:  "hashicorp/random",
+					Version: "3.5.1",
+				},
+				"aws": &workspaceapi.ProviderConfig{
+					Source:  "hashicorp/aws",
+					Version: "5.0.1",
+					GenericConfig: workspaceapi.GenericConfig{
+						"region": "us-east-1",
+					},
+				},
+			},
+		},
+		Modules: workspaceapi.ModuleConfigs{
+			"mysql": &workspaceapi.ModuleConfig{
+				Default: workspaceapi.GenericConfig{
+					"cloud":          "aws",
+					"size":           20,
+					"instanceType":   "db.t3.micro",
+					"privateRouting": false,
+				},
+			},
+		},
+	}
 
-	generator := &mysqlGenerator{
+	return &mysqlGenerator{
 		project:  project,
 		stack:    stack,
 		appName:  appName,
@@ -183,38 +194,4 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 		mysql:    mysql,
 		ws:       ws,
 	}
-
-	awsSecurityGroupID := "hashicorp:aws:aws_security_group:testapp-db"
-	randomPasswordID := "hashicorp:random:random_password:testapp-db"
-
-	awsDBInstanceID, r := generator.generateAWSDBInstance(awsProviderRegion, awsSecurityGroupID, randomPasswordID, awsProvider, mysql)
-	expectedAWSDBInstanceID := "hashicorp:aws:aws_db_instance:testapp"
-	expectedRes := intent.Resource{
-		ID:   "hashicorp:aws:aws_db_instance:testapp",
-		Type: "Terraform",
-		Attributes: map[string]interface{}{
-			"allocated_storage":   mysql.Size,
-			"engine":              dbEngine,
-			"engine_version":      mysql.Version,
-			"identifier":          appName,
-			"instance_class":      mysql.InstanceType,
-			"password":            "$kusion_path.hashicorp:random:random_password:testapp-db.result",
-			"publicly_accessible": false,
-			"skip_final_snapshot": true,
-			"username":            mysql.Username,
-			"vpc_security_group_ids": []string{
-				"$kusion_path.hashicorp:aws:aws_security_group:testapp-db.id",
-			},
-		},
-		Extensions: map[string]interface{}{
-			"provider": defaultAWSProvider,
-			"providerMeta": map[string]interface{}{
-				"region": awsProviderRegion,
-			},
-			"resourceType": "aws_db_instance",
-		},
-	}
-
-	assert.Equal(t, expectedAWSDBInstanceID, awsDBInstanceID)
-	assert.Equal(t, expectedRes, r)
 }

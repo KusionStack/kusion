@@ -30,7 +30,7 @@ type awsSecurityGroupTraffic struct {
 // generateAWSResources generates aws provided mysql database instance.
 func (g *mysqlGenerator) generateAWSResources(db *mysql.MySQL, spec *intent.Intent) (*v1.Secret, error) {
 	// Set the terraform random and aws provider.
-	var randomProvider, awsProvider *inputs.Provider
+	randomProvider, awsProvider := &inputs.Provider{}, &inputs.Provider{}
 
 	randomProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.RandomProvider])
 	if err != nil {
@@ -40,7 +40,7 @@ func (g *mysqlGenerator) generateAWSResources(db *mysql.MySQL, spec *intent.Inte
 		return nil, err
 	}
 
-	awsProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AwsProvider])
+	awsProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AWSProvider])
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (g *mysqlGenerator) generateAWSResources(db *mysql.MySQL, spec *intent.Inte
 	}
 
 	// Get the aws provider region, and the region of the aws provider must be set.
-	awsProviderRegion, err := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AwsProvider])
+	awsProviderRegion, err := inputs.GetProviderRegion(g.ws.Runtimes.Terraform[inputs.AWSProvider])
 	if err != nil {
 		return nil, err
 	}
