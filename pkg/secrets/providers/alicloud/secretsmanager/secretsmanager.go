@@ -115,7 +115,7 @@ func (s *smSecretStore) convertSecretToGjson(secretInfo *models.SecretInfo, refP
 }
 
 func init() {
-	secrets.SecretStoreProviders.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
+	secrets.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
 		Alicloud: &secretsapi.AlicloudProvider{},
 	})
 }

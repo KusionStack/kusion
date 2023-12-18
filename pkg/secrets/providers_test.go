@@ -49,20 +49,19 @@ func TestRegister(t *testing.T) {
 		},
 	}
 
-	providers := NewProviders()
 	fsp := &FakeSecretStoreFactory{}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.shouldPanic {
 				defer func() {
 					if r := recover(); r == nil {
-						t.Errorf("Register should panic")
+						t.Errorf("register should panic")
 					}
 				}()
 			}
 
-			providers.Register(fsp, tc.spec)
-			_, ok := providers.GetProviderByName(tc.providerName)
+			Register(fsp, tc.spec)
+			_, ok := GetProviderByName(tc.providerName)
 			assert.Equal(t, tc.expExists, ok, "provider should be registered")
 		})
 	}

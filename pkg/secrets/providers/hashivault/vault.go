@@ -226,7 +226,7 @@ func getTypedKey(data map[string]interface{}, key string) ([]byte, error) {
 }
 
 func init() {
-	secrets.SecretStoreProviders.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
+	secrets.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
 		Vault: &secretsapi.VaultProvider{},
 	})
 }
