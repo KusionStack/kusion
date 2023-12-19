@@ -126,7 +126,8 @@ func (g *mysqlGenerator) Generate(spec *intent.Intent) error {
 	case mysql.LocalDBType:
 		secret, err = g.generateLocalResources(db, spec)
 	case mysql.CloudDBType:
-		providerType, err := g.getTFProviderType()
+		var providerType string
+		providerType, err = g.getTFProviderType()
 		if err != nil {
 			return err
 		}
