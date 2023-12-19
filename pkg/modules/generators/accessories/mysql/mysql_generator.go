@@ -36,7 +36,8 @@ const (
 )
 
 const (
-	randomPassword = "random_password"
+	defaultRandomProviderURL = "registry.terraform.io/hashicorp/random/3.5.1"
+	randomPassword           = "random_password"
 )
 
 var (
@@ -155,6 +156,12 @@ func (g *mysqlGenerator) patchWorkspaceConfig() error {
 	// Get the workspace configurations for mysql database instance of the workload.
 	mysqlCfgs, ok := g.ws.Modules[dbEngine]
 	if !ok {
+		g.mysql.Username = defaultUsername
+		g.mysql.Category = defaultCategory
+		g.mysql.SecurityIPs = defaultSecurityIPs
+		g.mysql.PrivateRouting = defaultPrivateRouting
+		g.mysql.Size = defaultSize
+
 		return workspace.ErrEmptyModuleConfigBlock
 	}
 

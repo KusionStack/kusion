@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	alicloudDBInstance   = "alicloud_db_instance"
-	alicloudDBConnection = "alicloud_db_connection"
-	alicloudRDSAccount   = "alicloud_rds_account"
+	defaultAlicloudProviderURL = "registry.terraform.io/aliyun/alicloud/1.209.1"
+	alicloudDBInstance         = "alicloud_db_instance"
+	alicloudDBConnection       = "alicloud_db_connection"
+	alicloudRDSAccount         = "alicloud_rds_account"
 )
 
 type alicloudServerlessConfig struct {
@@ -28,20 +29,30 @@ func (g *mysqlGenerator) generateAlicloudResources(db *mysql.MySQL, spec *intent
 	// Set the terraform random and alicloud provider.
 	randomProvider, alicloudProvider := &inputs.Provider{}, &inputs.Provider{}
 
-	randomProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.RandomProvider])
-	if err != nil {
-		return nil, err
-	}
-	if err := randomProvider.SetString(randomProviderURL); err != nil {
-		return nil, err
+	randomProviderCfg, ok := g.ws.Runtimes.Terraform[inputs.RandomProvider]
+	if !ok {
+		randomProvider.SetString(defaultRandomProviderURL)
+	} else {
+		randomProviderURL, err := inputs.GetProviderURL(randomProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := randomProvider.SetString(randomProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
-	alicloudProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AlicloudProvider])
-	if err != nil {
-		return nil, err
-	}
-	if err := alicloudProvider.SetString(alicloudProviderURL); err != nil {
-		return nil, err
+	alicloudProviderCfg, ok := g.ws.Runtimes.Terraform[inputs.AlicloudProvider]
+	if !ok {
+		alicloudProvider.SetString(defaultAlicloudProviderURL)
+	} else {
+		alicloudProviderURL, err := inputs.GetProviderURL(alicloudProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := alicloudProvider.SetString(alicloudProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
 	// Get the alicloud provider region, and the region of the alicloud provider must be set.
@@ -87,7 +98,7 @@ func (g *mysqlGenerator) generateAlicloudDBInstance(
 ) (string, intent.Resource) {
 	dbAttrs := map[string]interface{}{
 		"category":         db.Category,
-		"engine":           dbEngine,
+		"engine":           "MySQL",
 		"engine_version":   db.Version,
 		"instance_storage": db.Size,
 		"instance_type":    db.InstanceType,

@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	awsSecurityGroup = "aws_security_group"
-	awsDBInstance    = "aws_db_instance"
+	defaultAWSProviderURL = "registry.terraform.io/hashicorp/aws/5.0.1"
+	awsSecurityGroup      = "aws_security_group"
+	awsDBInstance         = "aws_db_instance"
 )
 
 type awsSecurityGroupTraffic struct {
@@ -32,20 +33,30 @@ func (g *mysqlGenerator) generateAWSResources(db *mysql.MySQL, spec *intent.Inte
 	// Set the terraform random and aws provider.
 	randomProvider, awsProvider := &inputs.Provider{}, &inputs.Provider{}
 
-	randomProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.RandomProvider])
-	if err != nil {
-		return nil, err
-	}
-	if err := randomProvider.SetString(randomProviderURL); err != nil {
-		return nil, err
+	randomProviderCfg, ok := g.ws.Runtimes.Terraform[inputs.RandomProvider]
+	if !ok {
+		randomProvider.SetString(defaultRandomProviderURL)
+	} else {
+		randomProviderURL, err := inputs.GetProviderURL(randomProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := randomProvider.SetString(randomProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
-	awsProviderURL, err := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.AWSProvider])
-	if err != nil {
-		return nil, err
-	}
-	if err := awsProvider.SetString(awsProviderURL); err != nil {
-		return nil, err
+	awsProviderCfg, ok := g.ws.Runtimes.Terraform[inputs.AWSProvider]
+	if !ok {
+		awsProvider.SetString(defaultAWSProviderURL)
+	} else {
+		awsProviderURL, err := inputs.GetProviderURL(awsProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := awsProvider.SetString(awsProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
 	// Get the aws provider region, and the region of the aws provider must be set.

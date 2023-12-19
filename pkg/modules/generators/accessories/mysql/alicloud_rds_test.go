@@ -60,7 +60,7 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 		Attributes: map[string]interface{}{
 			"category":                 g.mysql.Category,
 			"db_instance_storage_type": "cloud_essd",
-			"engine":                   dbEngine,
+			"engine":                   "MySQL",
 			"engine_version":           g.mysql.Version,
 			"instance_charge_type":     "Serverless",
 			"instance_storage":         g.mysql.Size,
