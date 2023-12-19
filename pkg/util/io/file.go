@@ -69,23 +69,3 @@ func RenamePath(oldPath, newPath string) error {
 
 	return nil
 }
-
-// IsBinary returns true if a zero byte occurs within the first
-// 8000 bytes (or the entire length if shorter). This is the
-// same approach that git uses to determine if a file is binary.
-func IsBinary(bytes []byte) bool {
-	const firstFewBytes = 8000
-
-	length := len(bytes)
-	if firstFewBytes < length {
-		length = firstFewBytes
-	}
-
-	for i := 0; i < length; i++ {
-		if bytes[i] == 0 {
-			return true
-		}
-	}
-
-	return false
-}
