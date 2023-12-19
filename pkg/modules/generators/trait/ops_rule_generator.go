@@ -50,39 +50,39 @@ func (g *opsRuleGenerator) Generate(spec *intent.Intent) error {
 		return nil
 	}
 
-	if g.app.Workload.Header.Type != workload.TypeService {
+	// Job does not support maxUnavailable
+	if g.app.Workload.Header.Type == workload.TypeJob {
 		return nil
 	}
 
-	if g.app.Workload.Service.Type != workload.TypeCollaset {
-		return nil
-	}
-
-	maxUnavailable := intstr.Parse(g.app.OpsRule.MaxUnavailable)
-	resource := &v1alpha1.RuleSet{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       "RuleSet",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
-			Namespace: g.project.Name,
-		},
-		Spec: v1alpha1.RuleSetSpec{
-			Selector: metav1.LabelSelector{
-				MatchLabels: modules.UniqueAppLabels(g.project.Name, g.appName),
+	if g.app.Workload.Service.Type == workload.TypeCollaset {
+		maxUnavailable := intstr.Parse(g.app.OpsRule.MaxUnavailable)
+		resource := &v1alpha1.PodTransitionRule{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: v1alpha1.GroupVersion.String(),
+				Kind:       "PodTransitionRule",
 			},
-			Rules: []v1alpha1.RuleSetRule{
-				{
-					Name: "maxUnavailable",
-					RuleSetRuleDefinition: v1alpha1.RuleSetRuleDefinition{
-						AvailablePolicy: &v1alpha1.AvailableRule{
-							MaxUnavailableValue: &maxUnavailable,
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
+				Namespace: g.project.Name,
+			},
+			Spec: v1alpha1.PodTransitionRuleSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: modules.UniqueAppLabels(g.project.Name, g.appName),
+				},
+				Rules: []v1alpha1.TransitionRule{
+					{
+						Name: "maxUnavailable",
+						TransitionRuleDefinition: v1alpha1.TransitionRuleDefinition{
+							AvailablePolicy: &v1alpha1.AvailableRule{
+								MaxUnavailableValue: &maxUnavailable,
+							},
 						},
 					},
 				},
 			},
-		},
+		}
+		return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
-	return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+	return nil
 }

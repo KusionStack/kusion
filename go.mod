@@ -67,7 +67,7 @@ require (
 	kcl-lang.io/kcl-go v0.7.0
 	kcl-lang.io/kcl-plugin v0.5.0
 	kcl-lang.io/kpm v0.4.2
-	kusionstack.io/kube-api v0.0.0-20230817144216-4714955f3801
+	kusionstack.io/kube-api v0.1.1
 	sigs.k8s.io/controller-runtime v0.15.1
 )
 
@@ -238,7 +238,7 @@ require (
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/thoas/go-funk v0.9.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
