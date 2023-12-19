@@ -89,11 +89,11 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 			exp: &intent.Intent{
 				Resources: intent.Resources{
 					intent.Resource{
-						ID:   "apps.kusionstack.io/v1alpha1:RuleSet:default:default-dev-foo",
+						ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 						Type: "Kubernetes",
 						Attributes: map[string]interface{}{
 							"apiVersion": "apps.kusionstack.io/v1alpha1",
-							"kind":       "RuleSet",
+							"kind":       "PodTransitionRule",
 							"metadata": map[string]interface{}{
 								"creationTimestamp": interface{}(nil),
 								"name":              "default-dev-foo",
@@ -115,7 +115,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 						},
 						DependsOn: []string(nil),
 						Extensions: map[string]interface{}{
-							"GVK": "apps.kusionstack.io/v1alpha1, Kind=RuleSet",
+							"GVK": "apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule",
 						},
 					},
 				},

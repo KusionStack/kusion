@@ -57,23 +57,23 @@ func (g *opsRuleGenerator) Generate(spec *intent.Intent) error {
 
 	if g.app.Workload.Service.Type == workload.TypeCollaset {
 		maxUnavailable := intstr.Parse(g.app.OpsRule.MaxUnavailable)
-		resource := &v1alpha1.RuleSet{
+		resource := &v1alpha1.PodTransitionRule{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: v1alpha1.GroupVersion.String(),
-				Kind:       "RuleSet",
+				Kind:       "PodTransitionRule",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
 				Namespace: g.project.Name,
 			},
-			Spec: v1alpha1.RuleSetSpec{
-				Selector: metav1.LabelSelector{
+			Spec: v1alpha1.PodTransitionRuleSpec{
+				Selector: &metav1.LabelSelector{
 					MatchLabels: modules.UniqueAppLabels(g.project.Name, g.appName),
 				},
-				Rules: []v1alpha1.RuleSetRule{
+				Rules: []v1alpha1.TransitionRule{
 					{
 						Name: "maxUnavailable",
-						RuleSetRuleDefinition: v1alpha1.RuleSetRuleDefinition{
+						TransitionRuleDefinition: v1alpha1.TransitionRuleDefinition{
 							AvailablePolicy: &v1alpha1.AvailableRule{
 								MaxUnavailableValue: &maxUnavailable,
 							},
