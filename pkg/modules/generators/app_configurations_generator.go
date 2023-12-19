@@ -81,7 +81,7 @@ func (g *appConfigurationGenerator) Generate(spec *intent.Intent) error {
 
 	// Generate resources
 	gfs := []modules.NewGeneratorFunc{
-		NewNamespaceGeneratorFunc(g.project.Name),
+		NewNamespaceGeneratorFunc(g.project.Name, g.ws),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
 		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
 		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
