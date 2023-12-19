@@ -8,7 +8,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules/inputs"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 // CallGeneratorFuncs calls each NewGeneratorFunc in the given slice
@@ -212,4 +214,27 @@ func PatchResource[T any](resources map[string][]*intent.Resource, gvk string, p
 		r.Attributes = updated
 	}
 	return nil
+}
+
+// AddKubeConfigIf adds kubeConfig from workspace to extensions of Kubernetes type resource in intent.
+// If there is already has kubeConfig in extensions, use the kubeConfig in extensions.
+func AddKubeConfigIf(i *intent.Intent, ws *workspaceapi.Workspace) {
+	config, err := workspace.GetKubernetesConfig(ws.Runtimes)
+	if errors.Is(err, workspace.ErrEmptyRuntimeConfigs) || errors.Is(err, workspace.ErrEmptyKubernetesConfig) {
+		return
+	}
+	kubeConfig := config.KubeConfig
+	if kubeConfig == "" {
+		return
+	}
+	for n, resource := range i.Resources {
+		if resource.Type == intent.Kubernetes {
+			if resource.Extensions == nil {
+				i.Resources[n].Extensions = make(map[string]any)
+			}
+			if extensionsKubeConfig, ok := resource.Extensions[intent.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
+				i.Resources[n].Extensions[intent.ResourceExtensionKubeConfig] = kubeConfig
+			}
+		}
+	}
 }

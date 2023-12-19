@@ -74,9 +74,9 @@ func NewAppConfigurationGeneratorFunc(
 	}
 }
 
-func (g *appConfigurationGenerator) Generate(spec *intent.Intent) error {
-	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+func (g *appConfigurationGenerator) Generate(i *intent.Intent) error {
+	if i.Resources == nil {
+		i.Resources = make(intent.Resources, 0)
 	}
 
 	// Generate resources
@@ -89,7 +89,7 @@ func (g *appConfigurationGenerator) Generate(spec *intent.Intent) error {
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
 	}
-	if err := modules.CallGenerators(spec, gfs...); err != nil {
+	if err := modules.CallGenerators(i, gfs...); err != nil {
 		return err
 	}
 
@@ -98,9 +98,12 @@ func (g *appConfigurationGenerator) Generate(spec *intent.Intent) error {
 		pattrait.NewOpsRulePatcherFunc(g.app),
 		patmonitoring.NewMonitoringPatcherFunc(g.appName, g.app, g.project),
 	}
-	if err := modules.CallPatchers(spec.Resources.GVKIndex(), pfs...); err != nil {
+	if err := modules.CallPatchers(i.Resources.GVKIndex(), pfs...); err != nil {
 		return err
 	}
+
+	// Add kubeConfig from workspace if exist
+	modules.AddKubeConfigIf(i, g.ws)
 
 	return nil
 }

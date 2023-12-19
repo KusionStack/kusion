@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 )
 
 type mockGenerator struct {
@@ -250,4 +251,196 @@ func TestPatchResource(t *testing.T) {
 		},
 		resources["/v1, Kind=Namespace"][0].Attributes["metadata"].(map[string]interface{})["labels"].(map[string]interface{}),
 	)
+}
+
+func TestAddKubeConfigIf(t *testing.T) {
+	testcases := []struct {
+		name           string
+		ws             *workspaceapi.Workspace
+		i              *intent.Intent
+		expectedIntent *intent.Intent
+	}{
+		{
+			name: "empty workspace runtime config",
+			ws:   &workspaceapi.Workspace{Name: "dev"},
+			i: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+			expectedIntent: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+		},
+		{
+			name: "empty kubeConfig in workspace",
+			ws: &workspaceapi.Workspace{
+				Name: "dev",
+				Runtimes: &workspaceapi.RuntimeConfigs{
+					Kubernetes: &workspaceapi.KubernetesConfig{},
+				},
+			},
+			i: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+			expectedIntent: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+		},
+		{
+			name: "add kubeConfig",
+			ws: &workspaceapi.Workspace{
+				Name: "dev",
+				Runtimes: &workspaceapi.RuntimeConfigs{
+					Kubernetes: &workspaceapi.KubernetesConfig{
+						KubeConfig: "/etc/kubeConfig.yaml",
+					},
+				},
+			},
+			i: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+					{
+						ID:   "mock-id-2",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"mock-extensions-key": "mock-extensions-value",
+						},
+					},
+					{
+						ID:   "mock-id-2",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"kubeConfig": "/etc/should-use-kubeConfig.yaml",
+						},
+					},
+					{
+						ID:   "mock-id-3",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"kubeConfig": "",
+						},
+					},
+					{
+						ID:   "mock-id-4",
+						Type: "Terraform",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+			expectedIntent: &intent.Intent{
+				Resources: intent.Resources{
+					{
+						ID:   "mock-id-1",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"kubeConfig": "/etc/kubeConfig.yaml",
+						},
+					},
+					{
+						ID:   "mock-id-2",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"mock-extensions-key": "mock-extensions-value",
+							"kubeConfig":          "/etc/kubeConfig.yaml",
+						},
+					},
+					{
+						ID:   "mock-id-2",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"kubeConfig": "/etc/should-use-kubeConfig.yaml",
+						},
+					},
+					{
+						ID:   "mock-id-3",
+						Type: "Kubernetes",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: map[string]any{
+							"kubeConfig": "/etc/kubeConfig.yaml",
+						},
+					},
+					{
+						ID:   "mock-id-4",
+						Type: "Terraform",
+						Attributes: map[string]any{
+							"mock-key": "mock-value",
+						},
+						Extensions: nil,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			AddKubeConfigIf(tc.i, tc.ws)
+			assert.Equal(t, *tc.expectedIntent, *tc.i)
+		})
+	}
 }
