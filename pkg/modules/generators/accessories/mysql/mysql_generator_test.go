@@ -39,7 +39,7 @@ func TestNewMySQLGenerator(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-	g := genCloudMySQLGenerator()
+	g := genAWSMySQLGenerator()
 
 	spec := &intent.Intent{}
 	err := g.Generate(spec)
@@ -204,11 +204,11 @@ func TestPatchWorkspaceConfig(t *testing.T) {
 	err := g.patchWorkspaceConfig()
 
 	assert.NoError(t, err)
-	assert.Equal(t, g.mysql, genCloudMySQLGenerator().mysql)
+	assert.Equal(t, g.mysql, genAWSMySQLGenerator().mysql)
 }
 
 func TestGetTFProviderType(t *testing.T) {
-	g := genCloudMySQLGenerator()
+	g := genAWSMySQLGenerator()
 	providerType, err := g.getTFProviderType()
 
 	assert.NoError(t, err)
@@ -216,7 +216,7 @@ func TestGetTFProviderType(t *testing.T) {
 }
 
 func TestInjectSecret(t *testing.T) {
-	g := genCloudMySQLGenerator()
+	g := genAWSMySQLGenerator()
 	g.workload = &workload.Workload{
 		Service: &workload.Service{
 			Base: workload.Base{
@@ -271,7 +271,7 @@ func TestInjectSecret(t *testing.T) {
 }
 
 func TestGenerateTFRandomPassword(t *testing.T) {
-	g := genCloudMySQLGenerator()
+	g := genAWSMySQLGenerator()
 
 	randomProvider := &inputs.Provider{}
 	randomProviderURL, _ := inputs.GetProviderURL(g.ws.Runtimes.Terraform[inputs.RandomProvider])
@@ -300,7 +300,7 @@ func TestGenerateTFRandomPassword(t *testing.T) {
 }
 
 func TestGenerateDBSeret(t *testing.T) {
-	g := genCloudMySQLGenerator()
+	g := genAWSMySQLGenerator()
 
 	spec := &intent.Intent{}
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"
@@ -326,69 +326,4 @@ func TestGenerateDBSeret(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secret)
-}
-
-func genCloudMySQLGenerator() *mysqlGenerator {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
-	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
-	}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	mysql := &mysql.MySQL{
-		Type:           "cloud",
-		Version:        "5.7",
-		Size:           20,
-		InstanceType:   "db.t3.micro",
-		PrivateRouting: false,
-		Username:       defaultUsername,
-		Category:       defaultCategory,
-		SecurityIPs:    defaultSecurityIPs,
-	}
-	ws := &workspaceapi.Workspace{
-		Name: "testworkspace",
-		Runtimes: &workspaceapi.RuntimeConfigs{
-			Kubernetes: &workspaceapi.KubernetesConfig{
-				KubeConfig: "/Users/username/testkubeconfig",
-			},
-			Terraform: workspaceapi.TerraformConfig{
-				"random": &workspaceapi.ProviderConfig{
-					Source:  "hashicorp/random",
-					Version: "3.5.1",
-				},
-				"aws": &workspaceapi.ProviderConfig{
-					Source:  "hashicorp/aws",
-					Version: "5.0.1",
-					GenericConfig: workspaceapi.GenericConfig{
-						"region": "us-east-1",
-					},
-				},
-			},
-		},
-		Modules: workspaceapi.ModuleConfigs{
-			"mysql": &workspaceapi.ModuleConfig{
-				Default: workspaceapi.GenericConfig{
-					"cloud":          "aws",
-					"size":           20,
-					"instanceType":   "db.t3.micro",
-					"privateRouting": false,
-				},
-			},
-		},
-	}
-
-	return &mysqlGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		mysql:    mysql,
-		ws:       ws,
-	}
 }

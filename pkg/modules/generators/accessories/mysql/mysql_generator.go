@@ -104,20 +104,19 @@ func (g *mysqlGenerator) Generate(spec *intent.Intent) error {
 		spec.Resources = make(intent.Resources, 0)
 	}
 
+	// Skip empty or invalid mysql database instance.
+	db := g.mysql
+	if db == nil {
+		return nil
+	} else if err := db.Validate(); err != nil {
+		return err
+	}
+
 	// Patch workspace configurations for mysql generator.
 	if err := g.patchWorkspaceConfig(); err != nil {
 		if !errors.Is(err, workspace.ErrEmptyModuleConfigBlock) {
 			return err
 		}
-	}
-
-	// Skip empty or invalid mysql database instance.
-	db := g.mysql
-	if db == nil {
-		return nil
-	}
-	if err := db.Validate(); err != nil {
-		return err
 	}
 
 	var secret *v1.Secret
