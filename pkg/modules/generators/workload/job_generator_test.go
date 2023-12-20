@@ -19,7 +19,15 @@ func TestNewJobGenerator(t *testing.T) {
 	expectedStack := &apiv1.Stack{}
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
-	actual, err := NewJobGenerator(expectedProject, expectedStack, expectedAppName, expectedJob)
+	expectedJobConfig := apiv1.GenericConfig{
+		"labels": map[string]any{
+			"workload-type": "Job",
+		},
+		"annotations": map[string]any{
+			"workload-type": "Job",
+		},
+	}
+	actual, err := NewJobGenerator(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
 
 	assert.NoError(t, err, "Error should be nil")
 	assert.NotNil(t, actual, "Generator should not be nil")
@@ -27,6 +35,7 @@ func TestNewJobGenerator(t *testing.T) {
 	assert.Equal(t, expectedStack, actual.(*jobGenerator).stack, "Stack mismatch")
 	assert.Equal(t, expectedAppName, actual.(*jobGenerator).appName, "AppName mismatch")
 	assert.Equal(t, expectedJob, actual.(*jobGenerator).job, "Job mismatch")
+	assert.Equal(t, expectedJobConfig, actual.(*jobGenerator).jobConfig, "JobConfig mismatch")
 }
 
 func TestNewJobGeneratorFunc(t *testing.T) {
@@ -36,7 +45,15 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 	expectedStack := &apiv1.Stack{}
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
-	generatorFunc := NewJobGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedJob)
+	expectedJobConfig := apiv1.GenericConfig{
+		"labels": map[string]any{
+			"workload-type": "Job",
+		},
+		"annotations": map[string]any{
+			"workload-type": "Job",
+		},
+	}
+	generatorFunc := NewJobGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
 	actualGenerator, err := generatorFunc()
 
 	assert.NoError(t, err, "Error should be nil")
@@ -45,15 +62,17 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 	assert.Equal(t, expectedStack, actualGenerator.(*jobGenerator).stack, "Stack mismatch")
 	assert.Equal(t, expectedAppName, actualGenerator.(*jobGenerator).appName, "AppName mismatch")
 	assert.Equal(t, expectedJob, actualGenerator.(*jobGenerator).job, "Job mismatch")
+	assert.Equal(t, expectedJobConfig, actualGenerator.(*jobGenerator).jobConfig, "JobConfig mismatch")
 }
 
 func TestJobGenerator_Generate(t *testing.T) {
 	testCases := []struct {
-		name            string
-		expectedProject *apiv1.Project
-		expectedStack   *apiv1.Stack
-		expectedAppName string
-		expectedJob     *workload.Job
+		name              string
+		expectedProject   *apiv1.Project
+		expectedStack     *apiv1.Stack
+		expectedAppName   string
+		expectedJob       *workload.Job
+		expectedJobConfig apiv1.GenericConfig
 	}{
 		{
 			name: "test generate",
@@ -63,12 +82,20 @@ func TestJobGenerator_Generate(t *testing.T) {
 			expectedStack:   &apiv1.Stack{},
 			expectedAppName: "test",
 			expectedJob:     &workload.Job{},
+			expectedJobConfig: apiv1.GenericConfig{
+				"labels": map[string]any{
+					"workload-type": "Job",
+				},
+				"annotations": map[string]any{
+					"workload-type": "Job",
+				},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			generator, _ := NewJobGenerator(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob)
+			generator, _ := NewJobGenerator(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob, tc.expectedJobConfig)
 			spec := &intent.Intent{}
 			err := generator.Generate(spec)
 

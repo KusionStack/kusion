@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/imdario/mergo"
 	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -17,18 +18,19 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
-
-	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/util/net"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type workloadGenerator struct {
-	project  *apiv1.Project
-	stack    *apiv1.Stack
-	appName  string
-	workload *workload.Workload
+	project       *apiv1.Project
+	stack         *apiv1.Stack
+	appName       string
+	workload      *workload.Workload
+	moduleConfigs map[string]apiv1.GenericConfig
 }
 
 func NewWorkloadGenerator(
@@ -36,16 +38,18 @@ func NewWorkloadGenerator(
 	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
+	moduleConfigs map[string]apiv1.GenericConfig,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
 	return &workloadGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
+		project:       project,
+		stack:         stack,
+		appName:       appName,
+		workload:      workload,
+		moduleConfigs: moduleConfigs,
 	}, nil
 }
 
@@ -54,9 +58,10 @@ func NewWorkloadGeneratorFunc(
 	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
+	moduleConfigs map[string]apiv1.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadGenerator(project, stack, appName, workload)
+		return NewWorkloadGenerator(project, stack, appName, workload, moduleConfigs)
 	}
 }
 
@@ -71,11 +76,11 @@ func (g *workloadGenerator) Generate(spec *intent.Intent) error {
 		switch g.workload.Header.Type {
 		case workload.TypeService:
 			gfs = append(gfs,
-				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service),
+				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.moduleConfigs[workload.ModuleService]),
 				secret.NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets))
 		case workload.TypeJob:
 			gfs = append(gfs,
-				NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job),
+				NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job, g.moduleConfigs[workload.ModuleJob]),
 				secret.NewSecretGeneratorFunc(g.project, g.workload.Job.Secrets))
 		}
 
@@ -404,4 +409,37 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 		return nil
 	})
 	return
+}
+
+// completeBaseWorkload uses config from workspace to complete the workload base config.
+func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error {
+	replicas, err := workspace.GetIntFromGenericConfig(config, workload.FieldReplicas)
+	if err != nil {
+		return err
+	}
+	if replicas == 0 {
+		replicas = workload.DefaultReplicas
+	}
+	if base.Replicas == 0 {
+		base.Replicas = replicas
+	}
+	labels, err := workspace.GetStringMapFromGenericConfig(config, workload.FieldLabels)
+	if err != nil {
+		return err
+	}
+	if labels != nil {
+		if err = mergo.Merge(&base.Labels, labels); err != nil {
+			return err
+		}
+	}
+	annotations, err := workspace.GetStringMapFromGenericConfig(config, workload.FieldAnnotations)
+	if err != nil {
+		return err
+	}
+	if annotations != nil {
+		if err = mergo.Merge(&base.Annotations, annotations); err != nil {
+			return err
+		}
+	}
+	return nil
 }

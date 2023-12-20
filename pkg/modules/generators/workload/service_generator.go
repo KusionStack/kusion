@@ -12,16 +12,19 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
+	"kusionstack.io/kusion/pkg/workspace"
+
+	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
 )
 
 // workloadServiceGenerator is a struct for generating service workload resources.
 type workloadServiceGenerator struct {
-	project *apiv1.Project
-	stack   *apiv1.Stack
-	appName string
-	service *workload.Service
+	project       *apiv1.Project
+	stack         *apiv1.Stack
+	appName       string
+	service       *workload.Service
+	serviceConfig apiv1.GenericConfig
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
@@ -30,6 +33,7 @@ func NewWorkloadServiceGenerator(
 	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
+	serviceConfig apiv1.GenericConfig,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -44,10 +48,11 @@ func NewWorkloadServiceGenerator(
 	}
 
 	return &workloadServiceGenerator{
-		project: project,
-		stack:   stack,
-		appName: appName,
-		service: service,
+		project:       project,
+		stack:         stack,
+		appName:       appName,
+		service:       service,
+		serviceConfig: serviceConfig,
 	}, nil
 }
 
@@ -57,9 +62,10 @@ func NewWorkloadServiceGeneratorFunc(
 	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
+	serviceConfig apiv1.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadServiceGenerator(project, stack, appName, service)
+		return NewWorkloadServiceGenerator(project, stack, appName, service, serviceConfig)
 	}
 }
 
@@ -73,6 +79,10 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	// Create an empty resource slice if it doesn't exist yet.
 	if spec.Resources == nil {
 		spec.Resources = make(intent.Resources, 0)
+	}
+
+	if err := completeServiceInput(g.service, g.serviceConfig); err != nil {
+		return fmt.Errorf("complete service input by workspace config failed, %w", err)
 	}
 
 	uniqueAppName := modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
@@ -125,10 +135,10 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	typeMeta := metav1.TypeMeta{}
 
 	switch service.Type {
-	case workload.TypeDeploy:
+	case workload.TypeDeployment:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       workload.TypeDeploy,
+			Kind:       workload.TypeDeployment,
 		}
 		spec := appsv1.DeploymentSpec{
 			Replicas: modules.GenericPtr(int32(service.Replicas)),
@@ -169,5 +179,26 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 		}
 	}
 
+	return nil
+}
+
+func completeServiceInput(service *workload.Service, config apiv1.GenericConfig) error {
+	if err := completeBaseWorkload(&service.Base, config); err != nil {
+		return err
+	}
+	serviceType, err := workspace.GetStringFromGenericConfig(config, workload.FieldType)
+	if err != nil {
+		return err
+	}
+	// if not set in workspace, use Deployment as default type
+	if serviceType == "" {
+		serviceType = workload.TypeDeployment
+	}
+	if serviceType != workload.TypeDeployment && serviceType != workload.TypeCollaset {
+		return fmt.Errorf("unsupported service type %s", serviceType)
+	}
+	if service.Type == "" {
+		service.Type = serviceType
+	}
 	return nil
 }

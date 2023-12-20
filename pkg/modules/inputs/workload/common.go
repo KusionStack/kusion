@@ -2,6 +2,14 @@ package workload
 
 import "kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 
+const (
+	FieldReplicas    = "replicas"
+	FieldLabels      = "labels"
+	FieldAnnotations = "annotations"
+
+	DefaultReplicas = 2
+)
+
 // Base defines set of attributes shared by different workload
 // profile, e.g. Service and Job. You can inherit this Schema to reuse
 // these common attributes.

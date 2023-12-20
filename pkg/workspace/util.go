@@ -221,7 +221,7 @@ func GetIntFromGenericConfig(config v1.GenericConfig, key string) (int, error) {
 	}
 	i, ok := value.(int)
 	if !ok {
-		return 0, fmt.Errorf("the value of %s is not map", key)
+		return 0, fmt.Errorf("the value of %s is not int", key)
 	}
 	return i, nil
 }
