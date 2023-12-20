@@ -5,8 +5,11 @@ import (
 )
 
 const (
-	TypeDeploy   = "Deployment"
-	TypeCollaset = "CollaSet"
+	ModuleService = "service"
+
+	FieldType      = "type"
+	TypeDeployment = "Deployment"
+	TypeCollaset   = "CollaSet"
 )
 
 // Service is a kind of workload profile that describes how to run

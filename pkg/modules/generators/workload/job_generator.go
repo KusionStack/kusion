@@ -1,6 +1,8 @@
 package workload
 
 import (
+	"fmt"
+
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -8,15 +10,17 @@ import (
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 type jobGenerator struct {
-	project *project.Project
-	stack   *stack.Stack
-	appName string
-	job     *workload.Job
+	project   *project.Project
+	stack     *stack.Stack
+	appName   string
+	job       *workload.Job
+	jobConfig workspaceapi.GenericConfig
 }
 
 func NewJobGenerator(
@@ -24,12 +28,14 @@ func NewJobGenerator(
 	stack *stack.Stack,
 	appName string,
 	job *workload.Job,
+	jobConfig workspaceapi.GenericConfig,
 ) (modules.Generator, error) {
 	return &jobGenerator{
-		project: project,
-		stack:   stack,
-		appName: appName,
-		job:     job,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		job:       job,
+		jobConfig: jobConfig,
 	}, nil
 }
 
@@ -38,9 +44,10 @@ func NewJobGeneratorFunc(
 	stack *stack.Stack,
 	appName string,
 	job *workload.Job,
+	jobConfig workspaceapi.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewJobGenerator(project, stack, appName, job)
+		return NewJobGenerator(project, stack, appName, job, jobConfig)
 	}
 }
 
@@ -52,6 +59,10 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 
 	if spec.Resources == nil {
 		spec.Resources = make(intent.Resources, 0)
+	}
+
+	if err := completeBaseWorkload(&g.job.Base, g.jobConfig); err != nil {
+		return fmt.Errorf("complete job input by workspace config failed, %w", err)
 	}
 
 	uniqueAppName := modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName)

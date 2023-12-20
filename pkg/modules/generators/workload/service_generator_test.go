@@ -1,14 +1,17 @@
 package workload
 
 import (
+	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
+	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -24,7 +27,35 @@ metadata:
     name: default-dev-foo-nginx-0
     namespace: default
 `
-	svc := `apiVersion: v1
+	csSvc := `apiVersion: v1
+kind: Service
+metadata:
+    annotations:
+        service-workload-type: CollaSet
+        service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec: slb.s1.small
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/name: foo
+        app.kubernetes.io/part-of: default
+        kusionstack.io/control: "true"
+        service-workload-type: CollaSet
+    name: default-dev-foo-public
+    namespace: default
+spec:
+    ports:
+        - name: default-dev-foo-public-80-tcp
+          port: 80
+          protocol: TCP
+          targetPort: 80
+    selector:
+        app.kubernetes.io/name: foo
+        app.kubernetes.io/part-of: default
+    type: LoadBalancer
+status:
+    loadBalancer: {}
+`
+
+	deploySvc := `apiVersion: v1
 kind: Service
 metadata:
     annotations:
@@ -34,6 +65,7 @@ metadata:
         app.kubernetes.io/name: foo
         app.kubernetes.io/part-of: default
         kusionstack.io/control: "true"
+        service-workload-type: Deployment
     name: default-dev-foo-public
     namespace: default
 spec:
@@ -52,10 +84,13 @@ status:
 	cs := `apiVersion: apps.kusionstack.io/v1alpha1
 kind: CollaSet
 metadata:
+    annotations:
+        service-workload-type: CollaSet
     creationTimestamp: null
     labels:
         app.kubernetes.io/name: foo
         app.kubernetes.io/part-of: default
+        service-workload-type: CollaSet
     name: default-dev-foo
     namespace: default
 spec:
@@ -67,10 +102,13 @@ spec:
             app.kubernetes.io/part-of: default
     template:
         metadata:
+            annotations:
+                service-workload-type: CollaSet
             creationTimestamp: null
             labels:
                 app.kubernetes.io/name: foo
                 app.kubernetes.io/part-of: default
+                service-workload-type: CollaSet
         spec:
             containers:
                 - image: nginx:v1
@@ -94,10 +132,11 @@ metadata:
     labels:
         app.kubernetes.io/name: foo
         app.kubernetes.io/part-of: default
+        service-workload-type: Deployment
     name: default-dev-foo
     namespace: default
 spec:
-    replicas: 2
+    replicas: 4
     selector:
         matchLabels:
             app.kubernetes.io/name: foo
@@ -109,6 +148,7 @@ spec:
             labels:
                 app.kubernetes.io/name: foo
                 app.kubernetes.io/part-of: default
+                service-workload-type: Deployment
         spec:
             containers:
                 - image: nginx:v1
@@ -125,10 +165,11 @@ spec:
 status: {}
 `
 	type fields struct {
-		project *project.Project
-		stack   *stack.Stack
-		appName string
-		service *workload.Service
+		project       *project.Project
+		stack         *stack.Stack
+		appName       string
+		service       *workload.Service
+		serviceConfig workspaceapi.GenericConfig
 	}
 	type args struct {
 		spec *intent.Intent
@@ -169,7 +210,6 @@ status: {}
 						},
 						Replicas: 2,
 					},
-					Type: "CollaSet",
 					Ports: []network.Port{
 						{
 							Type:     network.CSPAliyun,
@@ -179,12 +219,21 @@ status: {}
 						},
 					},
 				},
+				serviceConfig: workspaceapi.GenericConfig{
+					"type": "CollaSet",
+					"labels": map[string]any{
+						"service-workload-type": "CollaSet",
+					},
+					"annotations": map[string]any{
+						"service-workload-type": "CollaSet",
+					},
+				},
 			},
 			args: args{
 				spec: &intent.Intent{},
 			},
 			wantErr: false,
-			want:    []string{cm, cs, svc},
+			want:    []string{cm, cs, csSvc},
 		},
 		{
 			name: "Deployment",
@@ -212,9 +261,7 @@ status: {}
 								},
 							},
 						},
-						Replicas: 2,
 					},
-					Type: "Deployment",
 					Ports: []network.Port{
 						{
 							Type:     network.CSPAliyun,
@@ -224,21 +271,28 @@ status: {}
 						},
 					},
 				},
+				serviceConfig: workspaceapi.GenericConfig{
+					"replicas": 4,
+					"labels": map[string]any{
+						"service-workload-type": "Deployment",
+					},
+				},
 			},
 			args: args{
 				spec: &intent.Intent{},
 			},
 			wantErr: false,
-			want:    []string{cm, deploy, svc},
+			want:    []string{cm, deploy, deploySvc},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &workloadServiceGenerator{
-				project: tt.fields.project,
-				stack:   tt.fields.stack,
-				appName: tt.fields.appName,
-				service: tt.fields.service,
+				project:       tt.fields.project,
+				stack:         tt.fields.stack,
+				appName:       tt.fields.appName,
+				service:       tt.fields.service,
+				serviceConfig: tt.fields.serviceConfig,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
@@ -247,6 +301,153 @@ status: {}
 				b, err := yaml.Marshal(tt.args.spec.Resources[i].Attributes)
 				require.NoError(t, err)
 				require.Equal(t, tt.want[i], string(b))
+			}
+		})
+	}
+}
+
+func TestCompleteServiceInput(t *testing.T) {
+	testcases := []struct {
+		name             string
+		service          *workload.Service
+		config           workspaceapi.GenericConfig
+		success          bool
+		completedService *workload.Service
+	}{
+		{
+			name: "use type in workspace config",
+			service: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+			},
+			config: workspaceapi.GenericConfig{
+				"type": "CollaSet",
+			},
+			success: true,
+			completedService: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+				Type: "CollaSet",
+			},
+		},
+		{
+			name: "use default type",
+			service: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+			},
+			config:  nil,
+			success: true,
+			completedService: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+				Type: "Deployment",
+			},
+		},
+		{
+			name: "invalid field type",
+			service: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+			},
+			config: workspaceapi.GenericConfig{
+				"type": 1,
+			},
+			success:          false,
+			completedService: nil,
+		},
+		{
+			name: "unsupported type",
+			service: &workload.Service{
+				Base: workload.Base{
+					Containers: map[string]container.Container{
+						"nginx": {
+							Image: "nginx:v1",
+						},
+					},
+					Replicas: 2,
+					Labels: map[string]string{
+						"k1": "v1",
+					},
+					Annotations: map[string]string{
+						"k1": "v1",
+					},
+				},
+			},
+			config: workspaceapi.GenericConfig{
+				"type": "unsupported",
+			},
+			success:          false,
+			completedService: nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := completeServiceInput(tc.service, tc.config)
+			assert.Equal(t, tc.success, err == nil)
+			if tc.success {
+				assert.True(t, reflect.DeepEqual(tc.service, tc.completedService))
 			}
 		})
 	}

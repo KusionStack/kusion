@@ -221,7 +221,7 @@ func GetIntFieldFromGenericConfig(config workspace.GenericConfig, key string) (i
 	}
 	i, ok := value.(int)
 	if !ok {
-		return 0, fmt.Errorf("the value of %s is not map", key)
+		return 0, fmt.Errorf("the value of %s is not int", key)
 	}
 	return i, nil
 }
