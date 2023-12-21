@@ -85,6 +85,8 @@ func generateSecret(project *project.Project, secretName string, secretRef workl
 	}
 }
 
+// generateBasic generates secret used for basic authentication. The basic secret type
+// is used for username / password pairs.
 func generateBasic(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -110,6 +112,8 @@ func generateBasic(project *project.Project, secretName string, secretRef worklo
 	return secret, nil
 }
 
+// generateToken generates secret used for password. Token secrets are useful for generating
+// a password or secure string used for passwords when the user is already known or not required.
 func generateToken(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -133,6 +137,7 @@ func generateToken(project *project.Project, secretName string, secretRef worklo
 	return secret, nil
 }
 
+// generateOpaque generates secret used for arbitrary user-defined data.
 func generateOpaque(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -151,6 +156,9 @@ func generateOpaque(project *project.Project, secretName string, secretRef workl
 	return secret, nil
 }
 
+// generateCertificate generates secret used for storing a certificate and its associated key.
+// One common use for TLS Secrets is to configure encryption in transit for an Ingress, but
+// you can also use it with other resources or directly in your workload.
 func generateCertificate(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
