@@ -7,8 +7,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -131,17 +129,13 @@ func buildMockWorkspace() *v1.Workspace {
 	}
 }
 
-func buildMockProjectAndStack() (*project.Project, *stack.Stack) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+func buildMockProjectAndStack() (*v1.Project, *v1.Stack) {
+	project := &v1.Project{
+		Name: "testproject",
 	}
 
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "test",
-		},
+	stack := &v1.Stack{
+		Name: "test",
 	}
 
 	return project, stack

@@ -6,8 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -86,17 +84,13 @@ func buildMockWorkspace() *v1.Workspace {
 	}
 }
 
-func buildMockProjectAndStack() (*project.Project, *stack.Stack) {
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name: "test-project",
-		},
+func buildMockProjectAndStack() (*v1.Project, *v1.Stack) {
+	p := &v1.Project{
+		Name: "test-project",
 	}
 
-	s := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "test-stack",
-		},
+	s := &v1.Stack{
+		Name: "test-project",
 	}
 
 	return p, s

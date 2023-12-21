@@ -7,19 +7,19 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 type secretGenerator struct {
-	project *project.Project
+	project *apiv1.Project
 	secrets map[string]workload.Secret
 }
 
 func NewSecretGenerator(
-	project *project.Project,
+	project *apiv1.Project,
 	secrets map[string]workload.Secret,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
@@ -33,7 +33,7 @@ func NewSecretGenerator(
 }
 
 func NewSecretGeneratorFunc(
-	project *project.Project,
+	project *apiv1.Project,
 	secrets map[string]workload.Secret,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
@@ -70,7 +70,7 @@ func (g *secretGenerator) Generate(spec *intent.Intent) error {
 // generateSecret generates target secret based on secret type. Most of these secret types are just semantic wrapper
 // of native Kubernetes secret types:https://kubernetes.io/docs/concepts/configuration/secret/#secret-types, and more
 // detailed usage info can be found in public documentation.
-func generateSecret(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateSecret(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	switch secretRef.Type {
 	case "basic":
 		return generateBasic(project, secretName, secretRef)
@@ -87,7 +87,7 @@ func generateSecret(project *project.Project, secretName string, secretRef workl
 
 // generateBasic generates secret used for basic authentication. The basic secret type
 // is used for username / password pairs.
-func generateBasic(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateBasic(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -114,7 +114,7 @@ func generateBasic(project *project.Project, secretName string, secretRef worklo
 
 // generateToken generates secret used for password. Token secrets are useful for generating
 // a password or secure string used for passwords when the user is already known or not required.
-func generateToken(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateToken(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -138,7 +138,7 @@ func generateToken(project *project.Project, secretName string, secretRef worklo
 }
 
 // generateOpaque generates secret used for arbitrary user-defined data.
-func generateOpaque(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateOpaque(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -159,7 +159,7 @@ func generateOpaque(project *project.Project, secretName string, secretRef workl
 // generateCertificate generates secret used for storing a certificate and its associated key.
 // One common use for TLS Secrets is to configure encryption in transit for an Ingress, but
 // you can also use it with other resources or directly in your workload.
-func generateCertificate(project *project.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateCertificate(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),

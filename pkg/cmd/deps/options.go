@@ -10,7 +10,12 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/tools/list"
 
-	"kusionstack.io/kusion/pkg/apis/project"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/project"
+)
+
+const (
+	KclFile = "kcl.yaml"
 )
 
 type Options struct {
@@ -140,7 +145,7 @@ func (o *Options) Run() (err error) {
 		}
 
 		// 3. Find all the projects under the workdir
-		var projects []*project.Project
+		var projects []*v1.Project
 		if projects, err = project.FindAllProjectsFrom(workDir); err != nil {
 			return
 		}
@@ -179,7 +184,7 @@ func (o *Options) Run() (err error) {
 // Do not call this function with high frequency and please ensure at least 10 seconds interval when calling.
 func findDownStreams(
 	workDir string,
-	projects []*project.Project,
+	projects []*v1.Project,
 	focusPaths, shouldIgnore stringSet,
 	projectOnly bool,
 ) (downStreams stringSet, err error) {
@@ -191,10 +196,10 @@ func findDownStreams(
 	// To list downstream stacks/projects, wee need to go through all the entrance files under each project/stack,
 	// then filter out the ones that are downstream of the focus files
 	for _, p := range projects {
-		projectRel, _ := filepath.Rel(workDir, p.GetPath())
+		projectRel, _ := filepath.Rel(workDir, p.Path)
 		for _, stack := range p.Stacks {
 			// 1.1 Get the relative path of project/stack
-			stackRel, _ := filepath.Rel(workDir, stack.GetPath())
+			stackRel, _ := filepath.Rel(workDir, stack.Path)
 			var stackProjectPath string
 			if projectOnly {
 				stackProjectPath = projectRel
@@ -222,7 +227,7 @@ func findDownStreams(
 				continue
 			}
 			// 1.3 Collect and index all the entrance files of the stack by loading the settings file
-			settingsPath := filepath.Join(stack.GetPath(), project.KclFile)
+			settingsPath := filepath.Join(stack.Path, KclFile)
 			opt := kcl.WithSettings(settingsPath)
 			if opt.Err != nil {
 				// The stack settings is invalid

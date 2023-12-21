@@ -16,9 +16,8 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/opt"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/crd"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
@@ -52,7 +51,7 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func (g *Builder) Build(o *builders.Options, _ *project.Project, stack *stack.Stack) (*intent.Intent, error) {
+func (g *Builder) Build(o *builders.Options, _ *v1.Project, stack *v1.Stack) (*intent.Intent, error) {
 	compileResult, err := Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -66,7 +65,7 @@ func (g *Builder) Build(o *builders.Options, _ *project.Project, stack *stack.St
 	return i, nil
 }
 
-func Run(o *builders.Options, stack *stack.Stack) (*CompileResult, error) {
+func Run(o *builders.Options, stack *v1.Stack) (*CompileResult, error) {
 	optList, err := BuildKCLOptions(o)
 	if err != nil {
 		return nil, err

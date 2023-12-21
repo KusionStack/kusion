@@ -9,11 +9,11 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
+	"kusionstack.io/kusion/pkg/project"
 )
 
 var (
@@ -21,16 +21,11 @@ var (
 	kind       = "ServiceAccount"
 	namespace  = "test-ns"
 
-	p = &project.Project{
-		Configuration: project.Configuration{
-			Name:   "testdata",
-			Tenant: "admin",
-		},
+	p = &apiv1.Project{
+		Name: "testdata",
 	}
-	s = &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "dev",
-		},
+	s = &apiv1.Stack{
+		Name: "dev",
 	}
 
 	sa1 = newSA("sa1")
@@ -140,7 +135,7 @@ func newSA(name string) intent.Resource {
 }
 
 func mockDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		p.Path = stackDir
 		s.Path = stackDir
 		return p, s, nil
@@ -148,7 +143,7 @@ func mockDetectProjectAndStack() *mockey.Mocker {
 }
 
 func mockDetectProjectAndStackFail() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		p.Path = stackDir
 		s.Path = stackDir
 		return p, s, errTest
@@ -158,8 +153,8 @@ func mockDetectProjectAndStackFail() *mockey.Mocker {
 func mockGenerateIntent() *mockey.Mocker {
 	return mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *project.Project,
-		stack *stack.Stack,
+		project *apiv1.Project,
+		stack *apiv1.Stack,
 	) (*intent.Intent, error) {
 		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
@@ -168,8 +163,8 @@ func mockGenerateIntent() *mockey.Mocker {
 func mockGenerateIntentFail() *mockey.Mocker {
 	return mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *project.Project,
-		stack *stack.Stack,
+		project *apiv1.Project,
+		stack *apiv1.Stack,
 	) (*intent.Intent, error) {
 		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()

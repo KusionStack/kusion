@@ -5,8 +5,8 @@ import (
 
 	"k8s.io/apimachinery/pkg/watch"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 )
 
@@ -50,7 +50,7 @@ type ApplyRequest struct {
 	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *stack.Stack
+	Stack *apiv1.Stack
 
 	// DryRun means this a dry-run request and will not make any changes in actual infra
 	DryRun bool
@@ -72,7 +72,7 @@ type ReadRequest struct {
 	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *stack.Stack
+	Stack *apiv1.Stack
 }
 
 type ReadResponse struct {
@@ -88,7 +88,7 @@ type ImportRequest struct {
 	PlanResource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *stack.Stack
+	Stack *apiv1.Stack
 }
 
 type ImportResponse struct {
@@ -104,7 +104,7 @@ type DeleteRequest struct {
 	Resource *intent.Resource
 
 	// Stack contains info about where this command is invoked
-	Stack *stack.Stack
+	Stack *apiv1.Stack
 }
 
 type DeleteResponse struct {

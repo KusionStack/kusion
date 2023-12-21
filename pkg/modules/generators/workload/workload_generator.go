@@ -14,9 +14,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
@@ -26,15 +25,15 @@ import (
 )
 
 type workloadGenerator struct {
-	project  *project.Project
-	stack    *stack.Stack
+	project  *apiv1.Project
+	stack    *apiv1.Stack
 	appName  string
 	workload *workload.Workload
 }
 
 func NewWorkloadGenerator(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
 ) (modules.Generator, error) {
@@ -51,8 +50,8 @@ func NewWorkloadGenerator(
 }
 
 func NewWorkloadGeneratorFunc(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
 ) modules.NewGeneratorFunc {

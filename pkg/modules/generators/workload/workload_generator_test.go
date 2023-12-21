@@ -6,9 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
@@ -17,12 +16,10 @@ import (
 
 func TestNewWorkloadGenerator(t *testing.T) {
 	t.Run("NewWorkloadGenerator should return a valid generator", func(t *testing.T) {
-		expectedProject := &project.Project{
-			Configuration: project.Configuration{
-				Name: "test",
-			},
+		expectedProject := &apiv1.Project{
+			Name: "test",
 		}
-		expectedStack := &stack.Stack{}
+		expectedStack := &apiv1.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
 
@@ -39,12 +36,10 @@ func TestNewWorkloadGenerator(t *testing.T) {
 
 func TestNewWorkloadGeneratorFunc(t *testing.T) {
 	t.Run("NewWorkloadGeneratorFunc should return a valid generator function", func(t *testing.T) {
-		expectedProject := &project.Project{
-			Configuration: project.Configuration{
-				Name: "test",
-			},
+		expectedProject := &apiv1.Project{
+			Name: "test",
 		}
-		expectedStack := &stack.Stack{}
+		expectedStack := &apiv1.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
 
@@ -101,19 +96,15 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			expectedProject := &project.Project{
-				Configuration: project.Configuration{
-					Name: "test",
-					Prometheus: &project.PrometheusConfig{
-						OperatorMode: false,
-						MonitorType:  "Pod",
-					},
+			expectedProject := &apiv1.Project{
+				Name: "test",
+				Prometheus: &apiv1.PrometheusConfig{
+					OperatorMode: false,
+					MonitorType:  "Pod",
 				},
 			}
-			expectedStack := &stack.Stack{
-				Configuration: stack.Configuration{
-					Name: "teststack",
-				},
+			expectedStack := &apiv1.Stack{
+				Name: "teststack",
 			}
 			expectedAppName := "test"
 

@@ -9,8 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
@@ -26,7 +26,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 	type fields struct {
 		appName string
 		app     *modelsapp.AppConfiguration
-		project *project.Project
+		project *apiv1.Project
 	}
 	type args struct {
 		resources map[string][]*intent.Resource
@@ -44,11 +44,9 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 				app: &modelsapp.AppConfiguration{
 					Monitoring: &monitoring.Monitor{},
 				},
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Prometheus: &project.PrometheusConfig{
-							OperatorMode: true,
-						},
+				project: &apiv1.Project{
+					Prometheus: &apiv1.PrometheusConfig{
+						OperatorMode: true,
 					},
 				},
 			},
@@ -64,11 +62,9 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 				app: &modelsapp.AppConfiguration{
 					Monitoring: &monitoring.Monitor{},
 				},
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Prometheus: &project.PrometheusConfig{
-							OperatorMode: false,
-						},
+				project: &apiv1.Project{
+					Prometheus: &apiv1.PrometheusConfig{
+						OperatorMode: false,
 					},
 				},
 			},
@@ -130,7 +126,7 @@ func TestNewMonitoringPatcherFunc(t *testing.T) {
 	type args struct {
 		appName string
 		app     *modelsapp.AppConfiguration
-		project *project.Project
+		project *apiv1.Project
 	}
 	tests := []struct {
 		name string
@@ -142,7 +138,7 @@ func TestNewMonitoringPatcherFunc(t *testing.T) {
 			args: args{
 				appName: "test",
 				app:     &modelsapp.AppConfiguration{},
-				project: &project.Project{},
+				project: &apiv1.Project{},
 			},
 		},
 	}

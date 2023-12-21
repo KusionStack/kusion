@@ -10,9 +10,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -28,17 +27,14 @@ func TestOperation_Destroy(t *testing.T) {
 		operator = "foo_user"
 	)
 
-	s := &stack.Stack{
-		Configuration: stack.Configuration{Name: "fake-name"},
-		Path:          "fake-path",
+	s := &apiv1.Stack{
+		Name: "fake-name",
+		Path: "fake-path",
 	}
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name:   "fake-name",
-			Tenant: "fake-tenant",
-		},
+	p := &apiv1.Project{
+		Name:   "fake-name",
 		Path:   "fake-path",
-		Stacks: []*stack.Stack{s},
+		Stacks: []*apiv1.Stack{s},
 	}
 
 	resourceState := intent.Resource{

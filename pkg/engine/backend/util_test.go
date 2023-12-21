@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -19,11 +18,9 @@ func testDataFolder() string {
 	return path.Join(pwd, "testdata")
 }
 
-func mockStack(name string) *stack.Stack {
-	return &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: name,
-		},
+func mockStack(name string) *v1.Stack {
+	return &v1.Stack{
+		Name: name,
 		Path: fmt.Sprintf("/test_project/%s", name),
 	}
 }
@@ -32,7 +29,7 @@ func Test_NewStateStorage(t *testing.T) {
 	testcases := []struct {
 		name                     string
 		success                  bool
-		stack                    *stack.Stack
+		stack                    *v1.Stack
 		opts                     *BackendOptions
 		setEnvFunc, unsetEnvFunc func()
 	}{

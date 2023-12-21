@@ -1,16 +1,15 @@
 package builders
 
 import (
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 )
 
 // Builder represents a method to build an Intent. Typically, it is implemented by the AppConfigureBuilder,
 // but we have designed it as an interface to allow for more general usage. Any struct that implements this interface
 // is considered a Builder and can be integrated into the Kusion workflow.
 type Builder interface {
-	Build(o *Options, project *project.Project, stack *stack.Stack) (*intent.Intent, error)
+	Build(o *Options, project *v1.Project, stack *v1.Stack) (*intent.Intent, error)
 }
 
 type Options struct {

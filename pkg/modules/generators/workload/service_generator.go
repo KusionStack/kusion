@@ -8,9 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 
@@ -19,16 +18,16 @@ import (
 
 // workloadServiceGenerator is a struct for generating service workload resources.
 type workloadServiceGenerator struct {
-	project *project.Project
-	stack   *stack.Stack
+	project *apiv1.Project
+	stack   *apiv1.Stack
 	appName string
 	service *workload.Service
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
 func NewWorkloadServiceGenerator(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
 ) (modules.Generator, error) {
@@ -54,8 +53,8 @@ func NewWorkloadServiceGenerator(
 
 // NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that returns a workloadServiceGenerator instance.
 func NewWorkloadServiceGeneratorFunc(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
 ) modules.NewGeneratorFunc {

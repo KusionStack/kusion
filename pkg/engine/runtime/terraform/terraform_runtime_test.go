@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 )
@@ -40,11 +40,11 @@ var fakeSR = &tfops.StateRepresentation{
 
 func TestTerraformRuntime(t *testing.T) {
 	cwd, _ := os.Getwd()
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{Name: "fakeStack"},
-		Path:          filepath.Join(cwd, "fakePath"),
+	stack := &v1.Stack{
+		Name: "fakeStack",
+		Path: filepath.Join(cwd, "fakePath"),
 	}
-	defer os.RemoveAll(stack.GetPath())
+	defer os.RemoveAll(stack.Path)
 	tfRuntime := TerraformRuntime{
 		WorkSpace: *tfops.NewWorkSpace(afero.Afero{Fs: afero.NewOsFs()}),
 		mu:        &sync.Mutex{},

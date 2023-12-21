@@ -9,9 +9,12 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"kcl-lang.io/kpm/pkg/api"
 
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/project"
+)
+
+const (
+	KclFile = "kcl.yaml"
 )
 
 type Options struct {
@@ -42,7 +45,7 @@ func NewBuildOptions() *Options {
 
 func (o *Options) Complete(args []string) error {
 	o.Filenames = args
-	return o.PreSet(stack.IsStack)
+	return o.PreSet(project.IsStack)
 }
 
 func (o *Options) Validate() error {
@@ -124,7 +127,7 @@ func (o *Options) PreSet(preCheck func(cur string) bool) error {
 	}
 
 	if len(o.Settings) == 0 {
-		o.Settings = []string{project.KclFile}
+		o.Settings = []string{KclFile}
 	}
 	return nil
 }

@@ -8,13 +8,13 @@ import (
 	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
 
 type Fields struct {
-	project *project.Project
+	project *apiv1.Project
 	monitor *monitoring.Monitor
 	appName string
 }
@@ -35,11 +35,11 @@ func BuildMonitoringTestCase(
 	projectName, appName string,
 	interval, timeout prometheusv1.Duration,
 	path, port, scheme string,
-	monitorType project.MonitorType,
+	monitorType apiv1.MonitorType,
 	operatorMode bool,
 ) *TestCase {
 	var endpointType string
-	var monitorKind project.MonitorType
+	var monitorKind apiv1.MonitorType
 	if monitorType == "Service" {
 		monitorKind = "ServiceMonitor"
 		endpointType = "endpoints"
@@ -92,13 +92,11 @@ func BuildMonitoringTestCase(
 	testCase := &TestCase{
 		name: fmt.Sprintf("%s-%s", projectName, appName),
 		fields: Fields{
-			project: &project.Project{
-				Configuration: project.Configuration{
-					Name: projectName,
-					Prometheus: &project.PrometheusConfig{
-						OperatorMode: operatorMode,
-						MonitorType:  monitorType,
-					},
+			project: &apiv1.Project{
+				Name: projectName,
+				Prometheus: &apiv1.PrometheusConfig{
+					OperatorMode: operatorMode,
+					MonitorType:  monitorType,
 				},
 				Path: "/test-project",
 			},

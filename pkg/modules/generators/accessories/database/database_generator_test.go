@@ -8,9 +8,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -18,15 +17,11 @@ import (
 )
 
 func TestNewDatabaseGenerator(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
@@ -38,15 +33,11 @@ func TestNewDatabaseGenerator(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
@@ -166,15 +157,11 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestInjectSecret(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{
@@ -246,15 +233,11 @@ func TestInjectSecret(t *testing.T) {
 }
 
 func TestGenerateTFRandomPassword(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
@@ -292,15 +275,11 @@ func TestGenerateTFRandomPassword(t *testing.T) {
 }
 
 func TestGenerateDBSeret(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
