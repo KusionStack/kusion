@@ -38,7 +38,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	defer t.mu.Unlock()
 
 	plan := request.PlanResource
-	stackPath := request.Stack.GetPath()
+	stackPath := request.Stack.Path
 	tfCacheDir := filepath.Join(stackPath, "."+plan.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
@@ -136,7 +136,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	stackPath := request.Stack.GetPath()
+	stackPath := request.Stack.Path
 	tfCacheDir := filepath.Join(stackPath, "."+planResource.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
@@ -197,7 +197,7 @@ func (t *TerraformRuntime) Import(ctx context.Context, request *runtime.ImportRe
 
 // Delete terraform resource and remove workspace
 func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) (res *runtime.DeleteResponse) {
-	stackPath := request.Stack.GetPath()
+	stackPath := request.Stack.Path
 	tfCacheDir := filepath.Join(stackPath, "."+request.Resource.ResourceKey())
 	t.mu.Lock()
 	defer t.mu.Unlock()

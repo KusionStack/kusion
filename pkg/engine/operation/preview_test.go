@@ -9,9 +9,8 @@ import (
 
 	"github.com/bytedance/mockey"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -102,17 +101,14 @@ func TestOperation_Preview(t *testing.T) {
 	type args struct {
 		request *PreviewRequest
 	}
-	s := &stack.Stack{
-		Configuration: stack.Configuration{Name: "fake-name"},
-		Path:          "fake-path",
+	s := &apiv1.Stack{
+		Name: "fake-name",
+		Path: "fake-path",
 	}
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name:   "fake-name",
-			Tenant: "fake-tenant",
-		},
+	p := &apiv1.Project{
+		Name:   "fake-name",
 		Path:   "fake-path",
-		Stacks: []*stack.Stack{s},
+		Stacks: []*apiv1.Stack{s},
 	}
 	tests := []struct {
 		name    string

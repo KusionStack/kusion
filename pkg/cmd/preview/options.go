@@ -10,9 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
@@ -21,6 +20,7 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -229,8 +229,8 @@ func Preview(
 	o *Options,
 	storage states.StateStorage,
 	planResources *intent.Intent,
-	project *project.Project,
-	stack *stack.Stack,
+	project *v1.Project,
+	stack *v1.Stack,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -251,7 +251,7 @@ func Preview(
 	cluster := o.Arguments["cluster"]
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
-			Tenant:   project.Tenant,
+			Tenant:   "",
 			Project:  project,
 			Stack:    stack,
 			Operator: o.Operator,

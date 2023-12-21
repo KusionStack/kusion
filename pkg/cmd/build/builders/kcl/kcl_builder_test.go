@@ -11,8 +11,8 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
 )
@@ -31,10 +31,8 @@ func TestInit(t *testing.T) {
 }
 
 func TestGenerateIntent(t *testing.T) {
-	fakeStack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "fake-stack",
-		},
+	fakeStack := &v1.Stack{
+		Name: "fake-stack",
 		Path: filepath.Join(".", "testdata"),
 	}
 

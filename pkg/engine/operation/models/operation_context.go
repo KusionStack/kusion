@@ -6,9 +6,8 @@ import (
 
 	"github.com/jinzhu/copier"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
@@ -43,7 +42,7 @@ type Operation struct {
 	RuntimeMap map[intent.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
-	Stack *stack.Stack
+	Stack *v1.Stack
 
 	// MsgCh is used to send operation status like Success, Failed or Skip to Kusion CTl,
 	// and this message will be displayed in the terminal
@@ -63,12 +62,12 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string           `json:"tenant"`
-	Project  *project.Project `json:"project"`
-	Stack    *stack.Stack     `json:"stack"`
-	Cluster  string           `json:"cluster"`
-	Operator string           `json:"operator"`
-	Intent   *intent.Intent   `json:"intent"`
+	Tenant   string         `json:"tenant"`
+	Project  *v1.Project    `json:"project"`
+	Stack    *v1.Stack      `json:"stack"`
+	Cluster  string         `json:"cluster"`
+	Operator string         `json:"operator"`
+	Intent   *intent.Intent `json:"intent"`
 }
 
 type OpResult string

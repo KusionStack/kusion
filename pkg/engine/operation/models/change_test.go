@@ -7,9 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -150,8 +149,8 @@ func TestChangeStep_Diff(t *testing.T) {
 func TestChanges_Get(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	type args struct {
 		key string
@@ -194,8 +193,8 @@ func TestChanges_Get(t *testing.T) {
 func TestChanges_Values(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	type args struct {
 		filters []ChangeStepFilterFunc
@@ -276,30 +275,26 @@ func TestChanges_Values(t *testing.T) {
 func TestChanges_Stack(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *stack.Stack
+		want   *v1.Stack
 	}{
 		{
 			name: "t1",
 			fields: fields{
 				order:   &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
-				project: &project.Project{},
-				stack: &stack.Stack{
-					Configuration: stack.Configuration{
-						Name: "test-name",
-					},
+				project: &v1.Project{},
+				stack: &v1.Stack{
+					Name: "test-name",
 					Path: "test-path",
 				},
 			},
-			want: &stack.Stack{
-				Configuration: stack.Configuration{
-					Name: "test-name",
-				},
+			want: &v1.Stack{
+				Name: "test-name",
 				Path: "test-path",
 			},
 		},
@@ -321,30 +316,24 @@ func TestChanges_Stack(t *testing.T) {
 func TestChanges_Project(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *project.Project
+		want   *v1.Project
 	}{
 		{
 			name: "t1",
 			fields: fields{
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Name:   "test-name",
-						Tenant: "test-tenant",
-					},
+				project: &v1.Project{
+					Name: "test-name",
 					Path: "test-path",
 				},
 			},
-			want: &project.Project{
-				Configuration: project.Configuration{
-					Name:   "test-name",
-					Tenant: "test-tenant",
-				},
+			want: &v1.Project{
+				Name: "test-name",
 				Path: "test-path",
 			},
 		},
@@ -362,8 +351,8 @@ func TestChanges_Project(t *testing.T) {
 func TestChanges_Diffs(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	tests := []struct {
 		name   string
@@ -404,8 +393,8 @@ func TestChanges_Diffs(t *testing.T) {
 func TestChanges_Preview(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 	}
 	tests := []struct {
 		name   string
@@ -420,10 +409,8 @@ func TestChanges_Preview(t *testing.T) {
 						"test-key": TestChangeStepOpCreate,
 					},
 				},
-				stack: &stack.Stack{
-					Configuration: stack.Configuration{
-						Name: "test-name",
-					},
+				stack: &v1.Stack{
+					Name: "test-name",
 				},
 			},
 		},

@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
 // NewStateStorage news a StateStorage by configs of workspace, cli backend options, and environment variables.
-func NewStateStorage(stack *stack.Stack, opts *BackendOptions) (states.StateStorage, error) {
+func NewStateStorage(stack *v1.Stack, opts *BackendOptions) (states.StateStorage, error) {
 	var backendConfigs *v1.BackendConfigs
 	wsOperator, err := workspace.NewValidDefaultOperator()
 	if err != nil {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
@@ -70,10 +70,8 @@ func TestGenerateSecret(t *testing.T) {
 		},
 	}
 
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "helloworld",
-		},
+	project := &apiv1.Project{
+		Name: "helloworld",
 	}
 	// run all the tests
 	for name, test := range tests {

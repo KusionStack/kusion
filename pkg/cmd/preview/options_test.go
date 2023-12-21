@@ -10,9 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
@@ -22,6 +21,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/project"
 )
 
 var (
@@ -29,16 +29,11 @@ var (
 	kind       = "ServiceAccount"
 	namespace  = "test-ns"
 
-	p = &project.Project{
-		Configuration: project.Configuration{
-			Name:   "testdata",
-			Tenant: "admin",
-		},
+	p = &apiv1.Project{
+		Name: "testdata",
 	}
-	s = &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "dev",
-		},
+	s = &apiv1.Stack{
+		Name: "dev",
 	}
 
 	sa1 = newSA("sa1")
@@ -229,7 +224,7 @@ func newSA(name string) intent.Resource {
 }
 
 func mockDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		p.Path = stackDir
 		s.Path = stackDir
 		return p, s, nil
@@ -239,8 +234,8 @@ func mockDetectProjectAndStack() *mockey.Mocker {
 func mockBuildIntent() *mockey.Mocker {
 	return mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
-		project *project.Project,
-		stack *stack.Stack,
+		project *apiv1.Project,
+		stack *apiv1.Stack,
 	) (*intent.Intent, error) {
 		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
@@ -249,8 +244,8 @@ func mockBuildIntent() *mockey.Mocker {
 func mockPatchBuildIntentWithSpinner() *mockey.Mocker {
 	return mockey.Mock(build.IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *project.Project,
-		stack *stack.Stack,
+		project *apiv1.Project,
+		stack *apiv1.Stack,
 	) (*intent.Intent, error) {
 		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()

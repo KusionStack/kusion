@@ -5,24 +5,23 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	appmodule "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 type opsRuleGenerator struct {
-	project *project.Project
-	stack   *stack.Stack
+	project *apiv1.Project
+	stack   *apiv1.Stack
 	appName string
 	app     *appmodule.AppConfiguration
 }
 
 func NewOpsRuleGenerator(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	app *appmodule.AppConfiguration,
 ) (modules.Generator, error) {
@@ -35,8 +34,8 @@ func NewOpsRuleGenerator(
 }
 
 func NewOpsRuleGeneratorFunc(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	app *appmodule.AppConfiguration,
 ) modules.NewGeneratorFunc {

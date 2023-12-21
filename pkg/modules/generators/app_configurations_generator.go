@@ -6,8 +6,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
@@ -20,16 +18,16 @@ import (
 )
 
 type appConfigurationGenerator struct {
-	project *project.Project
-	stack   *stack.Stack
+	project *v1.Project
+	stack   *v1.Stack
 	appName string
 	app     *inputs.AppConfiguration
 	ws      *v1.Workspace
 }
 
 func NewAppConfigurationGenerator(
-	project *project.Project,
-	stack *stack.Stack,
+	project *v1.Project,
+	stack *v1.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
 	ws *v1.Workspace,
@@ -50,7 +48,7 @@ func NewAppConfigurationGenerator(
 		return nil, errors.New("workspace must not be empty") // AppConfiguration asks for non-empty workspace
 	}
 	if err := workspace.ValidateWorkspace(ws); err != nil {
-		return nil, fmt.Errorf("invalid config of workspace %s, %w", stack.GetName(), err)
+		return nil, fmt.Errorf("invalid config of workspace %s, %w", stack.Name, err)
 	}
 
 	return &appConfigurationGenerator{
@@ -63,8 +61,8 @@ func NewAppConfigurationGenerator(
 }
 
 func NewAppConfigurationGeneratorFunc(
-	project *project.Project,
-	stack *stack.Stack,
+	project *v1.Project,
+	stack *v1.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
 	ws *v1.Workspace,

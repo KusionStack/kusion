@@ -11,7 +11,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	cmdintent "kusionstack.io/kusion/pkg/cmd/build/builders"
@@ -22,6 +21,7 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -286,7 +286,7 @@ func Apply(
 		cluster := o.Arguments["cluster"]
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: opsmodels.Request{
-				Tenant:   changes.Project().Tenant,
+				Tenant:   "",
 				Project:  changes.Project(),
 				Stack:    changes.Stack(),
 				Cluster:  cluster,

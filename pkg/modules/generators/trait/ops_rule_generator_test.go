@@ -5,9 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	appmodule "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -15,21 +14,19 @@ import (
 
 func Test_opsRuleGenerator_Generate(t *testing.T) {
 	type fields struct {
-		project *project.Project
-		stack   *stack.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 		appName string
 		app     *appmodule.AppConfiguration
 	}
 	type args struct {
 		spec *intent.Intent
 	}
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "default",
-		},
+	project := &apiv1.Project{
+		Name: "default",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{Name: "dev"},
+	stack := &apiv1.Stack{
+		Name: "dev",
 	}
 	appName := "foo"
 	tests := []struct {
@@ -143,8 +140,8 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 
 func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 	type args struct {
-		project *project.Project
-		stack   *stack.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 		appName string
 		app     *appmodule.AppConfiguration
 	}

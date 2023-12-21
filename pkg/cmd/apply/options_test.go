@@ -12,9 +12,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
@@ -24,14 +23,15 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/project"
 )
 
 func TestApplyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
-		mockeyPatchDetectProjectAndStack()
-		mockeyPatchBuildIntent()
-		mockeyPatchNewKubernetesRuntime()
-		mockeyPatchOperationPreview()
+		mockPatchDetectProjectAndStack()
+		mockPatchBuildIntent()
+		mockPatchNewKubernetesRuntime()
+		mockPatchOperationPreview()
 
 		o := NewApplyOptions()
 		o.Detail = true
@@ -42,10 +42,10 @@ func TestApplyOptions_Run(t *testing.T) {
 	})
 
 	mockey.PatchConvey("DryRun is true", t, func() {
-		mockeyPatchDetectProjectAndStack()
-		mockeyPatchBuildIntent()
-		mockeyPatchNewKubernetesRuntime()
-		mockeyPatchOperationPreview()
+		mockPatchDetectProjectAndStack()
+		mockPatchBuildIntent()
+		mockPatchNewKubernetesRuntime()
+		mockPatchOperationPreview()
 		mockOperationApply(opsmodels.Success)
 
 		o := NewApplyOptions()
@@ -57,38 +57,33 @@ func TestApplyOptions_Run(t *testing.T) {
 }
 
 var (
-	p = &project.Project{
-		Configuration: project.Configuration{
-			Name:   "testdata",
-			Tenant: "admin",
-		},
+	p = &apiv1.Project{
+		Name: "testdata",
 	}
-	s = &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "dev",
-		},
+	s = &apiv1.Stack{
+		Name: "dev",
 	}
 )
 
-func mockeyPatchDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+func mockPatchDetectProjectAndStack() *mockey.Mocker {
+	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		p.Path = stackDir
 		s.Path = stackDir
 		return p, s, nil
 	}).Build()
 }
 
-func mockeyPatchBuildIntent() *mockey.Mocker {
+func mockPatchBuildIntent() *mockey.Mocker {
 	return mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
-		project *project.Project,
-		stack *stack.Stack,
+		project *apiv1.Project,
+		stack *apiv1.Stack,
 	) (*intent.Intent, error) {
 		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
-func mockeyPatchNewKubernetesRuntime() *mockey.Mocker {
+func mockPatchNewKubernetesRuntime() *mockey.Mocker {
 	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fakerRuntime{}, nil
 	}).Build()
@@ -130,7 +125,7 @@ func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest)
 	return nil
 }
 
-func mockeyPatchOperationPreview() *mockey.Mocker {
+func mockPatchOperationPreview() *mockey.Mocker {
 	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
 		*operation.PreviewOperation,
 		*operation.PreviewRequest,

@@ -12,8 +12,6 @@ import (
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
@@ -207,8 +205,8 @@ func TestBuildIntent(t *testing.T) {
 
 	type args struct {
 		o       *builders.Options
-		project *project.Project
-		stack   *stack.Stack
+		project *v1.Project
+		stack   *v1.Stack
 		mockers []*mockey.MockBuilder
 	}
 	tests := []struct {
@@ -220,16 +218,14 @@ func TestBuildIntent(t *testing.T) {
 		{
 			name: "nil builder", args: struct {
 				o       *builders.Options
-				project *project.Project
-				stack   *stack.Stack
+				project *v1.Project
+				stack   *v1.Stack
 				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{Arguments: map[string]string{}},
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Name: "default",
-					},
-				}, stack: &stack.Stack{},
+				project: &v1.Project{
+					Name: "default",
+				}, stack: &v1.Stack{},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
@@ -240,19 +236,17 @@ func TestBuildIntent(t *testing.T) {
 		{
 			name: "kcl builder", args: struct {
 				o       *builders.Options
-				project *project.Project
-				stack   *stack.Stack
+				project *v1.Project
+				stack   *v1.Stack
 				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{},
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Generator: &project.GeneratorConfig{
-							Type: project.KCLBuilder,
-						},
+				project: &v1.Project{
+					Generator: &v1.GeneratorConfig{
+						Type: v1.KCLBuilder,
 					},
 				},
-				stack: &stack.Stack{},
+				stack: &v1.Stack{},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock((*kcl.Builder).Build).Return(nil, nil),
 				},
@@ -262,23 +256,19 @@ func TestBuildIntent(t *testing.T) {
 		{
 			name: "app builder", args: struct {
 				o       *builders.Options
-				project *project.Project
-				stack   *stack.Stack
+				project *v1.Project
+				stack   *v1.Stack
 				mockers []*mockey.MockBuilder
 			}{
 				o: &builders.Options{Arguments: map[string]string{}},
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Name: "default",
-						Generator: &project.GeneratorConfig{
-							Type: project.AppConfigurationBuilder,
-						},
+				project: &v1.Project{
+					Name: "default",
+					Generator: &v1.GeneratorConfig{
+						Type: v1.AppConfigurationBuilder,
 					},
 				},
-				stack: &stack.Stack{
-					Configuration: stack.Configuration{
-						Name: "default",
-					},
+				stack: &v1.Stack{
+					Name: "default",
 				},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),

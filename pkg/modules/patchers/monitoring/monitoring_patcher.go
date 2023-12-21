@@ -5,8 +5,8 @@ import (
 
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 )
@@ -14,11 +14,11 @@ import (
 type monitoringPatcher struct {
 	appName string
 	app     *modelsapp.AppConfiguration
-	project *project.Project
+	project *apiv1.Project
 }
 
 // NewMonitoringPatcher returns a Patcher.
-func NewMonitoringPatcher(appName string, app *modelsapp.AppConfiguration, project *project.Project) (modules.Patcher, error) {
+func NewMonitoringPatcher(appName string, app *modelsapp.AppConfiguration, project *apiv1.Project) (modules.Patcher, error) {
 	return &monitoringPatcher{
 		appName: appName,
 		app:     app,
@@ -27,7 +27,7 @@ func NewMonitoringPatcher(appName string, app *modelsapp.AppConfiguration, proje
 }
 
 // NewMonitoringPatcherFunc returns a NewPatcherFunc.
-func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, project *project.Project) modules.NewPatcherFunc {
+func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, project *apiv1.Project) modules.NewPatcherFunc {
 	return func() (modules.Patcher, error) {
 		return NewMonitoringPatcher(appName, app, project)
 	}
@@ -35,7 +35,7 @@ func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, p
 
 // Patch implements Patcher interface.
 func (p *monitoringPatcher) Patch(resources map[string][]*intent.Resource) error {
-	if p.app.Monitoring == nil || p.project.Configuration.Prometheus == nil {
+	if p.app.Monitoring == nil || p.project.Prometheus == nil {
 		return nil
 	}
 
@@ -53,7 +53,7 @@ func (p *monitoringPatcher) Patch(resources map[string][]*intent.Resource) error
 	monitoringLabels := make(map[string]string)
 	monitoringAnnotations := make(map[string]string)
 
-	if p.project.Configuration.Prometheus.OperatorMode {
+	if p.project.Prometheus.OperatorMode {
 		monitoringLabels["kusion_monitoring_appname"] = p.appName
 	} else {
 		// If Prometheus doesn't run as an operator, kusion will generate the

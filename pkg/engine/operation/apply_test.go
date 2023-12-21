@@ -10,9 +10,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -68,7 +67,7 @@ func TestOperation_Apply(t *testing.T) {
 		StateResourceIndex      map[string]*intent.Resource
 		Order                   *opsmodels.ChangeOrder
 		RuntimeMap              map[intent.Type]runtime.Runtime
-		Stack                   *stack.Stack
+		Stack                   *apiv1.Stack
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -110,17 +109,14 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}
 
-	s := &stack.Stack{
-		Configuration: stack.Configuration{Name: "fakeStack"},
-		Path:          "fakePath",
+	s := &apiv1.Stack{
+		Name: "fakeStack",
+		Path: "fakePath",
 	}
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name:   "fakeProject",
-			Tenant: "fakeTenant",
-		},
+	p := &apiv1.Project{
+		Name:   "fakeProject",
 		Path:   "fakePath",
-		Stacks: []*stack.Stack{s},
+		Stacks: []*apiv1.Stack{s},
 	}
 
 	tests := []struct {

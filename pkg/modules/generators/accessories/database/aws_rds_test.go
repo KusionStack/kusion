@@ -7,24 +7,19 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 func TestGenerateAWSResources(t *testing.T) {
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
@@ -76,15 +71,11 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 	awsProvider.SetString(defaultAWSProvider)
 	awsProviderRegion = "us-east-1"
 
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}
@@ -147,15 +138,11 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 	awsProvider.SetString(defaultAWSProvider)
 	awsProviderRegion = "us-east-1"
 
-	project := &project.Project{
-		Configuration: project.Configuration{
-			Name: "testproject",
-		},
+	project := &apiv1.Project{
+		Name: "testproject",
 	}
-	stack := &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "teststack",
-		},
+	stack := &apiv1.Stack{
+		Name: "teststack",
 	}
 	appName := "testapp"
 	workload := &workload.Workload{}

@@ -9,9 +9,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/engine/backend"
@@ -19,6 +18,7 @@ import (
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/project"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/signals"
 )
@@ -71,7 +71,7 @@ func (o *Options) Run() error {
 	// only destroy resources we managed
 	// todo add the `cluster` field in query
 	query := &states.StateQuery{
-		Tenant:  project.Tenant,
+		Tenant:  "",
 		Stack:   stack.Name,
 		Project: project.Name,
 	}
@@ -134,8 +134,8 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) preview(
-	planResources *intent.Intent, project *project.Project,
-	stack *stack.Stack, stateStorage states.StateStorage,
+	planResources *intent.Intent, project *apiv1.Project,
+	stack *apiv1.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -152,7 +152,7 @@ func (o *Options) preview(
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
-			Tenant:   project.Tenant,
+			Tenant:   "",
 			Project:  project,
 			Operator: o.Operator,
 			Stack:    stack,
@@ -244,7 +244,7 @@ func (o *Options) destroy(planResources *intent.Intent, changes *opsmodels.Chang
 
 	st := do.Destroy(&operation.DestroyRequest{
 		Request: opsmodels.Request{
-			Tenant:   changes.Project().Tenant,
+			Tenant:   "",
 			Project:  changes.Project(),
 			Operator: o.Operator,
 			Stack:    changes.Stack(),

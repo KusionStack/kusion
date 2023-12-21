@@ -12,9 +12,8 @@ import (
 	"gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
@@ -23,7 +22,7 @@ import (
 	workspace "kusionstack.io/kusion/pkg/workspace"
 )
 
-func IntentWithSpinner(o *builders.Options, project *project.Project, stack *stack.Stack) (*intent.Intent, error) {
+func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*intent.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -56,29 +55,29 @@ func IntentWithSpinner(o *builders.Options, project *project.Project, stack *sta
 	return i, nil
 }
 
-func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.Intent, error) {
+func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*intent.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
 	pg := p.Generator
 
 	// default AppsConfigBuilder
-	var bt project.BuilderType
+	var bt v1.BuilderType
 	if pg == nil {
-		bt = project.AppConfigurationBuilder
+		bt = v1.AppConfigurationBuilder
 	} else {
 		bt = pg.Type
 	}
 
 	// we can add more generators here
 	switch bt {
-	case project.KCLBuilder:
+	case v1.KCLBuilder:
 		builder = &kcl.Builder{}
-	case project.AppConfigurationBuilder:
+	case v1.AppConfigurationBuilder:
 		appConfigs, err := buildAppConfigs(o, s)
 		if err != nil {
 			return nil, err
 		}
-		ws, err := workspace.GetWorkspaceByDefaultOperator(s.GetName())
+		ws, err := workspace.GetWorkspaceByDefaultOperator(s.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +96,7 @@ func Intent(o *builders.Options, p *project.Project, s *stack.Stack) (*intent.In
 	return i, nil
 }
 
-func buildAppConfigs(o *builders.Options, stack *stack.Stack) (map[string]inputs.AppConfiguration, error) {
+func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]inputs.AppConfiguration, error) {
 	o.Arguments[kcl.IncludeSchemaTypePath] = "true"
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {

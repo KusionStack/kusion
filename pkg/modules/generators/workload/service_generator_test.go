@@ -6,9 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -125,8 +124,8 @@ spec:
 status: {}
 `
 	type fields struct {
-		project *project.Project
-		stack   *stack.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 		appName string
 		service *workload.Service
 	}
@@ -144,14 +143,12 @@ status: {}
 		{
 			name: "CollaSet",
 			fields: fields{
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Name: "default",
-					},
+				project: &apiv1.Project{
+					Name: "default",
 					Path: "/test",
 				},
-				stack: &stack.Stack{
-					Configuration: stack.Configuration{Name: "dev"},
+				stack: &apiv1.Stack{
+					Name: "dev",
 				},
 				appName: "foo",
 				service: &workload.Service{
@@ -189,14 +186,12 @@ status: {}
 		{
 			name: "Deployment",
 			fields: fields{
-				project: &project.Project{
-					Configuration: project.Configuration{
-						Name: "default",
-					},
+				project: &apiv1.Project{
+					Name: "default",
 					Path: "/test",
 				},
-				stack: &stack.Stack{
-					Configuration: stack.Configuration{Name: "dev"},
+				stack: &apiv1.Stack{
+					Name: "dev",
 				},
 				appName: "foo",
 				service: &workload.Service{

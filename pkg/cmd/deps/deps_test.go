@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/project"
+	"kusionstack.io/kusion/pkg/project"
 )
 
 var workDir string

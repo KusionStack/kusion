@@ -6,20 +6,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 func TestNewJobGenerator(t *testing.T) {
-	expectedProject := &project.Project{
-		Configuration: project.Configuration{
-			Name: "test",
-		},
+	expectedProject := &apiv1.Project{
+		Name: "test",
 	}
-	expectedStack := &stack.Stack{}
+	expectedStack := &apiv1.Stack{}
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	actual, err := NewJobGenerator(expectedProject, expectedStack, expectedAppName, expectedJob)
@@ -33,12 +30,10 @@ func TestNewJobGenerator(t *testing.T) {
 }
 
 func TestNewJobGeneratorFunc(t *testing.T) {
-	expectedProject := &project.Project{
-		Configuration: project.Configuration{
-			Name: "test",
-		},
+	expectedProject := &apiv1.Project{
+		Name: "test",
 	}
-	expectedStack := &stack.Stack{}
+	expectedStack := &apiv1.Stack{}
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	generatorFunc := NewJobGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedJob)
@@ -55,19 +50,17 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 func TestJobGenerator_Generate(t *testing.T) {
 	testCases := []struct {
 		name            string
-		expectedProject *project.Project
-		expectedStack   *stack.Stack
+		expectedProject *apiv1.Project
+		expectedStack   *apiv1.Stack
 		expectedAppName string
 		expectedJob     *workload.Job
 	}{
 		{
 			name: "test generate",
-			expectedProject: &project.Project{
-				Configuration: project.Configuration{
-					Name: "test",
-				},
+			expectedProject: &apiv1.Project{
+				Name: "test",
 			},
-			expectedStack:   &stack.Stack{},
+			expectedStack:   &apiv1.Stack{},
 			expectedAppName: "test",
 			expectedJob:     &workload.Job{},
 		},

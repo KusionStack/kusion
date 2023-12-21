@@ -6,20 +6,20 @@ import (
 	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
 
 type monitoringGenerator struct {
-	project *project.Project
+	project *apiv1.Project
 	monitor *monitoring.Monitor
 	appName string
 }
 
 func NewMonitoringGenerator(
-	project *project.Project,
+	project *apiv1.Project,
 	monitor *monitoring.Monitor,
 	appName string,
 ) (modules.Generator, error) {
@@ -38,7 +38,7 @@ func NewMonitoringGenerator(
 }
 
 func NewMonitoringGeneratorFunc(
-	project *project.Project,
+	project *apiv1.Project,
 	monitor *monitoring.Monitor,
 	appName string,
 ) modules.NewGeneratorFunc {
@@ -67,8 +67,8 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 		"kusion_monitoring_appname": g.appName,
 	}
 
-	if g.project.Configuration.Prometheus != nil && g.project.Configuration.Prometheus.OperatorMode && g.monitor != nil {
-		if g.project.Configuration.Prometheus.MonitorType == project.ServiceMonitorType {
+	if g.project.Prometheus != nil && g.project.Prometheus.OperatorMode && g.monitor != nil {
+		if g.project.Prometheus.MonitorType == apiv1.ServiceMonitorType {
 			serviceEndpoint := prometheusv1.Endpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
@@ -99,7 +99,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 			if err != nil {
 				return err
 			}
-		} else if g.project.Configuration.Prometheus.MonitorType == project.PodMonitorType {
+		} else if g.project.Prometheus.MonitorType == apiv1.PodMonitorType {
 			podMetricsEndpoint := prometheusv1.PodMetricsEndpoint{
 				Interval:      g.monitor.Interval,
 				ScrapeTimeout: g.monitor.Timeout,
@@ -133,7 +133,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("MonitorType should either be service or pod %s", g.project.Configuration.Prometheus.MonitorType)
+			return fmt.Errorf("MonitorType should either be service or pod %s", g.project.Prometheus.MonitorType)
 		}
 	}
 

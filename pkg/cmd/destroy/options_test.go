@@ -11,9 +11,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/apis/status"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -22,6 +21,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/project"
 )
 
 func TestDestroyOptions_Run(t *testing.T) {
@@ -64,21 +64,16 @@ func TestDestroyOptions_Run(t *testing.T) {
 }
 
 var (
-	p = &project.Project{
-		Configuration: project.Configuration{
-			Name:   "testdata",
-			Tenant: "admin",
-		},
+	p = &apiv1.Project{
+		Name: "testdata",
 	}
-	s = &stack.Stack{
-		Configuration: stack.Configuration{
-			Name: "dev",
-		},
+	s = &apiv1.Stack{
+		Name: "dev",
 	}
 )
 
 func mockDetectProjectAndStack() {
-	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*project.Project, *stack.Stack, error) {
+	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		p.Path = stackDir
 		s.Path = stackDir
 		return p, s, nil

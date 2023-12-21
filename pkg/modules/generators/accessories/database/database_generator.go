@@ -9,9 +9,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/project"
-	"kusionstack.io/kusion/pkg/apis/stack"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
@@ -28,16 +27,16 @@ const (
 )
 
 type databaseGenerator struct {
-	project  *project.Project
-	stack    *stack.Stack
+	project  *apiv1.Project
+	stack    *apiv1.Stack
 	appName  string
 	workload *workload.Workload
 	database *database.Database
 }
 
 func NewDatabaseGenerator(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
 	database *database.Database,
@@ -56,8 +55,8 @@ func NewDatabaseGenerator(
 }
 
 func NewDatabaseGeneratorFunc(
-	project *project.Project,
-	stack *stack.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	workload *workload.Workload,
 	database *database.Database,
