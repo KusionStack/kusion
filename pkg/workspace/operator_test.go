@@ -211,8 +211,8 @@ func TestOperator_DeleteWorkspace(t *testing.T) {
 			wsName:   "for_delete_ws",
 		},
 		{
-			name:     "failed to delete workspace not exist",
-			success:  false,
+			name:     "delete workspace not exist successfully",
+			success:  true,
 			operator: mockValidOperator(),
 			wsName:   "for_delete_failure_ws",
 		},

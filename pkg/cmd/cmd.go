@@ -10,11 +10,13 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
 	"kusionstack.io/kusion/pkg/cmd/build"
+	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
+	"kusionstack.io/kusion/pkg/cmd/workspace"
+
 	// we need to import compile pkg to keep the compile command available
 	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
 	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
-	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/util/i18n"
@@ -90,6 +92,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 		{
 			Message: "Configuration Commands:",
 			Commands: []*cobra.Command{
+				workspace.NewCmd(),
 				cmdinit.NewCmdInit(),
 				compile.NewCmdCompile(),
 				build.NewCmdBuild(),
