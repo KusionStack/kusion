@@ -75,10 +75,9 @@ func Run(o *builders.Options, stack *v1.Stack) (*CompileResult, error) {
 
 	var result *kcl.KCLResultList
 	if o.IsKclPkg {
-		result, err = api.RunPkgWithOpt(
-			&opt.CompileOptions{
-				Option: kclpkg.NewOption().Merge(optList...),
-			},
+		result, err = api.RunWithOpts(
+			opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
+			opt.WithNoSumCheck(true),
 		)
 	} else {
 		// call kcl run
@@ -187,7 +186,6 @@ func BuildKCLOptions(o *builders.Options) ([]kcl.Option, error) {
 	if withOpt.Err != nil {
 		return nil, withOpt.Err
 	}
-
 	optList = append(optList, withOpt)
 
 	if arguments[IncludeSchemaTypePath] == "true" {
