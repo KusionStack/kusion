@@ -8,7 +8,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -141,7 +141,7 @@ func TestOperator_CreateWorkspace(t *testing.T) {
 		name     string
 		success  bool
 		operator *Operator
-		ws       *workspace.Workspace
+		ws       *v1.Workspace
 	}{
 		{
 			name:     "create workspace successfully",
@@ -173,7 +173,7 @@ func TestOperator_UpdateWorkspace(t *testing.T) {
 		name     string
 		success  bool
 		operator *Operator
-		ws       *workspace.Workspace
+		ws       *v1.Workspace
 	}{
 		{
 			name:     "update workspace successfully",

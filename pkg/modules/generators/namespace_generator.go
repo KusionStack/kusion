@@ -3,21 +3,21 @@ package generators
 import (
 	"fmt"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type namespaceGenerator struct {
 	projectName  string
-	moduleInputs map[string]workspaceapi.GenericConfig
+	moduleInputs map[string]apiv1.GenericConfig
 }
 
-func NewNamespaceGenerator(projectName string, ws *workspaceapi.Workspace) (modules.Generator, error) {
+func NewNamespaceGenerator(projectName string, ws *apiv1.Workspace) (modules.Generator, error) {
 	if len(projectName) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -32,7 +32,7 @@ func NewNamespaceGenerator(projectName string, ws *workspaceapi.Workspace) (modu
 	}, nil
 }
 
-func NewNamespaceGeneratorFunc(projectName string, workspace *workspaceapi.Workspace) modules.NewGeneratorFunc {
+func NewNamespaceGeneratorFunc(projectName string, workspace *apiv1.Workspace) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
 		return NewNamespaceGenerator(projectName, workspace)
 	}
@@ -43,10 +43,10 @@ func (g *namespaceGenerator) Generate(i *intent.Intent) error {
 		i.Resources = make(intent.Resources, 0)
 	}
 
-	ns := &v1.Namespace{
+	ns := &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Namespace",
-			APIVersion: v1.SchemeGroupVersion.String(),
+			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: g.getName(g.projectName)},
 	}

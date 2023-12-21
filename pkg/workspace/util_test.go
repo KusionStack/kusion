@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 func Test_GetProjectModuleConfigs(t *testing.T) {
@@ -13,14 +13,14 @@ func Test_GetProjectModuleConfigs(t *testing.T) {
 		name           string
 		success        bool
 		projectName    string
-		projectConfigs map[string]workspace.GenericConfig
-		moduleConfigs  workspace.ModuleConfigs
+		projectConfigs map[string]v1.GenericConfig
+		moduleConfigs  v1.ModuleConfigs
 	}{
 		{
 			name:        "successfully get project module configs",
 			success:     true,
 			projectName: "foo",
-			projectConfigs: map[string]workspace.GenericConfig{
+			projectConfigs: map[string]v1.GenericConfig{
 				"database": {
 					"type":         "aws",
 					"version":      "5.7",
@@ -48,14 +48,14 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 		name          string
 		success       bool
 		projectName   string
-		projectConfig workspace.GenericConfig
-		moduleConfig  *workspace.ModuleConfig
+		projectConfig v1.GenericConfig
+		moduleConfig  *v1.ModuleConfig
 	}{
 		{
 			name:        "successfully get default project module config",
 			success:     true,
 			projectName: "baz",
-			projectConfig: workspace.GenericConfig{
+			projectConfig: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
@@ -66,7 +66,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 			name:        "successfully get override project module config",
 			success:     true,
 			projectName: "foo",
-			projectConfig: workspace.GenericConfig{
+			projectConfig: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.small",
@@ -95,8 +95,8 @@ func Test_GetKubernetesConfig(t *testing.T) {
 	testcases := []struct {
 		name             string
 		success          bool
-		kubernetesConfig *workspace.KubernetesConfig
-		runtimeConfigs   *workspace.RuntimeConfigs
+		kubernetesConfig *v1.KubernetesConfig
+		runtimeConfigs   *v1.RuntimeConfigs
 	}{
 		{
 			name:             "successfully get kubernetes config",
@@ -120,17 +120,17 @@ func Test_GetTerraformProviderConfig(t *testing.T) {
 		name           string
 		success        bool
 		providerName   string
-		providerConfig *workspace.ProviderConfig
-		runtimeConfigs *workspace.RuntimeConfigs
+		providerConfig *v1.ProviderConfig
+		runtimeConfigs *v1.RuntimeConfigs
 	}{
 		{
 			name:         "successfully get terraform provider config",
 			success:      true,
 			providerName: "aws",
-			providerConfig: &workspace.ProviderConfig{
+			providerConfig: &v1.ProviderConfig{
 				Source:  "hashicorp/aws",
 				Version: "1.0.4",
-				GenericConfig: workspace.GenericConfig{
+				GenericConfig: v1.GenericConfig{
 					"region": "us-east-1",
 				},
 			},

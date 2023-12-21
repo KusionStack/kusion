@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	backendinit "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
@@ -101,7 +101,7 @@ func validBackendConfig(config *StateStorageConfig, schema cty.Type) error {
 			return fmt.Errorf("%w: %s", ErrUnsupportedBackendConfigItem, k)
 		}
 	}
-	if config.Type == workspace.BackendLocal && len(config.Config) != 0 {
+	if config.Type == v1.BackendLocal && len(config.Config) != 0 {
 		return fmt.Errorf("%w for backend local", ErrNotSupportBackendConfig)
 	}
 	return nil

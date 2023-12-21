@@ -8,7 +8,7 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -83,18 +83,18 @@ func createSampleWorkspace() error {
 	if err != nil {
 		return err
 	}
-	ws := &workspaceapi.Workspace{
+	ws := &v1.Workspace{
 		Name: "dev",
-		Modules: workspaceapi.ModuleConfigs{
+		Modules: v1.ModuleConfigs{
 			"database": {
-				Default: workspaceapi.GenericConfig{
+				Default: v1.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				ModulePatcherConfigs: workspaceapi.ModulePatcherConfigs{
+				ModulePatcherConfigs: v1.ModulePatcherConfigs{
 					"smallClass": {
-						GenericConfig: workspaceapi.GenericConfig{
+						GenericConfig: v1.GenericConfig{
 							"instanceType": "db.t3.small",
 						},
 						ProjectSelector: []string{"foo", "bar"},
@@ -102,7 +102,7 @@ func createSampleWorkspace() error {
 				},
 			},
 			"port": {
-				Default: workspaceapi.GenericConfig{
+				Default: v1.GenericConfig{
 					"type": "aws",
 				},
 			},

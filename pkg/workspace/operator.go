@@ -9,7 +9,7 @@ import (
 
 	yaml "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -38,7 +38,7 @@ func CheckWorkspaceExistenceByDefaultOperator(name string) (bool, error) {
 }
 
 // GetWorkspaceByDefaultOperator gets a workspace by default operator.
-func GetWorkspaceByDefaultOperator(name string) (*workspace.Workspace, error) {
+func GetWorkspaceByDefaultOperator(name string) (*v1.Workspace, error) {
 	operator, err := NewValidDefaultOperator()
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func GetWorkspaceNamesByDefaultOperator() ([]string, error) {
 }
 
 // CreateWorkspaceByDefaultOperator creates a workspace by default operator.
-func CreateWorkspaceByDefaultOperator(ws *workspace.Workspace) error {
+func CreateWorkspaceByDefaultOperator(ws *v1.Workspace) error {
 	operator, err := NewValidDefaultOperator()
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func CreateWorkspaceByDefaultOperator(ws *workspace.Workspace) error {
 }
 
 // UpdateWorkspaceByDefaultOperator updates a workspace by default operator.
-func UpdateWorkspaceByDefaultOperator(ws *workspace.Workspace) error {
+func UpdateWorkspaceByDefaultOperator(ws *v1.Workspace) error {
 	operator, err := NewValidDefaultOperator()
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func (o *Operator) GetWorkspaceNames() ([]string, error) {
 }
 
 // GetWorkspace gets the workspace by name. The validity of the returned workspace is not guaranteed.
-func (o *Operator) GetWorkspace(name string) (*workspace.Workspace, error) {
+func (o *Operator) GetWorkspace(name string) (*v1.Workspace, error) {
 	if name == "" {
 		return nil, ErrEmptyWorkspaceName
 	}
@@ -179,7 +179,7 @@ func (o *Operator) GetWorkspace(name string) (*workspace.Workspace, error) {
 		return nil, fmt.Errorf("read workspace file failed: %w", err)
 	}
 
-	ws := &workspace.Workspace{}
+	ws := &v1.Workspace{}
 	if err = yaml.Unmarshal(content, ws); err != nil {
 		return nil, fmt.Errorf("yaml unmarshal failed: %w", err)
 	}
@@ -188,7 +188,7 @@ func (o *Operator) GetWorkspace(name string) (*workspace.Workspace, error) {
 }
 
 // CreateWorkspace creates a workspace. The validation of workspace should be done before creating.
-func (o *Operator) CreateWorkspace(ws *workspace.Workspace) error {
+func (o *Operator) CreateWorkspace(ws *v1.Workspace) error {
 	if ws == nil {
 		return ErrEmptyWorkspace
 	}
@@ -201,7 +201,7 @@ func (o *Operator) CreateWorkspace(ws *workspace.Workspace) error {
 }
 
 // UpdateWorkspace updates a workspace.The validation of workspace should be done before updating.
-func (o *Operator) UpdateWorkspace(ws *workspace.Workspace) error {
+func (o *Operator) UpdateWorkspace(ws *v1.Workspace) error {
 	if ws == nil {
 		return ErrEmptyWorkspace
 	}
@@ -241,7 +241,7 @@ func (o *Operator) getWorkspaceFiles() ([]os.DirEntry, error) {
 	return files, nil
 }
 
-func (o *Operator) writeWorkspaceFile(ws *workspace.Workspace) error {
+func (o *Operator) writeWorkspaceFile(ws *v1.Workspace) error {
 	content, err := yaml.Marshal(ws)
 	if err != nil {
 		return fmt.Errorf("yaml marshal workspace failed: %w", err)

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
@@ -24,7 +24,7 @@ type appConfigurationGenerator struct {
 	stack   *stack.Stack
 	appName string
 	app     *inputs.AppConfiguration
-	ws      *workspaceapi.Workspace
+	ws      *v1.Workspace
 }
 
 func NewAppConfigurationGenerator(
@@ -32,7 +32,7 @@ func NewAppConfigurationGenerator(
 	stack *stack.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
-	ws *workspaceapi.Workspace,
+	ws *v1.Workspace,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -67,7 +67,7 @@ func NewAppConfigurationGeneratorFunc(
 	stack *stack.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
-	ws *workspaceapi.Workspace,
+	ws *v1.Workspace,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
 		return NewAppConfigurationGenerator(project, stack, appName, app, ws)

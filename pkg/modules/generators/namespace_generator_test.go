@@ -5,14 +5,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/workspace"
 )
 
 func Test_namespaceGenerator_Generate(t *testing.T) {
 	type fields struct {
 		projectName  string
-		moduleInputs map[string]workspace.GenericConfig
+		moduleInputs map[string]v1.GenericConfig
 	}
 	type args struct {
 		intent *intent.Intent
@@ -60,7 +60,7 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			name: "customize_namespace",
 			fields: fields{
 				projectName: "beep",
-				moduleInputs: map[string]workspace.GenericConfig{
+				moduleInputs: map[string]v1.GenericConfig{
 					"namespace": {
 						"name": "foo",
 					},
@@ -97,7 +97,7 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			name: "mismatch_module_input",
 			fields: fields{
 				projectName: "beep",
-				moduleInputs: map[string]workspace.GenericConfig{
+				moduleInputs: map[string]v1.GenericConfig{
 					"namespace": {
 						"type": "foo",
 					},

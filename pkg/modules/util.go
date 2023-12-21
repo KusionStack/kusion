@@ -7,8 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -218,7 +218,7 @@ func PatchResource[T any](resources map[string][]*intent.Resource, gvk string, p
 
 // AddKubeConfigIf adds kubeConfig from workspace to extensions of Kubernetes type resource in intent.
 // If there is already has kubeConfig in extensions, use the kubeConfig in extensions.
-func AddKubeConfigIf(i *intent.Intent, ws *workspaceapi.Workspace) {
+func AddKubeConfigIf(i *intent.Intent, ws *apiv1.Workspace) {
 	config, err := workspace.GetKubernetesConfig(ws.Runtimes)
 	if errors.Is(err, workspace.ErrEmptyRuntimeConfigs) || errors.Is(err, workspace.ErrEmptyKubernetesConfig) {
 		return

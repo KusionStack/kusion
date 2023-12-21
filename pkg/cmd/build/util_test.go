@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	kclgo "kcl-lang.io/kcl-go"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
@@ -121,18 +121,18 @@ resources:
 		},
 	}
 
-	ws = &workspaceapi.Workspace{
+	ws = &v1.Workspace{
 		Name: "default",
-		Modules: workspaceapi.ModuleConfigs{
+		Modules: v1.ModuleConfigs{
 			"database": {
-				Default: workspaceapi.GenericConfig{
+				Default: v1.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				ModulePatcherConfigs: workspaceapi.ModulePatcherConfigs{
+				ModulePatcherConfigs: v1.ModulePatcherConfigs{
 					"smallClass": {
-						GenericConfig: workspaceapi.GenericConfig{
+						GenericConfig: v1.GenericConfig{
 							"instanceType": "db.t3.small",
 						},
 						ProjectSelector: []string{"foo", "bar"},
@@ -140,18 +140,18 @@ resources:
 				},
 			},
 			"port": {
-				Default: workspaceapi.GenericConfig{
+				Default: v1.GenericConfig{
 					"type": "aws",
 				},
 			},
 		},
-		Runtimes: &workspaceapi.RuntimeConfigs{
-			Kubernetes: &workspaceapi.KubernetesConfig{
+		Runtimes: &v1.RuntimeConfigs{
+			Kubernetes: &v1.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &workspaceapi.BackendConfigs{
-			Local: &workspaceapi.LocalFileConfig{},
+		Backends: &v1.BackendConfigs{
+			Local: &v1.LocalFileConfig{},
 		},
 	}
 )

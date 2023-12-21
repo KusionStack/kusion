@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/apis/project"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	"kusionstack.io/kusion/pkg/apis/workspace"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -95,19 +95,19 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 	}
 }
 
-func buildMockWorkspace() *workspace.Workspace {
-	return &workspace.Workspace{
+func buildMockWorkspace() *v1.Workspace {
+	return &v1.Workspace{
 		Name: "test",
-		Modules: workspace.ModuleConfigs{
+		Modules: v1.ModuleConfigs{
 			"database": {
-				Default: workspace.GenericConfig{
+				Default: v1.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.micro",
 				},
-				ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+				ModulePatcherConfigs: v1.ModulePatcherConfigs{
 					"smallClass": {
-						GenericConfig: workspace.GenericConfig{
+						GenericConfig: v1.GenericConfig{
 							"instanceType": "db.t3.small",
 						},
 						ProjectSelector: []string{"foo", "bar"},
@@ -115,18 +115,18 @@ func buildMockWorkspace() *workspace.Workspace {
 				},
 			},
 			"port": {
-				Default: workspace.GenericConfig{
+				Default: v1.GenericConfig{
 					"type": "aws",
 				},
 			},
 		},
-		Runtimes: &workspace.RuntimeConfigs{
-			Kubernetes: &workspace.KubernetesConfig{
+		Runtimes: &v1.RuntimeConfigs{
+			Kubernetes: &v1.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &workspace.BackendConfigs{
-			Local: &workspace.LocalFileConfig{},
+		Backends: &v1.BackendConfigs{
+			Local: &v1.LocalFileConfig{},
 		},
 	}
 }
