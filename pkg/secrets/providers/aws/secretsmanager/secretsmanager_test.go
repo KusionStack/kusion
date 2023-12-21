@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets/providers/aws/secretsmanager/fake"
 )
 
@@ -113,7 +113,7 @@ func TestGetSecret(t *testing.T) {
 
 	for name, tc := range testCases {
 		store := &smSecretStore{client: tc.client}
-		ref := secretsapi.ExternalSecretRef{
+		ref := v1.ExternalSecretRef{
 			Name:     tc.name,
 			Version:  tc.version,
 			Property: tc.property,
@@ -134,23 +134,23 @@ func TestGetSecret(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        secretsapi.SecretStoreSpec
+		spec        v1.SecretStoreSpec
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        secretsapi.SecretStoreSpec{},
+			spec:        v1.SecretStoreSpec{},
 			expectedErr: errors.New(errMissingProviderSpec),
 		},
 		"InvalidProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{},
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errMissingAWSProvider),
 		},
 		"ValidVaultProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					AWS: &secretsapi.AWSProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					AWS: &v1.AWSProvider{
 						Region: "us-east-1",
 					},
 				},

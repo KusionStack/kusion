@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/tidwall/gjson"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 )
 
@@ -38,7 +38,7 @@ var _ secrets.SecretStore = &kvSecretStore{}
 type DefaultFactory struct{}
 
 // NewSecretStore constructs an Azure KeyVault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec secretsapi.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)
@@ -54,7 +54,7 @@ func (p *DefaultFactory) NewSecretStore(spec secretsapi.SecretStoreSpec) (secret
 	return &kvSecretStore{secretClient, providerSpec.Azure}, nil
 }
 
-func getSecretClient(spec *secretsapi.AzureKVProvider) (SecretClient, error) {
+func getSecretClient(spec *v1.AzureKVProvider) (SecretClient, error) {
 	authorizer, err := authorizerForServicePrincipal(spec)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func getSecretClient(spec *secretsapi.AzureKVProvider) (SecretClient, error) {
 // authorizerForServicePrincipal returns a service principal based authorizer used by clients to access to Azure.
 // By-default it uses credentials from the environment;
 // See https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization#use-environment-based-authentication.
-func authorizerForServicePrincipal(spec *secretsapi.AzureKVProvider) (autorest.Authorizer, error) {
+func authorizerForServicePrincipal(spec *v1.AzureKVProvider) (autorest.Authorizer, error) {
 	if spec.TenantID == nil {
 		return nil, fmt.Errorf(errMissingTenant)
 	}
@@ -84,31 +84,31 @@ func authorizerForServicePrincipal(spec *secretsapi.AzureKVProvider) (autorest.A
 	return clientCredentialsConfig.Authorizer()
 }
 
-func adEndpointForEnvironmentType(t secretsapi.AzureEnvironmentType) string {
+func adEndpointForEnvironmentType(t v1.AzureEnvironmentType) string {
 	switch t {
-	case secretsapi.AzureEnvironmentPublicCloud:
+	case v1.AzureEnvironmentPublicCloud:
 		return azure.PublicCloud.ActiveDirectoryEndpoint
-	case secretsapi.AzureEnvironmentChinaCloud:
+	case v1.AzureEnvironmentChinaCloud:
 		return azure.ChinaCloud.ActiveDirectoryEndpoint
-	case secretsapi.AzureEnvironmentUSGovernmentCloud:
+	case v1.AzureEnvironmentUSGovernmentCloud:
 		return azure.USGovernmentCloud.ActiveDirectoryEndpoint
-	case secretsapi.AzureEnvironmentGermanCloud:
+	case v1.AzureEnvironmentGermanCloud:
 		return azure.GermanCloud.ActiveDirectoryEndpoint
 	default:
 		return azure.PublicCloud.ActiveDirectoryEndpoint
 	}
 }
 
-func kvResourceForProviderConfig(t secretsapi.AzureEnvironmentType) string {
+func kvResourceForProviderConfig(t v1.AzureEnvironmentType) string {
 	var res string
 	switch t {
-	case secretsapi.AzureEnvironmentPublicCloud:
+	case v1.AzureEnvironmentPublicCloud:
 		res = azure.PublicCloud.KeyVaultEndpoint
-	case secretsapi.AzureEnvironmentChinaCloud:
+	case v1.AzureEnvironmentChinaCloud:
 		res = azure.ChinaCloud.KeyVaultEndpoint
-	case secretsapi.AzureEnvironmentUSGovernmentCloud:
+	case v1.AzureEnvironmentUSGovernmentCloud:
 		res = azure.USGovernmentCloud.KeyVaultEndpoint
-	case secretsapi.AzureEnvironmentGermanCloud:
+	case v1.AzureEnvironmentGermanCloud:
 		res = azure.GermanCloud.KeyVaultEndpoint
 	default:
 		res = azure.PublicCloud.KeyVaultEndpoint
@@ -118,11 +118,11 @@ func kvResourceForProviderConfig(t secretsapi.AzureEnvironmentType) string {
 
 type kvSecretStore struct {
 	secretClient SecretClient
-	provider     *secretsapi.AzureKVProvider
+	provider     *v1.AzureKVProvider
 }
 
 // GetSecret retrieves ref secret value from Azure KeyVault.
-func (k *kvSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSecretRef) ([]byte, error) {
+func (k *kvSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error) {
 	objectType, secretName := getObjType(ref)
 
 	switch objectType {
@@ -176,7 +176,7 @@ func getProperty(secret, property, key string) ([]byte, error) {
 	return []byte(res.String()), nil
 }
 
-func getObjType(ref secretsapi.ExternalSecretRef) (string, string) {
+func getObjType(ref v1.ExternalSecretRef) (string, string) {
 	objectType := defaultObjType
 
 	secretName := ref.Name

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets/providers/azure/keyvault/fake"
 )
 
@@ -73,7 +73,7 @@ func TestGetSecret(t *testing.T) {
 		},
 	}
 
-	provider := &secretsapi.AzureKVProvider{
+	provider := &v1.AzureKVProvider{
 		VaultURL: &fakeVaultURL,
 		TenantID: &fakeTenantID,
 	}
@@ -83,7 +83,7 @@ func TestGetSecret(t *testing.T) {
 			secretClient: tc.client,
 			provider:     provider,
 		}
-		ref := secretsapi.ExternalSecretRef{
+		ref := v1.ExternalSecretRef{
 			Name:     tc.name,
 			Property: tc.property,
 		}
@@ -100,24 +100,24 @@ func TestGetSecret(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        secretsapi.SecretStoreSpec
+		spec        v1.SecretStoreSpec
 		initEnv     bool
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        secretsapi.SecretStoreSpec{},
+			spec:        v1.SecretStoreSpec{},
 			expectedErr: errors.New(errMissingProviderSpec),
 		},
 		"InvalidProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{},
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errMissingAzureProvider),
 		},
 		"InvalidAzureKVProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					Azure: &secretsapi.AzureKVProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,
 					},
 				},
@@ -125,9 +125,9 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: errors.New(errMissingTenant),
 		},
 		"NoClientIDSecretEnvFound": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					Azure: &secretsapi.AzureKVProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,
 						TenantID: &fakeTenantID,
 					},
@@ -136,9 +136,9 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: errors.New(errMissingClientIDSecret),
 		},
 		"ValidVaultProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					Azure: &secretsapi.AzureKVProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,
 						TenantID: &fakeTenantID,
 					},
