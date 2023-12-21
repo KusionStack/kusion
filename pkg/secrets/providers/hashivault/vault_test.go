@@ -10,23 +10,23 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets/providers/hashivault/fake"
 )
 
 var mountPath = "secret"
 
-func makeValidVaultSecretStore(v secretsapi.VaultKVStoreVersion) *vaultSecretStore {
+func makeValidVaultSecretStore(v v1.VaultKVStoreVersion) *vaultSecretStore {
 	return &vaultSecretStore{
-		provider: &secretsapi.VaultProvider{
+		provider: &v1.VaultProvider{
 			Path:    &mountPath,
 			Version: v,
 		},
 	}
 }
 
-func makeExternalSecretRef(path, property, version string) secretsapi.ExternalSecretRef {
-	return secretsapi.ExternalSecretRef{
+func makeExternalSecretRef(path, property, version string) v1.ExternalSecretRef {
+	return v1.ExternalSecretRef{
 		Name:     path,
 		Property: property,
 		Version:  version,
@@ -65,7 +65,7 @@ func TestGetSecret(t *testing.T) {
 		},
 	}
 	testCases := map[string]struct {
-		provider  *secretsapi.VaultProvider
+		provider  *v1.VaultProvider
 		logical   Logical
 		path      string
 		property  string
@@ -74,7 +74,7 @@ func TestGetSecret(t *testing.T) {
 		expectErr error
 	}{
 		"V1_ReadSecret": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretData, nil),
 			},
@@ -84,7 +84,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_NoProperty": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretData, nil),
 			},
@@ -93,7 +93,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_NoProperty_NilValue": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretDataWithNilValue, nil),
 			},
@@ -102,7 +102,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_NestedValue": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretDataWithNestedValue, nil),
 			},
@@ -112,7 +112,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_NestedValue_NestedProperty": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretDataWithNestedValue, nil),
 			},
@@ -122,7 +122,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_SliceValue": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretDataWithNestedValue, nil),
 			},
@@ -132,7 +132,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_JsonNumber": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretDataWithNestedValue, nil),
 			},
@@ -142,7 +142,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V1_ReadSecret_NilData": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV1).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV1).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(nil, nil),
 			},
@@ -151,7 +151,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V2_ReadSecret": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV2).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV2).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretNestedData, nil),
 			},
@@ -161,7 +161,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V2_ReadSecret_WithVersion": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV2).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV2).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretNestedData, nil),
 			},
@@ -172,7 +172,7 @@ func TestGetSecret(t *testing.T) {
 			expectErr: nil,
 		},
 		"V2_ReadSecret_ErrFormat": {
-			provider: makeValidVaultSecretStore(secretsapi.VaultKVStoreV2).provider,
+			provider: makeValidVaultSecretStore(v1.VaultKVStoreV2).provider,
 			logical: &fake.Logical{
 				ReadWithDataWithContextFn: fake.NewReadWithContextFn(secretData, nil),
 			},
@@ -199,15 +199,15 @@ func TestGetSecret(t *testing.T) {
 }
 
 func TestBuildPath(t *testing.T) {
-	storeV2 := makeValidVaultSecretStore(secretsapi.VaultKVStoreV2)
+	storeV2 := makeValidVaultSecretStore(v1.VaultKVStoreV2)
 	otherMountPath := "secret/path"
 	storeV2.provider.Path = &otherMountPath
-	storeV2NoPath := makeValidVaultSecretStore(secretsapi.VaultKVStoreV2)
+	storeV2NoPath := makeValidVaultSecretStore(v1.VaultKVStoreV2)
 	storeV2NoPath.provider.Path = nil
 
-	storeV1 := makeValidVaultSecretStore(secretsapi.VaultKVStoreV1)
+	storeV1 := makeValidVaultSecretStore(v1.VaultKVStoreV1)
 	storeV1.provider.Path = &otherMountPath
-	storeV1NoPath := makeValidVaultSecretStore(secretsapi.VaultKVStoreV1)
+	storeV1NoPath := makeValidVaultSecretStore(v1.VaultKVStoreV1)
 	storeV1NoPath.provider.Path = nil
 
 	testCases := map[string]struct {
@@ -262,23 +262,23 @@ func TestBuildPath(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        secretsapi.SecretStoreSpec
+		spec        v1.SecretStoreSpec
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        secretsapi.SecretStoreSpec{},
+			spec:        v1.SecretStoreSpec{},
 			expectedErr: errors.New(errInvalidVaultSecretStore),
 		},
 		"InvalidProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{},
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errInvalidVaultSecretStore),
 		},
 		"ValidVaultProviderSpec": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					Vault: &secretsapi.VaultProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					Vault: &v1.VaultProvider{
 						Server: "https://127.0.0.1:8200",
 					},
 				},
@@ -286,9 +286,9 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: nil,
 		},
 		"ValidVaultProviderSpec_WithToken": {
-			spec: secretsapi.SecretStoreSpec{
-				Provider: &secretsapi.ProviderSpec{
-					Vault: &secretsapi.VaultProvider{
+			spec: v1.SecretStoreSpec{
+				Provider: &v1.ProviderSpec{
+					Vault: &v1.VaultProvider{
 						Server: "https://127.0.0.1:8200",
 					},
 				},

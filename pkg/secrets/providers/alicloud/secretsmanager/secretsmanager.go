@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 
 	"github.com/aliyun/aliyun-secretsmanager-client-go/sdk"
@@ -41,7 +41,7 @@ type smSecretStore struct {
 }
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec secretsapi.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)
@@ -70,7 +70,7 @@ func getAlicloudClient(region string) (*sdk.SecretManagerCacheClient, error) {
 }
 
 // GetSecret retrieves ref secret value from Alicloud Secrets Manager.
-func (s *smSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSecretRef) ([]byte, error) {
+func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error) {
 	secretInfo, err := s.client.GetSecretInfo(ref.Name)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (s *smSecretStore) convertSecretToGjson(secretInfo *models.SecretInfo, refP
 }
 
 func init() {
-	secrets.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
-		Alicloud: &secretsapi.AlicloudProvider{},
+	secrets.Register(&DefaultFactory{}, &v1.ProviderSpec{
+		Alicloud: &v1.AlicloudProvider{},
 	})
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/tidwall/gjson"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 	"kusionstack.io/kusion/pkg/secrets/providers/aws/auth"
 )
@@ -30,7 +30,7 @@ var _ secrets.SecretStore = &smSecretStore{}
 type DefaultFactory struct{}
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec secretsapi.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)
@@ -54,7 +54,7 @@ type smSecretStore struct {
 }
 
 // GetSecret retrieves ref secret value from AWS Secrets Manager.
-func (s *smSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSecretRef) ([]byte, error) {
+func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error) {
 	getSecretValueInput := s.buildGetSecretValueInput(ref)
 	secretValueOutput, err := s.client.GetSecretValue(ctx, getSecretValueInput)
 	var nf *types.ResourceNotFoundException
@@ -81,7 +81,7 @@ func (s *smSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSe
 }
 
 // buildGetSecretValueInput constructs target GetSecretValueInput request with specific external secret ref.
-func (s *smSecretStore) buildGetSecretValueInput(ref secretsapi.ExternalSecretRef) *secretsmanager.GetSecretValueInput {
+func (s *smSecretStore) buildGetSecretValueInput(ref v1.ExternalSecretRef) *secretsmanager.GetSecretValueInput {
 	version := "AWSCURRENT"
 	if ref.Version != "" {
 		version = ref.Version
@@ -126,7 +126,7 @@ func (s *smSecretStore) convertSecretToGjson(secretValueOutput *secretsmanager.G
 }
 
 func init() {
-	secrets.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
-		AWS: &secretsapi.AWSProvider{},
+	secrets.Register(&DefaultFactory{}, &v1.ProviderSpec{
+		AWS: &v1.AWSProvider{},
 	})
 }

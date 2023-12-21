@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 // FakeSecretStore is the fake implementation of SecretStore.
 type FakeSecretStore struct{}
 
 // Fake implementation of SecretStore.GetSecret.
-func (fss *FakeSecretStore) GetSecret(_ context.Context, _ secrets.ExternalSecretRef) ([]byte, error) {
+func (fss *FakeSecretStore) GetSecret(_ context.Context, _ v1.ExternalSecretRef) ([]byte, error) {
 	return []byte("NOOP"), nil
 }
 
@@ -21,7 +21,7 @@ func (fss *FakeSecretStore) GetSecret(_ context.Context, _ secrets.ExternalSecre
 type FakeSecretStoreFactory struct{}
 
 // Fake implementation of SecretStoreFactory.NewSecretStore.
-func (fsf *FakeSecretStoreFactory) NewSecretStore(_ secrets.SecretStoreSpec) (SecretStore, error) {
+func (fsf *FakeSecretStoreFactory) NewSecretStore(_ v1.SecretStoreSpec) (SecretStore, error) {
 	return &FakeSecretStore{}, nil
 }
 
@@ -31,20 +31,20 @@ func TestRegister(t *testing.T) {
 		providerName string
 		shouldPanic  bool
 		expExists    bool
-		spec         *secrets.ProviderSpec
+		spec         *v1.ProviderSpec
 	}{
 		{
 			name:        "should panic when given an invalid provider spec",
 			shouldPanic: true,
-			spec:        &secrets.ProviderSpec{},
+			spec:        &v1.ProviderSpec{},
 		},
 		{
 			name:         "should register a valid provider",
 			providerName: "aws",
 			shouldPanic:  false,
 			expExists:    true,
-			spec: &secrets.ProviderSpec{
-				AWS: &secrets.AWSProvider{},
+			spec: &v1.ProviderSpec{
+				AWS: &v1.AWSProvider{},
 			},
 		},
 	}

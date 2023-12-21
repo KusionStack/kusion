@@ -13,7 +13,7 @@ import (
 	vault "github.com/hashicorp/vault/api"
 	"github.com/tidwall/gjson"
 
-	secretsapi "kusionstack.io/kusion/pkg/apis/secrets"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 )
 
@@ -41,7 +41,7 @@ func (p *DefaultFactory) Type() string {
 }
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec secretsapi.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil || providerSpec.Vault == nil {
 		return nil, errors.New(errInvalidVaultSecretStore)
@@ -92,12 +92,12 @@ func getVaultToken() string {
 }
 
 type vaultSecretStore struct {
-	provider *secretsapi.VaultProvider
+	provider *v1.VaultProvider
 	logical  Logical
 }
 
 // GetSecret retrieves ref secret value from Vault server.
-func (v *vaultSecretStore) GetSecret(ctx context.Context, ref secretsapi.ExternalSecretRef) ([]byte, error) {
+func (v *vaultSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error) {
 	secretData, err := v.readSecret(ctx, ref.Name, ref.Version)
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (v *vaultSecretStore) readSecret(ctx context.Context, path, version string)
 		return map[string]interface{}{}, nil
 	}
 	secretData := secret.Data
-	if v.provider.Version == secretsapi.VaultKVStoreV2 {
+	if v.provider.Version == v1.VaultKVStoreV2 {
 		// Vault KV2 has data embedded within sub-field
 		// Ref: https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-version
 		embeddedData, ok := secretData["data"]
@@ -172,20 +172,20 @@ func (v *vaultSecretStore) buildPath(path string) string {
 		if strings.HasPrefix(out, prefixToCut) {
 			_, out, _ = strings.Cut(out, prefixToCut)
 			// if data succeeds mountPath on v2 store, we should remove it as well
-			if strings.HasPrefix(out, "data/") && v.provider.Version == secretsapi.VaultKVStoreV2 {
+			if strings.HasPrefix(out, "data/") && v.provider.Version == v1.VaultKVStoreV2 {
 				_, out, _ = strings.Cut(out, "data/")
 			}
 		}
 		buildPath := strings.Split(out, "/")
 		buildMount := strings.Split(*mountPath, "/")
-		if v.provider.Version == secretsapi.VaultKVStoreV2 {
+		if v.provider.Version == v1.VaultKVStoreV2 {
 			buildMount = append(buildMount, "data")
 		}
 		buildMount = append(buildMount, buildPath...)
 		out = strings.Join(buildMount, "/")
 		return out
 	}
-	if !strings.Contains(out, "/data/") && v.provider.Version == secretsapi.VaultKVStoreV2 {
+	if !strings.Contains(out, "/data/") && v.provider.Version == v1.VaultKVStoreV2 {
 		buildPath := strings.Split(out, "/")
 		buildMount := []string{buildPath[0], "data"}
 		buildMount = append(buildMount, buildPath[1:]...)
@@ -226,7 +226,7 @@ func getTypedKey(data map[string]interface{}, key string) ([]byte, error) {
 }
 
 func init() {
-	secrets.Register(&DefaultFactory{}, &secretsapi.ProviderSpec{
-		Vault: &secretsapi.VaultProvider{},
+	secrets.Register(&DefaultFactory{}, &v1.ProviderSpec{
+		Vault: &v1.VaultProvider{},
 	})
 }

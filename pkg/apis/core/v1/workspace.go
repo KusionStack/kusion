@@ -194,6 +194,18 @@ const (
 	VaultKVStoreV2 VaultKVStoreVersion = "v2"
 )
 
+// ExternalSecretRef contains information that points to the secret store data location.
+type ExternalSecretRef struct {
+	// Specifies the name of the secret in Provider to read, mandatory.
+	Name string `yaml:"name" json:"name"`
+
+	// Specifies the version of the secret to return, if supported.
+	Version string `yaml:"version,omitempty" json:"version,omitempty"`
+
+	// Used to select a specific property of the secret data (if a map), if supported.
+	Property string `yaml:"property,omitempty" json:"property,omitempty"`
+}
+
 // SecretStoreSpec contains configuration to describe target secret store.
 type SecretStoreSpec struct {
 	Provider *ProviderSpec `yaml:"provider" json:"provider"`
@@ -209,6 +221,9 @@ type ProviderSpec struct {
 
 	// Vault configures a store to retrieve secrets from HashiCorp Vault.
 	Vault *VaultProvider `yaml:"vault,omitempty" json:"vault,omitempty"`
+
+	// Azure configures a store to retrieve secrets from Azure KeyVault.
+	Azure *AzureKVProvider `yaml:"azure,omitempty" json:"azure,omitempty"`
 }
 
 // AlicloudProvider configures a store to retrieve secrets from Alicloud Secrets Manager.
@@ -240,4 +255,29 @@ type VaultProvider struct {
 	// Version is the Vault KV secret engine version. Version can be either "v1" or
 	// "v2", defaults to "v2".
 	Version VaultKVStoreVersion `yaml:"version" json:"version"`
+}
+
+// AzureEnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.
+type AzureEnvironmentType string
+
+const (
+	AzureEnvironmentPublicCloud       AzureEnvironmentType = "PublicCloud"
+	AzureEnvironmentUSGovernmentCloud AzureEnvironmentType = "USGovernmentCloud"
+	AzureEnvironmentChinaCloud        AzureEnvironmentType = "ChinaCloud"
+	AzureEnvironmentGermanCloud       AzureEnvironmentType = "GermanCloud"
+)
+
+// AzureKVProvider configures a store to retrieve secrets from Azure KeyVault
+type AzureKVProvider struct {
+	// Vault Url from which the secrets to be fetched from.
+	VaultURL *string `yaml:"vaultUrl" json:"vaultUrl"`
+
+	// TenantID configures the Azure Tenant to send requests to.
+	TenantID *string `yaml:"tenantId" json:"tenantId"`
+
+	// EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.
+	// By-default it points to the public cloud AAD endpoint, and the following endpoints are available:
+	// PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
+	// Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
+	EnvironmentType AzureEnvironmentType `yaml:"environmentType,omitempty" json:"environmentType,omitempty"`
 }

@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/exp/maps"
 
-	"kusionstack.io/kusion/pkg/apis/secrets"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 // Register a secret store provider with target spec.
-func Register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
+func Register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
 	secretStoreProviders.register(ssf, spec)
 }
 
@@ -41,7 +41,7 @@ type Providers struct {
 
 // register registers a provider with associated spec. This
 // is expected to happen during app startup.
-func (ps *Providers) register(ssf SecretStoreFactory, spec *secrets.ProviderSpec) {
+func (ps *Providers) register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
 	providerName, err := getProviderName(spec)
 	if err != nil {
 		panic(fmt.Sprintf("provider registery failed to parse spec: %s", err.Error()))
@@ -70,7 +70,7 @@ func (ps *Providers) getProviderByName(providerName string) (SecretStoreFactory,
 	return provider, found
 }
 
-func getProviderName(spec *secrets.ProviderSpec) (string, error) {
+func getProviderName(spec *v1.ProviderSpec) (string, error) {
 	specBytes, err := json.Marshal(spec)
 	if err != nil || specBytes == nil {
 		return "", fmt.Errorf("failed to marshal secret store provider spec: %w", err)
