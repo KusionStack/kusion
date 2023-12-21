@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 )
 
@@ -19,7 +19,7 @@ func TestBackendOptions_Validate(t *testing.T) {
 			name:    "valid backend options",
 			success: true,
 			opts: &BackendOptions{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: []string{
 					"dbName=kusion_db",
 					"user=kusion",

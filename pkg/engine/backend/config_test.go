@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 )
@@ -18,7 +18,7 @@ func TestNewConfig(t *testing.T) {
 		name                     string
 		success                  bool
 		workDir                  string
-		configs                  *workspace.BackendConfigs
+		configs                  *v1.BackendConfigs
 		opts                     *BackendOptions
 		setEnvFunc, unSetEnvFunc func()
 		expectedConfig           *StateStorageConfig
@@ -32,7 +32,7 @@ func TestNewConfig(t *testing.T) {
 			setEnvFunc:   nil,
 			unSetEnvFunc: nil,
 			expectedConfig: &StateStorageConfig{
-				Type: workspace.BackendLocal,
+				Type: v1.BackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -42,8 +42,8 @@ func TestNewConfig(t *testing.T) {
 			name:    "empty backend options",
 			success: true,
 			workDir: "/testProject/testStack",
-			configs: &workspace.BackendConfigs{
-				Mysql: &workspace.MysqlConfig{
+			configs: &v1.BackendConfigs{
+				Mysql: &v1.MysqlConfig{
 					DBName:   "kusion_db",
 					User:     "kusion",
 					Password: "do_not_recommend",
@@ -53,13 +53,13 @@ func TestNewConfig(t *testing.T) {
 			},
 			opts: &BackendOptions{},
 			setEnvFunc: func() {
-				_ = os.Setenv(workspace.EnvBackendMysqlPassword, "kusion_password")
+				_ = os.Setenv(v1.EnvBackendMysqlPassword, "kusion_password")
 			},
 			unSetEnvFunc: func() {
-				_ = os.Unsetenv(workspace.EnvBackendMysqlPassword)
+				_ = os.Unsetenv(v1.EnvBackendMysqlPassword)
 			},
 			expectedConfig: &StateStorageConfig{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: map[string]any{
 					"dbName":   "kusion_db",
 					"user":     "kusion",
@@ -73,8 +73,8 @@ func TestNewConfig(t *testing.T) {
 			name:    "backend options override",
 			success: true,
 			workDir: "/testProject/testStack",
-			configs: &workspace.BackendConfigs{
-				Mysql: &workspace.MysqlConfig{
+			configs: &v1.BackendConfigs{
+				Mysql: &v1.MysqlConfig{
 					DBName: "kusion_db",
 					User:   "kusion",
 					Host:   "127.0.0.1",
@@ -82,21 +82,21 @@ func TestNewConfig(t *testing.T) {
 				},
 			},
 			opts: &BackendOptions{
-				Type:   workspace.BackendS3,
+				Type:   v1.BackendS3,
 				Config: []string{"region=ua-east-2", "bucket=kusion_bucket"},
 			},
 			setEnvFunc: func() {
-				_ = os.Setenv(workspace.EnvAwsRegion, "ua-east-1")
-				_ = os.Setenv(workspace.EnvAwsAccessKeyID, "aws_ak_id")
-				_ = os.Setenv(workspace.EnvAwsSecretAccessKey, "aws_ak_secret")
+				_ = os.Setenv(v1.EnvAwsRegion, "ua-east-1")
+				_ = os.Setenv(v1.EnvAwsAccessKeyID, "aws_ak_id")
+				_ = os.Setenv(v1.EnvAwsSecretAccessKey, "aws_ak_secret")
 			},
 			unSetEnvFunc: func() {
-				_ = os.Unsetenv(workspace.EnvAwsDefaultRegion)
-				_ = os.Unsetenv(workspace.EnvOssAccessKeyID)
-				_ = os.Unsetenv(workspace.EnvAwsSecretAccessKey)
+				_ = os.Unsetenv(v1.EnvAwsDefaultRegion)
+				_ = os.Unsetenv(v1.EnvOssAccessKeyID)
+				_ = os.Unsetenv(v1.EnvAwsSecretAccessKey)
 			},
 			expectedConfig: &StateStorageConfig{
-				Type: workspace.BackendS3,
+				Type: v1.BackendS3,
 				Config: map[string]any{
 					"region":          "ua-east-2",
 					"accessKeyID":     "aws_ak_id",
@@ -133,7 +133,7 @@ func TestStateStorageConfig_NewStateStorage(t *testing.T) {
 			name:    "local state storage",
 			success: true,
 			config: &StateStorageConfig{
-				Type: workspace.BackendLocal,
+				Type: v1.BackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -163,9 +163,9 @@ func TestMergeConfig(t *testing.T) {
 	}{
 		{
 			name:        "empty override config",
-			backendType: workspace.BackendLocal,
+			backendType: v1.BackendLocal,
 			config: &StateStorageConfig{
-				Type: workspace.BackendLocal,
+				Type: v1.BackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -173,7 +173,7 @@ func TestMergeConfig(t *testing.T) {
 			overrideConfig: nil,
 			envConfig:      nil,
 			mergedConfig: &StateStorageConfig{
-				Type: workspace.BackendLocal,
+				Type: v1.BackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -181,9 +181,9 @@ func TestMergeConfig(t *testing.T) {
 		},
 		{
 			name:        "same type override config",
-			backendType: workspace.BackendMysql,
+			backendType: v1.BackendMysql,
 			config: &StateStorageConfig{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: map[string]any{
 					"dbName": "kusion_db",
 					"user":   "kusion",
@@ -192,7 +192,7 @@ func TestMergeConfig(t *testing.T) {
 				},
 			},
 			overrideConfig: &StateStorageConfig{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: map[string]any{
 					"dbName": "new_kusion_db",
 					"user":   "new_kusion",
@@ -202,7 +202,7 @@ func TestMergeConfig(t *testing.T) {
 				"password": "new_kusion_password",
 			},
 			mergedConfig: &StateStorageConfig{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: map[string]any{
 					"dbName":   "new_kusion_db",
 					"user":     "new_kusion",
@@ -214,9 +214,9 @@ func TestMergeConfig(t *testing.T) {
 		},
 		{
 			name:        "different type override config",
-			backendType: workspace.BackendOss,
+			backendType: v1.BackendOss,
 			config: &StateStorageConfig{
-				Type: workspace.BackendMysql,
+				Type: v1.BackendMysql,
 				Config: map[string]any{
 					"dbName": "kusion_db",
 					"user":   "kusion",
@@ -225,7 +225,7 @@ func TestMergeConfig(t *testing.T) {
 				},
 			},
 			overrideConfig: &StateStorageConfig{
-				Type: workspace.BackendOss,
+				Type: v1.BackendOss,
 				Config: map[string]any{
 					"endpoint":        "oss-cn-hangzhou.aliyuncs.com",
 					"bucket":          "kusion_test",
@@ -238,7 +238,7 @@ func TestMergeConfig(t *testing.T) {
 				"accessKeySecret": "kusion_test_env",
 			},
 			mergedConfig: &StateStorageConfig{
-				Type: workspace.BackendOss,
+				Type: v1.BackendOss,
 				Config: map[string]any{
 					"endpoint":        "oss-cn-hangzhou.aliyuncs.com",
 					"bucket":          "kusion_test",

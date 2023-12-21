@@ -9,8 +9,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/stack"
-	"kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -48,14 +48,14 @@ func Test_NewStateStorage(t *testing.T) {
 			stack:   mockStack("s3_backend_ws"),
 			opts:    &BackendOptions{},
 			setEnvFunc: func() {
-				_ = os.Setenv(workspace.EnvAwsRegion, "ua-east-2")
-				_ = os.Setenv(workspace.EnvAwsAccessKeyID, "aws_ak_id")
-				_ = os.Setenv(workspace.EnvAwsSecretAccessKey, "aws_ak_secret")
+				_ = os.Setenv(v1.EnvAwsRegion, "ua-east-2")
+				_ = os.Setenv(v1.EnvAwsAccessKeyID, "aws_ak_id")
+				_ = os.Setenv(v1.EnvAwsSecretAccessKey, "aws_ak_secret")
 			},
 			unsetEnvFunc: func() {
-				_ = os.Unsetenv(workspace.EnvAwsDefaultRegion)
-				_ = os.Unsetenv(workspace.EnvOssAccessKeyID)
-				_ = os.Unsetenv(workspace.EnvAwsSecretAccessKey)
+				_ = os.Unsetenv(v1.EnvAwsDefaultRegion)
+				_ = os.Unsetenv(v1.EnvOssAccessKeyID)
+				_ = os.Unsetenv(v1.EnvAwsSecretAccessKey)
 			},
 		},
 		{

@@ -6,7 +6,7 @@ import (
 
 	"github.com/zclconf/go-cty/cty/gocty"
 
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	backendinit "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
@@ -20,7 +20,7 @@ type StateStorageConfig struct {
 }
 
 // NewConfig news a StateStorageConfig from workspace BackendConfigs, BackendOptions and environment variables.
-func NewConfig(workDir string, configs *workspaceapi.BackendConfigs, opts *BackendOptions) (*StateStorageConfig, error) {
+func NewConfig(workDir string, configs *v1.BackendConfigs, opts *BackendOptions) (*StateStorageConfig, error) {
 	var config, overrideConfig *StateStorageConfig
 	config = convertWorkspaceBackendConfig(workDir, configs)
 	if opts != nil && !opts.IsEmpty() {
@@ -41,7 +41,7 @@ func NewConfig(workDir string, configs *workspaceapi.BackendConfigs, opts *Backe
 // NewDefaultStateStorageConfig news the default state storage which uses local backend.
 func NewDefaultStateStorageConfig(workDir string) *StateStorageConfig {
 	return &StateStorageConfig{
-		Type: workspaceapi.BackendLocal,
+		Type: v1.BackendLocal,
 		Config: map[string]any{
 			"path": path.Join(workDir, local.KusionStateFileFile),
 		},
@@ -68,13 +68,13 @@ func (c *StateStorageConfig) NewStateStorage() (states.StateStorage, error) {
 }
 
 // convertWorkspaceBackendConfig converts workspace backend config to StateStorageConfig.
-func convertWorkspaceBackendConfig(workDir string, configs *workspaceapi.BackendConfigs) *StateStorageConfig {
+func convertWorkspaceBackendConfig(workDir string, configs *v1.BackendConfigs) *StateStorageConfig {
 	name := workspace.GetBackendName(configs)
 	var config map[string]any
 	switch name {
-	case workspaceapi.BackendLocal:
+	case v1.BackendLocal:
 		config = NewDefaultStateStorageConfig(workDir).Config
-	case workspaceapi.BackendMysql:
+	case v1.BackendMysql:
 		config = map[string]any{
 			"dbName":   configs.Mysql.DBName,
 			"user":     configs.Mysql.User,
@@ -82,14 +82,14 @@ func convertWorkspaceBackendConfig(workDir string, configs *workspaceapi.Backend
 			"host":     configs.Mysql.Host,
 			"port":     *configs.Mysql.Port,
 		}
-	case workspaceapi.BackendOss:
+	case v1.BackendOss:
 		config = map[string]any{
 			"endpoint":        configs.Oss.Endpoint,
 			"bucket":          configs.Oss.Bucket,
 			"accessKeyID":     configs.Oss.AccessKeyID,
 			"accessKeySecret": configs.Oss.AccessKeySecret,
 		}
-	case workspaceapi.BackendS3:
+	case v1.BackendS3:
 		config = map[string]any{
 			"endpoint":        configs.S3.Endpoint,
 			"bucket":          configs.S3.Bucket,
@@ -108,12 +108,12 @@ func convertWorkspaceBackendConfig(workDir string, configs *workspaceapi.Backend
 func getEnvBackendConfig(backendType string) map[string]any {
 	config := make(map[string]any)
 	switch backendType {
-	case workspaceapi.BackendMysql:
+	case v1.BackendMysql:
 		password := workspace.GetMysqlPasswordFromEnv()
 		if password != "" {
 			config["password"] = password
 		}
-	case workspaceapi.BackendOss:
+	case v1.BackendOss:
 		accessKeyID, accessKeySecret := workspace.GetOssSensitiveDataFromEnv()
 		if accessKeyID != "" {
 			config["accessKeyID"] = accessKeyID
@@ -121,7 +121,7 @@ func getEnvBackendConfig(backendType string) map[string]any {
 		if accessKeySecret != "" {
 			config["accessKeySecret"] = accessKeySecret
 		}
-	case workspaceapi.BackendS3:
+	case v1.BackendS3:
 		accessKeyID, accessKeySecret, region := workspace.GetS3SensitiveDataFromEnv()
 		if accessKeyID != "" {
 			config["accessKeyID"] = accessKeyID

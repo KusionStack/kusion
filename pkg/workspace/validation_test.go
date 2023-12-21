@@ -5,11 +5,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func mockValidWorkspace(name string) *workspace.Workspace {
-	return &workspace.Workspace{
+func mockValidWorkspace(name string) *v1.Workspace {
+	return &v1.Workspace{
 		Name:     name,
 		Modules:  mockValidModuleConfigs(),
 		Runtimes: mockValidRuntimeConfigs(),
@@ -17,17 +17,17 @@ func mockValidWorkspace(name string) *workspace.Workspace {
 	}
 }
 
-func mockValidModuleConfigs() map[string]*workspace.ModuleConfig {
-	return map[string]*workspace.ModuleConfig{
+func mockValidModuleConfigs() map[string]*v1.ModuleConfig {
+	return map[string]*v1.ModuleConfig{
 		"database": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 					ProjectSelector: []string{"foo", "bar"},
@@ -35,20 +35,20 @@ func mockValidModuleConfigs() map[string]*workspace.ModuleConfig {
 			},
 		},
 		"port": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type": "aws",
 			},
 		},
 	}
 }
 
-func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
-	return map[string]workspace.ModuleConfig{
+func mockInvalidModuleConfigs() map[string]v1.ModuleConfig {
+	return map[string]v1.ModuleConfig{
 		"empty default block": {
-			Default: workspace.GenericConfig{},
+			Default: v1.GenericConfig{},
 		},
 		"not empty projectSelector in default block": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":            "aws",
 				"version":         "5.7",
 				"instanceType":    "db.t3.micro",
@@ -56,14 +56,14 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 			},
 		},
 		"empty patcher block name": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 					ProjectSelector: []string{"foo", "bar"},
@@ -71,50 +71,50 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 			},
 		},
 		"empty patcher block": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": nil,
 			},
 		},
 		"empty config in patcher block": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
 					ProjectSelector: []string{"foo", "bar"},
 				},
 			},
 		},
 		"empty project selector in patcher block": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 				},
 			},
 		},
 		"empty project name": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 					ProjectSelector: []string{"", "bar"},
@@ -122,14 +122,14 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 			},
 		},
 		"repeated projects in one patcher block": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 					ProjectSelector: []string{"foo", "foo"},
@@ -137,20 +137,20 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 			},
 		},
 		"repeated projects in multiple patcher blocks": {
-			Default: workspace.GenericConfig{
+			Default: v1.GenericConfig{
 				"type":         "aws",
 				"version":      "5.7",
 				"instanceType": "db.t3.micro",
 			},
-			ModulePatcherConfigs: workspace.ModulePatcherConfigs{
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
 				"smallClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.small",
 					},
 					ProjectSelector: []string{"foo", "bar"},
 				},
 				"largeClass": {
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"instanceType": "db.t3.large",
 					},
 					ProjectSelector: []string{"foo"},
@@ -160,54 +160,54 @@ func mockInvalidModuleConfigs() map[string]workspace.ModuleConfig {
 	}
 }
 
-func mockValidRuntimeConfigs() *workspace.RuntimeConfigs {
-	return &workspace.RuntimeConfigs{
+func mockValidRuntimeConfigs() *v1.RuntimeConfigs {
+	return &v1.RuntimeConfigs{
 		Kubernetes: mockValidKubernetesConfig(),
 		Terraform:  mockValidTerraformConfig(),
 	}
 }
 
-func mockValidKubernetesConfig() *workspace.KubernetesConfig {
-	return &workspace.KubernetesConfig{
+func mockValidKubernetesConfig() *v1.KubernetesConfig {
+	return &v1.KubernetesConfig{
 		KubeConfig: "/etc/kubeconfig.yaml",
 	}
 }
 
-func mockValidTerraformConfig() workspace.TerraformConfig {
-	return workspace.TerraformConfig{
+func mockValidTerraformConfig() v1.TerraformConfig {
+	return v1.TerraformConfig{
 		"aws": {
 			Source:  "hashicorp/aws",
 			Version: "1.0.4",
-			GenericConfig: workspace.GenericConfig{
+			GenericConfig: v1.GenericConfig{
 				"region": "us-east-1",
 			},
 		},
 	}
 }
 
-func mockValidBackendConfigs() *workspace.BackendConfigs {
-	return &workspace.BackendConfigs{
-		Local: &workspace.LocalFileConfig{},
+func mockValidBackendConfigs() *v1.BackendConfigs {
+	return &v1.BackendConfigs{
+		Local: &v1.LocalFileConfig{},
 	}
 }
 
-func mockValidMysqlConfig() *workspace.MysqlConfig {
-	return &workspace.MysqlConfig{
+func mockValidMysqlConfig() *v1.MysqlConfig {
+	return &v1.MysqlConfig{
 		DBName: "kusion_db",
 		User:   "kusion",
 		Host:   "127.0.0.1",
 	}
 }
 
-func mockValidGenericObjectStorageConfig() *workspace.GenericObjectStorageConfig {
-	return &workspace.GenericObjectStorageConfig{
+func mockValidGenericObjectStorageConfig() *v1.GenericObjectStorageConfig {
+	return &v1.GenericObjectStorageConfig{
 		Bucket: "kusion_bucket",
 	}
 }
 
-func mockValidCompletedOssConfig() *workspace.OssConfig {
-	return &workspace.OssConfig{
-		GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+func mockValidCompletedOssConfig() *v1.OssConfig {
+	return &v1.OssConfig{
+		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 			Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 			AccessKeyID:     "fake-access-key-id",
 			AccessKeySecret: "fake-access-key-secret",
@@ -216,9 +216,9 @@ func mockValidCompletedOssConfig() *workspace.OssConfig {
 	}
 }
 
-func mockValidCompletedS3Config() *workspace.S3Config {
-	return &workspace.S3Config{
-		GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+func mockValidCompletedS3Config() *v1.S3Config {
+	return &v1.S3Config{
+		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 			AccessKeyID:     "fake-access-key-id",
 			AccessKeySecret: "fake-access-key-secret",
 			Bucket:          "kusion_bucket",
@@ -231,7 +231,7 @@ func TestValidateWorkspace(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
-		workspace *workspace.Workspace
+		workspace *v1.Workspace
 	}{
 		{
 			name:      "valid workspace",
@@ -241,7 +241,7 @@ func TestValidateWorkspace(t *testing.T) {
 		{
 			name:      "invalid workspace empty name",
 			success:   false,
-			workspace: &workspace.Workspace{},
+			workspace: &v1.Workspace{},
 		},
 	}
 
@@ -257,7 +257,7 @@ func TestValidateModuleConfigs(t *testing.T) {
 	testcases := []struct {
 		name          string
 		success       bool
-		moduleConfigs workspace.ModuleConfigs
+		moduleConfigs v1.ModuleConfigs
 	}{
 		{
 			name:          "valid module configs",
@@ -267,14 +267,14 @@ func TestValidateModuleConfigs(t *testing.T) {
 		{
 			name:    "invalid module configs empty module name",
 			success: false,
-			moduleConfigs: workspace.ModuleConfigs{
+			moduleConfigs: v1.ModuleConfigs{
 				"": mockValidModuleConfigs()["database"],
 			},
 		},
 		{
 			name:    "invalid module configs empty module config",
 			success: false,
-			moduleConfigs: workspace.ModuleConfigs{
+			moduleConfigs: v1.ModuleConfigs{
 				"database": nil,
 			},
 		},
@@ -292,7 +292,7 @@ func TestValidateModuleConfig(t *testing.T) {
 	testcases := []struct {
 		name         string
 		success      bool
-		moduleConfig workspace.ModuleConfig
+		moduleConfig v1.ModuleConfig
 	}{
 		{
 			name:         "valid module config",
@@ -304,7 +304,7 @@ func TestValidateModuleConfig(t *testing.T) {
 		testcases = append(testcases, struct {
 			name         string
 			success      bool
-			moduleConfig workspace.ModuleConfig
+			moduleConfig v1.ModuleConfig
 		}{
 			name:         "invalid module config " + desc,
 			success:      false,
@@ -324,7 +324,7 @@ func TestValidateRuntimeConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		runtimeConfigs *workspace.RuntimeConfigs
+		runtimeConfigs *v1.RuntimeConfigs
 	}{
 		{
 			name:           "valid runtime configs",
@@ -345,7 +345,7 @@ func TestValidateKubernetesConfig(t *testing.T) {
 	testcases := []struct {
 		name             string
 		success          bool
-		kubernetesConfig *workspace.KubernetesConfig
+		kubernetesConfig *v1.KubernetesConfig
 	}{
 		{
 			name:             "valid kubernetes config",
@@ -355,7 +355,7 @@ func TestValidateKubernetesConfig(t *testing.T) {
 		{
 			name:             "invalid kubernetes config empty kubeconfig",
 			success:          false,
-			kubernetesConfig: &workspace.KubernetesConfig{},
+			kubernetesConfig: &v1.KubernetesConfig{},
 		},
 	}
 
@@ -371,7 +371,7 @@ func TestValidateTerraformConfig(t *testing.T) {
 	testcases := []struct {
 		name            string
 		success         bool
-		terraformConfig workspace.TerraformConfig
+		terraformConfig v1.TerraformConfig
 	}{
 		{
 			name:            "valid terraform config",
@@ -381,11 +381,11 @@ func TestValidateTerraformConfig(t *testing.T) {
 		{
 			name:    "invalid terraform config empty provider name",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"": {
 					Source:  "hashicorp/aws",
 					Version: "1.0.4",
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"region": "us-east-1",
 					},
 				},
@@ -394,18 +394,18 @@ func TestValidateTerraformConfig(t *testing.T) {
 		{
 			name:    "invalid terraform config empty provider config",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"aws": nil,
 			},
 		},
 		{
 			name:    "invalid terraform config empty provider source",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"aws": {
 					Source:  "",
 					Version: "1.0.4",
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"region": "us-east-1",
 					},
 				},
@@ -414,11 +414,11 @@ func TestValidateTerraformConfig(t *testing.T) {
 		{
 			name:    "invalid terraform config empty provider version",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"aws": {
 					Source:  "hashicorp/aws",
 					Version: "",
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"region": "us-east-1",
 					},
 				},
@@ -427,11 +427,11 @@ func TestValidateTerraformConfig(t *testing.T) {
 		{
 			name:    "invalid terraform config empty provider config key",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"aws": {
 					Source:  "hashicorp/aws",
 					Version: "1.0.4",
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"": "us-east-1",
 					},
 				},
@@ -440,11 +440,11 @@ func TestValidateTerraformConfig(t *testing.T) {
 		{
 			name:    "invalid terraform config empty provider config value",
 			success: false,
-			terraformConfig: workspace.TerraformConfig{
+			terraformConfig: v1.TerraformConfig{
 				"aws": {
 					Source:  "hashicorp/aws",
 					Version: "1.0.4",
-					GenericConfig: workspace.GenericConfig{
+					GenericConfig: v1.GenericConfig{
 						"region": nil,
 					},
 				},
@@ -464,7 +464,7 @@ func TestValidateBackendConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		backendConfigs *workspace.BackendConfigs
+		backendConfigs *v1.BackendConfigs
 	}{
 		{
 			name:           "valid backend configs",
@@ -474,9 +474,9 @@ func TestValidateBackendConfigs(t *testing.T) {
 		{
 			name:    "invalid backend configs multiple backends",
 			success: false,
-			backendConfigs: &workspace.BackendConfigs{
-				Local: &workspace.LocalFileConfig{},
-				Mysql: &workspace.MysqlConfig{
+			backendConfigs: &v1.BackendConfigs{
+				Local: &v1.LocalFileConfig{},
+				Mysql: &v1.MysqlConfig{
 					DBName: "test",
 				},
 			},
@@ -496,7 +496,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 	testcases := []struct {
 		name        string
 		success     bool
-		mysqlConfig *workspace.MysqlConfig
+		mysqlConfig *v1.MysqlConfig
 	}{
 		{
 			name:        "valid mysql config",
@@ -506,7 +506,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty dbName",
 			success: false,
-			mysqlConfig: &workspace.MysqlConfig{
+			mysqlConfig: &v1.MysqlConfig{
 				DBName: "",
 				User:   "kusion",
 				Host:   "127.0.0.1",
@@ -515,7 +515,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty user",
 			success: false,
-			mysqlConfig: &workspace.MysqlConfig{
+			mysqlConfig: &v1.MysqlConfig{
 				DBName: "kusion_db",
 				User:   "",
 				Host:   "127.0.0.1",
@@ -524,7 +524,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty host",
 			success: false,
-			mysqlConfig: &workspace.MysqlConfig{
+			mysqlConfig: &v1.MysqlConfig{
 				DBName: "kusion_db",
 				User:   "kusion",
 				Host:   "",
@@ -533,7 +533,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config invalid port",
 			success: false,
-			mysqlConfig: &workspace.MysqlConfig{
+			mysqlConfig: &v1.MysqlConfig{
 				DBName: "kusion_db",
 				User:   "kusion",
 				Host:   "127.0.0.1",
@@ -554,7 +554,7 @@ func TestValidateValidateGenericObjectStorageConfig(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
-		config  *workspace.GenericObjectStorageConfig
+		config  *v1.GenericObjectStorageConfig
 	}{
 		{
 			name:    "valid generic object storage config",
@@ -564,7 +564,7 @@ func TestValidateValidateGenericObjectStorageConfig(t *testing.T) {
 		{
 			name:    "invalid generic object storage config empty bucket",
 			success: false,
-			config:  &workspace.GenericObjectStorageConfig{},
+			config:  &v1.GenericObjectStorageConfig{},
 		},
 	}
 
@@ -580,7 +580,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
-		ossConfig *workspace.OssConfig
+		ossConfig *v1.OssConfig
 	}{
 		{
 			name:      "valid oss config",
@@ -590,8 +590,8 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty endpoint",
 			success: false,
-			ossConfig: &workspace.OssConfig{
-				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			ossConfig: &v1.OssConfig{
+				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
@@ -602,8 +602,8 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty access key id",
 			success: false,
-			ossConfig: &workspace.OssConfig{
-				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			ossConfig: &v1.OssConfig{
+				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "",
 					AccessKeySecret: "fake-access-key-secret",
@@ -614,8 +614,8 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty access key secret",
 			success: false,
-			ossConfig: &workspace.OssConfig{
-				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			ossConfig: &v1.OssConfig{
+				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "",
@@ -637,7 +637,7 @@ func TestValidateWholeS3Config(t *testing.T) {
 	testcases := []struct {
 		name     string
 		success  bool
-		s3Config *workspace.S3Config
+		s3Config *v1.S3Config
 	}{
 		{
 			name:     "valid s3 config",
@@ -647,8 +647,8 @@ func TestValidateWholeS3Config(t *testing.T) {
 		{
 			name:    "invalid s3 config empty region",
 			success: false,
-			s3Config: &workspace.S3Config{
-				GenericObjectStorageConfig: workspace.GenericObjectStorageConfig{
+			s3Config: &v1.S3Config{
+				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
 					Bucket:          "kusion_bucket",

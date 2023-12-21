@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/intent"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 )
 
 type mockGenerator struct {
@@ -256,13 +256,13 @@ func TestPatchResource(t *testing.T) {
 func TestAddKubeConfigIf(t *testing.T) {
 	testcases := []struct {
 		name           string
-		ws             *workspaceapi.Workspace
+		ws             *apiv1.Workspace
 		i              *intent.Intent
 		expectedIntent *intent.Intent
 	}{
 		{
 			name: "empty workspace runtime config",
-			ws:   &workspaceapi.Workspace{Name: "dev"},
+			ws:   &apiv1.Workspace{Name: "dev"},
 			i: &intent.Intent{
 				Resources: intent.Resources{
 					{
@@ -290,10 +290,10 @@ func TestAddKubeConfigIf(t *testing.T) {
 		},
 		{
 			name: "empty kubeConfig in workspace",
-			ws: &workspaceapi.Workspace{
+			ws: &apiv1.Workspace{
 				Name: "dev",
-				Runtimes: &workspaceapi.RuntimeConfigs{
-					Kubernetes: &workspaceapi.KubernetesConfig{},
+				Runtimes: &apiv1.RuntimeConfigs{
+					Kubernetes: &apiv1.KubernetesConfig{},
 				},
 			},
 			i: &intent.Intent{
@@ -323,10 +323,10 @@ func TestAddKubeConfigIf(t *testing.T) {
 		},
 		{
 			name: "add kubeConfig",
-			ws: &workspaceapi.Workspace{
+			ws: &apiv1.Workspace{
 				Name: "dev",
-				Runtimes: &workspaceapi.RuntimeConfigs{
-					Kubernetes: &workspaceapi.KubernetesConfig{
+				Runtimes: &apiv1.RuntimeConfigs{
+					Kubernetes: &apiv1.KubernetesConfig{
 						KubeConfig: "/etc/kubeConfig.yaml",
 					},
 				},

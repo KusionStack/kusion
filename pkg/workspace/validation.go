@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 var (
@@ -44,7 +44,7 @@ var (
 
 // ValidateWorkspace is used to validate the workspace get or set in the storage, and does not validate the
 // config which can get from environment variables, such as access key id in backend configs.
-func ValidateWorkspace(ws *workspace.Workspace) error {
+func ValidateWorkspace(ws *v1.Workspace) error {
 	if ws.Name == "" {
 		return ErrEmptyWorkspaceName
 	}
@@ -67,7 +67,7 @@ func ValidateWorkspace(ws *workspace.Workspace) error {
 }
 
 // ValidateModuleConfigs validates the moduleConfigs is valid or not.
-func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
+func ValidateModuleConfigs(configs v1.ModuleConfigs) error {
 	for name, cfg := range configs {
 		if name == "" {
 			return ErrEmptyModuleName
@@ -84,7 +84,7 @@ func ValidateModuleConfigs(configs workspace.ModuleConfigs) error {
 }
 
 // ValidateModuleConfig is used to validate the moduleConfig is valid or not.
-func ValidateModuleConfig(config *workspace.ModuleConfig) error {
+func ValidateModuleConfig(config *v1.ModuleConfig) error {
 	if err := ValidateModuleDefaultConfig(config.Default); err != nil {
 		return err
 	}
@@ -94,17 +94,17 @@ func ValidateModuleConfig(config *workspace.ModuleConfig) error {
 	return nil
 }
 
-func ValidateModuleDefaultConfig(config workspace.GenericConfig) error {
+func ValidateModuleDefaultConfig(config v1.GenericConfig) error {
 	if len(config) == 0 {
-		return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, workspace.DefaultBlock)
+		return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, v1.DefaultBlock)
 	}
-	if _, ok := config[workspace.ProjectSelectorField]; ok {
+	if _, ok := config[v1.ProjectSelectorField]; ok {
 		return ErrNotEmptyModuleConfigProjectSelector
 	}
 	return nil
 }
 
-func ValidateModulePatcherConfigs(config workspace.ModulePatcherConfigs) error {
+func ValidateModulePatcherConfigs(config v1.ModulePatcherConfigs) error {
 	// allProjects is used to inspect if there are repeated projects in projectSelector
 	// field or not.
 	allProjects := make(map[string]string)
@@ -114,7 +114,7 @@ func ValidateModulePatcherConfigs(config workspace.ModulePatcherConfigs) error {
 			return ErrEmptyModuleConfigPatcherBlockName
 
 		// name of patcher block must not be default.
-		case workspace.DefaultBlock:
+		case v1.DefaultBlock:
 			return ErrInvalidModuleConfigPatcherBlockName
 
 		// repeated projects in different patcher blocks are not allowed.
@@ -152,7 +152,7 @@ func ValidateModulePatcherConfigs(config workspace.ModulePatcherConfigs) error {
 }
 
 // ValidateRuntimeConfigs is used to validate the runtimeConfigs is valid or not.
-func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
+func ValidateRuntimeConfigs(configs *v1.RuntimeConfigs) error {
 	if configs.Kubernetes != nil {
 		if err := ValidateKubernetesConfig(configs.Kubernetes); err != nil {
 			return err
@@ -167,7 +167,7 @@ func ValidateRuntimeConfigs(configs *workspace.RuntimeConfigs) error {
 }
 
 // ValidateKubernetesConfig is used to validate the kubernetesConfig is valid or not.
-func ValidateKubernetesConfig(config *workspace.KubernetesConfig) error {
+func ValidateKubernetesConfig(config *v1.KubernetesConfig) error {
 	if config.KubeConfig == "" {
 		return ErrEmptyKubeConfig
 	}
@@ -175,7 +175,7 @@ func ValidateKubernetesConfig(config *workspace.KubernetesConfig) error {
 }
 
 // ValidateTerraformConfig is used to validate the terraformConfig is valid or not.
-func ValidateTerraformConfig(config workspace.TerraformConfig) error {
+func ValidateTerraformConfig(config v1.TerraformConfig) error {
 	for name, cfg := range config {
 		if name == "" {
 			return ErrEmptyTerraformProviderName
@@ -191,7 +191,7 @@ func ValidateTerraformConfig(config workspace.TerraformConfig) error {
 }
 
 // ValidateProviderConfig is used to validate the providerConfig is valid or not.
-func ValidateProviderConfig(config *workspace.ProviderConfig) error {
+func ValidateProviderConfig(config *v1.ProviderConfig) error {
 	if config.Source == "" {
 		return ErrEmptyTerraformProviderSource
 	}
@@ -211,7 +211,7 @@ func ValidateProviderConfig(config *workspace.ProviderConfig) error {
 
 // ValidateBackendConfigs is used to validate backendConfigs is valid or not, and does not validate the
 // configs which can get from environment variables, such as access key id, etc.
-func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
+func ValidateBackendConfigs(configs *v1.BackendConfigs) error {
 	if configureMoreThanOneBackend(configs) {
 		return ErrMultipleBackends
 	}
@@ -223,13 +223,13 @@ func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
 	}
 	if configs.Oss != nil {
 		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, workspace.BackendOss)
+			return fmt.Errorf("%w of %s", err, v1.BackendOss)
 		}
 		return nil
 	}
 	if configs.S3 != nil {
 		if err := ValidateGenericObjectStorageConfig(&configs.S3.GenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, workspace.BackendS3)
+			return fmt.Errorf("%w of %s", err, v1.BackendS3)
 		}
 		return nil
 	}
@@ -237,7 +237,7 @@ func ValidateBackendConfigs(configs *workspace.BackendConfigs) error {
 }
 
 // configureMoreThanOneBackend checks whether there are more than one backend configured.
-func configureMoreThanOneBackend(configs *workspace.BackendConfigs) bool {
+func configureMoreThanOneBackend(configs *v1.BackendConfigs) bool {
 	// configCondition returns: 1, if the backend configured or not; 2, if configured more than one backend.
 	configCondition := func(configured bool, hasNewConfig bool) (bool, bool) {
 		return configured || hasNewConfig, configured && hasNewConfig
@@ -258,7 +258,7 @@ func configureMoreThanOneBackend(configs *workspace.BackendConfigs) bool {
 }
 
 // ValidateMysqlConfig is used to validate mysqlConfig is valid or not.
-func ValidateMysqlConfig(config *workspace.MysqlConfig) error {
+func ValidateMysqlConfig(config *v1.MysqlConfig) error {
 	if config.DBName == "" {
 		return ErrEmptyMysqlDBName
 	}
@@ -276,7 +276,7 @@ func ValidateMysqlConfig(config *workspace.MysqlConfig) error {
 
 // ValidateGenericObjectStorageConfig is used to validate ossConfig and s3Config is valid or not, where the
 // sensitive data items set as environment variables are not included.
-func ValidateGenericObjectStorageConfig(config *workspace.GenericObjectStorageConfig) error {
+func ValidateGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) error {
 	if config.Bucket == "" {
 		return ErrEmptyBucket
 	}
@@ -285,9 +285,9 @@ func ValidateGenericObjectStorageConfig(config *workspace.GenericObjectStorageCo
 
 // ValidateWholeOssConfig is used to validate ossConfig is valid or not, where all the items are included.
 // If valid, the config contains all valid items to new an oss client.
-func ValidateWholeOssConfig(config *workspace.OssConfig) error {
+func ValidateWholeOssConfig(config *v1.OssConfig) error {
 	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, workspace.BackendOss)
+		return fmt.Errorf("%w of %s", err, v1.BackendOss)
 	}
 	if config.Endpoint == "" {
 		return ErrEmptyOssEndpoint
@@ -297,9 +297,9 @@ func ValidateWholeOssConfig(config *workspace.OssConfig) error {
 
 // ValidateWholeS3Config is used to validate s3Config is valid or not, where all the items are included.
 // If valid, the config  contains all valid items to new a s3 client.
-func ValidateWholeS3Config(config *workspace.S3Config) error {
+func ValidateWholeS3Config(config *v1.S3Config) error {
 	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, workspace.BackendS3)
+		return fmt.Errorf("%w of %s", err, v1.BackendS3)
 	}
 	if config.Region == "" {
 		return ErrEmptyS3Region
@@ -307,7 +307,7 @@ func ValidateWholeS3Config(config *workspace.S3Config) error {
 	return nil
 }
 
-func validateWholeGenericObjectStorageConfig(config *workspace.GenericObjectStorageConfig) error {
+func validateWholeGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) error {
 	if err := ValidateGenericObjectStorageConfig(config); err != nil {
 		return err
 	}

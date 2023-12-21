@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"kusionstack.io/kusion/pkg/apis/workspace"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 var (
@@ -21,11 +21,11 @@ var (
 
 // CompleteWorkspace sets the workspace name and default value of unset item, should be called after ValidateWorkspace.
 // The config items set as environment variables are not got by CompleteWorkspace.
-func CompleteWorkspace(ws *workspace.Workspace, name string) {
+func CompleteWorkspace(ws *v1.Workspace, name string) {
 	if ws.Name != "" {
 		ws.Name = name
 	}
-	if ws.Backends != nil && GetBackendName(ws.Backends) == workspace.BackendMysql {
+	if ws.Backends != nil && GetBackendName(ws.Backends) == v1.BackendMysql {
 		CompleteMysqlConfig(ws.Backends.Mysql)
 	}
 }
@@ -33,7 +33,7 @@ func CompleteWorkspace(ws *workspace.Workspace, name string) {
 // GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name,
 // should be called after ValidateModuleConfigs.
 // If got empty module configs, ErrEmptyProjectModuleConfigs will get returned.
-func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string) (map[string]workspace.GenericConfig, error) {
+func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[string]v1.GenericConfig, error) {
 	if len(configs) == 0 {
 		return nil, ErrEmptyModuleConfigs
 	}
@@ -41,7 +41,7 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 		return nil, ErrEmptyProjectName
 	}
 
-	projectCfgs := make(map[string]workspace.GenericConfig)
+	projectCfgs := make(map[string]v1.GenericConfig)
 	for name, cfg := range configs {
 		projectCfg, err := getProjectModuleConfig(cfg, projectName)
 		if errors.Is(err, ErrEmptyProjectModuleConfig) {
@@ -64,7 +64,7 @@ func GetProjectModuleConfigs(configs workspace.ModuleConfigs, projectName string
 // GetProjectModuleConfig returns the module config of a specified project, should be called after
 // ValidateModuleConfig.
 // If got empty module config, ErrEmptyProjectModuleConfig will get returned.
-func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+func GetProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
 	if config == nil {
 		return nil, ErrEmptyModuleConfig
 	}
@@ -77,14 +77,14 @@ func GetProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 
 // getProjectModuleConfig gets the module config of a specified project without checking the correctness
 // of project name.
-func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) (workspace.GenericConfig, error) {
+func getProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
 	projectCfg := config.Default
 	if len(projectCfg) == 0 {
-		projectCfg = make(workspace.GenericConfig)
+		projectCfg = make(v1.GenericConfig)
 	}
 
 	for name, cfg := range config.ModulePatcherConfigs {
-		if name == workspace.DefaultBlock {
+		if name == v1.DefaultBlock {
 			continue
 		}
 		// check the project is assigned in the block or not.
@@ -97,7 +97,7 @@ func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 		}
 		if contain {
 			for k, v := range cfg.GenericConfig {
-				if k == workspace.ProjectSelectorField {
+				if k == v1.ProjectSelectorField {
 					continue
 				}
 				projectCfg[k] = v
@@ -115,7 +115,7 @@ func getProjectModuleConfig(config *workspace.ModuleConfig, projectName string) 
 // GetKubernetesConfig returns kubernetes config from runtime config, should be called after
 // ValidateRuntimeConfigs.
 // If got empty kubernetes config, ErrEmptyKubernetesConfig will get returned.
-func GetKubernetesConfig(configs *workspace.RuntimeConfigs) (*workspace.KubernetesConfig, error) {
+func GetKubernetesConfig(configs *v1.RuntimeConfigs) (*v1.KubernetesConfig, error) {
 	if configs == nil {
 		return nil, ErrEmptyRuntimeConfigs
 	}
@@ -128,7 +128,7 @@ func GetKubernetesConfig(configs *workspace.RuntimeConfigs) (*workspace.Kubernet
 // GetTerraformConfig returns terraform config from runtime config, should be called after
 // ValidateRuntimeConfigs.
 // If got empty terraform config, ErrEmptyTerraformConfig will get returned.
-func GetTerraformConfig(configs *workspace.RuntimeConfigs) (workspace.TerraformConfig, error) {
+func GetTerraformConfig(configs *v1.RuntimeConfigs) (v1.TerraformConfig, error) {
 	if configs == nil {
 		return nil, ErrEmptyRuntimeConfigs
 	}
@@ -141,7 +141,7 @@ func GetTerraformConfig(configs *workspace.RuntimeConfigs) (workspace.TerraformC
 // GetProviderConfig returns the specified terraform provider config from runtime config, should be called
 // after ValidateRuntimeConfigs.
 // If got empty terraform config, ErrEmptyTerraformProviderConfig will get returned.
-func GetProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (*workspace.ProviderConfig, error) {
+func GetProviderConfig(configs *v1.RuntimeConfigs, providerName string) (*v1.ProviderConfig, error) {
 	if providerName == "" {
 		return nil, ErrEmptyTerraformProviderName
 	}
@@ -159,54 +159,54 @@ func GetProviderConfig(configs *workspace.RuntimeConfigs, providerName string) (
 
 // GetBackendName returns the backend name that is configured in BackendConfigs, should be called after
 // ValidateBackendConfigs.
-func GetBackendName(configs *workspace.BackendConfigs) string {
+func GetBackendName(configs *v1.BackendConfigs) string {
 	if configs == nil {
-		return workspace.BackendLocal
+		return v1.BackendLocal
 	}
 	if configs.Local != nil {
-		return workspace.BackendLocal
+		return v1.BackendLocal
 	}
 	if configs.Mysql != nil {
-		return workspace.BackendMysql
+		return v1.BackendMysql
 	}
 	if configs.Oss != nil {
-		return workspace.BackendOss
+		return v1.BackendOss
 	}
 	if configs.S3 != nil {
-		return workspace.BackendS3
+		return v1.BackendS3
 	}
-	return workspace.BackendLocal
+	return v1.BackendLocal
 }
 
 // GetMysqlPasswordFromEnv returns mysql password set by environment variables.
 func GetMysqlPasswordFromEnv() string {
-	return os.Getenv(workspace.EnvBackendMysqlPassword)
+	return os.Getenv(v1.EnvBackendMysqlPassword)
 }
 
 // GetOssSensitiveDataFromEnv returns oss accessKeyID, accessKeySecret set by environment variables.
 func GetOssSensitiveDataFromEnv() (string, string) {
-	return os.Getenv(workspace.EnvOssAccessKeyID), os.Getenv(workspace.EnvOssAccessKeySecret)
+	return os.Getenv(v1.EnvOssAccessKeyID), os.Getenv(v1.EnvOssAccessKeySecret)
 }
 
 // GetS3SensitiveDataFromEnv returns s3 accessKeyID, accessKeySecret, region set by environment variables.
 func GetS3SensitiveDataFromEnv() (string, string, string) {
-	region := os.Getenv(workspace.EnvAwsRegion)
+	region := os.Getenv(v1.EnvAwsRegion)
 	if region == "" {
-		region = os.Getenv(workspace.EnvAwsDefaultRegion)
+		region = os.Getenv(v1.EnvAwsDefaultRegion)
 	}
-	return os.Getenv(workspace.EnvAwsAccessKeyID), os.Getenv(workspace.EnvAwsSecretAccessKey), region
+	return os.Getenv(v1.EnvAwsAccessKeyID), os.Getenv(v1.EnvAwsSecretAccessKey), region
 }
 
 // CompleteMysqlConfig sets default value of mysql config if not set.
-func CompleteMysqlConfig(config *workspace.MysqlConfig) {
+func CompleteMysqlConfig(config *v1.MysqlConfig) {
 	if config.Port == nil {
-		port := workspace.DefaultMysqlPort
+		port := v1.DefaultMysqlPort
 		config.Port = &port
 	}
 }
 
 // CompleteWholeMysqlConfig constructs the whole mysql config by environment variables if set.
-func CompleteWholeMysqlConfig(config *workspace.MysqlConfig) {
+func CompleteWholeMysqlConfig(config *v1.MysqlConfig) {
 	password := GetMysqlPasswordFromEnv()
 	if password != "" {
 		config.Password = password
@@ -214,7 +214,7 @@ func CompleteWholeMysqlConfig(config *workspace.MysqlConfig) {
 }
 
 // CompleteWholeOssConfig constructs the whole oss config by environment variables if set.
-func CompleteWholeOssConfig(config *workspace.OssConfig) {
+func CompleteWholeOssConfig(config *v1.OssConfig) {
 	accessKeyID, accessKeySecret := GetOssSensitiveDataFromEnv()
 	if accessKeyID != "" {
 		config.AccessKeyID = accessKeyID
@@ -225,7 +225,7 @@ func CompleteWholeOssConfig(config *workspace.OssConfig) {
 }
 
 // CompleteWholeS3Config constructs the whole s3 config by environment variables if set.
-func CompleteWholeS3Config(config *workspace.S3Config) {
+func CompleteWholeS3Config(config *v1.S3Config) {
 	accessKeyID, accessKeySecret, region := GetS3SensitiveDataFromEnv()
 	if accessKeyID != "" {
 		config.AccessKeyID = accessKeyID
