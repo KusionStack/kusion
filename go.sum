@@ -706,8 +706,6 @@ github.com/yvasiyarov/gorelic v0.0.0-20141212073537-a9bba5b9ab50 h1:hlE8//ciYMzt
 github.com/yvasiyarov/newrelic_platform_go v0.0.0-20140908184405-b21fdbd4370f h1:ERexzlUfuTvpE74urLSbIQW0Z/6hF9t8U4NsJLaioAY=
 github.com/zclconf/go-cty v1.12.1 h1:PcupnljUm9EIvbgSHQnHhUr3fO6oFmkOrvs2BAFNXXY=
 github.com/zclconf/go-cty v1.12.1/go.mod h1:s9IfD1LK5ccNMSWCVFCE2rJfHiZgi7JijgeWIMfhLvA=
-github.com/zong-zhe/kpm v0.1.6-0.20231222100407-dfd66f481bb0 h1:5PIYipipCelPLHUMPeard2x+kk11ORgc8hyYl1Cbg2g=
-github.com/zong-zhe/kpm v0.1.6-0.20231222100407-dfd66f481bb0/go.mod h1:Ba2ijUHQR/sMdB4S7982vOrajly4LdgshrqXd2SXBog=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
 go.opentelemetry.io/otel v1.17.0 h1:MW+phZ6WZ5/uk2nd93ANk/6yJ+dVrvNWUjGhnnFU5jM=
 go.opentelemetry.io/otel v1.17.0/go.mod h1:I2vmBGtFaODIVMBSTPVDlJSzBDNf93k60E6Ft0nyjo0=
@@ -980,6 +978,8 @@ kcl-lang.io/kcl-go v0.7.1 h1:qulSVPT7Kpn68ol35WGABnidhitnC5vGhRsmzEKlnuM=
 kcl-lang.io/kcl-go v0.7.1/go.mod h1:byAAoC83Lfk88n33pgADSJAwF6iJcxCl5Z2gbCbKyGw=
 kcl-lang.io/kcl-plugin v0.5.0 h1:eoh6y4l81rwA8yhJXU4hN7YmJeTUNB1nfYCP9OffSxc=
 kcl-lang.io/kcl-plugin v0.5.0/go.mod h1:QnZ5OLcyBw5nOnHpChRHtvBq8wvjwiHu/ZZ8j1dfz48=
+kcl-lang.io/kpm v0.4.7 h1:8jHcBk0qxWHCBXbNLv/VbUoKkgsyr0YfhooO7zk1Guk=
+kcl-lang.io/kpm v0.4.7/go.mod h1:Ba2ijUHQR/sMdB4S7982vOrajly4LdgshrqXd2SXBog=
 kcl-lang.io/lib v0.7.3 h1:YsKBo5jrICQ3fJobywkB9dFfVIW/ixCAkqmYQ5Z2lqQ=
 kcl-lang.io/lib v0.7.3/go.mod h1:ubsalGXxJaa5II/EsHmsI/tL2EluYHIcW+BwzQPt+uY=
 kusionstack.io/kube-api v0.1.1 h1:ieoZhaUfK78hsyQ7GsU6ZuxBAcVU+ZuKs7vedGkO8sI=

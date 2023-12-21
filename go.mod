@@ -69,7 +69,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	kcl-lang.io/kcl-go v0.7.1
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.4.6
+	kcl-lang.io/kpm v0.4.7
 	kusionstack.io/kube-api v0.1.1
 	sigs.k8s.io/controller-runtime v0.15.1
 )
@@ -294,5 +294,3 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 	sourcegraph.com/sourcegraph/appdash v0.0.0-20211028080628-e2786a622600 // indirect
 )
-
-replace kcl-lang.io/kpm => github.com/zong-zhe/kpm v0.1.6-0.20231222100407-dfd66f481bb0
