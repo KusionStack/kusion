@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	EnvKusionPath = "KUSION_PATH"
+	EnvKusionHome = "KUSION_HOME"
 	// CachedVersionFile is the name of the file we use to store when we last checked if the CLI was out of date
 	CachedVersionFile = ".cached_version"
 )
@@ -62,7 +62,7 @@ func FileExists(filename string) (bool, error) {
 func KusionDataFolder() (string, error) {
 	var kusionDataFolder string
 
-	if kusionPath := os.Getenv(EnvKusionPath); kusionPath != "" {
+	if kusionPath := os.Getenv(EnvKusionHome); kusionPath != "" {
 		kusionDataFolder = kusionPath
 	} else {
 		usr, err := user.Current()

@@ -72,7 +72,7 @@ func TestKusionDataFolder(t *testing.T) {
 	for _, tt := range tests {
 		mockey.PatchConvey(tt.name, t, func() {
 			// Mock data
-			os.Setenv(EnvKusionPath, "")
+			os.Setenv(EnvKusionHome, "")
 			mockUserCurrent()
 			mockMkdirall()
 			got, err := KusionDataFolder()
