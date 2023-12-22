@@ -77,7 +77,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	}
 
 	// retrieve the module configs of the specified project
-	moduleConfigs, err := workspace.GetProjectModuleConfigs(g.ws.Modules, g.project.Name)
+	modulesConfig, err := workspace.GetProjectModuleConfigs(g.ws.Modules, g.project.Name)
 	if err != nil {
 		return err
 	}
@@ -86,8 +86,8 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name, g.ws),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, moduleConfigs),
-		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, modulesConfig),
+		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app, modulesConfig),
 		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
@@ -98,7 +98,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 
 	// Patcher logic patches generated resources
 	pfs := []modules.NewPatcherFunc{
-		pattrait.NewOpsRulePatcherFunc(g.app),
+		pattrait.NewOpsRulePatcherFunc(g.app, modulesConfig),
 		patmonitoring.NewMonitoringPatcherFunc(g.appName, g.app, g.project),
 	}
 	if err := modules.CallPatchers(i.Resources.GVKIndex(), pfs...); err != nil {

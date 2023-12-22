@@ -23,7 +23,8 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 	}
 
 	type fields struct {
-		app *modelsapp.AppConfiguration
+		app             *modelsapp.AppConfiguration
+		workspaceConfig map[string]apiv1.GenericConfig
 	}
 	type args struct {
 		resources map[string][]*apiv1.Resource
@@ -47,11 +48,26 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 				resources: i.Resources.GVKIndex(),
 			},
 		},
+		{
+			name: "Patch Deployment with workspace config",
+			fields: fields{
+				app: &modelsapp.AppConfiguration{},
+				workspaceConfig: map[string]apiv1.GenericConfig{
+					"opsRule": {
+						"maxUnavailable": "30%",
+					},
+				},
+			},
+			args: args{
+				resources: i.Resources.GVKIndex(),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &opsRulePatcher{
-				app: tt.fields.app,
+				app:           tt.fields.app,
+				modulesConfig: tt.fields.workspaceConfig,
 			}
 			if err := p.Patch(tt.args.resources); (err != nil) != tt.wantErr {
 				t.Errorf("Patch() error = %v, wantErr %v", err, tt.wantErr)
@@ -63,7 +79,12 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 			}
 			assert.Equal(t, appsv1.RollingUpdateDeploymentStrategyType, deployment.Spec.Strategy.Type)
 			assert.NotNil(t, deployment.Spec.Strategy.RollingUpdate)
-			assert.Equal(t, intstr.Parse(tt.fields.app.OpsRule.MaxUnavailable), *deployment.Spec.Strategy.RollingUpdate.MaxUnavailable)
+			if tt.fields.app.OpsRule != nil {
+				assert.Equal(t, intstr.Parse(tt.fields.app.OpsRule.MaxUnavailable), *deployment.Spec.Strategy.RollingUpdate.MaxUnavailable)
+			} else {
+				assert.Equal(t, tt.fields.workspaceConfig["opsRule"]["maxUnavailable"],
+					(*deployment.Spec.Strategy.RollingUpdate.MaxUnavailable).String())
+			}
 		})
 	}
 }
@@ -83,8 +104,13 @@ func buildMockDeployment() *appsv1.Deployment {
 }
 
 func TestNewOpsRulePatcherFunc(t *testing.T) {
+	p := &apiv1.Project{
+		Name: "default",
+	}
 	type args struct {
-		app *modelsapp.AppConfiguration
+		app       *modelsapp.AppConfiguration
+		project   *apiv1.Project
+		workspace map[string]apiv1.GenericConfig
 	}
 	tests := []struct {
 		name string
@@ -94,12 +120,19 @@ func TestNewOpsRulePatcherFunc(t *testing.T) {
 			name: "NewOpsRulePatcherFunc",
 			args: args{
 				app: &modelsapp.AppConfiguration{},
+				workspace: map[string]apiv1.GenericConfig{
+					"opsRule": {
+						"maxUnavailable": "30%",
+					},
+				},
+				project: p,
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patcherFunc := NewOpsRulePatcherFunc(tt.args.app)
+			patcherFunc := NewOpsRulePatcherFunc(tt.args.app, tt.args.workspace)
 			assert.NotNil(t, patcherFunc)
 			patcher, err := patcherFunc()
 			assert.NoError(t, err)

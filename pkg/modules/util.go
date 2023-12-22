@@ -162,6 +162,7 @@ func AppendToIntent(resourceType apiv1.Type, resourceID string, i *apiv1.Intent,
 	}
 
 	gvk := resource.(runtime.Object).GetObjectKind().GroupVersionKind().String()
+	// fixme: this function converts int to int64 by default
 	unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(resource)
 	if err != nil {
 		return err
