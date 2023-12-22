@@ -219,12 +219,8 @@ func PatchResource[T any](resources map[string][]*intent.Resource, gvk string, p
 // AddKubeConfigIf adds kubeConfig from workspace to extensions of Kubernetes type resource in intent.
 // If there is already has kubeConfig in extensions, use the kubeConfig in extensions.
 func AddKubeConfigIf(i *intent.Intent, ws *apiv1.Workspace) {
-	config, err := workspace.GetKubernetesConfig(ws.Runtimes)
-	if errors.Is(err, workspace.ErrEmptyRuntimeConfigs) || errors.Is(err, workspace.ErrEmptyKubernetesConfig) {
-		return
-	}
-	kubeConfig := config.KubeConfig
-	if kubeConfig == "" {
+	config := workspace.GetKubernetesConfig(ws.Runtimes)
+	if config == nil || config.KubeConfig == "" {
 		return
 	}
 	for n, resource := range i.Resources {
@@ -233,7 +229,7 @@ func AddKubeConfigIf(i *intent.Intent, ws *apiv1.Workspace) {
 				i.Resources[n].Extensions = make(map[string]any)
 			}
 			if extensionsKubeConfig, ok := resource.Extensions[intent.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
-				i.Resources[n].Extensions[intent.ResourceExtensionKubeConfig] = kubeConfig
+				i.Resources[n].Extensions[intent.ResourceExtensionKubeConfig] = config.KubeConfig
 			}
 		}
 	}
