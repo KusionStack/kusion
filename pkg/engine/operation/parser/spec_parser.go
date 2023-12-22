@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/util"
@@ -13,22 +13,22 @@ import (
 )
 
 type IntentParser struct {
-	intent *intent.Intent
+	intent *apiv1.Intent
 }
 
-func NewIntentParser(i *intent.Intent) *IntentParser {
+func NewIntentParser(i *apiv1.Intent) *IntentParser {
 	return &IntentParser{intent: i}
 }
 
 var _ Parser = (*IntentParser)(nil)
 
-func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
+func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 	util.CheckNotNil(g, "dag is nil")
 	i := m.intent
 	util.CheckNotNil(i, "models is nil")
 	if i.Resources == nil {
 		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(i))
-		return status.NewBaseStatus(status.Warning, status.NotFound, sprintf)
+		return v1.NewBaseStatus(v1.Warning, v1.NotFound, sprintf)
 	}
 
 	root, err := g.Root()
@@ -37,7 +37,7 @@ func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 	resourceIndex := i.Resources.Index()
 	for key, resource := range resourceIndex {
 		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Update)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			return s
 		}
 
@@ -53,19 +53,19 @@ func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s status.Status) {
 
 		// compute implicit and explicate dependencies
 		refNodeKeys, s := updateDependencies(resource)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			return s
 		}
 
 		// linkRefNodes
 		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Update, nil)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			return s
 		}
 	}
 
 	if err = g.Validate(); err != nil {
-		return status.NewErrorStatusWithMsg(status.IllegalManifest, "Found circle dependency in models:"+err.Error())
+		return v1.NewErrorStatusWithMsg(v1.IllegalManifest, "Found circle dependency in models:"+err.Error())
 	}
 	g.TransitiveReduction()
 	return s

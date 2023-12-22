@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
@@ -49,14 +48,14 @@ func NewJobGeneratorFunc(
 	}
 }
 
-func (g *jobGenerator) Generate(spec *intent.Intent) error {
+func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 	job := g.job
 	if job == nil {
 		return nil
 	}
 
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	if err := completeBaseWorkload(&g.job.Base, g.jobConfig); err != nil {
@@ -86,7 +85,7 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 		cmObj := cm
 		cmObj.Namespace = g.project.Name
 		if err = modules.AppendToIntent(
-			intent.Kubernetes,
+			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
 			&cmObj,
@@ -123,7 +122,7 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 			},
 			Spec: jobSpec,
 		}
-		return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+		return modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
 
 	resource := &batchv1.CronJob{
@@ -139,5 +138,5 @@ func (g *jobGenerator) Generate(spec *intent.Intent) error {
 			Schedule: job.Schedule,
 		},
 	}
-	return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+	return modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 }

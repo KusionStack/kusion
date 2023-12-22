@@ -5,19 +5,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 func TestValidResources(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
-		resources intent.Resources
+		resources apiv1.Resources
 	}{
 		{
 			name:    "valid resources",
 			success: true,
-			resources: []intent.Resource{
+			resources: []apiv1.Resource{
 				{
 					ID:   "mock-id",
 					Type: "Kubernetes",
@@ -33,7 +33,7 @@ func TestValidResources(t *testing.T) {
 		{
 			name:    "invalid resources empty type",
 			success: false,
-			resources: []intent.Resource{
+			resources: []apiv1.Resource{
 				{
 					ID:   "mock-id",
 					Type: "",
@@ -49,7 +49,7 @@ func TestValidResources(t *testing.T) {
 		{
 			name:    "invalid resources unsupported type",
 			success: false,
-			resources: []intent.Resource{
+			resources: []apiv1.Resource{
 				{
 					ID:   "mock-id",
 					Type: "Unsupported",
@@ -65,7 +65,7 @@ func TestValidResources(t *testing.T) {
 		{
 			name:    "invalid resources multiple kubeConfig",
 			success: false,
-			resources: []intent.Resource{
+			resources: []apiv1.Resource{
 				{
 					ID:   "mock-id",
 					Type: "Kubernetes",

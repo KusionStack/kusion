@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -37,7 +36,7 @@ func TestOperation_Destroy(t *testing.T) {
 		Stacks: []*apiv1.Stack{s},
 	}
 
-	resourceState := intent.Resource{
+	resourceState := apiv1.Resource{
 		ID:   "id1",
 		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
@@ -45,12 +44,12 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 		DependsOn: nil,
 	}
-	mf := &intent.Intent{Resources: []intent.Resource{resourceState}}
+	mf := &apiv1.Intent{Resources: []apiv1.Resource{resourceState}}
 	o := &DestroyOperation{
 		opsmodels.Operation{
 			OperationType: opsmodels.Destroy,
 			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
-			RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+			RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 		},
 	}
 	r := &DestroyRequest{
@@ -64,14 +63,14 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 
 	mockey.PatchConvey("destroy success", t, func() {
-		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
 			return nil
 		}).Build()
 		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
-			return &states.State{Resources: []intent.Resource{resourceState}}, nil
+			return &states.State{Resources: []apiv1.Resource{resourceState}}, nil
 		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
@@ -84,14 +83,14 @@ func TestOperation_Destroy(t *testing.T) {
 	})
 
 	mockey.PatchConvey("destroy failed", t, func() {
-		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
-			return status.NewErrorStatus(errors.New("mock error"))
+		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
+			return v1.NewErrorStatus(errors.New("mock error"))
 		}).Build()
 		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
 			f *local.FileSystemState,
 			query *states.StateQuery,
 		) (*states.State, error) {
-			return &states.State{Resources: []intent.Resource{resourceState}}, nil
+			return &states.State{Resources: []apiv1.Resource{resourceState}}, nil
 		}).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
@@ -100,7 +99,7 @@ func TestOperation_Destroy(t *testing.T) {
 		o.MsgCh = make(chan opsmodels.Message, 1)
 		go readMsgCh(o.MsgCh)
 		st := o.Destroy(r)
-		assert.True(t, status.IsErr(st))
+		assert.True(t, v1.IsErr(st))
 	})
 }
 

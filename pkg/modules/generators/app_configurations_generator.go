@@ -4,8 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	accessories "kusionstack.io/kusion/pkg/modules/generators/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/generators/monitoring"
@@ -18,19 +17,19 @@ import (
 )
 
 type appConfigurationGenerator struct {
-	project *v1.Project
-	stack   *v1.Stack
+	project *apiv1.Project
+	stack   *apiv1.Stack
 	appName string
 	app     *inputs.AppConfiguration
-	ws      *v1.Workspace
+	ws      *apiv1.Workspace
 }
 
 func NewAppConfigurationGenerator(
-	project *v1.Project,
-	stack *v1.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
-	ws *v1.Workspace,
+	ws *apiv1.Workspace,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -61,20 +60,20 @@ func NewAppConfigurationGenerator(
 }
 
 func NewAppConfigurationGeneratorFunc(
-	project *v1.Project,
-	stack *v1.Stack,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 	appName string,
 	app *inputs.AppConfiguration,
-	ws *v1.Workspace,
+	ws *apiv1.Workspace,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
 		return NewAppConfigurationGenerator(project, stack, appName, app, ws)
 	}
 }
 
-func (g *appConfigurationGenerator) Generate(i *intent.Intent) error {
+func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	if i.Resources == nil {
-		i.Resources = make(intent.Resources, 0)
+		i.Resources = make(apiv1.Resources, 0)
 	}
 
 	// retrieve the module configs of the specified project

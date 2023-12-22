@@ -10,9 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine/backend"
@@ -136,7 +135,7 @@ func (o *Options) Run() error {
 	}
 
 	// Generate Intent
-	var sp *intent.Intent
+	var sp *apiv1.Intent
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
@@ -228,9 +227,9 @@ func (o *Options) Run() error {
 func Preview(
 	o *Options,
 	storage states.StateStorage,
-	planResources *intent.Intent,
-	project *v1.Project,
-	stack *v1.Stack,
+	planResources *apiv1.Intent,
+	project *apiv1.Project,
+	stack *apiv1.Stack,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -259,7 +258,7 @@ func Preview(
 			Cluster:  cluster,
 		},
 	})
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 

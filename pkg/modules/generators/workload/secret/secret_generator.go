@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
@@ -41,9 +40,9 @@ func NewSecretGeneratorFunc(
 	}
 }
 
-func (g *secretGenerator) Generate(spec *intent.Intent) error {
+func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	for secretName, secretRef := range g.secrets {
@@ -54,7 +53,7 @@ func (g *secretGenerator) Generate(spec *intent.Intent) error {
 
 		resourceID := modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
 		err = modules.AppendToIntent(
-			intent.Kubernetes,
+			apiv1.Kubernetes,
 			resourceID,
 			spec,
 			secret,

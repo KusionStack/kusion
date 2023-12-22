@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
@@ -82,7 +81,7 @@ func TestGenerateSecret(t *testing.T) {
 					Data: test.secretData,
 				},
 			}
-			intent := &intent.Intent{}
+			intent := &apiv1.Intent{}
 			generator, _ := NewSecretGenerator(project, secrets)
 			err := generator.Generate(intent)
 			if test.expectErr == "" {

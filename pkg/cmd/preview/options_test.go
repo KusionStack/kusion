@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
@@ -48,7 +47,7 @@ func Test_preview(t *testing.T) {
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, p, s)
+		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s)
 		assert.Nil(t, err)
 	})
 }
@@ -182,7 +181,7 @@ func mockOperationPreview() *mockey.Mocker {
 	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
 		*operation.PreviewOperation,
 		*operation.PreviewRequest,
-	) (rsp *operation.PreviewResponse, s status.Status) {
+	) (rsp *operation.PreviewResponse, s v1.Status) {
 		return &operation.PreviewResponse{
 			Order: &opsmodels.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
@@ -208,8 +207,8 @@ func mockOperationPreview() *mockey.Mocker {
 	}).Build()
 }
 
-func newSA(name string) intent.Resource {
-	return intent.Resource{
+func newSA(name string) apiv1.Resource {
+	return apiv1.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -236,8 +235,8 @@ func mockBuildIntent() *mockey.Mocker {
 		o *builders.Options,
 		project *apiv1.Project,
 		stack *apiv1.Stack,
-	) (*intent.Intent, error) {
-		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Intent, error) {
+		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -246,8 +245,8 @@ func mockPatchBuildIntentWithSpinner() *mockey.Mocker {
 		o *builders.Options,
 		project *apiv1.Project,
 		stack *apiv1.Stack,
-	) (*intent.Intent, error) {
-		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Intent, error) {
+		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 

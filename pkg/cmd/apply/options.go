@@ -10,8 +10,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	cmdintent "kusionstack.io/kusion/pkg/cmd/build/builders"
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
@@ -75,7 +75,7 @@ func (o *Options) Run() error {
 	}
 
 	// Generate Intent
-	var sp *intent.Intent
+	var sp *apiv1.Intent
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else {
@@ -187,7 +187,7 @@ func (o *Options) Run() error {
 func Apply(
 	o *Options,
 	storage states.StateStorage,
-	planResources *intent.Intent,
+	planResources *apiv1.Intent,
 	changes *opsmodels.Changes,
 	out io.Writer,
 ) error {
@@ -294,7 +294,7 @@ func Apply(
 				Intent:   planResources,
 			},
 		})
-		if status.IsErr(st) {
+		if v1.IsErr(st) {
 			return fmt.Errorf("apply failed, status:\n%v", st)
 		}
 	}
@@ -323,7 +323,7 @@ func Apply(
 //	}
 func Watch(
 	o *Options,
-	planResources *intent.Intent,
+	planResources *apiv1.Intent,
 	changes *opsmodels.Changes,
 ) error {
 	if o.DryRun {
@@ -332,7 +332,7 @@ func Watch(
 	}
 
 	// Filter out unchanged resources
-	toBeWatched := intent.Resources{}
+	toBeWatched := apiv1.Resources{}
 	for _, res := range planResources.Resources {
 		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChanged {
 			toBeWatched = append(toBeWatched, res)
@@ -345,7 +345,7 @@ func Watch(
 		Request: opsmodels.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Intent:  &intent.Intent{Resources: toBeWatched},
+			Intent:  &apiv1.Intent{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

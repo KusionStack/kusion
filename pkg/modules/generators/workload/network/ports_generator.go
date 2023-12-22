@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
 )
@@ -89,7 +89,7 @@ func NewPortsGeneratorFunc(
 }
 
 // Generate renders k8s ClusterIP or LoadBalancer service from the portsGenerator.
-func (g *portsGenerator) Generate(spec *intent.Intent) error {
+func (g *portsGenerator) Generate(spec *apiv1.Intent) error {
 	privatePorts, publicPorts := splitPorts(g.ports)
 	if len(privatePorts) != 0 {
 		svc := g.generateK8sSvc(false, privatePorts)
@@ -261,7 +261,7 @@ func toSvcPorts(name string, ports []network.Port) []v1.ServicePort {
 	return svcPorts
 }
 
-func appendToSpec(spec *intent.Intent, svc *v1.Service) error {
+func appendToSpec(spec *apiv1.Intent, svc *v1.Service) error {
 	id := modules.KubernetesResourceID(svc.TypeMeta, svc.ObjectMeta)
-	return modules.AppendToIntent(intent.Kubernetes, id, spec, svc)
+	return modules.AppendToIntent(apiv1.Kubernetes, id, spec, svc)
 }

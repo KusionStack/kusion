@@ -7,7 +7,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 func mockGetenv(result string) {
@@ -17,7 +17,7 @@ func mockGetenv(result string) {
 }
 
 func TestGetKubeConfig(t *testing.T) {
-	resource := &intent.Resource{
+	resource := &apiv1.Resource{
 		Extensions: map[string]any{
 			"kubeConfig": "/home/test/kubeconfig",
 		},

@@ -12,8 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -85,7 +84,7 @@ func mockGetLatestState() {
 		f *local.FileSystemState,
 		query *states.StateQuery,
 	) (*states.State, error) {
-		return &states.State{Resources: []intent.Resource{sa1}}, nil
+		return &states.State{Resources: []apiv1.Resource{sa1}}, nil
 	}).Build()
 }
 
@@ -96,7 +95,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
-		_, err := o.preview(&intent.Intent{Resources: []intent.Resource{sa1}}, p, s, stateStorage)
+		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, p, s, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -145,7 +144,7 @@ func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest)
 
 func mockOperationPreview() {
 	mockey.Mock((*operation.PreviewOperation).Preview).To(
-		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s status.Status) {
+		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s v1.Status) {
 			return &operation.PreviewResponse{
 				Order: &opsmodels.ChangeOrder{
 					StepKeys: []string{sa1.ID},
@@ -173,8 +172,8 @@ var (
 	sa2 = newSA("sa2")
 )
 
-func newSA(name string) intent.Resource {
-	return intent.Resource{
+func newSA(name string) apiv1.Resource {
+	return apiv1.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -194,7 +193,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Success)
 
 		o := NewDestroyOptions()
-		planResources := &intent.Intent{Resources: []intent.Resource{sa2}}
+		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -222,7 +221,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(opsmodels.Failed)
 
 		o := NewDestroyOptions()
-		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
+		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -243,7 +242,7 @@ func Test_destroy(t *testing.T) {
 
 func mockOperationDestroy(res opsmodels.OpResult) {
 	mockey.Mock((*operation.DestroyOperation).Destroy).To(
-		func(o *operation.DestroyOperation, request *operation.DestroyRequest) status.Status {
+		func(o *operation.DestroyOperation, request *operation.DestroyRequest) v1.Status {
 			var err error
 			if res == opsmodels.Failed {
 				err = errors.New("mock error")
@@ -263,7 +262,7 @@ func mockOperationDestroy(res opsmodels.OpResult) {
 			}
 			close(o.MsgCh)
 			if res == opsmodels.Failed {
-				return status.NewErrorStatus(err)
+				return v1.NewErrorStatus(err)
 			}
 			return nil
 		}).Build()

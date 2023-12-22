@@ -10,15 +10,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
 
 func Test_monitoringPatcher_Patch(t *testing.T) {
-	i := &intent.Intent{}
-	err := modules.AppendToIntent(intent.Kubernetes, "id", i, buildMockDeployment())
+	i := &apiv1.Intent{}
+	err := modules.AppendToIntent(apiv1.Kubernetes, "id", i, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +28,7 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 		project *apiv1.Project
 	}
 	type args struct {
-		resources map[string][]*intent.Resource
+		resources map[string][]*apiv1.Resource
 	}
 	tests := []struct {
 		name    string

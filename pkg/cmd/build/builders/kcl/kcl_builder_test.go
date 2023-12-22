@@ -12,7 +12,6 @@ import (
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
 )
@@ -50,14 +49,14 @@ func TestGenerateIntent(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *intent.Intent
+		want    *v1.Intent
 		wantErr bool
 		prefunc func()
 	}{
 		{
 			name:    "success",
 			args:    testArgs,
-			want:    &intent.Intent{Resources: []intent.Resource{}},
+			want:    &v1.Intent{Resources: []v1.Resource{}},
 			wantErr: false,
 			prefunc: func() { mockRunFiles(nil) },
 		},

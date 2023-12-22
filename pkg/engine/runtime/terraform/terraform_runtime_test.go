@@ -14,12 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 )
 
-var testResource = intent.Resource{
+var testResource = v1.Resource{
 	ID:   "hashicorp:local:local_file:kusion_example",
 	Type: "Terraform",
 	Attributes: map[string]interface{}{

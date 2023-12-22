@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
@@ -30,7 +30,7 @@ type PreviewResponse struct {
 
 // Preview compute all changes between resources in request and the actual infrastructure.
 // The whole process is similar to the operation Apply, but the execution of each node is mocked and will not actually invoke the Runtime
-func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewResponse, s status.Status) {
+func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewResponse, s v1.Status) {
 	o := po.Operation
 
 	defer func() {
@@ -39,22 +39,22 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 
 			switch x := e.(type) {
 			case string:
-				s = status.NewErrorStatus(fmt.Errorf("preview panic:%s", e))
+				s = v1.NewErrorStatus(fmt.Errorf("preview panic:%s", e))
 			case error:
-				s = status.NewErrorStatus(x)
+				s = v1.NewErrorStatus(x)
 			default:
-				s = status.NewErrorStatus(errors.New("unknown panic"))
+				s = v1.NewErrorStatus(errors.New("unknown panic"))
 			}
 		}
 	}()
 
-	if s := validateRequest(&request.Request); status.IsErr(s) {
+	if s := validateRequest(&request.Request); v1.IsErr(s) {
 		return nil, s
 	}
 
 	var (
 		priorState, resultState *states.State
-		priorStateResourceIndex map[string]*intent.Resource
+		priorStateResourceIndex map[string]*apiv1.Resource
 		ag                      *dag.AcyclicGraph
 	)
 
@@ -65,7 +65,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	resources := request.Intent.Resources
 	resources = append(resources, priorState.Resources...)
 	runtimesMap, s := runtimeinit.Runtimes(resources)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	o.RuntimeMap = runtimesMap
@@ -79,11 +79,11 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		priorStateResourceIndex = resources.Index()
 		ag, s = NewDestroyGraph(resources)
 	}
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*intent.Resource{}
+	stateResourceIndex := map[string]*apiv1.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -95,7 +95,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		Operation: opsmodels.Operation{
 			OperationType:           o.OperationType,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*intent.Resource{},
+			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			IgnoreFields:            o.IgnoreFields,
@@ -111,21 +111,21 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	w.Update(ag)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
-		return nil, status.NewErrorStatus(diags.Err())
+		return nil, v1.NewErrorStatus(diags.Err())
 	}
 
 	return &PreviewResponse{Order: previewOperation.ChangeOrder}, nil
 }
 
 func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
-	var s status.Status
+	var s v1.Status
 	if v == nil {
 		return nil
 	}
 
 	if node, ok := v.(graph.ExecutableNode); ok {
 		s = node.Execute(&po.Operation)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			diags = diags.Append(fmt.Errorf("preview failed.\n%v", s))
 			return diags
 		}

@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8swatch "k8s.io/apimachinery/pkg/watch"
 
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers"
@@ -37,7 +37,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	// init runtimes
 	resources := req.Intent.Resources
 	runtimes, s := runtimeinit.Runtimes(resources)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return errors.New(s.Message())
 	}
 	wo.RuntimeMap = runtimes
@@ -60,7 +60,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 			log.Debug("unsupported resource type: %s", t)
 			continue
 		}
-		if status.IsErr(resp.Status) {
+		if v1.IsErr(resp.Status) {
 			return fmt.Errorf(resp.Status.String())
 		}
 

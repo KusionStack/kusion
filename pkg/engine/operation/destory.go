@@ -3,8 +3,8 @@ package operation
 import (
 	"sync"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
@@ -21,12 +21,12 @@ type DestroyRequest struct {
 	opsmodels.Request `json:",inline" yaml:",inline"`
 }
 
-func NewDestroyGraph(resource intent.Resources) (*dag.AcyclicGraph, status.Status) {
+func NewDestroyGraph(resource apiv1.Resources) (*dag.AcyclicGraph, v1.Status) {
 	ag := &dag.AcyclicGraph{}
 	ag.Add(&graph.RootNode{})
 	deleteResourceParser := parser.NewDeleteResourceParser(resource)
 	s := deleteResourceParser.Parse(ag)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 
@@ -35,11 +35,11 @@ func NewDestroyGraph(resource intent.Resources) (*dag.AcyclicGraph, status.Statu
 
 // Destroy will delete all resources in this request. The whole process is similar to the operation Apply,
 // but every node's execution is deleting the resource.
-func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) {
+func (do *DestroyOperation) Destroy(request *DestroyRequest) (st v1.Status) {
 	o := do.Operation
 	defer close(o.MsgCh)
 
-	if st = validateRequest(&request.Request); status.IsErr(st) {
+	if st = validateRequest(&request.Request); v1.IsErr(st) {
 		return st
 	}
 
@@ -47,7 +47,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*intent.Resource{}
+	stateResourceIndex := map[string]*apiv1.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -55,14 +55,14 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	// only destroy resources we have recorded
 	resources := priorState.Resources
 	runtimesMap, s := runtimeinit.Runtimes(resources)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 	o.RuntimeMap = runtimesMap
 
 	// 2. build & walk DAG
 	destroyGraph, s := NewDestroyGraph(resources)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 
@@ -70,7 +70,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 		Operation: opsmodels.Operation{
 			OperationType:           opsmodels.Destroy,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*intent.Resource{},
+			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
@@ -85,7 +85,7 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st status.Status) 
 	w.Update(destroyGraph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
-		st = status.NewErrorStatus(diags.Err())
+		st = v1.NewErrorStatus(diags.Err())
 		return st
 	}
 	return nil

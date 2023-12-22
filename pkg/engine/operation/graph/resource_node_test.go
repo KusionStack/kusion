@@ -8,8 +8,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
@@ -22,7 +22,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	type fields struct {
 		BaseNode baseNode
 		Action   opsmodels.ActionType
-		state    *intent.Resource
+		state    *apiv1.Resource
 	}
 	type args struct {
 		operation opsmodels.Operation
@@ -31,7 +31,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &intent.Intent{Resources: []intent.Resource{
+	mf := &apiv1.Intent{Resources: []apiv1.Resource{
 		{
 			ID:   Pony,
 			Type: runtime.Kubernetes,
@@ -60,12 +60,12 @@ func TestResourceNode_Execute(t *testing.T) {
 		},
 	}}
 
-	priorStateResourceIndex := map[string]*intent.Resource{}
+	priorStateResourceIndex := map[string]*apiv1.Resource{}
 	for i, resource := range mf.Resources {
 		priorStateResourceIndex[resource.ResourceKey()] = &mf.Resources[i]
 	}
 
-	newResourceState := &intent.Resource{
+	newResourceState := &apiv1.Resource{
 		ID:   Eric,
 		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
@@ -74,7 +74,7 @@ func TestResourceNode_Execute(t *testing.T) {
 		DependsOn: []string{Pony},
 	}
 
-	illegalResourceState := &intent.Resource{
+	illegalResourceState := &apiv1.Resource{
 		ID:   Eric,
 		Type: runtime.Kubernetes,
 		Attributes: map[string]interface{}{
@@ -90,7 +90,7 @@ func TestResourceNode_Execute(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   status.Status
+		want   v1.Status
 	}{
 		{
 			name: "update",
@@ -109,7 +109,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -129,7 +129,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
 			want: nil,
 		},
@@ -149,9 +149,9 @@ func TestResourceNode_Execute(t *testing.T) {
 				MsgCh:                   make(chan opsmodels.Message),
 				ResultState:             states.NewState(),
 				Lock:                    &sync.Mutex{},
-				RuntimeMap:              map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
-			want: status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find specified value in resource:jack by ref:jack.notExist"),
+			want: v1.NewErrorStatusWithMsg(v1.IllegalManifest, "can't find specified value in resource:jack by ref:jack.notExist"),
 		},
 	}
 	for _, tt := range tests {

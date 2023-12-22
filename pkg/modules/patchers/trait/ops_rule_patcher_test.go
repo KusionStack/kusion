@@ -9,15 +9,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
 )
 
 func Test_opsRulePatcher_Patch(t *testing.T) {
-	i := &intent.Intent{}
-	err := modules.AppendToIntent(intent.Kubernetes, "id", i, buildMockDeployment())
+	i := &apiv1.Intent{}
+	err := modules.AppendToIntent(apiv1.Kubernetes, "id", i, buildMockDeployment())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 		app *modelsapp.AppConfiguration
 	}
 	type args struct {
-		resources map[string][]*intent.Resource
+		resources map[string][]*apiv1.Resource
 	}
 	tests := []struct {
 		name    string

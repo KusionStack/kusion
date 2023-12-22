@@ -8,7 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
@@ -135,7 +134,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			}
 
 			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedModuleConfigs)
-			spec := &intent.Intent{}
+			spec := &apiv1.Intent{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
 			assert.NotNil(t, spec.Resources, "Resources should not be nil")

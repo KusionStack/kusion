@@ -8,7 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -29,7 +28,7 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 
 // CallGenerators calls the Generate method of each Generator instance
 // returned by the given NewGeneratorFuncs.
-func CallGenerators(i *intent.Intent, newGenerators ...NewGeneratorFunc) error {
+func CallGenerators(i *apiv1.Intent, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
 		return err
@@ -44,7 +43,7 @@ func CallGenerators(i *intent.Intent, newGenerators ...NewGeneratorFunc) error {
 
 // CallPatchers calls the Patch method of each Generator instance
 // returned by the given NewPatcherFuncs.
-func CallPatchers(resources map[string][]*intent.Resource, newPatchers ...NewPatcherFunc) error {
+func CallPatchers(resources map[string][]*apiv1.Resource, newPatchers ...NewPatcherFunc) error {
 	ps := make([]Patcher, 0, len(newPatchers))
 	for _, newPatcher := range newPatchers {
 		if p, err := newPatcher(); err != nil {
@@ -122,10 +121,10 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 }
 
 // TerraformResource returns the Terraform resource in the form of Intent.Resource
-func TerraformResource(id string, dependsOn []string, attrs, exts map[string]interface{}) intent.Resource {
-	return intent.Resource{
+func TerraformResource(id string, dependsOn []string, attrs, exts map[string]interface{}) apiv1.Resource {
+	return apiv1.Resource{
 		ID:         id,
-		Type:       intent.Terraform,
+		Type:       apiv1.Terraform,
 		Attributes: attrs,
 		DependsOn:  dependsOn,
 		Extensions: exts,
@@ -156,9 +155,9 @@ func KusionPathDependency(id, name string) string {
 }
 
 // AppendToIntent adds a Kubernetes resource to the Intent resources slice.
-func AppendToIntent(resourceType intent.Type, resourceID string, i *intent.Intent, resource any) error {
+func AppendToIntent(resourceType apiv1.Type, resourceID string, i *apiv1.Intent, resource any) error {
 	// this function is only used for Kubernetes resources
-	if resourceType != intent.Kubernetes {
+	if resourceType != apiv1.Kubernetes {
 		return errors.New("AppendToIntent is only used for Kubernetes resources")
 	}
 
@@ -167,13 +166,13 @@ func AppendToIntent(resourceType intent.Type, resourceID string, i *intent.Inten
 	if err != nil {
 		return err
 	}
-	r := intent.Resource{
+	r := apiv1.Resource{
 		ID:         resourceID,
 		Type:       resourceType,
 		Attributes: unstructured,
 		DependsOn:  nil,
 		Extensions: map[string]any{
-			intent.ResourceExtensionGVK: gvk,
+			apiv1.ResourceExtensionGVK: gvk,
 		},
 	}
 	i.Resources = append(i.Resources, r)
@@ -194,7 +193,7 @@ func UniqueAppLabels(projectName, appName string) map[string]string {
 }
 
 // PatchResource patches the resource with the given patch.
-func PatchResource[T any](resources map[string][]*intent.Resource, gvk string, patchFunc func(*T) error) error {
+func PatchResource[T any](resources map[string][]*apiv1.Resource, gvk string, patchFunc func(*T) error) error {
 	var obj T
 	for _, r := range resources[gvk] {
 		// convert unstructured to typed object
@@ -218,18 +217,18 @@ func PatchResource[T any](resources map[string][]*intent.Resource, gvk string, p
 
 // AddKubeConfigIf adds kubeConfig from workspace to extensions of Kubernetes type resource in intent.
 // If there is already has kubeConfig in extensions, use the kubeConfig in extensions.
-func AddKubeConfigIf(i *intent.Intent, ws *apiv1.Workspace) {
+func AddKubeConfigIf(i *apiv1.Intent, ws *apiv1.Workspace) {
 	config := workspace.GetKubernetesConfig(ws.Runtimes)
 	if config == nil || config.KubeConfig == "" {
 		return
 	}
 	for n, resource := range i.Resources {
-		if resource.Type == intent.Kubernetes {
+		if resource.Type == apiv1.Kubernetes {
 			if resource.Extensions == nil {
 				i.Resources[n].Extensions = make(map[string]any)
 			}
-			if extensionsKubeConfig, ok := resource.Extensions[intent.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
-				i.Resources[n].Extensions[intent.ResourceExtensionKubeConfig] = config.KubeConfig
+			if extensionsKubeConfig, ok := resource.Extensions[apiv1.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
+				i.Resources[n].Extensions[apiv1.ResourceExtensionKubeConfig] = config.KubeConfig
 			}
 		}
 	}

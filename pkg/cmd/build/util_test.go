@@ -11,7 +11,6 @@ import (
 	kclgo "kcl-lang.io/kcl-go"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
@@ -32,8 +31,8 @@ resources:
     spec: {}
     status: {}
 `
-	intentModel1 = &intent.Intent{
-		Resources: []intent.Resource{
+	intentModel1 = &v1.Intent{
+		Resources: []v1.Resource{
 			{
 				ID:   "v1:Namespace:default",
 				Type: "Kubernetes",
@@ -69,8 +68,8 @@ resources:
       name: kube-system
 `
 
-	intentModel2 = &intent.Intent{
-		Resources: []intent.Resource{
+	intentModel2 = &v1.Intent{
+		Resources: []v1.Resource{
 			{
 				ID:   "v1:Namespace:default",
 				Type: "Kubernetes",
@@ -96,8 +95,8 @@ resources:
 		},
 	}
 
-	intentModel3 = &intent.Intent{
-		Resources: []intent.Resource{
+	intentModel3 = &v1.Intent{
+		Resources: []v1.Resource{
 			{
 				ID:   "v1:Namespace:default",
 				Type: "Kubernetes",
@@ -159,7 +158,7 @@ func TestBuildIntentFromFile(t *testing.T) {
 		name    string
 		path    string
 		content string
-		want    *intent.Intent
+		want    *v1.Intent
 		wantErr bool
 	}{
 		{
@@ -212,7 +211,7 @@ func TestBuildIntent(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *intent.Intent
+		want    *v1.Intent
 		wantErr bool
 	}{
 		{

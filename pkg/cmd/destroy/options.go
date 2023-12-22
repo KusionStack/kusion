@@ -10,8 +10,7 @@ import (
 	"github.com/pterm/pterm"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -88,7 +87,7 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	i := &intent.Intent{Resources: destroyResources}
+	i := &apiv1.Intent{Resources: destroyResources}
 	changes, err := o.preview(i, project, stack, stateStorage)
 	if err != nil {
 		return err
@@ -134,7 +133,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) preview(
-	planResources *intent.Intent, project *apiv1.Project,
+	planResources *apiv1.Intent, project *apiv1.Project,
 	stack *apiv1.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
@@ -159,14 +158,14 @@ func (o *Options) preview(
 			Intent:   planResources,
 		},
 	})
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}
 
 	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }
 
-func (o *Options) destroy(planResources *intent.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
+func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
 	do := &operation.DestroyOperation{
 		Operation: opsmodels.Operation{
 			Stack:        changes.Stack(),
@@ -251,7 +250,7 @@ func (o *Options) destroy(planResources *intent.Intent, changes *opsmodels.Chang
 			Intent:   planResources,
 		},
 	})
-	if status.IsErr(st) {
+	if v1.IsErr(st) {
 		return fmt.Errorf("destroy failed, status: %v", st)
 	}
 

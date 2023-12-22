@@ -13,14 +13,14 @@ import (
 	"github.com/bytedance/mockey"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 func TestKubernetesRuntime_Import(t *testing.T) {
 	planServiceYaml, _ := os.ReadFile("testdata/plan_service.yaml")
-	planSvc := &intent.Resource{}
+	planSvc := &apiv1.Resource{}
 	yamlv3.Unmarshal(planServiceYaml, planSvc)
 
 	lastAppliedYaml, _ := os.ReadFile("testdata/live_service_with_last_applied_annotation.yaml")
@@ -54,7 +54,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 		}{ctx: context.Background(), request: &runtime.ImportRequest{
 			PlanResource: planSvc,
 		}}, want: &runtime.ImportResponse{
-			Resource: &intent.Resource{
+			Resource: &v1.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,
 				Attributes: svcObj,
@@ -69,7 +69,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 				PlanResource: planSvc,
 			},
 		}, want: &runtime.ImportResponse{
-			Resource: &intent.Resource{
+			Resource: &v1.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,
 				Attributes: liveSvcImpObj,
@@ -87,7 +87,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 			ctx context.Context,
 			request *runtime.ReadRequest,
 		) *runtime.ReadResponse {
-			return &runtime.ReadResponse{Resource: &intent.Resource{
+			return &runtime.ReadResponse{Resource: &v1.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,
 				Attributes: lastAppliedObj,
@@ -109,7 +109,7 @@ func TestKubernetesRuntime_Import(t *testing.T) {
 			ctx context.Context,
 			request *runtime.ReadRequest,
 		) *runtime.ReadResponse {
-			return &runtime.ReadResponse{Resource: &intent.Resource{
+			return &runtime.ReadResponse{Resource: &v1.Resource{
 				ID:         planSvc.ResourceKey(),
 				Type:       planSvc.Type,
 				Attributes: liveSvcObj,

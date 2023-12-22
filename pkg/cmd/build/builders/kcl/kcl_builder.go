@@ -16,8 +16,7 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/opt"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/crd"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
@@ -51,7 +50,7 @@ func EnableRPC() bool {
 	return !enableRest
 }
 
-func (g *Builder) Build(o *builders.Options, _ *v1.Project, stack *v1.Stack) (*intent.Intent, error) {
+func (g *Builder) Build(o *builders.Options, _ *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
 	compileResult, err := Run(o, stack)
 	if err != nil {
 		return nil, err
@@ -258,8 +257,8 @@ func Overwrite(fileName string, overrides []string) (bool, error) {
 	return kcl.OverrideFile(fileName, overrides, []string{})
 }
 
-func KCLResult2Intent(kclResults []kcl.KCLResult) (*intent.Intent, error) {
-	resources := make([]intent.Resource, len(kclResults))
+func KCLResult2Intent(kclResults []kcl.KCLResult) (*v1.Intent, error) {
+	resources := make([]v1.Resource, len(kclResults))
 
 	for i, result := range kclResults {
 		// Marshal kcl result to bytes
@@ -276,12 +275,12 @@ func KCLResult2Intent(kclResults []kcl.KCLResult) (*intent.Intent, error) {
 		log.Infof("convert kcl result to resource: %s", msg)
 
 		// Parse json data as models.Resource
-		var item intent.Resource
+		var item v1.Resource
 		if err = json.Unmarshal(bytes, &item); err != nil {
 			return nil, err
 		}
 		resources[i] = item
 	}
 
-	return &intent.Intent{Resources: resources}, nil
+	return &v1.Intent{Resources: resources}, nil
 }

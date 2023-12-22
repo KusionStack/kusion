@@ -7,7 +7,6 @@ import (
 	"github.com/jinzhu/copier"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
@@ -24,13 +23,13 @@ type Operation struct {
 	StateStorage states.StateStorage
 
 	// CtxResourceIndex represents resources updated by this operation
-	CtxResourceIndex map[string]*intent.Resource
+	CtxResourceIndex map[string]*v1.Resource
 
 	// PriorStateResourceIndex represents resource state saved during the last operation
-	PriorStateResourceIndex map[string]*intent.Resource
+	PriorStateResourceIndex map[string]*v1.Resource
 
 	// StateResourceIndex represents resources that will be saved in states.StateStorage
-	StateResourceIndex map[string]*intent.Resource
+	StateResourceIndex map[string]*v1.Resource
 
 	// IgnoreFields will be ignored in preview stage
 	IgnoreFields []string
@@ -39,7 +38,7 @@ type Operation struct {
 	ChangeOrder *ChangeOrder
 
 	// RuntimeMap contains all infrastructure runtimes involved this operation. The key of this map is the Runtime type
-	RuntimeMap map[intent.Type]runtime.Runtime
+	RuntimeMap map[v1.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
 	Stack *v1.Stack
@@ -62,12 +61,12 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string         `json:"tenant"`
-	Project  *v1.Project    `json:"project"`
-	Stack    *v1.Stack      `json:"stack"`
-	Cluster  string         `json:"cluster"`
-	Operator string         `json:"operator"`
-	Intent   *intent.Intent `json:"intent"`
+	Tenant   string      `json:"tenant"`
+	Project  *v1.Project `json:"project"`
+	Stack    *v1.Stack   `json:"stack"`
+	Cluster  string      `json:"cluster"`
+	Operator string      `json:"operator"`
+	Intent   *v1.Intent  `json:"intent"`
 }
 
 type OpResult string
@@ -80,7 +79,7 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *intent.Resource, actionType ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *v1.Resource, actionType ActionType) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -122,7 +121,7 @@ func (o *Operation) InitStates(request *Request) (*states.State, *states.State) 
 	return latestState, resultState
 }
 
-func (o *Operation) UpdateState(resourceIndex map[string]*intent.Resource) error {
+func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -130,7 +129,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*intent.Resource) error
 	state.Serial += 1
 	state.Resources = nil
 
-	res := make([]intent.Resource, 0, len(resourceIndex))
+	res := make([]v1.Resource, 0, len(resourceIndex))
 	for key := range resourceIndex {
 		// {key -> nil} represents Deleted action
 		if resourceIndex[key] == nil {

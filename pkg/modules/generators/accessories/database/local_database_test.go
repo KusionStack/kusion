@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
@@ -37,7 +36,7 @@ func TestGenerateLocalResources(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	secret, err := generator.generateLocalResources(database, spec)
 
 	hostAddress := "testapp-db-local-service"
@@ -87,7 +86,7 @@ func TestGenerateLocalSecret(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	password, err := generator.generateLocalSecret(spec)
 	expectedPassword := generator.generateLocalPassword(16)
 
@@ -119,7 +118,7 @@ func TestGenerateLocalPVC(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	err := generator.generateLocalPVC(database, spec)
 
 	assert.NoError(t, err)
@@ -149,7 +148,7 @@ func TestGenerateLocalDeployment(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	err := generator.generateLocalDeployment(database, spec)
 
 	assert.NoError(t, err)
@@ -179,7 +178,7 @@ func TestGenerateLocalService(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	svcName, err := generator.generateLocalService(database, spec)
 	expectedSvcName := "testapp-db-local-service"
 

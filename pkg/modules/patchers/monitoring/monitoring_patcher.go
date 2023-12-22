@@ -6,7 +6,6 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 )
@@ -34,7 +33,7 @@ func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, p
 }
 
 // Patch implements Patcher interface.
-func (p *monitoringPatcher) Patch(resources map[string][]*intent.Resource) error {
+func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error {
 	if p.app.Monitoring == nil || p.project.Prometheus == nil {
 		return nil
 	}
