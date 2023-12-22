@@ -1,16 +1,14 @@
 package graph
 
-import (
-	"kusionstack.io/kusion/pkg/apis/status"
-)
+import v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 
 type baseNode struct {
 	ID string
 }
 
-func NewBaseNode(id string) (*baseNode, status.Status) {
+func NewBaseNode(id string) (*baseNode, v1.Status) {
 	if id == "" {
-		return nil, status.NewErrorStatusWithMsg(status.InvalidArgument, "node id can not be nil")
+		return nil, v1.NewErrorStatusWithMsg(v1.InvalidArgument, "node id can not be nil")
 	}
 	return &baseNode{ID: id}, nil
 }

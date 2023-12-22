@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -170,7 +169,7 @@ status: {}
 		serviceConfig apiv1.GenericConfig
 	}
 	type args struct {
-		spec *intent.Intent
+		spec *apiv1.Intent
 	}
 
 	tests := []struct {
@@ -226,7 +225,7 @@ status: {}
 				},
 			},
 			args: args{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
 			want:    []string{cm, cs, csSvc},
@@ -273,7 +272,7 @@ status: {}
 				},
 			},
 			args: args{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
 			want:    []string{cm, deploy, deploySvc},

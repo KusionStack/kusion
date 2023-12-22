@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
@@ -29,18 +29,18 @@ type ApplyResponse struct {
 	State *states.State
 }
 
-func NewApplyGraph(m *intent.Intent, priorState *states.State) (*dag.AcyclicGraph, status.Status) {
+func NewApplyGraph(m *apiv1.Intent, priorState *states.State) (*dag.AcyclicGraph, v1.Status) {
 	intentParser := parser.NewIntentParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
 
 	s := intentParser.Parse(g)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	deleteResourceParser := parser.NewDeleteResourceParser(priorState.Resources)
 	s = deleteResourceParser.Parse(g)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 
@@ -52,7 +52,7 @@ func NewApplyGraph(m *intent.Intent, priorState *states.State) (*dag.AcyclicGrap
 //  1. parse resources and their relationship to build a DAG and should take care of those resources that will be deleted
 //  2. walk this DAG and execute all graph nodes concurrently, besides the entire process should follow dependencies in this DAG
 //  3. during the execution of each node, it will invoke different runtime according to the resource type
-func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st status.Status) {
+func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st v1.Status) {
 	log.Infof("engine: Apply start!")
 	o := ao.Operation
 
@@ -64,16 +64,16 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 
 			switch x := e.(type) {
 			case string:
-				st = status.NewErrorStatus(fmt.Errorf("apply panic:%s", e))
+				st = v1.NewErrorStatus(fmt.Errorf("apply panic:%s", e))
 			case error:
-				st = status.NewErrorStatus(x)
+				st = v1.NewErrorStatus(x)
 			default:
-				st = status.NewErrorStatusWithCode(status.Unknown, errors.New("unknown panic"))
+				st = v1.NewErrorStatusWithCode(v1.Unknown, errors.New("unknown panic"))
 			}
 		}
 	}()
 
-	if st = validateRequest(&request.Request); status.IsErr(st) {
+	if st = validateRequest(&request.Request); v1.IsErr(st) {
 		return nil, st
 	}
 
@@ -81,7 +81,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	priorState, resultState := o.InitStates(&request.Request)
 	priorStateResourceIndex := priorState.Resources.Index()
 	// copy priorStateResourceIndex into a new map
-	stateResourceIndex := map[string]*intent.Resource{}
+	stateResourceIndex := map[string]*apiv1.Resource{}
 	for k, v := range priorStateResourceIndex {
 		stateResourceIndex[k] = v
 	}
@@ -89,14 +89,14 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	resources := request.Intent.Resources
 	resources = append(resources, priorState.Resources...)
 	runtimesMap, s := runtimeinit.Runtimes(resources)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	o.RuntimeMap = runtimesMap
 
 	// 2. build & walk DAG
 	applyGraph, s := NewApplyGraph(request.Intent, priorState)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	log.Infof("Apply Graph:\n%s", applyGraph.String())
@@ -105,7 +105,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 		Operation: opsmodels.Operation{
 			OperationType:           opsmodels.Apply,
 			StateStorage:            o.StateStorage,
-			CtxResourceIndex:        map[string]*intent.Resource{},
+			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
@@ -121,7 +121,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 	w.Update(applyGraph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
-		st = status.NewErrorStatus(diags.Err())
+		st = v1.NewErrorStatus(diags.Err())
 		return nil, st
 	}
 
@@ -129,7 +129,7 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st s
 }
 
 func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
-	var s status.Status
+	var s v1.Status
 	if v == nil {
 		return nil
 	}
@@ -140,7 +140,7 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 			o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string)}
 
 			s = node.Execute(o)
-			if status.IsErr(s) {
+			if v1.IsErr(s) {
 				o.MsgCh <- opsmodels.Message{
 					ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Failed,
 					OpErr: fmt.Errorf("node execte failed, status:\n%v", s),
@@ -158,14 +158,14 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 	return diags
 }
 
-func validateRequest(request *opsmodels.Request) status.Status {
-	var s status.Status
+func validateRequest(request *opsmodels.Request) v1.Status {
+	var s v1.Status
 
 	if request == nil {
-		return status.NewErrorStatusWithMsg(status.InvalidArgument, "request is nil")
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request is nil")
 	}
 	if request.Intent == nil {
-		return status.NewErrorStatusWithMsg(status.InvalidArgument,
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument,
 			"request.Intent is empty. If you want to delete all resources, please use command 'destroy'")
 	}
 	resourceKeyMap := make(map[string]bool)
@@ -173,7 +173,7 @@ func validateRequest(request *opsmodels.Request) status.Status {
 	for _, resource := range request.Intent.Resources {
 		key := resource.ResourceKey()
 		if _, ok := resourceKeyMap[key]; ok {
-			return status.NewErrorStatusWithMsg(status.InvalidArgument, fmt.Sprintf("Duplicate resource:%s in request.", key))
+			return v1.NewErrorStatusWithMsg(v1.InvalidArgument, fmt.Sprintf("Duplicate resource:%s in request.", key))
 		}
 		resourceKeyMap[key] = true
 	}

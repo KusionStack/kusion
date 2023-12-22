@@ -6,7 +6,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
@@ -35,7 +35,7 @@ type awsSecurityGroupTraffic struct {
 	ToPort         int      `yaml:"to_port" json:"to_port"`
 }
 
-func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *intent.Intent) (*v1.Secret, error) {
+func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Set the terraform random and aws provider.
 	randomProvider := &inputs.Provider{}
 	if err := randomProvider.SetString(randomProviderURL); err != nil {
@@ -85,12 +85,12 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 	provider *inputs.Provider,
 	region string,
 	db *database.Database,
-) (string, intent.Resource, error) {
+) (string, apiv1.Resource, error) {
 	// SecurityIPs should be in the format of IP address or Classes Inter-Domain
 	// Routing (CIDR) mode.
 	for _, ip := range db.SecurityIPs {
 		if !isIPAddress(ip) && !isCIDR(ip) {
-			return "", intent.Resource{}, fmt.Errorf("illegal security ip format: %v", ip)
+			return "", apiv1.Resource{}, fmt.Errorf("illegal security ip format: %v", ip)
 		}
 	}
 
@@ -124,7 +124,7 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 func (g *databaseGenerator) generateAWSDBInstance(
 	region, awsSecurityGroupID, randomPasswordID string,
 	provider *inputs.Provider, db *database.Database,
-) (string, intent.Resource) {
+) (string, apiv1.Resource) {
 	dbAttrs := map[string]interface{}{
 		"allocated_storage":   db.Size,
 		"engine":              db.Engine,

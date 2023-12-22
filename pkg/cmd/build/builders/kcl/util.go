@@ -7,7 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/io"
@@ -94,7 +94,7 @@ func k8sResource2ResourceMap(resource map[string]interface{}) (map[string]interf
 
 	return map[string]interface{}{
 		ID:         engine.BuildID(apiVersion, kind, metadataNamespace, metadataName),
-		Type:       intent.Kubernetes,
+		Type:       v1.Kubernetes,
 		Attributes: resource,
 	}, nil
 }

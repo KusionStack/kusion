@@ -2,7 +2,6 @@ package builders
 
 import (
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators"
 	"kusionstack.io/kusion/pkg/modules/inputs"
@@ -17,9 +16,9 @@ func (acg *AppsConfigBuilder) Build(
 	_ *Options,
 	project *v1.Project,
 	stack *v1.Stack,
-) (*intent.Intent, error) {
-	i := &intent.Intent{
-		Resources: []intent.Resource{},
+) (*v1.Intent, error) {
+	i := &v1.Intent{
+		Resources: []v1.Resource{},
 	}
 
 	var gfs []modules.NewGeneratorFunc

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 )
 
@@ -46,9 +46,9 @@ var (
 			"name": "foo",
 		},
 	}
-	genOldSpec = func() *intent.Intent {
-		return &intent.Intent{
-			Resources: intent.Resources{
+	genOldSpec = func() *apiv1.Intent {
+		return &apiv1.Intent{
+			Resources: apiv1.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",
 					Type:       runtime.Kubernetes,
@@ -67,9 +67,9 @@ var (
 			},
 		}
 	}
-	genNewSpec = func() *intent.Intent {
-		return &intent.Intent{
-			Resources: intent.Resources{
+	genNewSpec = func() *apiv1.Intent {
+		return &apiv1.Intent{
+			Resources: apiv1.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",
 					Type:       runtime.Kubernetes,
@@ -123,7 +123,7 @@ func TestInjectAllDependsOn(t *testing.T) {
 	dependKinds := []string{"Namespace"}
 
 	expected := []string{"v1:Namespace:foo"}
-	actual := resource([]intent.Resource(spec.Resources)[0])
+	actual := resource([]apiv1.Resource(spec.Resources)[0])
 	actual.injectDependsOn(dependKinds, spec.Resources)
 
 	assert.Equal(t, expected, actual.DependsOn)
@@ -166,7 +166,7 @@ func TestFindDependResources(t *testing.T) {
 	dependKind := "Namespace"
 	resources := genOldSpec().Resources
 
-	expected := []*intent.Resource{
+	expected := []*apiv1.Resource{
 		{
 			ID:         "v1:Namespace:foo",
 			Type:       runtime.Kubernetes,

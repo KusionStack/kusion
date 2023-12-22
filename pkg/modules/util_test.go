@@ -8,36 +8,35 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 )
 
 type mockGenerator struct {
-	GenerateFunc func(intent *intent.Intent) error
+	GenerateFunc func(intent *apiv1.Intent) error
 }
 
-func (m *mockGenerator) Generate(i *intent.Intent) error {
+func (m *mockGenerator) Generate(i *apiv1.Intent) error {
 	return m.GenerateFunc(i)
 }
 
 type mockPatcher struct {
-	PatchFunc func(resources map[string][]*intent.Resource) error
+	PatchFunc func(resources map[string][]*apiv1.Resource) error
 }
 
-func (m *mockPatcher) Patch(resources map[string][]*intent.Resource) error {
+func (m *mockPatcher) Patch(resources map[string][]*apiv1.Resource) error {
 	return m.PatchFunc(resources)
 }
 
 func TestCallGenerators(t *testing.T) {
-	i := &intent.Intent{}
+	i := &apiv1.Intent{}
 
 	var (
 		generator1 Generator = &mockGenerator{
-			GenerateFunc: func(intent *intent.Intent) error {
+			GenerateFunc: func(intent *apiv1.Intent) error {
 				return nil
 			},
 		}
 		generator2 Generator = &mockGenerator{
-			GenerateFunc: func(intent *intent.Intent) error {
+			GenerateFunc: func(intent *apiv1.Intent) error {
 				return assert.AnError
 			},
 		}
@@ -53,12 +52,12 @@ func TestCallGenerators(t *testing.T) {
 func TestCallPatchers(t *testing.T) {
 	var (
 		patcher1 Patcher = &mockPatcher{
-			PatchFunc: func(resources map[string][]*intent.Resource) error {
+			PatchFunc: func(resources map[string][]*apiv1.Resource) error {
 				return nil
 			},
 		}
 		patcher2 Patcher = &mockPatcher{
-			PatchFunc: func(resources map[string][]*intent.Resource) error {
+			PatchFunc: func(resources map[string][]*apiv1.Resource) error {
 				return assert.AnError
 			},
 		}
@@ -153,8 +152,8 @@ func TestKubernetesResourceID(t *testing.T) {
 }
 
 func TestAppendToIntent(t *testing.T) {
-	i := &intent.Intent{}
-	resource := &intent.Resource{
+	i := &apiv1.Intent{}
+	resource := &apiv1.Resource{
 		ID:   "v1:Namespace:fake-project",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -181,14 +180,14 @@ func TestAppendToIntent(t *testing.T) {
 		},
 	}
 
-	err := AppendToIntent(intent.Kubernetes, resource.ID, i, ns)
+	err := AppendToIntent(apiv1.Kubernetes, resource.ID, i, ns)
 
 	assert.NoError(t, err)
 	assert.Len(t, i.Resources, 1)
 	assert.Equal(t, resource.ID, i.Resources[0].ID)
 	assert.Equal(t, resource.Type, i.Resources[0].Type)
 	assert.Equal(t, resource.Attributes, i.Resources[0].Attributes)
-	assert.Equal(t, ns.GroupVersionKind().String(), i.Resources[0].Extensions[intent.ResourceExtensionGVK])
+	assert.Equal(t, ns.GroupVersionKind().String(), i.Resources[0].Extensions[apiv1.ResourceExtensionGVK])
 }
 
 func TestUniqueAppName(t *testing.T) {
@@ -217,7 +216,7 @@ func TestUniqueAppLabels(t *testing.T) {
 }
 
 func TestPatchResource(t *testing.T) {
-	resources := map[string][]*intent.Resource{
+	resources := map[string][]*apiv1.Resource{
 		"/v1, Kind=Namespace": {
 			{
 				ID:   "v1:Namespace:default",
@@ -257,14 +256,14 @@ func TestAddKubeConfigIf(t *testing.T) {
 	testcases := []struct {
 		name           string
 		ws             *apiv1.Workspace
-		i              *intent.Intent
-		expectedIntent *intent.Intent
+		i              *apiv1.Intent
+		expectedIntent *apiv1.Intent
 	}{
 		{
 			name: "empty workspace runtime config",
 			ws:   &apiv1.Workspace{Name: "dev"},
-			i: &intent.Intent{
-				Resources: intent.Resources{
+			i: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -275,8 +274,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &intent.Intent{
-				Resources: intent.Resources{
+			expectedIntent: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -296,8 +295,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					Kubernetes: &apiv1.KubernetesConfig{},
 				},
 			},
-			i: &intent.Intent{
-				Resources: intent.Resources{
+			i: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -308,8 +307,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &intent.Intent{
-				Resources: intent.Resources{
+			expectedIntent: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -331,8 +330,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			i: &intent.Intent{
-				Resources: intent.Resources{
+			i: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -381,8 +380,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &intent.Intent{
-				Resources: intent.Resources{
+			expectedIntent: &apiv1.Intent{
+				Resources: apiv1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",

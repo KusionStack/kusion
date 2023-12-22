@@ -9,7 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -52,14 +51,14 @@ func TestGenerate(t *testing.T) {
 	generator, _ := NewDatabaseGenerator(project, stack, appName, workload, database)
 
 	awsProviderRegion = "us-east-1"
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	err := generator.Generate(spec)
 
 	var providerMeta map[string]interface{}
 	var cidrBlocks []string
-	expectedSpec := &intent.Intent{
-		Resources: intent.Resources{
-			intent.Resource{
+	expectedSpec := &apiv1.Intent{
+		Resources: apiv1.Resources{
+			apiv1.Resource{
 				ID:   "hashicorp:random:random_password:testapp-db",
 				Type: "Terraform",
 				Attributes: map[string]interface{}{
@@ -73,7 +72,7 @@ func TestGenerate(t *testing.T) {
 					"resourceType": "random_password",
 				},
 			},
-			intent.Resource{
+			apiv1.Resource{
 				ID:   "hashicorp:aws:aws_security_group:testapp-db",
 				Type: "Terraform",
 				Attributes: map[string]interface{}{
@@ -102,7 +101,7 @@ func TestGenerate(t *testing.T) {
 					"resourceType": "aws_security_group",
 				},
 			},
-			intent.Resource{
+			apiv1.Resource{
 				ID:   "hashicorp:aws:aws_db_instance:testapp",
 				Type: "Terraform",
 				Attributes: map[string]interface{}{
@@ -127,7 +126,7 @@ func TestGenerate(t *testing.T) {
 					"resourceType": "aws_db_instance",
 				},
 			},
-			intent.Resource{
+			apiv1.Resource{
 				ID:   "v1:Secret:testproject:testapp-db",
 				Type: "Kubernetes",
 				Attributes: map[string]interface{}{
@@ -255,7 +254,7 @@ func TestGenerateTFRandomPassword(t *testing.T) {
 	var providerMeta map[string]interface{}
 	id, res := generator.generateTFRandomPassword(randomProvider)
 	expectedID := "hashicorp:random:random_password:testapp-db"
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "hashicorp:random:random_password:testapp-db",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
@@ -292,7 +291,7 @@ func TestGenerateDBSeret(t *testing.T) {
 		database: database,
 	}
 
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"
 	username := database.Username
 	password := "$kusion_path.hashicorp:random:random_password:testapp-db.result"

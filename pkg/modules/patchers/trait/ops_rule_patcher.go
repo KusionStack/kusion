@@ -4,7 +4,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 )
@@ -28,7 +28,7 @@ func NewOpsRulePatcher(app *modelsapp.AppConfiguration) (modules.Patcher, error)
 }
 
 // Patch implements Patcher interface.
-func (p *opsRulePatcher) Patch(resources map[string][]*intent.Resource) error {
+func (p *opsRulePatcher) Patch(resources map[string][]*apiv1.Resource) error {
 	if p.app.OpsRule == nil {
 		return nil
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 var providerAddr = "registry.terraform.io/hashicorp/local/2.2.3"
@@ -13,7 +13,7 @@ var providerAddr = "registry.terraform.io/hashicorp/local/2.2.3"
 func TestConvertTFState(t *testing.T) {
 	tests := map[string]struct {
 		args StateRepresentation
-		want intent.Resource
+		want v1.Resource
 	}{
 		"success": {
 			args: StateRepresentation{
@@ -40,7 +40,7 @@ func TestConvertTFState(t *testing.T) {
 					},
 				},
 			},
-			want: intent.Resource{
+			want: v1.Resource{
 				ID:   "test",
 				Type: "Terraform",
 				Attributes: map[string]interface{}{

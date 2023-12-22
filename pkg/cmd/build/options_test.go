@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/project"
@@ -119,8 +118,8 @@ func TestCompileOptions_Run(t *testing.T) {
 	})
 }
 
-func newSA(name string) intent.Resource {
-	return intent.Resource{
+func newSA(name string) apiv1.Resource {
+	return apiv1.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -155,8 +154,8 @@ func mockGenerateIntent() *mockey.Mocker {
 		o *builders.Options,
 		project *apiv1.Project,
 		stack *apiv1.Stack,
-	) (*intent.Intent, error) {
-		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Intent, error) {
+		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -165,8 +164,8 @@ func mockGenerateIntentFail() *mockey.Mocker {
 		o *builders.Options,
 		project *apiv1.Project,
 		stack *apiv1.Stack,
-	) (*intent.Intent, error) {
-		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, errTest
+	) (*apiv1.Intent, error) {
+		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 

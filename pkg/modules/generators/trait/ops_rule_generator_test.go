@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	appmodule "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -20,7 +19,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		app     *appmodule.AppConfiguration
 	}
 	type args struct {
-		spec *intent.Intent
+		spec *apiv1.Intent
 	}
 	project := &apiv1.Project{
 		Name: "default",
@@ -34,7 +33,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		exp     *intent.Intent
+		exp     *apiv1.Intent
 	}{
 		{
 			name: "test Job",
@@ -54,10 +53,10 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: args{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
-			exp:     &intent.Intent{},
+			exp:     &apiv1.Intent{},
 		},
 		{
 			name: "test CollaSet",
@@ -80,12 +79,12 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: args{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
-			exp: &intent.Intent{
-				Resources: intent.Resources{
-					intent.Resource{
+			exp: &apiv1.Intent{
+				Resources: apiv1.Resources{
+					apiv1.Resource{
 						ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 						Type: "Kubernetes",
 						Attributes: map[string]interface{}{

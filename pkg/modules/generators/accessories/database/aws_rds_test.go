@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -40,7 +39,7 @@ func TestGenerateAWSResources(t *testing.T) {
 	}
 
 	awsProviderRegion = "us-east-1"
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	secret, err := generator.generateAWSResources(database, spec)
 
 	hostAddress := "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address"
@@ -98,7 +97,7 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 	var cidrBlocks []string
 	awsSecurityGroupID, r, err := generator.generateAWSSecurityGroup(awsProvider, awsProviderRegion, database)
 	expectedAWSSecurityGroupID := "hashicorp:aws:aws_security_group:testapp-db"
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "hashicorp:aws:aws_security_group:testapp-db",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
@@ -167,7 +166,7 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 
 	awsDBInstanceID, r := generator.generateAWSDBInstance(awsProviderRegion, awsSecurityGroupID, randomPasswordID, awsProvider, database)
 	expectedAWSDBInstanceID := "hashicorp:aws:aws_db_instance:testapp"
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "hashicorp:aws:aws_db_instance:testapp",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{

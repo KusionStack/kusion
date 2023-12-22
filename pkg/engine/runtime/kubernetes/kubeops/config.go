@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/client-go/util/homedir"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 const (
@@ -24,12 +24,12 @@ var (
 // 1. If $KUBECONFIG environment variable is set, then it is used.
 // 2. If not, and the `kubeConfig` in resource extensions is set, then it is used.
 // 3. Otherwise, ${HOME}/.kube/config is used.
-func GetKubeConfig(resource *intent.Resource) string {
+func GetKubeConfig(resource *apiv1.Resource) string {
 	if kubeConfigFile := os.Getenv(RecommendedConfigPathEnvVar); kubeConfigFile != "" {
 		return kubeConfigFile
 	}
 	if resource != nil {
-		kubeConfig, ok := resource.Extensions[intent.ResourceExtensionKubeConfig].(string)
+		kubeConfig, ok := resource.Extensions[apiv1.ResourceExtensionKubeConfig].(string)
 		if ok && kubeConfig != "" {
 			kubeConfigFile, _ := filepath.Abs(kubeConfig)
 			if kubeConfigFile != "" {

@@ -5,23 +5,22 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 func Test_namespaceGenerator_Generate(t *testing.T) {
 	type fields struct {
 		projectName  string
-		moduleInputs map[string]v1.GenericConfig
+		moduleInputs map[string]apiv1.GenericConfig
 	}
 	type args struct {
-		intent *intent.Intent
+		intent *apiv1.Intent
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *intent.Intent
+		want    *apiv1.Intent
 		wantErr bool
 	}{
 		{
@@ -30,10 +29,10 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 				projectName: "fake-project",
 			},
 			args: args{
-				intent: &intent.Intent{},
+				intent: &apiv1.Intent{},
 			},
-			want: &intent.Intent{
-				Resources: []intent.Resource{
+			want: &apiv1.Intent{
+				Resources: []apiv1.Resource{
 					{
 						ID:   "v1:Namespace:fake-project",
 						Type: "Kubernetes",
@@ -60,17 +59,17 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			name: "customize_namespace",
 			fields: fields{
 				projectName: "beep",
-				moduleInputs: map[string]v1.GenericConfig{
+				moduleInputs: map[string]apiv1.GenericConfig{
 					"namespace": {
 						"name": "foo",
 					},
 				},
 			},
 			args: args{
-				intent: &intent.Intent{},
+				intent: &apiv1.Intent{},
 			},
-			want: &intent.Intent{
-				Resources: []intent.Resource{
+			want: &apiv1.Intent{
+				Resources: []apiv1.Resource{
 					{
 						ID:   "v1:Namespace:foo",
 						Type: "Kubernetes",
@@ -97,17 +96,17 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			name: "mismatch_module_input",
 			fields: fields{
 				projectName: "beep",
-				moduleInputs: map[string]v1.GenericConfig{
+				moduleInputs: map[string]apiv1.GenericConfig{
 					"namespace": {
 						"type": "foo",
 					},
 				},
 			},
 			args: args{
-				intent: &intent.Intent{},
+				intent: &apiv1.Intent{},
 			},
-			want: &intent.Intent{
-				Resources: []intent.Resource{
+			want: &apiv1.Intent{
+				Resources: []apiv1.Resource{
 					{
 						ID:   "v1:Namespace:beep",
 						Type: "Kubernetes",

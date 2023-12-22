@@ -12,17 +12,16 @@ import (
 	"gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/util/pretty"
-	workspace "kusionstack.io/kusion/pkg/workspace"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
-func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*intent.Intent, error) {
+func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -55,7 +54,7 @@ func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack
 	return i, nil
 }
 
-func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*intent.Intent, error) {
+func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
 	pg := p.Generator
@@ -123,7 +122,7 @@ func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]inputs.Ap
 	return appConfigs, nil
 }
 
-func IntentFromFile(filePath string) (*intent.Intent, error) {
+func IntentFromFile(filePath string) (*v1.Intent, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -134,7 +133,7 @@ func IntentFromFile(filePath string) (*intent.Intent, error) {
 	// The use of yaml.v2 and yaml.v3 should be unified in the future.
 	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	i := &intent.Intent{}
+	i := &v1.Intent{}
 	if err = decoder.Decode(i); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
 	}

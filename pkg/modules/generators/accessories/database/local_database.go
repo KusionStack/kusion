@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 )
@@ -26,7 +26,7 @@ var (
 	localMatchLabels      = map[string]string{"accessory": localDatabaseName}
 )
 
-func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *intent.Intent) (*v1.Secret, error) {
+func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Build k8s secret for local database's random password.
 	password, err := g.generateLocalSecret(spec)
 	if err != nil {
@@ -52,7 +52,7 @@ func (g *databaseGenerator) generateLocalResources(db *database.Database, spec *
 	return g.generateDBSecret(hostAddress, db.Username, password, spec)
 }
 
-func (g *databaseGenerator) generateLocalSecret(spec *intent.Intent) (string, error) {
+func (g *databaseGenerator) generateLocalSecret(spec *apiv1.Intent) (string, error) {
 	password := g.generateLocalPassword(16)
 
 	data := make(map[string]string)
@@ -73,14 +73,14 @@ func (g *databaseGenerator) generateLocalSecret(spec *intent.Intent) (string, er
 
 	// Fixme: return $kusion_path with `stringData.password` of local database secret id.
 	return password, modules.AppendToIntent(
-		intent.Kubernetes,
+		apiv1.Kubernetes,
 		secID,
 		spec,
 		secret,
 	)
 }
 
-func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *intent.Intent) error {
+func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *apiv1.Intent) error {
 	// Create the k8s pvc with the storage size of `db.Size`.
 	pvc := &v1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
@@ -105,14 +105,14 @@ func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *intent
 	}
 
 	return modules.AppendToIntent(
-		intent.Kubernetes,
+		apiv1.Kubernetes,
 		modules.KubernetesResourceID(pvc.TypeMeta, pvc.ObjectMeta),
 		spec,
 		pvc,
 	)
 }
 
-func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec *intent.Intent) error {
+func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec *apiv1.Intent) error {
 	// Prepare the pod spec for specific local database.
 	podSpec, err := g.generateLocalPodSpec(db)
 	if err != nil {
@@ -143,14 +143,14 @@ func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec 
 	}
 
 	return modules.AppendToIntent(
-		intent.Kubernetes,
+		apiv1.Kubernetes,
 		modules.KubernetesResourceID(deployment.TypeMeta, deployment.ObjectMeta),
 		spec,
 		deployment,
 	)
 }
 
-func (g *databaseGenerator) generateLocalService(db *database.Database, spec *intent.Intent) (string, error) {
+func (g *databaseGenerator) generateLocalService(db *database.Database, spec *apiv1.Intent) (string, error) {
 	// Prepare the service port for specific local database.
 	svcPort, err := g.generateLocalSvcPort(db)
 	if err != nil {
@@ -177,7 +177,7 @@ func (g *databaseGenerator) generateLocalService(db *database.Database, spec *in
 	}
 
 	return svcName, modules.AppendToIntent(
-		intent.Kubernetes,
+		apiv1.Kubernetes,
 		modules.KubernetesResourceID(service.TypeMeta, service.ObjectMeta),
 		spec,
 		service,

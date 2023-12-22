@@ -6,7 +6,6 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	appmodule "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -44,7 +43,7 @@ func NewOpsRuleGeneratorFunc(
 	}
 }
 
-func (g *opsRuleGenerator) Generate(spec *intent.Intent) error {
+func (g *opsRuleGenerator) Generate(spec *apiv1.Intent) error {
 	if g.app.OpsRule == nil {
 		return nil
 	}
@@ -81,7 +80,7 @@ func (g *opsRuleGenerator) Generate(spec *intent.Intent) error {
 				},
 			},
 		}
-		return modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+		return modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
 	return nil
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
 
@@ -20,14 +19,14 @@ type Fields struct {
 }
 
 type Args struct {
-	spec *intent.Intent
+	spec *apiv1.Intent
 }
 
 type TestCase struct {
 	name    string
 	fields  Fields
 	args    Args
-	want    *intent.Intent
+	want    *apiv1.Intent
 	wantErr bool
 }
 
@@ -47,9 +46,9 @@ func BuildMonitoringTestCase(
 		monitorKind = "PodMonitor"
 		endpointType = "podMetricsEndpoints"
 	}
-	expectedResources := make([]intent.Resource, 0)
+	expectedResources := make([]apiv1.Resource, 0)
 	if operatorMode {
-		expectedResources = []intent.Resource{
+		expectedResources = []apiv1.Resource{
 			{
 				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, appName, strings.ToLower(string(monitorType))),
 				Type: "Kubernetes",
@@ -110,9 +109,9 @@ func BuildMonitoringTestCase(
 			appName: appName,
 		},
 		args: Args{
-			spec: &intent.Intent{},
+			spec: &apiv1.Intent{},
 		},
-		want: &intent.Intent{
+		want: &apiv1.Intent{
 			Resources: expectedResources,
 		},
 		wantErr: false,

@@ -10,7 +10,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -236,8 +235,8 @@ func (o *ChangeOrder) OutputDiff(target string) {
 	}
 }
 
-func buildResourceStateMap(rs []*intent.Resource) map[string]*intent.Resource {
-	rMap := make(map[string]*intent.Resource)
+func buildResourceStateMap(rs []*v1.Resource) map[string]*v1.Resource {
+	rMap := make(map[string]*v1.Resource)
 	if len(rs) == 0 {
 		return rMap
 	}

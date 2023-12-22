@@ -10,8 +10,7 @@ import (
 	"github.com/bytedance/mockey"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
@@ -32,12 +31,12 @@ var (
 			"type": "NodePort",
 		},
 	}
-	FakeResourceState = intent.Resource{
+	FakeResourceState = apiv1.Resource{
 		ID:         "fake-id",
 		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
 	}
-	FakeResourceState2 = intent.Resource{
+	FakeResourceState2 = apiv1.Resource{
 		ID:         "fake-id-2",
 		Type:       runtime.Kubernetes,
 		Attributes: FakeService,
@@ -89,11 +88,11 @@ func TestOperation_Preview(t *testing.T) {
 	type fields struct {
 		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*intent.Resource
-		PriorStateResourceIndex map[string]*intent.Resource
-		StateResourceIndex      map[string]*intent.Resource
+		CtxResourceIndex        map[string]*apiv1.Resource
+		PriorStateResourceIndex map[string]*apiv1.Resource
+		StateResourceIndex      map[string]*apiv1.Resource
 		Order                   *opsmodels.ChangeOrder
-		RuntimeMap              map[intent.Type]runtime.Runtime
+		RuntimeMap              map[apiv1.Type]runtime.Runtime
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
 		lock                    *sync.Mutex
@@ -115,13 +114,13 @@ func TestOperation_Preview(t *testing.T) {
 		fields  fields
 		args    args
 		wantRsp *PreviewResponse
-		wantS   status.Status
+		wantS   v1.Status
 	}{
 		{
 			name: "success-when-apply",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 			},
@@ -132,8 +131,8 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &intent.Intent{
-							Resources: []intent.Resource{
+						Intent: &apiv1.Intent{
+							Resources: []apiv1.Resource{
 								FakeResourceState,
 							},
 						},
@@ -147,7 +146,7 @@ func TestOperation_Preview(t *testing.T) {
 						"fake-id": {
 							ID:     "fake-id",
 							Action: opsmodels.Create,
-							From:   (*intent.Resource)(nil),
+							From:   (*apiv1.Resource)(nil),
 							To:     &FakeResourceState,
 						},
 					},
@@ -159,7 +158,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "success-when-destroy",
 			fields: fields{
 				OperationType: opsmodels.DestroyPreview,
-				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -170,8 +169,8 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &intent.Intent{
-							Resources: []intent.Resource{
+						Intent: &apiv1.Intent{
+							Resources: []apiv1.Resource{
 								FakeResourceState2,
 							},
 						},
@@ -186,7 +185,7 @@ func TestOperation_Preview(t *testing.T) {
 							ID:     "fake-id-2",
 							Action: opsmodels.Delete,
 							From:   &FakeResourceState2,
-							To:     (*intent.Resource)(nil),
+							To:     (*apiv1.Resource)(nil),
 						},
 					},
 				},
@@ -197,7 +196,7 @@ func TestOperation_Preview(t *testing.T) {
 			name: "fail-because-empty-models",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -209,13 +208,13 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			},
 			wantRsp: nil,
-			wantS:   status.NewErrorStatusWithMsg(status.InvalidArgument, "request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
+			wantS:   v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
 				OperationType: opsmodels.ApplyPreview,
-				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
 				StateStorage:  &local.FileSystemState{Path: local.KusionStateFileFile},
 				Order:         &opsmodels.ChangeOrder{},
 			},
@@ -226,8 +225,8 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &intent.Intent{
-							Resources: []intent.Resource{
+						Intent: &apiv1.Intent{
+							Resources: []apiv1.Resource{
 								{
 									ID:         "fake-id",
 									Type:       runtime.Kubernetes,
@@ -240,7 +239,7 @@ func TestOperation_Preview(t *testing.T) {
 				},
 			},
 			wantRsp: nil,
-			wantS:   status.NewErrorStatusWithMsg(status.IllegalManifest, "can't find resource by key:nonexistent-id in models or state."),
+			wantS:   v1.NewErrorStatusWithMsg(v1.IllegalManifest, "can't find resource by key:nonexistent-id in models or state."),
 		},
 	}
 	for _, tt := range tests {
@@ -261,9 +260,9 @@ func TestOperation_Preview(t *testing.T) {
 			}
 
 			mockey.Mock(runtimeinit.Runtimes).To(func(
-				resources intent.Resources,
-			) (map[intent.Type]runtime.Runtime, status.Status) {
-				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
+				resources apiv1.Resources,
+			) (map[apiv1.Type]runtime.Runtime, v1.Status) {
+				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()
 			gotRsp, gotS := o.Preview(tt.args.request)
 			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {

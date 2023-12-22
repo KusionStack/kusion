@@ -7,7 +7,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -38,9 +37,9 @@ func NewNamespaceGeneratorFunc(projectName string, workspace *apiv1.Workspace) m
 	}
 }
 
-func (g *namespaceGenerator) Generate(i *intent.Intent) error {
+func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
 	if i.Resources == nil {
-		i.Resources = make(intent.Resources, 0)
+		i.Resources = make(apiv1.Resources, 0)
 	}
 
 	ns := &corev1.Namespace{
@@ -59,7 +58,7 @@ func (g *namespaceGenerator) Generate(i *intent.Intent) error {
 		}
 	}
 
-	return modules.AppendToIntent(intent.Kubernetes, id, i, ns)
+	return modules.AppendToIntent(apiv1.Kubernetes, id, i, ns)
 }
 
 // getName obtains the name for this Namespace using the following precedence

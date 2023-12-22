@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -29,21 +28,21 @@ func Test_validateRequest(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want status.Status
+		want v1.Status
 	}{
 		{
 			name: "t1",
 			args: args{
 				request: &opsmodels.Request{},
 			},
-			want: status.NewErrorStatusWithMsg(status.InvalidArgument,
+			want: v1.NewErrorStatusWithMsg(v1.InvalidArgument,
 				"request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
 		},
 		{
 			name: "t2",
 			args: args{
 				request: &opsmodels.Request{
-					Intent: &intent.Intent{Resources: []intent.Resource{}},
+					Intent: &apiv1.Intent{Resources: []apiv1.Resource{}},
 				},
 			},
 			want: nil,
@@ -62,11 +61,11 @@ func TestOperation_Apply(t *testing.T) {
 	type fields struct {
 		OperationType           opsmodels.OperationType
 		StateStorage            states.StateStorage
-		CtxResourceIndex        map[string]*intent.Resource
-		PriorStateResourceIndex map[string]*intent.Resource
-		StateResourceIndex      map[string]*intent.Resource
+		CtxResourceIndex        map[string]*apiv1.Resource
+		PriorStateResourceIndex map[string]*apiv1.Resource
+		StateResourceIndex      map[string]*apiv1.Resource
 		Order                   *opsmodels.ChangeOrder
-		RuntimeMap              map[intent.Type]runtime.Runtime
+		RuntimeMap              map[apiv1.Type]runtime.Runtime
 		Stack                   *apiv1.Stack
 		MsgCh                   chan opsmodels.Message
 		resultState             *states.State
@@ -77,7 +76,7 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	const Jack = "jack"
-	mf := &intent.Intent{Resources: []intent.Resource{
+	mf := &apiv1.Intent{Resources: []apiv1.Resource{
 		{
 			ID:   Jack,
 			Type: runtime.Kubernetes,
@@ -97,7 +96,7 @@ func TestOperation_Apply(t *testing.T) {
 		KusionVersion: "",
 		Serial:        1,
 		Operator:      "faker",
-		Resources: []intent.Resource{
+		Resources: []apiv1.Resource{
 			{
 				ID:   Jack,
 				Type: runtime.Kubernetes,
@@ -124,14 +123,14 @@ func TestOperation_Apply(t *testing.T) {
 		fields  fields
 		args    args
 		wantRsp *ApplyResponse
-		wantSt  status.Status
+		wantSt  v1.Status
 	}{
 		{
 			name: "apply test",
 			fields: fields{
 				OperationType: opsmodels.Apply,
 				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
-				RuntimeMap:    map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 				MsgCh:         make(chan opsmodels.Message, 5),
 			},
 			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
@@ -165,14 +164,14 @@ func TestOperation_Apply(t *testing.T) {
 				Operation: *o,
 			}
 
-			mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) status.Status {
+			mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
 				o.ResultState = rs
 				return nil
 			}).Build()
 			mockey.Mock(runtimeinit.Runtimes).To(func(
-				resources intent.Resources,
-			) (map[intent.Type]runtime.Runtime, status.Status) {
-				return map[intent.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
+				resources apiv1.Resources,
+			) (map[apiv1.Type]runtime.Runtime, v1.Status) {
+				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()
 
 			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)

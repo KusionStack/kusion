@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/afero"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
@@ -22,7 +22,7 @@ type TerraformRuntime struct {
 	mu *sync.Mutex
 }
 
-func NewTerraformRuntime(_ *intent.Resource) (runtime.Runtime, error) {
+func NewTerraformRuntime(_ *apiv1.Resource) (runtime.Runtime, error) {
 	fs := afero.Afero{Fs: afero.NewOsFs()}
 	ws := tfops.NewWorkSpace(fs)
 	TFRuntime := &TerraformRuntime{
@@ -45,17 +45,17 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	t.WorkSpace.SetResource(plan)
 
 	if err := t.WorkSpace.WriteHCL(); err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.LockHCLFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {
-				return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+				return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 			}
 		} else {
-			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 		}
 	}
 
@@ -63,16 +63,16 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	if request.DryRun {
 		pr, err := t.WorkSpace.Plan(ctx)
 		if err != nil {
-			return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 		}
 		module := pr.PlannedValues.RootModule
 		if len(module.Resources) == 0 {
 			log.Debugf("no resource found in terraform plan file")
-			return &runtime.ApplyResponse{Resource: &intent.Resource{}, Status: nil}
+			return &runtime.ApplyResponse{Resource: &apiv1.Resource{}, Status: nil}
 		}
 
 		return &runtime.ApplyResponse{
-			Resource: &intent.Resource{
+			Resource: &apiv1.Resource{
 				ID:         plan.ID,
 				Type:       plan.Type,
 				Attributes: module.Resources[0].AttributeValues,
@@ -85,19 +85,19 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 
 	tfstate, err := t.WorkSpace.Apply(ctx)
 	if err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	// get terraform provider version
 	providerAddr, err := t.WorkSpace.GetProvider()
 	if err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 
 	return &runtime.ApplyResponse{
-		Resource: &intent.Resource{
+		Resource: &apiv1.Resource{
 			ID:         plan.ID,
 			Type:       plan.Type,
 			Attributes: r.Attributes,
@@ -121,7 +121,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
 		// Most fields in attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
 		// if fields copied from kusion_state.json but read-only in main.tf.json
-		planResource = &intent.Resource{
+		planResource = &apiv1.Resource{
 			ID:         priorResource.ID,
 			Type:       priorResource.Type,
 			Attributes: nil,
@@ -143,27 +143,27 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	t.WorkSpace.SetResource(planResource)
 
 	if err := t.WorkSpace.WriteHCL(); err != nil {
-		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 	_, err := os.Stat(filepath.Join(tfCacheDir, tfops.LockHCLFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := t.WorkSpace.InitWorkSpace(ctx); err != nil {
-				return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+				return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 			}
 		} else {
-			return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+			return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 		}
 	}
 
 	// priorResource overwrite tfstate in workspace
 	if err = t.WorkSpace.WriteTFState(priorResource); err != nil {
-		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	tfstate, err = t.WorkSpace.RefreshOnly(ctx)
 	if err != nil {
-		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	if tfstate == nil || tfstate.Values == nil {
@@ -173,12 +173,12 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	// get terraform provider addr
 	providerAddr, err := t.WorkSpace.GetProvider()
 	if err != nil {
-		return &runtime.ReadResponse{Resource: nil, Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
 	r := tfops.ConvertTFState(tfstate, providerAddr)
 	return &runtime.ReadResponse{
-		Resource: &intent.Resource{
+		Resource: &apiv1.Resource{
 			ID:         planResource.ID,
 			Type:       planResource.Type,
 			Attributes: r.Attributes,
@@ -206,13 +206,13 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(request.Resource)
 	if err := t.WorkSpace.Destroy(ctx); err != nil {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// delete tf directory after destroy operation is success
 	err := os.RemoveAll(tfCacheDir)
 	if err != nil {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(err)}
 	}
 	return &runtime.DeleteResponse{Status: nil}
 }

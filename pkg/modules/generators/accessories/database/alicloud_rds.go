@@ -7,7 +7,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
@@ -32,7 +32,7 @@ type alicloudServerlessConfig struct {
 	MinCapacity int  `yaml:"min_capacity,omitempty" json:"min_capacity,omitempty"`
 }
 
-func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *intent.Intent) (*v1.Secret, error) {
+func (g *databaseGenerator) generateAlicloudResources(db *database.Database, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Set the terraform random and alicloud provider.
 	randomProvider := &inputs.Provider{}
 	if err := randomProvider.SetString(randomProviderURL); err != nil {
@@ -90,7 +90,7 @@ func (g *databaseGenerator) generateAlicloudDBInstance(
 	region string,
 	provider *inputs.Provider,
 	db *database.Database,
-) (string, intent.Resource) {
+) (string, apiv1.Resource) {
 	dbAttrs := map[string]interface{}{
 		"category":         db.Category,
 		"engine":           db.Engine,
@@ -132,7 +132,7 @@ func (g *databaseGenerator) generateAlicloudDBInstance(
 func (g *databaseGenerator) generateAlicloudDBConnection(
 	dbInstanceID, region string,
 	provider *inputs.Provider,
-) (string, intent.Resource) {
+) (string, apiv1.Resource) {
 	dbConnectionAttrs := map[string]interface{}{
 		"instance_id": modules.KusionPathDependency(dbInstanceID, "id"),
 	}
@@ -147,7 +147,7 @@ func (g *databaseGenerator) generateAlicloudDBConnection(
 
 func (g *databaseGenerator) generateAlicloudRDSAccount(
 	accountName, randomPasswordID, dbInstanceID, region string, provider *inputs.Provider, db *database.Database,
-) intent.Resource {
+) apiv1.Resource {
 	rdsAccountAttrs := map[string]interface{}{
 		"account_name":     accountName,
 		"account_password": modules.KusionPathDependency(randomPasswordID, "result"),

@@ -4,31 +4,31 @@ import (
 	"fmt"
 	"reflect"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 type Parser interface {
-	Parse(dag *dag.AcyclicGraph) status.Status
+	Parse(dag *dag.AcyclicGraph) v1.Status
 }
 
-func updateDependencies(resource *intent.Resource) ([]string, status.Status) {
+func updateDependencies(resource *apiv1.Resource) ([]string, v1.Status) {
 	// handle explicate dependency
 	refNodeKeys := resource.DependsOn
 
 	// handle implicit dependency
 	v := reflect.ValueOf(resource.Attributes)
 	implicitRefKeys, _, s := graph.ReplaceImplicitRef(v, nil, func(
-		res map[string]*intent.Resource,
+		res map[string]*apiv1.Resource,
 		ref string,
-	) (reflect.Value, status.Status) {
+	) (reflect.Value, v1.Status) {
 		// don't replace anything when parsing dependencies
 		return reflect.ValueOf(ref), nil
 	})
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	refNodeKeys = append(refNodeKeys, implicitRefKeys...)
@@ -42,25 +42,25 @@ func updateDependencies(resource *intent.Resource) ([]string, status.Status) {
 func LinkRefNodes(
 	ag *dag.AcyclicGraph,
 	refNodeKeys []string,
-	resourceIndex map[string]*intent.Resource,
+	resourceIndex map[string]*apiv1.Resource,
 	rn dag.Vertex,
 	defaultAction opsmodels.ActionType,
 	manifestGraphMap map[string]interface{},
-) status.Status {
+) v1.Status {
 	if len(refNodeKeys) == 0 {
 		return nil
 	}
 	for _, parentKey := range refNodeKeys {
 		if resourceIndex[parentKey] == nil {
-			return status.NewErrorStatusWithMsg(status.IllegalManifest,
+			return v1.NewErrorStatusWithMsg(v1.IllegalManifest,
 				fmt.Sprintf("can't find resource by key:%s in models or state.", parentKey))
 		}
 		parentNode, s := graph.NewResourceNode(parentKey, resourceIndex[parentKey], defaultAction)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			return s
 		}
 		baseNode, s := graph.NewBaseNode(parentKey)
-		if status.IsErr(s) {
+		if v1.IsErr(s) {
 			return s
 		}
 

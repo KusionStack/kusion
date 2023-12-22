@@ -9,8 +9,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sWatch "k8s.io/apimachinery/pkg/watch"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
@@ -20,8 +20,8 @@ func TestWatchOperation_Watch(t *testing.T) {
 	mockey.PatchConvey("test watch operation: watch", t, func() {
 		req := &WatchRequest{
 			Request: opsmodels.Request{
-				Intent: &intent.Intent{
-					Resources: intent.Resources{
+				Intent: &apiv1.Intent{
+					Resources: apiv1.Resources{
 						{
 							ID:         "apps/v1:Deployment:foo:bar",
 							Type:       runtime.Kubernetes,
@@ -32,11 +32,11 @@ func TestWatchOperation_Watch(t *testing.T) {
 			},
 		}
 		mockey.Mock(runtimeinit.Runtimes).To(func(
-			resources intent.Resources,
-		) (map[intent.Type]runtime.Runtime, status.Status) {
-			return map[intent.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
+			resources apiv1.Resources,
+		) (map[apiv1.Type]runtime.Runtime, v1.Status) {
+			return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
 		}).Build()
-		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[intent.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
+		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
 		err := wo.Watch(req)
 		assert.Nil(t, err)
 	})

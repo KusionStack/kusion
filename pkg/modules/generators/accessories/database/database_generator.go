@@ -10,7 +10,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
@@ -66,9 +65,9 @@ func NewDatabaseGeneratorFunc(
 	}
 }
 
-func (g *databaseGenerator) Generate(spec *intent.Intent) error {
+func (g *databaseGenerator) Generate(spec *apiv1.Intent) error {
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	// Skip rendering for empty database instance.
@@ -132,7 +131,7 @@ func (g *databaseGenerator) injectSecret(secret *v1.Secret) error {
 	return nil
 }
 
-func (g *databaseGenerator) generateTFRandomPassword(provider *inputs.Provider) (string, intent.Resource) {
+func (g *databaseGenerator) generateTFRandomPassword(provider *inputs.Provider) (string, apiv1.Resource) {
 	pswAttrs := map[string]interface{}{
 		"length":           16,
 		"special":          true,
@@ -145,7 +144,7 @@ func (g *databaseGenerator) generateTFRandomPassword(provider *inputs.Provider) 
 	return id, modules.TerraformResource(id, nil, pswAttrs, pvdExts)
 }
 
-func (g *databaseGenerator) generateDBSecret(hostAddress, username, password string, spec *intent.Intent) (*v1.Secret, error) {
+func (g *databaseGenerator) generateDBSecret(hostAddress, username, password string, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Create the data map of k8s secret storing the database host address, username
 	// and password.
 	data := make(map[string]string)
@@ -167,7 +166,7 @@ func (g *databaseGenerator) generateDBSecret(hostAddress, username, password str
 	}
 
 	return secret, modules.AppendToIntent(
-		intent.Kubernetes,
+		apiv1.Kubernetes,
 		modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta),
 		spec,
 		secret,

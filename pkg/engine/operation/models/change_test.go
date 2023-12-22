@@ -7,8 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -149,8 +148,8 @@ func TestChangeStep_Diff(t *testing.T) {
 func TestChanges_Get(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	type args struct {
 		key string
@@ -193,8 +192,8 @@ func TestChanges_Get(t *testing.T) {
 func TestChanges_Values(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	type args struct {
 		filters []ChangeStepFilterFunc
@@ -275,25 +274,25 @@ func TestChanges_Values(t *testing.T) {
 func TestChanges_Stack(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *v1.Stack
+		want   *apiv1.Stack
 	}{
 		{
 			name: "t1",
 			fields: fields{
 				order:   &ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*ChangeStep{}},
-				project: &v1.Project{},
-				stack: &v1.Stack{
+				project: &apiv1.Project{},
+				stack: &apiv1.Stack{
 					Name: "test-name",
 					Path: "test-path",
 				},
 			},
-			want: &v1.Stack{
+			want: &apiv1.Stack{
 				Name: "test-name",
 				Path: "test-path",
 			},
@@ -316,23 +315,23 @@ func TestChanges_Stack(t *testing.T) {
 func TestChanges_Project(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   *v1.Project
+		want   *apiv1.Project
 	}{
 		{
 			name: "t1",
 			fields: fields{
-				project: &v1.Project{
+				project: &apiv1.Project{
 					Name: "test-name",
 					Path: "test-path",
 				},
 			},
-			want: &v1.Project{
+			want: &apiv1.Project{
 				Name: "test-name",
 				Path: "test-path",
 			},
@@ -351,8 +350,8 @@ func TestChanges_Project(t *testing.T) {
 func TestChanges_Diffs(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	tests := []struct {
 		name   string
@@ -393,8 +392,8 @@ func TestChanges_Diffs(t *testing.T) {
 func TestChanges_Preview(t *testing.T) {
 	type fields struct {
 		order   *ChangeOrder
-		project *v1.Project
-		stack   *v1.Stack
+		project *apiv1.Project
+		stack   *apiv1.Stack
 	}
 	tests := []struct {
 		name   string
@@ -409,7 +408,7 @@ func TestChanges_Preview(t *testing.T) {
 						"test-key": TestChangeStepOpCreate,
 					},
 				},
-				stack: &v1.Stack{
+				stack: &apiv1.Stack{
 					Name: "test-name",
 				},
 			},
@@ -429,19 +428,19 @@ func TestChanges_Preview(t *testing.T) {
 
 func Test_buildResourceStateMap(t *testing.T) {
 	type args struct {
-		rs []*intent.Resource
+		rs []*apiv1.Resource
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]*intent.Resource
+		want map[string]*apiv1.Resource
 	}{
 		{
 			name: "t1",
 			args: args{
-				rs: []*intent.Resource{},
+				rs: []*apiv1.Resource{},
 			},
-			want: map[string]*intent.Resource{},
+			want: map[string]*apiv1.Resource{},
 		},
 	}
 	for _, tt := range tests {

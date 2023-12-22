@@ -25,8 +25,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -43,7 +43,7 @@ type KubernetesRuntime struct {
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
-func NewKubernetesRuntime(resource *intent.Resource) (runtime.Runtime, error) {
+func NewKubernetesRuntime(resource *apiv1.Resource) (runtime.Runtime, error) {
 	client, mapper, err := getKubernetesClient(resource)
 	if err != nil {
 		return nil, err
@@ -62,18 +62,18 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 
 	// Don`t consider delete case, so plan state must be not empty
 	if planState == nil {
-		return &runtime.ApplyResponse{Status: status.NewErrorStatus(errors.New("plan state is nil"))}
+		return &runtime.ApplyResponse{Status: v1.NewErrorStatus(errors.New("plan state is nil"))}
 	}
 
 	// Get kubernetes Resource interface from plan state
 	planObj, resource, err := k.buildKubernetesResourceByState(planState)
 	if err != nil {
-		return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// Get live state
 	response := k.Read(ctx, &runtime.ReadRequest{PlanResource: planState})
-	if status.IsErr(response.Status) {
+	if v1.IsErr(response.Status) {
 		return &runtime.ApplyResponse{Status: response.Status}
 	}
 	liveState := response.Resource
@@ -94,7 +94,7 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 	// Create 3-way merge patch body
 	patchBody, err := jsonmergepatch.CreateThreeWayJSONMergePatch([]byte(original), []byte(modified), []byte(current))
 	if err != nil {
-		return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.ApplyResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// Final result, dry-run to diff, otherwise to save in states
@@ -128,13 +128,13 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 				// Merge 3-way patch
 				mergedPatch, err := jsonpatch.MergePatch([]byte(current), patchBody)
 				if err != nil {
-					return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
+					return &runtime.ApplyResponse{Status: v1.NewErrorStatus(err)}
 				}
 
 				// Unmarshall and return
 				res = &unstructured.Unstructured{}
 				if err = res.UnmarshalJSON(mergedPatch); err != nil {
-					return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
+					return &runtime.ApplyResponse{Status: v1.NewErrorStatus(err)}
 				}
 			}
 		}
@@ -147,13 +147,13 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 			_, err = resource.Patch(ctx, planObj.GetName(), types.MergePatchType, patchBody, metav1.PatchOptions{FieldManager: "kusion"})
 		}
 		if err != nil {
-			return &runtime.ApplyResponse{Status: status.NewErrorStatus(err)}
+			return &runtime.ApplyResponse{Status: v1.NewErrorStatus(err)}
 		}
 		// Save modified
 		res = planObj
 	}
 
-	return &runtime.ApplyResponse{Resource: &intent.Resource{
+	return &runtime.ApplyResponse{Resource: &apiv1.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
 		Attributes: res.Object,
@@ -170,7 +170,7 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 	}
 	// Validate
 	if requestResource == nil {
-		return &runtime.ReadResponse{Status: status.NewErrorStatus(errors.New("can not read k8s resource with empty body"))}
+		return &runtime.ReadResponse{Status: v1.NewErrorStatus(errors.New("can not read k8s resource with empty body"))}
 	}
 
 	// Get resource by attribute
@@ -181,7 +181,7 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 			log.Infof("%v, ignore", err)
 			return &runtime.ReadResponse{}
 		}
-		return &runtime.ReadResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// Read resource
@@ -191,10 +191,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 			log.Infof("%s not found, ignore", requestResource.ResourceKey())
 			return &runtime.ReadResponse{}
 		}
-		return &runtime.ReadResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.ReadResponse{Status: v1.NewErrorStatus(err)}
 	}
 
-	return &runtime.ReadResponse{Resource: &intent.Resource{
+	return &runtime.ReadResponse{Resource: &apiv1.Resource{
 		ID:         requestResource.ResourceKey(),
 		Type:       requestResource.Type,
 		Attributes: v.Object,
@@ -210,7 +210,7 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 		Stack:        request.Stack,
 	})
 
-	if status.IsErr(response.Status) {
+	if v1.IsErr(response.Status) {
 		return &runtime.ImportResponse{
 			Resource: nil,
 			Status:   response.Status,
@@ -223,7 +223,7 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 	if len(lastApplied) != 0 {
 		err := ur.UnmarshalJSON([]byte(lastApplied))
 		if err != nil {
-			return &runtime.ImportResponse{Status: status.NewErrorStatusWithCode(status.IllegalManifest, err)}
+			return &runtime.ImportResponse{Status: v1.NewErrorStatusWithCode(v1.IllegalManifest, err)}
 		}
 	} else {
 		// normalize resources
@@ -231,7 +231,7 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 			if err := normalizeService(ur); err != nil {
 				return &runtime.ImportResponse{
 					Resource: nil,
-					Status:   status.NewErrorStatusWithCode(status.IllegalManifest, err),
+					Status:   v1.NewErrorStatusWithCode(v1.IllegalManifest, err),
 				}
 			}
 		}
@@ -280,13 +280,13 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *runtime.DeleteR
 	requestResource := request.Resource
 	// Validate
 	if requestResource == nil {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
+		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
 	// Get Resource by attribute
 	obj, resource, err := k.buildKubernetesResourceByState(requestResource)
 	if err != nil {
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// Delete Resource
@@ -296,7 +296,7 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *runtime.DeleteR
 			log.Infof("%s not found, ignore", requestResource.ResourceKey())
 			return &runtime.DeleteResponse{}
 		}
-		return &runtime.DeleteResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	return &runtime.DeleteResponse{}
@@ -305,18 +305,18 @@ func (k *KubernetesRuntime) Delete(ctx context.Context, request *runtime.DeleteR
 // Watch kubernetes resource by client-go
 func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
 	if request == nil || request.Resource == nil {
-		return &runtime.WatchResponse{Status: status.NewErrorStatus(errors.New("requestResource is nil"))}
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(errors.New("requestResource is nil"))}
 	}
 
 	reqObj, resource, err := k.buildKubernetesResourceByState(request.Resource)
 	if err != nil {
-		return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
 	}
 
 	// Root watcher
 	w, err := resource.Watch(ctx, metav1.ListOptions{})
 	if err != nil {
-		return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
 	}
 	rootCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
 		return watched.GetName() == reqObj.GetName()
@@ -336,14 +336,14 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 			namedGVK := getNamedGVK(reqObj.GroupVersionKind())
 			ch, dependent, err := k.WatchByRelation(ctx, reqObj, namedGVK, namedBy)
 			if err != nil {
-				return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
+				return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
 			}
 			watchers.Insert(engine.BuildIDForKubernetes(dependent), ch)
 		} else { // Watch EndpointSlice
 			dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
 			ch, dependent, err := k.WatchByRelation(ctx, reqObj, dependentGVK, ownedBy)
 			if err != nil {
-				return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
+				return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
 			}
 			watchers.Insert(engine.BuildIDForKubernetes(dependent), ch)
 		}
@@ -355,7 +355,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 			for !dependentGVK.Empty() {
 				ch, dependent, err := k.WatchByRelation(ctx, owner, dependentGVK, ownedBy)
 				if err != nil {
-					return &runtime.WatchResponse{Status: status.NewErrorStatus(err)}
+					return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
 				}
 
 				if dependent == nil {
@@ -375,7 +375,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient(resource *intent.Resource) (dynamic.Interface, meta.RESTMapper, error) {
+func getKubernetesClient(resource *apiv1.Resource) (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(resource))
 	if err != nil {
@@ -402,7 +402,7 @@ func getKubernetesClient(resource *intent.Resource) (dynamic.Interface, meta.RES
 }
 
 // buildKubernetesResourceByState get resource by attribute
-func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *intent.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
+func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *apiv1.Resource) (*unstructured.Unstructured, dynamic.ResourceInterface, error) {
 	// Convert interface{} to unstructured
 	rYaml, err := yamlv2.Marshal(resourceState.Attributes)
 	if err != nil {

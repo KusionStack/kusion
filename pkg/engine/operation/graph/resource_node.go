@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
@@ -20,7 +20,7 @@ import (
 type ResourceNode struct {
 	*baseNode
 	Action   opsmodels.ActionType
-	resource *intent.Resource
+	resource *apiv1.Resource
 }
 
 var _ ExecutableNode = (*ResourceNode)(nil)
@@ -29,10 +29,10 @@ const (
 	ImplicitRefPrefix = "$kusion_path."
 )
 
-func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
+func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) v1.Status {
 	value := reflect.ValueOf(rn.resource.Attributes)
 	var replaced reflect.Value
-	var s status.Status
+	var s v1.Status
 
 	switch o.OperationType {
 	case opsmodels.ApplyPreview:
@@ -48,7 +48,7 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	default:
 		return nil
 	}
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 	if !replaced.IsZero() {
@@ -57,7 +57,7 @@ func (rn *ResourceNode) PreExecute(o *opsmodels.Operation) status.Status {
 	return nil
 }
 
-func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status) {
+func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s v1.Status) {
 	log.Debugf("executing resource node:%s", rn.ID)
 
 	defer func() {
@@ -75,23 +75,23 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status
 			default:
 				err = errors.New("unknown panic")
 			}
-			s = status.NewErrorStatus(err)
+			s = v1.NewErrorStatus(err)
 		}
 	}()
 
-	if s = rn.PreExecute(operation); status.IsErr(s) {
+	if s = rn.PreExecute(operation); v1.IsErr(s) {
 		return s
 	}
 
 	// init 3-way diff data
 	planedResource, priorResource, liveResource, s := rn.initThreeWayDiffData(operation)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 
 	// compute action type
 	dryRunResource, s := rn.computeActionType(operation, planedResource, priorResource, liveResource)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 
@@ -101,15 +101,15 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status
 		key := rn.resource.ResourceKey()
 		// refresh resource index in operation to make sure other resource node can get the latest index
 		if e := operation.RefreshResourceIndex(key, dryRunResource, rn.Action); e != nil {
-			return status.NewErrorStatus(e)
+			return v1.NewErrorStatus(e)
 		}
 		updateChangeOrder(operation, rn, liveResource, dryRunResource)
 	case opsmodels.Apply, opsmodels.Destroy:
-		if s = rn.applyResource(operation, priorResource, planedResource, liveResource); status.IsErr(s) {
+		if s = rn.applyResource(operation, priorResource, planedResource, liveResource); v1.IsErr(s) {
 			return s
 		}
 	default:
-		return status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
+		return v1.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
 	}
 
 	return nil
@@ -119,10 +119,10 @@ func (rn *ResourceNode) Execute(operation *opsmodels.Operation) (s status.Status
 // dryRunResource is a middle result during the process of computing ActionType. We will use it to perform live diff latter
 func (rn *ResourceNode) computeActionType(
 	operation *opsmodels.Operation,
-	planedResource *intent.Resource,
-	priorResource *intent.Resource,
-	liveResource *intent.Resource,
-) (*intent.Resource, status.Status) {
+	planedResource *apiv1.Resource,
+	priorResource *apiv1.Resource,
+	liveResource *apiv1.Resource,
+) (*apiv1.Resource, v1.Status) {
 	dryRunResource := planedResource
 	switch operation.OperationType {
 	case opsmodels.Destroy, opsmodels.DestroyPreview:
@@ -140,7 +140,7 @@ func (rn *ResourceNode) computeActionType(
 				Stack:         operation.Stack,
 				DryRun:        true,
 			})
-			if status.IsErr(dryRunResp.Status) {
+			if v1.IsErr(dryRunResp.Status) {
 				return nil, dryRunResp.Status
 			}
 			dryRunResource = dryRunResp.Resource
@@ -152,7 +152,7 @@ func (rn *ResourceNode) computeActionType(
 			}
 			report, err := diff.ToReport(liveResource, dryRunResource)
 			if err != nil {
-				return nil, status.NewErrorStatus(err)
+				return nil, v1.NewErrorStatus(err)
 			}
 			if len(report.Diffs) == 0 {
 				rn.Action = opsmodels.UnChanged
@@ -161,12 +161,12 @@ func (rn *ResourceNode) computeActionType(
 			}
 		}
 	default:
-		return nil, status.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
+		return nil, v1.NewErrorStatus(fmt.Errorf("unknown operation: %v", operation.OperationType))
 	}
 	return dryRunResource, nil
 }
 
-func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*intent.Resource, *intent.Resource, *intent.Resource, status.Status) {
+func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*apiv1.Resource, *apiv1.Resource, *apiv1.Resource, v1.Status) {
 	// 1. prepare planed resource that we want to execute
 	planedResource := rn.resource
 	// When a resource is deleted in Intent but exists in PriorState,
@@ -189,7 +189,7 @@ func (rn *ResourceNode) initThreeWayDiffData(operation *opsmodels.Operation) (*i
 	response := operation.RuntimeMap[resourceType].Read(context.Background(), readRequest)
 	liveResource := response.Resource
 	s := response.Status
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, nil, nil, s
 	}
 	return planedResource, priorResource, liveResource, nil
@@ -214,12 +214,12 @@ func removeNestedField(obj interface{}, fields ...string) {
 	}
 }
 
-func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, planed, live *intent.Resource) status.Status {
+func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, planed, live *apiv1.Resource) v1.Status {
 	log.Infof("operation:%v, prior:%v, plan:%v, live:%v", rn.Action, jsonutil.Marshal2String(prior),
 		jsonutil.Marshal2String(planed), jsonutil.Marshal2String(live))
 
-	var res *intent.Resource
-	var s status.Status
+	var res *apiv1.Resource
+	var s v1.Status
 	resourceType := rn.resource.Type
 
 	rt := operation.RuntimeMap[resourceType]
@@ -247,16 +247,16 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 			res = prior
 		}
 	}
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return s
 	}
 
 	key := rn.resource.ResourceKey()
 	if e := operation.RefreshResourceIndex(key, res, rn.Action); e != nil {
-		return status.NewErrorStatus(e)
+		return v1.NewErrorStatus(e)
 	}
 	if e := operation.UpdateState(operation.StateResourceIndex); e != nil {
-		return status.NewErrorStatus(e)
+		return v1.NewErrorStatus(e)
 	}
 
 	// print apply resource success msg
@@ -264,13 +264,13 @@ func (rn *ResourceNode) applyResource(operation *opsmodels.Operation, prior, pla
 	return nil
 }
 
-func (rn *ResourceNode) State() *intent.Resource {
+func (rn *ResourceNode) State() *apiv1.Resource {
 	return rn.resource
 }
 
-func NewResourceNode(key string, state *intent.Resource, action opsmodels.ActionType) (*ResourceNode, status.Status) {
+func NewResourceNode(key string, state *apiv1.Resource, action opsmodels.ActionType) (*ResourceNode, v1.Status) {
 	node, s := NewBaseNode(key)
-	if status.IsErr(s) {
+	if v1.IsErr(s) {
 		return nil, s
 	}
 	return &ResourceNode{baseNode: node, Action: action, resource: state}, nil
@@ -295,36 +295,36 @@ func updateChangeOrder(ops *opsmodels.Operation, rn *ResourceNode, plan, live in
 	order.ChangeSteps[rn.ID] = opsmodels.NewChangeStep(rn.ID, rn.Action, plan, live)
 }
 
-func ReplaceSecretRef(v reflect.Value) ([]string, reflect.Value, status.Status) {
+func ReplaceSecretRef(v reflect.Value) ([]string, reflect.Value, v1.Status) {
 	return ReplaceRef(v, nil, nil)
 }
 
-var MustImplicitReplaceFun = func(resourceIndex map[string]*intent.Resource, refPath string) (reflect.Value, status.Status) {
+var MustImplicitReplaceFun = func(resourceIndex map[string]*apiv1.Resource, refPath string) (reflect.Value, v1.Status) {
 	return implicitReplaceFun(true, resourceIndex, refPath)
 }
 
-var OptionalImplicitReplaceFun = func(resourceIndex map[string]*intent.Resource, refPath string) (reflect.Value, status.Status) {
+var OptionalImplicitReplaceFun = func(resourceIndex map[string]*apiv1.Resource, refPath string) (reflect.Value, v1.Status) {
 	return implicitReplaceFun(false, resourceIndex, refPath)
 }
 
 // implicitReplaceFun will replace implicit dependency references. If force is true, this function will return an error when replace references failed
 var implicitReplaceFun = func(
 	force bool,
-	resourceIndex map[string]*intent.Resource,
+	resourceIndex map[string]*apiv1.Resource,
 	refPath string,
-) (reflect.Value, status.Status) {
+) (reflect.Value, v1.Status) {
 	const Sep = "."
 	split := strings.Split(refPath, Sep)
 	key := split[0]
 	priorState := resourceIndex[key]
 	if priorState == nil {
 		msg := fmt.Sprintf("can't find resource by key:%s when replacing %s", key, refPath)
-		return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
+		return reflect.Value{}, v1.NewErrorStatusWithMsg(v1.IllegalManifest, msg)
 	}
 	attributes := priorState.Attributes
 	if attributes == nil {
 		msg := fmt.Sprintf("attributes is nil in resource:%s", key)
-		return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
+		return reflect.Value{}, v1.NewErrorStatusWithMsg(v1.IllegalManifest, msg)
 	}
 	var valueMap interface{}
 	valueMap = attributes
@@ -335,7 +335,7 @@ var implicitReplaceFun = func(
 				if force {
 					// only throw errors when force replacing operations like apply
 					msg := fmt.Sprintf("can't find specified value in resource:%s by ref:%s", key, refPath)
-					return reflect.Value{}, status.NewErrorStatusWithMsg(status.IllegalManifest, msg)
+					return reflect.Value{}, v1.NewErrorStatusWithMsg(v1.IllegalManifest, msg)
 				} else {
 					break
 				}
@@ -348,20 +348,20 @@ var implicitReplaceFun = func(
 
 func ReplaceImplicitRef(
 	v reflect.Value,
-	resourceIndex map[string]*intent.Resource,
-	replaceFun func(map[string]*intent.Resource, string) (reflect.Value, status.Status),
-) ([]string, reflect.Value, status.Status) {
+	resourceIndex map[string]*apiv1.Resource,
+	replaceFun func(map[string]*apiv1.Resource, string) (reflect.Value, v1.Status),
+) ([]string, reflect.Value, v1.Status) {
 	return ReplaceRef(v, resourceIndex, replaceFun)
 }
 
 func ReplaceRef(
 	v reflect.Value,
-	resourceIndex map[string]*intent.Resource,
-	repImplDepFunc func(map[string]*intent.Resource, string) (reflect.Value, status.Status),
-) ([]string, reflect.Value, status.Status) {
+	resourceIndex map[string]*apiv1.Resource,
+	repImplDepFunc func(map[string]*apiv1.Resource, string) (reflect.Value, v1.Status),
+) ([]string, reflect.Value, v1.Status) {
 	var result []string
 	if !v.IsValid() {
-		return nil, v, status.NewErrorStatusWithMsg(status.InvalidArgument, "invalid implicit reference")
+		return nil, v, v1.NewErrorStatusWithMsg(v1.InvalidArgument, "invalid implicit reference")
 	}
 
 	switch v.Type().Kind() {
@@ -382,7 +382,7 @@ func ReplaceRef(
 				log.Infof("add implicit ref:%s", split[0])
 				// replace ref with actual value
 				tv, s := repImplDepFunc(resourceIndex, ref)
-				if status.IsErr(s) {
+				if v1.IsErr(s) {
 					return nil, v, s
 				}
 				v = tv
@@ -397,7 +397,7 @@ func ReplaceRef(
 
 		for i := 0; i < v.Len(); i++ {
 			ref, tv, s := ReplaceRef(v.Index(i), resourceIndex, repImplDepFunc)
-			if status.IsErr(s) {
+			if v1.IsErr(s) {
 				return nil, tv, s
 			}
 			vs = reflect.Append(vs, tv)
@@ -415,7 +415,7 @@ func ReplaceRef(
 		iter := v.MapRange()
 		for iter.Next() {
 			ref, tv, s := ReplaceRef(iter.Value(), resourceIndex, repImplDepFunc)
-			if status.IsErr(s) {
+			if v1.IsErr(s) {
 				return nil, tv, s
 			}
 			if ref != nil {

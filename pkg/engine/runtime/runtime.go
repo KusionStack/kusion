@@ -6,13 +6,12 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 )
 
 const (
-	Kubernetes intent.Type = "Kubernetes"
-	Terraform  intent.Type = "Terraform"
+	Kubernetes apiv1.Type = "Kubernetes"
+	Terraform  apiv1.Type = "Terraform"
 )
 
 // Runtime represents an actual infrastructure runtime managed by Kusion and every runtime implements this interface can be orchestrated
@@ -44,10 +43,10 @@ type Runtime interface {
 
 type ApplyRequest struct {
 	// PriorResource is the last applied resource saved in state storage
-	PriorResource *intent.Resource
+	PriorResource *apiv1.Resource
 
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *intent.Resource
+	PlanResource *apiv1.Resource
 
 	// Stack contains info about where this command is invoked
 	Stack *apiv1.Stack
@@ -58,18 +57,18 @@ type ApplyRequest struct {
 
 type ApplyResponse struct {
 	// Resource is the result returned by Runtime
-	Resource *intent.Resource
+	Resource *apiv1.Resource
 
 	// Status contains messages will show to users
-	Status status.Status
+	Status v1.Status
 }
 
 type ReadRequest struct {
 	// PriorResource is the last applied resource saved in state storage
-	PriorResource *intent.Resource
+	PriorResource *apiv1.Resource
 
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *intent.Resource
+	PlanResource *apiv1.Resource
 
 	// Stack contains info about where this command is invoked
 	Stack *apiv1.Stack
@@ -77,15 +76,15 @@ type ReadRequest struct {
 
 type ReadResponse struct {
 	// Resource is the result read from the actual infra
-	Resource *intent.Resource
+	Resource *apiv1.Resource
 
 	// Status contains messages will show to users
-	Status status.Status
+	Status v1.Status
 }
 
 type ImportRequest struct {
 	// PlanResource is the resource we want to apply in this request
-	PlanResource *intent.Resource
+	PlanResource *apiv1.Resource
 
 	// Stack contains info about where this command is invoked
 	Stack *apiv1.Stack
@@ -93,15 +92,15 @@ type ImportRequest struct {
 
 type ImportResponse struct {
 	// Resource is the result returned by Runtime
-	Resource *intent.Resource
+	Resource *apiv1.Resource
 
 	// Status contains messages will show to users
-	Status status.Status
+	Status v1.Status
 }
 
 type DeleteRequest struct {
 	// Resource represents the resource we want to delete from the actual infra
-	Resource *intent.Resource
+	Resource *apiv1.Resource
 
 	// Stack contains info about where this command is invoked
 	Stack *apiv1.Stack
@@ -109,19 +108,19 @@ type DeleteRequest struct {
 
 type DeleteResponse struct {
 	// Status contains messages will show to users
-	Status status.Status
+	Status v1.Status
 }
 
 type WatchRequest struct {
 	// Resource represents the resource we want to watch from the actual infra
-	Resource *intent.Resource
+	Resource *apiv1.Resource
 }
 
 type WatchResponse struct {
 	Watchers *SequentialWatchers
 
 	// Status contains messages will show to users
-	Status status.Status
+	Status v1.Status
 }
 
 type SequentialWatchers struct {

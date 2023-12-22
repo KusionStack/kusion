@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
-	"kusionstack.io/kusion/pkg/apis/status"
+	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
@@ -78,8 +77,8 @@ func mockPatchBuildIntent() *mockey.Mocker {
 		o *builders.Options,
 		project *apiv1.Project,
 		stack *apiv1.Stack,
-	) (*intent.Intent, error) {
-		return &intent.Intent{Resources: []intent.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Intent, error) {
+		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -129,7 +128,7 @@ func mockPatchOperationPreview() *mockey.Mocker {
 	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
 		*operation.PreviewOperation,
 		*operation.PreviewRequest,
-	) (rsp *operation.PreviewResponse, s status.Status) {
+	) (rsp *operation.PreviewResponse, s v1.Status) {
 		return &operation.PreviewResponse{
 			Order: &opsmodels.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
@@ -167,8 +166,8 @@ var (
 	sa3 = newSA("sa3")
 )
 
-func newSA(name string) intent.Resource {
-	return intent.Resource{
+func newSA(name string) apiv1.Resource {
+	return apiv1.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -185,7 +184,7 @@ func newSA(name string) intent.Resource {
 func Test_apply(t *testing.T) {
 	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionStateFileFile)}
 	mockey.PatchConvey("dry run", t, func() {
-		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
+		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -205,7 +204,7 @@ func Test_apply(t *testing.T) {
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(opsmodels.Success)
 		o := NewApplyOptions()
-		planResources := &intent.Intent{Resources: []intent.Resource{sa1, sa2}}
+		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -230,7 +229,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(opsmodels.Failed)
 
 		o := NewApplyOptions()
-		planResources := &intent.Intent{Resources: []intent.Resource{sa1}}
+		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
 		order := &opsmodels.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*opsmodels.ChangeStep{
@@ -250,7 +249,7 @@ func Test_apply(t *testing.T) {
 
 func mockOperationApply(res opsmodels.OpResult) {
 	mockey.Mock((*operation.ApplyOperation).Apply).To(
-		func(o *operation.ApplyOperation, request *operation.ApplyRequest) (*operation.ApplyResponse, status.Status) {
+		func(o *operation.ApplyOperation, request *operation.ApplyRequest) (*operation.ApplyResponse, v1.Status) {
 			var err error
 			if res == opsmodels.Failed {
 				err = errors.New("mock error")
@@ -270,7 +269,7 @@ func mockOperationApply(res opsmodels.OpResult) {
 			}
 			close(o.MsgCh)
 			if res == opsmodels.Failed {
-				return nil, status.NewErrorStatus(err)
+				return nil, v1.NewErrorStatus(err)
 			}
 			return &operation.ApplyResponse{}, nil
 		}).Build()

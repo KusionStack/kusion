@@ -16,7 +16,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -65,9 +64,9 @@ func NewWorkloadGeneratorFunc(
 	}
 }
 
-func (g *workloadGenerator) Generate(spec *intent.Intent) error {
+func (g *workloadGenerator) Generate(spec *apiv1.Intent) error {
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	if g.workload != nil {

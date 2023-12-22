@@ -7,7 +7,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
@@ -47,9 +46,9 @@ func NewMonitoringGeneratorFunc(
 	}
 }
 
-func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
+func (g *monitoringGenerator) Generate(spec *apiv1.Intent) error {
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	// If Prometheus runs as an operator, it relies on Custom Resources to
@@ -91,7 +90,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 				},
 			}
 			err := modules.AppendToIntent(
-				intent.Kubernetes,
+				apiv1.Kubernetes,
 				modules.KubernetesResourceID(serviceMonitor.TypeMeta, serviceMonitor.ObjectMeta),
 				spec,
 				serviceMonitor,
@@ -124,7 +123,7 @@ func (g *monitoringGenerator) Generate(spec *intent.Intent) error {
 			}
 
 			err := modules.AppendToIntent(
-				intent.Kubernetes,
+				apiv1.Kubernetes,
 				modules.KubernetesResourceID(podMonitor.TypeMeta, podMonitor.ObjectMeta),
 				spec,
 				podMonitor,

@@ -10,7 +10,6 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -70,7 +69,7 @@ func NewWorkloadServiceGeneratorFunc(
 }
 
 // Generate generates a service workload resource to the given spec.
-func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
+func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 	service := g.service
 	if service == nil {
 		return nil
@@ -78,7 +77,7 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 
 	// Create an empty resource slice if it doesn't exist yet.
 	if spec.Resources == nil {
-		spec.Resources = make(intent.Resources, 0)
+		spec.Resources = make(apiv1.Resources, 0)
 	}
 
 	if err := completeServiceInput(g.service, g.serviceConfig); err != nil {
@@ -99,7 +98,7 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 		cmObj := cm
 		cmObj.Namespace = g.project.Name
 		if err = modules.AppendToIntent(
-			intent.Kubernetes,
+			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
 			&cmObj,
@@ -167,7 +166,7 @@ func (g *workloadServiceGenerator) Generate(spec *intent.Intent) error {
 	}
 
 	// Add the Deployment resource to the spec.
-	if err = modules.AppendToIntent(intent.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
+	if err = modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
 		return err
 	}
 

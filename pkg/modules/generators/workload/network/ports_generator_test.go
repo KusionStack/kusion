@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"kusionstack.io/kusion/pkg/apis/intent"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
 )
 
@@ -81,7 +81,7 @@ func TestPortsGenerator_Generate(t *testing.T) {
 		portsGenerator
 	}
 	type args struct {
-		spec *intent.Intent
+		spec *apiv1.Intent
 	}
 
 	tests := []struct {
@@ -126,9 +126,9 @@ func TestPortsGenerator_Generate(t *testing.T) {
 				},
 			},
 			args: struct {
-				spec *intent.Intent
+				spec *apiv1.Intent
 			}{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
 		},

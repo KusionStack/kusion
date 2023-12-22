@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -46,7 +45,7 @@ func TestGenerateAlicloudResources(t *testing.T) {
 	}
 
 	alicloudProviderRegion = "cn-beijing"
-	spec := &intent.Intent{}
+	spec := &apiv1.Intent{}
 	secret, err := generator.generateAlicloudResources(database, spec)
 
 	hostAddress := "$kusion_path.aliyun:alicloud:alicloud_db_instance:testapp.connection_string"
@@ -109,7 +108,7 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 
 	alicloudDBInstanceID, r := generator.generateAlicloudDBInstance(alicloudProviderRegion, alicloudProvider, database)
 	expectedAlicloudDBInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "aliyun:alicloud:alicloud_db_instance:testapp",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
@@ -182,7 +181,7 @@ func TestGenerateAlicloudDBConnection(t *testing.T) {
 	dbInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
 	alicloudDBConnectionID, r := generator.generateAlicloudDBConnection(dbInstanceID, alicloudProviderRegion, alicloudProvider)
 	expectedAlicloudDBConnectionID := "aliyun:alicloud:alicloud_db_connection:testapp"
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "aliyun:alicloud:alicloud_db_connection:testapp",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{
@@ -241,7 +240,7 @@ func TestGenerateAlicloudRDSAccount(t *testing.T) {
 	alicloudDBInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
 	r := generator.generateAlicloudRDSAccount(accountName, randomPasswordID, alicloudDBInstanceID, alicloudProviderRegion, alicloudProvider, database)
 
-	expectedRes := intent.Resource{
+	expectedRes := apiv1.Resource{
 		ID:   "aliyun:alicloud:alicloud_rds_account:testapp",
 		Type: "Terraform",
 		Attributes: map[string]interface{}{

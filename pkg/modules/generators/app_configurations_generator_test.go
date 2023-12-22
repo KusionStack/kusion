@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/intent"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -25,8 +24,8 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		ws:      ws,
 	}
 
-	spec := &intent.Intent{
-		Resources: []intent.Resource{},
+	spec := &v1.Intent{
+		Resources: []v1.Resource{},
 	}
 
 	err := g.Generate(spec)
