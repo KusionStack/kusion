@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 type OpsRule struct {
@@ -18,7 +18,7 @@ const (
 	MaxUnavailableConst = "maxUnavailable"
 )
 
-func GetMaxUnavailable(opsRule *OpsRule, modulesConfig map[string]workspaceapi.GenericConfig) (intstr.IntOrString, error) {
+func GetMaxUnavailable(opsRule *OpsRule, modulesConfig map[string]apiv1.GenericConfig) (intstr.IntOrString, error) {
 	var maxUnavailable intstr.IntOrString
 	if opsRule != nil {
 		maxUnavailable = intstr.Parse(opsRule.MaxUnavailable)

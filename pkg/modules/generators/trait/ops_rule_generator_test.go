@@ -18,7 +18,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 		stack           *apiv1.Stack
 		appName         string
 		app             *appmodule.AppConfiguration
-		workspaceConfig map[string]workspaceapi.GenericConfig
+		workspaceConfig map[string]apiv1.GenericConfig
 	}
 	type args struct {
 		spec *apiv1.Intent
@@ -135,19 +135,19 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 						},
 					},
 				},
-				workspaceConfig: map[string]workspaceapi.GenericConfig{
+				workspaceConfig: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": 7,
 					},
 				},
 			},
 			args: args{
-				spec: &intent.Intent{},
+				spec: &apiv1.Intent{},
 			},
 			wantErr: false,
-			exp: &intent.Intent{
-				Resources: intent.Resources{
-					intent.Resource{
+			exp: &apiv1.Intent{
+				Resources: apiv1.Resources{
+					apiv1.Resource{
 						ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 						Type: "Kubernetes",
 						Attributes: map[string]interface{}{
@@ -204,13 +204,11 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 }
 
 func TestNewOpsRuleGeneratorFunc(t *testing.T) {
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name: "default",
-		},
+	p := &apiv1.Project{
+		Name: "default",
 	}
-	s := &stack.Stack{
-		Configuration: stack.Configuration{Name: "dev"},
+	s := &apiv1.Stack{
+		Name: "dev",
 	}
 
 	type args struct {
@@ -218,7 +216,7 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 		stack   *apiv1.Stack
 		appName string
 		app     *appmodule.AppConfiguration
-		ws      map[string]workspaceapi.GenericConfig
+		ws      map[string]apiv1.GenericConfig
 	}
 	tests := []struct {
 		name    string
@@ -233,7 +231,7 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 				stack:   s,
 				appName: "",
 				app:     nil,
-				ws: map[string]workspaceapi.GenericConfig{
+				ws: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
 					},
@@ -244,7 +242,7 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 				project: p,
 				stack:   s,
 				appName: "",
-				modulesConfig: map[string]workspaceapi.GenericConfig{
+				modulesConfig: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
 					},

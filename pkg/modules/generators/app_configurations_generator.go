@@ -86,7 +86,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name, g.ws),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, moduleConfigs),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, modulesConfig),
 		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app, modulesConfig),
 		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.

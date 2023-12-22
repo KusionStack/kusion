@@ -4,7 +4,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
@@ -12,18 +11,18 @@ import (
 
 type opsRulePatcher struct {
 	app           *modelsapp.AppConfiguration
-	modulesConfig map[string]workspaceapi.GenericConfig
+	modulesConfig map[string]apiv1.GenericConfig
 }
 
 // NewOpsRulePatcherFunc returns a NewPatcherFunc.
-func NewOpsRulePatcherFunc(app *modelsapp.AppConfiguration, modulesConfig map[string]workspaceapi.GenericConfig) modules.NewPatcherFunc {
+func NewOpsRulePatcherFunc(app *modelsapp.AppConfiguration, modulesConfig map[string]apiv1.GenericConfig) modules.NewPatcherFunc {
 	return func() (modules.Patcher, error) {
 		return NewOpsRulePatcher(app, modulesConfig)
 	}
 }
 
 // NewOpsRulePatcher returns a Patcher.
-func NewOpsRulePatcher(app *modelsapp.AppConfiguration, modulesConfig map[string]workspaceapi.GenericConfig) (modules.Patcher, error) {
+func NewOpsRulePatcher(app *modelsapp.AppConfiguration, modulesConfig map[string]apiv1.GenericConfig) (modules.Patcher, error) {
 	return &opsRulePatcher{
 		app:           app,
 		modulesConfig: modulesConfig,

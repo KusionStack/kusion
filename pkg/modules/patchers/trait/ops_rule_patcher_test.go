@@ -10,8 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/project"
-	workspaceapi "kusionstack.io/kusion/pkg/apis/workspace"
 	"kusionstack.io/kusion/pkg/modules"
 	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
@@ -26,7 +24,7 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 
 	type fields struct {
 		app             *modelsapp.AppConfiguration
-		workspaceConfig map[string]workspaceapi.GenericConfig
+		workspaceConfig map[string]apiv1.GenericConfig
 	}
 	type args struct {
 		resources map[string][]*apiv1.Resource
@@ -54,7 +52,7 @@ func Test_opsRulePatcher_Patch(t *testing.T) {
 			name: "Patch Deployment with workspace config",
 			fields: fields{
 				app: &modelsapp.AppConfiguration{},
-				workspaceConfig: map[string]workspaceapi.GenericConfig{
+				workspaceConfig: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
 					},
@@ -106,15 +104,13 @@ func buildMockDeployment() *appsv1.Deployment {
 }
 
 func TestNewOpsRulePatcherFunc(t *testing.T) {
-	p := &project.Project{
-		Configuration: project.Configuration{
-			Name: "default",
-		},
+	p := &apiv1.Project{
+		Name: "default",
 	}
 	type args struct {
 		app       *modelsapp.AppConfiguration
-		project   *project.Project
-		workspace map[string]workspaceapi.GenericConfig
+		project   *apiv1.Project
+		workspace map[string]apiv1.GenericConfig
 	}
 	tests := []struct {
 		name string
@@ -124,7 +120,7 @@ func TestNewOpsRulePatcherFunc(t *testing.T) {
 			name: "NewOpsRulePatcherFunc",
 			args: args{
 				app: &modelsapp.AppConfiguration{},
-				workspace: map[string]workspaceapi.GenericConfig{
+				workspace: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
 					},

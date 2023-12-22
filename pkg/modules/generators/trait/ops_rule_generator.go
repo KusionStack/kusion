@@ -16,7 +16,7 @@ type opsRuleGenerator struct {
 	stack         *apiv1.Stack
 	appName       string
 	app           *appmodule.AppConfiguration
-	modulesConfig map[string]workspaceapi.GenericConfig
+	modulesConfig map[string]apiv1.GenericConfig
 }
 
 func NewOpsRuleGenerator(
@@ -24,7 +24,7 @@ func NewOpsRuleGenerator(
 	stack *apiv1.Stack,
 	appName string,
 	app *appmodule.AppConfiguration,
-	modulesConfig map[string]workspaceapi.GenericConfig,
+	modulesConfig map[string]apiv1.GenericConfig,
 ) (modules.Generator, error) {
 	return &opsRuleGenerator{
 		project:       project,
@@ -40,7 +40,7 @@ func NewOpsRuleGeneratorFunc(
 	stack *apiv1.Stack,
 	appName string,
 	app *appmodule.AppConfiguration,
-	modulesConfig map[string]workspaceapi.GenericConfig,
+	modulesConfig map[string]apiv1.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
 		return NewOpsRuleGenerator(project, stack, appName, app, modulesConfig)
