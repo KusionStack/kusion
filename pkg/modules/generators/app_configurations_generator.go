@@ -77,11 +77,17 @@ func (g *appConfigurationGenerator) Generate(i *intent.Intent) error {
 		i.Resources = make(intent.Resources, 0)
 	}
 
+	// retrieve the module configs of the specified project
+	moduleConfigs, err := workspace.GetProjectModuleConfigs(g.ws.Modules, g.project.Name)
+	if err != nil {
+		return err
+	}
+
 	// Generate resources
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(g.project.Name, g.ws),
 		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload),
+		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, moduleConfigs),
 		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app),
 		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.

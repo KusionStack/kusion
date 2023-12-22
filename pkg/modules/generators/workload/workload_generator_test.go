@@ -1,6 +1,7 @@
 package workload
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,8 +23,16 @@ func TestNewWorkloadGenerator(t *testing.T) {
 		expectedStack := &apiv1.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
+		expectedModuleConfigs := map[string]apiv1.GenericConfig{
+			"service": {
+				"type": "Deployment",
+			},
+			"job": {
+				"replicas": 2,
+			},
+		}
 
-		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload)
+		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.NotNil(t, actualGenerator, "Generator should not be nil")
@@ -31,6 +40,7 @@ func TestNewWorkloadGenerator(t *testing.T) {
 		assert.Equal(t, expectedStack, actualGenerator.(*workloadGenerator).stack, "Stack mismatch")
 		assert.Equal(t, expectedAppName, actualGenerator.(*workloadGenerator).appName, "AppName mismatch")
 		assert.Equal(t, expectedWorkload, actualGenerator.(*workloadGenerator).workload, "Workload mismatch")
+		assert.Equal(t, expectedModuleConfigs, actualGenerator.(*workloadGenerator).moduleConfigs, "ModuleConfigs mismatch")
 	})
 }
 
@@ -42,8 +52,16 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 		expectedStack := &apiv1.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
+		expectedModuleConfigs := map[string]apiv1.GenericConfig{
+			"service": {
+				"type": "Deployment",
+			},
+			"job": {
+				"replicas": 2,
+			},
+		}
 
-		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload)
+		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
 		actualGenerator, err := generatorFunc()
 
 		assert.NoError(t, err, "Error should be nil")
@@ -52,6 +70,7 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 		assert.Equal(t, expectedStack, actualGenerator.(*workloadGenerator).stack, "Stack mismatch")
 		assert.Equal(t, expectedAppName, actualGenerator.(*workloadGenerator).appName, "AppName mismatch")
 		assert.Equal(t, expectedWorkload, actualGenerator.(*workloadGenerator).workload, "Workload mismatch")
+		assert.Equal(t, expectedModuleConfigs, actualGenerator.(*workloadGenerator).moduleConfigs, "ModuleConfigs mismatch")
 	})
 }
 
@@ -68,7 +87,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				},
 				Service: &workload.Service{
 					Base: workload.Base{},
-					Type: "Deployment",
 					Ports: []network.Port{
 						{
 							Type:     network.CSPAliyun,
@@ -107,8 +125,16 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				Name: "teststack",
 			}
 			expectedAppName := "test"
+			expectedModuleConfigs := map[string]apiv1.GenericConfig{
+				"service": {
+					"type": "Deployment",
+				},
+				"job": {
+					"replicas": 2,
+				},
+			}
 
-			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload)
+			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedModuleConfigs)
 			spec := &intent.Intent{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
@@ -315,4 +341,178 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Equal(t, "", actualContainers[0].Lifecycle.PostStart.HTTPGet.Host, "PostStart.HTTPGet.Host mismatch")
 		assert.Equal(t, 1, len(actualContainers[0].Lifecycle.PostStart.HTTPGet.HTTPHeaders), "PostStart.HTTPGet.HTTPHeaders length mismatch")
 	})
+}
+
+func TestCompleteBaseWorkload(t *testing.T) {
+	testcases := []struct {
+		name          string
+		base          *workload.Base
+		config        apiv1.GenericConfig
+		success       bool
+		completedBase *workload.Base
+	}{
+		{
+			name: "successfully complete base",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Labels: map[string]string{
+					"k1": "v1",
+					"k2": "v2",
+				},
+			},
+			config: apiv1.GenericConfig{
+				"labels": map[string]any{
+					"k1": "v1-ws",
+					"k3": "v3-ws",
+				},
+				"annotations": map[string]any{
+					"k1": "v1-ws",
+				},
+				"replicas": 4,
+			},
+			success: true,
+			completedBase: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Replicas: 4,
+				Labels: map[string]string{
+					"k1": "v1",
+					"k2": "v2",
+					"k3": "v3-ws",
+				},
+				Annotations: map[string]string{
+					"k1": "v1-ws",
+				},
+			},
+		},
+		{
+			name: "use base replicas",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Replicas: 3,
+				Labels: map[string]string{
+					"k1": "v1",
+				},
+				Annotations: map[string]string{
+					"k1": "v1",
+				},
+			},
+			config: apiv1.GenericConfig{
+				"replicas": 4,
+			},
+			success: true,
+			completedBase: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Replicas: 3,
+				Labels: map[string]string{
+					"k1": "v1",
+				},
+				Annotations: map[string]string{
+					"k1": "v1",
+				},
+			},
+		},
+		{
+			name: "use default replicas",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Labels: map[string]string{
+					"k1": "v1",
+				},
+				Annotations: map[string]string{
+					"k1": "v1",
+				},
+			},
+			config:  nil,
+			success: true,
+			completedBase: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+				Replicas: 2,
+				Labels: map[string]string{
+					"k1": "v1",
+				},
+				Annotations: map[string]string{
+					"k1": "v1",
+				},
+			},
+		},
+		{
+			name: "invalid replicas config",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+			},
+			config: apiv1.GenericConfig{
+				"replicas": "2",
+			},
+			success:       false,
+			completedBase: nil,
+		},
+		{
+			name: "invalid labels config",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+			},
+			config: apiv1.GenericConfig{
+				"labels": "k1=v1",
+			},
+			success:       false,
+			completedBase: nil,
+		},
+		{
+			name: "invalid annotations config",
+			base: &workload.Base{
+				Containers: map[string]container.Container{
+					"nginx": {
+						Image: "nginx:v1",
+					},
+				},
+			},
+			config: apiv1.GenericConfig{
+				"annotations": "k1=v1",
+			},
+			success:       false,
+			completedBase: nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := completeBaseWorkload(tc.base, tc.config)
+			assert.Equal(t, tc.success, err == nil)
+			if tc.success {
+				assert.True(t, reflect.DeepEqual(tc.base, tc.completedBase))
+			}
+		})
+	}
 }
