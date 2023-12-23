@@ -82,13 +82,24 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 		return err
 	}
 
+	// construct proper generator context
+	namespaceName := g.getNamespaceName(modulesConfig)
+	g.app.Name = g.appName
+	context := modules.GeneratorContext{
+		Project:      g.project,
+		Stack:        g.stack,
+		Application:  g.app,
+		Namespace:    namespaceName,
+		ModuleInputs: modulesConfig,
+	}
+
 	// Generate resources
 	gfs := []modules.NewGeneratorFunc{
-		NewNamespaceGeneratorFunc(g.project.Name, g.ws),
-		accessories.NewDatabaseGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, g.app.Database),
-		workload.NewWorkloadGeneratorFunc(g.project, g.stack, g.appName, g.app.Workload, modulesConfig),
-		trait.NewOpsRuleGeneratorFunc(g.project, g.stack, g.appName, g.app, modulesConfig),
-		monitoring.NewMonitoringGeneratorFunc(g.project, g.app.Monitoring, g.appName),
+		NewNamespaceGeneratorFunc(context),
+		accessories.NewDatabaseGeneratorFunc(context),
+		workload.NewWorkloadGeneratorFunc(context),
+		trait.NewOpsRuleGeneratorFunc(context),
+		monitoring.NewMonitoringGeneratorFunc(context),
 		// The OrderedResourcesGenerator should be executed after all resources are generated.
 		NewOrderedResourcesGeneratorFunc(),
 	}
@@ -109,4 +120,26 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	modules.AddKubeConfigIf(i, g.ws)
 
 	return nil
+}
+
+// getNamespaceName obtains the final namespace name using the following precedence
+// (from lower to higher):
+// - Project name
+// - Namespace module config (specified in corresponding workspace file)
+func (g *appConfigurationGenerator) getNamespaceName(moduleConfigs map[string]apiv1.GenericConfig) string {
+	if moduleConfigs == nil {
+		return g.project.Name
+	}
+
+	namespaceName := g.project.Name
+	namespaceModuleConfigs, exist := moduleConfigs["namespace"]
+	if exist {
+		if name, ok := namespaceModuleConfigs["name"]; ok {
+			customNamespaceName, isString := name.(string)
+			if isString && len(customNamespaceName) > 0 {
+				namespaceName = customNamespaceName
+			}
+		}
+	}
+	return namespaceName
 }

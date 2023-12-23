@@ -51,22 +51,23 @@ type portsGenerator struct {
 	labels      map[string]string
 	annotations map[string]string
 	ports       []network.Port
+	namespace   string
 }
 
 // NewPortsGenerator returns a new portsGenerator instance, and do the validation and completion job.
 func NewPortsGenerator(
-	appName, projectName, stackName string,
+	ctx modules.GeneratorContext,
 	selectors, labels, annotations map[string]string,
-	ports []network.Port,
 ) (modules.Generator, error) {
 	generator := &portsGenerator{
-		appName:     appName,
-		projectName: projectName,
-		stackName:   stackName,
+		appName:     ctx.Application.Name,
+		projectName: ctx.Project.Name,
+		stackName:   ctx.Stack.Name,
 		selector:    selectors,
 		labels:      labels,
 		annotations: annotations,
-		ports:       ports,
+		ports:       ctx.Application.Workload.Service.Ports,
+		namespace:   ctx.Namespace,
 	}
 
 	if err := generator.validate(); err != nil {
@@ -79,12 +80,11 @@ func NewPortsGenerator(
 
 // NewPortsGeneratorFunc returns a new NewGeneratorFunc that returns a portsGenerator instance.
 func NewPortsGeneratorFunc(
-	appName, projectName, stackName string,
+	ctx modules.GeneratorContext,
 	selectors, labels, annotations map[string]string,
-	ports []network.Port,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewPortsGenerator(appName, projectName, stackName, selectors, labels, annotations, ports)
+		return NewPortsGenerator(ctx, selectors, labels, annotations)
 	}
 }
 
@@ -154,7 +154,7 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
-			Namespace:   g.projectName,
+			Namespace:   g.namespace,
 			Labels:      g.labels,
 			Annotations: g.annotations,
 		},

@@ -129,9 +129,10 @@ func TestMonitoringGenerator_Generate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &monitoringGenerator{
-				project: tt.fields.project,
-				monitor: tt.fields.monitor,
-				appName: tt.fields.appName,
+				project:   tt.fields.project,
+				monitor:   tt.fields.monitor,
+				appName:   tt.fields.appName,
+				namespace: tt.fields.project.Name,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)

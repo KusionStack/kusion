@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
@@ -82,7 +84,20 @@ func TestGenerateSecret(t *testing.T) {
 				},
 			}
 			intent := &apiv1.Intent{}
-			generator, _ := NewSecretGenerator(project, secrets)
+			context := modules.GeneratorContext{
+				Project: project,
+				Application: &inputs.AppConfiguration{
+					Workload: &workload.Workload{
+						Service: &workload.Service{
+							Base: workload.Base{
+								Secrets: secrets,
+							},
+						},
+					},
+				},
+				Namespace: project.Name,
+			}
+			generator, _ := NewSecretGenerator(context)
 			err := generator.Generate(intent)
 			if test.expectErr == "" {
 				require.NoError(t, err)

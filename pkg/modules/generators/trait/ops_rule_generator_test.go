@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
 	appmodule "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/trait"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
@@ -189,6 +190,7 @@ func Test_opsRuleGenerator_Generate(t *testing.T) {
 				appName:       tt.fields.appName,
 				app:           tt.fields.app,
 				modulesConfig: tt.fields.workspaceConfig,
+				namespace:     tt.fields.project.Name,
 			}
 			err := g.Generate(tt.args.spec)
 			if tt.wantErr {
@@ -210,6 +212,9 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 	s := &apiv1.Stack{
 		Name: "dev",
 	}
+	app := &appmodule.AppConfiguration{
+		Name: "beep",
+	}
 
 	type args struct {
 		project *apiv1.Project
@@ -230,7 +235,7 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 				project: p,
 				stack:   s,
 				appName: "",
-				app:     nil,
+				app:     app,
 				ws: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
@@ -241,7 +246,8 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 			want: &opsRuleGenerator{
 				project: p,
 				stack:   s,
-				appName: "",
+				appName: "beep",
+				app:     app,
 				modulesConfig: map[string]apiv1.GenericConfig{
 					"opsRule": {
 						"maxUnavailable": "30%",
@@ -253,7 +259,14 @@ func TestNewOpsRuleGeneratorFunc(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewOpsRuleGeneratorFunc(tt.args.project, tt.args.stack, tt.args.appName, tt.args.app, tt.args.ws)
+			context := modules.GeneratorContext{
+				Project:      tt.args.project,
+				Stack:        tt.args.stack,
+				Application:  tt.args.app,
+				Namespace:    tt.args.project.Name,
+				ModuleInputs: tt.args.ws,
+			}
+			f := NewOpsRuleGeneratorFunc(context)
 			g, err := f()
 			if tt.wantErr {
 				require.Error(t, err)

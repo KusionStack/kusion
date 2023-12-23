@@ -8,8 +8,34 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
+
+func newGeneratorContextWithJob(
+	project *apiv1.Project,
+	stack *apiv1.Stack,
+	appName string,
+	job *workload.Job,
+	jobConfig apiv1.GenericConfig,
+) modules.GeneratorContext {
+	application := &inputs.AppConfiguration{
+		Name: appName,
+		Workload: &workload.Workload{
+			Job: job,
+		},
+	}
+	moduleInputs := map[string]apiv1.GenericConfig{
+		workload.ModuleJob: jobConfig,
+	}
+	return modules.GeneratorContext{
+		Project:      project,
+		Stack:        stack,
+		Application:  application,
+		Namespace:    project.Name,
+		ModuleInputs: moduleInputs,
+	}
+}
 
 func TestNewJobGenerator(t *testing.T) {
 	expectedProject := &apiv1.Project{
@@ -26,7 +52,8 @@ func TestNewJobGenerator(t *testing.T) {
 			"workload-type": "Job",
 		},
 	}
-	actual, err := NewJobGenerator(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
+	ctx := newGeneratorContextWithJob(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
+	actual, err := NewJobGenerator(ctx)
 
 	assert.NoError(t, err, "Error should be nil")
 	assert.NotNil(t, actual, "Generator should not be nil")
@@ -52,7 +79,8 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 			"workload-type": "Job",
 		},
 	}
-	generatorFunc := NewJobGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
+	ctx := newGeneratorContextWithJob(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
+	generatorFunc := NewJobGeneratorFunc(ctx)
 	actualGenerator, err := generatorFunc()
 
 	assert.NoError(t, err, "Error should be nil")
@@ -94,7 +122,8 @@ func TestJobGenerator_Generate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			generator, _ := NewJobGenerator(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob, tc.expectedJobConfig)
+			ctx := newGeneratorContextWithJob(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob, tc.expectedJobConfig)
+			generator, _ := NewJobGenerator(ctx)
 			spec := &apiv1.Intent{}
 			err := generator.Generate(spec)
 

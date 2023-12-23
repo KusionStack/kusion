@@ -37,11 +37,12 @@ func TestGenerateAlicloudResources(t *testing.T) {
 		SubnetID:       "test_subnet_id",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	alicloudProviderRegion = "cn-beijing"
@@ -99,11 +100,12 @@ func TestGenerateAlicloudDBInstance(t *testing.T) {
 		SubnetID:       "test_subnet_id",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	alicloudDBInstanceID, r := generator.generateAlicloudDBInstance(alicloudProviderRegion, alicloudProvider, database)
@@ -171,11 +173,12 @@ func TestGenerateAlicloudDBConnection(t *testing.T) {
 		SubnetID:       "test_subnet_id",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	dbInstanceID := "aliyun:alicloud:alicloud_db_instance:testapp"
@@ -228,11 +231,12 @@ func TestGenerateAlicloudRDSAccount(t *testing.T) {
 		SubnetID:       "test_subnet_id",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	accountName := database.Username

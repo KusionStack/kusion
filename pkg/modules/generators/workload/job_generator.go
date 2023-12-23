@@ -18,33 +18,23 @@ type jobGenerator struct {
 	appName   string
 	job       *workload.Job
 	jobConfig apiv1.GenericConfig
+	namespace string
 }
 
-func NewJobGenerator(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	job *workload.Job,
-	jobConfig apiv1.GenericConfig,
-) (modules.Generator, error) {
+func NewJobGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
 	return &jobGenerator{
-		project:   project,
-		stack:     stack,
-		appName:   appName,
-		job:       job,
-		jobConfig: jobConfig,
+		project:   ctx.Project,
+		stack:     ctx.Stack,
+		appName:   ctx.Application.Name,
+		job:       ctx.Application.Workload.Job,
+		jobConfig: ctx.ModuleInputs[workload.ModuleJob],
+		namespace: ctx.Namespace,
 	}, nil
 }
 
-func NewJobGeneratorFunc(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	job *workload.Job,
-	jobConfig apiv1.GenericConfig,
-) modules.NewGeneratorFunc {
+func NewJobGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewJobGenerator(project, stack, appName, job, jobConfig)
+		return NewJobGenerator(ctx)
 	}
 }
 
@@ -65,7 +55,7 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 	uniqueAppName := modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
 
 	meta := metav1.ObjectMeta{
-		Namespace: g.project.Name,
+		Namespace: g.namespace,
 		Name:      uniqueAppName,
 		Labels: modules.MergeMaps(
 			modules.UniqueAppLabels(g.project.Name, g.appName),
@@ -83,7 +73,7 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 
 	for _, cm := range configMaps {
 		cmObj := cm
-		cmObj.Namespace = g.project.Name
+		cmObj.Namespace = g.namespace
 		if err = modules.AppendToIntent(
 			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),

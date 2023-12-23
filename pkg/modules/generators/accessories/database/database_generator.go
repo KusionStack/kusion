@@ -26,42 +26,28 @@ const (
 )
 
 type databaseGenerator struct {
-	project  *apiv1.Project
-	stack    *apiv1.Stack
-	appName  string
-	workload *workload.Workload
-	database *database.Database
+	project   *apiv1.Project
+	stack     *apiv1.Stack
+	appName   string
+	workload  *workload.Workload
+	database  *database.Database
+	namespace string
 }
 
-func NewDatabaseGenerator(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	workload *workload.Workload,
-	database *database.Database,
-) (modules.Generator, error) {
-	if len(project.Name) == 0 {
-		return nil, fmt.Errorf("project name must not be empty")
-	}
-
+func NewDatabaseGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
 	return &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   ctx.Project,
+		stack:     ctx.Stack,
+		appName:   ctx.Application.Name,
+		workload:  ctx.Application.Workload,
+		database:  ctx.Application.Database,
+		namespace: ctx.Namespace,
 	}, nil
 }
 
-func NewDatabaseGeneratorFunc(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	workload *workload.Workload,
-	database *database.Database,
-) modules.NewGeneratorFunc {
+func NewDatabaseGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewDatabaseGenerator(project, stack, appName, workload, database)
+		return NewDatabaseGenerator(ctx)
 	}
 }
 
@@ -160,7 +146,7 @@ func (g *databaseGenerator) generateDBSecret(hostAddress, username, password str
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      g.appName + dbResSuffix,
-			Namespace: g.project.Name,
+			Namespace: g.namespace,
 		},
 		StringData: data,
 	}

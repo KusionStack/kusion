@@ -24,47 +24,41 @@ type workloadServiceGenerator struct {
 	appName       string
 	service       *workload.Service
 	serviceConfig apiv1.GenericConfig
+	namespace     string
+
+	// for internal generator
+	context modules.GeneratorContext
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
-func NewWorkloadServiceGenerator(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	service *workload.Service,
-	serviceConfig apiv1.GenericConfig,
-) (modules.Generator, error) {
-	if len(project.Name) == 0 {
+func NewWorkloadServiceGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+	if len(ctx.Project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
-	if len(appName) == 0 {
+	if len(ctx.Application.Name) == 0 {
 		return nil, fmt.Errorf("app name must not be empty")
 	}
 
-	if service == nil {
+	if ctx.Application.Workload.Service == nil {
 		return nil, fmt.Errorf("service workload must not be nil")
 	}
 
 	return &workloadServiceGenerator{
-		project:       project,
-		stack:         stack,
-		appName:       appName,
-		service:       service,
-		serviceConfig: serviceConfig,
+		project:       ctx.Project,
+		stack:         ctx.Stack,
+		appName:       ctx.Application.Name,
+		service:       ctx.Application.Workload.Service,
+		serviceConfig: ctx.ModuleInputs[workload.ModuleService],
+		namespace:     ctx.Namespace,
+		context:       ctx,
 	}, nil
 }
 
 // NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that returns a workloadServiceGenerator instance.
-func NewWorkloadServiceGeneratorFunc(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	service *workload.Service,
-	serviceConfig apiv1.GenericConfig,
-) modules.NewGeneratorFunc {
+func NewWorkloadServiceGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadServiceGenerator(project, stack, appName, service, serviceConfig)
+		return NewWorkloadServiceGenerator(ctx)
 	}
 }
 
@@ -96,7 +90,7 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 	// Create ConfigMap objects based on the app's configuration.
 	for _, cm := range configMaps {
 		cmObj := cm
-		cmObj.Namespace = g.project.Name
+		cmObj.Namespace = g.namespace
 		if err = modules.AppendToIntent(
 			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
@@ -117,7 +111,7 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 		Labels:      labels,
 		Annotations: annotations,
 		Name:        uniqueAppName,
-		Namespace:   g.project.Name,
+		Namespace:   g.namespace,
 	}
 	podTemplateSpec := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -172,7 +166,7 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 
 	// generate K8s Service from ports config.
 	if len(g.service.Ports) != 0 {
-		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports)
+		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.context, selector, labels, annotations)
 		if err = modules.CallGenerators(spec, portsGeneratorFunc); err != nil {
 			return err
 		}

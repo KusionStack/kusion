@@ -17,33 +17,22 @@ type opsRuleGenerator struct {
 	appName       string
 	app           *appmodule.AppConfiguration
 	modulesConfig map[string]apiv1.GenericConfig
+	namespace     string
 }
 
-func NewOpsRuleGenerator(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	app *appmodule.AppConfiguration,
-	modulesConfig map[string]apiv1.GenericConfig,
-) (modules.Generator, error) {
+func NewOpsRuleGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
 	return &opsRuleGenerator{
-		project:       project,
-		stack:         stack,
-		appName:       appName,
-		app:           app,
-		modulesConfig: modulesConfig,
+		project:       ctx.Project,
+		stack:         ctx.Stack,
+		appName:       ctx.Application.Name,
+		app:           ctx.Application,
+		modulesConfig: ctx.ModuleInputs,
 	}, nil
 }
 
-func NewOpsRuleGeneratorFunc(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	app *appmodule.AppConfiguration,
-	modulesConfig map[string]apiv1.GenericConfig,
-) modules.NewGeneratorFunc {
+func NewOpsRuleGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewOpsRuleGenerator(project, stack, appName, app, modulesConfig)
+		return NewOpsRuleGenerator(ctx)
 	}
 }
 
@@ -70,7 +59,7 @@ func (g *opsRuleGenerator) Generate(spec *apiv1.Intent) error {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName),
-				Namespace: g.project.Name,
+				Namespace: g.namespace,
 			},
 			Spec: v1alpha1.PodTransitionRuleSpec{
 				Selector: &metav1.LabelSelector{

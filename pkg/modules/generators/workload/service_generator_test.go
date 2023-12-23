@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -280,12 +282,25 @@ status: {}
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := modules.GeneratorContext{
+				Project: tt.fields.project,
+				Stack:   tt.fields.stack,
+				Application: &inputs.AppConfiguration{
+					Name: tt.fields.appName,
+					Workload: &workload.Workload{
+						Service: tt.fields.service,
+					},
+				},
+				Namespace: tt.fields.project.Name,
+			}
 			g := &workloadServiceGenerator{
 				project:       tt.fields.project,
 				stack:         tt.fields.stack,
 				appName:       tt.fields.appName,
 				service:       tt.fields.service,
 				serviceConfig: tt.fields.serviceConfig,
+				namespace:     tt.fields.project.Name,
+				context:       ctx,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
