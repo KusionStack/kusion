@@ -20,6 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
+	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
 	"kusionstack.io/kusion/pkg/util/net"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -75,7 +76,7 @@ func (g *workloadGenerator) Generate(spec *apiv1.Intent) error {
 		switch g.workload.Header.Type {
 		case workload.TypeService:
 			gfs = append(gfs,
-				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.moduleConfigs[workload.ModuleService]),
+				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.moduleConfigs[workload.ModuleService], g.moduleConfigs[network.ModulePort]),
 				secret.NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets))
 		case workload.TypeJob:
 			gfs = append(gfs,

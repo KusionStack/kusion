@@ -12,6 +12,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 const (
@@ -28,18 +29,19 @@ const (
 )
 
 var (
-	ErrEmptyAppName          = errors.New("app name must not be empty")
-	ErrEmptyProjectName      = errors.New("project name must not be empty")
-	ErrEmptyStackName        = errors.New("stack name must not be empty")
-	ErrEmptySelectors        = errors.New("selectors must not be empty")
-	ErrEmptyPorts            = errors.New("ports must not be empty")
-	ErrEmptyType             = errors.New("type must not be empty when public")
-	ErrUnsupportedType       = errors.New("type only support aliyun and aws for now")
-	ErrInconsistentType      = errors.New("public ports must use same type")
-	ErrInvalidPort           = errors.New("port must be between 1 and 65535")
-	ErrInvalidTargetPort     = errors.New("targetPort must be between 1 and 65535 if exist")
-	ErrInvalidProtocol       = errors.New("protocol must be TCP or UDP")
-	ErrDuplicatePortProtocol = errors.New("port-protocol pair must not be duplicate")
+	ErrEmptyAppName              = errors.New("app name must not be empty")
+	ErrEmptyProjectName          = errors.New("project name must not be empty")
+	ErrEmptyStackName            = errors.New("stack name must not be empty")
+	ErrEmptySelectors            = errors.New("selectors must not be empty")
+	ErrEmptyPorts                = errors.New("ports must not be empty")
+	ErrEmptyType                 = errors.New("type must not be empty when public")
+	ErrUnsupportedType           = errors.New("type only support alicloud and aws for now")
+	ErrInvalidPort               = errors.New("port must be between 1 and 65535")
+	ErrInvalidTargetPort         = errors.New("targetPort must be between 1 and 65535 if exist")
+	ErrInvalidProtocol           = errors.New("protocol must be TCP or UDP")
+	ErrDuplicatePortProtocol     = errors.New("port-protocol pair must not be duplicate")
+	ErrUnsupportedPortConfigItem = errors.New("unsupported item for port workspace config")
+	ErrEmptyPortConfig           = errors.New("empty port config")
 )
 
 // portsGenerator is used to generate k8s service.
@@ -51,6 +53,7 @@ type portsGenerator struct {
 	labels      map[string]string
 	annotations map[string]string
 	ports       []network.Port
+	portConfig  apiv1.GenericConfig
 }
 
 // NewPortsGenerator returns a new portsGenerator instance, and do the validation and completion job.
@@ -58,6 +61,7 @@ func NewPortsGenerator(
 	appName, projectName, stackName string,
 	selectors, labels, annotations map[string]string,
 	ports []network.Port,
+	portConfig apiv1.GenericConfig,
 ) (modules.Generator, error) {
 	generator := &portsGenerator{
 		appName:     appName,
@@ -67,13 +71,16 @@ func NewPortsGenerator(
 		labels:      labels,
 		annotations: annotations,
 		ports:       ports,
+		portConfig:  portConfig,
 	}
 
 	if err := generator.validate(); err != nil {
 		return nil, err
 	}
+	if err := generator.complete(); err != nil {
+		return nil, err
+	}
 
-	generator.complete()
 	return generator, nil
 }
 
@@ -82,9 +89,10 @@ func NewPortsGeneratorFunc(
 	appName, projectName, stackName string,
 	selectors, labels, annotations map[string]string,
 	ports []network.Port,
+	portConfig apiv1.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewPortsGenerator(appName, projectName, stackName, selectors, labels, annotations, ports)
+		return NewPortsGenerator(appName, projectName, stackName, selectors, labels, annotations, ports, portConfig)
 	}
 }
 
@@ -125,13 +133,19 @@ func (g *portsGenerator) validate() error {
 	if err := validatePorts(g.ports); err != nil {
 		return err
 	}
+	if err := validatePortConfig(g.portConfig); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (g *portsGenerator) complete() {
+func (g *portsGenerator) complete() error {
 	for i := range g.ports {
-		completePort(&g.ports[i])
+		if err := completePort(&g.ports[i], g.portConfig); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.Service {
@@ -174,7 +188,7 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 		}
 
 		portType := ports[0].Type
-		if portType == network.CSPAliyun {
+		if portType == network.CSPAliCloud {
 			// for aliyun, set SLB spec by default.
 			svc.Annotations[aliyunLBSpec] = aliyunSLBS1Small
 			// kafeD service controller only support aliyun SLB, automatically add the label.
@@ -188,9 +202,8 @@ func (g *portsGenerator) generateK8sSvc(public bool, ports []network.Port) *v1.S
 func validatePorts(ports []network.Port) error {
 	portProtocolRecord := make(map[string]struct{})
 	// portType is the correct type for public port, it gets assigned a value when calling validatePort.
-	var portType string
 	for _, port := range ports {
-		if err := validatePort(&port, &portType); err != nil {
+		if err := validatePort(&port); err != nil {
 			return fmt.Errorf("invalid port config %+v, %w", port, err)
 		}
 
@@ -204,20 +217,7 @@ func validatePorts(ports []network.Port) error {
 	return nil
 }
 
-func validatePort(port *network.Port, portType *string) error {
-	if port.Public {
-		if port.Type == "" {
-			return ErrEmptyType
-		}
-		if port.Type != network.CSPAliyun && port.Type != network.CSPAWS {
-			return ErrUnsupportedType
-		}
-		if *portType == "" {
-			*portType = port.Type
-		} else if port.Type != *portType {
-			return ErrInconsistentType
-		}
-	}
+func validatePort(port *network.Port) error {
 	if port.Port < 1 || port.Port > 65535 {
 		return ErrInvalidPort
 	}
@@ -230,10 +230,43 @@ func validatePort(port *network.Port, portType *string) error {
 	return nil
 }
 
-func completePort(port *network.Port) {
+func validatePortConfig(portConfig apiv1.GenericConfig) error {
+	if portConfig == nil {
+		return nil
+	}
+	portType, err := workspace.GetStringFromGenericConfig(portConfig, network.FieldType)
+	if err != nil {
+		return err
+	}
+	if portType != "" && portType != network.CSPAliCloud && portType != network.CSPAWS {
+		return ErrUnsupportedType
+	}
+	for k := range portConfig {
+		if k != network.FieldType {
+			return fmt.Errorf("%w, %s", ErrUnsupportedPortConfigItem, k)
+		}
+	}
+	return nil
+}
+
+func completePort(port *network.Port, portConfig apiv1.GenericConfig) error {
 	if port.TargetPort == 0 {
 		port.TargetPort = port.Port
 	}
+	if port.Public {
+		if portConfig == nil {
+			return ErrEmptyPortConfig
+		}
+		portType, err := workspace.GetStringFromGenericConfig(portConfig, network.FieldType)
+		if err != nil {
+			return err
+		}
+		if portType == "" {
+			return ErrEmptyType
+		}
+		port.Type = portType
+	}
+	return nil
 }
 
 func splitPorts(ports []network.Port) ([]network.Port, []network.Port) {

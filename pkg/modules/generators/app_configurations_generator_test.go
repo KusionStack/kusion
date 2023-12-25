@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
@@ -81,7 +81,7 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 				Type: "Deployment",
 				Ports: []network.Port{
 					{
-						Type:     network.CSPAliyun,
+						Type:     network.CSPAliCloud,
 						Port:     80,
 						Protocol: "TCP",
 						Public:   true,

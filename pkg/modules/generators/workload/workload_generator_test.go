@@ -88,7 +88,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 					Base: workload.Base{},
 					Ports: []network.Port{
 						{
-							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -130,6 +129,9 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				},
 				"job": {
 					"replicas": 2,
+				},
+				"port": {
+					"type": "alicloud",
 				},
 			}
 

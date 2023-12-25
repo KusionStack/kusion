@@ -1,6 +1,7 @@
 package network
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -76,6 +77,124 @@ func TestValidatePorts(t *testing.T) {
 	}
 }
 
+func TestValidatePortConfig(t *testing.T) {
+	testcases := []struct {
+		name       string
+		portConfig apiv1.GenericConfig
+		success    bool
+	}{
+		{
+			name: "valid port config",
+			portConfig: apiv1.GenericConfig{
+				"type": "alicloud",
+			},
+			success: true,
+		},
+		{
+			name:       "empty config",
+			portConfig: nil,
+			success:    true,
+		},
+		{
+			name: "invalid port config unsupported type",
+			portConfig: apiv1.GenericConfig{
+				"type": "unsupported",
+			},
+			success: false,
+		},
+		{
+			name: "invalid port config unsupported item",
+			portConfig: apiv1.GenericConfig{
+				"unsupported": "unsupported",
+			},
+			success: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validatePortConfig(tc.portConfig)
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestCompletePort(t *testing.T) {
+	testcases := []struct {
+		name          string
+		port          *network.Port
+		portConfig    apiv1.GenericConfig
+		success       bool
+		completedPort *network.Port
+	}{
+		{
+			name: "complete target port",
+			port: &network.Port{
+				Port:     80,
+				Protocol: "TCP",
+			},
+			portConfig: nil,
+			success:    true,
+			completedPort: &network.Port{
+				Port:       80,
+				TargetPort: 80,
+				Protocol:   "TCP",
+			},
+		},
+		{
+			name: "complete type",
+			port: &network.Port{
+				Port:     80,
+				Protocol: "TCP",
+				Public:   true,
+			},
+			portConfig: apiv1.GenericConfig{
+				"type": "alicloud",
+			},
+			success: true,
+			completedPort: &network.Port{
+				Type:       "alicloud",
+				Port:       80,
+				TargetPort: 80,
+				Protocol:   "TCP",
+				Public:     true,
+			},
+		},
+		{
+			name: "complete failed empty port config",
+			port: &network.Port{
+				Port:     80,
+				Protocol: "TCP",
+				Public:   true,
+			},
+			portConfig:    nil,
+			success:       false,
+			completedPort: nil,
+		},
+		{
+			name: "complete failed type not exist",
+			port: &network.Port{
+				Port:     80,
+				Protocol: "TCP",
+				Public:   true,
+			},
+			portConfig:    apiv1.GenericConfig{},
+			success:       false,
+			completedPort: nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := completePort(tc.port, tc.portConfig)
+			assert.Equal(t, tc.success, err == nil)
+			if tc.success {
+				assert.True(t, reflect.DeepEqual(tc.completedPort, tc.port))
+			}
+		})
+	}
+}
+
 func TestPortsGenerator_Generate(t *testing.T) {
 	type fields struct {
 		portsGenerator
@@ -110,7 +229,6 @@ func TestPortsGenerator_Generate(t *testing.T) {
 					},
 					ports: []network.Port{
 						{
-							Type:       network.CSPAliyun,
 							Port:       80,
 							TargetPort: 80,
 							Protocol:   "TCP",
@@ -122,6 +240,9 @@ func TestPortsGenerator_Generate(t *testing.T) {
 							Protocol:   "UDP",
 							Public:     false,
 						},
+					},
+					portConfig: apiv1.GenericConfig{
+						"type": "alicloud",
 					},
 				},
 			},
@@ -205,6 +326,7 @@ func TestPortsGenerator_Generate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &tt.fields.portsGenerator
+			_ = g.complete()
 			if err = g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}

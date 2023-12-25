@@ -1,7 +1,11 @@
 package network
 
 const (
-	CSPAliyun   = "aliyun"
+	ModulePort = "port"
+
+	FieldType = "type"
+
+	CSPAliCloud = "alicloud"
 	CSPAWS      = "aws"
 	ProtocolTCP = "TCP"
 	ProtocolUDP = "UDP"
@@ -11,7 +15,7 @@ const (
 // the workload.Service get accessed.
 type Port struct {
 	// Type is the specific cloud vendor that provides load balancer, works when Public
-	// is true, supports CSPAliyun and CSPAWS for now.
+	// is true, supports CSPAliCloud and CSPAWS for now.
 	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 
 	// Port is the exposed port of the workload.Service.

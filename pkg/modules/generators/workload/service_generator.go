@@ -24,6 +24,7 @@ type workloadServiceGenerator struct {
 	appName       string
 	service       *workload.Service
 	serviceConfig apiv1.GenericConfig
+	portConfig    apiv1.GenericConfig
 }
 
 // NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
@@ -32,7 +33,7 @@ func NewWorkloadServiceGenerator(
 	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
-	serviceConfig apiv1.GenericConfig,
+	serviceConfig, portConfig apiv1.GenericConfig,
 ) (modules.Generator, error) {
 	if len(project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -52,6 +53,7 @@ func NewWorkloadServiceGenerator(
 		appName:       appName,
 		service:       service,
 		serviceConfig: serviceConfig,
+		portConfig:    portConfig,
 	}, nil
 }
 
@@ -61,10 +63,10 @@ func NewWorkloadServiceGeneratorFunc(
 	stack *apiv1.Stack,
 	appName string,
 	service *workload.Service,
-	serviceConfig apiv1.GenericConfig,
+	serviceConfig, portConfig apiv1.GenericConfig,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadServiceGenerator(project, stack, appName, service, serviceConfig)
+		return NewWorkloadServiceGenerator(project, stack, appName, service, serviceConfig, portConfig)
 	}
 }
 
@@ -172,7 +174,7 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 
 	// generate K8s Service from ports config.
 	if len(g.service.Ports) != 0 {
-		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports)
+		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.appName, g.project.Name, g.stack.Name, selector, labels, annotations, g.service.Ports, g.portConfig)
 		if err = modules.CallGenerators(spec, portsGeneratorFunc); err != nil {
 			return err
 		}

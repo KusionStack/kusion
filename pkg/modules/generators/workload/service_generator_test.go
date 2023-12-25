@@ -167,6 +167,7 @@ status: {}
 		appName       string
 		service       *workload.Service
 		serviceConfig apiv1.GenericConfig
+		portConfig    apiv1.GenericConfig
 	}
 	type args struct {
 		spec *apiv1.Intent
@@ -207,7 +208,6 @@ status: {}
 					},
 					Ports: []network.Port{
 						{
-							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -222,6 +222,9 @@ status: {}
 					"annotations": map[string]any{
 						"service-workload-type": "CollaSet",
 					},
+				},
+				portConfig: apiv1.GenericConfig{
+					"type": "alicloud",
 				},
 			},
 			args: args{
@@ -257,7 +260,6 @@ status: {}
 					},
 					Ports: []network.Port{
 						{
-							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -269,6 +271,9 @@ status: {}
 					"labels": map[string]any{
 						"service-workload-type": "Deployment",
 					},
+				},
+				portConfig: apiv1.GenericConfig{
+					"type": "alicloud",
 				},
 			},
 			args: args{
@@ -286,6 +291,7 @@ status: {}
 				appName:       tt.fields.appName,
 				service:       tt.fields.service,
 				serviceConfig: tt.fields.serviceConfig,
+				portConfig:    tt.fields.portConfig,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
