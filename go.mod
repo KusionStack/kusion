@@ -67,9 +67,9 @@ require (
 	k8s.io/component-base v0.27.2
 	k8s.io/kubectl v0.27.1
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
-	kcl-lang.io/kcl-go v0.7.0
+	kcl-lang.io/kcl-go v0.7.1
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.4.2
+	kcl-lang.io/kpm v0.4.7
 	kusionstack.io/kube-api v0.1.1
 	sigs.k8s.io/controller-runtime v0.15.1
 )
@@ -100,6 +100,7 @@ require (
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
+	kcl-lang.io/lib v0.7.3 // indirect
 	sigs.k8s.io/kustomize/api v0.13.2 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.14.1 // indirect
 )
@@ -285,7 +286,6 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	kcl-lang.io/kcl-artifact-go v0.7.1 // indirect
 	lukechampine.com/frand v1.4.2 // indirect
 	oras.land/oras-go v1.2.3 // indirect
 	oras.land/oras-go/v2 v2.3.0 // indirect
