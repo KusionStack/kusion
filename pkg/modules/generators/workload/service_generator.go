@@ -11,10 +11,9 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/workspace"
-
-	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
 )
 
 // workloadServiceGenerator is a struct for generating service workload resources.
