@@ -29,11 +29,12 @@ func TestGenerateLocalResources(t *testing.T) {
 		Username: "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}
@@ -79,11 +80,12 @@ func TestGenerateLocalSecret(t *testing.T) {
 		Username: "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}
@@ -111,11 +113,12 @@ func TestGenerateLocalPVC(t *testing.T) {
 		Username: "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}
@@ -141,11 +144,12 @@ func TestGenerateLocalDeployment(t *testing.T) {
 		Username: "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}
@@ -171,11 +175,12 @@ func TestGenerateLocalService(t *testing.T) {
 		Username: "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}

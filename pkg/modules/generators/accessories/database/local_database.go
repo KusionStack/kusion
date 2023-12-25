@@ -65,7 +65,7 @@ func (g *databaseGenerator) generateLocalSecret(spec *apiv1.Intent) (string, err
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      g.appName + dbResSuffix + localSecretSuffix,
-			Namespace: g.project.Name,
+			Namespace: g.namespace,
 		},
 		StringData: data,
 	}
@@ -89,7 +89,7 @@ func (g *databaseGenerator) generateLocalPVC(db *database.Database, spec *apiv1.
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      g.appName + dbResSuffix + localPVCSuffix,
-			Namespace: g.project.Name,
+			Namespace: g.namespace,
 			Labels:    localMatchLabels,
 		},
 		Spec: v1.PersistentVolumeClaimSpec{
@@ -127,7 +127,7 @@ func (g *databaseGenerator) generateLocalDeployment(db *database.Database, spec 
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      g.appName + dbResSuffix + localDeploymentSuffix,
-			Namespace: g.project.Name,
+			Namespace: g.namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
@@ -166,7 +166,7 @@ func (g *databaseGenerator) generateLocalService(db *database.Database, spec *ap
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      svcName,
-			Namespace: g.project.Name,
+			Namespace: g.namespace,
 			Labels:    localMatchLabels,
 		},
 		Spec: v1.ServiceSpec{

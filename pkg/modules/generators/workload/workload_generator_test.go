@@ -9,10 +9,31 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
 )
+
+func newGeneratorContext(
+	project *apiv1.Project,
+	stack *apiv1.Stack,
+	appName string,
+	workload *workload.Workload,
+	moduleInputs map[string]apiv1.GenericConfig,
+) modules.GeneratorContext {
+	application := &inputs.AppConfiguration{
+		Name:     appName,
+		Workload: workload,
+	}
+	return modules.GeneratorContext{
+		Project:      project,
+		Stack:        stack,
+		Application:  application,
+		Namespace:    project.Name,
+		ModuleInputs: moduleInputs,
+	}
+}
 
 func TestNewWorkloadGenerator(t *testing.T) {
 	t.Run("NewWorkloadGenerator should return a valid generator", func(t *testing.T) {
@@ -31,7 +52,8 @@ func TestNewWorkloadGenerator(t *testing.T) {
 			},
 		}
 
-		actualGenerator, err := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
+		ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
+		actualGenerator, err := NewWorkloadGenerator(ctx)
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.NotNil(t, actualGenerator, "Generator should not be nil")
@@ -60,7 +82,8 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 			},
 		}
 
-		generatorFunc := NewWorkloadGeneratorFunc(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
+		ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
+		generatorFunc := NewWorkloadGeneratorFunc(ctx)
 		actualGenerator, err := generatorFunc()
 
 		assert.NoError(t, err, "Error should be nil")
@@ -133,7 +156,8 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				},
 			}
 
-			actualGenerator, _ := NewWorkloadGenerator(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedModuleConfigs)
+			ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedModuleConfigs)
+			actualGenerator, _ := NewWorkloadGenerator(ctx)
 			spec := &apiv1.Intent{}
 			err := actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")

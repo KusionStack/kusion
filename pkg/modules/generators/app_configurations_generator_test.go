@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
@@ -14,7 +15,7 @@ import (
 func TestAppConfigurationGenerator_Generate(t *testing.T) {
 	project, stack := buildMockProjectAndStack()
 	appName, app := buildMockApp()
-	ws := buildMockWorkspace()
+	ws := buildMockWorkspace("")
 
 	g := &appConfigurationGenerator{
 		project: project,
@@ -31,12 +32,60 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 	err := g.Generate(spec)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, spec.Resources)
+
+	// namespace name assertion
+	for _, res := range spec.Resources {
+		if res.Type != v1.Kubernetes {
+			continue
+		}
+		actual := mapToUnstructured(res.Attributes)
+		if actual.GetKind() == "Namespace" {
+			assert.Equal(t, "testproject", actual.GetName(), "namespace name should be fakeNs")
+		} else {
+			assert.Equal(t, "testproject", actual.GetNamespace(), "namespace name should be fakeNs")
+		}
+	}
+}
+
+func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
+	project, stack := buildMockProjectAndStack()
+	appName, app := buildMockApp()
+	ws := buildMockWorkspace("fakeNs")
+
+	g := &appConfigurationGenerator{
+		project: project,
+		stack:   stack,
+		appName: appName,
+		app:     app,
+		ws:      ws,
+	}
+
+	spec := &v1.Intent{
+		Resources: []v1.Resource{},
+	}
+
+	err := g.Generate(spec)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, spec.Resources)
+
+	// namespace name assertion
+	for _, res := range spec.Resources {
+		if res.Type != v1.Kubernetes {
+			continue
+		}
+		actual := mapToUnstructured(res.Attributes)
+		if actual.GetKind() == "Namespace" {
+			assert.Equal(t, "fakeNs", actual.GetName(), "namespace name should be fakeNs")
+		} else {
+			assert.Equal(t, "fakeNs", actual.GetNamespace(), "namespace name should be fakeNs")
+		}
+	}
 }
 
 func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 	project, stack := buildMockProjectAndStack()
 	appName, app := buildMockApp()
-	ws := buildMockWorkspace()
+	ws := buildMockWorkspace("")
 
 	t.Run("Valid app configuration generator func", func(t *testing.T) {
 		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, ws)()
@@ -92,7 +141,7 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 	}
 }
 
-func buildMockWorkspace() *v1.Workspace {
+func buildMockWorkspace(namespace string) *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
 		Modules: v1.ModuleConfigs{
@@ -114,6 +163,11 @@ func buildMockWorkspace() *v1.Workspace {
 			"port": {
 				Default: v1.GenericConfig{
 					"type": "aws",
+				},
+			},
+			"namespace": {
+				Default: v1.GenericConfig{
+					"name": namespace,
 				},
 			},
 		},
@@ -138,4 +192,10 @@ func buildMockProjectAndStack() (*v1.Project, *v1.Stack) {
 	}
 
 	return project, stack
+}
+
+func mapToUnstructured(data map[string]interface{}) *unstructured.Unstructured {
+	unstructuredObj := &unstructured.Unstructured{}
+	unstructuredObj.SetUnstructuredContent(data)
+	return unstructuredObj
 }

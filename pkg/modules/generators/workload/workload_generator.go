@@ -30,37 +30,31 @@ type workloadGenerator struct {
 	appName       string
 	workload      *workload.Workload
 	moduleConfigs map[string]apiv1.GenericConfig
+	namespace     string
+
+	// for internal generator
+	context modules.GeneratorContext
 }
 
-func NewWorkloadGenerator(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	workload *workload.Workload,
-	moduleConfigs map[string]apiv1.GenericConfig,
-) (modules.Generator, error) {
-	if len(project.Name) == 0 {
+func NewWorkloadGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+	if len(ctx.Project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
 	return &workloadGenerator{
-		project:       project,
-		stack:         stack,
-		appName:       appName,
-		workload:      workload,
-		moduleConfigs: moduleConfigs,
+		project:       ctx.Project,
+		stack:         ctx.Stack,
+		appName:       ctx.Application.Name,
+		workload:      ctx.Application.Workload,
+		moduleConfigs: ctx.ModuleInputs,
+		namespace:     ctx.Namespace,
+		context:       ctx,
 	}, nil
 }
 
-func NewWorkloadGeneratorFunc(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	workload *workload.Workload,
-	moduleConfigs map[string]apiv1.GenericConfig,
-) modules.NewGeneratorFunc {
+func NewWorkloadGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadGenerator(project, stack, appName, workload, moduleConfigs)
+		return NewWorkloadGenerator(ctx)
 	}
 }
 
@@ -75,12 +69,12 @@ func (g *workloadGenerator) Generate(spec *apiv1.Intent) error {
 		switch g.workload.Header.Type {
 		case workload.TypeService:
 			gfs = append(gfs,
-				NewWorkloadServiceGeneratorFunc(g.project, g.stack, g.appName, g.workload.Service, g.moduleConfigs[workload.ModuleService]),
-				secret.NewSecretGeneratorFunc(g.project, g.workload.Service.Secrets))
+				NewWorkloadServiceGeneratorFunc(g.context),
+				secret.NewSecretGeneratorFunc(g.context))
 		case workload.TypeJob:
 			gfs = append(gfs,
-				NewJobGeneratorFunc(g.project, g.stack, g.appName, g.workload.Job, g.moduleConfigs[workload.ModuleJob]),
-				secret.NewSecretGeneratorFunc(g.project, g.workload.Job.Secrets))
+				NewJobGeneratorFunc(g.context),
+				secret.NewSecretGeneratorFunc(g.context))
 		}
 
 		if err := modules.CallGenerators(spec, gfs...); err != nil {

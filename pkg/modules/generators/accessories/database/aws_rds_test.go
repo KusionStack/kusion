@@ -31,11 +31,12 @@ func TestGenerateAWSResources(t *testing.T) {
 		Username:     "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	awsProviderRegion = "us-east-1"
@@ -87,11 +88,12 @@ func TestGenerateAWSSecurityGroup(t *testing.T) {
 		Username:     "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	var cidrBlocks []string
@@ -154,11 +156,12 @@ func TestGenerateAWSDBInstance(t *testing.T) {
 		Username:     "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	awsSecurityGroupID := "hashicorp:aws:aws_security_group:testapp-db"

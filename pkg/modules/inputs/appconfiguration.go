@@ -29,6 +29,8 @@ import (
 //		    }
 //		}
 type AppConfiguration struct {
+	// Name of the target Application.
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 	// Workload defines how to run your application code.
 	Workload *workload.Workload `json:"workload" yaml:"workload"`
 	// OpsRule specifies collection of rules that will be checked for Day-2 operation.

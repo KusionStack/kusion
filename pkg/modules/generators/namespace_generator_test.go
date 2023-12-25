@@ -6,12 +6,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
 )
 
 func Test_namespaceGenerator_Generate(t *testing.T) {
 	type fields struct {
-		projectName  string
-		moduleInputs map[string]apiv1.GenericConfig
+		namespace string
 	}
 	type args struct {
 		intent *apiv1.Intent
@@ -26,7 +26,7 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 		{
 			name: "namespace",
 			fields: fields{
-				projectName: "fake-project",
+				namespace: "fakeNs",
 			},
 			args: args{
 				intent: &apiv1.Intent{},
@@ -34,88 +34,14 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			want: &apiv1.Intent{
 				Resources: []apiv1.Resource{
 					{
-						ID:   "v1:Namespace:fake-project",
+						ID:   "v1:Namespace:fakeNs",
 						Type: "Kubernetes",
 						Attributes: map[string]interface{}{
 							"apiVersion": "v1",
 							"kind":       "Namespace",
 							"metadata": map[string]interface{}{
 								"creationTimestamp": nil,
-								"name":              "fake-project",
-							},
-							"spec":   make(map[string]interface{}),
-							"status": make(map[string]interface{}),
-						},
-						DependsOn: nil,
-						Extensions: map[string]interface{}{
-							"GVK": "/v1, Kind=Namespace",
-						},
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "customize_namespace",
-			fields: fields{
-				projectName: "beep",
-				moduleInputs: map[string]apiv1.GenericConfig{
-					"namespace": {
-						"name": "foo",
-					},
-				},
-			},
-			args: args{
-				intent: &apiv1.Intent{},
-			},
-			want: &apiv1.Intent{
-				Resources: []apiv1.Resource{
-					{
-						ID:   "v1:Namespace:foo",
-						Type: "Kubernetes",
-						Attributes: map[string]interface{}{
-							"apiVersion": "v1",
-							"kind":       "Namespace",
-							"metadata": map[string]interface{}{
-								"creationTimestamp": nil,
-								"name":              "foo",
-							},
-							"spec":   make(map[string]interface{}),
-							"status": make(map[string]interface{}),
-						},
-						DependsOn: nil,
-						Extensions: map[string]interface{}{
-							"GVK": "/v1, Kind=Namespace",
-						},
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "mismatch_module_input",
-			fields: fields{
-				projectName: "beep",
-				moduleInputs: map[string]apiv1.GenericConfig{
-					"namespace": {
-						"type": "foo",
-					},
-				},
-			},
-			args: args{
-				intent: &apiv1.Intent{},
-			},
-			want: &apiv1.Intent{
-				Resources: []apiv1.Resource{
-					{
-						ID:   "v1:Namespace:beep",
-						Type: "Kubernetes",
-						Attributes: map[string]interface{}{
-							"apiVersion": "v1",
-							"kind":       "Namespace",
-							"metadata": map[string]interface{}{
-								"creationTimestamp": nil,
-								"name":              "beep",
+								"name":              "fakeNs",
 							},
 							"spec":   make(map[string]interface{}),
 							"status": make(map[string]interface{}),
@@ -132,9 +58,11 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := modules.GeneratorContext{
+				Namespace: tt.fields.namespace,
+			}
 			g := &namespaceGenerator{
-				projectName:  tt.fields.projectName,
-				moduleInputs: tt.fields.moduleInputs,
+				context: ctx,
 			}
 			if err := g.Generate(tt.args.intent); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)

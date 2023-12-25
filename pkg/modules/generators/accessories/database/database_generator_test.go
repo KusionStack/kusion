@@ -9,38 +9,49 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 )
 
+func newGeneratorContext(
+	project *apiv1.Project,
+	stack *apiv1.Stack,
+	appName string,
+	workload *workload.Workload,
+	database *database.Database,
+) modules.GeneratorContext {
+	application := &inputs.AppConfiguration{
+		Name:     appName,
+		Workload: workload,
+		Database: database,
+	}
+	return modules.GeneratorContext{
+		Project:     project,
+		Stack:       stack,
+		Application: application,
+		Namespace:   project.Name,
+	}
+}
+
 func TestNewDatabaseGenerator(t *testing.T) {
-	project := &apiv1.Project{
-		Name: "testproject",
-	}
-	stack := &apiv1.Stack{
-		Name: "teststack",
-	}
+	project := &apiv1.Project{Name: "testproject"}
+	stack := &apiv1.Stack{Name: "teststack"}
 	appName := "testapp"
-	workload := &workload.Workload{}
-	database := &database.Database{}
-	generator, err := NewDatabaseGenerator(project, stack, appName, workload, database)
+	context := newGeneratorContext(project, stack, appName, &workload.Workload{}, &database.Database{})
+	generator, err := NewDatabaseGenerator(context)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, generator)
 }
 
 func TestGenerate(t *testing.T) {
-	project := &apiv1.Project{
-		Name: "testproject",
-	}
-	stack := &apiv1.Stack{
-		Name: "teststack",
-	}
+	project := &apiv1.Project{Name: "testproject"}
+	stack := &apiv1.Stack{Name: "teststack"}
 	appName := "testapp"
-	workload := &workload.Workload{}
-	database := &database.Database{
+	db := &database.Database{
 		Type:         "aws",
 		Engine:       "mysql",
 		Version:      "5.7",
@@ -48,7 +59,8 @@ func TestGenerate(t *testing.T) {
 		Size:         10,
 		Username:     "root",
 	}
-	generator, _ := NewDatabaseGenerator(project, stack, appName, workload, database)
+	context := newGeneratorContext(project, stack, appName, &workload.Workload{}, db)
+	generator, _ := NewDatabaseGenerator(context)
 
 	awsProviderRegion = "us-east-1"
 	spec := &apiv1.Intent{}
@@ -105,15 +117,15 @@ func TestGenerate(t *testing.T) {
 				ID:   "hashicorp:aws:aws_db_instance:testapp",
 				Type: "Terraform",
 				Attributes: map[string]interface{}{
-					"allocated_storage":   database.Size,
-					"engine":              database.Engine,
-					"engine_version":      database.Version,
+					"allocated_storage":   db.Size,
+					"engine":              db.Engine,
+					"engine_version":      db.Version,
 					"identifier":          appName,
-					"instance_class":      database.InstanceType,
+					"instance_class":      db.InstanceType,
 					"password":            "$kusion_path.hashicorp:random:random_password:testapp-db.result",
 					"publicly_accessible": false,
 					"skip_final_snapshot": true,
-					"username":            database.Username,
+					"username":            db.Username,
 					"vpc_security_group_ids": []string{
 						"$kusion_path.hashicorp:aws:aws_security_group:testapp-db.id",
 					},
@@ -140,7 +152,7 @@ func TestGenerate(t *testing.T) {
 					"stringData": map[string]interface{}{
 						"hostAddress": "$kusion_path.hashicorp:aws:aws_db_instance:testapp.address",
 						"password":    "$kusion_path.hashicorp:random:random_password:testapp-db.result",
-						"username":    database.Username,
+						"username":    db.Username,
 					},
 				},
 				Extensions: map[string]interface{}{
@@ -183,11 +195,12 @@ func TestInjectSecret(t *testing.T) {
 		Username:     "root",
 	}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	data := make(map[string]string)
@@ -242,11 +255,12 @@ func TestGenerateTFRandomPassword(t *testing.T) {
 	workload := &workload.Workload{}
 	database := &database.Database{}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 	randomProvider := &inputs.Provider{}
 	randomProvider.SetString(randomProviderURL)
@@ -284,11 +298,12 @@ func TestGenerateDBSeret(t *testing.T) {
 	workload := &workload.Workload{}
 	database := &database.Database{}
 	generator := &databaseGenerator{
-		project:  project,
-		stack:    stack,
-		appName:  appName,
-		workload: workload,
-		database: database,
+		project:   project,
+		stack:     stack,
+		appName:   appName,
+		workload:  workload,
+		database:  database,
+		namespace: project.Name,
 	}
 
 	spec := &apiv1.Intent{}

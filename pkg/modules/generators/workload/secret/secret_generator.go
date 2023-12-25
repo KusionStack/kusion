@@ -13,30 +13,33 @@ import (
 )
 
 type secretGenerator struct {
-	project *apiv1.Project
-	secrets map[string]workload.Secret
+	project   *apiv1.Project
+	secrets   map[string]workload.Secret
+	namespace string
 }
 
-func NewSecretGenerator(
-	project *apiv1.Project,
-	secrets map[string]workload.Secret,
-) (modules.Generator, error) {
-	if len(project.Name) == 0 {
+func NewSecretGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+	if len(ctx.Project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
+	var secrets map[string]workload.Secret
+	if ctx.Application.Workload.Service != nil {
+		secrets = ctx.Application.Workload.Service.Secrets
+	} else {
+		secrets = ctx.Application.Workload.Job.Secrets
+	}
+
 	return &secretGenerator{
-		project: project,
-		secrets: secrets,
+		project:   ctx.Project,
+		secrets:   secrets,
+		namespace: ctx.Namespace,
 	}, nil
 }
 
-func NewSecretGeneratorFunc(
-	project *apiv1.Project,
-	secrets map[string]workload.Secret,
-) modules.NewGeneratorFunc {
+func NewSecretGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewSecretGenerator(project, secrets)
+		return NewSecretGenerator(ctx)
 	}
 }
 
@@ -46,7 +49,7 @@ func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
 	}
 
 	for secretName, secretRef := range g.secrets {
-		secret, err := generateSecret(g.project, secretName, secretRef)
+		secret, err := generateSecret(g.namespace, secretName, secretRef)
 		if err != nil {
 			return err
 		}
@@ -69,16 +72,16 @@ func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
 // generateSecret generates target secret based on secret type. Most of these secret types are just semantic wrapper
 // of native Kubernetes secret types:https://kubernetes.io/docs/concepts/configuration/secret/#secret-types, and more
 // detailed usage info can be found in public documentation.
-func generateSecret(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateSecret(namespace, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	switch secretRef.Type {
 	case "basic":
-		return generateBasic(project, secretName, secretRef)
+		return generateBasic(namespace, secretName, secretRef)
 	case "token":
-		return generateToken(project, secretName, secretRef)
+		return generateToken(namespace, secretName, secretRef)
 	case "opaque":
-		return generateOpaque(project, secretName, secretRef)
+		return generateOpaque(namespace, secretName, secretRef)
 	case "certificate":
-		return generateCertificate(project, secretName, secretRef)
+		return generateCertificate(namespace, secretName, secretRef)
 	default:
 		return nil, fmt.Errorf("unrecognized secret type %s", secretRef.Type)
 	}
@@ -86,7 +89,7 @@ func generateSecret(project *apiv1.Project, secretName string, secretRef workloa
 
 // generateBasic generates secret used for basic authentication. The basic secret type
 // is used for username / password pairs.
-func generateBasic(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateBasic(namespace, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -94,7 +97,7 @@ func generateBasic(project *apiv1.Project, secretName string, secretRef workload
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: project.Name,
+			Namespace: namespace,
 		},
 		Data:      grabData(secretRef.Data, v1.BasicAuthUsernameKey, v1.BasicAuthPasswordKey),
 		Immutable: &secretRef.Immutable,
@@ -113,7 +116,7 @@ func generateBasic(project *apiv1.Project, secretName string, secretRef workload
 
 // generateToken generates secret used for password. Token secrets are useful for generating
 // a password or secure string used for passwords when the user is already known or not required.
-func generateToken(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateToken(namespace, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -121,7 +124,7 @@ func generateToken(project *apiv1.Project, secretName string, secretRef workload
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: project.Name,
+			Namespace: namespace,
 		},
 		Data:      grabData(secretRef.Data, "token"),
 		Immutable: &secretRef.Immutable,
@@ -137,7 +140,7 @@ func generateToken(project *apiv1.Project, secretName string, secretRef workload
 }
 
 // generateOpaque generates secret used for arbitrary user-defined data.
-func generateOpaque(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateOpaque(namespace, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -145,7 +148,7 @@ func generateOpaque(project *apiv1.Project, secretName string, secretRef workloa
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: project.Name,
+			Namespace: namespace,
 		},
 		Data:      grabData(secretRef.Data, maps.Keys(secretRef.Data)...),
 		Immutable: &secretRef.Immutable,
@@ -158,7 +161,7 @@ func generateOpaque(project *apiv1.Project, secretName string, secretRef workloa
 // generateCertificate generates secret used for storing a certificate and its associated key.
 // One common use for TLS Secrets is to configure encryption in transit for an Ingress, but
 // you can also use it with other resources or directly in your workload.
-func generateCertificate(project *apiv1.Project, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func generateCertificate(namespace, secretName string, secretRef workload.Secret) (*v1.Secret, error) {
 	secret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1.SchemeGroupVersion.String(),
@@ -166,7 +169,7 @@ func generateCertificate(project *apiv1.Project, secretName string, secretRef wo
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: project.Name,
+			Namespace: namespace,
 		},
 		Data:      grabData(secretRef.Data, v1.TLSCertKey, v1.TLSPrivateKeyKey),
 		Immutable: &secretRef.Immutable,

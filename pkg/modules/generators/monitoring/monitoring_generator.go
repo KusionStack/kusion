@@ -12,37 +12,31 @@ import (
 )
 
 type monitoringGenerator struct {
-	project *apiv1.Project
-	monitor *monitoring.Monitor
-	appName string
+	project   *apiv1.Project
+	monitor   *monitoring.Monitor
+	appName   string
+	namespace string
 }
 
-func NewMonitoringGenerator(
-	project *apiv1.Project,
-	monitor *monitoring.Monitor,
-	appName string,
-) (modules.Generator, error) {
-	if len(project.Name) == 0 {
+func NewMonitoringGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+	if len(ctx.Project.Name) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
-	if len(appName) == 0 {
+	if len(ctx.Application.Name) == 0 {
 		return nil, fmt.Errorf("app name must not be empty")
 	}
 	return &monitoringGenerator{
-		project: project,
-		monitor: monitor,
-		appName: appName,
+		project:   ctx.Project,
+		monitor:   ctx.Application.Monitoring,
+		appName:   ctx.Application.Name,
+		namespace: ctx.Namespace,
 	}, nil
 }
 
-func NewMonitoringGeneratorFunc(
-	project *apiv1.Project,
-	monitor *monitoring.Monitor,
-	appName string,
-) modules.NewGeneratorFunc {
+func NewMonitoringGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewMonitoringGenerator(project, monitor, appName)
+		return NewMonitoringGenerator(ctx)
 	}
 }
 
@@ -81,7 +75,7 @@ func (g *monitoringGenerator) Generate(spec *apiv1.Intent) error {
 					Kind:       "ServiceMonitor",
 					APIVersion: prometheusv1.SchemeGroupVersion.String(),
 				},
-				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-service-monitor", g.appName), Namespace: g.project.Name},
+				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-service-monitor", g.appName), Namespace: g.namespace},
 				Spec: prometheusv1.ServiceMonitorSpec{
 					Selector: metav1.LabelSelector{
 						MatchLabels: monitoringLabels,
@@ -113,7 +107,7 @@ func (g *monitoringGenerator) Generate(spec *apiv1.Intent) error {
 					Kind:       "PodMonitor",
 					APIVersion: prometheusv1.SchemeGroupVersion.String(),
 				},
-				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-pod-monitor", g.appName), Namespace: g.project.Name},
+				ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-pod-monitor", g.appName), Namespace: g.namespace},
 				Spec: prometheusv1.PodMonitorSpec{
 					Selector: metav1.LabelSelector{
 						MatchLabels: monitoringLabels,

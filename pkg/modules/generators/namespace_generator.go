@@ -1,39 +1,26 @@
 package generators
 
 import (
-	"fmt"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type namespaceGenerator struct {
-	projectName  string
-	moduleInputs map[string]apiv1.GenericConfig
+	context modules.GeneratorContext
 }
 
-func NewNamespaceGenerator(projectName string, ws *apiv1.Workspace) (modules.Generator, error) {
-	if len(projectName) == 0 {
-		return nil, fmt.Errorf("project name must not be empty")
-	}
-	moduleInputs, err := workspace.GetProjectModuleConfigs(ws.Modules, projectName)
-	if err != nil {
-		return nil, fmt.Errorf("parse project matched module configs failed: %v", err)
-	}
-
+func NewNamespaceGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
 	return &namespaceGenerator{
-		projectName:  projectName,
-		moduleInputs: moduleInputs,
+		context: ctx,
 	}, nil
 }
 
-func NewNamespaceGeneratorFunc(projectName string, workspace *apiv1.Workspace) modules.NewGeneratorFunc {
+func NewNamespaceGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewNamespaceGenerator(projectName, workspace)
+		return NewNamespaceGenerator(ctx)
 	}
 }
 
@@ -47,7 +34,7 @@ func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
 			Kind:       "Namespace",
 			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
-		ObjectMeta: metav1.ObjectMeta{Name: g.getName(g.projectName)},
+		ObjectMeta: metav1.ObjectMeta{Name: g.context.Namespace},
 	}
 
 	// Avoid generating duplicate namespaces with the same ID.
@@ -59,26 +46,4 @@ func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
 	}
 
 	return modules.AppendToIntent(apiv1.Kubernetes, id, i, ns)
-}
-
-// getName obtains the name for this Namespace using the following precedence
-// (from lower to higher):
-// - Project name
-// - Namespace module config (specified in corresponding workspace file)
-func (g *namespaceGenerator) getName(projectName string) string {
-	if g.moduleInputs == nil {
-		return projectName
-	}
-
-	namespaceName := projectName
-	namespaceModuleConfigs, exist := g.moduleInputs["namespace"]
-	if exist {
-		if name, ok := namespaceModuleConfigs["name"]; ok {
-			customNamespaceName, isString := name.(string)
-			if isString && len(customNamespaceName) > 0 {
-				namespaceName = customNamespaceName
-			}
-		}
-	}
-	return namespaceName
 }

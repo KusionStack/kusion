@@ -123,6 +123,7 @@ func TestPortsGenerator_Generate(t *testing.T) {
 							Public:     false,
 						},
 					},
+					namespace: "testProject",
 				},
 			},
 			args: struct {
