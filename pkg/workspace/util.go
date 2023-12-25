@@ -13,7 +13,7 @@ var ErrEmptyProjectName = errors.New("empty project name")
 // CompleteWorkspace sets the workspace name and default value of unset item, should be called after Validatev1.
 // The config items set as environment variables are not got by Completev1.
 func CompleteWorkspace(ws *v1.Workspace, name string) {
-	if ws.Name != "" {
+	if ws.Name == "" {
 		ws.Name = name
 	}
 	if ws.Backends != nil && GetBackendName(ws.Backends) == v1.BackendMysql {

@@ -220,7 +220,7 @@ func (o *Operator) DeleteWorkspace(name string) error {
 	}
 	exist := o.WorkspaceExist(name)
 	if !exist {
-		return ErrWorkspaceNotExist
+		return nil
 	}
 
 	if err := os.Remove(o.workspaceFilePath(name)); err != nil {
