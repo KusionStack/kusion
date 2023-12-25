@@ -294,3 +294,5 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 	sourcegraph.com/sourcegraph/appdash v0.0.0-20211028080628-e2786a622600 // indirect
 )
+
+replace kcl-lang.io/kpm => github.com/zong-zhe/kpm v0.1.6-0.20231222100407-dfd66f481bb0
