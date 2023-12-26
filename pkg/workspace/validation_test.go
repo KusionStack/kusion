@@ -665,3 +665,200 @@ func TestValidateWholeS3Config(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateAWSSecretStore(t *testing.T) {
+	type args struct {
+		ss *v1.AWSProvider
+	}
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		{
+			name: "valid AWS provider spec",
+			args: args{
+				ss: &v1.AWSProvider{
+					Region: "eu-west-2",
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "invalid AWS provider spec",
+			args: args{
+				ss: &v1.AWSProvider{},
+			},
+			want: []error{ErrEmptyAWSRegion},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, validateAWSSecretStore(tt.args.ss), "validateAWSSecretStore(%v)", tt.args.ss)
+		})
+	}
+}
+
+func TestValidateHashiVaultSecretStore(t *testing.T) {
+	type args struct {
+		vault *v1.VaultProvider
+	}
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		{
+			name: "valid Hashi Vault provider spec",
+			args: args{
+				vault: &v1.VaultProvider{
+					Server: "https://vault.example.com:8200",
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "invalid Hashi Vault provider spec",
+			args: args{
+				vault: &v1.VaultProvider{},
+			},
+			want: []error{ErrEmptyVaultServer},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, validateHashiVaultSecretStore(tt.args.vault), "validateHashiVaultSecretStore(%v)", tt.args.vault)
+		})
+	}
+}
+
+func TestValidateAzureKeyVaultSecretStore(t *testing.T) {
+	type args struct {
+		azureKv *v1.AzureKVProvider
+	}
+	vaultURL := "https://local.vault.url"
+	tenantID := "my-tenant-id"
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		{
+			name: "valid Azure KV provider spec",
+			args: args{
+				azureKv: &v1.AzureKVProvider{
+					VaultURL: &vaultURL,
+					TenantID: &tenantID,
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "invalid Azure KV provider spec",
+			args: args{
+				azureKv: &v1.AzureKVProvider{},
+			},
+			want: []error{ErrEmptyVaultURL, ErrEmptyTenantID},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, validateAzureKeyVaultSecretStore(tt.args.azureKv), "validateAzureKeyVaultSecretStore(%v)", tt.args.azureKv)
+		})
+	}
+}
+
+func TestValidateAlicloudSecretStore(t *testing.T) {
+	type args struct {
+		ac *v1.AlicloudProvider
+	}
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		{
+			name: "valid Alicloud provider spec",
+			args: args{
+				ac: &v1.AlicloudProvider{
+					Region: "sh",
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "invalid Alicloud provider spec",
+			args: args{
+				ac: &v1.AlicloudProvider{},
+			},
+			want: []error{ErrEmptyAlicloudRegion},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, validateAlicloudSecretStore(tt.args.ac), "validateAlicloudSecretStore(%v)", tt.args.ac)
+		})
+	}
+}
+
+func TestValidateSecretStoreConfig(t *testing.T) {
+	type args struct {
+		spec *v1.SecretStoreSpec
+	}
+	tests := []struct {
+		name string
+		args args
+		want []error
+	}{
+		{
+			name: "missing provider spec",
+			args: args{
+				spec: &v1.SecretStoreSpec{},
+			},
+			want: []error{ErrMissingProvider},
+		},
+		{
+			name: "missing provider type",
+			args: args{
+				spec: &v1.SecretStoreSpec{
+					Provider: &v1.ProviderSpec{},
+				},
+			},
+			want: []error{ErrMissingProviderType},
+		},
+		{
+			name: "multi secret store providers",
+			args: args{
+				spec: &v1.SecretStoreSpec{
+					Provider: &v1.ProviderSpec{
+						AWS: &v1.AWSProvider{
+							Region: "us-east-1",
+						},
+						Vault: &v1.VaultProvider{
+							Server: "https://vault.example.com:8200",
+						},
+					},
+				},
+			},
+			want: []error{ErrMultiSecretStoreProviders},
+		},
+		{
+			name: "valid secret store spec",
+			args: args{
+				spec: &v1.SecretStoreSpec{
+					Provider: &v1.ProviderSpec{
+						AWS: &v1.AWSProvider{
+							Region: "us-east-1",
+						},
+					},
+				},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, ValidateSecretStoreConfig(tt.args.spec), "validateAlicloudSecretStore(%v)", tt.args.spec)
+		})
+	}
+}

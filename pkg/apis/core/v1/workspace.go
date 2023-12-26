@@ -35,6 +35,9 @@ type Workspace struct {
 
 	// Backends are the configs of a set of backends.
 	Backends *BackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
+
+	// SecretStore represents a secure external location for storing secrets.
+	SecretStore *SecretStoreSpec `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
