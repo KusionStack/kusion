@@ -169,6 +169,7 @@ status: {}
 		appName       string
 		service       *workload.Service
 		serviceConfig apiv1.GenericConfig
+		portConfig    apiv1.GenericConfig
 	}
 	type args struct {
 		spec *apiv1.Intent
@@ -209,7 +210,6 @@ status: {}
 					},
 					Ports: []network.Port{
 						{
-							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -223,6 +223,15 @@ status: {}
 					},
 					"annotations": map[string]any{
 						"service-workload-type": "CollaSet",
+					},
+				},
+				portConfig: apiv1.GenericConfig{
+					"type": "alicloud",
+					"labels": map[string]any{
+						"kusionstack.io/control": "true",
+					},
+					"annotations": map[string]any{
+						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},
 			},
@@ -259,7 +268,6 @@ status: {}
 					},
 					Ports: []network.Port{
 						{
-							Type:     network.CSPAliyun,
 							Port:     80,
 							Protocol: "TCP",
 							Public:   true,
@@ -270,6 +278,15 @@ status: {}
 					"replicas": 4,
 					"labels": map[string]any{
 						"service-workload-type": "Deployment",
+					},
+				},
+				portConfig: apiv1.GenericConfig{
+					"type": "alicloud",
+					"labels": map[string]any{
+						"kusionstack.io/control": "true",
+					},
+					"annotations": map[string]any{
+						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},
 			},
@@ -292,6 +309,10 @@ status: {}
 					},
 				},
 				Namespace: tt.fields.project.Name,
+				ModuleInputs: map[string]apiv1.GenericConfig{
+					"service": tt.fields.serviceConfig,
+					"port":    tt.fields.portConfig,
+				},
 			}
 			g := &workloadServiceGenerator{
 				project:       tt.fields.project,
