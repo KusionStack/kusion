@@ -45,7 +45,7 @@ jobs:
         with:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: v1.52.2
-  Publish: # Pack and publish image to Docker Hub and Github Release
+  Publish: # Pack and publish image to Docker Hub and GitHub Release
     runs-on: ubuntu-latest
     needs: [Test, Lint]
     steps:
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.19
-      # <--- Get version informations --->
+      # Get version information
       - name: Get version
         id: get_version
         run: |
@@ -66,19 +66,45 @@ jobs:
           echo "kclgo_version=$(cat version.txt | grep kclGoVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
           echo "kclplugin_version=$(cat version.txt | grep kclPluginVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
           rm version.txt
-      # <--- Login, build and push image to Docker Hub --->
+      # Check formal version or not
+      - name: Check Formal Version
+        id: check_formal_version
+        run: |
+          VERSION_PATTERN="^[0-9]+\.[0-9]+\.[0-9]+$"
+          if [[ "${{ steps.get_version.outputs.kusion_version }}" =~ ${VERSION_PATTERN} ]]; then
+            echo "is_formal_version=true" >> $GITHUB_OUTPUT
+            echo "Release a formal version!"
+          else
+            echo "is_formal_version=false" >> $GITHUB_OUTPUT
+            echo "Release an informal version!" 
+          fi
+      # Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # <--- End --->
-      - name: Run GoReleaser
+      # Run informal GoReleaser
+      - name: Run Informal GoReleaser
+        if: ${{ steps.check_formal_version.outputs.is_formal_version == 'false' }}
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --config .goreleaser_formal.yml --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
+          KUSION_VERSION: ${{ steps.get_version.outputs.kusion_version }}
+          KCL_GO_VERSION: ${{ steps.get_version.outputs.kclgo_version }}
+          KCL_PLUGIN_VERSION: ${{ steps.get_version.outputs.kclplugin_version }}
+      # Run formal GoReleaser
+      - name: Run Formal GoReleaser
+        if: ${{ steps.check_formal_version.outputs.is_formal_version == 'true' }}
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
           KUSION_VERSION: ${{ steps.get_version.outputs.kusion_version }}
