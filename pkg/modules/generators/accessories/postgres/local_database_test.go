@@ -135,31 +135,7 @@ func TestPostgresGenerator_GenerateLocalSecret(t *testing.T) {
 }
 
 func TestPostgresGenerator_GenerateLocalPVC(t *testing.T) {
-	project := &apiv1.Project{Name: "testproject"}
-	stack := &apiv1.Stack{Name: "teststack"}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	database := map[string]*database.Database{
-		"testpostgres": {
-			Header: database.Header{
-				Type: "PostgreSQL",
-			},
-			PostgreSQL: &postgres.PostgreSQL{
-				Type:    "local",
-				Version: "8.0",
-			},
-		},
-	}
-	moduleInputs := map[string]apiv1.GenericConfig{}
-	tfConfigs := apiv1.TerraformConfig{}
-	context := newGeneratorContext(project, stack, appName, workload, database,
-		moduleInputs, tfConfigs)
-	db := &postgres.PostgreSQL{
-		Type:         "local",
-		Version:      "8.0",
-		DatabaseName: "testpostgres",
-	}
-	g, _ := NewPostgresGenerator(context, "testpostgres", db)
+	g, db := newDefaultPostgresGenerator()
 
 	tests := []struct {
 		name        string
@@ -176,7 +152,7 @@ func TestPostgresGenerator_GenerateLocalPVC(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualErr := g.(*postgresGenerator).generateLocalPVC(test.db, test.spec)
+		actualErr := g.generateLocalPVC(test.db, test.spec)
 		if test.expectedErr == nil {
 			assert.NoError(t, actualErr)
 		} else {
@@ -186,31 +162,7 @@ func TestPostgresGenerator_GenerateLocalPVC(t *testing.T) {
 }
 
 func TestPostgresGenerator_GenerateLocalDeployment(t *testing.T) {
-	project := &apiv1.Project{Name: "testproject"}
-	stack := &apiv1.Stack{Name: "teststack"}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	database := map[string]*database.Database{
-		"testpostgres": {
-			Header: database.Header{
-				Type: "PostgreSQL",
-			},
-			PostgreSQL: &postgres.PostgreSQL{
-				Type:    "cloud",
-				Version: "8.0",
-			},
-		},
-	}
-	moduleInputs := map[string]apiv1.GenericConfig{}
-	tfConfigs := apiv1.TerraformConfig{}
-	context := newGeneratorContext(project, stack, appName, workload, database,
-		moduleInputs, tfConfigs)
-	db := &postgres.PostgreSQL{
-		Type:         "cloud",
-		Version:      "8.0",
-		DatabaseName: "testpostgres",
-	}
-	g, _ := NewPostgresGenerator(context, "testpostgres", db)
+	g, db := newDefaultPostgresGenerator()
 
 	tests := []struct {
 		name        string
@@ -227,7 +179,7 @@ func TestPostgresGenerator_GenerateLocalDeployment(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualErr := g.(*postgresGenerator).generateLocalDeployment(test.db, test.spec)
+		actualErr := g.generateLocalDeployment(test.db, test.spec)
 		if test.expectedErr == nil {
 			assert.NoError(t, actualErr)
 		} else {
@@ -289,4 +241,34 @@ func TestPostgresGenerator_GenerateLocalService(t *testing.T) {
 			assert.ErrorContains(t, actualErr, test.expectedErr.Error())
 		}
 	}
+}
+
+func newDefaultPostgresGenerator() (*postgresGenerator, *postgres.PostgreSQL) {
+	project := &apiv1.Project{Name: "testproject"}
+	stack := &apiv1.Stack{Name: "teststack"}
+	appName := "testapp"
+	workload := &workload.Workload{}
+	database := map[string]*database.Database{
+		"testpostgres": {
+			Header: database.Header{
+				Type: "PostgreSQL",
+			},
+			PostgreSQL: &postgres.PostgreSQL{
+				Type:    "local",
+				Version: "8.0",
+			},
+		},
+	}
+	moduleInputs := map[string]apiv1.GenericConfig{}
+	tfConfigs := apiv1.TerraformConfig{}
+	context := newGeneratorContext(project, stack, appName, workload, database,
+		moduleInputs, tfConfigs)
+	db := &postgres.PostgreSQL{
+		Type:         "local",
+		Version:      "8.0",
+		DatabaseName: "testpostgres",
+	}
+	g, _ := NewPostgresGenerator(context, "testpostgres", db)
+
+	return g.(*postgresGenerator), db
 }

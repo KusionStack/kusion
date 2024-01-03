@@ -135,31 +135,7 @@ func TestMySQLGenerator_GenerateLocalSecret(t *testing.T) {
 }
 
 func TestMySQLGenerator_GenerateLocalPVC(t *testing.T) {
-	project := &apiv1.Project{Name: "testproject"}
-	stack := &apiv1.Stack{Name: "teststack"}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	database := map[string]*database.Database{
-		"testmysql": {
-			Header: database.Header{
-				Type: "MySQL",
-			},
-			MySQL: &mysql.MySQL{
-				Type:    "local",
-				Version: "8.0",
-			},
-		},
-	}
-	moduleInputs := map[string]apiv1.GenericConfig{}
-	tfConfigs := apiv1.TerraformConfig{}
-	context := newGeneratorContext(project, stack, appName, workload, database,
-		moduleInputs, tfConfigs)
-	db := &mysql.MySQL{
-		Type:         "local",
-		Version:      "8.0",
-		DatabaseName: "testmysql",
-	}
-	g, _ := NewMySQLGenerator(context, "testmysql", db)
+	g, db := newDefaultMySQLGenerator()
 
 	tests := []struct {
 		name        string
@@ -176,7 +152,7 @@ func TestMySQLGenerator_GenerateLocalPVC(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualErr := g.(*mysqlGenerator).generateLocalPVC(test.db, test.spec)
+		actualErr := g.generateLocalPVC(test.db, test.spec)
 		if test.expectedErr == nil {
 			assert.NoError(t, actualErr)
 		} else {
@@ -186,31 +162,7 @@ func TestMySQLGenerator_GenerateLocalPVC(t *testing.T) {
 }
 
 func TestMySQLGenerator_GenerateLocalDeployment(t *testing.T) {
-	project := &apiv1.Project{Name: "testproject"}
-	stack := &apiv1.Stack{Name: "teststack"}
-	appName := "testapp"
-	workload := &workload.Workload{}
-	database := map[string]*database.Database{
-		"testmysql": {
-			Header: database.Header{
-				Type: "MySQL",
-			},
-			MySQL: &mysql.MySQL{
-				Type:    "cloud",
-				Version: "8.0",
-			},
-		},
-	}
-	moduleInputs := map[string]apiv1.GenericConfig{}
-	tfConfigs := apiv1.TerraformConfig{}
-	context := newGeneratorContext(project, stack, appName, workload, database,
-		moduleInputs, tfConfigs)
-	db := &mysql.MySQL{
-		Type:         "cloud",
-		Version:      "8.0",
-		DatabaseName: "testmysql",
-	}
-	g, _ := NewMySQLGenerator(context, "testmysql", db)
+	g, db := newDefaultMySQLGenerator()
 
 	tests := []struct {
 		name        string
@@ -227,7 +179,7 @@ func TestMySQLGenerator_GenerateLocalDeployment(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualErr := g.(*mysqlGenerator).generateLocalDeployment(test.db, test.spec)
+		actualErr := g.generateLocalDeployment(test.db, test.spec)
 		if test.expectedErr == nil {
 			assert.NoError(t, actualErr)
 		} else {
@@ -289,4 +241,34 @@ func TestMySQLGenerator_GenerateLocalService(t *testing.T) {
 			assert.ErrorContains(t, actualErr, test.expectedErr.Error())
 		}
 	}
+}
+
+func newDefaultMySQLGenerator() (*mysqlGenerator, *mysql.MySQL) {
+	project := &apiv1.Project{Name: "testproject"}
+	stack := &apiv1.Stack{Name: "teststack"}
+	appName := "testapp"
+	workload := &workload.Workload{}
+	database := map[string]*database.Database{
+		"testmysql": {
+			Header: database.Header{
+				Type: "MySQL",
+			},
+			MySQL: &mysql.MySQL{
+				Type:    "local",
+				Version: "8.0",
+			},
+		},
+	}
+	moduleInputs := map[string]apiv1.GenericConfig{}
+	tfConfigs := apiv1.TerraformConfig{}
+	context := newGeneratorContext(project, stack, appName, workload, database,
+		moduleInputs, tfConfigs)
+	db := &mysql.MySQL{
+		Type:         "local",
+		Version:      "8.0",
+		DatabaseName: "testmysql",
+	}
+	g, _ := NewMySQLGenerator(context, "testmysql", db)
+
+	return g.(*mysqlGenerator), db
 }
