@@ -20,7 +20,7 @@ func TestPostgresGenerator_GenerateAlicloudResources(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -31,7 +31,7 @@ func TestPostgresGenerator_GenerateAlicloudResources(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "alicloud",
 			"size":           20,
 			"instanceType":   "pg.n2.serverless.1c",
@@ -116,7 +116,7 @@ func TestPostgresGenerator_GenerateAlicloudDBInstance(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -127,7 +127,7 @@ func TestPostgresGenerator_GenerateAlicloudDBInstance(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "alicloud",
 			"size":           20,
 			"instanceType":   "pg.n2.serverless.1c",
@@ -216,7 +216,7 @@ func TestPostgresGenerator_GenerateAlicloudDBInstance(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var alicloudProvider = &inputs.Provider{}
+		alicloudProvider := &inputs.Provider{}
 		_ = alicloudProvider.SetString(test.providerURL)
 		actualID, actualRes := g.(*postgresGenerator).generateAlicloudDBInstance(
 			test.region, alicloudProvider, test.db,
@@ -233,7 +233,7 @@ func TestPostgresGenerator_GenerateAlicloudDBConnection(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -244,7 +244,7 @@ func TestPostgresGenerator_GenerateAlicloudDBConnection(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "alicloud",
 			"size":           20,
 			"instanceType":   "pg.n2.serverless.1c",
@@ -314,7 +314,7 @@ func TestPostgresGenerator_GenerateAlicloudDBConnection(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var alicloudProvider = &inputs.Provider{}
+		alicloudProvider := &inputs.Provider{}
 		_ = alicloudProvider.SetString(test.providerURL)
 		actualID, actualRes := g.(*postgresGenerator).generateAlicloudDBConnection(
 			test.dbInstanceID, test.region, alicloudProvider,
@@ -331,7 +331,7 @@ func TestPostgresGenerator_GenerateAlicloudDBAccount(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -342,7 +342,7 @@ func TestPostgresGenerator_GenerateAlicloudDBAccount(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "alicloud",
 			"size":           20,
 			"instanceType":   "pg.n2.serverless.1c",
@@ -419,7 +419,7 @@ func TestPostgresGenerator_GenerateAlicloudDBAccount(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var alicloudProvider = &inputs.Provider{}
+		alicloudProvider := &inputs.Provider{}
 		_ = alicloudProvider.SetString(test.providerURL)
 		actualRes := g.(*postgresGenerator).generateAlicloudRDSAccount(
 			test.accountName, test.randomPasswordID, test.dbInstanceID, test.region, alicloudProvider, test.db)

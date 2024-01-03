@@ -49,7 +49,7 @@ func TestNewPostgresGenerator(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -60,7 +60,7 @@ func TestNewPostgresGenerator(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -132,7 +132,7 @@ func TestNewPostgresGeneratorFunc(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -143,7 +143,7 @@ func TestNewPostgresGeneratorFunc(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -246,7 +246,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 		{
 			name: "Generate Local Database",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -266,7 +266,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 		{
 			name: "Generate AWS RDS",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -277,7 +277,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 				},
 			},
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud":          "aws",
 					"size":           20,
 					"instanceType":   "db.t3.micro",
@@ -293,7 +293,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 		{
 			name: "Generate Alicloud RDS",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -304,7 +304,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 				},
 			},
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud":          "alicloud",
 					"size":           20,
 					"instanceType":   "postgres.n2.serverless.1c",
@@ -322,7 +322,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 		{
 			name: "Empty Cloud PostgreSQL Instance Type",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -333,7 +333,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 				},
 			},
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud": "alicloud",
 				},
 			},
@@ -346,7 +346,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 		{
 			name: "Empty Cloud PostgreSQL Instance Type",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -357,7 +357,7 @@ func TestPostgreSQLGenerator_Generate(t *testing.T) {
 				},
 			},
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud":        "unsupported-type",
 					"instanceType": "db.t3.micro",
 				},
@@ -390,7 +390,7 @@ func TestPostgreSQLGenerator_PatchWorkspaceConfig(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -427,7 +427,7 @@ func TestPostgreSQLGenerator_PatchWorkspaceConfig(t *testing.T) {
 		{
 			name: "PostgreSQL with Default Values",
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud":        "aws",
 					"instanceType": "db.t3.micro",
 				},
@@ -448,7 +448,7 @@ func TestPostgreSQLGenerator_PatchWorkspaceConfig(t *testing.T) {
 		{
 			name: "PostgreSQL with Customized Values",
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud":        "aws",
 					"size":         20,
 					"instanceType": "db.t3.micro",
@@ -497,7 +497,7 @@ func TestPostgreSQLGenerator_GetTFProviderType(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -534,7 +534,7 @@ func TestPostgreSQLGenerator_GetTFProviderType(t *testing.T) {
 		{
 			name: "AWS Provider",
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud": "aws",
 				},
 			},
@@ -544,7 +544,7 @@ func TestPostgreSQLGenerator_GetTFProviderType(t *testing.T) {
 		{
 			name: "Alicloud Provider",
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{
+				"postgres": {
 					"cloud": "alicloud",
 				},
 			},
@@ -560,7 +560,7 @@ func TestPostgreSQLGenerator_GetTFProviderType(t *testing.T) {
 		{
 			name: "Empty Cloud Info",
 			moduleInputs: map[string]apiv1.GenericConfig{
-				"postgres": apiv1.GenericConfig{},
+				"postgres": {},
 			},
 			expected:    "",
 			expectedErr: fmt.Errorf(errEmptyCloudInfo),
@@ -587,7 +587,7 @@ func TestPostgreSQLGenerator_InjectSecret(t *testing.T) {
 	stack := &apiv1.Stack{Name: "teststack"}
 	appName := "testapp"
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -598,7 +598,7 @@ func TestPostgreSQLGenerator_InjectSecret(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -745,7 +745,7 @@ func TestPostgreSQLGenerator_GenerateDBSecret(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -756,7 +756,7 @@ func TestPostgreSQLGenerator_GenerateDBSecret(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -836,7 +836,7 @@ func TestPostgreSQLGenerator_GenerateTFRandomPassword(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -847,7 +847,7 @@ func TestPostgreSQLGenerator_GenerateTFRandomPassword(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"postgres": apiv1.GenericConfig{
+		"postgres": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -904,7 +904,7 @@ func TestPostgreSQLGenerator_GenerateTFRandomPassword(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var randomProvider = &inputs.Provider{}
+		randomProvider := &inputs.Provider{}
 		_ = randomProvider.SetString(test.providerURL)
 		actualID, actualRes := g.(*postgresGenerator).generateTFRandomPassword(randomProvider)
 

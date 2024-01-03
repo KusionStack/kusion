@@ -18,7 +18,7 @@ func TestPostgresGenerator_GenerateLocalResources(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -87,7 +87,7 @@ func TestPostgresGenerator_GenerateLocalSecret(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -140,7 +140,7 @@ func TestPostgresGenerator_GenerateLocalPVC(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
@@ -157,7 +157,6 @@ func TestPostgresGenerator_GenerateLocalPVC(t *testing.T) {
 	db := &postgres.PostgreSQL{
 		Type:         "local",
 		Version:      "8.0",
-		Username:     "root",
 		DatabaseName: "testpostgres",
 	}
 	g, _ := NewPostgresGenerator(context, "testpostgres", db)
@@ -192,12 +191,12 @@ func TestPostgresGenerator_GenerateLocalDeployment(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},
 			PostgreSQL: &postgres.PostgreSQL{
-				Type:    "local",
+				Type:    "cloud",
 				Version: "8.0",
 			},
 		},
@@ -207,9 +206,8 @@ func TestPostgresGenerator_GenerateLocalDeployment(t *testing.T) {
 	context := newGeneratorContext(project, stack, appName, workload, database,
 		moduleInputs, tfConfigs)
 	db := &postgres.PostgreSQL{
-		Type:         "local",
+		Type:         "cloud",
 		Version:      "8.0",
-		Username:     "root",
 		DatabaseName: "testpostgres",
 	}
 	g, _ := NewPostgresGenerator(context, "testpostgres", db)
@@ -244,7 +242,7 @@ func TestPostgresGenerator_GenerateLocalService(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testpostgres": &database.Database{
+		"testpostgres": {
 			Header: database.Header{
 				Type: "PostgreSQL",
 			},

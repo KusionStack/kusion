@@ -166,7 +166,7 @@ func TestGenerate(t *testing.T) {
 		{
 			name: "Generate Local MySQL Database",
 			database: map[string]*database.Database{
-				"testmysql": &database.Database{
+				"testmysql": {
 					Header: database.Header{
 						Type: "MySQL",
 					},
@@ -182,7 +182,7 @@ func TestGenerate(t *testing.T) {
 		{
 			name: "Generate Local PostgreSQL Database",
 			database: map[string]*database.Database{
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -198,7 +198,7 @@ func TestGenerate(t *testing.T) {
 		{
 			name: "Generate Local MySQL And PostgreSQL Database",
 			database: map[string]*database.Database{
-				"testmysql": &database.Database{
+				"testmysql": {
 					Header: database.Header{
 						Type: "MySQL",
 					},
@@ -207,7 +207,7 @@ func TestGenerate(t *testing.T) {
 						Version: "8.0",
 					},
 				},
-				"testpostgres": &database.Database{
+				"testpostgres": {
 					Header: database.Header{
 						Type: "PostgreSQL",
 					},
@@ -223,7 +223,7 @@ func TestGenerate(t *testing.T) {
 		{
 			name: "Generate Unsupported Database Type",
 			database: map[string]*database.Database{
-				"test": &database.Database{
+				"test": {
 					Header: database.Header{
 						Type: "Unsupported",
 					},

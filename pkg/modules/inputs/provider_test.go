@@ -38,7 +38,7 @@ func TestProvider_SetString(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var testProvider = &Provider{}
+			testProvider := &Provider{}
 			actualErr := testProvider.SetString(test.data)
 			if test.expectedError == nil {
 				assert.Equal(t, test.expected, testProvider)

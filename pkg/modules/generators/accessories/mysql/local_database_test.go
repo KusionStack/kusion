@@ -18,7 +18,7 @@ func TestMySQLGenerator_GenerateLocalResources(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -87,7 +87,7 @@ func TestMySQLGenerator_GenerateLocalSecret(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -140,7 +140,7 @@ func TestMySQLGenerator_GenerateLocalPVC(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -157,7 +157,6 @@ func TestMySQLGenerator_GenerateLocalPVC(t *testing.T) {
 	db := &mysql.MySQL{
 		Type:         "local",
 		Version:      "8.0",
-		Username:     "root",
 		DatabaseName: "testmysql",
 	}
 	g, _ := NewMySQLGenerator(context, "testmysql", db)
@@ -192,12 +191,12 @@ func TestMySQLGenerator_GenerateLocalDeployment(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
 			MySQL: &mysql.MySQL{
-				Type:    "local",
+				Type:    "cloud",
 				Version: "8.0",
 			},
 		},
@@ -207,9 +206,8 @@ func TestMySQLGenerator_GenerateLocalDeployment(t *testing.T) {
 	context := newGeneratorContext(project, stack, appName, workload, database,
 		moduleInputs, tfConfigs)
 	db := &mysql.MySQL{
-		Type:         "local",
+		Type:         "cloud",
 		Version:      "8.0",
-		Username:     "root",
 		DatabaseName: "testmysql",
 	}
 	g, _ := NewMySQLGenerator(context, "testmysql", db)
@@ -244,7 +242,7 @@ func TestMySQLGenerator_GenerateLocalService(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},

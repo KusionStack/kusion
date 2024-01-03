@@ -19,7 +19,7 @@ func TestMySQLGenerator_GenerateAWSResources(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -30,7 +30,7 @@ func TestMySQLGenerator_GenerateAWSResources(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"mysql": apiv1.GenericConfig{
+		"mysql": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -111,7 +111,7 @@ func TestMySQLGenerator_GenerateAWSSecurityGroup(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -122,7 +122,7 @@ func TestMySQLGenerator_GenerateAWSSecurityGroup(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"mysql": apiv1.GenericConfig{
+		"mysql": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -205,7 +205,7 @@ func TestMySQLGenerator_GenerateAWSSecurityGroup(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var awsProvider = &inputs.Provider{}
+		awsProvider := &inputs.Provider{}
 		_ = awsProvider.SetString(test.providerURL)
 		actualID, actualRes, actualErr := g.(*mysqlGenerator).generateAWSSecurityGroup(
 			awsProvider, test.region, test.db,
@@ -227,7 +227,7 @@ func TestMySQLGenerator_GenerateAWSDBInstance(t *testing.T) {
 	appName := "testapp"
 	workload := &workload.Workload{}
 	database := map[string]*database.Database{
-		"testmysql": &database.Database{
+		"testmysql": {
 			Header: database.Header{
 				Type: "MySQL",
 			},
@@ -238,7 +238,7 @@ func TestMySQLGenerator_GenerateAWSDBInstance(t *testing.T) {
 		},
 	}
 	moduleInputs := map[string]apiv1.GenericConfig{
-		"mysql": apiv1.GenericConfig{
+		"mysql": {
 			"cloud":          "aws",
 			"size":           20,
 			"instanceType":   "db.t3.micro",
@@ -320,7 +320,7 @@ func TestMySQLGenerator_GenerateAWSDBInstance(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var awsProvider = &inputs.Provider{}
+		awsProvider := &inputs.Provider{}
 		_ = awsProvider.SetString(test.providerURL)
 		actualID, actualRes := g.(*mysqlGenerator).generateAWSDBInstance(
 			test.region, test.awsSecurityGroupID, test.randomPasswordID,
