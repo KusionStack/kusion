@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gettext-go-examples-hello\n"
 "Report-Msgid-Bugs-To: EMAIL\n"
-"POT-Creation-Date: 2023-11-30 16:19+0800\n"
+"POT-Creation-Date: 2024-01-04 21:38+0800\n"
 "PO-Revision-Date: 2023-07-24 16:46+0800\n"
 "Last-Translator: howieyuen <howieyuen@outlook.com>\n"
 "Language-Team: \n"
@@ -18,78 +18,58 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.3.2\n"
 
-#: pkg/cmd/destroy/destroy.go:22
-#, fuzzy
+#: pkg/cmd/preview/preview.go:73
+msgid "Ignore differences of target fields"
+msgstr "忽略目标字段的差异"
+
+#: pkg/cmd/workspace/cmd.go:19
 msgid ""
 "\n"
-"\t\t# Delete resources of current stack\n"
-"\t\tkusion destroy"
+"\t\tWorkspace is a logical concept representing a target that stacks will be "
+"deployed to.\n"
+"\t\t\n"
+"\t\tWorkspace is managed by platform engineers, which contains a set of "
+"configurations that application developers do not want or should not "
+"concern, and is reused by multiple stacks belonging to different projects."
 msgstr ""
-"\n"
-"\t\t# 删除 pod.k 中的配置\n"
-"\t\tkusion destroy -f ./pod.k"
 
-#: pkg/cmd/preview/preview.go:75
-#, fuzzy
-msgid "Specify the output format"
-msgstr "指定输出文件"
-
-#: pkg/engine/backend/backend.go:40
-msgid "backend-type specify state storage backend"
-msgstr "backend-type 指定状态存储后端类型，支持 local、db、oss 和 s3"
-
-#: pkg/engine/backend/backend.go:42
-msgid "backend-config config state storage backend"
-msgstr "backend-config 配置状态存储后端信息"
-
-#: pkg/cmd/apply/apply.go:13
-#, fuzzy
-msgid "Apply the operational intent of various resources to multiple runtimes"
-msgstr ""
-"将各类资源的运维意图 apply 至多种运行时里 (Kubernetes、AWS/阿里云以及自建系统"
-"等)"
-
-#: pkg/cmd/apply/apply.go:64
-msgid ""
-"Preview the execution effect (always successful) without actually applying "
-"the changes"
-msgstr "dry-run 预览执行效果（总是成功）而不实际 apply 更改"
-
-#: pkg/cmd/destroy/destroy.go:13
-#, fuzzy
-msgid "Destroy resources within the stack."
-msgstr "预览 Stack 中的一系列资源更改"
-
-#: pkg/cmd/destroy/destroy.go:15
-#, fuzzy
+#: pkg/cmd/deps/deps.go:14
 msgid ""
 "\n"
-"\t\tDestroy resources within the stack.\n"
+"\t\tShow the KCL file dependency information in the current directory or the "
+"specified workdir.\n"
+"    By default, it will list all the KCL files that are dependent on the "
+"given package path."
+msgstr ""
+
+#: pkg/cmd/deps/deps.go:51
+msgid ""
+"Inspect direct of the dependency information. Valid values: up, down. "
+"Defaults to up"
+msgstr "Project 信息的输出格式。可选值：json、yaml、tree、human"
+
+#: pkg/cmd/init/init.go:15
+msgid ""
 "\n"
-"\t\tPlease note that the destroy command does NOT perform resource version "
-"checks.\n"
-"\t\tTherefore, if someone submits an update to a resource at the same time "
-"you execute a destroy command, \n"
-"\t\ttheir update will be lost along with the rest of the resource."
+"\t\tThis command initializes the scaffolding for a project, generating a "
+"project from an appointed template with correct structure.\n"
+"\n"
+"\t\tThe scaffold templates can be retrieved from local or online. The built-"
+"in templates are used by default, self-defined templates are also supported "
+"by assigning the template repository path."
 msgstr ""
 "\n"
-"\t\t通过资源规约删除资源。\n"
+"\t\t该指令用于初始化一个 Project 脚手架，从选定的模板生成具备正确结构的 "
+"Project。\n"
 "\n"
-"\t\t只接受 KCL 文件。只能指定一种类型的参数：文件名、资源、名称、资源或标签选"
-"择器。\n"
-"\n"
-"\t\t请注意，destroy 命令不会进行资源版本检查，\n"
-"\t\t因此如果有人在你提交销毁时提交了对资源的更新，\n"
-"\t\t他们的更新将与资源一起丢失。"
+"\t\t脚手架模板可以从本地或者线上获取。默认使用内置模板；若需要使用自定义的模"
+"板，需要指定模板仓库的地址。"
 
-#: pkg/cmd/preview/preview.go:67
-#, fuzzy
-msgid "Automatically show plan details with interactive options"
-msgstr "预览后自动展示 apply 计划细节"
-
-#: pkg/cmd/init/init.go:64
-msgid "Skip prompts and proceed with default values"
-msgstr "跳过提示，使用默认值初始化 Project"
+#: pkg/cmd/init/init.go:58
+msgid ""
+"Force generating the scaffolding files, even if it would change the existing "
+"files"
+msgstr "强制生成脚手架文件，即使会更改现有文件"
 
 #: pkg/cmd/init/init.go:81
 msgid ""
@@ -106,10 +86,6 @@ msgstr ""
 "\n"
 "\t\t# 获取指定的在线仓库中的模板列表\n"
 "\t\tkusion init templates https://github.com/<user>/<repo> —online=true"
-
-#: pkg/cmd/preview/preview.go:13
-msgid "Preview a series of resource changes within the stack"
-msgstr "预览 Stack 中的一系列资源更改"
 
 #: pkg/cmd/preview/preview.go:21
 #, fuzzy
@@ -150,38 +126,6 @@ msgstr ""
 "\t\t# 预览结果不带样式和颜色\n"
 "\t\tkusion preview —no-style=true"
 
-#: pkg/cmd/preview/preview.go:73
-msgid "Ignore differences of target fields"
-msgstr "忽略目标字段的差异"
-
-#: pkg/cmd/version/version.go:14
-#, fuzzy
-msgid ""
-"\n"
-"\t\t# Print the Kusion version\n"
-"\t\tkusion version"
-msgstr ""
-"\n"
-"\t\t# 打印 Kusion 版本\n"
-"\t\tkusion version"
-
-#: pkg/cmd/deps/deps.go:12
-msgid "Show KCL file dependency information"
-msgstr ""
-
-#: pkg/cmd/deps/deps.go:14
-msgid ""
-"\n"
-"\t\tShow the KCL file dependency information in the current directory or the "
-"specified workdir.\n"
-"    By default, it will list all the KCL files that are dependent on the "
-"given package path."
-msgstr ""
-
-#: pkg/cmd/init/init.go:13
-msgid "Initialize the scaffolding for a project"
-msgstr "初始化一个 Project 的脚手架"
-
 #: pkg/cmd/init/init.go:111
 msgid ""
 "Specify the output format of templates. If specified, only support json for "
@@ -190,154 +134,23 @@ msgstr ""
 "指定模板的输出格式。若指定，现在仅支持 json；若不指定，那么将打印模板的名称和"
 "描述"
 
-#: pkg/cmd/init/init.go:15
-msgid ""
-"\n"
-"\t\tThis command initializes the scaffolding for a project, generating a "
-"project from an appointed template with correct structure.\n"
-"\n"
-"\t\tThe scaffold templates can be retrieved from local or online. The built-"
-"in templates are used by default, self-defined templates are also supported "
-"by assigning the template repository path."
-msgstr ""
-"\n"
-"\t\t该指令用于初始化一个 Project 脚手架，从选定的模板生成具备正确结构的 "
-"Project。\n"
-"\n"
-"\t\t脚手架模板可以从本地或者线上获取。默认使用内置模板；若需要使用自定义的模"
-"板，需要指定模板仓库的地址。"
-
-#: pkg/cmd/init/init.go:61
-msgid ""
-"Use templates from online repository to initialize project, or use locally "
-"cached templates"
-msgstr "使用线上模板初始化 Project，否则使用本地缓存模板"
-
-#: pkg/cmd/deps/deps.go:57
-msgid ""
-"File paths to ignore when filtering the affected stacks/projects. Each path "
-"needs to be a valid relative path from the workdir. If not set, no paths "
-"will be ignored."
-msgstr ""
-
-#: pkg/cmd/destroy/destroy.go:48
-msgid "Automatically show plan details after previewing it"
-msgstr "预览后自动展示 apply 计划细节"
-
-#: pkg/cmd/init/init.go:67
-msgid ""
-"Custom params in JSON. If specified, it will be used as the template default "
-"value and skip prompts"
-msgstr ""
-"JSON 格式的自定义参数。若指定，那么会用其作为默认的模板参数，并跳过提示"
-
-#: pkg/cmd/preview/preview.go:69
-msgid "Automatically show all plan details, combined use with flag `--detail`"
-msgstr "预览后自动展示执行计划细节"
-
-#: pkg/cmd/cmd.go:48
-msgid "Kusion is the platform engineering engine of KusionStack"
-msgstr "Kusion 是 KusionStack 的平台工程引擎"
-
-#: pkg/cmd/apply/apply.go:62 pkg/cmd/destroy/destroy.go:46
-msgid "Automatically approve and perform the update after previewing it"
-msgstr "预览后自动审批并应用更新"
-
-#: pkg/cmd/apply/apply.go:66
-msgid ""
-"After creating/updating/deleting the requested object, watch for changes"
-msgstr "在创建/更新/删除请求的对象后，观测变更"
-
-#: pkg/cmd/deps/deps.go:55
-msgid ""
-"Direct is set to \"down\", \"only\" means only the downstream project/stack "
-"list will be output. Valid values: project, stack. Defaults to project"
-msgstr ""
-
-#: pkg/cmd/preview/preview.go:71
-msgid "no-style sets to RawOutput mode and disables all of styling"
-msgstr "no-style 设置原始输出模式并禁用所有样式"
-
-#: pkg/cmd/version/version.go:13
-msgid "Print the Kusion version information for the current context"
-msgstr "打印当前 Kusion 的版本信息"
-
-#: pkg/cmd/destroy/destroy.go:44 pkg/cmd/preview/preview.go:65
-msgid "Specify the operator"
-msgstr "指定操作人"
-
-#: pkg/cmd/init/init.go:20
-msgid ""
-"\n"
-"\t\t# Initialize a project from internal templates\n"
-"\t\tkusion init\n"
-"\n"
-"\t\t# Initialize a project from default online templates\n"
-"\t\tkusion init --online=true\n"
-"\n"
-"\t\t# Initialize a project from a specific online template\n"
-"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
-"\n"
-"\t\t# Initialize a project from a specific local template\n"
-"\t\tkusion init /path/to/templates"
-msgstr ""
-"\n"
-"\t\t# 从本地内置模板中初始化一个 Project\n"
-"\t\tkusion init\n"
-"\n"
-"\t\t# 从默认的在线模板中初始化一个 Project\n"
-"\t\tkusion init --online=true\n"
-"\n"
-"\t\t# 从指定的在线模板初始化一个 Project\n"
-"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
-"\n"
-"\t\t# 从指定的本地模板初始化一个 Project\n"
-"\t\tkusion init /path/to/templates"
-
-#: pkg/cmd/init/init.go:55
-msgid ""
-"Initialize with specified project name. If not specified, a prompt will "
-"request it"
-msgstr "用指定的 Project 名称初始化。若不指定，将有提示请求获取"
-
-#: pkg/cmd/init/init.go:58
-msgid ""
-"Force generating the scaffolding files, even if it would change the existing "
-"files"
-msgstr "强制生成脚手架文件，即使会更改现有文件"
-
-#: pkg/cmd/cmd.go:50
+#: pkg/cmd/preview/preview.go:15
 #, fuzzy
 msgid ""
 "\n"
-"\t\tKusion is the platform engineering engine of KusionStack. \n"
-"\t\tIt delivers intentions to Kubernetes, Clouds, and On-Premise resources."
-msgstr ""
-"\n"
-"\t\tKusion 是 KusionStack 的平台工程引擎。\n"
-"\t\t它将运维意图交付至 Kubernetes、云服务和本地部署的资源中。"
-
-#: pkg/cmd/apply/apply.go:15
-#, fuzzy
-msgid ""
-"\n"
-"\t\tApply a series of resource changes within the stack.\n"
+"\t\tPreview a series of resource changes within the stack.\n"
 "\t\n"
-"\t\tCreate, update or delete resources according to the operational intent "
-"within a stack.\n"
-"\t\tBy default, Kusion will generate an execution plan and prompt for your "
-"approval before performing any actions.\n"
-"\t\tYou can review the plan details and make a decision to proceed with the "
-"actions or abort them."
+"\t\tCreate, update or delete resources according to the intent described in "
+"the a stack. By default,\n"
+"\t\tKusion will generate an execution plan and present it for your approval "
+"before taking any action."
 msgstr ""
 "\n"
-"\t\t将一系列资源变更 apply 到当前栈中。\n"
+"\t\t预览 Stack 中的一系列资源更改。\n"
 "\n"
-"\t\t在当前 Stack 中根据 KCL 文件创建、更新、删除资源。\n"
-"\t\t默认情况下，在采取任何行动之前，Kusion 会生成一个执行计划，并提交给你批"
-"准。\n"
-"\n"
-"\t\t你可以检查计划详细信息，然后决定是否应采取或中止这些操作。"
+"\t\t根据 Stack 内的 KCL 文件创建或更新或删除资源。\n"
+"\t\t默认情况下，Kusion 会生成一个执行计划并在采取任何行动之前将其提交给您批"
+"准。"
 
 #: pkg/cmd/apply/apply.go:22
 #, fuzzy
@@ -377,28 +190,37 @@ msgstr ""
 "\t\t# apply 输出结果不带样式和颜色\n"
 "\t\tkusion apply —no-style=true"
 
-#: pkg/cmd/deps/deps.go:53
+#: pkg/cmd/deps/deps.go:55
 msgid ""
-"Paths to focus on to inspect. It cannot be empty and each path needs to be a "
-"valid relative path from the workdir"
+"Direct is set to \"down\", \"only\" means only the downstream project/stack "
+"list will be output. Valid values: project, stack. Defaults to project"
 msgstr ""
 
-#: pkg/cmd/preview/preview.go:77
+#: pkg/cmd/destroy/destroy.go:15
 #, fuzzy
 msgid ""
-"Specify the intent file path as input, and the intent file must be located "
-"in the working directory or its subdirectories"
-msgstr "指定 spec 文件路径作为输入，spce 文件必须位于工作目录或其子目录下"
-
-#: pkg/cmd/version/version.go:35
-msgid "Output format. Only json format is supported for now"
+"\n"
+"\t\tDestroy resources within the stack.\n"
+"\n"
+"\t\tPlease note that the destroy command does NOT perform resource version "
+"checks.\n"
+"\t\tTherefore, if someone submits an update to a resource at the same time "
+"you execute a destroy command, \n"
+"\t\ttheir update will be lost along with the rest of the resource."
 msgstr ""
+"\n"
+"\t\t通过资源规约删除资源。\n"
+"\n"
+"\t\t只接受 KCL 文件。只能指定一种类型的参数：文件名、资源、名称、资源或标签选"
+"择器。\n"
+"\n"
+"\t\t请注意，destroy 命令不会进行资源版本检查，\n"
+"\t\t因此如果有人在你提交销毁时提交了对资源的更新，\n"
+"\t\t他们的更新将与资源一起丢失。"
 
-#: pkg/cmd/init/init.go:52
-msgid ""
-"Initialize with specified template. If not specified, a prompt will request "
-"it"
-msgstr "用指定的模板初始化。若不指定，将有提示请求获取"
+#: pkg/cmd/destroy/destroy.go:48
+msgid "Automatically show plan details after previewing it"
+msgstr "预览后自动展示 apply 计划细节"
 
 #: pkg/cmd/init/init.go:76
 msgid "List templates used to initialize a project"
@@ -413,27 +235,133 @@ msgstr ""
 "\n"
 "\t\t该指令获取用于初始化 Project 脚手架的模板的描述和定义。"
 
-#: pkg/cmd/preview/preview.go:15
+#: pkg/cmd/cmd.go:62
+msgid "Kusion is the Platform Orchestrator of Internal Developer Platform"
+msgstr ""
+
+#: pkg/cmd/destroy/destroy.go:13
 #, fuzzy
+msgid "Destroy resources within the stack."
+msgstr "预览 Stack 中的一系列资源更改"
+
+#: pkg/cmd/preview/preview.go:13
+msgid "Preview a series of resource changes within the stack"
+msgstr "预览 Stack 中的一系列资源更改"
+
+#: pkg/cmd/preview/preview.go:67
+#, fuzzy
+msgid "Automatically show plan details with interactive options"
+msgstr "预览后自动展示 apply 计划细节"
+
+#: pkg/cmd/workspace/cmd.go:17
+msgid ""
+"Workspace is a logical concept representing a target that stacks will be "
+"deployed to"
+msgstr ""
+
+#: pkg/cmd/apply/apply.go:64
+msgid ""
+"Preview the execution effect (always successful) without actually applying "
+"the changes"
+msgstr "dry-run 预览执行效果（总是成功）而不实际 apply 更改"
+
+#: pkg/cmd/init/init.go:13
+msgid "Initialize the scaffolding for a project"
+msgstr "初始化一个 Project 的脚手架"
+
+#: pkg/cmd/init/init.go:20
 msgid ""
 "\n"
-"\t\tPreview a series of resource changes within the stack.\n"
-"\t\n"
-"\t\tCreate, update or delete resources according to the intent described in "
-"the a stack. By default,\n"
-"\t\tKusion will generate an execution plan and present it for your approval "
-"before taking any action."
+"\t\t# Initialize a project from internal templates\n"
+"\t\tkusion init\n"
+"\n"
+"\t\t# Initialize a project from default online templates\n"
+"\t\tkusion init --online=true\n"
+"\n"
+"\t\t# Initialize a project from a specific online template\n"
+"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
+"\n"
+"\t\t# Initialize a project from a specific local template\n"
+"\t\tkusion init /path/to/templates"
 msgstr ""
 "\n"
-"\t\t预览 Stack 中的一系列资源更改。\n"
+"\t\t# 从本地内置模板中初始化一个 Project\n"
+"\t\tkusion init\n"
 "\n"
-"\t\t根据 Stack 内的 KCL 文件创建或更新或删除资源。\n"
-"\t\t默认情况下，Kusion 会生成一个执行计划并在采取任何行动之前将其提交给您批"
-"准。"
+"\t\t# 从默认的在线模板中初始化一个 Project\n"
+"\t\tkusion init --online=true\n"
+"\n"
+"\t\t# 从指定的在线模板初始化一个 Project\n"
+"\t\tkusion init https://github.com/<user>/<repo> --online=true\n"
+"\n"
+"\t\t# 从指定的本地模板初始化一个 Project\n"
+"\t\tkusion init /path/to/templates"
 
-#: pkg/cmd/compile/compile.go:15
-msgid "Deprecated: Use 'kusion build' to generate the Intent instead"
+#: pkg/cmd/apply/apply.go:62 pkg/cmd/destroy/destroy.go:46
+msgid "Automatically approve and perform the update after previewing it"
+msgstr "预览后自动审批并应用更新"
+
+#: pkg/cmd/apply/apply.go:66
+msgid ""
+"After creating/updating/deleting the requested object, watch for changes"
+msgstr "在创建/更新/删除请求的对象后，观测变更"
+
+#: pkg/cmd/init/init.go:52
+msgid ""
+"Initialize with specified template. If not specified, a prompt will request "
+"it"
+msgstr "用指定的模板初始化。若不指定，将有提示请求获取"
+
+#: pkg/cmd/init/init.go:61
+msgid ""
+"Use templates from online repository to initialize project, or use locally "
+"cached templates"
+msgstr "使用线上模板初始化 Project，否则使用本地缓存模板"
+
+#: pkg/cmd/init/init.go:64
+msgid "Skip prompts and proceed with default values"
+msgstr "跳过提示，使用默认值初始化 Project"
+
+#: pkg/cmd/deps/deps.go:12
+msgid "Show KCL file dependency information"
 msgstr ""
+
+#: pkg/cmd/destroy/destroy.go:44 pkg/cmd/preview/preview.go:65
+msgid "Specify the operator"
+msgstr "指定操作人"
+
+#: pkg/cmd/init/init.go:67
+msgid ""
+"Custom params in JSON. If specified, it will be used as the template default "
+"value and skip prompts"
+msgstr ""
+"JSON 格式的自定义参数。若指定，那么会用其作为默认的模板参数，并跳过提示"
+
+#: pkg/cmd/preview/preview.go:69
+msgid "Automatically show all plan details, combined use with flag `--detail`"
+msgstr "预览后自动展示执行计划细节"
+
+#: pkg/engine/backend/options.go:45
+msgid "backend-config config state storage backend"
+msgstr "backend-config 配置状态存储后端信息"
+
+#: pkg/cmd/preview/preview.go:77
+#, fuzzy
+msgid ""
+"Specify the intent file path as input, and the intent file must be located "
+"in the working directory or its subdirectories"
+msgstr "指定 spec 文件路径作为输入，spce 文件必须位于工作目录或其子目录下"
+
+#: pkg/engine/backend/options.go:43
+msgid "backend-type specify state storage backend"
+msgstr "backend-type 指定状态存储后端类型，支持 local、db、oss 和 s3"
+
+#: pkg/cmd/apply/apply.go:13
+#, fuzzy
+msgid "Apply the operational intent of various resources to multiple runtimes"
+msgstr ""
+"将各类资源的运维意图 apply 至多种运行时里 (Kubernetes、AWS/阿里云以及自建系统"
+"等)"
 
 #: pkg/cmd/compile/compile.go:16
 msgid "Deprecated"
@@ -458,11 +386,97 @@ msgid ""
 "--ignore path/to/ignore"
 msgstr ""
 
-#: pkg/cmd/deps/deps.go:51
+#: pkg/cmd/deps/deps.go:57
 msgid ""
-"Inspect direct of the dependency information. Valid values: up, down. "
-"Defaults to up"
-msgstr "Project 信息的输出格式。可选值：json、yaml、tree、human"
+"File paths to ignore when filtering the affected stacks/projects. Each path "
+"needs to be a valid relative path from the workdir. If not set, no paths "
+"will be ignored."
+msgstr ""
+
+#: pkg/cmd/destroy/destroy.go:22
+#, fuzzy
+msgid ""
+"\n"
+"\t\t# Delete resources of current stack\n"
+"\t\tkusion destroy"
+msgstr ""
+"\n"
+"\t\t# 删除 pod.k 中的配置\n"
+"\t\tkusion destroy -f ./pod.k"
+
+#: pkg/cmd/init/init.go:55
+msgid ""
+"Initialize with specified project name. If not specified, a prompt will "
+"request it"
+msgstr "用指定的 Project 名称初始化。若不指定，将有提示请求获取"
+
+#: pkg/cmd/apply/apply.go:15
+#, fuzzy
+msgid ""
+"\n"
+"\t\tApply a series of resource changes within the stack.\n"
+"\t\n"
+"\t\tCreate, update or delete resources according to the operational intent "
+"within a stack.\n"
+"\t\tBy default, Kusion will generate an execution plan and prompt for your "
+"approval before performing any actions.\n"
+"\t\tYou can review the plan details and make a decision to proceed with the "
+"actions or abort them."
+msgstr ""
+"\n"
+"\t\t将一系列资源变更 apply 到当前栈中。\n"
+"\n"
+"\t\t在当前 Stack 中根据 KCL 文件创建、更新、删除资源。\n"
+"\t\t默认情况下，在采取任何行动之前，Kusion 会生成一个执行计划，并提交给你批"
+"准。\n"
+"\n"
+"\t\t你可以检查计划详细信息，然后决定是否应采取或中止这些操作。"
+
+#: pkg/cmd/compile/compile.go:15
+msgid "Deprecated: Use 'kusion build' to generate the Intent instead"
+msgstr ""
+
+#: pkg/cmd/deps/deps.go:53
+msgid ""
+"Paths to focus on to inspect. It cannot be empty and each path needs to be a "
+"valid relative path from the workdir"
+msgstr ""
+
+#: pkg/cmd/preview/preview.go:71
+msgid "no-style sets to RawOutput mode and disables all of styling"
+msgstr "no-style 设置原始输出模式并禁用所有样式"
+
+#: pkg/cmd/preview/preview.go:75
+#, fuzzy
+msgid "Specify the output format"
+msgstr "指定输出文件"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "\t\t# Print the Kusion version\n"
+#~ "\t\tkusion version"
+#~ msgstr ""
+#~ "\n"
+#~ "\t\t# 打印 Kusion 版本\n"
+#~ "\t\tkusion version"
+
+#~ msgid "Print the Kusion version information for the current context"
+#~ msgstr "打印当前 Kusion 的版本信息"
+
+#~ msgid "Kusion is the platform engineering engine of KusionStack"
+#~ msgstr "Kusion 是 KusionStack 的平台工程引擎"
+
+#, fuzzy
+#~ msgid ""
+#~ "\n"
+#~ "\t\tKusion is the platform engineering engine of KusionStack. \n"
+#~ "\t\tIt delivers intentions to Kubernetes, Clouds, and On-Premise "
+#~ "resources."
+#~ msgstr ""
+#~ "\n"
+#~ "\t\tKusion 是 KusionStack 的平台工程引擎。\n"
+#~ "\t\t它将运维意图交付至 Kubernetes、云服务和本地部署的资源中。"
 
 #~ msgid "Specify the override option"
 #~ msgstr "指定覆盖选项"
