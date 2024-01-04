@@ -3,7 +3,7 @@ package modules
 import (
 	appsv1 "k8s.io/api/apps/v1"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules/inputs"
 )
 
@@ -44,4 +44,7 @@ type GeneratorContext struct {
 
 	// ModuleInputs is the collection of module inputs for the target project.
 	ModuleInputs map[string]v1.GenericConfig
+
+	// TerraformConfig is the collection of provider configs for the terraform runtime.
+	TerraformConfig v1.TerraformConfig
 }

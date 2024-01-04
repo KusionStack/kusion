@@ -1,26 +1,21 @@
-package accessories
+package mysql
 
 import (
 	"fmt"
-	"os"
 
 	v1 "k8s.io/api/core/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/accessories/database"
+	"kusionstack.io/kusion/pkg/modules/inputs/accessories/mysql"
 )
 
 const (
-	awsSecurityGroup   = "aws_security_group"
-	awsDBInstance      = "aws_db_instance"
-	defaultAWSProvider = "registry.terraform.io/hashicorp/aws/5.0.1"
-)
-
-var (
-	tfProviderAWS     = os.Getenv("TF_PROVIDER_AWS")
-	awsProviderRegion = os.Getenv("AWS_PROVIDER_REGION")
+	defaultAWSProviderURL = "registry.terraform.io/hashicorp/aws/5.0.1"
+	awsSecurityGroup      = "aws_security_group"
+	awsDBInstance         = "aws_db_instance"
 )
 
 type awsSecurityGroupTraffic struct {
@@ -35,27 +30,40 @@ type awsSecurityGroupTraffic struct {
 	ToPort         int      `yaml:"to_port" json:"to_port"`
 }
 
-func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *apiv1.Intent) (*v1.Secret, error) {
+// generateAWSResources generates aws provided mysql database instance.
+func (g *mysqlGenerator) generateAWSResources(db *mysql.MySQL, spec *apiv1.Intent) (*v1.Secret, error) {
 	// Set the terraform random and aws provider.
-	randomProvider := &inputs.Provider{}
-	if err := randomProvider.SetString(randomProviderURL); err != nil {
-		return nil, err
-	}
+	randomProvider, awsProvider := &inputs.Provider{}, &inputs.Provider{}
 
-	// The region of the aws provider must be set.
-	if awsProviderRegion == "" {
-		return nil, fmt.Errorf("the region of the aws provider must be set")
-	}
-
-	var providerURL string
-	awsProvider := &inputs.Provider{}
-	if tfProviderAWS == "" {
-		providerURL = defaultAWSProvider
+	randomProviderCfg, ok := g.tfConfigs[inputs.RandomProvider]
+	if !ok {
+		randomProvider.SetString(defaultRandomProviderURL)
 	} else {
-		providerURL = tfProviderAWS
+		randomProviderURL, err := inputs.GetProviderURL(randomProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := randomProvider.SetString(randomProviderURL); err != nil {
+			return nil, err
+		}
 	}
 
-	if err := awsProvider.SetString(providerURL); err != nil {
+	awsProviderCfg, ok := g.tfConfigs[inputs.AWSProvider]
+	if !ok {
+		awsProvider.SetString(defaultAWSProviderURL)
+	} else {
+		awsProviderURL, err := inputs.GetProviderURL(awsProviderCfg)
+		if err != nil {
+			return nil, err
+		}
+		if err := awsProvider.SetString(awsProviderURL); err != nil {
+			return nil, err
+		}
+	}
+
+	// Get the aws provider region, and the region of the aws provider must be set.
+	awsProviderRegion, err := inputs.GetProviderRegion(g.tfConfigs[inputs.AWSProvider])
+	if err != nil {
 		return nil, err
 	}
 
@@ -81,10 +89,10 @@ func (g *databaseGenerator) generateAWSResources(db *database.Database, spec *ap
 	return g.generateDBSecret(hostAddress, db.Username, password, spec)
 }
 
-func (g *databaseGenerator) generateAWSSecurityGroup(
+func (g *mysqlGenerator) generateAWSSecurityGroup(
 	provider *inputs.Provider,
 	region string,
-	db *database.Database,
+	db *mysql.MySQL,
 ) (string, apiv1.Resource, error) {
 	// SecurityIPs should be in the format of IP address or Classes Inter-Domain
 	// Routing (CIDR) mode.
@@ -113,7 +121,7 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 		},
 	}
 
-	id := modules.TerraformResourceID(provider, awsSecurityGroup, g.appName+dbResSuffix)
+	id := modules.TerraformResourceID(provider, awsSecurityGroup, g.mysql.DatabaseName+dbResSuffix)
 	pvdExts := modules.ProviderExtensions(provider, map[string]any{
 		"region": region,
 	}, awsSecurityGroup)
@@ -121,15 +129,15 @@ func (g *databaseGenerator) generateAWSSecurityGroup(
 	return id, modules.TerraformResource(id, nil, sgAttrs, pvdExts), nil
 }
 
-func (g *databaseGenerator) generateAWSDBInstance(
+func (g *mysqlGenerator) generateAWSDBInstance(
 	region, awsSecurityGroupID, randomPasswordID string,
-	provider *inputs.Provider, db *database.Database,
+	provider *inputs.Provider, db *mysql.MySQL,
 ) (string, apiv1.Resource) {
 	dbAttrs := map[string]interface{}{
 		"allocated_storage":   db.Size,
-		"engine":              db.Engine,
+		"engine":              dbEngine,
 		"engine_version":      db.Version,
-		"identifier":          g.appName,
+		"identifier":          db.DatabaseName,
 		"instance_class":      db.InstanceType,
 		"password":            modules.KusionPathDependency(randomPasswordID, "result"),
 		"publicly_accessible": isPublicAccessible(db.SecurityIPs),
@@ -144,7 +152,7 @@ func (g *databaseGenerator) generateAWSDBInstance(
 		dbAttrs["db_subnet_group_name"] = db.SubnetID
 	}
 
-	id := modules.TerraformResourceID(provider, awsDBInstance, g.appName)
+	id := modules.TerraformResourceID(provider, awsDBInstance, db.DatabaseName)
 	pvdExts := modules.ProviderExtensions(provider, map[string]any{
 		"region": region,
 	}, awsDBInstance)
