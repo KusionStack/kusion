@@ -29,16 +29,16 @@ const (
 	errUnknownObjectType     = "unknown Azure KeyVault object Type for %s"
 )
 
-// DefaultFactory should implement the secrets.SecretStoreFactory interface
-var _ secrets.SecretStoreFactory = &DefaultFactory{}
+// DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface
+var _ secrets.SecretStoreProvider = &DefaultSecretStoreProvider{}
 
 // kvSecretStore should implement the secrets.SecretStore interface
 var _ secrets.SecretStore = &kvSecretStore{}
 
-type DefaultFactory struct{}
+type DefaultSecretStoreProvider struct{}
 
 // NewSecretStore constructs an Azure KeyVault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)

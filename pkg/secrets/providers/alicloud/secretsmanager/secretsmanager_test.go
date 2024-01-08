@@ -139,7 +139,7 @@ func TestNewSecretStore(t *testing.T) {
 		},
 	}
 
-	factory := DefaultFactory{}
+	factory := DefaultSecretStoreProvider{}
 	for name, tc := range testCases {
 		_, err := factory.NewSecretStore(tc.spec)
 		if diff := cmp.Diff(err, tc.expectedErr, EquateErrors()); diff != "" {

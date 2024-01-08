@@ -26,14 +26,14 @@ var (
 	accessKeySecret = os.Getenv("credentials_access_secret")
 )
 
-// DefaultFactory should implement the secrets.SecretStoreFactory interface.
-var _ secrets.SecretStoreFactory = &DefaultFactory{}
+// DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface.
+var _ secrets.SecretStoreProvider = &DefaultSecretStoreProvider{}
 
 // smSecretStore should implement the secrets.SecretStore interface.
 var _ secrets.SecretStore = &smSecretStore{}
 
-// DefaultFactory implements the secrets.SecretStoreFactory interface.
-type DefaultFactory struct{}
+// DefaultSecretStoreProvider implements the secrets.SecretStoreProvider interface.
+type DefaultSecretStoreProvider struct{}
 
 // smSecretStore implements the secrets.SecretStore interface.
 type smSecretStore struct {
@@ -41,7 +41,7 @@ type smSecretStore struct {
 }
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)
@@ -115,7 +115,7 @@ func (s *smSecretStore) convertSecretToGjson(secretInfo *models.SecretInfo, refP
 }
 
 func init() {
-	secrets.Register(&DefaultFactory{}, &v1.ProviderSpec{
+	secrets.Register(&DefaultSecretStoreProvider{}, &v1.ProviderSpec{
 		Alicloud: &v1.AlicloudProvider{},
 	})
 }

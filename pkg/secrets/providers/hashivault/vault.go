@@ -28,20 +28,16 @@ const (
 	errBuildVaultClient        = "failed to new Vault client: %w"
 )
 
-// DefaultFactory should implement the secrets.SecretStoreFactory interface
-var _ secrets.SecretStoreFactory = &DefaultFactory{}
+// DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface
+var _ secrets.SecretStoreProvider = &DefaultSecretStoreProvider{}
 
 // vaultSecretStore should implement the secrets.SecretStore interface
 var _ secrets.SecretStore = &vaultSecretStore{}
 
-type DefaultFactory struct{}
-
-func (p *DefaultFactory) Type() string {
-	return "Vault"
-}
+type DefaultSecretStoreProvider struct{}
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultFactory) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil || providerSpec.Vault == nil {
 		return nil, errors.New(errInvalidVaultSecretStore)
@@ -226,7 +222,7 @@ func getTypedKey(data map[string]interface{}, key string) ([]byte, error) {
 }
 
 func init() {
-	secrets.Register(&DefaultFactory{}, &v1.ProviderSpec{
+	secrets.Register(&DefaultSecretStoreProvider{}, &v1.ProviderSpec{
 		Vault: &v1.VaultProvider{},
 	})
 }
