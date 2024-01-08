@@ -34,6 +34,20 @@ func GetProviderByName(providerName string) (SecretStoreFactory, bool) {
 	return secretStoreProviders.getProviderByName(providerName)
 }
 
+// GetProvider returns the provider from the provider spec.
+func GetProvider(spec *v1.ProviderSpec) (SecretStoreFactory, bool) {
+	if spec == nil {
+		return nil, false
+	}
+
+	providerName, err := getProviderName(spec)
+	if err != nil {
+		return nil, false
+	}
+
+	return secretStoreProviders.getProviderByName(providerName)
+}
+
 type Providers struct {
 	lock     sync.RWMutex
 	registry map[string]SecretStoreFactory

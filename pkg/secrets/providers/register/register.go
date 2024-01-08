@@ -5,5 +5,6 @@ package register
 import (
 	_ "kusionstack.io/kusion/pkg/secrets/providers/alicloud/secretsmanager"
 	_ "kusionstack.io/kusion/pkg/secrets/providers/aws/secretsmanager"
+	_ "kusionstack.io/kusion/pkg/secrets/providers/azure/keyvault"
 	_ "kusionstack.io/kusion/pkg/secrets/providers/hashivault"
 )
