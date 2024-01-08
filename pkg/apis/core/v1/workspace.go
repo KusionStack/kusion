@@ -227,6 +227,9 @@ type ProviderSpec struct {
 
 	// Azure configures a store to retrieve secrets from Azure KeyVault.
 	Azure *AzureKVProvider `yaml:"azure,omitempty" json:"azure,omitempty"`
+
+	// Fake configures a store with static key/value pairs
+	Fake *FakeProvider `yaml:"fake,omitempty" json:"fake,omitempty"`
 }
 
 // AlicloudProvider configures a store to retrieve secrets from Alicloud Secrets Manager.
@@ -283,4 +286,16 @@ type AzureKVProvider struct {
 	// PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
 	// Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
 	EnvironmentType AzureEnvironmentType `yaml:"environmentType,omitempty" json:"environmentType,omitempty"`
+}
+
+// FakeProvider configures a fake provider that returns static values.
+type FakeProvider struct {
+	Data []FakeProviderData `json:"data"`
+}
+
+type FakeProviderData struct {
+	Key      string            `json:"key"`
+	Value    string            `json:"value,omitempty"`
+	ValueMap map[string]string `json:"valueMap,omitempty"`
+	Version  string            `json:"version,omitempty"`
 }
