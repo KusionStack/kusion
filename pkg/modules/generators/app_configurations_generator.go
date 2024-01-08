@@ -95,7 +95,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 		Namespace:       namespaceName,
 		ModuleInputs:    modulesConfig,
 		TerraformConfig: terraformConfig,
-		SecretStore:     g.ws.SecretStore,
+		SecretStoreSpec: g.ws.SecretStore,
 	}
 
 	// Generate resources

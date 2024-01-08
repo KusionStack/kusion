@@ -48,6 +48,6 @@ type GeneratorContext struct {
 	// TerraformConfig is the collection of provider configs for the terraform runtime.
 	TerraformConfig v1.TerraformConfig
 
-	// SecretStore is the external secret store spec
-	SecretStore *v1.SecretStoreSpec
+	// SecretStoreSpec is the external secret store spec
+	SecretStoreSpec *v1.SecretStoreSpec
 }
