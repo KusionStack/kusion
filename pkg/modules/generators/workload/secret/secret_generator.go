@@ -19,10 +19,10 @@ import (
 )
 
 type secretGenerator struct {
-	project     *apiv1.Project
-	namespace   string
-	secrets     map[string]workload.Secret
-	secretStore *apiv1.SecretStoreSpec
+	project         *apiv1.Project
+	namespace       string
+	secrets         map[string]workload.Secret
+	secretStoreSpec *apiv1.SecretStoreSpec
 }
 
 func NewSecretGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
@@ -38,10 +38,10 @@ func NewSecretGenerator(ctx modules.GeneratorContext) (modules.Generator, error)
 	}
 
 	return &secretGenerator{
-		project:     ctx.Project,
-		secrets:     secretMap,
-		namespace:   ctx.Namespace,
-		secretStore: ctx.SecretStore,
+		project:         ctx.Project,
+		secrets:         secretMap,
+		namespace:       ctx.Namespace,
+		secretStoreSpec: ctx.SecretStoreSpec,
 	}, nil
 }
 
@@ -146,7 +146,7 @@ func (g *secretGenerator) generateCertificate(secretName string, secretRef workl
 // generateSecretWithExternalProvider retrieves target sensitive information from external secret provider and
 // generates corresponding Kubernetes Secret object.
 func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
-	if g.secretStore == nil {
+	if g.secretStoreSpec == nil {
 		return nil, errors.New("secret store is missing, please add valid secret store spec in workspace")
 	}
 
@@ -160,12 +160,12 @@ func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, 
 			allErrs = append(allErrs, err)
 			continue
 		}
-		provider, exist := secrets.GetProvider(g.secretStore.Provider)
+		provider, exist := secrets.GetProvider(g.secretStoreSpec.Provider)
 		if !exist {
 			allErrs = append(allErrs, errors.New("no matched secret store found, please check workspace yaml"))
 			continue
 		}
-		secretStore, err := provider.NewSecretStore(*g.secretStore)
+		secretStore, err := provider.NewSecretStore(*g.secretStoreSpec)
 		if err != nil {
 			allErrs = append(allErrs, err)
 			continue
