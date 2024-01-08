@@ -12,8 +12,8 @@ type SecretStore interface {
 	GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error)
 }
 
-// SecretStoreFactory is a factory type for secret store.
-type SecretStoreFactory interface {
+// SecretStoreProvider is a factory type for secret store.
+type SecretStoreProvider interface {
 	// NewSecretStore constructs a usable secret store with specific provider spec.
 	NewSecretStore(spec v1.SecretStoreSpec) (SecretStore, error)
 }

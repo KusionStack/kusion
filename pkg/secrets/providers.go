@@ -19,23 +19,23 @@ var (
 func init() {
 	createOnce.Do(func() {
 		secretStoreProviders = &Providers{
-			registry: make(map[string]SecretStoreFactory),
+			registry: make(map[string]SecretStoreProvider),
 		}
 	})
 }
 
 // Register a secret store provider with target spec.
-func Register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
+func Register(ssf SecretStoreProvider, spec *v1.ProviderSpec) {
 	secretStoreProviders.register(ssf, spec)
 }
 
 // GetProviderByName returns registered provider by name.
-func GetProviderByName(providerName string) (SecretStoreFactory, bool) {
+func GetProviderByName(providerName string) (SecretStoreProvider, bool) {
 	return secretStoreProviders.getProviderByName(providerName)
 }
 
 // GetProvider returns the provider from the provider spec.
-func GetProvider(spec *v1.ProviderSpec) (SecretStoreFactory, bool) {
+func GetProvider(spec *v1.ProviderSpec) (SecretStoreProvider, bool) {
 	if spec == nil {
 		return nil, false
 	}
@@ -50,12 +50,12 @@ func GetProvider(spec *v1.ProviderSpec) (SecretStoreFactory, bool) {
 
 type Providers struct {
 	lock     sync.RWMutex
-	registry map[string]SecretStoreFactory
+	registry map[string]SecretStoreProvider
 }
 
 // register registers a provider with associated spec. This
 // is expected to happen during app startup.
-func (ps *Providers) register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
+func (ps *Providers) register(ssf SecretStoreProvider, spec *v1.ProviderSpec) {
 	providerName, err := getProviderName(spec)
 	if err != nil {
 		panic(fmt.Sprintf("provider registery failed to parse spec: %s", err.Error()))
@@ -69,7 +69,7 @@ func (ps *Providers) register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
 			log.Warnf("Provider %s was registered twice", providerName)
 		}
 	} else {
-		ps.registry = map[string]SecretStoreFactory{}
+		ps.registry = map[string]SecretStoreProvider{}
 	}
 
 	log.Infof("Registered secret store provider %s", providerName)
@@ -77,7 +77,7 @@ func (ps *Providers) register(ssf SecretStoreFactory, spec *v1.ProviderSpec) {
 }
 
 // getProviderByName returns registered provider by name.
-func (ps *Providers) getProviderByName(providerName string) (SecretStoreFactory, bool) {
+func (ps *Providers) getProviderByName(providerName string) (SecretStoreProvider, bool) {
 	ps.lock.RLock()
 	defer ps.lock.RUnlock()
 	provider, found := ps.registry[providerName]

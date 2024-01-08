@@ -149,7 +149,7 @@ func TestNewSecretStore(t *testing.T) {
 		},
 	}
 
-	factory := DefaultFactory{}
+	factory := DefaultSecretStoreProvider{}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			if tc.initEnv {
