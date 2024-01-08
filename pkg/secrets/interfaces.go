@@ -17,3 +17,13 @@ type SecretStoreProvider interface {
 	// NewSecretStore constructs a usable secret store with specific provider spec.
 	NewSecretStore(spec v1.SecretStoreSpec) (SecretStore, error)
 }
+
+var NoSecretErr = NoSecretError{}
+
+// NoSecretError will be returned when GetSecret call can not find the
+// desired secret.
+type NoSecretError struct{}
+
+func (NoSecretError) Error() string {
+	return "Secret does not exist"
+}
