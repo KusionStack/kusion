@@ -13,15 +13,17 @@ const (
 	IntervalKey                    = "interval"
 	TimeoutKey                     = "timeout"
 	SchemeKey                      = "scheme"
-	defaultInterval                = "15s"
-	defaultTimeout                 = "30s"
-	defaultScheme                  = "http"
+	DefaultMonitorType             = "Service"
+	DefaultInterval                = "30s"
+	DefaultTimeout                 = "15s"
+	DefaultScheme                  = "http"
 	PodMonitorType     MonitorType = "Pod"
 	ServiceMonitorType MonitorType = "Service"
 )
 
 var (
 	ErrTimeoutGreaterThanInterval = errors.New("timeout cannot be greater than interval")
+	ErrPathAndPortEmpty           = errors.New("path and port must be present in monitoring configuration")
 )
 
 type (

@@ -68,7 +68,11 @@ func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error 
 		// If Prometheus doesn't run as an operator, kusion will generate the
 		// most widely-known annotation for workloads that can be consumed by
 		// the out-of-the-box community version of Prometheus server
-		// installation shown as below:
+		// installation shown as below. In this case, path and port cannot be
+		// omitted
+		if p.app.Monitoring.Path == "" || p.app.Monitoring.Port == "" {
+			return monitoring.ErrPathAndPortEmpty
+		}
 		monitoringAnnotations["prometheus.io/scrape"] = "true"
 		monitoringAnnotations["prometheus.io/scheme"] = p.app.Monitoring.Scheme
 		monitoringAnnotations["prometheus.io/path"] = p.app.Monitoring.Path
@@ -120,18 +124,26 @@ func (p *monitoringPatcher) parseWorkspaceConfig() error {
 
 	if monitorType, ok := wsConfig[monitoring.MonitorTypeKey]; ok {
 		p.app.Monitoring.MonitorType = monitoring.MonitorType(monitorType.(string))
+	} else {
+		p.app.Monitoring.MonitorType = monitoring.DefaultMonitorType
 	}
 
 	if interval, ok := wsConfig[monitoring.IntervalKey]; ok {
 		p.app.Monitoring.Interval = prometheusv1.Duration(interval.(string))
+	} else {
+		p.app.Monitoring.Interval = monitoring.DefaultInterval
 	}
 
 	if timeout, ok := wsConfig[monitoring.TimeoutKey]; ok {
 		p.app.Monitoring.Timeout = prometheusv1.Duration(timeout.(string))
+	} else {
+		p.app.Monitoring.Timeout = monitoring.DefaultTimeout
 	}
 
 	if scheme, ok := wsConfig[monitoring.SchemeKey]; ok {
 		p.app.Monitoring.Scheme = scheme.(string)
+	} else {
+		p.app.Monitoring.Scheme = monitoring.DefaultScheme
 	}
 
 	parsedTimeout, err := time.ParseDuration(string(p.app.Monitoring.Timeout))

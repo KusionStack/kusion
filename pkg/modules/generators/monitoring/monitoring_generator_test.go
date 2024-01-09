@@ -51,14 +51,14 @@ func BuildMonitoringTestCase(
 	if operatorMode {
 		expectedResources = []apiv1.Resource{
 			{
-				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, uniqueName, strings.ToLower(string(monitorType))),
+				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, uniqueName, strings.ToLower(monitorType)),
 				Type: "Kubernetes",
 				Attributes: map[string]interface{}{
 					"apiVersion": "monitoring.coreos.com/v1",
 					"kind":       string(monitorKind),
 					"metadata": map[string]interface{}{
 						"creationTimestamp": nil,
-						"name":              fmt.Sprintf("%s-%s-monitor", uniqueName, strings.ToLower(string(monitorType))),
+						"name":              fmt.Sprintf("%s-%s-monitor", uniqueName, strings.ToLower(monitorType)),
 						"namespace":         projectName,
 					},
 					"spec": map[string]interface{}{
@@ -67,8 +67,8 @@ func BuildMonitoringTestCase(
 								"bearerTokenSecret": map[string]interface{}{
 									"key": "",
 								},
-								"interval":      string(interval),
-								"scrapeTimeout": string(timeout),
+								"interval":      interval,
+								"scrapeTimeout": timeout,
 								"path":          path,
 								"port":          port,
 								"scheme":        scheme,

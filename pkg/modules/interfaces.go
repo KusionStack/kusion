@@ -9,8 +9,10 @@ import (
 )
 
 // GVKDeployment is the GroupVersionKind of Deployment
-var GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
-var GVKService = corev1.SchemeGroupVersion.WithKind("Service").String()
+var (
+	GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
+	GVKService    = corev1.SchemeGroupVersion.WithKind("Service").String()
+)
 
 // Generator is an interface for things that can generate Intent from input
 // configurations.
