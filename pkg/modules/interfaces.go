@@ -2,6 +2,7 @@ package modules
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules/inputs"
@@ -9,6 +10,7 @@ import (
 
 // GVKDeployment is the GroupVersionKind of Deployment
 var GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
+var GVKService = corev1.SchemeGroupVersion.WithKind("Service").String()
 
 // Generator is an interface for things that can generate Intent from input
 // configurations.
