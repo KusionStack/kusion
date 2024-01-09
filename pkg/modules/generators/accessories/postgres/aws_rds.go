@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"os"
 
 	v1 "k8s.io/api/core/v1"
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
@@ -12,6 +13,7 @@ import (
 
 const (
 	defaultAWSProviderURL = "registry.terraform.io/hashicorp/aws/5.0.1"
+	awsRegionEnv          = "AWS_REGION"
 	awsSecurityGroup      = "aws_security_group"
 	awsDBInstance         = "aws_db_instance"
 )
@@ -60,9 +62,12 @@ func (g *postgresGenerator) generateAWSResources(db *postgres.PostgreSQL, spec *
 	}
 
 	// Get the aws provider region, and the region of the aws provider must be set.
-	awsProviderRegion, err := inputs.GetProviderRegion(g.tfConfigs[inputs.AWSProvider])
-	if err != nil {
-		return nil, err
+	var awsProviderRegion string
+	if awsProviderRegion = inputs.GetProviderRegion(g.tfConfigs[inputs.AWSProvider]); awsProviderRegion == "" {
+		awsProviderRegion = os.Getenv(awsRegionEnv)
+	}
+	if awsProviderRegion == "" {
+		return nil, fmt.Errorf("aws provider region should not be empty")
 	}
 
 	// Build random_password for aws_db_instance.

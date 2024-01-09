@@ -11,7 +11,6 @@ import (
 const (
 	errInvalidProviderSource = "invalid provider source: %s"
 	errEmptyProviderVersion  = "empty provider version"
-	errEmptyProviderRegion   = "empty provider region for source: %s"
 )
 
 const (
@@ -75,11 +74,11 @@ func GetProviderURL(providerConfig *apiv1.ProviderConfig) (string, error) {
 }
 
 // GetProviderRegion returns the region of the terraform provider.
-func GetProviderRegion(providerConfig *apiv1.ProviderConfig) (string, error) {
+func GetProviderRegion(providerConfig *apiv1.ProviderConfig) string {
 	region, ok := providerConfig.GenericConfig["region"]
 	if !ok {
-		return "", fmt.Errorf(errEmptyProviderRegion, providerConfig.Source)
+		return ""
 	}
 
-	return region.(string), nil
+	return region.(string)
 }
