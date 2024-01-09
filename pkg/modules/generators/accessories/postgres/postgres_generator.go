@@ -119,7 +119,7 @@ func (g *postgresGenerator) Generate(spec *apiv1.Intent) error {
 			return err
 		}
 
-		switch providerType {
+		switch strings.ToLower(providerType) {
 		case "aws":
 			secret, err = g.generateAWSResources(db, spec)
 		case "alicloud":
