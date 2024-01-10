@@ -218,19 +218,19 @@ status: {}
 				},
 				serviceConfig: apiv1.GenericConfig{
 					"type": "CollaSet",
-					"labels": map[string]any{
+					"labels": apiv1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
-					"annotations": map[string]any{
+					"annotations": apiv1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
 				},
 				portConfig: apiv1.GenericConfig{
 					"type": "alicloud",
-					"labels": map[string]any{
+					"labels": apiv1.GenericConfig{
 						"kusionstack.io/control": "true",
 					},
-					"annotations": map[string]any{
+					"annotations": apiv1.GenericConfig{
 						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},
@@ -276,16 +276,16 @@ status: {}
 				},
 				serviceConfig: apiv1.GenericConfig{
 					"replicas": 4,
-					"labels": map[string]any{
+					"labels": apiv1.GenericConfig{
 						"service-workload-type": "Deployment",
 					},
 				},
 				portConfig: apiv1.GenericConfig{
 					"type": "alicloud",
-					"labels": map[string]any{
+					"labels": apiv1.GenericConfig{
 						"kusionstack.io/control": "true",
 					},
-					"annotations": map[string]any{
+					"annotations": apiv1.GenericConfig{
 						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},

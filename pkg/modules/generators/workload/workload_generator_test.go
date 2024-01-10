@@ -151,10 +151,10 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				},
 				"port": {
 					"type": "alicloud",
-					"labels": map[string]any{
+					"labels": apiv1.GenericConfig{
 						"kusionstack.io/control": "true",
 					},
-					"annotations": map[string]any{
+					"annotations": apiv1.GenericConfig{
 						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},
@@ -392,11 +392,11 @@ func TestCompleteBaseWorkload(t *testing.T) {
 				},
 			},
 			config: apiv1.GenericConfig{
-				"labels": map[string]any{
+				"labels": apiv1.GenericConfig{
 					"k1": "v1-ws",
 					"k3": "v3-ws",
 				},
-				"annotations": map[string]any{
+				"annotations": apiv1.GenericConfig{
 					"k1": "v1-ws",
 				},
 				"replicas": 4,

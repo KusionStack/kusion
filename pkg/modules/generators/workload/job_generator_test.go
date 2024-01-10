@@ -45,10 +45,10 @@ func TestNewJobGenerator(t *testing.T) {
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	expectedJobConfig := apiv1.GenericConfig{
-		"labels": map[string]any{
+		"labels": apiv1.GenericConfig{
 			"workload-type": "Job",
 		},
-		"annotations": map[string]any{
+		"annotations": apiv1.GenericConfig{
 			"workload-type": "Job",
 		},
 	}
@@ -72,10 +72,10 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	expectedJobConfig := apiv1.GenericConfig{
-		"labels": map[string]any{
+		"labels": apiv1.GenericConfig{
 			"workload-type": "Job",
 		},
-		"annotations": map[string]any{
+		"annotations": apiv1.GenericConfig{
 			"workload-type": "Job",
 		},
 	}
@@ -110,10 +110,10 @@ func TestJobGenerator_Generate(t *testing.T) {
 			expectedAppName: "test",
 			expectedJob:     &workload.Job{},
 			expectedJobConfig: apiv1.GenericConfig{
-				"labels": map[string]any{
+				"labels": apiv1.GenericConfig{
 					"workload-type": "Job",
 				},
-				"annotations": map[string]any{
+				"annotations": apiv1.GenericConfig{
 					"workload-type": "Job",
 				},
 			},

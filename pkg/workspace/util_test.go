@@ -12,11 +12,11 @@ func mockGenericConfig() v1.GenericConfig {
 	return v1.GenericConfig{
 		"int_type_field":    2,
 		"string_type_field": "kusion",
-		"map_type_field": map[string]any{
+		"map_type_field": v1.GenericConfig{
 			"k1": "v1",
 			"k2": 2,
 		},
-		"string_map_type_field": map[string]any{
+		"string_map_type_field": v1.GenericConfig{
 			"k1": "v1",
 			"k2": "v2",
 		},
