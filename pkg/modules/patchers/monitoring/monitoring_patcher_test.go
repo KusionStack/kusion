@@ -23,9 +23,8 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 	}
 
 	type fields struct {
-		appName string
-		app     *modelsapp.AppConfiguration
-		project *apiv1.Project
+		app       *modelsapp.AppConfiguration
+		workspace map[string]apiv1.GenericConfig
 	}
 	type args struct {
 		resources map[string][]*apiv1.Resource
@@ -39,13 +38,20 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 		{
 			name: "operatorModeTrue",
 			fields: fields{
-				appName: "test",
 				app: &modelsapp.AppConfiguration{
-					Monitoring: &monitoring.Monitor{},
+					Name: "test-app",
+					Monitoring: &monitoring.Monitor{
+						Path: "/metrics",
+						Port: "web",
+					},
 				},
-				project: &apiv1.Project{
-					Prometheus: &apiv1.PrometheusConfig{
-						OperatorMode: true,
+				workspace: map[string]apiv1.GenericConfig{
+					"monitoring": {
+						"operatorMode": true,
+						"monitorType":  "Pod",
+						"scheme":       "http",
+						"interval":     "30s",
+						"timeout":      "15s",
 					},
 				},
 			},
@@ -57,13 +63,19 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 		{
 			name: "operatorModeFalse",
 			fields: fields{
-				appName: "test",
 				app: &modelsapp.AppConfiguration{
-					Monitoring: &monitoring.Monitor{},
+					Name: "test-app",
+					Monitoring: &monitoring.Monitor{
+						Path: "/metrics",
+						Port: "8080",
+					},
 				},
-				project: &apiv1.Project{
-					Prometheus: &apiv1.PrometheusConfig{
-						OperatorMode: false,
+				workspace: map[string]apiv1.GenericConfig{
+					"monitoring": {
+						"operatorMode": false,
+						"scheme":       "http",
+						"interval":     "30s",
+						"timeout":      "15s",
 					},
 				},
 			},
@@ -76,9 +88,8 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &monitoringPatcher{
-				appName: tt.fields.appName,
-				app:     tt.fields.app,
-				project: tt.fields.project,
+				app:           tt.fields.app,
+				modulesConfig: tt.fields.workspace,
 			}
 			tt.wantErr(t, p.Patch(tt.args.resources), fmt.Sprintf("Patch(%v)", tt.args.resources))
 			// check if the deployment is patched
@@ -86,11 +97,11 @@ func Test_monitoringPatcher_Patch(t *testing.T) {
 			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(i.Resources[0].Attributes, &deployment); err != nil {
 				t.Fatal(err)
 			}
-			if tt.fields.project.Prometheus.OperatorMode {
+			if tt.fields.app.Monitoring.OperatorMode {
 				assert.NotNil(t, deployment.Labels)
 				assert.NotNil(t, deployment.Spec.Template.Labels)
-				assert.Equal(t, deployment.Labels["kusion_monitoring_appname"], tt.fields.appName)
-				assert.Equal(t, deployment.Spec.Template.Labels["kusion_monitoring_appname"], tt.fields.appName)
+				assert.Equal(t, deployment.Labels["kusion_monitoring_appname"], tt.fields.app.Name)
+				assert.Equal(t, deployment.Spec.Template.Labels["kusion_monitoring_appname"], tt.fields.app.Name)
 			} else {
 				assert.NotNil(t, deployment.Annotations)
 				assert.NotNil(t, deployment.Spec.Template.Annotations)
@@ -123,31 +134,42 @@ func buildMockDeployment() *appsv1.Deployment {
 
 func TestNewMonitoringPatcherFunc(t *testing.T) {
 	type args struct {
-		appName string
-		app     *modelsapp.AppConfiguration
-		project *apiv1.Project
+		app       *modelsapp.AppConfiguration
+		workspace map[string]apiv1.GenericConfig
 	}
 	tests := []struct {
 		name string
 		args args
-		want modules.NewPatcherFunc
 	}{
 		{
 			name: "NewMonitoringPatcherFunc",
 			args: args{
-				appName: "test",
-				app:     &modelsapp.AppConfiguration{},
-				project: &apiv1.Project{},
+				app: &modelsapp.AppConfiguration{
+					Name: "test-app",
+					Monitoring: &monitoring.Monitor{
+						Path: "/metrics",
+						Port: "web",
+					},
+				},
+				workspace: map[string]apiv1.GenericConfig{
+					"monitoring": {
+						"operatorMode": true,
+						"monitorType":  "Pod",
+						"scheme":       "http",
+						"interval":     "15s",
+						"timeout":      "30s",
+					},
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patcherFunc := NewMonitoringPatcherFunc(tt.args.appName, tt.args.app, tt.args.project)
+			patcherFunc := NewMonitoringPatcherFunc(tt.args.app, tt.args.workspace)
 			assert.NotNil(t, patcherFunc)
 			patcher, err := patcherFunc()
 			assert.NoError(t, err)
-			assert.Equal(t, tt.args.appName, patcher.(*monitoringPatcher).appName)
+			assert.Equal(t, tt.args.app.Name, patcher.(*monitoringPatcher).app.Name)
 		})
 	}
 }

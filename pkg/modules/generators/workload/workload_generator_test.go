@@ -137,10 +137,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			expectedProject := &apiv1.Project{
 				Name: "test",
-				Prometheus: &apiv1.PrometheusConfig{
-					OperatorMode: false,
-					MonitorType:  "Pod",
-				},
 			}
 			expectedStack := &apiv1.Stack{
 				Name: "teststack",

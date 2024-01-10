@@ -115,7 +115,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	// Patcher logic patches generated resources
 	pfs := []modules.NewPatcherFunc{
 		pattrait.NewOpsRulePatcherFunc(g.app, modulesConfig),
-		patmonitoring.NewMonitoringPatcherFunc(g.appName, g.app, g.project),
+		patmonitoring.NewMonitoringPatcherFunc(g.app, modulesConfig),
 	}
 	if err := modules.CallPatchers(i.Resources.GVKIndex(), pfs...); err != nil {
 		return err

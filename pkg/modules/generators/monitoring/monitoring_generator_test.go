@@ -5,17 +5,19 @@ import (
 	"strings"
 	"testing"
 
-	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
 )
 
 type Fields struct {
 	project *apiv1.Project
-	monitor *monitoring.Monitor
-	appName string
+	stack   *apiv1.Stack
+	app     *inputs.AppConfiguration
+	ws      map[string]apiv1.GenericConfig
 }
 
 type Args struct {
@@ -31,33 +33,32 @@ type TestCase struct {
 }
 
 func BuildMonitoringTestCase(
-	projectName, appName string,
-	interval, timeout prometheusv1.Duration,
-	path, port, scheme string,
-	monitorType apiv1.MonitorType,
-	operatorMode bool,
+	testName, projectName, stackName, appName string,
+	interval, timeout, path, port, scheme, monitorType string,
+	operatorMode, wantErr bool,
 ) *TestCase {
 	var endpointType string
-	var monitorKind apiv1.MonitorType
-	if monitorType == "Service" {
+	var monitorKind monitoring.MonitorType
+	if monitorType == string(monitoring.ServiceMonitorType) {
 		monitorKind = "ServiceMonitor"
 		endpointType = "endpoints"
-	} else if monitorType == "Pod" {
+	} else if monitorType == string(monitoring.PodMonitorType) {
 		monitorKind = "PodMonitor"
 		endpointType = "podMetricsEndpoints"
 	}
 	expectedResources := make([]apiv1.Resource, 0)
+	uniqueName := modules.UniqueAppName(projectName, stackName, appName)
 	if operatorMode {
 		expectedResources = []apiv1.Resource{
 			{
-				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, appName, strings.ToLower(string(monitorType))),
+				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, uniqueName, strings.ToLower(monitorType)),
 				Type: "Kubernetes",
 				Attributes: map[string]interface{}{
 					"apiVersion": "monitoring.coreos.com/v1",
 					"kind":       string(monitorKind),
 					"metadata": map[string]interface{}{
 						"creationTimestamp": nil,
-						"name":              fmt.Sprintf("%s-%s-monitor", appName, strings.ToLower(string(monitorType))),
+						"name":              fmt.Sprintf("%s-%s-monitor", uniqueName, strings.ToLower(monitorType)),
 						"namespace":         projectName,
 					},
 					"spec": map[string]interface{}{
@@ -66,8 +67,8 @@ func BuildMonitoringTestCase(
 								"bearerTokenSecret": map[string]interface{}{
 									"key": "",
 								},
-								"interval":      string(interval),
-								"scrapeTimeout": string(timeout),
+								"interval":      interval,
+								"scrapeTimeout": timeout,
 								"path":          path,
 								"port":          port,
 								"scheme":        scheme,
@@ -89,24 +90,30 @@ func BuildMonitoringTestCase(
 		}
 	}
 	testCase := &TestCase{
-		name: fmt.Sprintf("%s-%s", projectName, appName),
+		name: testName,
 		fields: Fields{
 			project: &apiv1.Project{
 				Name: projectName,
-				Prometheus: &apiv1.PrometheusConfig{
-					OperatorMode: operatorMode,
-					MonitorType:  monitorType,
+			},
+			stack: &apiv1.Stack{
+				Name: stackName,
+			},
+			app: &inputs.AppConfiguration{
+				Name: appName,
+				Monitoring: &monitoring.Monitor{
+					Path: path,
+					Port: port,
 				},
-				Path: "/test-project",
 			},
-			monitor: &monitoring.Monitor{
-				Interval: interval,
-				Timeout:  timeout,
-				Path:     path,
-				Port:     port,
-				Scheme:   scheme,
+			ws: map[string]apiv1.GenericConfig{
+				"monitoring": {
+					"operatorMode": operatorMode,
+					"monitorType":  monitorType,
+					"scheme":       scheme,
+					"interval":     interval,
+					"timeout":      timeout,
+				},
 			},
-			appName: appName,
 		},
 		args: Args{
 			spec: &apiv1.Intent{},
@@ -114,30 +121,36 @@ func BuildMonitoringTestCase(
 		want: &apiv1.Intent{
 			Resources: expectedResources,
 		},
-		wantErr: false,
+		wantErr: wantErr,
 	}
 	return testCase
 }
 
 func TestMonitoringGenerator_Generate(t *testing.T) {
 	tests := []TestCase{
-		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "Service", true),
-		*BuildMonitoringTestCase("test-project", "test-app", "15s", "5s", "/metrics", "web", "http", "Pod", true),
-		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "Service", false),
-		*BuildMonitoringTestCase("test-project", "test-app", "30s", "15s", "/metrics", "8080", "http", "Pod", false),
+		*BuildMonitoringTestCase("ServiceMonitorTest", "test-project", "test-stack", "test-app", "15s", "5s", "/metrics", "web", "http", "Service", true, false),
+		*BuildMonitoringTestCase("PodMonitorTest", "test-project", "test-stack", "test-app", "15s", "5s", "/metrics", "web", "http", "Pod", true, false),
+		*BuildMonitoringTestCase("ServiceAnnotationTest", "test-project", "test-stack", "test-app", "30s", "15s", "/metrics", "8080", "http", "Service", false, false),
+		*BuildMonitoringTestCase("PodAnnotationTest", "test-project", "test-stack", "test-app", "30s", "15s", "/metrics", "8080", "http", "Pod", false, false),
+		*BuildMonitoringTestCase("InvalidDurationTest", "test-project", "test-stack", "test-app", "15s", "5ssss", "/metrics", "8080", "http", "Pod", false, true),
+		*BuildMonitoringTestCase("InvalidTimeoutTest", "test-project", "test-stack", "test-app", "15s", "30s", "/metrics", "8080", "http", "Pod", false, true),
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &monitoringGenerator{
-				project:   tt.fields.project,
-				monitor:   tt.fields.monitor,
-				appName:   tt.fields.appName,
-				namespace: tt.fields.project.Name,
+				project:       tt.fields.project,
+				stack:         tt.fields.stack,
+				appName:       tt.fields.app.Name,
+				app:           tt.fields.app,
+				modulesConfig: tt.fields.ws,
+				namespace:     tt.fields.project.Name,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			require.Equal(t, tt.want, tt.args.spec)
+			if !tt.wantErr {
+				require.Equal(t, tt.want, tt.args.spec)
+			}
 		})
 	}
 }

@@ -1,41 +1,51 @@
 package monitoring
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
+	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
-	modelsapp "kusionstack.io/kusion/pkg/modules/inputs"
+	"kusionstack.io/kusion/pkg/modules/inputs"
+	"kusionstack.io/kusion/pkg/modules/inputs/monitoring"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type monitoringPatcher struct {
-	appName string
-	app     *modelsapp.AppConfiguration
-	project *apiv1.Project
+	app           *inputs.AppConfiguration
+	modulesConfig map[string]apiv1.GenericConfig
 }
 
 // NewMonitoringPatcher returns a Patcher.
-func NewMonitoringPatcher(appName string, app *modelsapp.AppConfiguration, project *apiv1.Project) (modules.Patcher, error) {
+func NewMonitoringPatcher(app *inputs.AppConfiguration, modulesConfig map[string]apiv1.GenericConfig) (modules.Patcher, error) {
 	return &monitoringPatcher{
-		appName: appName,
-		app:     app,
-		project: project,
+		app:           app,
+		modulesConfig: modulesConfig,
 	}, nil
 }
 
 // NewMonitoringPatcherFunc returns a NewPatcherFunc.
-func NewMonitoringPatcherFunc(appName string, app *modelsapp.AppConfiguration, project *apiv1.Project) modules.NewPatcherFunc {
+func NewMonitoringPatcherFunc(app *inputs.AppConfiguration, modulesConfig map[string]apiv1.GenericConfig) modules.NewPatcherFunc {
 	return func() (modules.Patcher, error) {
-		return NewMonitoringPatcher(appName, app, project)
+		return NewMonitoringPatcher(app, modulesConfig)
 	}
 }
 
 // Patch implements Patcher interface.
 func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error {
-	if p.app.Monitoring == nil || p.project.Prometheus == nil {
+	// If AppConfiguration does not contain monitoring config, return
+	if p.app.Monitoring == nil {
 		return nil
+	}
+
+	// Patch workspace configurations for monitoring generator.
+	if err := p.parseWorkspaceConfig(); err != nil {
+		return err
 	}
 
 	// If Prometheus runs as an operator, it relies on Custom Resources to
@@ -52,20 +62,24 @@ func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error 
 	monitoringLabels := make(map[string]string)
 	monitoringAnnotations := make(map[string]string)
 
-	if p.project.Prometheus.OperatorMode {
-		monitoringLabels["kusion_monitoring_appname"] = p.appName
+	if p.app.Monitoring.OperatorMode {
+		monitoringLabels["kusion_monitoring_appname"] = p.app.Name
 	} else {
 		// If Prometheus doesn't run as an operator, kusion will generate the
 		// most widely-known annotation for workloads that can be consumed by
 		// the out-of-the-box community version of Prometheus server
-		// installation shown as below:
+		// installation shown as below. In this case, path and port cannot be
+		// omitted
+		if p.app.Monitoring.Path == "" || p.app.Monitoring.Port == "" {
+			return monitoring.ErrPathAndPortEmpty
+		}
 		monitoringAnnotations["prometheus.io/scrape"] = "true"
 		monitoringAnnotations["prometheus.io/scheme"] = p.app.Monitoring.Scheme
 		monitoringAnnotations["prometheus.io/path"] = p.app.Monitoring.Path
 		monitoringAnnotations["prometheus.io/port"] = p.app.Monitoring.Port
 	}
 
-	if err := modules.PatchResource[appsv1.Deployment](resources, modules.GVKDeployment, func(obj *appsv1.Deployment) error {
+	if err := modules.PatchResource(resources, modules.GVKDeployment, func(obj *appsv1.Deployment) error {
 		obj.Labels = modules.MergeMaps(obj.Labels, monitoringLabels)
 		obj.Annotations = modules.MergeMaps(obj.Annotations, monitoringAnnotations)
 		obj.Spec.Template.Labels = modules.MergeMaps(obj.Spec.Template.Labels, monitoringLabels)
@@ -75,7 +89,7 @@ func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error 
 		return err
 	}
 
-	if err := modules.PatchResource[v1alpha1.CollaSet](resources, modules.GVKDeployment, func(obj *v1alpha1.CollaSet) error {
+	if err := modules.PatchResource(resources, modules.GVKDeployment, func(obj *v1alpha1.CollaSet) error {
 		obj.Labels = modules.MergeMaps(obj.Labels, monitoringLabels)
 		obj.Annotations = modules.MergeMaps(obj.Annotations, monitoringAnnotations)
 		obj.Spec.Template.Labels = modules.MergeMaps(obj.Spec.Template.Labels, monitoringLabels)
@@ -84,5 +98,66 @@ func (p *monitoringPatcher) Patch(resources map[string][]*apiv1.Resource) error 
 	}); err != nil {
 		return err
 	}
+
+	if err := modules.PatchResource(resources, modules.GVKService, func(obj *corev1.Service) error {
+		obj.Labels = modules.MergeMaps(obj.Labels, monitoringLabels)
+		obj.Annotations = modules.MergeMaps(obj.Annotations, monitoringAnnotations)
+		return nil
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+// parseWorkspaceConfig parses the config items for monitoring generator in workspace configurations.
+func (p *monitoringPatcher) parseWorkspaceConfig() error {
+	wsConfig, ok := p.modulesConfig[monitoring.ModuleName]
+	// If AppConfiguration contains monitoring config but workspace does not,
+	// respond with the error ErrEmptyModuleConfigBlock
+	if p.app.Monitoring != nil && !ok {
+		return workspace.ErrEmptyModuleConfigBlock
+	}
+
+	if operatorMode, ok := wsConfig[monitoring.OperatorModeKey]; ok {
+		p.app.Monitoring.OperatorMode = operatorMode.(bool)
+	}
+
+	if monitorType, ok := wsConfig[monitoring.MonitorTypeKey]; ok {
+		p.app.Monitoring.MonitorType = monitoring.MonitorType(monitorType.(string))
+	} else {
+		p.app.Monitoring.MonitorType = monitoring.DefaultMonitorType
+	}
+
+	if interval, ok := wsConfig[monitoring.IntervalKey]; ok {
+		p.app.Monitoring.Interval = prometheusv1.Duration(interval.(string))
+	} else {
+		p.app.Monitoring.Interval = monitoring.DefaultInterval
+	}
+
+	if timeout, ok := wsConfig[monitoring.TimeoutKey]; ok {
+		p.app.Monitoring.Timeout = prometheusv1.Duration(timeout.(string))
+	} else {
+		p.app.Monitoring.Timeout = monitoring.DefaultTimeout
+	}
+
+	if scheme, ok := wsConfig[monitoring.SchemeKey]; ok {
+		p.app.Monitoring.Scheme = scheme.(string)
+	} else {
+		p.app.Monitoring.Scheme = monitoring.DefaultScheme
+	}
+
+	parsedTimeout, err := time.ParseDuration(string(p.app.Monitoring.Timeout))
+	if err != nil {
+		return err
+	}
+	parsedInterval, err := time.ParseDuration(string(p.app.Monitoring.Interval))
+	if err != nil {
+		return err
+	}
+
+	if parsedTimeout > parsedInterval {
+		return monitoring.ErrTimeoutGreaterThanInterval
+	}
+
 	return nil
 }
