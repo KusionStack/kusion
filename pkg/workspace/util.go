@@ -247,7 +247,7 @@ func GetMapFromGenericConfig(config v1.GenericConfig, key string) (map[string]an
 	if !ok {
 		return nil, nil
 	}
-	m, ok := value.(map[string]any)
+	m, ok := value.(v1.GenericConfig)
 	if !ok {
 		return nil, fmt.Errorf("the value of %s is not map", key)
 	}

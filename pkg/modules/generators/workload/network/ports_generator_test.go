@@ -87,10 +87,10 @@ func TestValidatePortConfig(t *testing.T) {
 			name: "valid port config",
 			portConfig: apiv1.GenericConfig{
 				"type": "alicloud",
-				"labels": map[string]any{
+				"labels": apiv1.GenericConfig{
 					"kusionstack.io/control": "true",
 				},
-				"annotations": map[string]any{
+				"annotations": apiv1.GenericConfig{
 					"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 				},
 			},
@@ -144,10 +144,10 @@ func TestCompletePort(t *testing.T) {
 			},
 			portConfig: apiv1.GenericConfig{
 				"type": "alicloud",
-				"labels": map[string]any{
+				"labels": apiv1.GenericConfig{
 					"kusionstack.io/control": "true",
 				},
-				"annotations": map[string]any{
+				"annotations": apiv1.GenericConfig{
 					"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 				},
 			},
@@ -262,10 +262,10 @@ func TestPortsGenerator_Generate(t *testing.T) {
 					},
 					portConfig: apiv1.GenericConfig{
 						"type": "alicloud",
-						"labels": map[string]any{
+						"labels": apiv1.GenericConfig{
 							"kusionstack.io/control": "true",
 						},
-						"annotations": map[string]any{
+						"annotations": apiv1.GenericConfig{
 							"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 						},
 					},
