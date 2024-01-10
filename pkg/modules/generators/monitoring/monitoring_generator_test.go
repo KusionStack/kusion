@@ -39,10 +39,10 @@ func BuildMonitoringTestCase(
 ) *TestCase {
 	var endpointType string
 	var monitorKind monitoring.MonitorType
-	if monitorType == "Service" {
+	if monitorType == string(monitoring.ServiceMonitorType) {
 		monitorKind = "ServiceMonitor"
 		endpointType = "endpoints"
-	} else if monitorType == "Pod" {
+	} else if monitorType == string(monitoring.PodMonitorType) {
 		monitorKind = "PodMonitor"
 		endpointType = "podMetricsEndpoints"
 	}

@@ -174,7 +174,7 @@ func (g *monitoringGenerator) buildMonitorObject(monitorType monitoring.MonitorT
 		"kusion_monitoring_appname": g.appName,
 	}
 
-	if monitorType == "Service" {
+	if monitorType == monitoring.ServiceMonitorType {
 		serviceEndpoint := prometheusv1.Endpoint{
 			Interval:      g.app.Monitoring.Interval,
 			ScrapeTimeout: g.app.Monitoring.Timeout,
@@ -200,7 +200,7 @@ func (g *monitoringGenerator) buildMonitorObject(monitorType monitoring.MonitorT
 			},
 		}
 		return serviceMonitor, nil
-	} else if monitorType == "Pod" {
+	} else if monitorType == monitoring.PodMonitorType {
 		podMetricsEndpoint := prometheusv1.PodMetricsEndpoint{
 			Interval:      g.app.Monitoring.Interval,
 			ScrapeTimeout: g.app.Monitoring.Timeout,
