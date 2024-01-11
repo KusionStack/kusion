@@ -91,7 +91,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --config .goreleaser_formal.yml --clean
+          args: release --config .goreleaser_informal.yml --clean
         env:
           GITHUB_TOKEN: ${{ secrets.KUSIONSTACK_BOT_TOKEN }}
           KUSION_VERSION: ${{ steps.get_version.outputs.kusion_version }}
