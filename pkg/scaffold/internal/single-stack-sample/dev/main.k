@@ -14,7 +14,7 @@ import catalog.models.schema.v1.workload.container as c
                 }
             }
         }
-        replicas: 1
+        replicas: 2
         ports: [
             n.Port {
                 port: 80

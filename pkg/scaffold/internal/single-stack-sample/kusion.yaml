@@ -1,19 +1,13 @@
 projectName: single-stack-sample
 description: A minimal kusion project of single stack
-quickstart: kusion apply
 projectFields:
   - name: AppName
     description: The Application Name.
     type: string
     default: nginx
-  - name: ProjectName
-    description: The Project Name.
+  - name: Image
+    description: The Image Address.
     type: string
-    default: helloworld
+    default: nginx
 stacks:
   - name: dev
-    fields:
-      - name: Image
-        description: The Image Address. Default to 'nginx'.
-        type: string
-        default: nginx

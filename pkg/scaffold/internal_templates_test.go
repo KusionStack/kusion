@@ -82,10 +82,8 @@ func Test_readIntoFS(t *testing.T) {
 
 	want := []string{
 		"internal/single-stack-sample",
-		"internal/single-stack-sample/README.md",
 		"internal/single-stack-sample/dev",
 		"internal/single-stack-sample/dev/kcl.mod",
-		"internal/single-stack-sample/dev/kcl.mod.lock",
 		"internal/single-stack-sample/dev/main.k",
 		"internal/single-stack-sample/dev/stack.yaml",
 		"internal/single-stack-sample/kusion.yaml",
