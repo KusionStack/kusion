@@ -22,15 +22,16 @@
 
 # Kusion
 
-Kusion is the platform engineering engine of [KusionStack](https://github.com/KusionStack). It delivers intentions described with Kusion Models defined in [Catalog](https://github.com/KusionStack/catalog) to Kubernetes, Clouds and On-Prem infrastructures.
+Kusion is the cloud-native platform engineering engine of [KusionStack](https://github.com/KusionStack), designed to help you build your efficient and secure Internal Developer Platform (IDP). It allows application developers to easily and consistently perform all operational tasks throughout the Software Development Lifecycle (SDLC) in one place, across different infrastructures including Kubernetes, cloud platforms, and on-premises environments
+
 ## Key Features
 
-- **Application-Centric**: Managing all application operations in one place, in a unified way
-- **Enable Self-Service**: Developers fulfill their own needs by using the capabilities provided by the platform
-- **Shift left security**: Guarantee security at the earliest stages to make operation more confidence
-- **Kubernetes-friendly**: Provide friendly observability and troubleshooting capabilities to make Kubernetes operations
-  easier.
-
+- **Platform as Code**: Managing all application operations in one place, in a unified, easy way.
+- **Dynamic Configuration Management**: Developers deploy to any environment using one environment-agnostic configuration, while Kusion handles the underlying complexity.
+- **Enable Self-Service**: Developers fulfill their own needs by choosing the capabilities provided by the platform engineers in [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module).
+- **Built-in Security and Compliance**: Platform engineers standardize application deliveries with security, compliance, and best practices by flexible platform configurations.
+- **Open Module Ecosystem**: A growing open module ecosystem covers all stages of SDLC, with extensive connections to various cloud-native infrastructures.
+- **Lightweight and Kubernetes-friendly**: As a pure client-side solution with rich APIs, Kusion offers excellent portability and ease of integration. Meanwhile, user-friendly observability and troubleshooting capabilities make Kubernetes operations easier.
 
 <div align="center">
 
@@ -80,4 +81,6 @@ docker pull kusionstack/kusion:latest
 
 # 🎖︎ Contribution Guide
 
-Kusion is still in the initial stage, and there are many capabilities that need to be made up, so we welcome everyone to participate in construction with us. Visit the [Contribution Guide](docs/contributing.md) to understand how to participate in the contribution KusionStack project. If you have any questions, please [Submit the Issue](https://github.com/KusionStack/kusion/issues).
+Kusion is still in the rapid development stage with many capabilities to be enhanced. We welcome everyone to join us and contribute to the collaborative growth.
+
+Visit the [Contribution Guide](docs/contributing.md) to understand how to participate in the contribution KusionStack project. If you have any questions, please [Submit the Issue](https://github.com/KusionStack/kusion/issues).

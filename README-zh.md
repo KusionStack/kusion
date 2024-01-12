@@ -3,7 +3,7 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>更高效更安全地构建你的内部研发平台</h1>
+<h1>更高效、更安全地构建你的内部研发者平台</h1>
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md)
 
@@ -19,15 +19,16 @@
 
 # Kusion
 
-Kusion 是 [KusionStack](https://github.com/KusionStack) 的平台工程引擎，可以解析用户使用 [Catalog](https://github.com/KusionStack/catalog) 中的 Kusion 模型描述的运维意图，对 Kubernetes、IaaS 云资源和自定义基础设施进行运维
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工程引擎，旨在帮助您构建高效且安全的内部开发者平台（IDP）。它允许应用程序开发者在一个地方轻松且一致地完成软件开发生命周期（SDLC）中的所有运维任务，跨越包括 Kubernetes、云平台和自建基础设置在内的不同基础设施。
 
 ## 核心能力
 
-- **以应用为中心**: 在同一个地方、以统一的方式，管理应用所需要的所有的运维操作
-- **研发自服务**: 研发可以利用平台提供的能力，自助实现自己的需求
-- **风险左移**: 在运维前期保证安全性，使操作更有信心。
-- **Kubernetes 友好**: 提供友好的可观测性与排障能力，让 Kubernetes 运维更简单
-
+**平台代码化**：在同一个地方、以统一的方式，管理应用所有的运维操作。
+**动态配置管理**：开发人员可用一份与环境无关的配置，部署到任何环境，环境差异性由 Kusion 处理。
+**研发自服务**：开发人员可以通过选择平台工程师在 [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module) 中提供的功能来自助满足需求。
+**内置安全性和合规性**：平台工程师可以通过灵活的平台配置，实现满足安全性、合规性和最佳实践的标准化应用程序交付。
+**开放模块生态系统**：不断增长的开放模块生态系统涵盖了软件开发生命周期（SDLC）的所有阶段，并与各种云原生基础设施有广泛的连接。
+**轻量级并且 Kubernetes 友好**：Kusion 作为一个纯客户端解决方案，拥有丰富的 API，提供了出色的可移植性和集成便利性。同时用户友好的可观察性和故障排除能力使得 Kubernetes 操作更加简单。
 
 <div align="center">
 
@@ -67,6 +68,6 @@ docker pull kusionstack/kusion:latest
 
 # 🎖︎ 贡献指南
 
-Kusion 仍处在初级阶段，有很多能力需要补全，所以我们欢迎所有人参与进来与我们一起共建。
+Kusion 仍处在快速发展阶段，有很多能力需要补全，我们欢迎所有人参与进来与我们一起共建。
 访问[贡献指南](docs/contributing.md)了解如何参与到贡献 Kusion 项目中。
 如有任何疑问欢迎[提交 Issue](https://github.com/KusionStack/kusion/issues)。
