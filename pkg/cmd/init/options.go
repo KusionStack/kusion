@@ -127,7 +127,7 @@ func (o *Options) Run() error {
 			defaultName = template.Name
 		}
 		if !o.Yes {
-			o.ProjectName, err = promptValue("Project Name", "ProjectName is a required fully qualified name", defaultName, scaffold.ValidateProjectName)
+			o.ProjectName, err = promptValue("ProjectName", "ProjectName is a required fully qualified name", defaultName, scaffold.ValidateProjectName)
 			if err != nil {
 				return err
 			}
@@ -185,6 +185,10 @@ func (o *Options) Run() error {
 	// Make dest directory with project name
 	desDir := filepath.Join(cwd, o.ProjectName)
 
+	// reuse the project name
+	if tc.ProjectConfig["ProjectName"] == nil {
+		tc.ProjectConfig["ProjectName"] = o.ProjectName
+	}
 	// Actually copy the files.
 	if err = scaffold.RenderLocalTemplate(template.Dir, desDir, o.Force, &tc); err != nil {
 		if os.IsNotExist(err) {

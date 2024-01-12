@@ -31,7 +31,6 @@ var (
 		ProjectTemplate: &ProjectTemplate{
 			ProjectName: "single-stack-sample",
 			Description: "A minimal kusion project of single stack",
-			Quickstart:  "kusion apply",
 			ProjectFields: []*FieldTemplate{
 				{
 					Name:        "AppName",
@@ -40,23 +39,15 @@ var (
 					Default:     "nginx",
 				},
 				{
-					Name:        "ProjectName",
-					Description: "The Project Name.",
+					Name:        "Image",
+					Description: "The Image Address.",
 					Type:        StringField,
-					Default:     "helloworld",
+					Default:     "nginx",
 				},
 			},
 			StackTemplates: []*StackTemplate{
 				{
 					Name: "dev",
-					Fields: []*FieldTemplate{
-						{
-							Name:        "Image",
-							Description: "The Image Address. Default to 'nginx'.",
-							Type:        StringField,
-							Default:     "nginx",
-						},
-					},
 				},
 			},
 		},

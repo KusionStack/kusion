@@ -19,7 +19,7 @@ type ProjectTemplate struct {
 	StackTemplates []*StackTemplate `json:"stacks,omitempty" yaml:"stacks,omitempty"`
 }
 
-// StackTemplates contains configuration in stack level
+// StackTemplate contains configuration in stack level
 type StackTemplate struct {
 	// Name is stack name
 	Name string `json:"name" yaml:"name"`

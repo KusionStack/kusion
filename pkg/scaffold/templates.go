@@ -336,31 +336,31 @@ type TemplateConfig struct {
 }
 
 var (
-	// file flag, create or upate
+	// CreateOrUpdate is file flag, create or upate
 	CreateOrUpdate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	// default directory permission, 700
+	// DefaultDirectoryPermission is default directory permission, 700
 	DefaultDirectoryPermission os.FileMode = 0o700
-	// default file permission, 600
+	// DefaultFilePermission is default file permission, 600
 	DefaultFilePermission os.FileMode = 0o600
 )
 
 // RenderLocalTemplate does the actual copy operation from source directory to a destination directory.
 func RenderLocalTemplate(sourceDir, destDir string, force bool, tc *TemplateConfig) error {
-	// Source FS
+	// source FS
 	srcFS := afero.NewMemMapFs()
 	if err := ReadTemplate(sourceDir, srcFS); err != nil {
 		return err
 	}
-	// Destination FS
+	// destination FS
 	destFS := afero.NewMemMapFs()
 	if err := RenderFSTemplate(srcFS, sourceDir, destFS, destDir, tc); err != nil {
 		return err
 	}
-	// Write into disk
+	// write into disk
 	return WriteToDisk(destFS, destDir, force)
 }
 
-// Read files' content from local dir into file system
+// ReadTemplate read file content from local dir into file system.
 func ReadTemplate(dir string, fs afero.Fs) error {
 	fileInfos, err := os.ReadDir(dir)
 	if err != nil {
@@ -442,7 +442,7 @@ func RenderFSTemplate(srcFS afero.Fs, srcDir string, destFS afero.Fs, destDir st
 				}
 			}
 		} else {
-			// project files. eg: project.yaml, README.md
+			// project files. eg: project.yaml
 			err = doFile(srcFS, src, destFS, dest, d.Name(), tc.ProjectConfig)
 			if err != nil {
 				return err

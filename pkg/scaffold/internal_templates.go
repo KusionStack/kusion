@@ -16,7 +16,7 @@ var (
 	internalDir = "internal"
 )
 
-// GenInternalTemplates save localTemplates(FS) to internal-templates(target directory)
+// GenInternalTemplates save localTemplates(FS) to internal-templates(target directory).
 func GenInternalTemplates() error {
 	baseTemplateDir, err := GetTemplateDir(BaseTemplateDir)
 	if err != nil {
@@ -47,12 +47,12 @@ func GenInternalTemplates() error {
 	})
 }
 
-// Export internal templates which is embed in binary
+// GetInternalTemplates exports internal templates which is embed in binary.
 func GetInternalTemplates() embed.FS {
 	return internalTemplates
 }
 
-// Transfer embed.FS into afero.Fs
+// Transfer embed.FS into afero.Fs.
 func Transfer(srcFS embed.FS) (afero.Fs, error) {
 	destFS := afero.NewMemMapFs()
 	return destFS, fs.WalkDir(srcFS, internalDir, func(path string, d fs.DirEntry, err error) error {
@@ -88,7 +88,7 @@ func Transfer(srcFS embed.FS) (afero.Fs, error) {
 	})
 }
 
-// InternalTemplateNameToPath return a map of template name to path
+// InternalTemplateNameToPath return a map of template name to path.
 func InternalTemplateNameToPath() map[string]string {
 	schemaToPath := make(map[string]string)
 	dirs, err := fs.ReadDir(internalTemplates, internalDir)
