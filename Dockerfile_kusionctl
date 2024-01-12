@@ -6,5 +6,4 @@ RUN chmod +x /kusion/bin/kusion
 
 ENV PATH="/kusion/bin:${PATH}"
 ENV KUSION_HOME="/kusion"
-ENV KUSION_PATH="$KUSION_HOME/bin"
 ENV LANG=en_US.utf8
