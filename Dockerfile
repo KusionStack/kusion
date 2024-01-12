@@ -8,9 +8,8 @@ FROM ubuntu:22.04 AS base
 RUN apt-get update -y && apt-get install python3 python3-pip -y
 # KCL PATH
 ENV PATH="/root/go/bin:${PATH}"
-# KUSION_PATH
+# KUSION
 ENV KUSION_HOME="$HOME/.kusion"
-ENV KUSION_PATH="$KUSION_HOME/bin"
 ENV LANG=en_US.utf8
 
 FROM base AS goreleaser
