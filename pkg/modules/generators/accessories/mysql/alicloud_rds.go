@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
@@ -14,6 +16,7 @@ import (
 
 const (
 	defaultAlicloudProviderURL = "registry.terraform.io/aliyun/alicloud/1.209.1"
+	alicloudRegionEnv          = "ALICLOUD_REGION"
 	alicloudDBInstance         = "alicloud_db_instance"
 	alicloudDBConnection       = "alicloud_db_connection"
 	alicloudRDSAccount         = "alicloud_rds_account"
@@ -58,9 +61,12 @@ func (g *mysqlGenerator) generateAlicloudResources(db *mysql.MySQL, spec *apiv1.
 	}
 
 	// Get the alicloud provider region, and the region of the alicloud provider must be set.
-	alicloudProviderRegion, err := inputs.GetProviderRegion(g.tfConfigs[inputs.AlicloudProvider])
-	if err != nil {
-		return nil, err
+	var alicloudProviderRegion string
+	if alicloudProviderRegion = inputs.GetProviderRegion(g.tfConfigs[inputs.AlicloudProvider]); alicloudProviderRegion == "" {
+		alicloudProviderRegion = os.Getenv(alicloudRegionEnv)
+	}
+	if alicloudProviderRegion == "" {
+		return nil, fmt.Errorf("alicloud provider region should not be empty")
 	}
 
 	// Build alicloud_db_instance.

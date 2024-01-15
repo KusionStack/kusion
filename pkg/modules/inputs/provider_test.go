@@ -109,10 +109,9 @@ func TestGetProviderURL(t *testing.T) {
 
 func TestGetProviderRegion(t *testing.T) {
 	tests := []struct {
-		name        string
-		data        *apiv1.ProviderConfig
-		expected    string
-		expectedErr error
+		name     string
+		data     *apiv1.ProviderConfig
+		expected string
 	}{
 		{
 			name: "Valid Provider Config",
@@ -123,8 +122,7 @@ func TestGetProviderRegion(t *testing.T) {
 					"region": "us-east-1",
 				},
 			},
-			expected:    "us-east-1",
-			expectedErr: nil,
+			expected: "us-east-1",
 		},
 		{
 			name: "Empty Provider Region",
@@ -132,18 +130,12 @@ func TestGetProviderRegion(t *testing.T) {
 				Source:  "hashicorp/aws",
 				Version: "5.0.1",
 			},
-			expected:    "",
-			expectedErr: fmt.Errorf(errEmptyProviderRegion, "hashicorp/aws"),
+			expected: "",
 		},
 	}
 
 	for _, test := range tests {
-		actual, actualErr := GetProviderRegion(test.data)
-		if test.expectedErr == nil {
-			assert.Equal(t, test.expected, actual)
-			assert.NoError(t, actualErr)
-		} else {
-			assert.ErrorContains(t, actualErr, test.expectedErr.Error())
-		}
+		actual := GetProviderRegion(test.data)
+		assert.Equal(t, test.expected, actual)
 	}
 }
