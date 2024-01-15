@@ -20,7 +20,7 @@ const (
 
 func GetMaxUnavailable(opsRule *OpsRule, modulesConfig map[string]apiv1.GenericConfig) (intstr.IntOrString, error) {
 	var maxUnavailable intstr.IntOrString
-	if opsRule != nil {
+	if opsRule != nil && opsRule.MaxUnavailable != "" {
 		maxUnavailable = intstr.Parse(opsRule.MaxUnavailable)
 	} else {
 		// An example of opsRule config in modulesConfig
