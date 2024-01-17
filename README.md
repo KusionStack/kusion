@@ -42,7 +42,7 @@ Kusion is the cloud-native platform engineering engine of [KusionStack](https://
 
 ### Deploy your first App
 
-Visit [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/deliver-the-wordpress-application-on-kubernetes/) to deliver an
+Visit [Quick Start](https://www.kusionstack.io/docs/kusion/getting-started/deliver-wordpress) to deliver an
 App with one Kusion command
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
@@ -67,7 +67,7 @@ go install kusionstack.io/kusion@latest
 docker pull kusionstack/kusion:latest
 ```
 
-> For more information about installation, please check the [Installation Guide](https://kusionstack.io/docs/user_docs/getting-started/install) on KusionStack official website
+> For more information about installation, please check the [Installation Guide](https://www.kusionstack.io/docs/kusion/getting-started/install-kusion) on KusionStack official website
 
 
 # Contact Us

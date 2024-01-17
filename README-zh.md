@@ -39,7 +39,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 
 ### 部署第一个应用
 
-参考 [Quick Start](https://kusionstack.io/docs/user_docs/getting-started/deliver-the-wordpress-application-on-kubernetes/) 通过 Kusion
+参考 [Quick Start](https://www.kusionstack.io/docs/kusion/getting-started/deliver-wordpress) 通过 Kusion
 部署您的第一个应用
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
@@ -64,7 +64,7 @@ go install kusionstack.io/kusion@latest
 docker pull kusionstack/kusion:latest
 ```
 
-> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://kusionstack.io/zh-CN/docs/user_docs/getting-started/install)。
+> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://www.kusionstack.io/docs/kusion/getting-started/install-kusion)。
 
 # 🎖︎ 贡献指南
 
