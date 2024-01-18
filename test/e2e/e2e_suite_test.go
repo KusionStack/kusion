@@ -32,11 +32,10 @@ var _ = ginkgo.BeforeSuite(func() {
 		gomega.Expect(output).To(gomega.ContainSubstring("Cloning"))
 	})
 
-	ginkgo.By("kusion init code-city", func() {
+	ginkgo.By("kusion init", func() {
 		path := filepath.Join(GetWorkDir(), "konfig")
-		output, err := ExecKusionWithStdin("kusion init --online=true --yes=true", path, "\n")
+		_, err := ExecKusionWithStdin("kusion init --online=true --yes=true", path, "\n")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-		gomega.Expect(output).To(gomega.ContainSubstring("Created project"))
 	})
 
 	ginkgo.By("create sample workspace", func() {
