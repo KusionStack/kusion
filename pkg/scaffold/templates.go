@@ -148,9 +148,9 @@ func IsTemplateURL(templateNamePathOrURL string) bool {
 }
 
 // retrieveURLTemplates retrieves the "template repository" at the specified URL.
-func retrieveURLTemplates(rawurl string, online bool) (TemplateRepository, error) {
+func retrieveURLTemplates(rawURL string, online bool) (TemplateRepository, error) {
 	if !online {
-		return TemplateRepository{}, fmt.Errorf("cannot use %s offline", rawurl)
+		return TemplateRepository{}, fmt.Errorf("cannot use %s offline", rawURL)
 	}
 
 	var err error
@@ -162,7 +162,7 @@ func retrieveURLTemplates(rawurl string, online bool) (TemplateRepository, error
 	}
 
 	var fullPath string
-	if fullPath, err = workspace.RetrieveGitFolder(rawurl, temp); err != nil {
+	if fullPath, err = workspace.RetrieveGitFolder(rawURL, temp); err != nil {
 		return TemplateRepository{}, fmt.Errorf("failed to retrieve git folder: %w", err)
 	}
 
@@ -201,6 +201,9 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 	}
 
 	// Ensure the template directory exists.
+	if err = os.RemoveAll(templateDir); err != nil {
+		return TemplateRepository{}, err
+	}
 	if err = os.MkdirAll(templateDir, DefaultDirectoryPermission); err != nil {
 		return TemplateRepository{}, err
 	}
@@ -211,9 +214,6 @@ func retrieveKusionTemplates(templateName string, online bool) (TemplateReposito
 		branch := plumbing.NewBranchReferenceName(kusionTemplateBranch)
 		err = gitutil.GitCloneOrPull(repo, branch, templateDir, false /*shallow*/)
 		if err != nil {
-			if removeErr := os.RemoveAll(templateDir); removeErr != nil {
-				return TemplateRepository{}, removeErr
-			}
 			return TemplateRepository{}, fmt.Errorf("cloning templates failed. Please try again: %w", err)
 		}
 	}
