@@ -1,6 +1,6 @@
 # Contributing to Kusion
 
-Welcome to Kusion! Kusion is a cloud-native application delivery and operation engine, which is designed to simplify and optimize the process of delivering applications for dev and platform. Kusion belongs to [KusionStack](https://github.com/KusionStack), which is a technology stack in the field of platform engineering.
+Welcome to Kusion! Kusion is the cloud-native platform engineering engine of [KusionStack](https://github.com/KusionStack).
 
 We warmly appreciate your talent and creativity in contributing to this project. This guide will help direct you to the best places to start contributing. Follow the instructions below, you'll be able to pick up issues, write code to fix them, and get your work reviewed and merged.
 
@@ -10,10 +10,9 @@ If you have any questions or need further information, please don't hesitate to 
 
 ---
 
-<!-- MarkdownTOC autolink="true" -->
-
-- [File an Issue](#file-an-issue)
-- [Contribute a Pull Request](#contribute-a-pull-request)
+- [Contributing to Kusion](#contributing-to-kusion)
+  - [File an Issue](#file-an-issue)
+  - [Contribute a Pull Request](#contribute-a-pull-request)
     - [Fork Repository](#fork-repository)
     - [Develop Code](#develop-code)
     - [Open a Pull Request](#open-a-pull-request)
@@ -21,6 +20,7 @@ If you have any questions or need further information, please don't hesitate to 
     - [PR Checks](#pr-checks)
 
 ## File an Issue
+
 The first step to start contributing to Kusion is to find something to work on. Help is always welcome, and no contribution is too small!
 
 Here are some things you can do today to get started contributing:
@@ -30,20 +30,20 @@ Here are some things you can do today to get started contributing:
 * Write test coverage
 * Help triage issues
 
-We use [issues](https://github.com/KusionStack/kusion/issues) to track tasks. Choose an existed issue with label `good first issue` or`help wanted` is a good choice, or you can open a new issue. Now, Kusion provides three issue templates as follows, please choose one according to your need:
+We use [issues](https://github.com/KusionStack/kusion/issues) to track tasks. Choose an existing issue with the label `good first issue` or `help wanted` is a good choice, or you can open a new issue. Now, Kusion provides three issue templates as follows, please choose one according to your need:
 
 * Bug Report: Report a bug encountered while operating Kusion
 * Enhancement Tracking Issue: Provide supporting details for a feature in development
 * Failing Test: Report continuously failing tests or jobs in Kusion CI
 
-In the issue, please describe your problem clearly and accurately, and choose a label to define the issue's type. There are the commonly used label:
+In the issue, please describe your problem clearly and accurately, and choose a label to define the issue's type. There are the commonly used labels:
 
 * area/cli: Categorizes an issue or PR as relevant to CLI
 * area/engine: Categorizes an issue or PR as relevant to Kusion engine
-* area/release: Categorizes an issue or PR as relevant to build
+* area/release: Categorizes an issue or PR as relevant to releasing
 * area/runtime: All Infrastructure Runtime, eg: k8s
-* area/testing: Categorizes an issue or PR as relevant to test
-* kind/feature: Categorizes issue or PR as related to a new feature
+* area/testing: Categorizes an issue or PR as relevant to testing
+* kind/feature: Categorizes an issue or PR as relevant to a new feature
 
 ## Contribute a Pull Request
 
@@ -53,13 +53,13 @@ After opening an issue, you could contribute codes to Kusion by a pull request. 
 
 Kusion adopts trunk-based development, i.e., the code used for release is maintained on the main branch. And to keep the repository tidy, Kusion only has the main branch. 
 
-Thus, to develop Kusion, you have to fork the [KusionStack/kusion](https://github.com/KusionStack/kusion) repository to your own workspace, then checkout a new branch to develop coding.
+Thus, to develop Kusion, you have to fork the [KusionStack/kusion](https://github.com/KusionStack/kusion) repository to your workspace, and then check out a new branch to develop coding.
 
 ### Develop Code
 
 Now you can start coding to solve the issue. To maintain the code quality of Kusion, unit tests are indispensable for the functions you added or updated.
 
-After the development is completed, commit and push to your own forked repository. Cause the code will merge into Kusion repository by pull request, [commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional) should get followed, the legal prefixes for commit message are shown below:
+After the development is completed, commit and push to your own forked repository. Cause the code will merge into Kusion repository by pull request, [commitlint/[config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional) should be followed, the legal prefixes for the commit message are shown below:
 
 * build
 * chore
@@ -83,10 +83,10 @@ If it was your first pull request, you need to sign our [CLA(Contributor License
 
 `I have read the CLA Document and I hereby sign the CLA`
 
-If your CLA signature failed, you may find the solutions as below:
+If your CLA signature failed, you may find the solutions below:
 
 * The comment must be in exactly the same format as above, with no extra spaces, line breaks, etc.
-* The git committer must be the same one who create the Kusion PR
+* The git committer must be the same one who created the Kusion PR
 
 ### PR Checks
 
