@@ -153,6 +153,10 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 		res = planObj
 	}
 
+	// Ignore the redundant fields automatically added by the K8s server for a
+	// more concise and clean resource object.
+	normalizeServerSideFields(res)
+
 	return &runtime.ApplyResponse{Resource: &apiv1.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
@@ -193,6 +197,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 		}
 		return &runtime.ReadResponse{Status: v1.NewErrorStatus(err)}
 	}
+
+	// Ignore the redundant fields automatically added by the K8s server for a
+	// more concise and clean resource object.
+	normalizeServerSideFields(v)
 
 	return &runtime.ReadResponse{Resource: &apiv1.Resource{
 		ID:         requestResource.ResourceKey(),
@@ -235,7 +243,6 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 				}
 			}
 		}
-		normalizeServerSideFields(ur)
 	}
 	response.Resource.Attributes = ur.Object
 	return &runtime.ImportResponse{
