@@ -233,14 +233,12 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 		if err != nil {
 			return &runtime.ImportResponse{Status: v1.NewErrorStatusWithCode(v1.IllegalManifest, err)}
 		}
-	} else {
+	} else if convertor.Service == ur.GetKind() {
 		// normalize resources
-		if convertor.Service == ur.GetKind() {
-			if err := normalizeService(ur); err != nil {
-				return &runtime.ImportResponse{
-					Resource: nil,
-					Status:   v1.NewErrorStatusWithCode(v1.IllegalManifest, err),
-				}
+		if err := normalizeService(ur); err != nil {
+			return &runtime.ImportResponse{
+				Resource: nil,
+				Status:   v1.NewErrorStatusWithCode(v1.IllegalManifest, err),
 			}
 		}
 	}
