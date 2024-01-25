@@ -153,6 +153,10 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 		res = planObj
 	}
 
+	// Ignore the redundant fields automatically added by the K8s server for a
+	// more concise and clean resource object.
+	normalizeServerSideFields(res)
+
 	return &runtime.ApplyResponse{Resource: &apiv1.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
@@ -194,6 +198,10 @@ func (k *KubernetesRuntime) Read(ctx context.Context, request *runtime.ReadReque
 		return &runtime.ReadResponse{Status: v1.NewErrorStatus(err)}
 	}
 
+	// Ignore the redundant fields automatically added by the K8s server for a
+	// more concise and clean resource object.
+	normalizeServerSideFields(v)
+
 	return &runtime.ReadResponse{Resource: &apiv1.Resource{
 		ID:         requestResource.ResourceKey(),
 		Type:       requestResource.Type,
@@ -225,17 +233,14 @@ func (k *KubernetesRuntime) Import(ctx context.Context, request *runtime.ImportR
 		if err != nil {
 			return &runtime.ImportResponse{Status: v1.NewErrorStatusWithCode(v1.IllegalManifest, err)}
 		}
-	} else {
+	} else if convertor.Service == ur.GetKind() {
 		// normalize resources
-		if convertor.Service == ur.GetKind() {
-			if err := normalizeService(ur); err != nil {
-				return &runtime.ImportResponse{
-					Resource: nil,
-					Status:   v1.NewErrorStatusWithCode(v1.IllegalManifest, err),
-				}
+		if err := normalizeService(ur); err != nil {
+			return &runtime.ImportResponse{
+				Resource: nil,
+				Status:   v1.NewErrorStatusWithCode(v1.IllegalManifest, err),
 			}
 		}
-		normalizeServerSideFields(ur)
 	}
 	response.Resource.Attributes = ur.Object
 	return &runtime.ImportResponse{
