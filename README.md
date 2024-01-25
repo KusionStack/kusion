@@ -22,7 +22,7 @@
 
 # Kusion
 
-Kusion is the cloud-native platform engineering engine of [KusionStack](https://github.com/KusionStack), designed to help you build your efficient and secure Internal Developer Platform (IDP). It allows application developers to easily and consistently perform all operational tasks throughout the Software Development Lifecycle (SDLC) in one place, across different infrastructures including Kubernetes, cloud platforms, and on-premises environments
+Kusion is the cloud-native platform engineering engine of [KusionStack](https://github.com/KusionStack), designed to help you build your efficient and secure Internal Developer Platform (IDP). It allows application developers to easily and consistently perform all operational tasks throughout the DevOps lifecycle in one place, across different infrastructures including Kubernetes, cloud platforms, and on-premises environments
 
 ## Key Features
 
@@ -30,7 +30,7 @@ Kusion is the cloud-native platform engineering engine of [KusionStack](https://
 - **Dynamic Configuration Management**: Developers deploy to any environment using one environment-agnostic configuration, while Kusion handles the underlying complexity.
 - **Enable Self-Service**: Developers fulfill their own needs by choosing the capabilities provided by the platform engineers in [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module).
 - **Built-in Security and Compliance**: Platform engineers standardize application deliveries with security, compliance, and best practices by flexible platform configurations.
-- **Open Module Ecosystem**: A growing open module ecosystem covers all stages of SDLC, with extensive connections to various cloud-native infrastructures.
+- **Open Module Ecosystem**: A growing open module ecosystem covers all stages of the DevOps lifecycle, with extensive connections to various cloud-native infrastructures.
 - **Lightweight and Kubernetes-friendly**: As a pure client-side solution with rich APIs, Kusion offers excellent portability and ease of integration. Meanwhile, user-friendly observability and troubleshooting capabilities make Kubernetes operations easier.
 
 <div align="center">

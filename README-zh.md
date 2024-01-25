@@ -19,7 +19,7 @@
 
 # Kusion
 
-Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工程引擎，旨在帮助您构建高效且安全的内部开发者平台（IDP）。它允许应用程序开发者在一个地方轻松且一致地完成软件开发生命周期（SDLC）中的所有运维任务，跨越包括 Kubernetes、云平台和自建基础设置在内的不同基础设施。
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工程引擎，旨在帮助您构建高效且安全的内部开发者平台（IDP）。它允许应用程序开发者在一个地方轻松且一致地完成 DevOps 生命周期中的所有运维任务，跨越包括 Kubernetes、云平台和自建基础设置在内的不同基础设施。
 
 ## 核心能力
 
@@ -27,7 +27,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 **动态配置管理**：开发人员可用一份与环境无关的配置，部署到任何环境，环境差异性由 Kusion 处理。
 **研发自服务**：开发人员可以通过选择平台工程师在 [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module) 中提供的功能来自助满足需求。
 **内置安全性和合规性**：平台工程师可以通过灵活的平台配置，实现满足安全性、合规性和最佳实践的标准化应用程序交付。
-**开放模块生态系统**：不断增长的开放模块生态系统涵盖了软件开发生命周期（SDLC）的所有阶段，并与各种云原生基础设施有广泛的连接。
+**开放模块生态系统**：不断增长的开放模块生态系统涵盖了 DevOps 生命周期的所有阶段，并与各种云原生基础设施有广泛的连接。
 **轻量级并且 Kubernetes 友好**：Kusion 作为一个纯客户端解决方案，拥有丰富的 API，提供了出色的可移植性和集成便利性。同时用户友好的可观察性和故障排除能力使得 Kubernetes 操作更加简单。
 
 <div align="center">
