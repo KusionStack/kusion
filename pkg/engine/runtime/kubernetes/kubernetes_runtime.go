@@ -3,6 +3,8 @@ package kubernetes
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	yamlv2 "gopkg.in/yaml.v2"
@@ -422,7 +424,7 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *apiv1.
 	// Get resource by unstructured
 	var resource dynamic.ResourceInterface
 
-	resource, err = buildDynamicResource(k.client, k.mapper, gvk, obj.GetNamespace())
+	resource, err = buildDynamicResource(k.client, k.mapper, gvk, resourceState.ID, obj.GetNamespace())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -433,7 +435,7 @@ func (k *KubernetesRuntime) buildKubernetesResourceByState(resourceState *apiv1.
 // buildDynamicResource get resource interface by gvk and namespace
 func buildDynamicResource(
 	dyn dynamic.Interface, mapper meta.RESTMapper,
-	gvk *schema.GroupVersionKind, namespace string,
+	gvk *schema.GroupVersionKind, id, namespace string,
 ) (dynamic.ResourceInterface, error) {
 	// Find GVR
 	mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
@@ -441,9 +443,23 @@ func buildDynamicResource(
 		return nil, err
 	}
 
+	// validate whether the intent resource id matched with the GVK
+	if err = validateResourceID(id, gvk); err != nil {
+		return nil, err
+	}
+
 	// Obtain REST interface for the GVR
 	var dr dynamic.ResourceInterface
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+		// patch the `default` namespace for namespaced resources without explicitly
+		// spcified namespace field
+		keys := strings.Split(id, engine.Separator)
+		if (len(keys) < 3 || keys[2] == "" || keys[2] == "default") && namespace == "" {
+			namespace = "default"
+		} else if len(keys) > 2 && keys[2] != namespace {
+			return nil, fmt.Errorf("unmatched namespace in resource id: %s and object attribute: %s", keys[2], namespace)
+		}
+
 		// namespaced resources should specify the namespace
 		dr = dyn.Resource(mapping.Resource).Namespace(namespace)
 	} else {
@@ -472,9 +488,9 @@ func (k *KubernetesRuntime) WatchBySelector(
 	ctx context.Context,
 	o *unstructured.Unstructured,
 	gvk schema.GroupVersionKind,
-	labelStr string,
+	id, labelStr string,
 ) (<-chan k8swatch.Event, error) {
-	clientForResource, err := buildDynamicResource(k.client, k.mapper, &gvk, o.GetNamespace())
+	clientForResource, err := buildDynamicResource(k.client, k.mapper, &gvk, id, o.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
@@ -636,4 +652,24 @@ func getNamedGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	default:
 		return schema.GroupVersionKind{}
 	}
+}
+
+func validateResourceID(id string, gvk *schema.GroupVersionKind) error {
+	keys := strings.Split(id, engine.Separator)
+	if len(keys) < 2 {
+		return fmt.Errorf("invalid resource id with missing required fields: %s", id)
+	}
+
+	apiVersion := keys[0]
+	kind := keys[1]
+
+	if apiVersion != gvk.GroupVersion().String() {
+		return fmt.Errorf("unmatched API Version in resource id: %s and gvk: %s", apiVersion, gvk.GroupVersion().String())
+	}
+
+	if kind != gvk.Kind {
+		return fmt.Errorf("unmatched Kind in resource id: %s and gvk: %s", kind, gvk.Kind)
+	}
+
+	return nil
 }
