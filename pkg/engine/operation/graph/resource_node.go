@@ -130,7 +130,7 @@ func (rn *ResourceNode) computeActionType(
 	case opsmodels.Apply, opsmodels.ApplyPreview:
 		if planedResource == nil {
 			rn.Action = opsmodels.Delete
-		} else if priorResource == nil && liveResource == nil {
+		} else if liveResource == nil {
 			rn.Action = opsmodels.Create
 		} else {
 			// Dry run to fetch predictable resource
