@@ -16,7 +16,7 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/opt"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/crd"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
@@ -77,6 +77,7 @@ func Run(o *builders.Options, stack *v1.Stack) (*CompileResult, error) {
 		result, err = api.RunWithOpts(
 			opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
 			opt.WithNoSumCheck(true),
+			opt.WithLogWriter(nil),
 		)
 	} else {
 		// call kcl run

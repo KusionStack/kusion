@@ -69,7 +69,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	kcl-lang.io/kcl-go v0.7.1
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.6.0
+	kcl-lang.io/kpm v0.7.0
 	kusionstack.io/kube-api v0.1.1
 	sigs.k8s.io/controller-runtime v0.15.1
 )
