@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cliflag "k8s.io/component-base/cli/flag"
+	"k8s.io/kubectl/pkg/cmd/options"
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
@@ -114,6 +115,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 
 	templates.ActsAsRootCommand(cmds, filters, groups...)
 	cmds.AddCommand(version.NewCmdVersion())
+	cmds.AddCommand(options.NewCmdOptions(o.IOStreams.Out))
 
 	return cmds
 }
