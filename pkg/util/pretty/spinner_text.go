@@ -24,4 +24,5 @@ var SpinnerT = pterm.SpinnerPrinter{
 	SuccessPrinter:      &SuccessT,
 	FailPrinter:         &ErrorT,
 	WarningPrinter:      &WarningT,
+	InfoPrinter:         &InfoT,
 }
