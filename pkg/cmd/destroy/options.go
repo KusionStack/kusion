@@ -15,6 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
@@ -137,6 +138,15 @@ func (o *Options) preview(
 	stack *apiv1.Stack, stateStorage states.StateStorage,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
+
+	// Check and install terraform executable binary for
+	// resources with the type of Terraform.
+	tfInstaller := terraform.CLIInstaller{
+		Intent: planResources,
+	}
+	if err := tfInstaller.CheckAndInstall(); err != nil {
+		return nil, err
+	}
 
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
