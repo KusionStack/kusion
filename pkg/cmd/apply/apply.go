@@ -16,8 +16,8 @@ func NewCmdApply() *cobra.Command {
 		Apply a series of resource changes within the stack.
 	
 		Create, update or delete resources according to the operational intent within a stack.
-		By default, Kusion will generate an execution plan and prompt for your approval before performing any actions.
-		You can review the plan details and make a decision to proceed with the actions or abort them.`)
+		By default, Kusion will generate an execution preview and prompt for your approval before performing any actions.
+		You can review the preview details and make a decision to proceed with the actions or abort them.`)
 
 		applyExample = i18n.T(`
 		# Apply with specified work directory
@@ -32,7 +32,7 @@ func NewCmdApply() *cobra.Command {
 		# Apply with specifying intent file
 		kusion apply --intent-file intent.yaml 
 	
-		# Skip interactive approval of plan details before applying
+		# Skip interactive approval of preview details before applying
 		kusion apply --yes
 		
 		# Apply without output style and color

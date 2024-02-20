@@ -15,8 +15,8 @@ func NewCmdPreview() *cobra.Command {
 		previewLong = i18n.T(`
 		Preview a series of resource changes within the stack.
 	
-		Create, update or delete resources according to the intent described in the a stack. By default,
-		Kusion will generate an execution plan and present it for your approval before taking any action.`)
+		Create, update or delete resources according to the intent described in the stack. By default,
+		Kusion will generate an execution preview and present it for your approval before taking any action.`)
 
 		previewExample = i18n.T(`
 		# Preview with specified work directory
@@ -63,10 +63,10 @@ func NewCmdPreview() *cobra.Command {
 func (o *Options) AddPreviewFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Operator, "operator", "", "",
 		i18n.T("Specify the operator"))
-	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", false,
-		i18n.T("Automatically show plan details with interactive options"))
+	cmd.Flags().BoolVarP(&o.Detail, "detail", "d", true,
+		i18n.T("Automatically show preview details with interactive options"))
 	cmd.Flags().BoolVarP(&o.All, "all", "a", false,
-		i18n.T("Automatically show all plan details, combined use with flag `--detail`"))
+		i18n.T("Automatically show all preview details, combined use with flag `--detail`"))
 	cmd.Flags().BoolVarP(&o.NoStyle, "no-style", "", false,
 		i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().StringSliceVarP(&o.IgnoreFields, "ignore-fields", "", nil,
