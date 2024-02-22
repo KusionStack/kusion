@@ -17,7 +17,7 @@ import catalog.models.schema.v1.workload.container as c
         replicas: 2
         ports: [
             n.Port {
-                port: 80
+                port: {{ .Port }}
             }
         ]
     }

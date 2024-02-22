@@ -1,0 +1,21 @@
+projectName: simple-svc-mysql
+description: A sample kusion project of a long-running service with local mysql.
+projectFields: 
+  - name: AppName
+    description: The application name.
+    type: string
+    default: wordpress
+  - name: Image
+    description: The workload image.
+    type: string
+    default: wordpress:latest
+  - name: Port
+    description: The workload port number.
+    type: int
+    default: 80
+  - name: DBVersion
+    description: The version of the local mysql database.
+    type: string
+    default: "8.0"
+stacks: 
+  - name: dev

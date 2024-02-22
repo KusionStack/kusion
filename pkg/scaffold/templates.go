@@ -529,7 +529,11 @@ func doFile(srcFS afero.Fs, srcPath string, destFS afero.Fs, destPath, fileName 
 
 // render parse content(string) with configMap(map[string]string) with go tmpl
 func render(name string, content string, configMap map[string]interface{}) ([]byte, error) {
-	temp := template.New(name)
+	// Inject some functions to be used in our template.
+	funcMap := template.FuncMap{
+		"ToUpper": strings.ToUpper,
+	}
+	temp := template.New(name).Funcs(funcMap)
 
 	if _, err := temp.Parse(content); err != nil {
 		return nil, err

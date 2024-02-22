@@ -16,7 +16,7 @@ import (
 
 const (
 	templateDir  = "internal"
-	templateName = "single-stack-sample"
+	templateName = "simple-svc"
 )
 
 var (
@@ -27,22 +27,28 @@ var (
 	}
 	localTemplate = Template{
 		Dir:  filepath.Join(localRoot, templateName),
-		Name: "single-stack-sample",
+		Name: "simple-svc",
 		ProjectTemplate: &ProjectTemplate{
-			ProjectName: "single-stack-sample",
-			Description: "A minimal kusion project of single stack",
+			ProjectName: "simple-svc",
+			Description: "A minimal kusion project of a simple long-running service.",
 			ProjectFields: []*FieldTemplate{
 				{
 					Name:        "AppName",
-					Description: "The Application Name.",
+					Description: "The application name.",
 					Type:        StringField,
 					Default:     "nginx",
 				},
 				{
 					Name:        "Image",
-					Description: "The Image Address.",
+					Description: "The workload image.",
 					Type:        StringField,
-					Default:     "nginx",
+					Default:     "nginx:latest",
+				},
+				{
+					Name:        "Port",
+					Description: "The workload port number.",
+					Type:        IntField,
+					Default:     80,
 				},
 			},
 			StackTemplates: []*StackTemplate{
@@ -102,7 +108,7 @@ func TestLoadTemplate(t *testing.T) {
 		{
 			name: "deployment",
 			args: args{
-				path: "internal/single-stack-sample",
+				path: "internal/simple-svc",
 			},
 			want: localTemplate,
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
@@ -231,7 +237,7 @@ func Test_RenderMemTemplateFiles(t *testing.T) {
 	prj := "test-proj"
 	srcFS, _ := Transfer(GetInternalTemplates())
 	err := RenderFSTemplate(
-		srcFS, "internal/single-stack-sample",
+		srcFS, "internal/simple-svc",
 		memMapFs, prj,
 		&TemplateConfig{
 			ProjectName: prj,

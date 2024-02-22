@@ -1,0 +1,13 @@
+projectName: simple-job
+description: A minimal kusion project of a simple job.
+projectFields: 
+  - name: AppName
+    description: The application name.
+    type: string
+    default: busybox
+  - name: Image
+    description: The workload image.
+    type: string
+    default: busybox:latest
+stacks: 
+  - name: dev

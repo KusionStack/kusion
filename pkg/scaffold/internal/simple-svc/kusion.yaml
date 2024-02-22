@@ -1,0 +1,17 @@
+projectName: simple-svc
+description: A minimal kusion project of a simple long-running service.
+projectFields: 
+  - name: AppName
+    description: The application name.
+    type: string
+    default: nginx
+  - name: Image
+    description: The workload image.
+    type: string
+    default: nginx:latest
+  - name: Port
+    description: The workload port number.
+    type: int
+    default: 80
+stacks: 
+  - name: dev
