@@ -11,8 +11,10 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/scaffold"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 const jsonOutput = "json"
@@ -198,6 +200,13 @@ func (o *Options) Run() error {
 	}
 
 	fmt.Printf("Created project '%s'\n", o.ProjectName)
+
+	// Create the default workspace for the initiated project.
+	if err = createDefaultWorkspace(); err != nil {
+		return fmt.Errorf("failed to create the default workspace: %w", err)
+	}
+
+	fmt.Println("Created the default workspace")
 
 	return nil
 }
@@ -440,4 +449,19 @@ func promptValue(valueType string, description string, defaultValue string, isVa
 		break
 	}
 	return value, nil
+}
+
+// createDefaultWorkspace creates the default workspace.
+func createDefaultWorkspace() error {
+	ws := &v1.Workspace{
+		Name: "default",
+	}
+
+	if err := workspace.CreateWorkspaceByDefaultOperator(ws); err != nil {
+		if !errors.Is(err, workspace.ErrWorkspaceAlreadyExist) {
+			return err
+		}
+	}
+
+	return nil
 }
