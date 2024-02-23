@@ -34,12 +34,13 @@ import (
 
 	"github.com/gonvenience/bunt"
 	"github.com/gonvenience/neat"
-	"github.com/gonvenience/term"
 	"github.com/gonvenience/text"
 	"github.com/gonvenience/ytbx"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 	yamlv3 "gopkg.in/yaml.v3"
+
+	"kusionstack.io/kusion/third_party/term"
 )
 
 // ascii font is slant
@@ -55,7 +56,7 @@ type stringWriter interface {
 	WriteString(s string) (int, error)
 }
 
-// HumanReport is a reporter with human readable output in mind
+// HumanReport is a reporter with human-readable output in mind
 type HumanReport struct {
 	NoTableStyle         bool
 	DoNotInspectCerts    bool
@@ -66,7 +67,7 @@ type HumanReport struct {
 	Report
 }
 
-// WriteReport writes a human readable report to the provided writer
+// WriteReport writes a human-readable report to the provided writer
 func (report *HumanReport) WriteReport(out io.Writer) error {
 	writer := bufio.NewWriter(out)
 	defer writer.Flush()
@@ -109,7 +110,7 @@ func (report *HumanReport) WriteReport(out io.Writer) error {
 	return nil
 }
 
-// generateHumanDiffOutput creates a human readable report of the provided diff and writes this into the given bytes buffer. There is an optional flag to indicate whether the document index (which documents of the input file) should be included in the report of the path of the difference.
+// generateHumanDiffOutput creates a human-readable report of the provided diff and writes this into the given bytes buffer. There is an optional flag to indicate whether the document index (which documents of the input file) should be included in the report of the path of the difference.
 func (report *HumanReport) generateHumanDiffOutput(output stringWriter, diff Diff, useGoPatchPaths bool, showDocumentIdx bool) error {
 	output.WriteString("\n")
 	output.WriteString(pathToString(diff.Path, useGoPatchPaths, showDocumentIdx))
@@ -125,7 +126,7 @@ func (report *HumanReport) generateHumanDiffOutput(output stringWriter, diff Dif
 		blocks[i] = generatedOutput
 	}
 
-	// For the use case in which only a path-less diff is suppose to be printed,
+	// For the use case in which only a path-less diff is supposed to be printed,
 	// omit the indent in this case since there is only one element to show
 	indent := 2
 	if len(diff.Path.PathElements) == 0 {
@@ -469,16 +470,17 @@ func (report *HumanReport) LoadX509Certs(from, to string) (string, string, error
 
 // Create a YAML (hash with key/value) from a certificate to only display a few
 // important fields (https://www.sslshopper.com/certificate-decoder.html):
-//   Common Name: www.example.com
-//   Organization: Company Name
-//   Organization Unit: Org
-//   Locality: Portland
-//   State: Oregon
-//   Country: US
-//   Valid From: April 2, 2018
-//   Valid To: April 2, 2019
-//   Issuer: www.example.com, Company Name
-//   Serial Number: 14581103526614300972 (0xca5a7c67490a792c)
+//
+//	Common Name: www.example.com
+//	Organization: Company Name
+//	Organization Unit: Org
+//	Locality: Portland
+//	State: Oregon
+//	Country: US
+//	Valid From: April 2, 2018
+//	Valid To: April 2, 2019
+//	Issuer: www.example.com, Company Name
+//	Serial Number: 14581103526614300972 (0xca5a7c67490a792c)
 func certificateSummaryAsYAML(cert *x509.Certificate) string {
 	const template = `Subject:
   Common Name: %s
