@@ -29,9 +29,6 @@ func NewCmd() *cobra.Command {
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
-			if err != nil {
-				return err
-			}
 			util.CheckErr(o.Complete(args))
 			util.CheckErr(o.Validate())
 			util.CheckErr(o.Run())
