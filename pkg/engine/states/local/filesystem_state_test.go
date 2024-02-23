@@ -3,7 +3,6 @@ package local
 import (
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -153,7 +152,7 @@ func TestFileSystem_Delete(t *testing.T) {
 			_ = file.Close()
 			if tc.useDeprecatedStateFile {
 				dir := filepath.Dir(tc.stateFilePath)
-				deprecatedStateFilePath := path.Join(dir, deprecatedKusionStateFile)
+				deprecatedStateFilePath := filepath.Join(dir, deprecatedKusionStateFile)
 				assert.NoFileExists(t, deprecatedStateFilePath)
 				deprecatedFile, _ := os.Create(deprecatedStateFilePath)
 				_ = deprecatedFile.Close()
