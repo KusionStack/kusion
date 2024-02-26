@@ -8,33 +8,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
 type jobGenerator struct {
-	project   *apiv1.Project
-	stack     *apiv1.Stack
+	project   string
+	stack     string
 	appName   string
 	job       *workload.Job
 	jobConfig apiv1.GenericConfig
 	namespace string
 }
 
-func NewJobGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+func NewJobGenerator(generator *Generator) (modules.Generator, error) {
 	return &jobGenerator{
-		project:   ctx.Project,
-		stack:     ctx.Stack,
-		appName:   ctx.Application.Name,
-		job:       ctx.Application.Workload.Job,
-		jobConfig: ctx.ModuleInputs[workload.ModuleJob],
-		namespace: ctx.Namespace,
+		project:   generator.Project,
+		stack:     generator.Stack,
+		appName:   generator.App,
+		job:       generator.Workload.Job,
+		jobConfig: generator.PlatformConfigs[workload.ModuleJob],
+		namespace: generator.Namespace,
 	}, nil
 }
 
-func NewJobGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
+func NewJobGeneratorFunc(generator *Generator) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewJobGenerator(ctx)
+		return NewJobGenerator(generator)
 	}
 }
 
@@ -52,13 +52,13 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 		return fmt.Errorf("complete job input by workspace config failed, %w", err)
 	}
 
-	uniqueAppName := modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
+	uniqueAppName := modules.UniqueAppName(g.project, g.stack, g.appName)
 
 	meta := metav1.ObjectMeta{
 		Namespace: g.namespace,
 		Name:      uniqueAppName,
 		Labels: modules.MergeMaps(
-			modules.UniqueAppLabels(g.project.Name, g.appName),
+			modules.UniqueAppLabels(g.project, g.appName),
 			g.job.Labels,
 		),
 		Annotations: modules.MergeMaps(
@@ -88,7 +88,7 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
 				Labels: modules.MergeMaps(
-					modules.UniqueAppLabels(g.project.Name, g.appName),
+					modules.UniqueAppLabels(g.project, g.appName),
 					g.job.Labels,
 				),
 				Annotations: modules.MergeMaps(

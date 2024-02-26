@@ -5,17 +5,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
 func TestAppsConfigBuilder_Build(t *testing.T) {
 	p, s := buildMockProjectAndStack()
 	appName, app := buildMockApp()
 	acg := &AppsConfigBuilder{
-		Apps: map[string]appmodel.AppConfiguration{
+		Apps: map[string]v1.AppConfiguration{
 			appName: *app,
 		},
 		Workspace: buildMockWorkspace(),
@@ -26,8 +26,8 @@ func TestAppsConfigBuilder_Build(t *testing.T) {
 	assert.NotNil(t, intent)
 }
 
-func buildMockApp() (string, *appmodel.AppConfiguration) {
-	return "app1", &appmodel.AppConfiguration{
+func buildMockApp() (string, *v1.AppConfiguration) {
+	return "app1", &v1.AppConfiguration{
 		Workload: &workload.Workload{
 			Header: workload.Header{
 				Type: "Service",
@@ -37,10 +37,8 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 				Type: "Deployment",
 				Ports: []network.Port{
 					{
-						Type:     network.CSPAliCloud,
 						Port:     80,
 						Protocol: "TCP",
-						Public:   true,
 					},
 				},
 			},

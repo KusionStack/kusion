@@ -13,41 +13,52 @@ import (
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/secrets"
 )
 
 type secretGenerator struct {
-	project         *apiv1.Project
+	project         string
 	namespace       string
 	secrets         map[string]workload.Secret
 	secretStoreSpec *apiv1.SecretStoreSpec
 }
 
-func NewSecretGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
-	if len(ctx.Project.Name) == 0 {
+type GeneratorRequest struct {
+	// Project represents the Project name
+	Project string
+	// Namespace represents the K8s Namespace
+	Namespace string
+	// Workload represents the Workload configuration
+	Workload *workload.Workload
+	// SecretStoreSpec contains configuration to describe target secret store.
+	SecretStoreSpec *apiv1.SecretStoreSpec
+}
+
+func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
+	if len(request.Project) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
 	var secretMap map[string]workload.Secret
-	if ctx.Application.Workload.Service != nil {
-		secretMap = ctx.Application.Workload.Service.Secrets
+	if request.Workload.Service != nil {
+		secretMap = request.Workload.Service.Secrets
 	} else {
-		secretMap = ctx.Application.Workload.Job.Secrets
+		secretMap = request.Workload.Job.Secrets
 	}
 
 	return &secretGenerator{
-		project:         ctx.Project,
+		project:         request.Project,
 		secrets:         secretMap,
-		namespace:       ctx.Namespace,
-		secretStoreSpec: ctx.SecretStoreSpec,
+		namespace:       request.Namespace,
+		secretStoreSpec: request.SecretStoreSpec,
 	}, nil
 }
 
-func NewSecretGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
+func NewSecretGeneratorFunc(request *GeneratorRequest) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewSecretGenerator(ctx)
+		return NewSecretGenerator(request)
 	}
 }
 

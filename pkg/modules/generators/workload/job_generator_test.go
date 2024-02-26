@@ -7,53 +7,35 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 )
 
-func newGeneratorContextWithJob(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	job *workload.Job,
-	jobConfig apiv1.GenericConfig,
-) modules.GeneratorContext {
-	application := &inputs.AppConfiguration{
-		Name: appName,
-		Workload: &workload.Workload{
-			Job: job,
-		},
-	}
-	moduleInputs := map[string]apiv1.GenericConfig{
-		workload.ModuleJob: jobConfig,
-	}
-	return modules.GeneratorContext{
-		Project:      project,
-		Stack:        stack,
-		Application:  application,
-		Namespace:    project.Name,
-		ModuleInputs: moduleInputs,
-	}
-}
-
 func TestNewJobGenerator(t *testing.T) {
-	expectedProject := &apiv1.Project{
-		Name: "test",
-	}
-	expectedStack := &apiv1.Stack{}
+	expectedProject := "test"
+	expectedStack := "dev"
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	expectedJobConfig := apiv1.GenericConfig{
 		"labels": apiv1.GenericConfig{
-			"workload-type": "Job",
+			"Workload-type": "Job",
 		},
 		"annotations": apiv1.GenericConfig{
-			"workload-type": "Job",
+			"Workload-type": "Job",
 		},
 	}
-	ctx := newGeneratorContextWithJob(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
-	actual, err := NewJobGenerator(ctx)
+	actual, err := NewJobGenerator(&Generator{
+		Project:   expectedProject,
+		Stack:     expectedStack,
+		App:       expectedAppName,
+		Namespace: expectedAppName,
+		Workload: &workload.Workload{
+			Job: expectedJob,
+		},
+		PlatformConfigs: map[string]apiv1.GenericConfig{
+			workload.ModuleJob: expectedJobConfig,
+		},
+	})
 
 	assert.NoError(t, err, "Error should be nil")
 	assert.NotNil(t, actual, "Generator should not be nil")
@@ -65,10 +47,8 @@ func TestNewJobGenerator(t *testing.T) {
 }
 
 func TestNewJobGeneratorFunc(t *testing.T) {
-	expectedProject := &apiv1.Project{
-		Name: "test",
-	}
-	expectedStack := &apiv1.Stack{}
+	expectedProject := "test"
+	expectedStack := "dev"
 	expectedAppName := "test"
 	expectedJob := &workload.Job{}
 	expectedJobConfig := apiv1.GenericConfig{
@@ -79,8 +59,18 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 			"workload-type": "Job",
 		},
 	}
-	ctx := newGeneratorContextWithJob(expectedProject, expectedStack, expectedAppName, expectedJob, expectedJobConfig)
-	generatorFunc := NewJobGeneratorFunc(ctx)
+	generatorFunc := NewJobGeneratorFunc(&Generator{
+		Project:   expectedProject,
+		Stack:     expectedStack,
+		App:       expectedAppName,
+		Namespace: expectedAppName,
+		Workload: &workload.Workload{
+			Job: expectedJob,
+		},
+		PlatformConfigs: map[string]apiv1.GenericConfig{
+			workload.ModuleJob: expectedJobConfig,
+		},
+	})
 	actualGenerator, err := generatorFunc()
 
 	assert.NoError(t, err, "Error should be nil")
@@ -95,18 +85,16 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 func TestJobGenerator_Generate(t *testing.T) {
 	testCases := []struct {
 		name              string
-		expectedProject   *apiv1.Project
-		expectedStack     *apiv1.Stack
+		expectedProject   string
+		expectedStack     string
 		expectedAppName   string
 		expectedJob       *workload.Job
 		expectedJobConfig apiv1.GenericConfig
 	}{
 		{
-			name: "test generate",
-			expectedProject: &apiv1.Project{
-				Name: "test",
-			},
-			expectedStack:   &apiv1.Stack{},
+			name:            "test generate",
+			expectedProject: "test",
+			expectedStack:   "dev",
 			expectedAppName: "test",
 			expectedJob:     &workload.Job{},
 			expectedJobConfig: apiv1.GenericConfig{
@@ -122,8 +110,18 @@ func TestJobGenerator_Generate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := newGeneratorContextWithJob(tc.expectedProject, tc.expectedStack, tc.expectedAppName, tc.expectedJob, tc.expectedJobConfig)
-			generator, _ := NewJobGenerator(ctx)
+			generator, _ := NewJobGenerator(&Generator{
+				Project:   tc.expectedProject,
+				Stack:     tc.expectedStack,
+				App:       tc.expectedAppName,
+				Namespace: tc.expectedAppName,
+				Workload: &workload.Workload{
+					Job: tc.expectedJob,
+				},
+				PlatformConfigs: map[string]apiv1.GenericConfig{
+					workload.ModuleJob: tc.expectedJobConfig,
+				},
+			})
 			spec := &apiv1.Intent{}
 			err := generator.Generate(spec)
 
@@ -136,9 +134,9 @@ func TestJobGenerator_Generate(t *testing.T) {
 			actual := mapToUnstructured(resource.Attributes)
 
 			assert.Equal(t, "Job", actual.GetKind(), "Kind mismatch")
-			assert.Equal(t, tc.expectedProject.Name, actual.GetNamespace(), "Namespace mismatch")
-			assert.Equal(t, modules.UniqueAppName(tc.expectedProject.Name, tc.expectedStack.Name, tc.expectedAppName), actual.GetName(), "Name mismatch")
-			assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(tc.expectedProject.Name, tc.expectedAppName), tc.expectedJob.Labels), actual.GetLabels(), "Labels mismatch")
+			assert.Equal(t, tc.expectedProject, actual.GetNamespace(), "Namespace mismatch")
+			assert.Equal(t, modules.UniqueAppName(tc.expectedProject, tc.expectedStack, tc.expectedAppName), actual.GetName(), "Name mismatch")
+			assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(tc.expectedProject, tc.expectedAppName), tc.expectedJob.Labels), actual.GetLabels(), "Labels mismatch")
 			assert.Equal(t, modules.MergeMaps(tc.expectedJob.Annotations), actual.GetAnnotations(), "Annotations mismatch")
 		})
 	}

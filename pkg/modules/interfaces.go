@@ -1,17 +1,7 @@
 package modules
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-)
-
-// GVKDeployment is the GroupVersionKind of Deployment
-var (
-	GVKDeployment = appsv1.SchemeGroupVersion.WithKind("Deployment").String()
-	GVKService    = corev1.SchemeGroupVersion.WithKind("Service").String()
 )
 
 // Generator is an interface for things that can generate Intent from input
@@ -32,26 +22,18 @@ type NewGeneratorFunc func() (Generator, error)
 // NewPatcherFunc is a function that returns a Patcher.
 type NewPatcherFunc func() (Patcher, error)
 
-// GeneratorContext defines the context object used for generator.
-type GeneratorContext struct {
-	// Project provides basic project information for a given generator.
-	Project *v1.Project
-
-	// Stack provides basic stack information for a given generator.
-	Stack *v1.Stack
-
-	// Application provides basic application information for a given generator.
-	Application *inputs.AppConfiguration
-
-	// Namespace specifies the target Kubernetes namespace.
-	Namespace string
-
-	// ModuleInputs is the collection of module inputs for the target project.
-	ModuleInputs map[string]v1.GenericConfig
-
+// GeneratorRequest defines the request of generators.
+type GeneratorRequest struct {
+	// Project represents the project name
+	Project string
+	// Stack represents the stack name
+	Stack string
+	// App represents the application name
+	App string
+	// Type represents the module type
+	Type string
+	// Config is the module inputs of the specific module type
+	Config v1.GenericConfig
 	// TerraformConfig is the collection of provider configs for the terraform runtime.
 	TerraformConfig v1.TerraformConfig
-
-	// SecretStoreSpec is the external secret store spec
-	SecretStoreSpec *v1.SecretStoreSpec
 }

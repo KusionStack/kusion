@@ -41,6 +41,7 @@ type Workspace struct {
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
+// The module name format is "source@version".
 type ModuleConfigs map[string]*ModuleConfig
 
 // ModuleConfig is the config of a module, which contains a default and several patcher blocks.

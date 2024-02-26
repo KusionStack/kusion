@@ -9,72 +9,78 @@ import (
 
 	"github.com/imdario/mergo"
 	"golang.org/x/exp/maps"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/container"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
 	"kusionstack.io/kusion/pkg/util/net"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
-type workloadGenerator struct {
-	project       *apiv1.Project
-	stack         *apiv1.Stack
-	appName       string
-	workload      *workload.Workload
-	moduleConfigs map[string]apiv1.GenericConfig
-	namespace     string
-
-	// for internal generator
-	context modules.GeneratorContext
+type Generator struct {
+	// Project represents the Project name
+	Project string
+	// Stack represents the Stack name
+	Stack string
+	// App represents the application name
+	App string
+	// Namespace represents the K8s Namespace
+	Namespace string
+	// Workload represents the Workload configuration
+	Workload *workload.Workload
+	// PlatformConfigs represents the module platform configurations
+	PlatformConfigs map[string]apiv1.GenericConfig
+	// SecretStoreSpec contains configuration to describe target secret store.
+	SecretStoreSpec *apiv1.SecretStoreSpec
 }
 
-func NewWorkloadGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
-	if len(ctx.Project.Name) == 0 {
-		return nil, fmt.Errorf("project name must not be empty")
-	}
-
-	return &workloadGenerator{
-		project:       ctx.Project,
-		stack:         ctx.Stack,
-		appName:       ctx.Application.Name,
-		workload:      ctx.Application.Workload,
-		moduleConfigs: ctx.ModuleInputs,
-		namespace:     ctx.Namespace,
-		context:       ctx,
-	}, nil
-}
-
-func NewWorkloadGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
+func NewWorkloadGeneratorFunc(g *Generator) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadGenerator(ctx)
+		if len(g.Project) == 0 {
+			return nil, fmt.Errorf("project name must not be empty")
+		}
+
+		if len(g.Stack) == 0 {
+			return nil, fmt.Errorf("stack name must not be empty")
+		}
+
+		if len(g.App) == 0 {
+			return nil, fmt.Errorf("app name must not be empty")
+		}
+
+		return g, nil
 	}
 }
 
-func (g *workloadGenerator) Generate(spec *apiv1.Intent) error {
+func (g *Generator) Generate(spec *apiv1.Intent) error {
 	if spec.Resources == nil {
 		spec.Resources = make(apiv1.Resources, 0)
 	}
 
-	if g.workload != nil {
+	if g.Workload != nil {
 		var gfs []modules.NewGeneratorFunc
 
-		switch g.workload.Header.Type {
+		switch g.Workload.Header.Type {
 		case workload.TypeService:
-			gfs = append(gfs,
-				NewWorkloadServiceGeneratorFunc(g.context),
-				secret.NewSecretGeneratorFunc(g.context))
+			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
+				Project:         g.Project,
+				Namespace:       g.Namespace,
+				Workload:        g.Workload,
+				SecretStoreSpec: g.SecretStoreSpec,
+			}))
 		case workload.TypeJob:
-			gfs = append(gfs,
-				NewJobGeneratorFunc(g.context),
-				secret.NewSecretGeneratorFunc(g.context))
+			gfs = append(gfs, NewJobGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
+				Project:         g.Project,
+				Namespace:       g.Namespace,
+				Workload:        g.Workload,
+				SecretStoreSpec: g.SecretStoreSpec,
+			}))
 		}
 
 		if err := modules.CallGenerators(spec, gfs...); err != nil {
@@ -89,8 +95,7 @@ func toOrderedContainers(
 	appContainers map[string]container.Container,
 	uniqueAppName string,
 ) ([]corev1.Container, []corev1.Volume, []corev1.ConfigMap, error) {
-	// Create a slice of containers based on the app's
-	// containers.
+	// Create a slice of containers based on the App's containers.
 	var containers []corev1.Container
 
 	// Create a slice of volumes and configMaps based on the containers' files to be created.
@@ -404,16 +409,15 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 	return
 }
 
-// completeBaseWorkload uses config from workspace to complete the workload base config.
+// completeBaseWorkload uses config from workspace to complete the Workload base config.
 func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error {
-	replicas, err := workspace.GetIntFromGenericConfig(config, workload.FieldReplicas)
+	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, workload.FieldReplicas)
 	if err != nil {
 		return err
 	}
-	if replicas == 0 {
-		replicas = workload.DefaultReplicas
-	}
-	if base.Replicas == 0 {
+
+	// override the base replicas with the value from workspace if it is null
+	if base.Replicas == nil {
 		base.Replicas = replicas
 	}
 	labels, err := workspace.GetStringMapFromGenericConfig(config, workload.FieldLabels)

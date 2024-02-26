@@ -8,8 +8,9 @@ import (
 type Type string
 
 const (
-	TypeJob     = "Job"
-	TypeService = "Service"
+	TypeJob       = "Job"
+	TypeService   = "Service"
+	FieldReplicas = "replicas"
 )
 
 type Header struct {

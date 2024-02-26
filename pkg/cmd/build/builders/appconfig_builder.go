@@ -4,11 +4,10 @@ import (
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators"
-	"kusionstack.io/kusion/pkg/modules/inputs"
 )
 
 type AppsConfigBuilder struct {
-	Apps      map[string]inputs.AppConfiguration
+	Apps      map[string]v1.AppConfiguration
 	Workspace *v1.Workspace
 }
 
@@ -22,7 +21,7 @@ func (acg *AppsConfigBuilder) Build(
 	}
 
 	var gfs []modules.NewGeneratorFunc
-	err := modules.ForeachOrdered(acg.Apps, func(appName string, app inputs.AppConfiguration) error {
+	err := modules.ForeachOrdered(acg.Apps, func(appName string, app v1.AppConfiguration) error {
 		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project, stack, appName, &app, acg.Workspace))
 		return nil
 	})

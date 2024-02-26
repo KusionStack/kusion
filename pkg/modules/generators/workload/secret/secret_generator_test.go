@@ -7,34 +7,28 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	// ensure we can get correct secret store provider
 	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 )
 
-var testProject = &apiv1.Project{
-	Name: "helloworld",
-}
+var testProject = "helloworld"
 
-func initGeneratorContext(
-	project *apiv1.Project,
+func initGeneratorRequest(
+	project string,
 	secrets map[string]workload.Secret,
 	secretStoreSpec *apiv1.SecretStoreSpec,
-) modules.GeneratorContext {
-	return modules.GeneratorContext{
+) *GeneratorRequest {
+	return &GeneratorRequest{
 		Project: project,
-		Application: &inputs.AppConfiguration{
-			Workload: &workload.Workload{
-				Service: &workload.Service{
-					Base: workload.Base{
-						Secrets: secrets,
-					},
+		Workload: &workload.Workload{
+			Service: &workload.Service{
+				Base: workload.Base{
+					Secrets: secrets,
 				},
 			},
 		},
-		Namespace:       project.Name,
+		Namespace:       project,
 		SecretStoreSpec: secretStoreSpec,
 	}
 }
@@ -118,7 +112,7 @@ func TestGenerateSecret(t *testing.T) {
 					Data: test.secretData,
 				},
 			}
-			context := initGeneratorContext(testProject, secrets, nil)
+			context := initGeneratorRequest(testProject, secrets, nil)
 			generator, _ := NewSecretGenerator(context)
 			err := generator.Generate(&apiv1.Intent{})
 			if test.expectErr == "" {
@@ -183,7 +177,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 				},
 			}
 			secretStoreSpec := initSecretStoreSpec(test.providerData)
-			context := initGeneratorContext(testProject, secrets, secretStoreSpec)
+			context := initGeneratorRequest(testProject, secrets, secretStoreSpec)
 			generator, _ := NewSecretGenerator(context)
 			err := generator.Generate(&apiv1.Intent{})
 			if test.expectErr == "" {

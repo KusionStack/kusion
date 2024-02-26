@@ -16,7 +16,6 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -95,7 +94,7 @@ func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error)
 	return i, nil
 }
 
-func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]inputs.AppConfiguration, error) {
+func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]v1.AppConfiguration, error) {
 	o.Arguments[kcl.IncludeSchemaTypePath] = "true"
 	compileResult, err := kcl.Run(o, stack)
 	if err != nil {
@@ -110,7 +109,7 @@ func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]inputs.Ap
 	out := documents[0].YAMLString()
 
 	log.Debugf("unmarshal %s to app configs", out)
-	appConfigs := map[string]inputs.AppConfiguration{}
+	appConfigs := map[string]v1.AppConfiguration{}
 
 	// Note: we use the type of MapSlice in yaml.v2 to maintain the order of container
 	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.

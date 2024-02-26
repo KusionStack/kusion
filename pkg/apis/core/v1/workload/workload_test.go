@@ -10,6 +10,7 @@ import (
 )
 
 func TestWorkload_MarshalJSON(t *testing.T) {
+	r2 := int32(2)
 	tests := []struct {
 		name          string
 		data          *Workload
@@ -25,7 +26,7 @@ func TestWorkload_MarshalJSON(t *testing.T) {
 				Service: &Service{
 					Type: "Deployment",
 					Base: Base{
-						Replicas: 2,
+						Replicas: &r2,
 						Labels: map[string]string{
 							"app": "my-service",
 						},
@@ -80,6 +81,7 @@ func TestWorkload_MarshalJSON(t *testing.T) {
 }
 
 func TestWorkload_UnmarshalJSON(t *testing.T) {
+	r1 := int32(1)
 	tests := []struct {
 		name          string
 		data          string
@@ -95,7 +97,7 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 				},
 				Service: &Service{
 					Base: Base{
-						Replicas:    1,
+						Replicas:    &r1,
 						Labels:      map[string]string{},
 						Annotations: map[string]string{},
 						Dirs:        map[string]string{},
@@ -144,6 +146,7 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 }
 
 func TestWorkload_MarshalYAML(t *testing.T) {
+	r2 := int32(2)
 	tests := []struct {
 		name          string
 		workload      *Workload
@@ -159,7 +162,7 @@ func TestWorkload_MarshalYAML(t *testing.T) {
 				Service: &Service{
 					Type: "Deployment",
 					Base: Base{
-						Replicas: 2,
+						Replicas: &r2,
 						Labels: map[string]string{
 							"app": "my-service",
 						},
@@ -185,7 +188,7 @@ type: Deployment`,
 				Service: &Service{
 					Type: "Deployment",
 					Base: Base{
-						Replicas: 2,
+						Replicas: &r2,
 						Labels: map[string]string{
 							"app": "my-service",
 						},
@@ -228,6 +231,7 @@ schedule: '* * * * *'`,
 }
 
 func TestWorkload_UnmarshalYAML(t *testing.T) {
+	r1 := int32(1)
 	tests := []struct {
 		name          string
 		data          string
@@ -248,7 +252,7 @@ schedule: '* * * * *'`,
 				},
 				Service: &Service{
 					Base: Base{
-						Replicas:    1,
+						Replicas:    &r1,
 						Labels:      map[string]string{},
 						Annotations: map[string]string{},
 						Dirs:        map[string]string{},
@@ -271,7 +275,7 @@ schedule: '* * * * *'`,
 				},
 				Job: &Job{
 					Base: Base{
-						Replicas:    1,
+						Replicas:    &r1,
 						Labels:      map[string]string{},
 						Annotations: map[string]string{},
 						Dirs:        map[string]string{},

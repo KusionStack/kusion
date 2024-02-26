@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Container describes how the Application's tasks are expected to be run.
+// Container describes how the App's tasks are expected to be run.
 type Container struct {
 	// Image to run for this container
 	Image string `yaml:"image" json:"image"`

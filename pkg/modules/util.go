@@ -8,7 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -35,25 +34,6 @@ func CallGenerators(i *apiv1.Intent, newGenerators ...NewGeneratorFunc) error {
 	}
 	for _, g := range gs {
 		if err := g.Generate(i); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// CallPatchers calls the Patch method of each Generator instance
-// returned by the given NewPatcherFuncs.
-func CallPatchers(resources map[string][]*apiv1.Resource, newPatchers ...NewPatcherFunc) error {
-	ps := make([]Patcher, 0, len(newPatchers))
-	for _, newPatcher := range newPatchers {
-		if p, err := newPatcher(); err != nil {
-			return err
-		} else {
-			ps = append(ps, p)
-		}
-	}
-	for _, p := range ps {
-		if err := p.Patch(resources); err != nil {
 			return err
 		}
 	}
@@ -118,34 +98,6 @@ func KubernetesResourceID(typeMeta metav1.TypeMeta, objectMeta metav1.ObjectMeta
 	}
 	id += objectMeta.Name
 	return id
-}
-
-// TerraformResource returns the Terraform resource in the form of Intent.Resource
-func TerraformResource(id string, dependsOn []string, attrs, exts map[string]interface{}) apiv1.Resource {
-	return apiv1.Resource{
-		ID:         id,
-		Type:       apiv1.Terraform,
-		Attributes: attrs,
-		DependsOn:  dependsOn,
-		Extensions: exts,
-	}
-}
-
-// TerraformResourceID returns the unique ID of a Terraform resource
-// based on its provider, type and name.
-func TerraformResourceID(provider *inputs.Provider, resourceType string, resourceName string) string {
-	// resource id example: hashicorp:aws:aws_db_instance:wordpressdev
-	return provider.Namespace + ":" + provider.Name + ":" + resourceType + ":" + resourceName
-}
-
-// ProviderExtensions returns the extended information of provider based on
-// the provider and type of the resource.
-func ProviderExtensions(provider *inputs.Provider, providerMeta map[string]any, resourceType string) map[string]interface{} {
-	return map[string]interface{}{
-		"provider":     provider.URL,
-		"providerMeta": providerMeta,
-		"resourceType": resourceType,
-	}
 }
 
 // KusionPathDependency returns the implicit resource dependency path based on

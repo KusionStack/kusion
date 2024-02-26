@@ -18,14 +18,6 @@ func (m *mockGenerator) Generate(i *apiv1.Intent) error {
 	return m.GenerateFunc(i)
 }
 
-type mockPatcher struct {
-	PatchFunc func(resources map[string][]*apiv1.Resource) error
-}
-
-func (m *mockPatcher) Patch(resources map[string][]*apiv1.Resource) error {
-	return m.PatchFunc(resources)
-}
-
 func TestCallGenerators(t *testing.T) {
 	i := &apiv1.Intent{}
 
@@ -45,29 +37,6 @@ func TestCallGenerators(t *testing.T) {
 	)
 
 	err := CallGenerators(i, gf1, gf2)
-	assert.Error(t, err)
-	assert.EqualError(t, err, assert.AnError.Error())
-}
-
-func TestCallPatchers(t *testing.T) {
-	var (
-		patcher1 Patcher = &mockPatcher{
-			PatchFunc: func(resources map[string][]*apiv1.Resource) error {
-				return nil
-			},
-		}
-		patcher2 Patcher = &mockPatcher{
-			PatchFunc: func(resources map[string][]*apiv1.Resource) error {
-				return assert.AnError
-			},
-		}
-		pf1 = func() (Patcher, error) { return patcher1, nil }
-		pf2 = func() (Patcher, error) { return patcher2, nil }
-	)
-	err := CallPatchers(nil, pf1)
-	assert.NoError(t, err)
-
-	err = CallPatchers(nil, pf1, pf2)
 	assert.Error(t, err)
 	assert.EqualError(t, err, assert.AnError.Error())
 }
