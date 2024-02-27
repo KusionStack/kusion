@@ -4,8 +4,8 @@
 
 Kusion module is a reusable building block of KusionStack designed by platform engineers. Here are some explanations to make the definition more clear:
 
-1. It represents an independent unit that provides a specific capability to the application with a clear business semantics.
-2. It consist of one or multiple infrastructure resources (K8s/Terraform resources), but it is not merely a collection of unrelated resources. For instance, a database, monitoring capabilities, and network access are typical Kusion Modules.
+1. It represents an independent unit that provides a specific capability to the application with clear business semantics.
+2. It consists of one or multiple infrastructure resources (K8s/Terraform resources), but it is not merely a collection of unrelated resources. For instance, a database, monitoring capabilities, and network access are typical Kusion Modules.
 3. Modules should not have dependencies or be nested within each other.
 4. AppConfig is not a Module.
 
@@ -46,17 +46,17 @@ helloworld: ac.AppConfiguration {
 
     # extend accessories module base
     accessories: {
-        # Built-in module
-        "mysql" : d.MySQL {
+        # Built-in module, key represents the module source
+        "kusionstack/mysql@v0.1" : d.MySQL {
             type: "cloud"
             version: "8.0"
         }
-        # Built-in module
-        "pro" : m.Prometheus {
+        # Built-in module, key represents the module source
+        "kusionstack/prometheus@v0.1" : m.Prometheus {
             path: "/metrics"
         }
-        # Customized module
-        "customize": customizedModule {
+        # Customized module, key represents the module source
+        "foo/customize": customizedModule {
                 ...
         }
     }
@@ -110,11 +110,11 @@ We need to set KPM download path as `$KUSION_HOME/modules`, since it will always
 
 All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final Intent.
 
-Considering workload is required for every application and other modules depends on it, Kusion will execute the `workload` module at first to generate the workload resource. For modules that need to modify attributes in the `workload` such as environments, labels and annotations, we provides a `patch` interface to fulfill this demand.
+Considering workload is required for every application and other modules depend on it, Kusion will execute the `workload` module at first to generate the workload resource. For modules that need to modify attributes in the `workload` such as environments, labels and annotations, we provide a `patch`` interface to fulfill this demand.
 
 ##### Generator Interface
 
-Kusion invokes all module generators described through gRPC with [go-plugin](https://github.com/hashicorp/go-plugin) and provides a framework to deserialize and validate input and output values to guarantee the correctness. Interfaces are defined below.
+Kusion invokes all module generators described through gRPC with [go-plugin](https://github.com/hashicorp/go-plugin) and provides a framework to deserialize and validate input and output values to guarantee correctness. Interfaces are defined below.
 
 ```go
 // Generate resources of Intent
@@ -194,7 +194,7 @@ Publish the Kusion module to a registry with the command `kusion module publish 
 
 According to the definition of the Kusion module, it is responsible for generating the Spec and passing it to the Kusion engine to make it active. For cloud resources and Kubernetes, we currently leverage Terraform providers and Kubernetes operators to manage these resources effectively. But for platform engineers who want to manage their on-premises infrastructures with Kusion, what are they supposed to do? Here are two methods.
 
-1. Obviously, platform engineers can develop a Kubernetes operator or a Terraform provider, along with an associated Kusion module, and then publish it to a provider or Helm registry. However, this workflow is too fragmented and thy have to maintain two separate logics with completely different workflows.
+1. Obviously, platform engineers can develop a Kubernetes operator or a Terraform provider, along with an associated Kusion module, and then publish it to a provider or Helm registry. However, this workflow is too fragmented and they have to maintain two separate logics with completely different workflows.
 2. Extending the functionality of Kusion modules to include the logic for operating actual infrastructures. This would unify the development experience by providing a complete building block, including definition and execution.
 
 The second method raises the question of whether Kusion module should be compatible with existing Terraform providers or Kubernetes operators. If compatibility is desired, we could develop an adapter or a shim to convert Terraform providers into Kusion modules. We have seen some projects have done this before, but such an adapter would be very complex and challenging to catch up with the upstream Terraform provider framework.
