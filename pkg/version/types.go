@@ -33,7 +33,7 @@ func NewMainOrDefaultVersionInfo() *Info {
 			mod = mod.Replace
 		}
 
-		if mod.Version != "(devel)" {
+		if mod.Version != "(devel)" && mod.Version != "" {
 			v.ReleaseVersion = mod.Version
 		}
 	}
