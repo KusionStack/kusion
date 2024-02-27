@@ -2,11 +2,11 @@ package backend
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/zclconf/go-cty/cty/gocty"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	backendinit "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
@@ -43,7 +43,7 @@ func NewDefaultStateStorageConfig(workDir string) *StateStorageConfig {
 	return &StateStorageConfig{
 		Type: v1.BackendLocal,
 		Config: map[string]any{
-			"path": path.Join(workDir, local.KusionStateFileFile),
+			"path": filepath.Join(workDir, local.KusionStateFileFile),
 		},
 	}
 }

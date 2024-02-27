@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	yaml "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -109,7 +109,7 @@ func NewDefaultOperator() (*Operator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get kusion data folder failed, %w", err)
 	}
-	storagePath := path.Join(kusionDataDir, defaultRelativeStoragePath)
+	storagePath := filepath.Join(kusionDataDir, defaultRelativeStoragePath)
 	return NewOperator(storagePath)
 }
 
@@ -230,7 +230,7 @@ func (o *Operator) DeleteWorkspace(name string) error {
 }
 
 func (o *Operator) workspaceFilePath(name string) string {
-	return path.Join(o.storagePath, name+suffixYAML)
+	return filepath.Join(o.storagePath, name+suffixYAML)
 }
 
 func (o *Operator) getWorkspaceFiles() ([]os.DirEntry, error) {

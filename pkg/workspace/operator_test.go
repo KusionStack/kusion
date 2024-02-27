@@ -2,24 +2,24 @@ package workspace
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 func testDataFolder() string {
 	pwd, _ := os.Getwd()
-	return path.Join(pwd, "testdata")
+	return filepath.Join(pwd, "testdata")
 }
 
 func mockValidOperator() *Operator {
 	return &Operator{
-		storagePath: path.Join(testDataFolder(), defaultRelativeStoragePath),
+		storagePath: filepath.Join(testDataFolder(), defaultRelativeStoragePath),
 	}
 }
 
@@ -29,7 +29,7 @@ func TestNewDefaultOperator(t *testing.T) {
 			mockey.Mock(kfile.KusionDataFolder).Return(testDataFolder(), nil).Build()
 
 			operator, err := NewDefaultOperator()
-			storagePath := path.Join(testDataFolder(), defaultRelativeStoragePath)
+			storagePath := filepath.Join(testDataFolder(), defaultRelativeStoragePath)
 			assert.Nil(t, err)
 			assert.Equal(t, storagePath, operator.storagePath)
 			assert.DirExists(t, storagePath)
@@ -57,14 +57,14 @@ func TestOperator_Validate(t *testing.T) {
 			name:    "invalid operator not yaml workspace",
 			success: false,
 			operator: &Operator{
-				storagePath: path.Join(testDataFolder(), "invalid_workspaces_not_yaml"),
+				storagePath: filepath.Join(testDataFolder(), "invalid_workspaces_not_yaml"),
 			},
 		},
 		{
 			name:    "invalid operator dir workspace",
 			success: false,
 			operator: &Operator{
-				storagePath: path.Join(testDataFolder(), "invalid_workspaces_dir"),
+				storagePath: filepath.Join(testDataFolder(), "invalid_workspaces_dir"),
 			},
 		},
 	}
@@ -78,7 +78,7 @@ func TestOperator_Validate(t *testing.T) {
 }
 
 func TestOperator_GetWorkspaceNames(t *testing.T) {
-	operator, _ := NewOperator(path.Join(testDataFolder(), "workspaces_for_list"))
+	operator, _ := NewOperator(filepath.Join(testDataFolder(), "workspaces_for_list"))
 	testcases := []struct {
 		name     string
 		success  bool

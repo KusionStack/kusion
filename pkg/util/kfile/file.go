@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"os/user"
-	"path"
 	"path/filepath"
 	"runtime"
 )
@@ -69,7 +68,7 @@ func KusionDataFolder() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		kusionDataFolder = path.Join(usr.HomeDir, ".kusion")
+		kusionDataFolder = filepath.Join(usr.HomeDir, ".kusion")
 		if exist, _ := FileExists(kusionDataFolder); !exist {
 			err = os.MkdirAll(kusionDataFolder, os.ModePerm)
 			if err != nil {

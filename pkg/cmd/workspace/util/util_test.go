@@ -3,7 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +11,7 @@ import (
 
 func testFilePath(fileName string) string {
 	pwd, _ := os.Getwd()
-	return path.Join(pwd, "testdata", fileName)
+	return filepath.Join(pwd, "testdata", fileName)
 }
 
 func TestGetValidWorkspaceFromFile(t *testing.T) {

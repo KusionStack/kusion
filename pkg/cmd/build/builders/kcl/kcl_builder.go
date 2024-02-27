@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -131,8 +130,8 @@ func appendCRDs(workDir string, r *CompileResult) error {
 }
 
 func readCRDs(workDir string) ([]interface{}, error) {
-	projectPath := path.Dir(workDir)
-	crdPath := path.Join(projectPath, crd.Directory)
+	projectPath := filepath.Dir(workDir)
+	crdPath := filepath.Join(projectPath, crd.Directory)
 	_, err := os.Stat(crdPath)
 	if err != nil {
 		if os.IsNotExist(err) {

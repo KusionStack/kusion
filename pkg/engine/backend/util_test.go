@@ -3,19 +3,19 @@ package backend
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 func testDataFolder() string {
 	pwd, _ := os.Getwd()
-	return path.Join(pwd, "testdata")
+	return filepath.Join(pwd, "testdata")
 }
 
 func mockStack(name string) *v1.Stack {

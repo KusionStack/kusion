@@ -3,7 +3,6 @@ package local
 import (
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -98,7 +97,7 @@ func (f *FileSystemState) Delete(id string) error {
 	}
 	// if deprecated kusion state file exists, also delete
 	if f.deprecatedKusionStateFileExist() {
-		deprecatedPath := path.Join(filepath.Dir(f.Path), deprecatedKusionStateFile)
+		deprecatedPath := filepath.Join(filepath.Dir(f.Path), deprecatedKusionStateFile)
 		if err = os.Remove(deprecatedPath); err != nil {
 			return err
 		}
@@ -111,7 +110,7 @@ func (f *FileSystemState) usingDeprecatedKusionStateFilePath() string {
 	_, err := os.Stat(f.Path)
 	if os.IsNotExist(err) {
 		dir := filepath.Dir(f.Path)
-		deprecatedPath := path.Join(dir, deprecatedKusionStateFile)
+		deprecatedPath := filepath.Join(dir, deprecatedKusionStateFile)
 		if _, err = os.Stat(deprecatedPath); err == nil {
 			return deprecatedPath
 		}
@@ -121,6 +120,6 @@ func (f *FileSystemState) usingDeprecatedKusionStateFilePath() string {
 
 func (f *FileSystemState) deprecatedKusionStateFileExist() bool {
 	dir := filepath.Dir(f.Path)
-	_, err := os.Stat(path.Join(dir, deprecatedKusionStateFile))
+	_, err := os.Stat(filepath.Join(dir, deprecatedKusionStateFile))
 	return err == nil
 }
