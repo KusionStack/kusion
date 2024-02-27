@@ -8,12 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/container"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
 func Test_workloadServiceGenerator_Generate(t *testing.T) {
@@ -163,13 +162,15 @@ spec:
                   name: default-dev-foo-nginx-0
 status: {}
 `
+	r2 := new(int32)
+	*r2 = 2
+
 	type fields struct {
-		project       *apiv1.Project
-		stack         *apiv1.Stack
+		project       string
+		stack         string
 		appName       string
 		service       *workload.Service
 		serviceConfig apiv1.GenericConfig
-		portConfig    apiv1.GenericConfig
 	}
 	type args struct {
 		spec *apiv1.Intent
@@ -185,13 +186,8 @@ status: {}
 		{
 			name: "CollaSet",
 			fields: fields{
-				project: &apiv1.Project{
-					Name: "default",
-					Path: "/test",
-				},
-				stack: &apiv1.Stack{
-					Name: "dev",
-				},
+				project: "default",
+				stack:   "dev",
 				appName: "foo",
 				service: &workload.Service{
 					Base: workload.Base{
@@ -206,13 +202,12 @@ status: {}
 								},
 							},
 						},
-						Replicas: 2,
+						Replicas: r2,
 					},
 					Ports: []network.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
-							Public:   true,
 						},
 					},
 				},
@@ -225,15 +220,6 @@ status: {}
 						"service-workload-type": "CollaSet",
 					},
 				},
-				portConfig: apiv1.GenericConfig{
-					"type": "alicloud",
-					"labels": apiv1.GenericConfig{
-						"kusionstack.io/control": "true",
-					},
-					"annotations": apiv1.GenericConfig{
-						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
-					},
-				},
 			},
 			args: args{
 				spec: &apiv1.Intent{},
@@ -244,13 +230,8 @@ status: {}
 		{
 			name: "Deployment",
 			fields: fields{
-				project: &apiv1.Project{
-					Name: "default",
-					Path: "/test",
-				},
-				stack: &apiv1.Stack{
-					Name: "dev",
-				},
+				project: "default",
+				stack:   "dev",
 				appName: "foo",
 				service: &workload.Service{
 					Base: workload.Base{
@@ -270,7 +251,6 @@ status: {}
 						{
 							Port:     80,
 							Protocol: "TCP",
-							Public:   true,
 						},
 					},
 				},
@@ -278,15 +258,6 @@ status: {}
 					"replicas": 4,
 					"labels": apiv1.GenericConfig{
 						"service-workload-type": "Deployment",
-					},
-				},
-				portConfig: apiv1.GenericConfig{
-					"type": "alicloud",
-					"labels": apiv1.GenericConfig{
-						"kusionstack.io/control": "true",
-					},
-					"annotations": apiv1.GenericConfig{
-						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
 					},
 				},
 			},
@@ -299,29 +270,13 @@ status: {}
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := modules.GeneratorContext{
-				Project: tt.fields.project,
-				Stack:   tt.fields.stack,
-				Application: &inputs.AppConfiguration{
-					Name: tt.fields.appName,
-					Workload: &workload.Workload{
-						Service: tt.fields.service,
-					},
-				},
-				Namespace: tt.fields.project.Name,
-				ModuleInputs: map[string]apiv1.GenericConfig{
-					"service": tt.fields.serviceConfig,
-					"port":    tt.fields.portConfig,
-				},
-			}
-			g := &workloadServiceGenerator{
-				project:       tt.fields.project,
-				stack:         tt.fields.stack,
-				appName:       tt.fields.appName,
-				service:       tt.fields.service,
-				serviceConfig: tt.fields.serviceConfig,
-				namespace:     tt.fields.project.Name,
-				context:       ctx,
+			g := &ServiceGenerator{
+				Project:   tt.fields.project,
+				Stack:     tt.fields.stack,
+				App:       tt.fields.appName,
+				Service:   tt.fields.service,
+				Config:    tt.fields.serviceConfig,
+				Namespace: tt.fields.project,
 			}
 			if err := g.Generate(tt.args.spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
@@ -336,6 +291,8 @@ status: {}
 }
 
 func TestCompleteServiceInput(t *testing.T) {
+	r2 := int32(2)
+
 	testcases := []struct {
 		name             string
 		service          *workload.Service
@@ -352,7 +309,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},
@@ -372,7 +329,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},
@@ -392,7 +349,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},
@@ -410,7 +367,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},
@@ -430,7 +387,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},
@@ -454,7 +411,7 @@ func TestCompleteServiceInput(t *testing.T) {
 							Image: "nginx:v1",
 						},
 					},
-					Replicas: 2,
+					Replicas: &r2,
 					Labels: map[string]string{
 						"k1": "v1",
 					},

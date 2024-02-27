@@ -7,72 +7,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/container"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/container"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
 )
-
-func newGeneratorContext(
-	project *apiv1.Project,
-	stack *apiv1.Stack,
-	appName string,
-	workload *workload.Workload,
-	moduleInputs map[string]apiv1.GenericConfig,
-) modules.GeneratorContext {
-	application := &inputs.AppConfiguration{
-		Name:     appName,
-		Workload: workload,
-	}
-	return modules.GeneratorContext{
-		Project:      project,
-		Stack:        stack,
-		Application:  application,
-		Namespace:    project.Name,
-		ModuleInputs: moduleInputs,
-	}
-}
-
-func TestNewWorkloadGenerator(t *testing.T) {
-	t.Run("NewWorkloadGenerator should return a valid generator", func(t *testing.T) {
-		expectedProject := &apiv1.Project{
-			Name: "test",
-		}
-		expectedStack := &apiv1.Stack{}
-		expectedWorkload := &workload.Workload{}
-		expectedAppName := "test"
-		expectedModuleConfigs := map[string]apiv1.GenericConfig{
-			"service": {
-				"type": "Deployment",
-			},
-			"job": {
-				"replicas": 2,
-			},
-		}
-
-		ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
-		actualGenerator, err := NewWorkloadGenerator(ctx)
-
-		assert.NoError(t, err, "Error should be nil")
-		assert.NotNil(t, actualGenerator, "Generator should not be nil")
-		assert.Equal(t, expectedProject, actualGenerator.(*workloadGenerator).project, "Project mismatch")
-		assert.Equal(t, expectedStack, actualGenerator.(*workloadGenerator).stack, "Stack mismatch")
-		assert.Equal(t, expectedAppName, actualGenerator.(*workloadGenerator).appName, "AppName mismatch")
-		assert.Equal(t, expectedWorkload, actualGenerator.(*workloadGenerator).workload, "Workload mismatch")
-		assert.Equal(t, expectedModuleConfigs, actualGenerator.(*workloadGenerator).moduleConfigs, "ModuleConfigs mismatch")
-	})
-}
 
 func TestNewWorkloadGeneratorFunc(t *testing.T) {
 	t.Run("NewWorkloadGeneratorFunc should return a valid generator function", func(t *testing.T) {
-		expectedProject := &apiv1.Project{
-			Name: "test",
-		}
-		expectedStack := &apiv1.Stack{}
 		expectedWorkload := &workload.Workload{}
 		expectedAppName := "test"
+		expectedProject := "test"
+		expectedStack := "test"
 		expectedModuleConfigs := map[string]apiv1.GenericConfig{
 			"service": {
 				"type": "Deployment",
@@ -82,17 +30,23 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 			},
 		}
 
-		ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, expectedWorkload, expectedModuleConfigs)
-		generatorFunc := NewWorkloadGeneratorFunc(ctx)
+		generatorFunc := NewWorkloadGeneratorFunc(&Generator{
+			Project:         expectedProject,
+			Stack:           expectedStack,
+			App:             expectedAppName,
+			Namespace:       expectedAppName,
+			Workload:        expectedWorkload,
+			PlatformConfigs: expectedModuleConfigs,
+		})
 		actualGenerator, err := generatorFunc()
 
 		assert.NoError(t, err, "Error should be nil")
 		assert.NotNil(t, actualGenerator, "Generator should not be nil")
-		assert.Equal(t, expectedProject, actualGenerator.(*workloadGenerator).project, "Project mismatch")
-		assert.Equal(t, expectedStack, actualGenerator.(*workloadGenerator).stack, "Stack mismatch")
-		assert.Equal(t, expectedAppName, actualGenerator.(*workloadGenerator).appName, "AppName mismatch")
-		assert.Equal(t, expectedWorkload, actualGenerator.(*workloadGenerator).workload, "Workload mismatch")
-		assert.Equal(t, expectedModuleConfigs, actualGenerator.(*workloadGenerator).moduleConfigs, "ModuleConfigs mismatch")
+		assert.Equal(t, expectedProject, actualGenerator.(*Generator).Project, "Project mismatch")
+		assert.Equal(t, expectedStack, actualGenerator.(*Generator).Stack, "Stack mismatch")
+		assert.Equal(t, expectedAppName, actualGenerator.(*Generator).App, "AppName mismatch")
+		assert.Equal(t, expectedWorkload, actualGenerator.(*Generator).Workload, "Workload mismatch")
+		assert.Equal(t, expectedModuleConfigs, actualGenerator.(*Generator).PlatformConfigs, "ModuleConfigs mismatch")
 	})
 }
 
@@ -113,7 +67,6 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 						{
 							Port:     80,
 							Protocol: "TCP",
-							Public:   true,
 						},
 					},
 				},
@@ -135,12 +88,8 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			expectedProject := &apiv1.Project{
-				Name: "test",
-			}
-			expectedStack := &apiv1.Stack{
-				Name: "teststack",
-			}
+			expectedProject := "test"
+			expectedStack := "test"
 			expectedAppName := "test"
 			expectedModuleConfigs := map[string]apiv1.GenericConfig{
 				"service": {
@@ -149,21 +98,20 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 				"job": {
 					"replicas": 2,
 				},
-				"port": {
-					"type": "alicloud",
-					"labels": apiv1.GenericConfig{
-						"kusionstack.io/control": "true",
-					},
-					"annotations": apiv1.GenericConfig{
-						"service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec": "slb.s1.small",
-					},
-				},
 			}
 
-			ctx := newGeneratorContext(expectedProject, expectedStack, expectedAppName, tc.expectedWorkload, expectedModuleConfigs)
-			actualGenerator, _ := NewWorkloadGenerator(ctx)
+			generatorFunc := NewWorkloadGeneratorFunc(&Generator{
+				Project:         expectedProject,
+				Stack:           expectedStack,
+				App:             expectedAppName,
+				Namespace:       expectedAppName,
+				PlatformConfigs: expectedModuleConfigs,
+				Workload:        tc.expectedWorkload,
+			})
+			actualGenerator, err := generatorFunc()
+			assert.NoError(t, err, "generator func Error should be nil")
 			spec := &apiv1.Intent{}
-			err := actualGenerator.Generate(spec)
+			err = actualGenerator.Generate(spec)
 			assert.NoError(t, err, "Error should be nil")
 			assert.NotNil(t, spec.Resources, "Resources should not be nil")
 
@@ -171,15 +119,15 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			resource := spec.Resources[0]
 			actual := mapToUnstructured(resource.Attributes)
 
-			assert.Equal(t, expectedProject.Name, actual.GetNamespace(), "Namespace mismatch")
-			assert.Equal(t, modules.UniqueAppName(expectedProject.Name, expectedStack.Name, expectedAppName), actual.GetName(), "Name mismatch")
+			assert.Equal(t, expectedProject, actual.GetNamespace(), "Namespace mismatch")
+			assert.Equal(t, modules.UniqueAppName(expectedProject, expectedStack, expectedAppName), actual.GetName(), "Name mismatch")
 
 			if tc.expectedWorkload.Header.Type == "Service" {
 				assert.Equal(t, "Deployment", actual.GetKind(), "Resource kind mismatch")
-				assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(expectedProject.Name, expectedAppName), tc.expectedWorkload.Service.Labels), actual.GetLabels(), "Labels mismatch")
+				assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(expectedProject, expectedAppName), tc.expectedWorkload.Service.Labels), actual.GetLabels(), "Labels mismatch")
 			} else if tc.expectedWorkload.Header.Type == "Job" {
 				assert.Equal(t, "CronJob", actual.GetKind(), "Resource kind mismatch")
-				assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(expectedProject.Name, expectedAppName), tc.expectedWorkload.Job.Labels), actual.GetLabels(), "Labels mismatch")
+				assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(expectedProject, expectedAppName), tc.expectedWorkload.Job.Labels), actual.GetLabels(), "Labels mismatch")
 				assert.Equal(t, modules.MergeMaps(tc.expectedWorkload.Job.Annotations), actual.GetAnnotations(), "Annotations mismatch")
 			}
 		})
@@ -371,6 +319,9 @@ func TestToOrderedContainers(t *testing.T) {
 }
 
 func TestCompleteBaseWorkload(t *testing.T) {
+	r4 := int32(4)
+	r3 := int32(3)
+
 	testcases := []struct {
 		name          string
 		base          *workload.Base
@@ -408,7 +359,7 @@ func TestCompleteBaseWorkload(t *testing.T) {
 						Image: "nginx:v1",
 					},
 				},
-				Replicas: 4,
+				Replicas: &r4,
 				Labels: map[string]string{
 					"k1": "v1",
 					"k2": "v2",
@@ -427,7 +378,7 @@ func TestCompleteBaseWorkload(t *testing.T) {
 						Image: "nginx:v1",
 					},
 				},
-				Replicas: 3,
+				Replicas: &r3,
 				Labels: map[string]string{
 					"k1": "v1",
 				},
@@ -445,7 +396,7 @@ func TestCompleteBaseWorkload(t *testing.T) {
 						Image: "nginx:v1",
 					},
 				},
-				Replicas: 3,
+				Replicas: &r3,
 				Labels: map[string]string{
 					"k1": "v1",
 				},
@@ -455,7 +406,7 @@ func TestCompleteBaseWorkload(t *testing.T) {
 			},
 		},
 		{
-			name: "use default replicas",
+			name: "use platform replicas",
 			base: &workload.Base{
 				Containers: map[string]container.Container{
 					"nginx": {
@@ -469,7 +420,9 @@ func TestCompleteBaseWorkload(t *testing.T) {
 					"k1": "v1",
 				},
 			},
-			config:  nil,
+			config: apiv1.GenericConfig{
+				"replicas": 4,
+			},
 			success: true,
 			completedBase: &workload.Base{
 				Containers: map[string]container.Container{
@@ -477,7 +430,7 @@ func TestCompleteBaseWorkload(t *testing.T) {
 						Image: "nginx:v1",
 					},
 				},
-				Replicas: 2,
+				Replicas: &r4,
 				Labels: map[string]string{
 					"k1": "v1",
 				},

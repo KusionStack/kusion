@@ -1,69 +1,73 @@
 package workload
 
 import (
+	"errors"
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators/workload/network"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
-// workloadServiceGenerator is a struct for generating service workload resources.
-type workloadServiceGenerator struct {
-	project       *apiv1.Project
-	stack         *apiv1.Stack
-	appName       string
-	service       *workload.Service
-	serviceConfig apiv1.GenericConfig
-	namespace     string
+var (
+	ErrEmptySelectors        = errors.New("selectors must not be empty")
+	ErrInvalidPort           = errors.New("port must be between 1 and 65535")
+	ErrInvalidTargetPort     = errors.New("targetPort must be between 1 and 65535 if exist")
+	ErrInvalidProtocol       = errors.New("protocol must be TCP or UDP")
+	ErrDuplicatePortProtocol = errors.New("port-protocol pair must not be duplicate")
+)
 
-	// for internal generator
-	context modules.GeneratorContext
+// ServiceGenerator is a struct for generating Service Workload resources.
+type ServiceGenerator struct {
+	Project   string
+	Stack     string
+	App       string
+	Namespace string
+	Service   *workload.Service
+	Config    apiv1.GenericConfig
 }
 
-// NewWorkloadServiceGenerator returns a new workloadServiceGenerator instance.
-func NewWorkloadServiceGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
-	if len(ctx.Project.Name) == 0 {
+// NewWorkloadServiceGenerator returns a new ServiceGenerator instance.
+func NewWorkloadServiceGenerator(request *Generator) (modules.Generator, error) {
+	if len(request.Project) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
-	if len(ctx.Application.Name) == 0 {
+	if len(request.App) == 0 {
 		return nil, fmt.Errorf("app name must not be empty")
 	}
 
-	if ctx.Application.Workload.Service == nil {
-		return nil, fmt.Errorf("service workload must not be nil")
+	if request.Workload.Service == nil {
+		return nil, fmt.Errorf("service Workload must not be nil")
 	}
 
-	return &workloadServiceGenerator{
-		project:       ctx.Project,
-		stack:         ctx.Stack,
-		appName:       ctx.Application.Name,
-		service:       ctx.Application.Workload.Service,
-		serviceConfig: ctx.ModuleInputs[workload.ModuleService],
-		namespace:     ctx.Namespace,
-		context:       ctx,
+	return &ServiceGenerator{
+		Project:   request.Project,
+		Stack:     request.Stack,
+		App:       request.App,
+		Service:   request.Workload.Service,
+		Config:    request.PlatformConfigs[workload.ModuleService],
+		Namespace: request.Namespace,
 	}, nil
 }
 
-// NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that returns a workloadServiceGenerator instance.
-func NewWorkloadServiceGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
+// NewWorkloadServiceGeneratorFunc returns a new NewGeneratorFunc that returns a ServiceGenerator instance.
+func NewWorkloadServiceGeneratorFunc(workloadGenerator *Generator) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewWorkloadServiceGenerator(ctx)
+		return NewWorkloadServiceGenerator(workloadGenerator)
 	}
 }
 
-// Generate generates a service workload resource to the given spec.
-func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
-	service := g.service
+// Generate generates a Service Workload resource to the given spec.
+func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
+	service := g.Service
 	if service == nil {
 		return nil
 	}
@@ -73,23 +77,23 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 		spec.Resources = make(apiv1.Resources, 0)
 	}
 
-	if err := completeServiceInput(g.service, g.serviceConfig); err != nil {
-		return fmt.Errorf("complete service input by workspace config failed, %w", err)
+	if err := completeServiceInput(g.Service, g.Config); err != nil {
+		return fmt.Errorf("complete Service input by workspace config failed, %w", err)
 	}
 
-	uniqueAppName := modules.UniqueAppName(g.project.Name, g.stack.Name, g.appName)
+	uniqueAppName := modules.UniqueAppName(g.Project, g.Stack, g.App)
 
-	// Create a slice of containers based on the app's
+	// Create a slice of containers based on the App's
 	// containers along with related volumes and configMaps.
 	containers, volumes, configMaps, err := toOrderedContainers(service.Containers, uniqueAppName)
 	if err != nil {
 		return err
 	}
 
-	// Create ConfigMap objects based on the app's configuration.
+	// Create ConfigMap objects based on the App's configuration.
 	for _, cm := range configMaps {
 		cmObj := cm
-		cmObj.Namespace = g.namespace
+		cmObj.Namespace = g.Namespace
 		if err = modules.AppendToIntent(
 			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
@@ -100,17 +104,17 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 		}
 	}
 
-	labels := modules.MergeMaps(modules.UniqueAppLabels(g.project.Name, g.appName), g.service.Labels)
-	annotations := modules.MergeMaps(g.service.Annotations)
-	selector := modules.UniqueAppLabels(g.project.Name, g.appName)
+	labels := modules.MergeMaps(modules.UniqueAppLabels(g.Project, g.App), g.Service.Labels)
+	annotations := modules.MergeMaps(g.Service.Annotations)
+	selectors := modules.UniqueAppLabels(g.Project, g.App)
 
-	// Create a K8s workload object based on the app's configuration.
+	// Create a K8s Workload object based on the App's configuration.
 	// common parts
 	objectMeta := metav1.ObjectMeta{
 		Labels:      labels,
 		Annotations: annotations,
 		Name:        uniqueAppName,
-		Namespace:   g.namespace,
+		Namespace:   g.Namespace,
 	}
 	podTemplateSpec := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -127,14 +131,14 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 	typeMeta := metav1.TypeMeta{}
 
 	switch service.Type {
-	case workload.TypeDeployment:
+	case workload.Deployment:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       workload.TypeDeployment,
+			Kind:       string(workload.Deployment),
 		}
 		spec := appsv1.DeploymentSpec{
-			Replicas: modules.GenericPtr(int32(service.Replicas)),
-			Selector: &metav1.LabelSelector{MatchLabels: selector},
+			Replicas: service.Replicas,
+			Selector: &metav1.LabelSelector{MatchLabels: selectors},
 			Template: podTemplateSpec,
 		}
 		resource = &appsv1.Deployment{
@@ -142,17 +146,17 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 			ObjectMeta: objectMeta,
 			Spec:       spec,
 		}
-	case workload.TypeCollaset:
+	case workload.Collaset:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       workload.TypeCollaset,
+			Kind:       string(workload.Collaset),
 		}
 		resource = &v1alpha1.CollaSet{
 			TypeMeta:   typeMeta,
 			ObjectMeta: objectMeta,
 			Spec: v1alpha1.CollaSetSpec{
-				Replicas: modules.GenericPtr(int32(service.Replicas)),
-				Selector: &metav1.LabelSelector{MatchLabels: selector},
+				Replicas: service.Replicas,
+				Selector: &metav1.LabelSelector{MatchLabels: selectors},
 				Template: podTemplateSpec,
 			},
 		}
@@ -163,14 +167,64 @@ func (g *workloadServiceGenerator) Generate(spec *apiv1.Intent) error {
 		return err
 	}
 
-	// generate K8s Service from ports config.
-	if len(g.service.Ports) != 0 {
-		portsGeneratorFunc := network.NewPortsGeneratorFunc(g.context, selector, labels, annotations)
-		if err = modules.CallGenerators(spec, portsGeneratorFunc); err != nil {
+	// validate and complete service ports
+	if len(g.Service.Ports) != 0 {
+		if err = validate(selectors, service.Ports); err != nil {
+			return err
+		}
+		if err = complete(service.Ports); err != nil {
 			return err
 		}
 	}
+	return nil
+}
 
+func validatePorts(ports []network.Port) error {
+	portProtocolRecord := make(map[string]struct{})
+	for _, port := range ports {
+		if err := validatePort(&port); err != nil {
+			return fmt.Errorf("invalid port config %+v, %w", port, err)
+		}
+
+		// duplicate "port-protocol" pairs are not allowed.
+		portProtocol := fmt.Sprintf("%d-%s", port.Port, port.Protocol)
+		if _, ok := portProtocolRecord[portProtocol]; ok {
+			return fmt.Errorf("invalid port config %+v, %v", port, ErrDuplicatePortProtocol)
+		}
+		portProtocolRecord[portProtocol] = struct{}{}
+	}
+	return nil
+}
+
+func validatePort(port *network.Port) error {
+	if port.Port < 1 || port.Port > 65535 {
+		return ErrInvalidPort
+	}
+	if port.TargetPort < 0 || port.Port > 65535 {
+		return ErrInvalidTargetPort
+	}
+	if port.Protocol != network.TCP && port.Protocol != network.UDP {
+		return ErrInvalidProtocol
+	}
+	return nil
+}
+
+func validate(selectors map[string]string, ports []network.Port) error {
+	if len(selectors) == 0 {
+		return ErrEmptySelectors
+	}
+	if err := validatePorts(ports); err != nil {
+		return err
+	}
+	return nil
+}
+
+func complete(ports []network.Port) error {
+	for i := range ports {
+		if ports[i].TargetPort == 0 {
+			ports[i].TargetPort = ports[i].Port
+		}
+	}
 	return nil
 }
 
@@ -178,19 +232,20 @@ func completeServiceInput(service *workload.Service, config apiv1.GenericConfig)
 	if err := completeBaseWorkload(&service.Base, config); err != nil {
 		return err
 	}
-	serviceType, err := workspace.GetStringFromGenericConfig(config, workload.FieldType)
+	serviceTypeStr, err := workspace.GetStringFromGenericConfig(config, workload.ModuleServiceType)
+	platformServiceType := workload.ServiceType(serviceTypeStr)
 	if err != nil {
 		return err
 	}
 	// if not set in workspace, use Deployment as default type
-	if serviceType == "" {
-		serviceType = workload.TypeDeployment
+	if platformServiceType == "" {
+		platformServiceType = workload.Deployment
 	}
-	if serviceType != workload.TypeDeployment && serviceType != workload.TypeCollaset {
-		return fmt.Errorf("unsupported service type %s", serviceType)
+	if platformServiceType != workload.Deployment && platformServiceType != workload.Collaset {
+		return fmt.Errorf("unsupported Service type %s", platformServiceType)
 	}
 	if service.Type == "" {
-		service.Type = serviceType
+		service.Type = platformServiceType
 	}
 	return nil
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 func Test_namespaceGenerator_Generate(t *testing.T) {
@@ -58,11 +57,8 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := modules.GeneratorContext{
-				Namespace: tt.fields.namespace,
-			}
 			g := &namespaceGenerator{
-				context: ctx,
+				namespace: tt.fields.namespace,
 			}
 			if err := g.Generate(tt.args.intent); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)

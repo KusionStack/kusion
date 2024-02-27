@@ -1,14 +1,16 @@
 package workload
 
 import (
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
 )
 
 type ServiceType string
 
 const (
-	Deployment ServiceType = "Deployment"
-	Collaset   ServiceType = "CollaSet"
+	ModuleService                 = "service"
+	ModuleServiceType             = "type"
+	Deployment        ServiceType = "Deployment"
+	Collaset          ServiceType = "CollaSet"
 )
 
 // Service is a kind of workload profile that describes how to run your application code.

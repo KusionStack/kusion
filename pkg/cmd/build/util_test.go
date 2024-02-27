@@ -13,7 +13,6 @@ import (
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
-	appconfigmodel "kusionstack.io/kusion/pkg/modules/inputs"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -197,7 +196,7 @@ func TestBuildIntentFromFile(t *testing.T) {
 }
 
 func TestBuildIntent(t *testing.T) {
-	apc := &appconfigmodel.AppConfiguration{}
+	apc := &v1.AppConfiguration{}
 	var apcMap map[string]interface{}
 	tmp, _ := json.Marshal(apc)
 	_ = json.Unmarshal(tmp, &apcMap)
@@ -224,7 +223,10 @@ func TestBuildIntent(t *testing.T) {
 				o: &builders.Options{Arguments: map[string]string{}},
 				project: &v1.Project{
 					Name: "default",
-				}, stack: &v1.Stack{},
+				},
+				stack: &v1.Stack{
+					Name: "default",
+				},
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),

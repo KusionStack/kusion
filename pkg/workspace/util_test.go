@@ -191,35 +191,37 @@ func Test_GetTerraformProviderConfig(t *testing.T) {
 }
 
 func Test_GetIntFieldFromGenericConfig(t *testing.T) {
+	r2 := int32(2)
+
 	testcases := []struct {
 		name          string
 		key           string
 		success       bool
-		expectedValue int
+		expectedValue *int32
 	}{
 		{
 			name:          "successfully get int type field",
 			key:           "int_type_field",
 			success:       true,
-			expectedValue: 2,
+			expectedValue: &r2,
 		},
 		{
 			name:          "get not exist field",
 			key:           "not_exist",
 			success:       true,
-			expectedValue: 0,
+			expectedValue: nil,
 		},
 		{
 			name:          "get field failed not int type",
 			key:           "string_type_field",
 			success:       false,
-			expectedValue: 0,
+			expectedValue: nil,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			value, err := GetIntFromGenericConfig(mockGenericConfig(), tc.key)
+			value, err := GetInt32PointerFromGenericConfig(mockGenericConfig(), tc.key)
 			assert.Equal(t, tc.success, err == nil)
 			assert.Equal(t, tc.expectedValue, value)
 		})

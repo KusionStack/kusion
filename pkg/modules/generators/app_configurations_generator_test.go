@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	appmodel "kusionstack.io/kusion/pkg/modules/inputs"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload"
-	"kusionstack.io/kusion/pkg/modules/inputs/workload/network"
+	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+
+	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
 func TestAppConfigurationGenerator_Generate(t *testing.T) {
@@ -119,8 +119,8 @@ func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 	})
 }
 
-func buildMockApp() (string, *appmodel.AppConfiguration) {
-	return "app1", &appmodel.AppConfiguration{
+func buildMockApp() (string, *v1.AppConfiguration) {
+	return "app1", &v1.AppConfiguration{
 		Workload: &workload.Workload{
 			Header: workload.Header{
 				Type: "Service",
@@ -132,7 +132,6 @@ func buildMockApp() (string, *appmodel.AppConfiguration) {
 					{
 						Port:     80,
 						Protocol: "TCP",
-						Public:   true,
 					},
 				},
 			},

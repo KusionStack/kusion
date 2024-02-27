@@ -21,8 +21,7 @@ func CompleteWorkspace(ws *v1.Workspace, name string) {
 	}
 }
 
-// GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name,
-// should be called after ValidateModuleConfigs.
+// GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name, should be called after ValidateModuleConfigs.
 // If got empty module configs, return nil config and nil error.
 func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[string]v1.GenericConfig, error) {
 	if len(configs) == 0 {
@@ -32,25 +31,24 @@ func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[
 		return nil, ErrEmptyProjectName
 	}
 
-	projectCfgs := make(map[string]v1.GenericConfig)
+	projectConfigs := make(map[string]v1.GenericConfig)
 	for name, cfg := range configs {
-		projectCfg, err := getProjectModuleConfig(cfg, projectName)
-		if projectCfg == nil {
+		moduleConfig, err := getProjectModuleConfig(cfg, projectName)
+		if moduleConfig == nil {
 			continue
 		}
 		if err != nil {
 			return nil, fmt.Errorf("%w, module name: %s", err, name)
 		}
-		if len(projectCfg) != 0 {
-			projectCfgs[name] = projectCfg
+		if len(moduleConfig) != 0 {
+			projectConfigs[name] = moduleConfig
 		}
 	}
 
-	return projectCfgs, nil
+	return projectConfigs, nil
 }
 
-// GetProjectModuleConfig returns the module config of a specified project, should be called after
-// ValidateModuleConfig.
+// GetProjectModuleConfig returns the module config of a specified project, should be called after ValidateModuleConfig.
 // If got empty module config, return nil config and nil error.
 func GetProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
 	if config == nil {
@@ -63,8 +61,7 @@ func GetProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.Gen
 	return getProjectModuleConfig(config, projectName)
 }
 
-// getProjectModuleConfig gets the module config of a specified project without checking the correctness
-// of project name.
+// getProjectModuleConfig gets the module config of a specified project without checking the correctness of project name.
 func getProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
 	projectCfg := config.Default
 	if len(projectCfg) == 0 {
@@ -212,18 +209,19 @@ func CompleteWholeS3Config(config *v1.S3Config) {
 	}
 }
 
-// GetIntFromGenericConfig returns the value of the key in config which should be of type int.
-// If exist but not int, return error. If not exist, return 0, nil.
-func GetIntFromGenericConfig(config v1.GenericConfig, key string) (int, error) {
+// GetInt32PointerFromGenericConfig returns the value of the key in config which should be of type int.
+// If exist but not int, return error. If not exist, return nil.
+func GetInt32PointerFromGenericConfig(config v1.GenericConfig, key string) (*int32, error) {
 	value, ok := config[key]
 	if !ok {
-		return 0, nil
+		return nil, nil
 	}
 	i, ok := value.(int)
 	if !ok {
-		return 0, fmt.Errorf("the value of %s is not int", key)
+		return nil, fmt.Errorf("the value of %s is not int", key)
 	}
-	return i, nil
+	res := int32(i)
+	return &res, nil
 }
 
 // GetStringFromGenericConfig returns the value of the key in config which should be of type string.

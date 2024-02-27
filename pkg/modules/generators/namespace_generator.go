@@ -9,18 +9,18 @@ import (
 )
 
 type namespaceGenerator struct {
-	context modules.GeneratorContext
+	namespace string
 }
 
-func NewNamespaceGenerator(ctx modules.GeneratorContext) (modules.Generator, error) {
+func NewNamespaceGenerator(namespace string) (modules.Generator, error) {
 	return &namespaceGenerator{
-		context: ctx,
+		namespace: namespace,
 	}, nil
 }
 
-func NewNamespaceGeneratorFunc(ctx modules.GeneratorContext) modules.NewGeneratorFunc {
+func NewNamespaceGeneratorFunc(namespace string) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewNamespaceGenerator(ctx)
+		return NewNamespaceGenerator(namespace)
 	}
 }
 
@@ -34,7 +34,7 @@ func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
 			Kind:       "Namespace",
 			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
-		ObjectMeta: metav1.ObjectMeta{Name: g.context.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: g.namespace},
 	}
 
 	// Avoid generating duplicate namespaces with the same ID.
