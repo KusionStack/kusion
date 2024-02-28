@@ -69,6 +69,8 @@ docker pull kusionstack/kusion:latest
 
 > For more information about installation, please check the [Installation Guide](https://www.kusionstack.io/docs/kusion/getting-started/install-kusion) on KusionStack official website
 
+# Star History
+![Star History Chart](https://api.star-history.com/svg?repos=kusionstack/kusion&type=Date)
 
 # Contact Us
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
