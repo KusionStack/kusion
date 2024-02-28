@@ -11,16 +11,8 @@ type Generator interface {
 	Generate(intent *v1.Intent) error
 }
 
-// Patcher is the interface that wraps the Patch method.
-type Patcher interface {
-	Patch(resources map[string][]*v1.Resource) error
-}
-
 // NewGeneratorFunc is a function that returns a Generator.
 type NewGeneratorFunc func() (Generator, error)
-
-// NewPatcherFunc is a function that returns a Patcher.
-type NewPatcherFunc func() (Patcher, error)
 
 // GeneratorRequest defines the request of generators.
 type GeneratorRequest struct {
