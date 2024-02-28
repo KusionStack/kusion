@@ -16,7 +16,6 @@ import (
 
 	// we need to import compile pkg to keep the compile command available
 	"kusionstack.io/kusion/pkg/cmd/compile" //nolint:staticcheck
-	"kusionstack.io/kusion/pkg/cmd/deps"
 	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/version"
@@ -97,7 +96,6 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 				cmdinit.NewCmdInit(),
 				compile.NewCmdCompile(),
 				build.NewCmdBuild(),
-				deps.NewCmdDeps(),
 			},
 		},
 		{

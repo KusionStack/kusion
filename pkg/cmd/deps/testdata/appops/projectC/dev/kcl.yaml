@@ -1,4 +1,0 @@
-kcl_cli_configs:
-  file:
-    - ./main.k
-    - ${KCL_MOD}/base/render/server/server_render.k
