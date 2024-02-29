@@ -133,7 +133,7 @@ func TestChangeStep_Diff(t *testing.T) {
 				Action: tt.fields.Op,
 				From:   tt.fields.New,
 			}
-			got, err := cs.Diff()
+			got, err := cs.Diff(false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChangeStep.Diff() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -382,7 +382,7 @@ func TestChanges_Diffs(t *testing.T) {
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
-			if got := p.Diffs(); got != tt.want {
+			if got := p.Diffs(false); got != tt.want {
 				t.Errorf("Changes.Diffs() = %v, want %v", got, tt.want)
 			}
 		})
@@ -421,7 +421,7 @@ func TestChanges_Preview(t *testing.T) {
 				project:     tt.fields.project,
 				stack:       tt.fields.stack,
 			}
-			p.Summary(os.Stdout)
+			p.Summary(os.Stdout, false)
 		})
 	}
 }

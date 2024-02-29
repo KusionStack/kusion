@@ -15,6 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
+	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -46,8 +47,9 @@ func Test_preview(t *testing.T) {
 		m := mockOperationPreview()
 		defer m.UnPatch()
 
-		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s)
+		//o := NewPreviewOptions()
+		o := engineapi.NewAPIOptions()
+		_, err := engineapi.Preview(&o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s)
 		assert.Nil(t, err)
 	})
 }

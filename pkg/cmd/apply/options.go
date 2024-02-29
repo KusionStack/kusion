@@ -15,6 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/build"
 	cmdintent "kusionstack.io/kusion/pkg/cmd/build/builders"
 	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
+	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	"kusionstack.io/kusion/pkg/engine/backend"
 	_ "kusionstack.io/kusion/pkg/engine/backend/init"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -98,7 +99,9 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := previewcmd.Preview(&o.Options, stateStorage, sp, project, stack)
+	// changes, err := previewcmd.Preview(&o.Options, stateStorage, sp, project, stack)
+	previewOptions := engineapi.NewAPIOptions()
+	changes, err := engineapi.Preview(&previewOptions, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
 	}
@@ -109,7 +112,7 @@ func (o *Options) Run() error {
 	}
 
 	// Summary preview table
-	changes.Summary(os.Stdout)
+	changes.Summary(os.Stdout, false)
 
 	// Detail detection
 	if o.Detail && o.All {

@@ -1,0 +1,61 @@
+# NOTE: Please do not use the configuration in the production environment
+#
+# Function: use `air` to realize hot-reload
+#
+# Config file for [Air](https://github.com/cosmtrek/air) in TOML format
+#
+# Working directory
+# . or absolute path, please note that the directories following must be under root.
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Just plain old shell command. You could use `make` as well.
+  cmd = "make build-local-darwin-arm64"
+  # Binary file yields from `cmd`.
+  bin = "./_build/bundles/kusion-darwin-arm64/bin/kusion"
+  # Customize binary, can setup environment variables when run your app.
+  # full_bin = "APP_ENV=dev APP_USER=air ./build/air/karma"
+  # Watch these filename extensions.
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  # Ignore these filename extensions or directories.
+  exclude_dir = ["assets", "tmp", "vendor", "logs", "conf", "build", "scripts", "ui/node_modules", "ui/build", "ui/dist"]
+  # Watch these directories if you specified.
+  include_dir = []
+  # Watch these files.
+  include_file = []
+  # Exclude files.
+  exclude_file = ["pkg/version/z_update_version.go"]
+  # Exclude specific regular expressions.
+  exclude_regex = ["_test\\.go"]
+  # Exclude unchanged files.
+  exclude_unchanged = true
+  # Follow symlink for directories
+  follow_symlink = true
+  # This log file places in your tmp_dir.
+  log = "air.log"
+  # It's not necessary to trigger build each time file changes if it's too frequent.
+  delay = 1000 # ms
+  # Stop running old binary when build errors occur.
+  stop_on_error = true
+  # Send Interrupt signal before killing process (windows does not support this feature)
+  send_interrupt = false
+  # Delay after sending Interrupt signal
+  kill_delay = 500 # ms
+  # Add additional arguments when running binary (bin/full_bin). Will run './tmp/main hello world'.
+  args_bin = ["server"]
+
+[log]
+  # Show log time
+  time = false
+
+[color]
+  # Customize each part's color. If no color found, use the raw app log.
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  # Delete tmp directory on exit
+  clean_on_exit = true
