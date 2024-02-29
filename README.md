@@ -72,7 +72,7 @@ docker pull kusionstack/kusion:latest
 
 # Contact Us
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
-- Slack: [Kusionstack](https://join.slack.com/t/kusionstack/shared_invite/zt-19lqcc3a9-_kTNwagaT5qwBE~my5Lnxg)
+- Slack: [Kusionstack](https://kusionstack.slack.com)
 - DingTalk (Chinese): 42753001
 - Wechat Group (Chinese)
 
