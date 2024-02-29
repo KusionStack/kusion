@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
@@ -76,8 +76,8 @@ func buildMockWorkspace() *v1.Workspace {
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &v1.BackendConfigs{
-			Local: &v1.LocalFileConfig{},
+		Backends: &v1.DeprecatedBackendConfigs{
+			Local: &v1.DeprecatedLocalFileConfig{},
 		},
 	}
 }

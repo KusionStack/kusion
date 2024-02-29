@@ -3,14 +3,14 @@ package backend
 import (
 	"fmt"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
 // NewStateStorage news a StateStorage by configs of workspace, cli backend options, and environment variables.
 func NewStateStorage(stack *v1.Stack, opts *BackendOptions) (states.StateStorage, error) {
-	var backendConfigs *v1.BackendConfigs
+	var backendConfigs *v1.DeprecatedBackendConfigs
 	wsOperator, err := workspace.NewValidDefaultOperator()
 	if err != nil {
 		return nil, fmt.Errorf("new default workspace opearator failed, %w", err)

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	kclgo "kcl-lang.io/kcl-go"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -146,8 +146,8 @@ resources:
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &v1.BackendConfigs{
-			Local: &v1.LocalFileConfig{},
+		Backends: &v1.DeprecatedBackendConfigs{
+			Local: &v1.DeprecatedLocalFileConfig{},
 		},
 	}
 )

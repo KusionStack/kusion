@@ -4,10 +4,10 @@ const (
 	DefaultBlock         = "default"
 	ProjectSelectorField = "projectSelector"
 
-	BackendLocal            = "local"
-	BackendMysql            = "mysql"
-	BackendOss              = "oss"
-	BackendS3               = "s3"
+	DeprecatedBackendLocal  = "local"
+	DeprecatedBackendMysql  = "mysql"
+	DeprecatedBackendOss    = "oss"
+	DeprecatedBackendS3     = "s3"
 	EnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
 	EnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
 	EnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
@@ -34,7 +34,8 @@ type Workspace struct {
 	Runtimes *RuntimeConfigs `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
 
 	// Backends are the configs of a set of backends.
-	Backends *BackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
+	// Deprecated: do not support backend configs in workspace anymore
+	Backends *DeprecatedBackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
 
 	// SecretStore represents a secure external location for storing secrets.
 	SecretStore *SecretStoreSpec `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
@@ -121,28 +122,31 @@ type ProviderConfig struct {
 	GenericConfig `yaml:",inline,omitempty" json:",inline,omitempty"`
 }
 
-// BackendConfigs contains config of the backend, which is used to store state, etc. Only one kind
+// DeprecatedBackendConfigs contains config of the backend, which is used to store state, etc. Only one kind
 // backend can be configured.
-type BackendConfigs struct {
+// Deprecated: do not support backend configs in workspace anymore
+type DeprecatedBackendConfigs struct {
 	// Local is the backend using local file system.
-	Local *LocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
+	Local *DeprecatedLocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
 
 	// Mysql is the backend using mysql database.
-	Mysql *MysqlConfig `yaml:"mysql,omitempty" json:"mysql,omitempty"`
+	Mysql *DeprecatedMysqlConfig `yaml:"mysql,omitempty" json:"mysql,omitempty"`
 
 	// Oss is the backend using OSS.
-	Oss *OssConfig `yaml:"oss,omitempty" json:"oss,omitempty"`
+	Oss *DeprecatedOssConfig `yaml:"oss,omitempty" json:"oss,omitempty"`
 
 	// S3 is the backend using S3.
-	S3 *S3Config `yaml:"s3,omitempty" json:"s3,omitempty"`
+	S3 *DeprecatedS3Config `yaml:"s3,omitempty" json:"s3,omitempty"`
 }
 
-// LocalFileConfig contains the config of using local file system as backend. Now there is no configuration
+// DeprecatedLocalFileConfig contains the config of using local file system as backend. Now there is no configuration
 // item for local file.
-type LocalFileConfig struct{}
+// Deprecated: do not support backend configs in workspace anymore
+type DeprecatedLocalFileConfig struct{}
 
-// MysqlConfig contains the config of using mysql database as backend.
-type MysqlConfig struct {
+// DeprecatedMysqlConfig contains the config of using mysql database as backend.
+// Deprecated: do not support backend configs in workspace anymore
+type DeprecatedMysqlConfig struct {
 	// DBName is the database name.
 	DBName string `yaml:"dbName" json:"dbName"`
 
@@ -159,20 +163,22 @@ type MysqlConfig struct {
 	Port *int `yaml:"port,omitempty" json:"port,omitempty"`
 }
 
-// OssConfig contains the config of using OSS as backend.
-type OssConfig struct {
+// DeprecatedOssConfig contains the config of using OSS as backend.
+// Deprecated: do not support backend configs in workspace anymore
+type DeprecatedOssConfig struct {
 	GenericObjectStorageConfig `yaml:",inline" json:",inline"` // OSS asks for non-empty endpoint
 }
 
-// S3Config contains the config of using S3 as backend.
-type S3Config struct {
+// DeprecatedS3Config contains the config of using S3 as backend.
+// Deprecated: do not support backend configs in workspace anymore
+type DeprecatedS3Config struct {
 	GenericObjectStorageConfig `yaml:",inline" json:",inline"`
 
 	// Region of S3.
 	Region string `yaml:"region,omitempty" json:"region,omitempty"`
 }
 
-// GenericObjectStorageConfig contains generic configs which can be reused by OssConfig and S3Config.
+// GenericObjectStorageConfig contains generic configs which can be reused by DeprecatedOssConfig and DeprecatedS3Config.
 type GenericObjectStorageConfig struct {
 	// Endpoint of the object storage service.
 	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`

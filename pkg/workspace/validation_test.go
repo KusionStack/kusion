@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 func mockValidWorkspace(name string) *v1.Workspace {
@@ -185,14 +185,14 @@ func mockValidTerraformConfig() v1.TerraformConfig {
 	}
 }
 
-func mockValidBackendConfigs() *v1.BackendConfigs {
-	return &v1.BackendConfigs{
-		Local: &v1.LocalFileConfig{},
+func mockValidBackendConfigs() *v1.DeprecatedBackendConfigs {
+	return &v1.DeprecatedBackendConfigs{
+		Local: &v1.DeprecatedLocalFileConfig{},
 	}
 }
 
-func mockValidMysqlConfig() *v1.MysqlConfig {
-	return &v1.MysqlConfig{
+func mockValidMysqlConfig() *v1.DeprecatedMysqlConfig {
+	return &v1.DeprecatedMysqlConfig{
 		DBName: "kusion_db",
 		User:   "kusion",
 		Host:   "127.0.0.1",
@@ -205,8 +205,8 @@ func mockValidGenericObjectStorageConfig() *v1.GenericObjectStorageConfig {
 	}
 }
 
-func mockValidCompletedOssConfig() *v1.OssConfig {
-	return &v1.OssConfig{
+func mockValidCompletedOssConfig() *v1.DeprecatedOssConfig {
+	return &v1.DeprecatedOssConfig{
 		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 			Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 			AccessKeyID:     "fake-access-key-id",
@@ -216,8 +216,8 @@ func mockValidCompletedOssConfig() *v1.OssConfig {
 	}
 }
 
-func mockValidCompletedS3Config() *v1.S3Config {
-	return &v1.S3Config{
+func mockValidCompletedS3Config() *v1.DeprecatedS3Config {
+	return &v1.DeprecatedS3Config{
 		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 			AccessKeyID:     "fake-access-key-id",
 			AccessKeySecret: "fake-access-key-secret",
@@ -464,7 +464,7 @@ func TestValidateBackendConfigs(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		backendConfigs *v1.BackendConfigs
+		backendConfigs *v1.DeprecatedBackendConfigs
 	}{
 		{
 			name:           "valid backend configs",
@@ -474,9 +474,9 @@ func TestValidateBackendConfigs(t *testing.T) {
 		{
 			name:    "invalid backend configs multiple backends",
 			success: false,
-			backendConfigs: &v1.BackendConfigs{
-				Local: &v1.LocalFileConfig{},
-				Mysql: &v1.MysqlConfig{
+			backendConfigs: &v1.DeprecatedBackendConfigs{
+				Local: &v1.DeprecatedLocalFileConfig{},
+				Mysql: &v1.DeprecatedMysqlConfig{
 					DBName: "test",
 				},
 			},
@@ -496,7 +496,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 	testcases := []struct {
 		name        string
 		success     bool
-		mysqlConfig *v1.MysqlConfig
+		mysqlConfig *v1.DeprecatedMysqlConfig
 	}{
 		{
 			name:        "valid mysql config",
@@ -506,7 +506,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty dbName",
 			success: false,
-			mysqlConfig: &v1.MysqlConfig{
+			mysqlConfig: &v1.DeprecatedMysqlConfig{
 				DBName: "",
 				User:   "kusion",
 				Host:   "127.0.0.1",
@@ -515,7 +515,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty user",
 			success: false,
-			mysqlConfig: &v1.MysqlConfig{
+			mysqlConfig: &v1.DeprecatedMysqlConfig{
 				DBName: "kusion_db",
 				User:   "",
 				Host:   "127.0.0.1",
@@ -524,7 +524,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config empty host",
 			success: false,
-			mysqlConfig: &v1.MysqlConfig{
+			mysqlConfig: &v1.DeprecatedMysqlConfig{
 				DBName: "kusion_db",
 				User:   "kusion",
 				Host:   "",
@@ -533,7 +533,7 @@ func TestValidateMysqlConfig(t *testing.T) {
 		{
 			name:    "invalid mysql config invalid port",
 			success: false,
-			mysqlConfig: &v1.MysqlConfig{
+			mysqlConfig: &v1.DeprecatedMysqlConfig{
 				DBName: "kusion_db",
 				User:   "kusion",
 				Host:   "127.0.0.1",
@@ -580,7 +580,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 	testcases := []struct {
 		name      string
 		success   bool
-		ossConfig *v1.OssConfig
+		ossConfig *v1.DeprecatedOssConfig
 	}{
 		{
 			name:      "valid oss config",
@@ -590,7 +590,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty endpoint",
 			success: false,
-			ossConfig: &v1.OssConfig{
+			ossConfig: &v1.DeprecatedOssConfig{
 				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "",
 					AccessKeyID:     "fake-access-key-id",
@@ -602,7 +602,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty access key id",
 			success: false,
-			ossConfig: &v1.OssConfig{
+			ossConfig: &v1.DeprecatedOssConfig{
 				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "",
@@ -614,7 +614,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 		{
 			name:    "invalid oss config empty access key secret",
 			success: false,
-			ossConfig: &v1.OssConfig{
+			ossConfig: &v1.DeprecatedOssConfig{
 				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "fake-access-key-id",
@@ -637,7 +637,7 @@ func TestValidateWholeS3Config(t *testing.T) {
 	testcases := []struct {
 		name     string
 		success  bool
-		s3Config *v1.S3Config
+		s3Config *v1.DeprecatedS3Config
 	}{
 		{
 			name:     "valid s3 config",
@@ -647,7 +647,7 @@ func TestValidateWholeS3Config(t *testing.T) {
 		{
 			name:    "invalid s3 config empty region",
 			success: false,
-			s3Config: &v1.S3Config{
+			s3Config: &v1.DeprecatedS3Config{
 				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
