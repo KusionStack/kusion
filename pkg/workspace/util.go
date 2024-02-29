@@ -16,7 +16,7 @@ func CompleteWorkspace(ws *v1.Workspace, name string) {
 	if ws.Name == "" {
 		ws.Name = name
 	}
-	if ws.Backends != nil && GetBackendName(ws.Backends) == v1.BackendMysql {
+	if ws.Backends != nil && GetBackendName(ws.Backends) == v1.DeprecatedBackendMysql {
 		CompleteMysqlConfig(ws.Backends.Mysql)
 	}
 }
@@ -128,25 +128,25 @@ func GetProviderConfig(configs *v1.RuntimeConfigs, providerName string) (*v1.Pro
 	return config[providerName], nil
 }
 
-// GetBackendName returns the backend name that is configured in BackendConfigs, should be called after
+// GetBackendName returns the backend name that is configured in DeprecatedBackendConfigs, should be called after
 // ValidateBackendConfigs.
-func GetBackendName(configs *v1.BackendConfigs) string {
+func GetBackendName(configs *v1.DeprecatedBackendConfigs) string {
 	if configs == nil {
-		return v1.BackendLocal
+		return v1.DeprecatedBackendLocal
 	}
 	if configs.Local != nil {
-		return v1.BackendLocal
+		return v1.DeprecatedBackendLocal
 	}
 	if configs.Mysql != nil {
-		return v1.BackendMysql
+		return v1.DeprecatedBackendMysql
 	}
 	if configs.Oss != nil {
-		return v1.BackendOss
+		return v1.DeprecatedBackendOss
 	}
 	if configs.S3 != nil {
-		return v1.BackendS3
+		return v1.DeprecatedBackendS3
 	}
-	return v1.BackendLocal
+	return v1.DeprecatedBackendLocal
 }
 
 // GetMysqlPasswordFromEnv returns mysql password set by environment variables.
@@ -169,7 +169,7 @@ func GetS3SensitiveDataFromEnv() (string, string, string) {
 }
 
 // CompleteMysqlConfig sets default value of mysql config if not set.
-func CompleteMysqlConfig(config *v1.MysqlConfig) {
+func CompleteMysqlConfig(config *v1.DeprecatedMysqlConfig) {
 	if config.Port == nil {
 		port := v1.DefaultMysqlPort
 		config.Port = &port
@@ -177,7 +177,7 @@ func CompleteMysqlConfig(config *v1.MysqlConfig) {
 }
 
 // CompleteWholeMysqlConfig constructs the whole mysql config by environment variables if set.
-func CompleteWholeMysqlConfig(config *v1.MysqlConfig) {
+func CompleteWholeMysqlConfig(config *v1.DeprecatedMysqlConfig) {
 	password := GetMysqlPasswordFromEnv()
 	if password != "" {
 		config.Password = password
@@ -185,7 +185,7 @@ func CompleteWholeMysqlConfig(config *v1.MysqlConfig) {
 }
 
 // CompleteWholeOssConfig constructs the whole oss config by environment variables if set.
-func CompleteWholeOssConfig(config *v1.OssConfig) {
+func CompleteWholeOssConfig(config *v1.DeprecatedOssConfig) {
 	accessKeyID, accessKeySecret := GetOssSensitiveDataFromEnv()
 	if accessKeyID != "" {
 		config.AccessKeyID = accessKeyID
@@ -196,7 +196,7 @@ func CompleteWholeOssConfig(config *v1.OssConfig) {
 }
 
 // CompleteWholeS3Config constructs the whole s3 config by environment variables if set.
-func CompleteWholeS3Config(config *v1.S3Config) {
+func CompleteWholeS3Config(config *v1.DeprecatedS3Config) {
 	accessKeyID, accessKeySecret, region := GetS3SensitiveDataFromEnv()
 	if accessKeyID != "" {
 		config.AccessKeyID = accessKeyID

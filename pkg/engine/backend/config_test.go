@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/engine/states/local"
 )
@@ -18,7 +18,7 @@ func TestNewConfig(t *testing.T) {
 		name                     string
 		success                  bool
 		workDir                  string
-		configs                  *v1.BackendConfigs
+		configs                  *v1.DeprecatedBackendConfigs
 		opts                     *BackendOptions
 		setEnvFunc, unSetEnvFunc func()
 		expectedConfig           *StateStorageConfig
@@ -32,7 +32,7 @@ func TestNewConfig(t *testing.T) {
 			setEnvFunc:   nil,
 			unSetEnvFunc: nil,
 			expectedConfig: &StateStorageConfig{
-				Type: v1.BackendLocal,
+				Type: v1.DeprecatedBackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -42,8 +42,8 @@ func TestNewConfig(t *testing.T) {
 			name:    "empty backend options",
 			success: true,
 			workDir: "/testProject/testStack",
-			configs: &v1.BackendConfigs{
-				Mysql: &v1.MysqlConfig{
+			configs: &v1.DeprecatedBackendConfigs{
+				Mysql: &v1.DeprecatedMysqlConfig{
 					DBName:   "kusion_db",
 					User:     "kusion",
 					Password: "do_not_recommend",
@@ -59,7 +59,7 @@ func TestNewConfig(t *testing.T) {
 				_ = os.Unsetenv(v1.EnvBackendMysqlPassword)
 			},
 			expectedConfig: &StateStorageConfig{
-				Type: v1.BackendMysql,
+				Type: v1.DeprecatedBackendMysql,
 				Config: map[string]any{
 					"dbName":   "kusion_db",
 					"user":     "kusion",
@@ -73,8 +73,8 @@ func TestNewConfig(t *testing.T) {
 			name:    "backend options override",
 			success: true,
 			workDir: "/testProject/testStack",
-			configs: &v1.BackendConfigs{
-				Mysql: &v1.MysqlConfig{
+			configs: &v1.DeprecatedBackendConfigs{
+				Mysql: &v1.DeprecatedMysqlConfig{
 					DBName: "kusion_db",
 					User:   "kusion",
 					Host:   "127.0.0.1",
@@ -82,7 +82,7 @@ func TestNewConfig(t *testing.T) {
 				},
 			},
 			opts: &BackendOptions{
-				Type:   v1.BackendS3,
+				Type:   v1.DeprecatedBackendS3,
 				Config: []string{"region=ua-east-2", "bucket=kusion_bucket"},
 			},
 			setEnvFunc: func() {
@@ -96,7 +96,7 @@ func TestNewConfig(t *testing.T) {
 				_ = os.Unsetenv(v1.EnvAwsSecretAccessKey)
 			},
 			expectedConfig: &StateStorageConfig{
-				Type: v1.BackendS3,
+				Type: v1.DeprecatedBackendS3,
 				Config: map[string]any{
 					"region":          "ua-east-2",
 					"accessKeyID":     "aws_ak_id",
@@ -133,7 +133,7 @@ func TestStateStorageConfig_NewStateStorage(t *testing.T) {
 			name:    "local state storage",
 			success: true,
 			config: &StateStorageConfig{
-				Type: v1.BackendLocal,
+				Type: v1.DeprecatedBackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -163,9 +163,9 @@ func TestMergeConfig(t *testing.T) {
 	}{
 		{
 			name:        "empty override config",
-			backendType: v1.BackendLocal,
+			backendType: v1.DeprecatedBackendLocal,
 			config: &StateStorageConfig{
-				Type: v1.BackendLocal,
+				Type: v1.DeprecatedBackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -173,7 +173,7 @@ func TestMergeConfig(t *testing.T) {
 			overrideConfig: nil,
 			envConfig:      nil,
 			mergedConfig: &StateStorageConfig{
-				Type: v1.BackendLocal,
+				Type: v1.DeprecatedBackendLocal,
 				Config: map[string]any{
 					"path": "/test_project/test_stack/kusion_state.yaml",
 				},
@@ -181,9 +181,9 @@ func TestMergeConfig(t *testing.T) {
 		},
 		{
 			name:        "same type override config",
-			backendType: v1.BackendMysql,
+			backendType: v1.DeprecatedBackendMysql,
 			config: &StateStorageConfig{
-				Type: v1.BackendMysql,
+				Type: v1.DeprecatedBackendMysql,
 				Config: map[string]any{
 					"dbName": "kusion_db",
 					"user":   "kusion",
@@ -192,7 +192,7 @@ func TestMergeConfig(t *testing.T) {
 				},
 			},
 			overrideConfig: &StateStorageConfig{
-				Type: v1.BackendMysql,
+				Type: v1.DeprecatedBackendMysql,
 				Config: map[string]any{
 					"dbName": "new_kusion_db",
 					"user":   "new_kusion",
@@ -202,7 +202,7 @@ func TestMergeConfig(t *testing.T) {
 				"password": "new_kusion_password",
 			},
 			mergedConfig: &StateStorageConfig{
-				Type: v1.BackendMysql,
+				Type: v1.DeprecatedBackendMysql,
 				Config: map[string]any{
 					"dbName":   "new_kusion_db",
 					"user":     "new_kusion",
@@ -214,9 +214,9 @@ func TestMergeConfig(t *testing.T) {
 		},
 		{
 			name:        "different type override config",
-			backendType: v1.BackendOss,
+			backendType: v1.DeprecatedBackendOss,
 			config: &StateStorageConfig{
-				Type: v1.BackendMysql,
+				Type: v1.DeprecatedBackendMysql,
 				Config: map[string]any{
 					"dbName": "kusion_db",
 					"user":   "kusion",
@@ -225,7 +225,7 @@ func TestMergeConfig(t *testing.T) {
 				},
 			},
 			overrideConfig: &StateStorageConfig{
-				Type: v1.BackendOss,
+				Type: v1.DeprecatedBackendOss,
 				Config: map[string]any{
 					"endpoint":        "oss-cn-hangzhou.aliyuncs.com",
 					"bucket":          "kusion_test",
@@ -238,7 +238,7 @@ func TestMergeConfig(t *testing.T) {
 				"accessKeySecret": "kusion_test_env",
 			},
 			mergedConfig: &StateStorageConfig{
-				Type: v1.BackendOss,
+				Type: v1.DeprecatedBackendOss,
 				Config: map[string]any{
 					"endpoint":        "oss-cn-hangzhou.aliyuncs.com",
 					"bucket":          "kusion_test",

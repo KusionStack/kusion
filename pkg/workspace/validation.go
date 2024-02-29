@@ -6,7 +6,7 @@ import (
 
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 var (
@@ -227,7 +227,7 @@ func ValidateProviderConfig(config *v1.ProviderConfig) error {
 
 // ValidateBackendConfigs is used to validate backendConfigs is valid or not, and does not validate the
 // configs which can get from environment variables, such as access key id, etc.
-func ValidateBackendConfigs(configs *v1.BackendConfigs) error {
+func ValidateBackendConfigs(configs *v1.DeprecatedBackendConfigs) error {
 	if configureMoreThanOneBackend(configs) {
 		return ErrMultipleBackends
 	}
@@ -239,13 +239,13 @@ func ValidateBackendConfigs(configs *v1.BackendConfigs) error {
 	}
 	if configs.Oss != nil {
 		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, v1.BackendOss)
+			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
 		}
 		return nil
 	}
 	if configs.S3 != nil {
 		if err := ValidateGenericObjectStorageConfig(&configs.S3.GenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, v1.BackendS3)
+			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
 		}
 		return nil
 	}
@@ -253,7 +253,7 @@ func ValidateBackendConfigs(configs *v1.BackendConfigs) error {
 }
 
 // configureMoreThanOneBackend checks whether there are more than one backend configured.
-func configureMoreThanOneBackend(configs *v1.BackendConfigs) bool {
+func configureMoreThanOneBackend(configs *v1.DeprecatedBackendConfigs) bool {
 	// configCondition returns: 1, if the backend configured or not; 2, if configured more than one backend.
 	configCondition := func(configured bool, hasNewConfig bool) (bool, bool) {
 		return configured || hasNewConfig, configured && hasNewConfig
@@ -274,7 +274,7 @@ func configureMoreThanOneBackend(configs *v1.BackendConfigs) bool {
 }
 
 // ValidateMysqlConfig is used to validate mysqlConfig is valid or not.
-func ValidateMysqlConfig(config *v1.MysqlConfig) error {
+func ValidateMysqlConfig(config *v1.DeprecatedMysqlConfig) error {
 	if config.DBName == "" {
 		return ErrEmptyMysqlDBName
 	}
@@ -301,9 +301,9 @@ func ValidateGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) e
 
 // ValidateWholeOssConfig is used to validate ossConfig is valid or not, where all the items are included.
 // If valid, the config contains all valid items to new an oss client.
-func ValidateWholeOssConfig(config *v1.OssConfig) error {
+func ValidateWholeOssConfig(config *v1.DeprecatedOssConfig) error {
 	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, v1.BackendOss)
+		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
 	}
 	if config.Endpoint == "" {
 		return ErrEmptyOssEndpoint
@@ -313,9 +313,9 @@ func ValidateWholeOssConfig(config *v1.OssConfig) error {
 
 // ValidateWholeS3Config is used to validate s3Config is valid or not, where all the items are included.
 // If valid, the config  contains all valid items to new a s3 client.
-func ValidateWholeS3Config(config *v1.S3Config) error {
+func ValidateWholeS3Config(config *v1.DeprecatedS3Config) error {
 	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, v1.BackendS3)
+		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
 	}
 	if config.Region == "" {
 		return ErrEmptyS3Region
