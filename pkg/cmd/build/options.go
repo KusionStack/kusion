@@ -9,7 +9,7 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"kcl-lang.io/kpm/pkg/api"
 
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/project"
 )
 

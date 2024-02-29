@@ -11,8 +11,8 @@ import (
 	kclgo "kcl-lang.io/kcl-go"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders/kcl"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 

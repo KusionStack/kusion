@@ -12,9 +12,9 @@ import (
 	"gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/workspace"
