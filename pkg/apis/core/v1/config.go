@@ -115,8 +115,9 @@ func (b *BackendConfig) ToLocalBackend() *BackendLocalConfig {
 	if b.Type != BackendTypeLocal {
 		return nil
 	}
+	path, _ := b.Configs[BackendLocalPath].(string)
 	return &BackendLocalConfig{
-		Path: b.Configs[BackendLocalPath].(string),
+		Path: path,
 	}
 }
 
@@ -126,12 +127,17 @@ func (b *BackendConfig) ToMysqlBackend() *BackendMysqlConfig {
 	if b.Type != BackendTypeMysql {
 		return nil
 	}
+	dbName, _ := b.Configs[BackendMysqlDBName].(string)
+	user, _ := b.Configs[BackendMysqlUser].(string)
+	password, _ := b.Configs[BackendMysqlPassword].(string)
+	host, _ := b.Configs[BackendMysqlHost].(string)
+	port, _ := b.Configs[BackendMysqlPort].(int)
 	return &BackendMysqlConfig{
-		DBName:   b.Configs[BackendMysqlDBName].(string),
-		User:     b.Configs[BackendMysqlUser].(string),
-		Password: b.Configs[BackendMysqlPassword].(string),
-		Host:     b.Configs[BackendMysqlHost].(string),
-		Port:     b.Configs[BackendMysqlPort].(int),
+		DBName:   dbName,
+		User:     user,
+		Password: password,
+		Host:     host,
+		Port:     port,
 	}
 }
 
@@ -141,13 +147,18 @@ func (b *BackendConfig) ToOssBackend() *BackendOssConfig {
 	if b.Type != BackendTypeOss {
 		return nil
 	}
+	endpoint, _ := b.Configs[BackendGenericOssEndpoint].(string)
+	accessKeyID, _ := b.Configs[BackendGenericOssAK].(string)
+	accessKeySecret, _ := b.Configs[BackendGenericOssSK].(string)
+	bucket, _ := b.Configs[BackendGenericOssBucket].(string)
+	prefix, _ := b.Configs[BackendGenericOssPrefix].(string)
 	return &BackendOssConfig{
 		&GenericBackendObjectStorageConfig{
-			Endpoint:        b.Configs[BackendGenericOssEndpoint].(string),
-			AccessKeyID:     b.Configs[BackendGenericOssAK].(string),
-			AccessKeySecret: b.Configs[BackendGenericOssSK].(string),
-			Bucket:          b.Configs[BackendGenericOssBucket].(string),
-			Prefix:          b.Configs[BackendGenericOssPrefix].(string),
+			Endpoint:        endpoint,
+			AccessKeyID:     accessKeyID,
+			AccessKeySecret: accessKeySecret,
+			Bucket:          bucket,
+			Prefix:          prefix,
 		},
 	}
 }
@@ -158,14 +169,20 @@ func (b *BackendConfig) ToS3Backend() *BackendS3Config {
 	if b.Type != BackendTypeS3 {
 		return nil
 	}
+	endpoint, _ := b.Configs[BackendGenericOssEndpoint].(string)
+	accessKeyID, _ := b.Configs[BackendGenericOssAK].(string)
+	accessKeySecret, _ := b.Configs[BackendGenericOssSK].(string)
+	bucket, _ := b.Configs[BackendGenericOssBucket].(string)
+	prefix, _ := b.Configs[BackendGenericOssPrefix].(string)
+	region, _ := b.Configs[BackendS3Region].(string)
 	return &BackendS3Config{
 		GenericBackendObjectStorageConfig: &GenericBackendObjectStorageConfig{
-			Endpoint:        b.Configs[BackendGenericOssEndpoint].(string),
-			AccessKeyID:     b.Configs[BackendGenericOssAK].(string),
-			AccessKeySecret: b.Configs[BackendGenericOssSK].(string),
-			Bucket:          b.Configs[BackendGenericOssBucket].(string),
-			Prefix:          b.Configs[BackendGenericOssPrefix].(string),
+			Endpoint:        endpoint,
+			AccessKeyID:     accessKeyID,
+			AccessKeySecret: accessKeySecret,
+			Bucket:          bucket,
+			Prefix:          prefix,
 		},
-		Region: b.Configs[BackendS3Region].(string),
+		Region: region,
 	}
 }
