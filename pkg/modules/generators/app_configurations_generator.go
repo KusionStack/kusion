@@ -98,15 +98,7 @@ func (g *appConfigurationGenerator) Generate(i *apiv1.Intent) error {
 	}
 
 	// Generate customized module resources
-	for t, config := range platformConfigs {
-		_ = modules.GeneratorRequest{
-			Project: g.project.Name,
-			Stack:   g.stack.Name,
-			App:     g.appName,
-			Type:    t,
-			Config:  config,
-		}
-
+	for range platformConfigs {
 		// todo: invoke kusion module generators for each module
 	}
 
