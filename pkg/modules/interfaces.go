@@ -13,13 +13,6 @@ import (
 
 const PluginKey = "module-default"
 
-// HandshakeConfig is a common handshake that is shared by plugin and host.
-var HandshakeConfig = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
-	MagicCookieKey:   "MODULE_PLUGIN",
-	MagicCookieValue: "ON",
-}
-
 // Generator is an interface for things that can generate Intent from input configurations.
 // todo it's for built-in generators and we should consider to convert it to a general Module interface
 type Generator interface {
@@ -76,16 +69,4 @@ func (p *GRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error
 // GRPCClient is going to be invoked by the go-plugin framework
 func (p *GRPCPlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
 	return &GRPCClient{client: proto.NewModuleClient(c)}, nil
-}
-
-func StartModule(module Module) {
-	plugin.Serve(&plugin.ServeConfig{
-		HandshakeConfig: HandshakeConfig,
-		Plugins: map[string]plugin.Plugin{
-			PluginKey: &GRPCPlugin{Impl: module},
-		},
-
-		// A non-nil value here enables gRPC serving for this plugin...
-		GRPCServer: plugin.DefaultGRPCServer,
-	})
 }
