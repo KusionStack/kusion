@@ -3,23 +3,26 @@ package generators
 import (
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/modules/proto"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
 func TestAppConfigurationGenerator_Generate(t *testing.T) {
-	project, stack := buildMockProjectAndStack()
 	appName, app := buildMockApp()
 	ws := buildMockWorkspace("")
 
 	g := &appConfigurationGenerator{
-		project: project,
-		stack:   stack,
+		project: "fakeNs",
+		stack:   "test",
 		appName: appName,
 		app:     app,
 		ws:      ws,
@@ -29,6 +32,7 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		Resources: []v1.Resource{},
 	}
 
+	mockPlugin()
 	err := g.Generate(spec)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, spec.Resources)
@@ -40,21 +44,68 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		}
 		actual := mapToUnstructured(res.Attributes)
 		if actual.GetKind() == "Namespace" {
-			assert.Equal(t, "testproject", actual.GetName(), "namespace name should be fakeNs")
+			assert.Equal(t, "fakeNs", actual.GetName(), "namespace name should be fakeNs")
 		} else {
-			assert.Equal(t, "testproject", actual.GetNamespace(), "namespace name should be fakeNs")
+			assert.Equal(t, "fakeNs", actual.GetNamespace(), "namespace name should be fakeNs")
 		}
 	}
 }
 
+type fakeModule struct{}
+
+func (f *fakeModule) Generate(req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
+	res := v1.Resource{
+		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo",
+		Type: "Kubernetes",
+		Attributes: map[string]interface{}{
+			"apiVersion": "apps.kusionstack.io/v1alpha1",
+			"kind":       "PodTransitionRule",
+			"metadata": map[string]interface{}{
+				"creationTimestamp": interface{}(nil),
+				"name":              "default-dev-foo",
+				"namespace":         "fakeNs",
+			},
+			"spec": map[string]interface{}{
+				"rules": []interface{}{map[string]interface{}{
+					"availablePolicy": map[string]interface{}{
+						"maxUnavailableValue": "30%",
+					},
+					"name": "maxUnavailable",
+				}},
+				"selector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"app.kubernetes.io/name": "foo", "app.kubernetes.io/part-of": "default",
+					},
+				},
+			}, "status": map[string]interface{}{},
+		},
+		DependsOn: []string(nil),
+		Extensions: map[string]interface{}{
+			"GVK": "apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule",
+		},
+	}
+	str := jsonutil.Marshal2String(res)
+	b := []byte(str)
+	return &proto.GeneratorResponse{
+		Resources: [][]byte{b},
+	}, nil
+}
+
+func mockPlugin() {
+	mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+		return &modules.Plugin{Module: &fakeModule{}}, nil
+	}).Build()
+	mockey.Mock((*modules.Plugin).KillPluginClient).To(func() {
+	}).Build()
+}
+
 func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
-	project, stack := buildMockProjectAndStack()
 	appName, app := buildMockApp()
 	ws := buildMockWorkspace("fakeNs")
 
 	g := &appConfigurationGenerator{
-		project: project,
-		stack:   stack,
+		project: "testproject",
+		stack:   "test",
 		appName: appName,
 		app:     app,
 		ws:      ws,
@@ -83,38 +134,36 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 }
 
 func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
-	project, stack := buildMockProjectAndStack()
 	appName, app := buildMockApp()
 	ws := buildMockWorkspace("")
 
 	t.Run("Valid app configuration generator func", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, ws)()
 		assert.NoError(t, err)
 		assert.NotNil(t, g)
 	})
 
 	t.Run("Empty app name", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc(project, stack, "", app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", "", app, ws)()
 		assert.EqualError(t, err, "app name must not be empty")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Nil app", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, nil, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, nil, ws)()
 		assert.EqualError(t, err, "can not find app configuration when generating the Intent")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Empty project name", func(t *testing.T) {
-		project.Name = ""
-		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("", "test", appName, app, ws)()
 		assert.EqualError(t, err, "project name must not be empty")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Empty workspace", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, nil)()
-		assert.EqualError(t, err, "project name must not be empty")
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, nil)()
+		assert.EqualError(t, err, "workspace must not be empty")
 		assert.Nil(t, g)
 	})
 }
@@ -143,7 +192,7 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
 		Modules: v1.ModuleConfigs{
-			"database": {
+			"kusionstack/database@v0.1": {
 				Default: v1.GenericConfig{
 					"type":         "aws",
 					"version":      "5.7",
@@ -178,18 +227,6 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 			Local: &v1.DeprecatedLocalFileConfig{},
 		},
 	}
-}
-
-func buildMockProjectAndStack() (*v1.Project, *v1.Stack) {
-	project := &v1.Project{
-		Name: "testproject",
-	}
-
-	stack := &v1.Stack{
-		Name: "test",
-	}
-
-	return project, stack
 }
 
 func mapToUnstructured(data map[string]interface{}) *unstructured.Unstructured {

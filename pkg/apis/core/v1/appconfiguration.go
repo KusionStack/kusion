@@ -36,7 +36,7 @@ type Accessory map[string]interface{}
 //		       }
 //		   }
 //
-//		   # extend accessories module base
+//		# A collection of accessories that will be attached to the workload
 //	    accessories: {
 //	       # Built-in module, key represents the module source
 //	       "kusionstack/mysql@v0.1" : d.MySQL {
@@ -53,7 +53,7 @@ type Accessory map[string]interface{}
 //	       }
 //	   }
 //
-//		   # extend pipeline module base
+//		   # pipeline modules
 //		   pipeline: {
 //		       # Step is a module
 //		       "step" : Step {
@@ -74,7 +74,7 @@ type AppConfiguration struct {
 	Workload *workload.Workload `json:"workload" yaml:"workload"`
 	// Accessories defines a collection of accessories that will be attached to the workload.
 	// The key in this map represents the module source. e.g. kusionstack/mysql@v0.1
-	Accessories map[string]*Accessory `json:"accessories,omitempty" yaml:"accessories,omitempty"`
+	Accessories map[string]Accessory `json:"accessories,omitempty" yaml:"accessories,omitempty"`
 	// Labels and Annotations can be used to attach arbitrary metadata as key-value pairs to resources.
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`

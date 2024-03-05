@@ -115,6 +115,7 @@ func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]v1.AppCon
 	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
 	err = yaml.Unmarshal([]byte(out), appConfigs)
 	if err != nil {
+		// todo wrap error to human readable messages
 		return nil, err
 	}
 
