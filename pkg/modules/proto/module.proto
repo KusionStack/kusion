@@ -6,9 +6,10 @@ message GeneratorRequest {
   string project = 1; // Project represents the project name
   string stack = 2; // Stack represents the stack name
   string app = 3; // App represents the application name, which is typically the same as the namespace of Kubernetes resources
-  bytes dev_module_config = 4; // DevModuleConfig is the developer inputs of the module type
-  bytes platform_module_config = 5; // PlatformModuleConfig is the module inputs of the specific module type
-  bytes runtime_config = 6; // RuntimeConfig is the runtime configurations defined in the workspace config
+  bytes workload = 4; // Workload represents the workload configuration
+  bytes dev_module_config = 5; // DevModuleConfig is the developer's inputs of this module
+  bytes platform_module_config = 6; // PlatformModuleConfig is the platform engineer's inputs of this module
+  bytes runtime_config = 7; // RuntimeConfig is the runtime configurations defined in the workspace config
 }
 
 // GeneratorResponse represents the generate result of the generator
