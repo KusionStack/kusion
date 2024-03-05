@@ -49,28 +49,6 @@ func buildMockApp() (string, *v1.AppConfiguration) {
 func buildMockWorkspace() *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
-		Modules: v1.ModuleConfigs{
-			"database": {
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "bar"},
-					},
-				},
-			},
-			"port": {
-				Default: v1.GenericConfig{
-					"type": "aws",
-				},
-			},
-		},
 		Runtimes: &v1.RuntimeConfigs{
 			Kubernetes: &v1.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
