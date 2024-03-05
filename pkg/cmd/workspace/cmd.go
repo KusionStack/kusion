@@ -6,6 +6,7 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/workspace/create"
 	"kusionstack.io/kusion/pkg/cmd/workspace/del"
+	"kusionstack.io/kusion/pkg/cmd/workspace/edit"
 	"kusionstack.io/kusion/pkg/cmd/workspace/list"
 	"kusionstack.io/kusion/pkg/cmd/workspace/show"
 	"kusionstack.io/kusion/pkg/cmd/workspace/update"
@@ -37,7 +38,8 @@ func NewCmd() *cobra.Command {
 	showCmd := show.NewCmd()
 	listCmd := list.NewCmd()
 	delCmd := del.NewCmd()
-	cmd.AddCommand(createCmd, updateCmd, showCmd, listCmd, delCmd)
+	editCmd := edit.NewCmd()
+	cmd.AddCommand(createCmd, updateCmd, showCmd, listCmd, delCmd, editCmd)
 
 	return cmd
 }
