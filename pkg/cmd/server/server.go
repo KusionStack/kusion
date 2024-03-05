@@ -10,13 +10,13 @@ import (
 
 func NewCmdServer() *cobra.Command {
 	var (
-		serverShort = i18n.T(`start kusion server`)
+		serverShort = i18n.T(`Start kusion server`)
 
 		serverLong = i18n.T(`Start kusion server.`)
 
 		serverExample = i18n.T(`
 		# Start kusion server
-		kusion server start --mode kcp`)
+		kusion server --mode kcp`)
 	)
 
 	o := NewServerOptions()

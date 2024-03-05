@@ -100,11 +100,11 @@ func (cs *ChangeStep) NoStyleDiff() (string, error) {
 
 	if len(cs.ID) != 0 {
 		buf.WriteString("ID: ")
-		buf.WriteString(fmt.Sprintf("%s\n", cs.ID))
+		buf.WriteString(cs.ID + "\n")
 	}
 	if cs.Action != Undefined {
 		buf.WriteString("Plan: ")
-		buf.WriteString(fmt.Sprintf("%s\n", cs.Action.String()))
+		buf.WriteString(cs.Action.String() + "\n")
 	}
 	buf.WriteString("Diff: ")
 	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChanged {

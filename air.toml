@@ -15,7 +15,7 @@ tmp_dir = "tmp"
   # Binary file yields from `cmd`.
   bin = "./_build/bundles/kusion-darwin-arm64/bin/kusion"
   # Customize binary, can setup environment variables when run your app.
-  # full_bin = "APP_ENV=dev APP_USER=air ./build/air/karma"
+  # full_bin = "APP_ENV=dev APP_USER=air ./_build/bundles/kusion-darwin-arm64/bin/kusion"
   # Watch these filename extensions.
   include_ext = ["go", "tpl", "tmpl", "html"]
   # Ignore these filename extensions or directories.
