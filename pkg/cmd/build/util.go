@@ -12,13 +12,15 @@ import (
 	"gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/workspace"
 )
+
+var defaultWorkspace = "default"
 
 func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
@@ -77,7 +79,14 @@ func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error)
 		}
 		ws, err := workspace.GetWorkspaceByDefaultOperator(s.Name)
 		if err != nil {
-			return nil, err
+			// Use the default workspace if the target workspace does not exist.
+			if errors.Is(err, workspace.ErrWorkspaceNotExist) {
+				if ws, err = workspace.GetWorkspaceByDefaultOperator(defaultWorkspace); err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, err
+			}
 		}
 		builder = &builders.AppsConfigBuilder{
 			Apps:      appConfigs,
