@@ -13,6 +13,8 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/build"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/mod"
+	"kusionstack.io/kusion/pkg/cmd/project"
+	"kusionstack.io/kusion/pkg/cmd/stack"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
 
 	"kusionstack.io/kusion/pkg/cmd/destroy"
@@ -91,6 +93,8 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 		{
 			Message: "Configuration Commands:",
 			Commands: []*cobra.Command{
+				project.NewCmd(),
+				stack.NewCmd(),
 				workspace.NewCmd(),
 				cmdinit.NewCmdInit(),
 				build.NewCmdBuild(),
