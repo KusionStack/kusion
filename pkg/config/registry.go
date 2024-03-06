@@ -67,8 +67,8 @@ type itemInfo struct {
 	// Please do not do any real setting job in the validateFunc.
 	validateFunc validation.ValidateFunc
 
-	// validateUnsetFunc is used to check the config item is valid or not to unset, calling before executing
+	// validateDeleteFunc is used to check the config item is valid or not to unset, calling before executing
 	// real config unsetting.
-	// Please do not do any real unsetting job in the validateUnsetFunc.
-	validateUnsetFunc validation.ValidateUnsetFunc
+	// Please do not do any real unsetting job in the validateDeleteFunc.
+	validateDeleteFunc validation.ValidateUnsetFunc
 }
