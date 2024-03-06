@@ -233,7 +233,7 @@ func (o *operator) deleteConfigItem(key string) error {
 // value is that in the converted config map.
 func getConfigItemWithLaxType(config *v1.Config, key string) (any, error) {
 	if config == nil {
-		return nil, ErrEmptyConfig
+		return nil, ErrEmptyConfigItem
 	}
 
 	cfg, err := convertToCfgMap(config)
