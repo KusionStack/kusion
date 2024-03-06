@@ -204,8 +204,8 @@ func (o *operator) deleteConfigItem(key string) error {
 	if err != nil {
 		return err
 	}
-	if info.validateUnsetFunc != nil {
-		if err = info.validateUnsetFunc(o.config, key); err != nil {
+	if info.validateDeleteFunc != nil {
+		if err = info.validateDeleteFunc(o.config, key); err != nil {
 			return err
 		}
 	}
@@ -317,7 +317,7 @@ func validateConfigItem(config *v1.Config, info *itemInfo, key string, value any
 // its validation.
 func parseStructuredConfigItem(info *itemInfo, strValue string) (any, error) {
 	if len(strValue) == 0 {
-		return nil, ErrEmptyConfigItemKey
+		return nil, ErrEmptyConfigItem
 	}
 
 	value := info.zeroValue
@@ -354,6 +354,9 @@ func parseStructuredConfigItem(info *itemInfo, strValue string) (any, error) {
 // getRegisteredItemInfo returns the registered info of the config key. If the config key is not registered,
 // return error.
 func getRegisteredItemInfo(registeredItems map[string]*itemInfo, key string) (*itemInfo, error) {
+	if key == "" {
+		return nil, ErrEmptyConfigItemKey
+	}
 	registeredKey, err := convertToRegisteredKey(registeredItems, key)
 	if err != nil {
 		return nil, err
