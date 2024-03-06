@@ -49,14 +49,16 @@ func newRegisteredItems() map[string]*itemInfo {
 // the config item.
 type itemInfo struct {
 	// zeroValue is the zero value of the type that the config item will be parsed from string to. Support string,
-	// int, bool, map, slice, struct and pointer of struct, the parser rule is shown as below:
-	//	- string: keep the same
-	//	- int: calling strconv.Atoi, e.g. "45" is valid, parsed to 45
-	// 	- bool: calling strconv.ParseBool, e.g. "true" is valid, parsed to true
-	//	- slice, map, struct(pointer of struct): calling json.Unmarshal, zeroValue of these types must be
-	// 	initialized, e.g. map[string]any{}, nil is invalid
-	// For other unsupported types, calling json.Unmarshal to do the parse job, unexpected error or panic may
-	// happen. Please do not use them.
+	// int, bool, map, slice, struct, and pointer of struct, the parser rule is shown as below:
+	//	- string: keep the same.
+	//	- int: calling strconv.Atoi to decode, and fmt.Sprintf to encode, e.g. "45" is valid, parsed to 45,
+	// 	- bool: calling strconv.ParseBool to decode, and fmt.Sprintf to encode, e.g. "true" is valid, parsed to true.
+	//	- slice, map, struct(ptr of struct): calling yaml.Unmarshal to decode, and json.Marshal to encode, e.g.
+	//		map[string]any{}. The zeroValue must be initialized, nil is invalid. For slice, map and struct, the
+	//		address of the zeroValue will be used as the input of yaml.Unmarshal; for ptr of struct, use the
+	//		zeroValue itself.
+	// ATTENTION! For other unsupported types, calling json.Unmarshal to do the parse job, unexpected error or panic
+	// may happen. Please do not use them.
 	zeroValue any
 
 	// validateFunc is used to check the config item is valid or not to set, calling before executing real

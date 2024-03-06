@@ -1,0 +1,15 @@
+backends:
+  current: dev
+  dev:
+    type: local
+  pre:
+    type: mysql
+    configs:
+      dbName: kk
+      host: 127.0.0.1
+      port: 6443
+      user: kusion
+  prod:
+    type: s3
+    configs:
+      bucket: kusion

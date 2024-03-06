@@ -5,7 +5,7 @@ const ConfigBackends = "backends"
 // Config contains configurations for kusion cli, which stores in ${KUSION_HOME}/config.yaml.
 type Config struct {
 	// Backends contains the configurations for multiple backends.
-	Backends *BackendConfigs `yaml:"backends,omitempty"`
+	Backends *BackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
 }
 
 const (
@@ -34,26 +34,26 @@ const (
 // BackendConfigs contains the configuration of multiple backends and the current backend.
 type BackendConfigs struct {
 	// Current is the name of the current used backend.
-	Current string `yaml:"current,omitempty"`
+	Current string `yaml:"current,omitempty" json:"current,omitempty"`
 
 	// Backends contains the types and configs of multiple backends, whose key is the backend name.
-	Backends map[string]*BackendConfig `yaml:"backends,omitempty,inline"`
+	Backends map[string]*BackendConfig `yaml:",omitempty,inline" json:",omitempty,inline"`
 }
 
 // BackendConfig contains the type and configs of a backend, which is used to store Spec, State and Workspace.
 type BackendConfig struct {
 	// Type is the backend type, supports BackendTypeLocal, BackendTypeMysql, BackendTypeOss, BackendTypeS3.
-	Type string `yaml:"type,omitempty"`
+	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 
 	// Configs contains config items of the backend, whose keys differ from different backend types.
-	Configs map[string]any `yaml:"configs,omitempty"`
+	Configs map[string]any `yaml:"configs,omitempty" json:"configs,omitempty"`
 }
 
 // BackendLocalConfig contains the config of using local file system as backend, which can be converted
 // from BackendConfig if Type is BackendTypeLocal.
 type BackendLocalConfig struct {
 	// Path of the directory to store the files.
-	Path string
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 }
 
 // BackendMysqlConfig contains the config of using mysql database as backend, which can be converted
