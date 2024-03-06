@@ -39,12 +39,12 @@ type Accessory map[string]interface{}
 //		# A collection of accessories that will be attached to the workload
 //	    accessories: {
 //	       # Built-in module, key represents the module source
-//	       "kusionstack/mysql@v0.1" : d.MySQL {
+//	       "kusionstack/mysql@v0.1.0" : d.MySQL {
 //	           type: "cloud"
 //	           version: "8.0"
 //	       }
 //	       # Built-in module, key represents the module source
-//	       "kusionstack/prometheus@v0.1" : m.Prometheus {
+//	       "kusionstack/prometheus@v0.1.0" : m.Prometheus {
 //	           path: "/metrics"
 //	       }
 //	       # Customized module, key represents the module source

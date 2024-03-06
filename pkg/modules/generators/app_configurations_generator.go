@@ -1,15 +1,16 @@
 package generators
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
+	"gopkg.in/yaml.v2"
+
 	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
 	"kusionstack.io/kusion/pkg/modules/proto"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -19,6 +20,10 @@ type appConfigurationGenerator struct {
 	appName string
 	app     *v1.AppConfiguration
 	ws      *v1.Workspace
+}
+
+var ignoreModules = map[string]bool{
+	"service": true,
 }
 
 func NewAppConfigurationGenerator(
@@ -133,6 +138,11 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 
 	// Generate customized module resources
 	for t, config := range projectModuleConfigs {
+		// ignore workload and namespace modules
+		if ignoreModules[t] {
+			continue
+		}
+
 		// init the plugin
 		if pluginMap[t] == nil {
 			plugin, err := modules.NewPlugin(t)
@@ -147,29 +157,25 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		plugin := pluginMap[t]
 
 		// prepare the request
-		devConfig := jsonutil.Marshal2String(g.app.Accessories[t])
-		platformConfig := jsonutil.Marshal2String(config)
-		wsConfig := jsonutil.Marshal2String(g.ws)
-		protoRequest := &proto.GeneratorRequest{
-			Project:              g.project,
-			Stack:                g.stack,
-			App:                  g.appName,
-			DevModuleConfig:      []byte(devConfig),
-			PlatformModuleConfig: []byte(platformConfig),
-			RuntimeConfig:        []byte(wsConfig),
+		protoRequest, err := g.initModuleRequest(t, config)
+		if err != nil {
+			return nil, err
 		}
 
 		// invoke the plugin
+		log.Infof("invoke module:%s with request:%s", t, protoRequest.String())
 		response, err := plugin.Module.Generate(protoRequest)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("invoke kusion module: %s failed. %w", t, err)
 		}
 		if response == nil {
 			return nil, fmt.Errorf("empty response from module %s", t)
 		}
+
+		// parse module result
 		for _, res := range response.Resources {
 			temp := &v1.Resource{}
-			err = json.Unmarshal(res, temp)
+			err = yaml.Unmarshal(res, temp)
 			if err != nil {
 				return nil, err
 			}
@@ -180,6 +186,43 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 	}
 
 	return resources, nil
+}
+
+func (g *appConfigurationGenerator) initModuleRequest(key string, platformModuleConfig v1.GenericConfig) (*proto.GeneratorRequest, error) {
+	var workloadConfig, devConfig, platformConfig, runtimeConfig []byte
+	var err error
+	// Attention: we MUST yaml.v2 to serialize the object,
+	// because we have introduced MapSlice in the Workload which is supported only in the yaml.v2
+	if g.app.Workload != nil {
+		if workloadConfig, err = yaml.Marshal(g.app.Workload); err != nil {
+			return nil, fmt.Errorf("marshal workload config failed. %w", err)
+		}
+	}
+	if g.app.Accessories[key] != nil {
+		if devConfig, err = yaml.Marshal(g.app.Accessories[key]); err != nil {
+			return nil, fmt.Errorf("marshal dev module config failed. %w", err)
+		}
+	}
+	if platformModuleConfig != nil {
+		if platformConfig, err = yaml.Marshal(platformModuleConfig); err != nil {
+			return nil, fmt.Errorf("marshal platform module config failed. %w", err)
+		}
+	}
+	if g.ws.Runtimes != nil {
+		if runtimeConfig, err = yaml.Marshal(g.ws.Runtimes); err != nil {
+			return nil, fmt.Errorf("marshal runtime config failed. %w", err)
+		}
+	}
+	protoRequest := &proto.GeneratorRequest{
+		Project:              g.project,
+		Stack:                g.stack,
+		App:                  g.appName,
+		Workload:             workloadConfig,
+		DevModuleConfig:      devConfig,
+		PlatformModuleConfig: platformConfig,
+		RuntimeConfig:        runtimeConfig,
+	}
+	return protoRequest, nil
 }
 
 // getNamespaceName obtains the final namespace name using the following precedence
