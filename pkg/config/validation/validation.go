@@ -24,7 +24,8 @@ var (
 	ErrInvalidBackendMysqlPort    = errors.New("backend mysql port must be between 1 and 65535")
 )
 
-// ValidateConfig is used to check the config is valid or not.
+// ValidateConfig is used to check the config is valid or not, where the invalidation comes from the unexpected
+// manual modification.
 func ValidateConfig(config *v1.Config) error {
 	if config == nil {
 		return nil
@@ -297,6 +298,7 @@ func parseBackendItem(key string) string {
 type checkTypeFunc func(val any) error
 
 var (
+	ErrNotBool   = errors.New("not bool type")
 	ErrNotInt    = errors.New("not int type")
 	ErrNotString = errors.New("not string type")
 )
