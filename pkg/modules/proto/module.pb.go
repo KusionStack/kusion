@@ -26,13 +26,20 @@ type GeneratorRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Project              string `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`                                                         // Project represents the project name
-	Stack                string `protobuf:"bytes,2,opt,name=stack,proto3" json:"stack,omitempty"`                                                             // Stack represents the stack name
-	App                  string `protobuf:"bytes,3,opt,name=app,proto3" json:"app,omitempty"`                                                                 // App represents the application name, which is typically the same as the namespace of Kubernetes resources
-	Workload             []byte `protobuf:"bytes,4,opt,name=workload,proto3" json:"workload,omitempty"`                                                       // Workload represents the workload configuration
-	DevModuleConfig      []byte `protobuf:"bytes,5,opt,name=dev_module_config,json=devModuleConfig,proto3" json:"dev_module_config,omitempty"`                // DevModuleConfig is the developer's inputs of this module
-	PlatformModuleConfig []byte `protobuf:"bytes,6,opt,name=platform_module_config,json=platformModuleConfig,proto3" json:"platform_module_config,omitempty"` // PlatformModuleConfig is the platform engineer's inputs of this module
-	RuntimeConfig        []byte `protobuf:"bytes,7,opt,name=runtime_config,json=runtimeConfig,proto3" json:"runtime_config,omitempty"`                        // RuntimeConfig is the runtime configurations defined in the workspace config
+	// Project represents the project name
+	Project string `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	// Stack represents the stack name
+	Stack string `protobuf:"bytes,2,opt,name=stack,proto3" json:"stack,omitempty"`
+	// App represents the application name, which is typically the same as the namespace of Kubernetes resources
+	App string `protobuf:"bytes,3,opt,name=app,proto3" json:"app,omitempty"`
+	// Workload represents the v1.Workload defined in the AppConfiguration
+	Workload []byte `protobuf:"bytes,4,opt,name=workload,proto3" json:"workload,omitempty"`
+	// DevModuleConfig is the developer's inputs of this module
+	DevModuleConfig []byte `protobuf:"bytes,5,opt,name=dev_module_config,json=devModuleConfig,proto3" json:"dev_module_config,omitempty"`
+	// PlatformModuleConfig is the platform engineer's inputs of this module
+	PlatformModuleConfig []byte `protobuf:"bytes,6,opt,name=platform_module_config,json=platformModuleConfig,proto3" json:"platform_module_config,omitempty"`
+	// RuntimeConfig is the runtime configurations defined in the workspace
+	RuntimeConfig []byte `protobuf:"bytes,7,opt,name=runtime_config,json=runtimeConfig,proto3" json:"runtime_config,omitempty"`
 }
 
 func (x *GeneratorRequest) Reset() {
@@ -116,13 +123,14 @@ func (x *GeneratorRequest) GetRuntimeConfig() []byte {
 	return nil
 }
 
-// GeneratorResponse represents the generate result of the generator
+// GeneratorResponse represents the generate result of the generator.
 type GeneratorResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Resources [][]byte `protobuf:"bytes,1,rep,name=resources,proto3" json:"resources,omitempty"` // Project represents the project name
+	// Resources is a v1.Resource array, which represents the generated resources by this module.
+	Resources [][]byte `protobuf:"bytes,1,rep,name=resources,proto3" json:"resources,omitempty"`
 }
 
 func (x *GeneratorResponse) Reset() {
