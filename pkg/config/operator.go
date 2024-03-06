@@ -145,16 +145,16 @@ func (o *operator) getEncodedConfigItem(key string) (string, error) {
 	}
 
 	// encode val to string, which is the inverse process of decoding
-	switch val.(type) {
+	switch value := val.(type) {
 	case string:
-		return val.(string), nil
+		return value, nil
 	case int:
-		return fmt.Sprintf("%d", val), nil
+		return fmt.Sprintf("%d", value), nil
 	case bool:
-		return fmt.Sprintf("%t", val), nil
+		return fmt.Sprintf("%t", value), nil
 	default:
 		var content []byte
-		content, err = json.Marshal(val)
+		content, err = json.Marshal(value)
 		if err != nil {
 			return "", fmt.Errorf("encode value of config %s failed, %w", key, err)
 		}
@@ -444,9 +444,9 @@ func getItemFromCfgMap(cfg map[string]any, key string) (any, error) {
 	var obj, value any
 	obj = cfg
 	for i, field := range fields {
-		switch obj.(type) {
+		switch object := obj.(type) {
 		case map[string]any:
-			val, ok := obj.(map[string]any)[field]
+			val, ok := object[field]
 			if ok && i != len(fields)-1 {
 				obj = val
 			} else if ok && i == len(fields)-1 {
@@ -466,16 +466,16 @@ func setItemInCfgMap(cfg map[string]any, key string, value any) error {
 	var obj any
 	obj = cfg
 	for i, field := range fields {
-		switch obj.(type) {
+		switch object := obj.(type) {
 		case map[string]any:
-			val, ok := obj.(map[string]any)[field]
+			val, ok := object[field]
 			if i == len(fields)-1 {
-				obj.(map[string]any)[field] = value
+				object[field] = value
 			} else if ok {
 				obj = val
 			} else {
-				obj.(map[string]any)[field] = make(map[string]any)
-				obj = obj.(map[string]any)[field]
+				object[field] = make(map[string]any)
+				obj = object[field]
 			}
 		default:
 			return fmt.Errorf("config item %s is not assignable, with invalid type", strings.Join(fields[:i+1], "."))
@@ -489,13 +489,13 @@ func deleteItemInCfgMap(cfg map[string]any, key string) {
 	var obj any
 	obj = cfg
 	for i, field := range fields {
-		switch obj.(type) {
+		switch object := obj.(type) {
 		case map[string]any:
-			val, ok := obj.(map[string]any)[field]
+			val, ok := object[field]
 			if ok && i != len(fields)-1 {
 				obj = val
 			} else if ok && i == len(fields)-1 {
-				delete(obj.(map[string]any), field)
+				delete(object, field)
 			} else {
 				break
 			}
