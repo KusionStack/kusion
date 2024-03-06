@@ -92,6 +92,14 @@ func TestOptions_Run(t *testing.T) {
 		Name: "dev",
 	}
 
+	ws := &v1.Workspace{
+		Name: "dev",
+	}
+	if err := workspace.CreateWorkspaceByDefaultOperator(ws); err != nil &&
+		!errors.Is(err, workspace.ErrWorkspaceAlreadyExist) {
+		t.Fatalf("failed to create sample workspace for unit test: %v", err)
+	}
+
 	t.Run("workspace not found", func(t *testing.T) {
 		mockey.PatchConvey("mock get workspace", t, func() {
 			mockey.Mock(workspace.GetWorkspaceByDefaultOperator).
