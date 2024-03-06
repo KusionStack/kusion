@@ -28,52 +28,53 @@ import models.schema.v1.workload.container.probe as p
 import models.schema.v1.monitoring as m
 import models.schema.v1.database as d
 
-helloworld: ac.AppConfiguration {
-    # Built-in module
-    workload: wl.Service {
-        containers: {
-            "main": c.Container {
-                image: "ghcr.io/kusion-stack/samples/helloworld:latest"
-                # Configure a HTTP readiness probe
-                readinessProbe: p.Probe {
-                    probeHandler: p.Http {
-                        url: "http://localhost:80"
-                    }
-                }
-            }
-        }
-    }
+# Note: AppConfiguration per se is not a Kusion Module
+  helloWorld: ac.AppConfiguration {
+      # Built-in module
+      workload: wl.Service {
+          containers: {
+              "main": c.Container {
+                  image: "ghcr.io/kusion-stack/samples/helloworld:latest"
+                  # Configure a HTTP readiness probe
+                  readinessProbe: p.Probe {
+                      probeHandler: p.Http {
+                          url: "http://localhost:80"
+                      }
+                  }
+              }
+          }
+      }
 
-    # extend accessories module base
+  # A collection of accessories that will be attached to the workload
     accessories: {
         # Built-in module, key represents the module source
-        "kusionstack/mysql@v0.1" : d.MySQL {
+        "kusionstack/mysql@v0.1.0" : d.MySQL {
             type: "cloud"
             version: "8.0"
         }
         # Built-in module, key represents the module source
-        "kusionstack/prometheus@v0.1" : m.Prometheus {
+        "kusionstack/prometheus@v0.1.0" : m.Prometheus {
             path: "/metrics"
         }
         # Customized module, key represents the module source
-        "foo/customize": customizedModule {
+        "foo/customize@v0.1.0": customizedModule {
                 ...
         }
     }
 
-    # extend pipeline module base
-    pipeline: {
-        # Step is a module
-        "step" : Step {
-            use: "exec"
-            args: ["--test-all"]
-        }
-    }
+      # pipeline modules
+      pipeline: {
+          # Step is a module
+          "step" : Step {
+              use: "exec"
+              args: ["--test-all"]
+          }
+      }
 
-    # Dependent app list
-    dependency: {
-        dependentApps: ["init-kusion"]
-    }
+      # Dependent app list
+      dependency: {
+          dependentApps: ["init-kusion"]
+      }
 }
 ```
 
@@ -85,7 +86,7 @@ An app dev-orient schema, a generator and a license file are three components re
 $ tree example-module/
 .
 ├── schema.k
-├── generator # binary
+├── kusion-module-name_v0.1.0 # binary
 ├── kcl.mod
 ├── README.md
 ├── LICENSE
@@ -116,22 +117,36 @@ Considering workload is required for every application and other modules depend 
 
 Kusion invokes all module generators described through gRPC with [go-plugin](https://github.com/hashicorp/go-plugin) and provides a framework to deserialize and validate input and output values to guarantee correctness. Interfaces are defined below.
 
+```protobuf
+// GeneratorRequest represents a request to generate something based on the project details
+message GeneratorRequest {
+  // Project represents the project name
+  string project = 1;
+  // Stack represents the stack name
+  string stack = 2;
+  // App represents the application name, which is typically the same as the namespace of Kubernetes resources
+  string app = 3;
+  // Workload represents the v1.Workload defined in the AppConfiguration
+  bytes workload = 4;
+  // DevModuleConfig is the developer's inputs of this module
+  bytes dev_module_config = 5;
+  // PlatformModuleConfig is the platform engineer's inputs of this module
+  bytes platform_module_config = 6;
+  // RuntimeConfig is the runtime configurations defined in the workspace
+  bytes runtime_config = 7;
+}
+
+// GeneratorResponse represents the generate result of the generator.
+message GeneratorResponse {
+  // Resources is a v1.Resource array, which represents the generated resources by this module.
+  repeated bytes resources = 1;
+}
+
+service Module {
+  rpc Generate(GeneratorRequest) returns (GeneratorResponse);
+}
+```
 ```go
-// Generate resources of Intent
-func Generate(Context ctx, request *GenerateRequest) (*GenerateResponse, error)
-
-type GenerateRequest struct {
-	Project   		*v1.Project,
-	Stack     		*v1.Stack,
-	Workspace 		*v1.Workspace, 
-	ResourceConfig  string,
-	ResourceType  	string,
-}
-
-type GenerateResponse struct {
-	Resources     []*v1.Intent.Resource,
-}
-
 type Intent.Resource struct {
 	...
 	// Add a new field to represent patchers
