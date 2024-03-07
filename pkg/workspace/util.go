@@ -151,27 +151,27 @@ func GetBackendName(configs *v1.DeprecatedBackendConfigs) string {
 
 // GetMysqlPasswordFromEnv returns mysql password set by environment variables.
 func GetMysqlPasswordFromEnv() string {
-	return os.Getenv(v1.EnvBackendMysqlPassword)
+	return os.Getenv(v1.DeprecatedEnvBackendMysqlPassword)
 }
 
 // GetOssSensitiveDataFromEnv returns oss accessKeyID, accessKeySecret set by environment variables.
 func GetOssSensitiveDataFromEnv() (string, string) {
-	return os.Getenv(v1.EnvOssAccessKeyID), os.Getenv(v1.EnvOssAccessKeySecret)
+	return os.Getenv(v1.DeprecatedEnvOssAccessKeyID), os.Getenv(v1.DeprecatedEnvOssAccessKeySecret)
 }
 
 // GetS3SensitiveDataFromEnv returns s3 accessKeyID, accessKeySecret, region set by environment variables.
 func GetS3SensitiveDataFromEnv() (string, string, string) {
-	region := os.Getenv(v1.EnvAwsRegion)
+	region := os.Getenv(v1.DeprecatedEnvAwsRegion)
 	if region == "" {
-		region = os.Getenv(v1.EnvAwsDefaultRegion)
+		region = os.Getenv(v1.DeprecatedEnvAwsDefaultRegion)
 	}
-	return os.Getenv(v1.EnvAwsAccessKeyID), os.Getenv(v1.EnvAwsSecretAccessKey), region
+	return os.Getenv(v1.DeprecatedEnvAwsAccessKeyID), os.Getenv(v1.DeprecatedEnvAwsSecretAccessKey), region
 }
 
 // CompleteMysqlConfig sets default value of mysql config if not set.
 func CompleteMysqlConfig(config *v1.DeprecatedMysqlConfig) {
 	if config.Port == nil {
-		port := v1.DefaultMysqlPort
+		port := v1.DeprecatedDefaultMysqlPort
 		config.Port = &port
 	}
 }

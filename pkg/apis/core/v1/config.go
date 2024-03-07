@@ -71,7 +71,7 @@ type BackendMysqlConfig struct {
 	// Host of the database.
 	Host string `yaml:"host" json:"host"`
 
-	// Port of the database. If not set, then it will be set to DefaultMysqlPort.
+	// Port of the database. If not set, then it will be set to DeprecatedDefaultMysqlPort.
 	Port int `yaml:"port,omitempty" json:"port,omitempty"`
 }
 

@@ -53,10 +53,10 @@ func TestNewConfig(t *testing.T) {
 			},
 			opts: &BackendOptions{},
 			setEnvFunc: func() {
-				_ = os.Setenv(v1.EnvBackendMysqlPassword, "kusion_password")
+				_ = os.Setenv(v1.DeprecatedEnvBackendMysqlPassword, "kusion_password")
 			},
 			unSetEnvFunc: func() {
-				_ = os.Unsetenv(v1.EnvBackendMysqlPassword)
+				_ = os.Unsetenv(v1.DeprecatedEnvBackendMysqlPassword)
 			},
 			expectedConfig: &StateStorageConfig{
 				Type: v1.DeprecatedBackendMysql,
@@ -86,14 +86,14 @@ func TestNewConfig(t *testing.T) {
 				Config: []string{"region=ua-east-2", "bucket=kusion_bucket"},
 			},
 			setEnvFunc: func() {
-				_ = os.Setenv(v1.EnvAwsRegion, "ua-east-1")
-				_ = os.Setenv(v1.EnvAwsAccessKeyID, "aws_ak_id")
-				_ = os.Setenv(v1.EnvAwsSecretAccessKey, "aws_ak_secret")
+				_ = os.Setenv(v1.DeprecatedEnvAwsRegion, "ua-east-1")
+				_ = os.Setenv(v1.DeprecatedEnvAwsAccessKeyID, "aws_ak_id")
+				_ = os.Setenv(v1.DeprecatedEnvAwsSecretAccessKey, "aws_ak_secret")
 			},
 			unSetEnvFunc: func() {
-				_ = os.Unsetenv(v1.EnvAwsDefaultRegion)
-				_ = os.Unsetenv(v1.EnvOssAccessKeyID)
-				_ = os.Unsetenv(v1.EnvAwsSecretAccessKey)
+				_ = os.Unsetenv(v1.DeprecatedEnvAwsDefaultRegion)
+				_ = os.Unsetenv(v1.DeprecatedEnvOssAccessKeyID)
+				_ = os.Unsetenv(v1.DeprecatedEnvAwsSecretAccessKey)
 			},
 			expectedConfig: &StateStorageConfig{
 				Type: v1.DeprecatedBackendS3,

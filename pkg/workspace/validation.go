@@ -238,13 +238,13 @@ func ValidateBackendConfigs(configs *v1.DeprecatedBackendConfigs) error {
 		return ValidateMysqlConfig(configs.Mysql)
 	}
 	if configs.Oss != nil {
-		if err := ValidateGenericObjectStorageConfig(&configs.Oss.GenericObjectStorageConfig); err != nil {
+		if err := ValidateGenericObjectStorageConfig(&configs.Oss.DeprecatedGenericObjectStorageConfig); err != nil {
 			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
 		}
 		return nil
 	}
 	if configs.S3 != nil {
-		if err := ValidateGenericObjectStorageConfig(&configs.S3.GenericObjectStorageConfig); err != nil {
+		if err := ValidateGenericObjectStorageConfig(&configs.S3.DeprecatedGenericObjectStorageConfig); err != nil {
 			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
 		}
 		return nil
@@ -292,7 +292,7 @@ func ValidateMysqlConfig(config *v1.DeprecatedMysqlConfig) error {
 
 // ValidateGenericObjectStorageConfig is used to validate ossConfig and s3Config is valid or not, where the
 // sensitive data items set as environment variables are not included.
-func ValidateGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) error {
+func ValidateGenericObjectStorageConfig(config *v1.DeprecatedGenericObjectStorageConfig) error {
 	if config.Bucket == "" {
 		return ErrEmptyBucket
 	}
@@ -302,7 +302,7 @@ func ValidateGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) e
 // ValidateWholeOssConfig is used to validate ossConfig is valid or not, where all the items are included.
 // If valid, the config contains all valid items to new an oss client.
 func ValidateWholeOssConfig(config *v1.DeprecatedOssConfig) error {
-	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
+	if err := validateWholeGenericObjectStorageConfig(&config.DeprecatedGenericObjectStorageConfig); err != nil {
 		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
 	}
 	if config.Endpoint == "" {
@@ -314,7 +314,7 @@ func ValidateWholeOssConfig(config *v1.DeprecatedOssConfig) error {
 // ValidateWholeS3Config is used to validate s3Config is valid or not, where all the items are included.
 // If valid, the config  contains all valid items to new a s3 client.
 func ValidateWholeS3Config(config *v1.DeprecatedS3Config) error {
-	if err := validateWholeGenericObjectStorageConfig(&config.GenericObjectStorageConfig); err != nil {
+	if err := validateWholeGenericObjectStorageConfig(&config.DeprecatedGenericObjectStorageConfig); err != nil {
 		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
 	}
 	if config.Region == "" {
@@ -323,7 +323,7 @@ func ValidateWholeS3Config(config *v1.DeprecatedS3Config) error {
 	return nil
 }
 
-func validateWholeGenericObjectStorageConfig(config *v1.GenericObjectStorageConfig) error {
+func validateWholeGenericObjectStorageConfig(config *v1.DeprecatedGenericObjectStorageConfig) error {
 	if err := ValidateGenericObjectStorageConfig(config); err != nil {
 		return err
 	}
