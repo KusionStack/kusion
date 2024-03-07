@@ -2,7 +2,6 @@ package config
 
 import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/config/validation"
 )
 
 const (
@@ -26,22 +25,22 @@ const (
 
 func newRegisteredItems() map[string]*itemInfo {
 	return map[string]*itemInfo{
-		backendCurrent:            {"", validation.ValidateCurrentBackend, nil},
-		backendConfig:             {&v1.BackendConfig{}, validation.ValidateBackendConfig, validation.ValidateUnsetBackendConfig},
-		backendConfigType:         {"", validation.ValidateBackendType, validation.ValidateUnsetBackendType},
-		backendConfigItems:        {map[string]any{}, validation.ValidateBackendConfigItems, nil},
-		backendLocalPath:          {"", validation.ValidateLocalBackendItem, nil},
-		backendMysqlDBName:        {"", validation.ValidateMysqlBackendItem, nil},
-		backendMysqlUser:          {"", validation.ValidateMysqlBackendItem, nil},
-		backendMysqlPassword:      {"", validation.ValidateMysqlBackendItem, nil},
-		backendMysqlHost:          {"", validation.ValidateMysqlBackendItem, nil},
-		backendMysqlPort:          {0, validation.ValidateMysqlBackendPort, nil},
-		backendGenericOssEndpoint: {"", validation.ValidateGenericOssBackendItem, nil},
-		backendGenericOssAK:       {"", validation.ValidateGenericOssBackendItem, nil},
-		backendGenericOssSK:       {"", validation.ValidateGenericOssBackendItem, nil},
-		backendGenericOssBucket:   {"", validation.ValidateGenericOssBackendItem, nil},
-		backendGenericOssPrefix:   {"", validation.ValidateGenericOssBackendItem, nil},
-		backendS3Region:           {"", validation.ValidateS3BackendItem, nil},
+		backendCurrent:            {"", validateCurrentBackend, nil},
+		backendConfig:             {&v1.BackendConfig{}, validateBackendConfig, validateUnsetBackendConfig},
+		backendConfigType:         {"", validateBackendType, validateUnsetBackendType},
+		backendConfigItems:        {map[string]any{}, validateBackendConfigItems, nil},
+		backendLocalPath:          {"", validateLocalBackendItem, nil},
+		backendMysqlDBName:        {"", validateMysqlBackendItem, nil},
+		backendMysqlUser:          {"", validateMysqlBackendItem, nil},
+		backendMysqlPassword:      {"", validateMysqlBackendItem, nil},
+		backendMysqlHost:          {"", validateMysqlBackendItem, nil},
+		backendMysqlPort:          {0, validateMysqlBackendPort, nil},
+		backendGenericOssEndpoint: {"", validateGenericOssBackendItem, nil},
+		backendGenericOssAK:       {"", validateGenericOssBackendItem, nil},
+		backendGenericOssSK:       {"", validateGenericOssBackendItem, nil},
+		backendGenericOssBucket:   {"", validateGenericOssBackendItem, nil},
+		backendGenericOssPrefix:   {"", validateGenericOssBackendItem, nil},
+		backendS3Region:           {"", validateS3BackendItem, nil},
 	}
 }
 
@@ -65,10 +64,10 @@ type itemInfo struct {
 	// config setting. The unregistered config item, empty item value and invalid item value type is forbidden
 	// by config operator by default, which are unnecessary to check in the validateFunc.
 	// Please do not do any real setting job in the validateFunc.
-	validateFunc validation.ValidateFunc
+	validateFunc validateFunc
 
 	// validateDeleteFunc is used to check the config item is valid or not to unset, calling before executing
 	// real config unsetting.
 	// Please do not do any real unsetting job in the validateDeleteFunc.
-	validateDeleteFunc validation.ValidateUnsetFunc
+	validateDeleteFunc validateDeleteFunc
 }

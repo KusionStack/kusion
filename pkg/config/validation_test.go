@@ -1,4 +1,4 @@
-package validation
+package config
 
 import (
 	"testing"
@@ -66,7 +66,7 @@ func TestValidateConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateConfig(tc.config)
+			err := validateConfig(tc.config)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -113,7 +113,7 @@ func TestValidateCurrentBackend(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateCurrentBackend(tc.config, "", tc.val)
+			err := validateCurrentBackend(tc.config, "", tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -141,10 +141,10 @@ func TestValidateBackendConfig(t *testing.T) {
 			val: &v1.BackendConfig{
 				Type: v1.BackendTypeMysql,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "db-name-kusion",
-					v1.BackendMysqlUser:   "pwd-kusion",
+					v1.BackendMysqlDBName: "kusion",
+					v1.BackendMysqlUser:   "kk",
 					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   6443,
+					v1.BackendMysqlPort:   3306,
 				},
 			},
 		},
@@ -154,7 +154,8 @@ func TestValidateBackendConfig(t *testing.T) {
 			val: &v1.BackendConfig{
 				Type: v1.BackendTypeOss,
 				Configs: map[string]any{
-					v1.BackendGenericOssBucket: "bucket-kusion",
+					v1.BackendGenericOssBucket:   "kusion",
+					v1.BackendGenericOssEndpoint: "http://oss-cn-hangzhou.aliyuncs.com",
 				},
 			},
 		},
@@ -164,7 +165,8 @@ func TestValidateBackendConfig(t *testing.T) {
 			val: &v1.BackendConfig{
 				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendGenericOssBucket: "bucket-kusion",
+					v1.BackendGenericOssBucket:   "kusion",
+					v1.BackendGenericOssEndpoint: "http://oss-cn-hangzhou.aliyuncs.com",
 				},
 			},
 		},
@@ -181,10 +183,10 @@ func TestValidateBackendConfig(t *testing.T) {
 			val: &v1.BackendConfig{
 				Type: v1.DeprecatedBackendMysql,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "db-name-kusion",
-					v1.BackendMysqlUser:   "pwd-kusion",
+					v1.BackendMysqlDBName: "kusion",
+					v1.BackendMysqlUser:   "kk",
 					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   "6443",
+					v1.BackendMysqlPort:   "3306",
 				},
 			},
 		},
@@ -202,7 +204,7 @@ func TestValidateBackendConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateBackendConfig(nil, "", tc.val)
+			err := validateBackendConfig(nil, "", tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -244,7 +246,7 @@ func TestValidateUnsetBackendConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateUnsetBackendConfig(tc.config, tc.key)
+			err := validateUnsetBackendConfig(tc.config, tc.key)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -296,7 +298,7 @@ func TestValidateBackendType(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateBackendType(tc.config, tc.key, tc.val)
+			err := validateBackendType(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -353,7 +355,7 @@ func TestValidateUnsetBackendType(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateUnsetBackendType(tc.config, tc.key)
+			err := validateUnsetBackendType(tc.config, tc.key)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -379,10 +381,10 @@ func TestValidateBackendConfigItems(t *testing.T) {
 			},
 			key: "backends.dev.configs",
 			val: map[string]any{
-				v1.BackendMysqlDBName: "db-name-kusion",
-				v1.BackendMysqlUser:   "pwd-kusion",
+				v1.BackendMysqlDBName: "kusion",
+				v1.BackendMysqlUser:   "kk",
 				v1.BackendMysqlHost:   "127.0.0.1",
-				v1.BackendMysqlPort:   6443,
+				v1.BackendMysqlPort:   3306,
 			},
 		},
 		{
@@ -397,17 +399,17 @@ func TestValidateBackendConfigItems(t *testing.T) {
 			},
 			key: "backends.dev.configs",
 			val: map[string]any{
-				v1.BackendMysqlDBName: "db-name-kusion",
-				v1.BackendMysqlUser:   "pwd-kusion",
+				v1.BackendMysqlDBName: "kusion",
+				v1.BackendMysqlUser:   "kk",
 				v1.BackendMysqlHost:   "127.0.0.1",
-				v1.BackendMysqlPort:   6443,
+				v1.BackendMysqlPort:   3306,
 			},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateBackendConfigItems(tc.config, tc.key, tc.val)
+			err := validateBackendConfigItems(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -432,7 +434,7 @@ func TestValidateMysqlBackendPort(t *testing.T) {
 				},
 			},
 			key: "backends.dev.configs.port",
-			val: 6443,
+			val: 3306,
 		},
 		{
 			name:    "invalid mysql port",
@@ -451,7 +453,7 @@ func TestValidateMysqlBackendPort(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateMysqlBackendPort(tc.config, tc.key, tc.val)
+			err := validateMysqlBackendPort(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

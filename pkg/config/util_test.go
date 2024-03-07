@@ -77,7 +77,7 @@ func TestGetEncodedConfigItem(t *testing.T) {
 			success:            true,
 			configFilePath:     existValidConfigPath,
 			configItemKey:      "backends.pre.configs.port",
-			expectedConfigItem: "6443",
+			expectedConfigItem: "3306",
 		},
 		{
 			name:               "get encoded config item successfully type struct",
@@ -142,17 +142,17 @@ func TestSetEncodedConfigItem(t *testing.T) {
 			success:        true,
 			configFilePath: emptyValidConfigPath,
 			configItemKey:  "backends.pre",
-			configItem:     `{"configs":{"dbName":"kk","host":"127.0.0.1","port":6443,"user":"kusion"},"type":"mysql"}`,
+			configItem:     `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"pre": {
 							Type: v1.BackendTypeMysql,
 							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kk",
-								v1.BackendMysqlUser:   "kusion",
+								v1.BackendMysqlDBName: "kusion",
+								v1.BackendMysqlUser:   "kk",
 								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   6443,
+								v1.BackendMysqlPort:   3306,
 							},
 						},
 					},
@@ -238,10 +238,10 @@ func TestDeleteConfigItem(t *testing.T) {
 						"pre": {
 							Type: v1.BackendTypeMysql,
 							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kk",
-								v1.BackendMysqlUser:   "kusion",
+								v1.BackendMysqlDBName: "kusion",
+								v1.BackendMysqlUser:   "kk",
 								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   6443,
+								v1.BackendMysqlPort:   3306,
 							},
 						},
 					},

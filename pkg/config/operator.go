@@ -13,7 +13,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/config/validation"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -267,11 +266,6 @@ func setItemInConfig(config *v1.Config, info *itemInfo, key string, value any) (
 	return convertFromCfgMap(cfg)
 }
 
-// validateConfig checks the config is valid or not.
-func validateConfig(config *v1.Config) error {
-	return validation.ValidateConfig(config)
-}
-
 // tidyConfig is used to clean dirty empty block.
 func tidyConfig(configAddr **v1.Config) {
 	config := *configAddr
@@ -328,12 +322,12 @@ func parseStructuredConfigItem(info *itemInfo, strValue string) (any, error) {
 	case int:
 		value, err = strconv.Atoi(strValue)
 		if err != nil {
-			return nil, validation.ErrNotInt
+			return nil, ErrNotInt
 		}
 	case bool:
 		value, err = strconv.ParseBool(strValue)
 		if err != nil {
-			return nil, validation.ErrNotBool
+			return nil, ErrNotBool
 		}
 	default:
 		if reflect.TypeOf(value).Kind() == reflect.Pointer {
