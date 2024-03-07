@@ -29,6 +29,16 @@ const (
 	BackendTypeMysql = "mysql"
 	BackendTypeOss   = "oss"
 	BackendTypeS3    = "s3"
+
+	EnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
+	EnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
+	EnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
+	EnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
+	EnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
+	EnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
+	EnvAwsRegion            = "AWS_REGION"
+
+	DefaultMysqlPort = 3306
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.
