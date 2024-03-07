@@ -99,9 +99,13 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	// changes, err := previewcmd.Preview(&o.Options, stateStorage, sp, project, stack)
-	previewOptions := engineapi.NewAPIOptions()
-	changes, err := engineapi.Preview(&previewOptions, stateStorage, sp, project, stack)
+	// Construct sdk option
+	previewOptions := &engineapi.APIOptions{
+		Operator:     o.Operator,
+		Cluster:      o.Arguments["cluster"],
+		IgnoreFields: o.IgnoreFields,
+	}
+	changes, err := engineapi.Preview(previewOptions, stateStorage, sp, project, stack)
 	if err != nil {
 		return err
 	}
