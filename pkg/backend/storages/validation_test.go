@@ -119,7 +119,7 @@ func TestValidateOssConfig(t *testing.T) {
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 			},
 		},
@@ -131,7 +131,7 @@ func TestValidateOssConfig(t *testing.T) {
 					Endpoint:        "",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 			},
 		},
@@ -143,7 +143,7 @@ func TestValidateOssConfig(t *testing.T) {
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "",
 					AccessKeySecret: "fake-access-key-secret",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 			},
 		},
@@ -155,7 +155,7 @@ func TestValidateOssConfig(t *testing.T) {
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 			},
 		},
@@ -181,7 +181,7 @@ func TestValidateOssConfigFromFile(t *testing.T) {
 			config: &v1.BackendOssConfig{
 				GenericBackendObjectStorageConfig: &v1.GenericBackendObjectStorageConfig{
 					Endpoint: "http://oss-cn-hangzhou.aliyuncs.com",
-					Bucket:   "kusion_bucket",
+					Bucket:   "kusion",
 				},
 			},
 		},
@@ -208,7 +208,7 @@ func TestValidateS3Config(t *testing.T) {
 				GenericBackendObjectStorageConfig: &v1.GenericBackendObjectStorageConfig{
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 				Region: "us-east-1",
 			},
@@ -220,7 +220,7 @@ func TestValidateS3Config(t *testing.T) {
 				GenericBackendObjectStorageConfig: &v1.GenericBackendObjectStorageConfig{
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
-					Bucket:          "kusion_bucket",
+					Bucket:          "kusion",
 				},
 				Region: "",
 			},
@@ -246,7 +246,7 @@ func TestValidateS3ConfigFromFile(t *testing.T) {
 			success: true,
 			config: &v1.BackendS3Config{
 				GenericBackendObjectStorageConfig: &v1.GenericBackendObjectStorageConfig{
-					Bucket: "kusion_bucket",
+					Bucket: "kusion",
 				},
 			},
 		},
