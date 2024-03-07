@@ -5,10 +5,10 @@ backends:
   pre:
     type: mysql
     configs:
-      dbName: kk
+      dbName: kusion
       host: 127.0.0.1
-      port: 6443
-      user: kusion
+      port: 3306
+      user: kk
   prod:
     type: s3
     configs:
