@@ -199,15 +199,15 @@ func mockValidMysqlConfig() *v1.DeprecatedMysqlConfig {
 	}
 }
 
-func mockValidGenericObjectStorageConfig() *v1.GenericObjectStorageConfig {
-	return &v1.GenericObjectStorageConfig{
+func mockValidGenericObjectStorageConfig() *v1.DeprecatedGenericObjectStorageConfig {
+	return &v1.DeprecatedGenericObjectStorageConfig{
 		Bucket: "kusion_bucket",
 	}
 }
 
 func mockValidCompletedOssConfig() *v1.DeprecatedOssConfig {
 	return &v1.DeprecatedOssConfig{
-		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+		DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 			Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 			AccessKeyID:     "fake-access-key-id",
 			AccessKeySecret: "fake-access-key-secret",
@@ -218,7 +218,7 @@ func mockValidCompletedOssConfig() *v1.DeprecatedOssConfig {
 
 func mockValidCompletedS3Config() *v1.DeprecatedS3Config {
 	return &v1.DeprecatedS3Config{
-		GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+		DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 			AccessKeyID:     "fake-access-key-id",
 			AccessKeySecret: "fake-access-key-secret",
 			Bucket:          "kusion_bucket",
@@ -554,7 +554,7 @@ func TestValidateValidateGenericObjectStorageConfig(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
-		config  *v1.GenericObjectStorageConfig
+		config  *v1.DeprecatedGenericObjectStorageConfig
 	}{
 		{
 			name:    "valid generic object storage config",
@@ -564,7 +564,7 @@ func TestValidateValidateGenericObjectStorageConfig(t *testing.T) {
 		{
 			name:    "invalid generic object storage config empty bucket",
 			success: false,
-			config:  &v1.GenericObjectStorageConfig{},
+			config:  &v1.DeprecatedGenericObjectStorageConfig{},
 		},
 	}
 
@@ -591,7 +591,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 			name:    "invalid oss config empty endpoint",
 			success: false,
 			ossConfig: &v1.DeprecatedOssConfig{
-				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+				DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 					Endpoint:        "",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
@@ -603,7 +603,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 			name:    "invalid oss config empty access key id",
 			success: false,
 			ossConfig: &v1.DeprecatedOssConfig{
-				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+				DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "",
 					AccessKeySecret: "fake-access-key-secret",
@@ -615,7 +615,7 @@ func TestValidateWholeOssConfig(t *testing.T) {
 			name:    "invalid oss config empty access key secret",
 			success: false,
 			ossConfig: &v1.DeprecatedOssConfig{
-				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+				DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 					Endpoint:        "http://oss-cn-hangzhou.aliyuncs.com",
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "",
@@ -648,7 +648,7 @@ func TestValidateWholeS3Config(t *testing.T) {
 			name:    "invalid s3 config empty region",
 			success: false,
 			s3Config: &v1.DeprecatedS3Config{
-				GenericObjectStorageConfig: v1.GenericObjectStorageConfig{
+				DeprecatedGenericObjectStorageConfig: v1.DeprecatedGenericObjectStorageConfig{
 					AccessKeyID:     "fake-access-key-id",
 					AccessKeySecret: "fake-access-key-secret",
 					Bucket:          "kusion_bucket",

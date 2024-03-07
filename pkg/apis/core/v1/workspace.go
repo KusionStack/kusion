@@ -4,18 +4,18 @@ const (
 	DefaultBlock         = "default"
 	ProjectSelectorField = "projectSelector"
 
-	DeprecatedBackendLocal  = "local"
-	DeprecatedBackendMysql  = "mysql"
-	DeprecatedBackendOss    = "oss"
-	DeprecatedBackendS3     = "s3"
-	EnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
-	EnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
-	EnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
-	EnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
-	EnvAwsRegion            = "AWS_REGION"
-	EnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
-	EnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
-	DefaultMysqlPort        = 3306
+	DeprecatedBackendLocal            = "local"
+	DeprecatedBackendMysql            = "mysql"
+	DeprecatedBackendOss              = "oss"
+	DeprecatedBackendS3               = "s3"
+	DeprecatedEnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
+	DeprecatedEnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
+	DeprecatedEnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
+	DeprecatedEnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
+	DeprecatedEnvAwsRegion            = "AWS_REGION"
+	DeprecatedEnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
+	DeprecatedEnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
+	DeprecatedDefaultMysqlPort        = 3306
 )
 
 // Workspace is a logical concept representing a target that stacks will be deployed to.
@@ -159,27 +159,27 @@ type DeprecatedMysqlConfig struct {
 	// Host of the database.
 	Host string `yaml:"host" json:"host"`
 
-	// Port of the database. If not set, then it will be set to DefaultMysqlPort.
+	// Port of the database. If not set, then it will be set to DeprecatedDefaultMysqlPort.
 	Port *int `yaml:"port,omitempty" json:"port,omitempty"`
 }
 
 // DeprecatedOssConfig contains the config of using OSS as backend.
 // Deprecated: do not support backend configs in workspace anymore
 type DeprecatedOssConfig struct {
-	GenericObjectStorageConfig `yaml:",inline" json:",inline"` // OSS asks for non-empty endpoint
+	DeprecatedGenericObjectStorageConfig `yaml:",inline" json:",inline"` // OSS asks for non-empty endpoint
 }
 
 // DeprecatedS3Config contains the config of using S3 as backend.
 // Deprecated: do not support backend configs in workspace anymore
 type DeprecatedS3Config struct {
-	GenericObjectStorageConfig `yaml:",inline" json:",inline"`
+	DeprecatedGenericObjectStorageConfig `yaml:",inline" json:",inline"`
 
 	// Region of S3.
 	Region string `yaml:"region,omitempty" json:"region,omitempty"`
 }
 
-// GenericObjectStorageConfig contains generic configs which can be reused by DeprecatedOssConfig and DeprecatedS3Config.
-type GenericObjectStorageConfig struct {
+// DeprecatedGenericObjectStorageConfig contains generic configs which can be reused by DeprecatedOssConfig and DeprecatedS3Config.
+type DeprecatedGenericObjectStorageConfig struct {
 	// Endpoint of the object storage service.
 	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 

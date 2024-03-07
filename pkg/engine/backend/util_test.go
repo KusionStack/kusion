@@ -45,14 +45,14 @@ func Test_NewStateStorage(t *testing.T) {
 			stack:   mockStack("s3_backend_ws"),
 			opts:    &BackendOptions{},
 			setEnvFunc: func() {
-				_ = os.Setenv(v1.EnvAwsRegion, "ua-east-2")
-				_ = os.Setenv(v1.EnvAwsAccessKeyID, "aws_ak_id")
-				_ = os.Setenv(v1.EnvAwsSecretAccessKey, "aws_ak_secret")
+				_ = os.Setenv(v1.DeprecatedEnvAwsRegion, "ua-east-2")
+				_ = os.Setenv(v1.DeprecatedEnvAwsAccessKeyID, "aws_ak_id")
+				_ = os.Setenv(v1.DeprecatedEnvAwsSecretAccessKey, "aws_ak_secret")
 			},
 			unsetEnvFunc: func() {
-				_ = os.Unsetenv(v1.EnvAwsDefaultRegion)
-				_ = os.Unsetenv(v1.EnvOssAccessKeyID)
-				_ = os.Unsetenv(v1.EnvAwsSecretAccessKey)
+				_ = os.Unsetenv(v1.DeprecatedEnvAwsDefaultRegion)
+				_ = os.Unsetenv(v1.DeprecatedEnvOssAccessKeyID)
+				_ = os.Unsetenv(v1.DeprecatedEnvAwsSecretAccessKey)
 			},
 		},
 		{
