@@ -23,6 +23,7 @@ var (
 	ErrEmptyConfigItem        = errors.New("empty config item")
 	ErrConflictConfigItemType = errors.New("type of the config item conflicts between saved and registered")
 	ErrEmptyConfigItemKey     = errors.New("empty config item key")
+	ErrEmptyConfigItemValue   = errors.New("empty config item value")
 	ErrUnsupportedConfigItem  = errors.New("unsupported config item")
 	ErrEmptyBackendName       = errors.New("backend name should not be empty")
 	ErrInvalidBackendName     = errors.New("backend name should not be current")
@@ -246,9 +247,6 @@ func getConfigItemWithLaxType(config *v1.Config, key string) (any, error) {
 // the updated config.
 // ATTENTION! Cause the input config could be nil, change it or its value may both could result in assignment failure.
 func setItemInConfig(config *v1.Config, info *itemInfo, key string, value any) (*v1.Config, error) {
-	if err := validateConfig(config); err != nil {
-		return nil, err
-	}
 	if err := validateConfigItem(config, info, key, value); err != nil {
 		return nil, err
 	}
@@ -299,7 +297,7 @@ func tidyConfig(configAddr **v1.Config) {
 // validateConfigItem checks the config item value is valid or not.
 func validateConfigItem(config *v1.Config, info *itemInfo, key string, value any) error {
 	if reflect.ValueOf(value).IsZero() {
-		return ErrEmptyConfigItem
+		return ErrEmptyConfigItemValue
 	}
 	if info.validateFunc != nil {
 		return info.validateFunc(config, key, value)
@@ -311,7 +309,7 @@ func validateConfigItem(config *v1.Config, info *itemInfo, key string, value any
 // its validation.
 func parseStructuredConfigItem(info *itemInfo, strValue string) (any, error) {
 	if len(strValue) == 0 {
-		return nil, ErrEmptyConfigItem
+		return nil, ErrEmptyConfigItemValue
 	}
 
 	value := info.zeroValue

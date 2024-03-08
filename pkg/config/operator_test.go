@@ -11,14 +11,17 @@ import (
 )
 
 var (
-	testDataPath         = "testdata"
-	existValidConfigPath = filepath.Join(testDataPath, "config_for_read.yaml")
-	emptyValidConfigPath = filepath.Join(testDataPath, "config_for_write.yaml")
-	invalidConfigPath    = filepath.Join(testDataPath, "config_invalid.yaml")
+	testDataPath             = "testdata"
+	testExistValidConfigPath = filepath.Join(testDataPath, "config.yaml")
+	testEmptyValidConfigPath = filepath.Join(testDataPath, "config_empty.yaml")
+	testWriteValidConfigPath = filepath.Join(testDataPath, "config_write.yaml")
+	testInvalidConfigPath    = filepath.Join(testDataPath, "config_invalid.yaml")
 
-	registeredItems = newRegisteredItems()
+	mockConfigPath = "" // used for get/set/delete operation which do not file operation
+)
 
-	validConfig = &v1.Config{
+func mockValidConfig() *v1.Config {
+	return &v1.Config{
 		Backends: &v1.BackendConfigs{
 			Current: "dev",
 			Backends: map[string]*v1.BackendConfig{
@@ -43,7 +46,10 @@ var (
 			},
 		},
 	}
-	validCfg = map[string]any{
+}
+
+func mockValidCfgMap() map[string]any {
+	return map[string]any{
 		v1.ConfigBackends: map[string]any{
 			v1.BackendCurrent: "dev",
 			"dev": map[string]any{
@@ -66,12 +72,12 @@ var (
 			},
 		},
 	}
-)
+}
 
 func mockOperator(configFilePath string, config *v1.Config) *operator {
 	return &operator{
 		configFilePath:  configFilePath,
-		registeredItems: registeredItems,
+		registeredItems: newRegisteredItems(),
 		config:          config,
 	}
 }
@@ -86,19 +92,19 @@ func TestOperator_ReadConfig(t *testing.T) {
 		{
 			name:           "read config successfully",
 			success:        true,
-			o:              mockOperator(existValidConfigPath, nil),
-			expectedConfig: validConfig,
+			o:              mockOperator(testExistValidConfigPath, nil),
+			expectedConfig: mockValidConfig(),
 		},
 		{
 			name:           "read not exist config successfully",
 			success:        true,
-			o:              mockOperator(emptyValidConfigPath, nil),
+			o:              mockOperator(testEmptyValidConfigPath, nil),
 			expectedConfig: nil,
 		},
 		{
 			name:           "failed to read config invalid structure",
 			success:        false,
-			o:              mockOperator(invalidConfigPath, nil),
+			o:              mockOperator(testInvalidConfigPath, nil),
 			expectedConfig: nil,
 		},
 	}
@@ -121,7 +127,7 @@ func TestOperator_WriteConfig(t *testing.T) {
 		{
 			name:    "write config successfully",
 			success: true,
-			o:       mockOperator(emptyValidConfigPath, validConfig),
+			o:       mockOperator(testWriteValidConfigPath, mockValidConfig()),
 		},
 	}
 
@@ -145,21 +151,21 @@ func TestOperator_GetConfigItem(t *testing.T) {
 		{
 			name:        "get structured config item successfully type string",
 			success:     true,
-			o:           mockOperator(existValidConfigPath, validConfig),
+			o:           mockOperator(mockConfigPath, mockValidConfig()),
 			key:         "backends.pre.configs.host",
 			expectedVal: "127.0.0.1",
 		},
 		{
 			name:        "get structured config item successfully type int",
 			success:     true,
-			o:           mockOperator(existValidConfigPath, validConfig),
+			o:           mockOperator(mockConfigPath, mockValidConfig()),
 			key:         "backends.pre.configs.port",
 			expectedVal: 3306,
 		},
 		{
 			name:    "get structured config item successfully type pointer of struct",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.pre",
 			expectedVal: &v1.BackendConfig{
 				Type: v1.BackendTypeMysql,
@@ -174,7 +180,7 @@ func TestOperator_GetConfigItem(t *testing.T) {
 		{
 			name:    "get structured config item successfully type map",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.prod.configs",
 			expectedVal: map[string]any{
 				v1.BackendGenericOssBucket: "kusion",
@@ -202,21 +208,21 @@ func TestOperator_GetEncodedConfigItem(t *testing.T) {
 		{
 			name:        "get encoding config item successfully type string",
 			success:     true,
-			o:           mockOperator(existValidConfigPath, validConfig),
+			o:           mockOperator(mockConfigPath, mockValidConfig()),
 			key:         "backends.pre.configs.host",
 			expectedVal: "127.0.0.1",
 		},
 		{
 			name:        "get encoding config item successfully type int",
 			success:     true,
-			o:           mockOperator(existValidConfigPath, validConfig),
+			o:           mockOperator(mockConfigPath, mockValidConfig()),
 			key:         "backends.pre.configs.port",
 			expectedVal: "3306",
 		},
 		{
 			name:        "get encoding config item successfully type map",
 			success:     true,
-			o:           mockOperator(existValidConfigPath, validConfig),
+			o:           mockOperator(mockConfigPath, mockValidConfig()),
 			key:         "backends.pre",
 			expectedVal: `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
 		},
@@ -243,7 +249,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type string",
 			success: true,
-			o:       mockOperator(existValidConfigPath, nil),
+			o:       mockOperator(mockConfigPath, nil),
 			key:     "backends.dev.type",
 			val:     v1.BackendTypeLocal,
 			expectedConfig: &v1.Config{
@@ -257,7 +263,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type int",
 			success: true,
-			o: mockOperator(existValidConfigPath, &v1.Config{
+			o: mockOperator(mockConfigPath, &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"pre": {Type: v1.BackendTypeMysql},
@@ -282,7 +288,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type struct",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.pre",
 			val: &v1.BackendConfig{
 				Type: v1.BackendTypeMysql,
@@ -322,7 +328,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type map",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.prod.configs",
 			val: map[string]any{
 				v1.BackendGenericOssBucket: "kk-so-tired",
@@ -356,7 +362,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:           "failed to set config item invalid type",
 			success:        false,
-			o:              mockOperator(existValidConfigPath, nil),
+			o:              mockOperator(mockConfigPath, nil),
 			key:            "backends.dev.configs.path",
 			val:            234,
 			expectedConfig: nil,
@@ -364,7 +370,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:           "failed to set config item empty value",
 			success:        false,
-			o:              mockOperator(existValidConfigPath, nil),
+			o:              mockOperator(mockConfigPath, nil),
 			key:            "backends.dev.configs.path",
 			val:            "",
 			expectedConfig: nil,
@@ -372,7 +378,7 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:           "failed to set config item validate func failed",
 			success:        false,
-			o:              mockOperator(existValidConfigPath, nil),
+			o:              mockOperator(mockConfigPath, nil),
 			key:            "backends.dev.configs.path",
 			val:            "/etc",
 			expectedConfig: nil,
@@ -402,7 +408,7 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type string",
 			success: true,
-			o:       mockOperator(existValidConfigPath, nil),
+			o:       mockOperator(mockConfigPath, nil),
 			key:     "backends.dev.type",
 			val:     v1.BackendTypeLocal,
 			expectedConfig: &v1.Config{
@@ -416,7 +422,7 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type int",
 			success: true,
-			o: mockOperator(existValidConfigPath, &v1.Config{
+			o: mockOperator(mockConfigPath, &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"pre": {Type: v1.BackendTypeMysql},
@@ -441,7 +447,7 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type struct",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.pre",
 			val:     `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk-tired"},"type":"mysql"}`,
 			expectedConfig: &v1.Config{
@@ -473,7 +479,7 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type map",
 			success: true,
-			o:       mockOperator(existValidConfigPath, validConfig),
+			o:       mockOperator(mockConfigPath, mockValidConfig()),
 			key:     "backends.prod.configs",
 			val:     `{"bucket":"kusion","region":"us-east-1"}`,
 			expectedConfig: &v1.Config{
@@ -527,7 +533,7 @@ func TestOperator_DeleteConfigItem(t *testing.T) {
 		{
 			name:    "delete config item successfully",
 			success: true,
-			o: mockOperator(existValidConfigPath, &v1.Config{
+			o: mockOperator(mockConfigPath, &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"dev": {
@@ -543,7 +549,7 @@ func TestOperator_DeleteConfigItem(t *testing.T) {
 		{
 			name:    "failed to delete config item validateUnsetFunc failed",
 			success: false,
-			o: mockOperator(existValidConfigPath, &v1.Config{
+			o: mockOperator(mockConfigPath, &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
@@ -560,7 +566,7 @@ func TestOperator_DeleteConfigItem(t *testing.T) {
 		{
 			name:    "failed to delete config item unsupported key",
 			success: false,
-			o: mockOperator(existValidConfigPath, &v1.Config{
+			o: mockOperator(mockConfigPath, &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
@@ -654,8 +660,8 @@ func TestValidateConfigItem(t *testing.T) {
 		{
 			name:    "invalid config item empty value",
 			success: false,
-			config:  validConfig,
-			info:    registeredItems["backends.current"],
+			config:  mockValidConfig(),
+			info:    newRegisteredItems()["backends.current"],
 			key:     "backends.current",
 			val:     "",
 		},
@@ -680,14 +686,14 @@ func TestParseStructuredConfigItem(t *testing.T) {
 		{
 			name:    "parse structured config item successfully string",
 			success: true,
-			info:    registeredItems["backends.current"],
+			info:    newRegisteredItems()["backends.current"],
 			strVal:  "dev",
 			val:     "dev",
 		},
 		{
 			name:    "parse structured config item successfully int",
 			success: true,
-			info:    registeredItems["backends.*.configs.port"],
+			info:    newRegisteredItems()["backends.*.configs.port"],
 			strVal:  "3306",
 			val:     3306,
 		},
@@ -701,7 +707,7 @@ func TestParseStructuredConfigItem(t *testing.T) {
 		{
 			name:    "parse structured config item successfully struct ptr",
 			success: true,
-			info:    registeredItems["backends.*"],
+			info:    newRegisteredItems()["backends.*"],
 			strVal:  `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
 			val: &v1.BackendConfig{
 				Type: v1.BackendTypeMysql,
@@ -731,7 +737,7 @@ func TestParseStructuredConfigItem(t *testing.T) {
 		{
 			name:    "parse structured config item successfully map",
 			success: true,
-			info:    registeredItems["backends.*.configs"],
+			info:    newRegisteredItems()["backends.*.configs"],
 			strVal:  `{"bucket":"kusion"}`,
 			val: map[string]any{
 				v1.BackendGenericOssBucket: "kusion",
@@ -740,7 +746,7 @@ func TestParseStructuredConfigItem(t *testing.T) {
 		{
 			name:    "failed to parse structured config item int",
 			success: false,
-			info:    registeredItems["backends.*.configs.port"],
+			info:    newRegisteredItems()["backends.*.configs.port"],
 			strVal:  "not_valid_int",
 			val:     nil,
 		},
@@ -803,7 +809,7 @@ func TestConvertToRegisteredKey(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			registeredKey, err := convertToRegisteredKey(registeredItems, tc.key)
+			registeredKey, err := convertToRegisteredKey(newRegisteredItems(), tc.key)
 			assert.Equal(t, tc.success, err == nil)
 			assert.Equal(t, tc.registeredKey, registeredKey)
 		})
@@ -820,8 +826,8 @@ func TestConvertCfgMap(t *testing.T) {
 		{
 			name:    "convert config map successfully",
 			success: true,
-			config:  validConfig,
-			cfg:     validCfg,
+			config:  mockValidConfig(),
+			cfg:     mockValidCfgMap(),
 		},
 	}
 
@@ -848,21 +854,21 @@ func TestGetItemFromCfgMap(t *testing.T) {
 		{
 			name:        "get item from config map successfully type string",
 			success:     true,
-			cfg:         validCfg,
+			cfg:         mockValidCfgMap(),
 			key:         "backends.current",
 			expectedVal: "dev",
 		},
 		{
 			name:        "get item from config map successfully type int",
 			success:     true,
-			cfg:         validCfg,
+			cfg:         mockValidCfgMap(),
 			key:         "backends.pre.configs.port",
 			expectedVal: 3306,
 		},
 		{
 			name:    "get item from config map successfully type map",
 			success: true,
-			cfg:     validCfg,
+			cfg:     mockValidCfgMap(),
 			key:     "backends.prod",
 			expectedVal: map[string]any{
 				v1.BackendType: v1.BackendTypeS3,
@@ -874,14 +880,14 @@ func TestGetItemFromCfgMap(t *testing.T) {
 		{
 			name:        "failed to get item from config map not exist value",
 			success:     false,
-			cfg:         validCfg,
+			cfg:         mockValidCfgMap(),
 			key:         "backends.dev.configs.path",
 			expectedVal: nil,
 		},
 		{
 			name:        "failed to get item from config map wrong key",
 			success:     false,
-			cfg:         validCfg,
+			cfg:         mockValidCfgMap(),
 			key:         "backends.stage.configs",
 			expectedVal: nil,
 		},
