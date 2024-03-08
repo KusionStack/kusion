@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -10,9 +9,9 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func mockNewOperator(configFilePath string, config *v1.Config) {
+func mockNewOperator(config *v1.Config) {
 	mockey.Mock(newOperator).Return(&operator{
-		configFilePath:  configFilePath,
+		configFilePath:  mockConfigPath,
 		registeredItems: newRegisteredItems(),
 		config:          config,
 	}, nil).Build()
@@ -22,25 +21,16 @@ func TestGetConfig(t *testing.T) {
 	testcases := []struct {
 		name           string
 		success        bool
-		configFilePath string
 		expectedConfig *v1.Config
 	}{
 		{
 			name:           "get config successfully",
 			success:        true,
-			configFilePath: existValidConfigPath,
-			expectedConfig: validConfig,
+			expectedConfig: mockValidConfig(),
 		},
 		{
 			name:           "failed to get config empty config",
 			success:        false,
-			configFilePath: emptyValidConfigPath,
-			expectedConfig: nil,
-		},
-		{
-			name:           "failed to get config invalid config",
-			success:        false,
-			configFilePath: invalidConfigPath,
 			expectedConfig: nil,
 		},
 	}
@@ -48,7 +38,8 @@ func TestGetConfig(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock config operator", t, func() {
-				mockNewOperator(tc.configFilePath, nil)
+				mockNewOperator(tc.expectedConfig)
+				mockey.Mock((*operator).readConfig).Return(nil)
 				config, err := GetConfig()
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.expectedConfig, config)
@@ -61,42 +52,42 @@ func TestGetEncodedConfigItem(t *testing.T) {
 	testcases := []struct {
 		name               string
 		success            bool
-		configFilePath     string
+		config             *v1.Config
 		configItemKey      string
 		expectedConfigItem string
 	}{
 		{
 			name:               "get encoded config item successfully type string",
 			success:            true,
-			configFilePath:     existValidConfigPath,
+			config:             mockValidConfig(),
 			configItemKey:      "backends.dev.type",
 			expectedConfigItem: "local",
 		},
 		{
 			name:               "get encoded config item successfully type int",
 			success:            true,
-			configFilePath:     existValidConfigPath,
+			config:             mockValidConfig(),
 			configItemKey:      "backends.pre.configs.port",
 			expectedConfigItem: "3306",
 		},
 		{
 			name:               "get encoded config item successfully type struct",
 			success:            true,
-			configFilePath:     existValidConfigPath,
+			config:             mockValidConfig(),
 			configItemKey:      "backends.prod",
 			expectedConfigItem: `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 		},
 		{
 			name:               "failed to get encoded config item empty item",
 			success:            false,
-			configFilePath:     emptyValidConfigPath,
+			config:             nil,
 			configItemKey:      "backends.stage",
 			expectedConfigItem: "",
 		},
 		{
 			name:               "failed to get encoded config item not registered item",
 			success:            false,
-			configFilePath:     emptyValidConfigPath,
+			config:             nil,
 			configItemKey:      "backends.current.not.registered",
 			expectedConfigItem: "",
 		},
@@ -105,7 +96,8 @@ func TestGetEncodedConfigItem(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock config operator", t, func() {
-				mockNewOperator(tc.configFilePath, nil)
+				mockNewOperator(tc.config)
+				mockey.Mock((*operator).readConfig).Return(nil).Build()
 				item, err := GetEncodedConfigItem(tc.configItemKey)
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.expectedConfigItem, item)
@@ -116,19 +108,18 @@ func TestGetEncodedConfigItem(t *testing.T) {
 
 func TestSetEncodedConfigItem(t *testing.T) {
 	testcases := []struct {
-		name           string
-		success        bool
-		configFilePath string
-		configItemKey  string
-		configItem     string
-		expectedConfig *v1.Config
+		name                   string
+		success                bool
+		configItemKey          string
+		configItem             string
+		config, expectedConfig *v1.Config
 	}{
 		{
-			name:           "set encoded config item successfully type string",
-			success:        true,
-			configFilePath: emptyValidConfigPath,
-			configItemKey:  "backends.dev.type",
-			configItem:     "local",
+			name:          "set encoded config item successfully type string",
+			success:       true,
+			configItemKey: "backends.dev.type",
+			configItem:    "local",
+			config:        nil,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -138,11 +129,11 @@ func TestSetEncodedConfigItem(t *testing.T) {
 			},
 		},
 		{
-			name:           "set encoded config item successfully type struct",
-			success:        true,
-			configFilePath: emptyValidConfigPath,
-			configItemKey:  "backends.pre",
-			configItem:     `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			name:          "set encoded config item successfully type struct",
+			success:       true,
+			configItemKey: "backends.pre",
+			configItem:    `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			config:        nil,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -162,25 +153,25 @@ func TestSetEncodedConfigItem(t *testing.T) {
 		{
 			name:           "failed to set encoded config item empty key",
 			success:        false,
-			configFilePath: emptyValidConfigPath,
 			configItemKey:  "",
 			configItem:     "dev",
+			config:         nil,
 			expectedConfig: nil,
 		},
 		{
 			name:           "failed to set encoded config item empty value",
 			success:        false,
-			configFilePath: emptyValidConfigPath,
 			configItemKey:  "backends.dev.type",
 			configItem:     "",
+			config:         nil,
 			expectedConfig: nil,
 		},
 		{
 			name:           "failed to set encoded config item invalid value",
 			success:        false,
-			configFilePath: existValidConfigPath,
 			configItemKey:  "backends.dev.configs.port",
 			configItem:     "-1",
+			config:         mockValidConfig(),
 			expectedConfig: nil,
 		},
 	}
@@ -188,7 +179,8 @@ func TestSetEncodedConfigItem(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock config operator", t, func() {
-				mockNewOperator(tc.configFilePath, nil)
+				mockNewOperator(tc.config)
+				mockey.Mock((*operator).writeConfig).Return(nil).Build()
 				err := SetEncodedConfigItem(tc.configItemKey, tc.configItem)
 				assert.Equal(t, tc.success, err == nil)
 				if err == nil {
@@ -196,9 +188,6 @@ func TestSetEncodedConfigItem(t *testing.T) {
 					config, err = GetConfig()
 					assert.NoError(t, err)
 					assert.Equal(t, tc.expectedConfig, config)
-				}
-				if tc.configFilePath == emptyValidConfigPath {
-					_ = os.Remove(emptyValidConfigPath)
 				}
 			})
 		})
@@ -209,15 +198,13 @@ func TestDeleteConfigItem(t *testing.T) {
 	testcases := []struct {
 		name                   string
 		success                bool
-		configFilePath         string
 		configItemKey          string
 		config, expectedConfig *v1.Config
 	}{
 		{
-			name:           "delete config item successfully",
-			success:        true,
-			configFilePath: emptyValidConfigPath,
-			configItemKey:  "backends.dev.type",
+			name:          "delete config item successfully",
+			success:       true,
+			configItemKey: "backends.dev.type",
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -228,10 +215,9 @@ func TestDeleteConfigItem(t *testing.T) {
 			expectedConfig: nil,
 		},
 		{
-			name:           "failed to delete config item invalid unset",
-			success:        false,
-			configFilePath: emptyValidConfigPath,
-			configItemKey:  "backends.pre.type",
+			name:          "failed to delete config item invalid unset",
+			success:       false,
+			configItemKey: "backends.pre.type",
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -254,7 +240,8 @@ func TestDeleteConfigItem(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock config operator", t, func() {
-				mockNewOperator(tc.configFilePath, tc.config)
+				mockNewOperator(tc.config)
+				mockey.Mock((*operator).writeConfig).Return(nil).Build()
 				err := DeleteConfigItem(tc.configItemKey)
 				assert.Equal(t, tc.success, err == nil)
 				if err == nil {
@@ -266,9 +253,6 @@ func TestDeleteConfigItem(t *testing.T) {
 						assert.NoError(t, err)
 						assert.Equal(t, tc.expectedConfig, config)
 					}
-				}
-				if tc.configFilePath == emptyValidConfigPath {
-					_ = os.Remove(emptyValidConfigPath)
 				}
 			})
 		})

@@ -15,7 +15,6 @@ type (
 )
 
 var (
-	ErrUnexpectedInvalidConfig    = errors.New("unexpected invalid config")
 	ErrNotExistCurrentBackend     = errors.New("cannot assign current to not exist backend")
 	ErrInUseCurrentBackend        = errors.New("unset in-use current backend")
 	ErrUnsupportedBackendType     = errors.New("unsupported backend type")
@@ -24,38 +23,6 @@ var (
 	ErrConflictBackendType        = errors.New("conflict backend type")
 	ErrInvalidBackendMysqlPort    = errors.New("backend mysql port must be between 1 and 65535")
 )
-
-// validateConfig is used to check the config is valid or not, where the invalidation comes from the unexpected
-// manual modification.
-func validateConfig(config *v1.Config) error {
-	if config == nil {
-		return nil
-	}
-
-	// validate backends configuration
-	backends := config.Backends
-	if backends == nil {
-		return nil
-	}
-	if backends.Current != "" && len(backends.Backends) == 0 {
-		return fmt.Errorf("%w, non-empty current backend name %s but empty backends", ErrUnexpectedInvalidConfig, backends.Current)
-	}
-	for name, bkConfig := range backends.Backends {
-		if name == "" || name == "current" {
-			return fmt.Errorf("%w, invalid backend name %s", ErrUnexpectedInvalidConfig, name)
-		}
-		if bkConfig == nil {
-			return fmt.Errorf("%w, empty backend config with name %s", ErrUnexpectedInvalidConfig, name)
-		}
-		if bkConfig.Type == "" && len(bkConfig.Configs) != 0 {
-			return fmt.Errorf("%w, empty backend config item but non-empty type with name %s", ErrUnexpectedInvalidConfig, name)
-		}
-		if err := checkBasalBackendConfig(bkConfig); err != nil {
-			return fmt.Errorf("%w, %v", ErrUnexpectedInvalidConfig, err)
-		}
-	}
-	return nil
-}
 
 // validateCurrentBackend is used to check that setting the current backend is valid or not.
 func validateCurrentBackend(config *v1.Config, _ string, val any) error {
