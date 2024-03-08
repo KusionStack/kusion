@@ -14,3 +14,7 @@ type LocalStorage struct {
 func NewLocalStorage(config *v1.BackendLocalConfig) *LocalStorage {
 	return &LocalStorage{path: config.Path}
 }
+
+func NewDefaultStorage() *LocalStorage {
+	return NewLocalStorage(&v1.BackendLocalConfig{})
+}
