@@ -84,6 +84,9 @@ func TestCompleteOssConfig(t *testing.T) {
 			}
 			CompleteOssConfig(tc.config)
 			assert.Equal(t, tc.completeConfig, tc.config)
+			for k := range tc.envs {
+				_ = os.Unsetenv(k)
+			}
 		})
 	}
 }
@@ -127,6 +130,9 @@ func TestCompleteS3Config(t *testing.T) {
 			}
 			CompleteS3Config(tc.config)
 			assert.Equal(t, tc.completeConfig, tc.config)
+			for k := range tc.envs {
+				_ = os.Unsetenv(k)
+			}
 		})
 	}
 }
