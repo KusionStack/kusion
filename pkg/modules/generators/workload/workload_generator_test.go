@@ -134,6 +134,58 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 	}
 }
 
+func TestGenerate(t *testing.T) {
+	testCases := []struct {
+		name        string
+		project     string
+		stack       string
+		application string
+		workload    *workload.Workload
+	}{
+		{
+			name:        "simple service workload",
+			project:     "helloworld",
+			stack:       "dev",
+			application: "nginx",
+			workload: &workload.Workload{
+				Header: workload.Header{
+					Type: workload.TypeService,
+				},
+				Service: &workload.Service{
+					Base: workload.Base{
+						Containers: map[string]container.Container{
+							"main": {
+								Image: "nginx:latest",
+								Files: map[string]container.FileSpec{
+									"/run/secret/password": {
+										ContentFrom: "secret://sec-name/key?mode=0400",
+										Mode:        "0644",
+									},
+								},
+							},
+						},
+					},
+					Type: workload.Deployment,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := &Generator{
+				Project:  tc.project,
+				Stack:    tc.stack,
+				App:      tc.application,
+				Workload: tc.workload,
+			}
+			spec := &apiv1.Intent{}
+			err := g.Generate(spec)
+			assert.NoError(t, err, "Error should be nil")
+		})
+	}
+}
+
 func TestToOrderedContainers(t *testing.T) {
 	t.Run("toOrderedContainers should convert app containers to ordered containers", func(t *testing.T) {
 		appContainers := make(map[string]container.Container)

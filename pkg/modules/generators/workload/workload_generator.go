@@ -3,6 +3,7 @@ package workload
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -350,7 +351,6 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 ) {
 	var idx int
 	err = modules.ForeachOrdered(c.Files, func(k string, v container.FileSpec) error {
-		// for k, v := range c.Files {
 		// The declared file path needs to include the file name.
 		if filepath.Base(k) == "." || filepath.Base(k) == "/" {
 			return fmt.Errorf("the declared file path needs to include the file name")
@@ -369,8 +369,26 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 		}
 
 		if v.ContentFrom != "" {
-			// TODO: support the creation of the file content from a reference source.
-			panic("not supported the creation the file content from a reference source")
+			sec, ok, err := parseSecretReference(v.ContentFrom)
+			if err != nil || !ok {
+				return fmt.Errorf("invalid content from str")
+			}
+
+			volumes = append(volumes, corev1.Volume{
+				Name: sec.Name,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  sec.Name,
+						DefaultMode: &modeInt32,
+					},
+				},
+			})
+
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      sec.Name,
+				MountPath: path.Join("/", k),
+				SubPath:   sec.Key,
+			})
 		} else if v.Content != "" {
 			// Create the file content with configMap.
 			data := make(map[string]string)
@@ -439,4 +457,32 @@ func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error
 		}
 	}
 	return nil
+}
+
+type secretReference struct {
+	Name string
+	Key  string
+}
+
+// parseSecretReference takes secret reference string as parameter and returns secretReference obj.
+// Parameter `ref` is expected in following format: secret://sec-name/key, if the provided ref str
+// is not in valid format, this function will return false or err.
+func parseSecretReference(ref string) (result secretReference, _ bool, _ error) {
+	if strings.HasPrefix(ref, "${secret://") && strings.HasSuffix(ref, "}") {
+		ref = ref[2 : len(ref)-1]
+	}
+
+	if !strings.HasPrefix(ref, "secret://") {
+		return result, false, nil
+	}
+
+	u, err := url.Parse(ref)
+	if err != nil {
+		return result, false, err
+	}
+
+	result.Name = u.Host
+	result.Key, _, _ = strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
+
+	return result, true, nil
 }
