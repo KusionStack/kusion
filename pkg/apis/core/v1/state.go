@@ -40,7 +40,7 @@ type State struct {
 	CreateTime time.Time `json:"createTime" yaml:"createTime"`
 
 	// ModifiedTime is the time State is modified each time
-	ModifiedTime time.Time `json:"modifiedTime,omitempty" yaml:"modifiedTime"`
+	ModifiedTime time.Time `json:"modifiedTime,omitempty" yaml:"modifiedTime,omitempty"`
 }
 
 func NewState() *State {
