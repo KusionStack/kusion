@@ -137,6 +137,14 @@ func toOrderedContainers(
 		}
 		ctn.VolumeMounts = append(ctn.VolumeMounts, volumeMounts...)
 
+		// Append more volumes and volumeMounts
+		otherVolumes, otherVolumeMounts, err := handleDirCreation(c)
+		if err != nil {
+			return err
+		}
+		volumes = append(volumes, otherVolumes...)
+		ctn.VolumeMounts = append(ctn.VolumeMounts, otherVolumeMounts...)
+
 		// Append the container object to the containers slice.
 		containers = append(containers, ctn)
 		return nil
@@ -341,7 +349,7 @@ func tcpSocketAction(urlstr string) (*corev1.TCPSocketAction, error) {
 	}, nil
 }
 
-// handleFileCreation handles the creation of the files declared in container.File
+// handleFileCreation handles the creation of the files declared in container.Files
 // and returns the generated ConfigMap, Volume and VolumeMount.
 func handleFileCreation(c container.Container, uniqueAppName, containerName string) (
 	volumes []corev1.Volume,
@@ -369,8 +377,8 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 		}
 
 		if v.ContentFrom != "" {
-			sec, ok, err := parseSecretReference(v.ContentFrom)
-			if err != nil || !ok {
+			sec, ok, parseErr := parseSecretReference(v.ContentFrom)
+			if parseErr != nil || !ok {
 				return fmt.Errorf("invalid content from str")
 			}
 
@@ -422,6 +430,33 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 				MountPath: filepath.Dir(k),
 			})
 		}
+		return nil
+	})
+	return
+}
+
+// handleDirCreation handles the creation of folder declared in container.Dirs and returns
+// the generated Volume and VolumeMount.
+func handleDirCreation(c container.Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
+	err = modules.ForeachOrdered(c.Dirs, func(mountPath string, v string) error {
+		sec, ok, parseErr := parseSecretReference(v)
+		if parseErr != nil || !ok {
+			return fmt.Errorf("invalid dir configuration")
+		}
+
+		volumes = append(volumes, corev1.Volume{
+			Name: sec.Name,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: sec.Name,
+				},
+			},
+		})
+
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      sec.Name,
+			MountPath: path.Join("/", mountPath),
+		})
 		return nil
 	})
 	return

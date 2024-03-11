@@ -169,6 +169,36 @@ func TestGenerate(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:        "simple service workload with dirs",
+			project:     "beep",
+			stack:       "test",
+			application: "nginx",
+			workload: &workload.Workload{
+				Header: workload.Header{
+					Type: workload.TypeService,
+				},
+				Service: &workload.Service{
+					Base: workload.Base{
+						Containers: map[string]container.Container{
+							"main": {
+								Image: "nginx:latest",
+								Dirs: map[string]string{
+									"/var/tmp-secret": "secret://other-sec-name",
+								},
+								Files: map[string]container.FileSpec{
+									"/run/secret/password": {
+										ContentFrom: "secret://sec-name/key?mode=0400",
+										Mode:        "0644",
+									},
+								},
+							},
+						},
+					},
+					Type: workload.Deployment,
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
