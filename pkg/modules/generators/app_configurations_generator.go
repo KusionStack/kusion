@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -164,7 +165,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 
 		// invoke the plugin
 		log.Infof("invoke module:%s with request:%s", t, protoRequest.String())
-		response, err := plugin.Module.Generate(protoRequest)
+		response, err := plugin.Module.Generate(context.Background(), protoRequest)
 		if err != nil {
 			return nil, fmt.Errorf("invoke kusion module: %s failed. %w", t, err)
 		}

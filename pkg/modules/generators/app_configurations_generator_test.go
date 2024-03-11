@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"context"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -53,7 +54,7 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 
 type fakeModule struct{}
 
-func (f *fakeModule) Generate(req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
+func (f *fakeModule) Generate(ctx context.Context, req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
 	res := v1.Resource{
 		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo",
 		Type: "Kubernetes",
