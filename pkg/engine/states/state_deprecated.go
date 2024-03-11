@@ -3,21 +3,9 @@ package states
 import (
 	"time"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/version"
 )
-
-// StateStorage represents the set of methods to manipulate State in a specified storage
-type StateStorage interface {
-	// GetLatestState return nil if state not exists
-	GetLatestState(query *StateQuery) (*State, error)
-
-	// Apply means update this state if it already exists or create a new one
-	Apply(state *State) error
-
-	// Delete State by id
-	Delete(id string) error
-}
 
 type StateQuery struct {
 	// Tenant name
@@ -64,7 +52,7 @@ type State struct {
 	Operator string `json:"operator,omitempty" yaml:"operator,omitempty"`
 
 	// Resources records all resources in this operation
-	Resources apiv1.Resources `json:"resources" yaml:"resources"`
+	Resources v1.Resources `json:"resources" yaml:"resources"`
 
 	// CreateTime is the time State is created
 	CreateTime time.Time `json:"createTime" yaml:"createTime"`
@@ -77,7 +65,19 @@ func NewState() *State {
 	s := &State{
 		KusionVersion: version.ReleaseVersion(),
 		Version:       1,
-		Resources:     []apiv1.Resource{},
+		Resources:     []v1.Resource{},
 	}
 	return s
+}
+
+// StateStorage represents the set of methods to manipulate State in a specified storage
+type StateStorage interface {
+	// GetLatestState return nil if state not exists
+	GetLatestState(query *StateQuery) (*State, error)
+
+	// Apply means update this state if it already exists or create a new one
+	Apply(state *State) error
+
+	// Delete State by id
+	Delete(id string) error
 }
