@@ -22,7 +22,7 @@ type Generator interface {
 
 // Module is the interface that we're exposing as a kusion module plugin.
 type Module interface {
-	Generate(req *proto.GeneratorRequest) (*proto.GeneratorResponse, error)
+	Generate(ctx context.Context, req *proto.GeneratorRequest) (*proto.GeneratorResponse, error)
 }
 
 // NewGeneratorFunc is a function that returns a Generator.
@@ -32,8 +32,8 @@ type GRPCClient struct {
 	client proto.ModuleClient
 }
 
-func (c *GRPCClient) Generate(req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
-	return c.client.Generate(context.Background(), req)
+func (c *GRPCClient) Generate(ctx context.Context, req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
+	return c.client.Generate(ctx, req)
 }
 
 type GRPCServer struct {
@@ -49,7 +49,7 @@ func (s *GRPCServer) Generate(ctx context.Context, req *proto.GeneratorRequest) 
 			res = &proto.GeneratorResponse{}
 		}
 	}()
-	res, err = s.Impl.Generate(req)
+	res, err = s.Impl.Generate(ctx, req)
 	return
 }
 
