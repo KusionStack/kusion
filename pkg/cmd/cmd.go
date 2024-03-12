@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/apply"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
+	"kusionstack.io/kusion/pkg/cmd/mod"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
 
 	"kusionstack.io/kusion/pkg/cmd/destroy"
@@ -101,6 +102,12 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 				preview.NewCmdPreview(),
 				apply.NewCmdApply(),
 				destroy.NewCmdDestroy(),
+			},
+		},
+		{
+			Message: "Module Management Commands:",
+			Commands: []*cobra.Command{
+				mod.NewCmdMod(o.IOStreams),
 			},
 		},
 	}
