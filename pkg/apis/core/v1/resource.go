@@ -2,6 +2,37 @@ package v1
 
 import "encoding/json"
 
+type Resources []Resource
+
+// Resource is the representation of a resource in the state.
+type Resource struct {
+	// ID is the unique key of this resource in the whole State.
+	// ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
+	// providerNamespace:providerName:resourceType:resourceName for Terraform resources
+	ID string `json:"id" yaml:"id"`
+
+	// Type represents all Runtimes we supported like Kubernetes and Terraform
+	Type Type `json:"type" yaml:"type"`
+
+	// Attributes represents all specified attributes of this resource
+	Attributes map[string]interface{} `json:"attributes" yaml:"attributes"`
+
+	// DependsOn contains all resources this resource depends on
+	DependsOn []string `json:"dependsOn,omitempty" yaml:"dependsOn,omitempty"`
+
+	// Patchers contain fields should be patched into the workload corresponding fields
+	Patchers []Patcher
+
+	// Extensions specifies arbitrary metadata of this resource
+	Extensions map[string]interface{} `json:"extensions,omitempty" yaml:"extensions,omitempty"`
+}
+
+type Patcher struct {
+	Environments map[string]string `json:"environments" yaml:"environments"`
+	Labels       map[string]string `json:"labels" yaml:"labels"`
+	Annotations  map[string]string `json:"annotations" yaml:"annotations"`
+}
+
 func (r *Resource) ResourceKey() string {
 	return r.ID
 }
