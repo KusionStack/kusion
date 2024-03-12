@@ -9,7 +9,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -83,8 +83,9 @@ var (
 type Changes struct {
 	*ChangeOrder `json:",inline" yaml:",inline"`
 
-	project *v1.Project // the project of current changes
-	stack   *v1.Stack   // the stack of current changes
+	project   *v1.Project // the project of current changes
+	stack     *v1.Stack   // the stack of current changes
+	workspace string      // the workspace name of current changes
 }
 
 type ChangeOrder struct {
@@ -92,11 +93,12 @@ type ChangeOrder struct {
 	ChangeSteps map[string]*ChangeStep `json:"changeSteps,omitempty" yaml:"changeSteps,omitempty"`
 }
 
-func NewChanges(p *v1.Project, s *v1.Stack, order *ChangeOrder) *Changes {
+func NewChanges(p *v1.Project, s *v1.Stack, ws string, order *ChangeOrder) *Changes {
 	return &Changes{
 		ChangeOrder: order,
 		project:     p,
 		stack:       s,
+		workspace:   ws,
 	}
 }
 
@@ -133,6 +135,10 @@ func (p *Changes) Stack() *v1.Stack {
 
 func (p *Changes) Project() *v1.Project {
 	return p.project
+}
+
+func (p *Changes) Workspace() string {
+	return p.workspace
 }
 
 func (o *ChangeOrder) Diffs() string {
@@ -177,7 +183,7 @@ func (p *Changes) Summary(writer io.Writer) {
 		tableData = append(tableData, []string{itemPrefix, step.ID, step.Action.String()})
 	}
 
-	pterm.DefaultTable.WithHasHeader().
+	_ = pterm.DefaultTable.WithHasHeader().
 		// WithBoxed(true).
 		WithHeaderStyle(&pterm.ThemeDefault.TableHeaderStyle).
 		WithLeftAlignment(true).

@@ -56,7 +56,6 @@ func NewCmdApply() *cobra.Command {
 
 	o.AddBuildFlags(cmd)
 	o.AddPreviewFlags(cmd)
-	o.AddBackendFlags(cmd)
 
 	cmd.Flags().BoolVarP(&o.Yes, "yes", "y", false,
 		i18n.T("Automatically approve and perform the update after previewing it"))

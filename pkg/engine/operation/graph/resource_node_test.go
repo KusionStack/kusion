@@ -10,22 +10,21 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 func TestResourceNode_Execute(t *testing.T) {
 	type fields struct {
 		BaseNode baseNode
-		Action   opsmodels.ActionType
+		Action   models.ActionType
 		state    *apiv1.Resource
 	}
 	type args struct {
-		operation opsmodels.Operation
+		operation models.Operation
 	}
 
 	const Jack = "jack"
@@ -96,18 +95,18 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "update",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   opsmodels.Update,
+				Action:   models.Update,
 				state:    newResourceState,
 			},
-			args: args{operation: opsmodels.Operation{
-				OperationType:           opsmodels.Apply,
-				StateStorage:            local.NewFileSystemState(),
+			args: args{operation: models.Operation{
+				OperationType:           models.Apply,
+				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
 				IgnoreFields:            []string{"not_exist_field"},
-				MsgCh:                   make(chan opsmodels.Message),
-				ResultState:             states.NewState(),
+				MsgCh:                   make(chan models.Message),
+				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
@@ -117,17 +116,17 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "delete",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   opsmodels.Delete,
+				Action:   models.Delete,
 				state:    newResourceState,
 			},
-			args: args{operation: opsmodels.Operation{
-				OperationType:           opsmodels.Apply,
-				StateStorage:            local.NewFileSystemState(),
+			args: args{operation: models.Operation{
+				OperationType:           models.Apply,
+				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
-				MsgCh:                   make(chan opsmodels.Message),
-				ResultState:             states.NewState(),
+				MsgCh:                   make(chan models.Message),
+				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
@@ -137,17 +136,17 @@ func TestResourceNode_Execute(t *testing.T) {
 			name: "illegalRef",
 			fields: fields{
 				BaseNode: baseNode{ID: Jack},
-				Action:   opsmodels.Update,
+				Action:   models.Update,
 				state:    illegalResourceState,
 			},
-			args: args{operation: opsmodels.Operation{
-				OperationType:           opsmodels.Apply,
-				StateStorage:            local.NewFileSystemState(),
+			args: args{operation: models.Operation{
+				OperationType:           models.Apply,
+				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
-				MsgCh:                   make(chan opsmodels.Message),
-				ResultState:             states.NewState(),
+				MsgCh:                   make(chan models.Message),
+				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
@@ -178,7 +177,7 @@ func TestResourceNode_Execute(t *testing.T) {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
 				}).Build()
 			mockey.Mock(mockey.GetMethod(tt.args.operation.StateStorage, "Apply")).To(
-				func(f *local.FileSystemState, state *states.State) error {
+				func(f *storages.LocalStorage, state *apiv1.State) error {
 					return nil
 				}).Build()
 

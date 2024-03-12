@@ -13,17 +13,16 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
 func TestOperation_Destroy(t *testing.T) {
 	var (
-		tenant   = "tenant_name"
-		operator = "foo_user"
+		workspace = "fake-workspace"
+		operator  = "foo-user"
 	)
 
 	s := &apiv1.Stack{
@@ -46,64 +45,48 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 	mf := &apiv1.Intent{Resources: []apiv1.Resource{resourceState}}
 	o := &DestroyOperation{
-		opsmodels.Operation{
-			OperationType: opsmodels.Destroy,
-			StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
+		models.Operation{
+			OperationType: models.Destroy,
+			StateStorage:  storages.NewLocalStorage(filepath.Join("testdata", "state.yaml")),
 			RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 		},
 	}
 	r := &DestroyRequest{
-		opsmodels.Request{
-			Tenant:   tenant,
-			Stack:    s,
-			Project:  p,
-			Operator: operator,
-			Intent:   mf,
+		models.Request{
+			Stack:     s,
+			Project:   p,
+			Workspace: workspace,
+			Operator:  operator,
+			Intent:    mf,
 		},
 	}
 
 	mockey.PatchConvey("destroy success", t, func() {
-		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
-			return nil
-		}).Build()
-		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
-			f *local.FileSystemState,
-			query *states.StateQuery,
-		) (*states.State, error) {
-			return &states.State{Resources: []apiv1.Resource{resourceState}}, nil
-		}).Build()
+		mockey.Mock((*graph.ResourceNode).Execute).Return(nil).Build()
+		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{resourceState}}, nil).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
 		}).Build()
 
-		o.MsgCh = make(chan opsmodels.Message, 1)
+		o.MsgCh = make(chan models.Message, 1)
 		go readMsgCh(o.MsgCh)
 		st := o.Destroy(r)
 		assert.Nil(t, st)
 	})
 
 	mockey.PatchConvey("destroy failed", t, func() {
-		mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
-			return v1.NewErrorStatus(errors.New("mock error"))
-		}).Build()
-		mockey.Mock(mockey.GetMethod(local.NewFileSystemState(), "GetLatestState")).To(func(
-			f *local.FileSystemState,
-			query *states.StateQuery,
-		) (*states.State, error) {
-			return &states.State{Resources: []apiv1.Resource{resourceState}}, nil
-		}).Build()
-		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
-			return &fakerRuntime{}, nil
-		}).Build()
+		mockey.Mock((*graph.ResourceNode).Execute).Return(v1.NewErrorStatus(errors.New("mock error"))).Build()
+		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{resourceState}}, nil).Build()
+		mockey.Mock(kubernetes.NewKubernetesRuntime).Return(&fakerRuntime{}, nil).Build()
 
-		o.MsgCh = make(chan opsmodels.Message, 1)
+		o.MsgCh = make(chan models.Message, 1)
 		go readMsgCh(o.MsgCh)
 		st := o.Destroy(r)
 		assert.True(t, v1.IsErr(st))
 	})
 }
 
-func readMsgCh(ch chan opsmodels.Message) {
+func readMsgCh(ch chan models.Message) {
 	for {
 		select {
 		case msg, ok := <-ch:
@@ -119,18 +102,18 @@ var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+func (f *fakerRuntime) Import(_ context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
 	return &runtime.ImportResponse{Resource: request.PlanResource}
 }
 
-func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+func (f *fakerRuntime) Apply(_ context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+func (f *fakerRuntime) Read(_ context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
@@ -143,10 +126,10 @@ func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *
 	}
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (f *fakerRuntime) Delete(_ context.Context, _ *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+func (f *fakerRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.WatchResponse {
 	return nil
 }

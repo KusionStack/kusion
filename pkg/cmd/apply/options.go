@@ -12,14 +12,13 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	cmdintent "kusionstack.io/kusion/pkg/cmd/build/builders"
-	previewcmd "kusionstack.io/kusion/pkg/cmd/preview"
-	"kusionstack.io/kusion/pkg/engine/backend"
-	_ "kusionstack.io/kusion/pkg/engine/backend/init"
+	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -27,7 +26,7 @@ import (
 
 // Options defines flags for the `apply` command
 type Options struct {
-	previewcmd.Options
+	preview.Options
 	Flag
 }
 
@@ -40,7 +39,7 @@ type Flag struct {
 // NewApplyOptions returns a new ApplyOptions instance
 func NewApplyOptions() *Options {
 	return &Options{
-		Options: *previewcmd.NewPreviewOptions(),
+		Options: *preview.NewPreviewOptions(),
 	}
 }
 
@@ -60,12 +59,12 @@ func (o *Options) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	options := &cmdintent.Options{
+	options := &builders.Options{
 		IsKclPkg:  o.IsKclPkg,
 		WorkDir:   o.WorkDir,
 		Filenames: o.Filenames,
@@ -79,7 +78,7 @@ func (o *Options) Run() error {
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else {
-		sp, err = build.IntentWithSpinner(options, project, stack)
+		sp, err = build.IntentWithSpinner(options, proj, stack)
 	}
 	if err != nil {
 		return err
@@ -91,14 +90,16 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Get state storage from cli backend options, environment variables, workspace backend configs
-	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
+	// new state storage
+	ws := "default"                   // todo: use default workspace for tmp
+	bk, err := backend.NewBackend("") // todo: use current backend for tmp
 	if err != nil {
 		return err
 	}
+	storage := bk.StateStorage(proj.Name, stack.Name, ws)
 
 	// Compute changes for preview
-	changes, err := previewcmd.Preview(&o.Options, stateStorage, sp, project, stack)
+	changes, err := preview.Preview(&o.Options, storage, sp, proj, stack, ws)
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func (o *Options) Run() error {
 	}
 
 	fmt.Println("Start applying diffs ...")
-	if err := Apply(o, stateStorage, sp, changes, os.Stdout); err != nil {
+	if err = Apply(o, storage, sp, changes, os.Stdout); err != nil {
 		return err
 	}
 
@@ -154,7 +155,7 @@ func (o *Options) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err := Watch(o, sp, changes); err != nil {
+		if err = Watch(o, sp, changes); err != nil {
 			return err
 		}
 	}
@@ -186,17 +187,17 @@ func (o *Options) Run() error {
 //	}
 func Apply(
 	o *Options,
-	storage states.StateStorage,
+	storage state.Storage,
 	planResources *apiv1.Intent,
-	changes *opsmodels.Changes,
+	changes *models.Changes,
 	out io.Writer,
 ) error {
 	// Construct the apply operation
 	ac := &operation.ApplyOperation{
-		Operation: opsmodels.Operation{
+		Operation: models.Operation{
 			Stack:        changes.Stack(),
 			StateStorage: storage,
-			MsgCh:        make(chan opsmodels.Message),
+			MsgCh:        make(chan models.Message),
 			IgnoreFields: o.IgnoreFields,
 		},
 	}
@@ -234,13 +235,13 @@ func Apply(
 				changeStep := changes.Get(msg.ResourceID)
 
 				switch msg.OpResult {
-				case opsmodels.Success, opsmodels.Skip:
+				case models.Success, models.Skip:
 					var title string
-					if changeStep.Action == opsmodels.UnChanged {
+					if changeStep.Action == models.UnChanged {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(opsmodels.Skip)),
+							strings.ToLower(string(models.Skip)),
 						)
 					} else {
 						title = fmt.Sprintf("%s %s %s",
@@ -253,7 +254,7 @@ func Apply(
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					ls.Count(changeStep.Action)
-				case opsmodels.Failed:
+				case models.Failed:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.String(),
 						pterm.Bold.Sprint(changeStep.ID),
@@ -274,24 +275,22 @@ func Apply(
 
 	if o.DryRun {
 		for _, r := range planResources.Resources {
-			ac.MsgCh <- opsmodels.Message{
+			ac.MsgCh <- models.Message{
 				ResourceID: r.ResourceKey(),
-				OpResult:   opsmodels.Success,
+				OpResult:   models.Success,
 				OpErr:      nil,
 			}
 		}
 		close(ac.MsgCh)
 	} else {
 		// parse cluster in arguments
-		cluster := o.Arguments["cluster"]
 		_, st := ac.Apply(&operation.ApplyRequest{
-			Request: opsmodels.Request{
-				Tenant:   "",
-				Project:  changes.Project(),
-				Stack:    changes.Stack(),
-				Cluster:  cluster,
-				Operator: o.Operator,
-				Intent:   planResources,
+			Request: models.Request{
+				Project:   changes.Project(),
+				Stack:     changes.Stack(),
+				Workspace: changes.Workspace(),
+				Operator:  o.Operator,
+				Intent:    planResources,
 			},
 		})
 		if v1.IsErr(st) {
@@ -324,7 +323,7 @@ func Apply(
 func Watch(
 	o *Options,
 	planResources *apiv1.Intent,
-	changes *opsmodels.Changes,
+	changes *models.Changes,
 ) error {
 	if o.DryRun {
 		fmt.Println("NOTE: Watch doesn't work in DryRun mode")
@@ -334,7 +333,7 @@ func Watch(
 	// Filter out unchanged resources
 	toBeWatched := apiv1.Resources{}
 	for _, res := range planResources.Resources {
-		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != opsmodels.UnChanged {
+		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != models.UnChanged {
 			toBeWatched = append(toBeWatched, res)
 		}
 	}
@@ -342,7 +341,7 @@ func Watch(
 	// Watch operation
 	wo := &operation.WatchOperation{}
 	if err := wo.Watch(&operation.WatchRequest{
-		Request: opsmodels.Request{
+		Request: models.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
 			Intent:  &apiv1.Intent{Resources: toBeWatched},
@@ -359,20 +358,20 @@ type lineSummary struct {
 	created, updated, deleted int
 }
 
-func (ls *lineSummary) Count(op opsmodels.ActionType) {
+func (ls *lineSummary) Count(op models.ActionType) {
 	switch op {
-	case opsmodels.Create:
+	case models.Create:
 		ls.created++
-	case opsmodels.Update:
+	case models.Update:
 		ls.updated++
-	case opsmodels.Delete:
+	case models.Delete:
 		ls.deleted++
 	}
 }
 
-func allUnChange(changes *opsmodels.Changes) bool {
+func allUnChange(changes *models.Changes) bool {
 	for _, v := range changes.ChangeSteps {
-		if v.Action != opsmodels.UnChanged {
+		if v.Action != models.UnChanged {
 			return false
 		}
 	}
@@ -384,14 +383,14 @@ func prompt() (string, error) {
 	// don`t display yes item when only preview
 	options := []string{"yes", "details", "no"}
 
-	prompt := &survey.Select{
+	p := &survey.Select{
 		Message: `Do you want to apply these diffs?`,
 		Options: options,
 		Default: "details",
 	}
 
 	var input string
-	err := survey.AskOne(prompt, &input)
+	err := survey.AskOne(p, &input)
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		return "", err

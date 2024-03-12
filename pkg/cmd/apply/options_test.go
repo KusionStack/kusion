@@ -14,14 +14,16 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
 )
 
@@ -30,6 +32,7 @@ func TestApplyOptions_Run(t *testing.T) {
 		mockPatchDetectProjectAndStack()
 		mockPatchBuildIntent()
 		mockPatchNewKubernetesRuntime()
+		mockNewBackend()
 		mockPatchOperationPreview()
 
 		o := NewApplyOptions()
@@ -44,8 +47,9 @@ func TestApplyOptions_Run(t *testing.T) {
 		mockPatchDetectProjectAndStack()
 		mockPatchBuildIntent()
 		mockPatchNewKubernetesRuntime()
+		mockNewBackend()
 		mockPatchOperationPreview()
-		mockOperationApply(opsmodels.Success)
+		mockOperationApply(models.Success)
 
 		o := NewApplyOptions()
 		o.DryRun = true
@@ -62,6 +66,7 @@ var (
 	s = &apiv1.Stack{
 		Name: "dev",
 	}
+	ws = "dev"
 )
 
 func mockPatchDetectProjectAndStack() *mockey.Mocker {
@@ -88,22 +93,26 @@ func mockPatchNewKubernetesRuntime() *mockey.Mocker {
 	}).Build()
 }
 
+func mockNewBackend() *mockey.Mocker {
+	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+}
+
 var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+func (f *fakerRuntime) Import(_ context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
 	return &runtime.ImportResponse{Resource: request.PlanResource}
 }
 
-func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+func (f *fakerRuntime) Apply(_ context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+func (f *fakerRuntime) Read(_ context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
@@ -116,11 +125,11 @@ func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *
 	}
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (f *fakerRuntime) Delete(_ context.Context, _ *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+func (f *fakerRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.WatchResponse {
 	return nil
 }
 
@@ -130,22 +139,22 @@ func mockPatchOperationPreview() *mockey.Mocker {
 		*operation.PreviewRequest,
 	) (rsp *operation.PreviewResponse, s v1.Status) {
 		return &operation.PreviewResponse{
-			Order: &opsmodels.ChangeOrder{
+			Order: &models.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-				ChangeSteps: map[string]*opsmodels.ChangeStep{
+				ChangeSteps: map[string]*models.ChangeStep{
 					sa1.ID: {
 						ID:     sa1.ID,
-						Action: opsmodels.Create,
+						Action: models.Create,
 						From:   &sa1,
 					},
 					sa2.ID: {
 						ID:     sa2.ID,
-						Action: opsmodels.UnChanged,
+						Action: models.UnChanged,
 						From:   &sa2,
 					},
 					sa3.ID: {
 						ID:     sa3.ID,
-						Action: opsmodels.Undefined,
+						Action: models.Undefined,
 						From:   &sa1,
 					},
 				},
@@ -182,93 +191,93 @@ func newSA(name string) apiv1.Resource {
 }
 
 func Test_apply(t *testing.T) {
-	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionStateFileFile)}
+	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	mockey.PatchConvey("dry run", t, func() {
 		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
-		order := &opsmodels.ChangeOrder{
+		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*opsmodels.ChangeStep{
+			ChangeSteps: map[string]*models.ChangeStep{
 				sa1.ID: {
 					ID:     sa1.ID,
-					Action: opsmodels.Create,
+					Action: models.Create,
 					From:   sa1,
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(p, s, order)
+		changes := models.NewChanges(p, s, ws, order)
 		o := NewApplyOptions()
 		o.DryRun = true
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
-		mockOperationApply(opsmodels.Success)
+		mockOperationApply(models.Success)
 		o := NewApplyOptions()
 		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2}}
-		order := &opsmodels.ChangeOrder{
+		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
-			ChangeSteps: map[string]*opsmodels.ChangeStep{
+			ChangeSteps: map[string]*models.ChangeStep{
 				sa1.ID: {
 					ID:     sa1.ID,
-					Action: opsmodels.Create,
+					Action: models.Create,
 					From:   &sa1,
 				},
 				sa2.ID: {
 					ID:     sa2.ID,
-					Action: opsmodels.UnChanged,
+					Action: models.UnChanged,
 					From:   &sa2,
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(p, s, order)
+		changes := models.NewChanges(p, s, ws, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
-		mockOperationApply(opsmodels.Failed)
+		mockOperationApply(models.Failed)
 
 		o := NewApplyOptions()
 		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
-		order := &opsmodels.ChangeOrder{
+		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*opsmodels.ChangeStep{
+			ChangeSteps: map[string]*models.ChangeStep{
 				sa1.ID: {
 					ID:     sa1.ID,
-					Action: opsmodels.Create,
+					Action: models.Create,
 					From:   &sa1,
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(p, s, order)
+		changes := models.NewChanges(p, s, ws, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }
 
-func mockOperationApply(res opsmodels.OpResult) {
+func mockOperationApply(res models.OpResult) {
 	mockey.Mock((*operation.ApplyOperation).Apply).To(
 		func(o *operation.ApplyOperation, request *operation.ApplyRequest) (*operation.ApplyResponse, v1.Status) {
 			var err error
-			if res == opsmodels.Failed {
+			if res == models.Failed {
 				err = errors.New("mock error")
 			}
 			for _, r := range request.Intent.Resources {
 				// ing -> $res
-				o.MsgCh <- opsmodels.Message{
+				o.MsgCh <- models.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   "",
 					OpErr:      nil,
 				}
-				o.MsgCh <- opsmodels.Message{
+				o.MsgCh <- models.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   res,
 					OpErr:      err,
 				}
 			}
 			close(o.MsgCh)
-			if res == opsmodels.Failed {
+			if res == models.Failed {
 				return nil, v1.NewErrorStatus(err)
 			}
 			return &operation.ApplyResponse{}, nil

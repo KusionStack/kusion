@@ -6,7 +6,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	models "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
@@ -49,7 +49,7 @@ func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 	}
 
 	for key, resource := range resourceIndex {
-		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Delete)
+		rn, s := graph.NewResourceNode(key, resourceIndex[key], models.Delete)
 		if v1.IsErr(s) {
 			return s
 		}
@@ -76,7 +76,7 @@ func (d *DeleteResourceParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 
 		// always get the latest vertex in the g.
 		rn = GetVertex(g, rn).(*graph.ResourceNode)
-		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Delete, manifestGraphMap)
+		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, models.Delete, manifestGraphMap)
 		if v1.IsErr(s) {
 			return s
 		}

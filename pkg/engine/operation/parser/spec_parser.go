@@ -6,7 +6,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -36,7 +36,7 @@ func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 	util.CheckNotNil(root, fmt.Sprintf("No root in this DAG:%s", json.Marshal2String(g)))
 	resourceIndex := i.Resources.Index()
 	for key, resource := range resourceIndex {
-		rn, s := graph.NewResourceNode(key, resourceIndex[key], opsmodels.Update)
+		rn, s := graph.NewResourceNode(key, resourceIndex[key], models.Update)
 		if v1.IsErr(s) {
 			return s
 		}
@@ -58,7 +58,7 @@ func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 		}
 
 		// linkRefNodes
-		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, opsmodels.Update, nil)
+		s = LinkRefNodes(g, refNodeKeys, resourceIndex, rn, models.Update, nil)
 		if v1.IsErr(s) {
 			return s
 		}

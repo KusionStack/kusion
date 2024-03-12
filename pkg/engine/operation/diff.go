@@ -3,22 +3,22 @@ package operation
 import (
 	"github.com/pkg/errors"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/states"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/diff"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/third_party/dyff"
 )
 
 type Diff struct {
-	StateStorage states.StateStorage
+	StateStorage state.Storage
 }
 
 type DiffRequest struct {
-	opsmodels.Request
+	models.Request
 }
 
 func (d *Diff) Diff(request *DiffRequest) (string, error) {
@@ -36,33 +36,27 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	// Get plan state resources
 	plan := request.Intent
 
-	// Get the latest state resources
-	latestState, err := d.StateStorage.GetLatestState(
-		&states.StateQuery{
-			Tenant:  request.Tenant,
-			Stack:   request.Stack.Name,
-			Project: request.Project.Name,
-		},
-	)
+	// Get the state resources
+	priorState, err := d.StateStorage.Get()
 	if err != nil {
 		return "", errors.Wrap(err, "GetLatestState failed")
 	}
-	if latestState == nil {
-		log.Infof("can't find states by request: %v.", jsonutil.MustMarshal2String(request))
+	if priorState == nil {
+		log.Infof("can't find states by request: %v.", json.MustMarshal2String(request))
 	}
 	// Get diff result
-	return DiffWithRequestResourceAndState(plan, latestState)
+	return DiffWithRequestResourceAndState(plan, priorState)
 }
 
-func DiffWithRequestResourceAndState(plan *apiv1.Intent, latest *states.State) (string, error) {
-	planString := jsonutil.MustMarshal2String(plan.Resources)
+func DiffWithRequestResourceAndState(plan *v1.Intent, priorState *v1.State) (string, error) {
+	planString := json.MustMarshal2String(plan.Resources)
 	var report *dyff.Report
 	var err error
-	if latest == nil {
+	if priorState == nil {
 		report, err = diff.ToReport("", planString)
 	} else {
-		latestResources := latest.Resources
-		priorString := jsonutil.MustMarshal2String(latestResources)
+		latestResources := priorState.Resources
+		priorString := json.MustMarshal2String(latestResources)
 		report, err = diff.ToReport(priorString, priorString)
 	}
 	if err != nil {

@@ -30,8 +30,7 @@ func NewBackend(name string) (Backend, error) {
 		emptyCfg = true
 	} else if err != nil {
 		return nil, err
-	}
-	if cfg.Backends == nil {
+	} else if cfg.Backends == nil {
 		emptyCfg = true
 	}
 

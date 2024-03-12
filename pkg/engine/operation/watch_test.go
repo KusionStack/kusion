@@ -7,11 +7,11 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8sWatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/apimachinery/pkg/watch"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 )
@@ -19,7 +19,7 @@ import (
 func TestWatchOperation_Watch(t *testing.T) {
 	mockey.PatchConvey("test watch operation: watch", t, func() {
 		req := &WatchRequest{
-			Request: opsmodels.Request{
+			Request: models.Request{
 				Intent: &apiv1.Intent{
 					Resources: apiv1.Resources{
 						{
@@ -36,7 +36,7 @@ func TestWatchOperation_Watch(t *testing.T) {
 		) (map[apiv1.Type]runtime.Runtime, v1.Status) {
 			return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
 		}).Build()
-		wo := &WatchOperation{opsmodels.Operation{RuntimeMap: map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
+		wo := &WatchOperation{models.Operation{RuntimeMap: map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
 		err := wo.Watch(req)
 		assert.Nil(t, err)
 	})
@@ -71,27 +71,27 @@ var (
 
 type fooWatchRuntime struct{}
 
-func (f *fooWatchRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+func (f *fooWatchRuntime) Import(_ context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
 	return &runtime.ImportResponse{Resource: request.PlanResource}
 }
 
-func (f *fooWatchRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+func (f *fooWatchRuntime) Apply(_ context.Context, _ *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return nil
 }
 
-func (f *fooWatchRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+func (f *fooWatchRuntime) Read(_ context.Context, _ *runtime.ReadRequest) *runtime.ReadResponse {
 	return nil
 }
 
-func (f *fooWatchRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (f *fooWatchRuntime) Delete(_ context.Context, _ *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fooWatchRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
-	out := make(chan k8sWatch.Event)
+func (f *fooWatchRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.WatchResponse {
+	out := make(chan watch.Event)
 	go func() {
-		out <- k8sWatch.Event{
-			Type:   k8sWatch.Deleted,
+		out <- watch.Event{
+			Type:   watch.Deleted,
 			Object: &unstructured.Unstructured{Object: barDeployment},
 		}
 		close(out)
@@ -100,7 +100,7 @@ func (f *fooWatchRuntime) Watch(ctx context.Context, request *runtime.WatchReque
 	return &runtime.WatchResponse{
 		Watchers: &runtime.SequentialWatchers{
 			IDs:      []string{"apps/v1:Deployment:foo:bar"},
-			Watchers: []<-chan k8sWatch.Event{out},
+			Watchers: []<-chan watch.Event{out},
 		},
 		Status: nil,
 	}

@@ -6,7 +6,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -14,11 +14,11 @@ import (
 )
 
 type DestroyOperation struct {
-	opsmodels.Operation
+	models.Operation
 }
 
 type DestroyRequest struct {
-	opsmodels.Request `json:",inline" yaml:",inline"`
+	models.Request `json:",inline" yaml:",inline"`
 }
 
 func NewDestroyGraph(resource apiv1.Resources) (*dag.AcyclicGraph, v1.Status) {
@@ -67,8 +67,8 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st v1.Status) {
 	}
 
 	newDo := &DestroyOperation{
-		Operation: opsmodels.Operation{
-			OperationType:           opsmodels.Destroy,
+		Operation: models.Operation{
+			OperationType:           models.Destroy,
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
