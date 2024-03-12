@@ -47,7 +47,19 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		if actual.GetKind() == "Namespace" {
 			assert.Equal(t, "fakeNs", actual.GetName(), "namespace name should be fakeNs")
 		} else {
-			assert.Equal(t, "fakeNs", actual.GetNamespace(), "namespace name should be fakeNs")
+			ns := actual.GetNamespace()
+			if ns == "" {
+				// Manually get the namespace from the unstructed object.
+				metadata, ok := actual.Object["metadata"].(map[interface{}]interface{})
+				if !ok {
+					t.Fatalf("failed to get metadata from unstructed object")
+				}
+				ns, ok = metadata["namespace"].(string)
+				if !ok {
+					t.Fatalf("failed to get namespace from metadata")
+				}
+			}
+			assert.Equal(t, "fakeNs", ns, "namespace name should be fakeNs")
 		}
 	}
 }
@@ -116,6 +128,7 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 		Resources: []v1.Resource{},
 	}
 
+	mockPlugin()
 	err := g.Generate(spec)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, spec.Resources)
@@ -129,7 +142,19 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 		if actual.GetKind() == "Namespace" {
 			assert.Equal(t, "fakeNs", actual.GetName(), "namespace name should be fakeNs")
 		} else {
-			assert.Equal(t, "fakeNs", actual.GetNamespace(), "namespace name should be fakeNs")
+			ns := actual.GetNamespace()
+			if ns == "" {
+				// Manually get the namespace from the unstructed object.
+				metadata, ok := actual.Object["metadata"].(map[interface{}]interface{})
+				if !ok {
+					t.Fatalf("failed to get metadata from unstructed object")
+				}
+				ns, ok = metadata["namespace"].(string)
+				if !ok {
+					t.Fatalf("failed to get namespace from metadata")
+				}
+			}
+			assert.Equal(t, "fakeNs", ns, "namespace name should be fakeNs")
 		}
 	}
 }
