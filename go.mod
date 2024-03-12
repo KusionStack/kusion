@@ -15,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.25.8
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.24.2
 	github.com/blang/semver/v4 v4.0.0
-	github.com/bytedance/mockey v1.2.4
+	github.com/bytedance/mockey v1.2.10
 	github.com/chai2010/gettext-go v1.0.2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/didi/gendry v1.7.0
