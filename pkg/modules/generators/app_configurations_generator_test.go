@@ -2,6 +2,7 @@ package generators
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -49,14 +50,9 @@ func TestAppConfigurationGenerator_Generate(t *testing.T) {
 		} else {
 			ns := actual.GetNamespace()
 			if ns == "" {
-				// Manually get the namespace from the unstructed object.
-				metadata, ok := actual.Object["metadata"].(map[interface{}]interface{})
-				if !ok {
-					t.Fatalf("failed to get metadata from unstructed object")
-				}
-				ns, ok = metadata["namespace"].(string)
-				if !ok {
-					t.Fatalf("failed to get namespace from metadata")
+				// Manually get the namespace from the unstructured object.
+				if ns, err = getNamespace(actual); err != nil {
+					t.Fatal(err)
 				}
 			}
 			assert.Equal(t, "fakeNs", ns, "namespace name should be fakeNs")
@@ -144,14 +140,9 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 		} else {
 			ns := actual.GetNamespace()
 			if ns == "" {
-				// Manually get the namespace from the unstructed object.
-				metadata, ok := actual.Object["metadata"].(map[interface{}]interface{})
-				if !ok {
-					t.Fatalf("failed to get metadata from unstructed object")
-				}
-				ns, ok = metadata["namespace"].(string)
-				if !ok {
-					t.Fatalf("failed to get namespace from metadata")
+				// Manually get the namespace from the unstructured object.
+				if ns, err = getNamespace(actual); err != nil {
+					t.Fatal(err)
 				}
 			}
 			assert.Equal(t, "fakeNs", ns, "namespace name should be fakeNs")
@@ -259,4 +250,17 @@ func mapToUnstructured(data map[string]interface{}) *unstructured.Unstructured {
 	unstructuredObj := &unstructured.Unstructured{}
 	unstructuredObj.SetUnstructuredContent(data)
 	return unstructuredObj
+}
+
+func getNamespace(actual *unstructured.Unstructured) (string, error) {
+	metadata, ok := actual.Object["metadata"].(map[interface{}]interface{})
+	if !ok {
+		return "", errors.New("failed to get metadata from unstructed object")
+	}
+	ns, ok := metadata["namespace"].(string)
+	if !ok {
+		return "", errors.New("failed to get namespace from metadata")
+	}
+
+	return ns, nil
 }
