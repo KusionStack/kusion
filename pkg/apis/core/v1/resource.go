@@ -1,6 +1,10 @@
 package v1
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	v1 "k8s.io/api/core/v1"
+)
 
 type Resources []Resource
 
@@ -20,17 +24,20 @@ type Resource struct {
 	// DependsOn contains all resources this resource depends on
 	DependsOn []string `json:"dependsOn,omitempty" yaml:"dependsOn,omitempty"`
 
-	// Patchers contain fields should be patched into the workload corresponding fields
-	Patchers []Patcher
+	// Patcher contains fields should be patched into the workload corresponding fields
+	Patcher Patcher `json:"patcher,omitempty" yaml:"patcher,omitempty"`
 
 	// Extensions specifies arbitrary metadata of this resource
 	Extensions map[string]interface{} `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }
 
 type Patcher struct {
-	Environments map[string]string `json:"environments" yaml:"environments"`
-	Labels       map[string]string `json:"labels" yaml:"labels"`
-	Annotations  map[string]string `json:"annotations" yaml:"annotations"`
+	// Environments represent the environment variables patched to all containers in the workload.
+	Environments []v1.EnvVar `json:"environments" yaml:"environments"`
+	// Labels represent the labels patched to both the workload and pod.
+	Labels map[string]string `json:"labels" yaml:"labels"`
+	// Annotations represent the annotations patched to both the workload and pod.
+	Annotations map[string]string `json:"annotations" yaml:"annotations"`
 }
 
 func (r *Resource) ResourceKey() string {
