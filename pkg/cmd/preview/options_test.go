@@ -12,14 +12,16 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
 )
 
@@ -34,6 +36,7 @@ var (
 	s = &apiv1.Stack{
 		Name: "dev",
 	}
+	ws = "dev"
 
 	sa1 = newSA("sa1")
 	sa2 = newSA("sa2")
@@ -41,22 +44,18 @@ var (
 )
 
 func Test_preview(t *testing.T) {
-	stateStorage := &local.FileSystemState{Path: filepath.Join("", local.KusionStateFileFile)}
+	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	t.Run("preview success", func(t *testing.T) {
 		m := mockOperationPreview()
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s)
+		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s, ws)
 		assert.Nil(t, err)
 	})
 }
 
 func TestPreviewOptions_Run(t *testing.T) {
-	defer func() {
-		os.Remove("kusion_state.json")
-	}()
-
 	t.Run("no project or stack", func(t *testing.T) {
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -78,9 +77,11 @@ func TestPreviewOptions_Run(t *testing.T) {
 		m1 := mockDetectProjectAndStack()
 		m2 := mockPatchBuildIntentWithSpinner()
 		m3 := mockNewKubernetesRuntime()
+		m4 := mockNewBackend()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
+		defer m4.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -94,11 +95,13 @@ func TestPreviewOptions_Run(t *testing.T) {
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
+		m6 := mockNewBackend()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
 		defer m4.UnPatch()
 		defer m5.UnPatch()
+		defer m6.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Detail = true
@@ -112,11 +115,13 @@ func TestPreviewOptions_Run(t *testing.T) {
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
+		m6 := mockNewBackend()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
 		defer m4.UnPatch()
 		defer m5.UnPatch()
+		defer m6.UnPatch()
 
 		o := NewPreviewOptions()
 		o.Output = jsonOutput
@@ -130,11 +135,13 @@ func TestPreviewOptions_Run(t *testing.T) {
 		m3 := mockNewKubernetesRuntime()
 		m4 := mockOperationPreview()
 		m5 := mockPromptDetail("")
+		m6 := mockNewBackend()
 		defer m1.UnPatch()
 		defer m2.UnPatch()
 		defer m3.UnPatch()
 		defer m4.UnPatch()
 		defer m5.UnPatch()
+		defer m6.UnPatch()
 
 		o := NewPreviewOptions()
 		o.NoStyle = true
@@ -145,18 +152,18 @@ func TestPreviewOptions_Run(t *testing.T) {
 
 type fooRuntime struct{}
 
-func (f *fooRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+func (f *fooRuntime) Import(_ context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
 	return &runtime.ImportResponse{Resource: request.PlanResource}
 }
 
-func (f *fooRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+func (f *fooRuntime) Apply(_ context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
 
-func (f *fooRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+func (f *fooRuntime) Read(_ context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
@@ -169,11 +176,11 @@ func (f *fooRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *ru
 	}
 }
 
-func (f *fooRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (f *fooRuntime) Delete(_ context.Context, _ *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fooRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+func (f *fooRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.WatchResponse {
 	return nil
 }
 
@@ -183,22 +190,22 @@ func mockOperationPreview() *mockey.Mocker {
 		*operation.PreviewRequest,
 	) (rsp *operation.PreviewResponse, s v1.Status) {
 		return &operation.PreviewResponse{
-			Order: &opsmodels.ChangeOrder{
+			Order: &models.ChangeOrder{
 				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-				ChangeSteps: map[string]*opsmodels.ChangeStep{
+				ChangeSteps: map[string]*models.ChangeStep{
 					sa1.ID: {
 						ID:     sa1.ID,
-						Action: opsmodels.Create,
+						Action: models.Create,
 						From:   &sa1,
 					},
 					sa2.ID: {
 						ID:     sa2.ID,
-						Action: opsmodels.UnChanged,
+						Action: models.UnChanged,
 						From:   &sa2,
 					},
 					sa3.ID: {
 						ID:     sa3.ID,
-						Action: opsmodels.Undefined,
+						Action: models.Undefined,
 						From:   &sa1,
 					},
 				},
@@ -257,9 +264,13 @@ func mockNewKubernetesRuntime() *mockey.Mocker {
 }
 
 func mockPromptDetail(input string) *mockey.Mocker {
-	return mockey.Mock((*opsmodels.ChangeOrder).PromptDetails).To(func(co *opsmodels.ChangeOrder) (string, error) {
+	return mockey.Mock((*models.ChangeOrder).PromptDetails).To(func(co *models.ChangeOrder) (string, error) {
 		return input, nil
 	}).Build()
+}
+
+func mockNewBackend() *mockey.Mocker {
+	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
 }
 
 func TestPreviewOptions_ValidateIntentFile(t *testing.T) {
@@ -332,11 +343,15 @@ func TestPreviewOptions_ValidateIntentFile(t *testing.T) {
 			if tt.createIntentFile {
 				dir := filepath.Dir(tt.intentFile)
 				if _, err := os.Stat(dir); os.IsNotExist(err) {
-					os.MkdirAll(dir, 0o755)
-					defer os.RemoveAll(dir)
+					_ = os.MkdirAll(dir, 0o755)
+					defer func() {
+						_ = os.RemoveAll(dir)
+					}()
 				}
-				os.Create(tt.intentFile)
-				defer os.Remove(tt.intentFile)
+				_, _ = os.Create(tt.intentFile)
+				defer func() {
+					_ = os.Remove(tt.intentFile)
+				}()
 			}
 			err := o.ValidateIntentFile()
 			if tt.wantErr {

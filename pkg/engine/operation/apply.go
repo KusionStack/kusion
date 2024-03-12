@@ -8,28 +8,27 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	models "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 type ApplyOperation struct {
-	opsmodels.Operation
+	models.Operation
 }
 
 type ApplyRequest struct {
-	opsmodels.Request `json:",inline" yaml:",inline"`
+	models.Request `json:",inline" yaml:",inline"`
 }
 
 type ApplyResponse struct {
-	State *states.State
+	State *apiv1.State
 }
 
-func NewApplyGraph(m *apiv1.Intent, priorState *states.State) (*dag.AcyclicGraph, v1.Status) {
+func NewApplyGraph(m *apiv1.Intent, priorState *apiv1.State) (*dag.AcyclicGraph, v1.Status) {
 	intentParser := parser.NewIntentParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})
@@ -102,8 +101,8 @@ func (ao *ApplyOperation) Apply(request *ApplyRequest) (rsp *ApplyResponse, st v
 	log.Infof("Apply Graph:\n%s", applyGraph.String())
 
 	applyOperation := &ApplyOperation{
-		Operation: opsmodels.Operation{
-			OperationType:           opsmodels.Apply,
+		Operation: models.Operation{
+			OperationType:           models.Apply,
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
@@ -137,16 +136,16 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 
 	if node, ok := v.(graph.ExecutableNode); ok {
 		if rn, ok2 := v.(*graph.ResourceNode); ok2 {
-			o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string)}
+			o.MsgCh <- models.Message{ResourceID: rn.Hashcode().(string)}
 
 			s = node.Execute(o)
 			if v1.IsErr(s) {
-				o.MsgCh <- opsmodels.Message{
-					ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Failed,
+				o.MsgCh <- models.Message{
+					ResourceID: rn.Hashcode().(string), OpResult: models.Failed,
 					OpErr: fmt.Errorf("node execte failed, status:\n%v", s),
 				}
 			} else {
-				o.MsgCh <- opsmodels.Message{ResourceID: rn.Hashcode().(string), OpResult: opsmodels.Success}
+				o.MsgCh <- models.Message{ResourceID: rn.Hashcode().(string), OpResult: models.Success}
 			}
 		} else {
 			s = node.Execute(o)
@@ -158,7 +157,7 @@ func (ao *ApplyOperation) applyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics)
 	return diags
 }
 
-func validateRequest(request *opsmodels.Request) v1.Status {
+func validateRequest(request *models.Request) v1.Status {
 	var s v1.Status
 
 	if request == nil {

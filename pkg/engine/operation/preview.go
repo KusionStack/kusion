@@ -8,24 +8,23 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	models "kusionstack.io/kusion/pkg/engine/operation/models"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
 )
 
 type PreviewOperation struct {
-	opsmodels.Operation
+	models.Operation
 }
 
 type PreviewRequest struct {
-	opsmodels.Request `json:",inline" yaml:",inline"`
+	models.Request `json:",inline" yaml:",inline"`
 }
 
 type PreviewResponse struct {
-	Order *opsmodels.ChangeOrder
+	Order *models.ChangeOrder
 }
 
 // Preview compute all changes between resources in request and the actual infrastructure.
@@ -53,7 +52,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	}
 
 	var (
-		priorState, resultState *states.State
+		priorState, resultState *apiv1.State
 		priorStateResourceIndex map[string]*apiv1.Resource
 		ag                      *dag.AcyclicGraph
 	)
@@ -71,10 +70,10 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	o.RuntimeMap = runtimesMap
 
 	switch o.OperationType {
-	case opsmodels.ApplyPreview:
+	case models.ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
 		ag, s = NewApplyGraph(request.Intent, priorState)
-	case opsmodels.DestroyPreview:
+	case models.DestroyPreview:
 		resources := request.Request.Intent.Resources
 		priorStateResourceIndex = resources.Index()
 		ag, s = NewDestroyGraph(resources)
@@ -92,7 +91,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	log.Info("walking DAG and preview resources ...")
 
 	previewOperation := &PreviewOperation{
-		Operation: opsmodels.Operation{
+		Operation: models.Operation{
 			OperationType:           o.OperationType,
 			StateStorage:            o.StateStorage,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},

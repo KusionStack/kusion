@@ -10,11 +10,11 @@ import (
 	"github.com/howieyuen/uilive"
 	"github.com/pterm/pterm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8swatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/apimachinery/pkg/watch"
 
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
@@ -23,11 +23,11 @@ import (
 )
 
 type WatchOperation struct {
-	opsmodels.Operation
+	models.Operation
 }
 
 type WatchRequest struct {
-	opsmodels.Request `json:",inline" yaml:",inline"`
+	models.Request `json:",inline" yaml:",inline"`
 }
 
 func (wo *WatchOperation) Watch(req *WatchRequest) error {
@@ -93,7 +93,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 		// Save tables first
 		tables[id] = table
 		// Start watching resource
-		go func(id string, chs []<-chan k8swatch.Event, table *printers.Table) {
+		go func(id string, chs []<-chan watch.Event, table *printers.Table) {
 			// Resources selects
 			cases := createSelectCases(chs)
 			// Default select
@@ -108,11 +108,11 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 					continue
 				}
 				if recvOK {
-					e := recv.Interface().(k8swatch.Event)
+					e := recv.Interface().(watch.Event)
 					o := e.Object.(*unstructured.Unstructured)
 					var detail string
 					var ready bool
-					if e.Type == k8swatch.Deleted {
+					if e.Type == watch.Deleted {
 						detail = fmt.Sprintf("%s has beed deleted", o.GetName())
 						ready = true
 					} else {
@@ -195,7 +195,7 @@ func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map
 	_ = w.Flush()
 }
 
-func createSelectCases(chs []<-chan k8swatch.Event) []reflect.SelectCase {
+func createSelectCases(chs []<-chan watch.Event) []reflect.SelectCase {
 	cases := make([]reflect.SelectCase, 0, len(chs))
 	for _, ch := range chs {
 		cases = append(cases, reflect.SelectCase{

@@ -12,13 +12,13 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -29,7 +29,6 @@ const jsonOutput = "json"
 type Options struct {
 	build.Options
 	Flags
-	backend.BackendOptions
 }
 
 type Flags struct {
@@ -49,7 +48,7 @@ func NewPreviewOptions() *Options {
 }
 
 func (o *Options) Complete(args []string) {
-	o.Options.Complete(args)
+	_ = o.Options.Complete(args)
 }
 
 func (o *Options) Validate() error {
@@ -61,11 +60,6 @@ func (o *Options) Validate() error {
 	}
 	if err := o.ValidateIntentFile(); err != nil {
 		return err
-	}
-	if !o.BackendOptions.IsEmpty() {
-		if err := o.BackendOptions.Validate(); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -121,7 +115,7 @@ func (o *Options) Run() error {
 		pterm.DisableColor()
 	}
 	// Parse project and stack of work directory
-	project, stack, err := project.DetectProjectAndStack(o.WorkDir)
+	proj, stack, err := project.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
 		return err
 	}
@@ -140,9 +134,9 @@ func (o *Options) Run() error {
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
-		sp, err = build.Intent(options, project, stack)
+		sp, err = build.Intent(options, proj, stack)
 	} else {
-		sp, err = build.IntentWithSpinner(options, project, stack)
+		sp, err = build.IntentWithSpinner(options, proj, stack)
 	}
 	if err != nil {
 		return err
@@ -157,14 +151,16 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Get state storage from cli backend options, environment variables, workspace backend configs
-	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
+	// new state storage
+	ws := "default"                   // todo: use default workspace for tmp
+	bk, err := backend.NewBackend("") // todo: use current backend for tmp
 	if err != nil {
 		return err
 	}
+	storage := bk.StateStorage(proj.Name, stack.Name, ws)
 
 	// Compute changes for preview
-	changes, err := Preview(o, stateStorage, sp, project, stack)
+	changes, err := Preview(o, storage, sp, proj, stack, ws)
 	if err != nil {
 		return err
 	}
@@ -190,7 +186,8 @@ func (o *Options) Run() error {
 	// Detail detection
 	if o.Detail {
 		for {
-			target, err := changes.PromptDetails()
+			var target string
+			target, err = changes.PromptDetails()
 			if err != nil {
 				return err
 			}
@@ -227,11 +224,12 @@ func (o *Options) Run() error {
 //	}
 func Preview(
 	o *Options,
-	storage states.StateStorage,
+	storage state.Storage,
 	planResources *apiv1.Intent,
-	project *apiv1.Project,
+	proj *apiv1.Project,
 	stack *apiv1.Stack,
-) (*opsmodels.Changes, error) {
+	ws string,
+) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
 	// Check and install terraform executable binary for
@@ -245,32 +243,30 @@ func Preview(
 
 	// Construct the preview operation
 	pc := &operation.PreviewOperation{
-		Operation: opsmodels.Operation{
-			OperationType: opsmodels.ApplyPreview,
+		Operation: models.Operation{
+			OperationType: models.ApplyPreview,
 			Stack:         stack,
 			StateStorage:  storage,
 			IgnoreFields:  o.IgnoreFields,
-			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+			ChangeOrder:   &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
 		},
 	}
 
 	log.Info("Start call pc.Preview() ...")
 
 	// parse cluster in arguments
-	cluster := o.Arguments["cluster"]
 	rsp, s := pc.Preview(&operation.PreviewRequest{
-		Request: opsmodels.Request{
-			Tenant:   "",
-			Project:  project,
-			Stack:    stack,
-			Operator: o.Operator,
-			Intent:   planResources,
-			Cluster:  cluster,
+		Request: models.Request{
+			Project:   proj,
+			Stack:     stack,
+			Workspace: ws,
+			Operator:  o.Operator,
+			Intent:    planResources,
 		},
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 
-	return opsmodels.NewChanges(project, stack, rsp.Order), nil
+	return models.NewChanges(proj, stack, ws, rsp.Order), nil
 }
