@@ -6,7 +6,7 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/states"
 	"kusionstack.io/kusion/pkg/log"
@@ -139,6 +139,7 @@ func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
 	}
 
 	state.Resources = res
+	// todo: update
 	err := o.StateStorage.Apply(state)
 	if err != nil {
 		return fmt.Errorf("apply State failed. %w", err)
