@@ -150,7 +150,7 @@ service Module {
 type Intent.Resource struct {
 	...
 	// Add a new field to represent patchers
-	Patchers []Patcher
+	Patcher Patcher
 }
 
 // Kusion will patch these fields into the workload corresponding fields
