@@ -25,7 +25,7 @@ type Resource struct {
 	DependsOn []string `json:"dependsOn,omitempty" yaml:"dependsOn,omitempty"`
 
 	// Patcher contains fields should be patched into the workload corresponding fields
-	Patcher Patcher `json:"patcher,omitempty" yaml:"patcher,omitempty"`
+	Patcher *Patcher `json:"patcher,omitempty" yaml:"patcher,omitempty"`
 
 	// Extensions specifies arbitrary metadata of this resource
 	Extensions map[string]interface{} `json:"extensions,omitempty" yaml:"extensions,omitempty"`
