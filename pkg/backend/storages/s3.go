@@ -4,13 +4,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/state"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
 // S3Storage is an implementation of backend.Backend which uses s3 as storage.
 type S3Storage struct {
-	sess   *session.Session
+	s3     *s3.S3
 	bucket string
 
 	// prefix will be added to the object storage key, so that all the files are stored under the prefix.
@@ -33,8 +36,12 @@ func NewS3Storage(config *v1.BackendS3Config) (*S3Storage, error) {
 	}
 
 	return &S3Storage{
-		sess:   sess,
+		s3:     s3.New(sess),
 		bucket: config.Bucket,
 		prefix: config.Prefix,
 	}, nil
+}
+
+func (s *S3Storage) StateStorage(project, stack, workspace string) state.Storage {
+	return statestorages.NewS3Storage(s.s3, s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, stack, workspace))
 }

@@ -4,10 +4,43 @@ import (
 	"os"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/util/kfile"
 )
+
+func TestCompleteLocalConfig(t *testing.T) {
+	testcases := []struct {
+		name                 string
+		success              bool
+		config               *v1.BackendLocalConfig
+		mockKusionDataFolder string
+		completeConfig       *v1.BackendLocalConfig
+	}{
+		{
+			name:                 "complete local config",
+			success:              true,
+			config:               &v1.BackendLocalConfig{},
+			mockKusionDataFolder: "/etc",
+			completeConfig: &v1.BackendLocalConfig{
+				Path: "/etc",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock kusion data folder", t, func() {
+				mockey.Mock(kfile.KusionDataFolder).Return(tc.mockKusionDataFolder, nil).Build()
+				err := CompleteLocalConfig(tc.config)
+				assert.Equal(t, tc.success, err == nil)
+				assert.Equal(t, tc.completeConfig, tc.config)
+			})
+		})
+	}
+}
 
 func TestCompleteMysqlConfig(t *testing.T) {
 	testcases := []struct {

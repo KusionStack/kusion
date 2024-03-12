@@ -7,14 +7,16 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
+	"kusionstack.io/kusion/pkg/engine/state"
 )
 
 // Backend is used to provide the storage service for Workspace, Spec and State.
 type Backend interface {
 	// todo: add functions to parse storage for workspace, spec and state, the format is like the following:
 	// WorkspaceStorage() workspace.Storage
-	// StateStorage(projectName, stackName string) state.Storage
 	// SpecStorage(projectName, stackName string) spec.Storage
+
+	StateStorage(project, stack, workspace string) state.Storage
 }
 
 // NewBackend creates the Backend with the configuration set in the Kusion configuration file. If the
@@ -34,14 +36,13 @@ func NewBackend(name string) (Backend, error) {
 	}
 
 	var bkCfg *v1.BackendConfig
-	if name == "" {
-		if emptyCfg || cfg.Backends.Current == "" {
-			// if empty backends config or empty current backend, use the default storage
-			return storages.NewDefaultStorage(), nil
-		}
-		name = cfg.Backends.Current
-		bkCfg = cfg.Backends.Backends[name]
+	if name == "" && (emptyCfg || cfg.Backends.Current == "") {
+		// if empty backends config or empty current backend, use default local storage
+		bkCfg = &v1.BackendConfig{Type: v1.BackendTypeLocal}
 	} else {
+		if name == "" {
+			name = cfg.Backends.Current
+		}
 		bkCfg = cfg.Backends.Backends[name]
 		if bkCfg == nil {
 			return nil, fmt.Errorf("config of backend %s does not exist", name)
@@ -52,12 +53,15 @@ func NewBackend(name string) (Backend, error) {
 	switch bkCfg.Type {
 	case v1.BackendTypeLocal:
 		bkConfig := bkCfg.ToLocalBackend()
+		if err = storages.CompleteLocalConfig(bkConfig); err != nil {
+			return nil, fmt.Errorf("complete local config failed, %w", err)
+		}
 		return storages.NewLocalStorage(bkConfig), nil
 	case v1.BackendTypeMysql:
 		bkConfig := bkCfg.ToMysqlBackend()
 		storages.CompleteMysqlConfig(bkConfig)
 		if err = storages.ValidateMysqlConfig(bkConfig); err != nil {
-			return nil, fmt.Errorf("invalid config of backend %s: %w", name, err)
+			return nil, fmt.Errorf("invalid config of backend %s, %w", name, err)
 		}
 		storage, err = storages.NewMysqlStorage(bkConfig)
 		if err != nil {
@@ -67,7 +71,7 @@ func NewBackend(name string) (Backend, error) {
 		bkConfig := bkCfg.ToOssBackend()
 		storages.CompleteOssConfig(bkConfig)
 		if err = storages.ValidateOssConfig(bkConfig); err != nil {
-			return nil, fmt.Errorf("invalid config of backend %s: %w", name, err)
+			return nil, fmt.Errorf("invalid config of backend %s, %w", name, err)
 		}
 		storage, err = storages.NewOssStorage(bkConfig)
 		if err != nil {

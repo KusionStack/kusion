@@ -23,5 +23,5 @@ func GenGenericOssStateFileKey(prefix, project, stack, workspace string) string 
 	if prefix != "" {
 		prefix += "/"
 	}
-	return fmt.Sprintf("%s%s%s/%s/%s/%s", prefix, statesPrefix, project, stack, workspace, stateFile)
+	return fmt.Sprintf("%s%s/%s/%s/%s/%s", prefix, statesPrefix, project, stack, workspace, stateFile)
 }

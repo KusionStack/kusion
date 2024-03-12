@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/state"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
 func TestNewMysqlStorage(t *testing.T) {
@@ -35,6 +37,38 @@ func TestNewMysqlStorage(t *testing.T) {
 				_, err := NewMysqlStorage(tc.config)
 				assert.Equal(t, tc.success, err == nil)
 			})
+		})
+	}
+}
+
+func TestMysqlStorage_StateStorage(t *testing.T) {
+	testcases := []struct {
+		name                      string
+		mysqlStorage              *MysqlStorage
+		project, stack, workspace string
+		stateStorage              state.Storage
+	}{
+		{
+			name: "state storage from mysql",
+			mysqlStorage: &MysqlStorage{
+				db: &gorm.DB{},
+			},
+			project:   "wordpress",
+			stack:     "dev",
+			workspace: "dev",
+			stateStorage: statestorages.NewMysqlStorage(
+				&gorm.DB{},
+				"wordpress",
+				"dev",
+				"dev",
+			),
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			stateStorage := tc.mysqlStorage.StateStorage(tc.project, tc.stack, tc.workspace)
+			assert.Equal(t, stateStorage, tc.stateStorage)
 		})
 	}
 }
