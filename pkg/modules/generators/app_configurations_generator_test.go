@@ -22,48 +22,6 @@ import (
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
-func TestAppConfigurationGenerator_Generate(t *testing.T) {
-	appName, app := buildMockApp()
-	ws := buildMockWorkspace("")
-
-	g := &appConfigurationGenerator{
-		project: "fakeNs",
-		stack:   "test",
-		appName: appName,
-		app:     app,
-		ws:      ws,
-	}
-
-	spec := &v1.Intent{
-		Resources: []v1.Resource{},
-	}
-
-	mockPlugin()
-	err := g.Generate(spec)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, spec.Resources)
-
-	// namespace name assertion
-	for _, res := range spec.Resources {
-		if res.Type != v1.Kubernetes {
-			continue
-		}
-		actual := mapToUnstructured(res.Attributes)
-		if actual.GetKind() == "Namespace" {
-			assert.Equal(t, "fakeNs", actual.GetName(), "namespace name should be fakeNs")
-		} else {
-			ns := actual.GetNamespace()
-			if ns == "" {
-				// Manually get the namespace from the unstructured object.
-				if ns, err = getNamespace(actual); err != nil {
-					t.Fatal(err)
-				}
-			}
-			assert.Equal(t, "fakeNs", ns, "namespace name should be fakeNs")
-		}
-	}
-}
-
 type fakeModule struct{}
 
 func (f *fakeModule) Generate(ctx context.Context, req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {

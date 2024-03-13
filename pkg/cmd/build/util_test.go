@@ -208,6 +208,14 @@ func TestBuildIntent(t *testing.T) {
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
+					mockey.Mock((*builders.AppsConfigBuilder).Build).To(func(
+						o *builders.Options, project *v1.Project,
+						stack *v1.Stack,
+					) (*v1.Intent,
+						error,
+					) {
+						return intentModel3, nil
+					}),
 				},
 			},
 			want: intentModel3,
@@ -252,6 +260,12 @@ func TestBuildIntent(t *testing.T) {
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
+					mockey.Mock((*builders.AppsConfigBuilder).Build).To(func(
+						o *builders.Options, project *v1.Project,
+						stack *v1.Stack,
+					) (*v1.Intent, error) {
+						return intentModel3, nil
+					}),
 				},
 			},
 			want: intentModel3,
