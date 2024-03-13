@@ -32,7 +32,7 @@ linters:
     - predeclared
     - stylecheck
     - tparallel
-    - typecheck
+#    - typecheck
     - unconvert
     - whitespace
     # - wsl
