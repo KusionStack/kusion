@@ -51,6 +51,10 @@ func mockConfig() *v1.Config {
 	}
 }
 
+func mockCompleteLocalStorage() {
+	mockey.Mock(storages.CompleteLocalConfig).Return(nil).Build()
+}
+
 func mockNewStorage() {
 	mockey.Mock(storages.NewLocalStorage).Return(&storages.LocalStorage{}).Build()
 	mockey.Mock(storages.NewMysqlStorage).Return(&storages.MysqlStorage{}, nil).Build()
@@ -142,6 +146,7 @@ func TestNewBackend(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock config", t, func() {
 				mockey.Mock(config.GetConfig).Return(tc.cfg, nil).Build()
+				mockCompleteLocalStorage()
 				mockNewStorage()
 				for k, v := range tc.envs {
 					_ = os.Setenv(k, v)
