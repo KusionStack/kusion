@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
@@ -94,7 +96,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 	// todo: is namespace a module? how to retrieve it? Currently, it is configured in the workspace file.
 	namespace := g.getNamespaceName(projectModuleConfigs)
 
-	// Generate built-in resources
+	// generate built-in resources
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(namespace),
 		workload.NewWorkloadGeneratorFunc(&workload.Generator{
@@ -110,11 +112,28 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 		return err
 	}
 
-	// Call modules to generate customized resources
+	// workload is the second generated resource. Check if it is generated.
+	if spec.Resources == nil || len(spec.Resources) < 2 {
+		return fmt.Errorf("workload is not generated")
+	}
+	workload := spec.Resources[1]
+
+	// call modules to generate customized resources
 	resources, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
+
+	// patch workload with resource patchers
+	for i, r := range resources {
+		if r.Patcher != nil {
+			if err = patchWorkload(&workload, r.Patcher); err != nil {
+				return err
+			}
+			resources[i] = r
+		}
+	}
+
 	spec.Resources = append(spec.Resources, resources...)
 
 	// The OrderedResourcesGenerator should be executed after all resources are generated.
@@ -124,6 +143,104 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 
 	// Add kubeConfig from workspace if exist
 	modules.AddKubeConfigIf(spec, g.ws)
+	return nil
+}
+
+func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
+	if patcher == nil {
+		return nil
+	}
+
+	un := &unstructured.Unstructured{}
+	un.SetUnstructuredContent(workload.Attributes)
+
+	// patch labels
+	if patcher.Labels != nil {
+		objLabels := un.GetLabels()
+		if objLabels == nil {
+			objLabels = make(map[string]string)
+		}
+		podLabels, b, err := unstructured.NestedStringMap(un.Object, "spec", "template", "metadata", "labels")
+		if err != nil {
+			return fmt.Errorf("failed to get pod labels from workload:%s. %w", workload.ID, err)
+		}
+		if !b || podLabels == nil {
+			podLabels = make(map[string]string)
+		}
+		// merge labels
+		for k, v := range patcher.Labels {
+			objLabels[k] = v
+			podLabels[k] = v
+		}
+		un.SetLabels(objLabels)
+		err = unstructured.SetNestedStringMap(un.Object, podLabels, "spec", "template", "metadata", "labels")
+		if err != nil {
+			return err
+		}
+	}
+
+	// patch annotations
+	if patcher.Annotations != nil {
+		objAnnotations := un.GetAnnotations()
+		if objAnnotations == nil {
+			objAnnotations = make(map[string]string)
+		}
+		podAnnotations, b, err := unstructured.NestedStringMap(un.Object, "spec", "template", "metadata", "annotations")
+		if err != nil {
+			return fmt.Errorf("failed to get pod annotations from workload:%s. %w", workload.ID, err)
+		}
+		if !b || podAnnotations == nil {
+			podAnnotations = make(map[string]string)
+		}
+		// merge annotations
+		for k, v := range patcher.Annotations {
+			objAnnotations[k] = v
+			podAnnotations[k] = v
+		}
+
+		un.SetAnnotations(objAnnotations)
+		err = unstructured.SetNestedStringMap(un.Object, podAnnotations, "spec", "template", "metadata", "annotations")
+		if err != nil {
+			return err
+		}
+	}
+
+	// patch env
+	if patcher.Environments != nil {
+		containers, b, err := unstructured.NestedSlice(un.Object, "spec", "template", "spec", "containers")
+		if err != nil || !b {
+			return fmt.Errorf("failed to get containers from workload:%s. %w", workload.ID, err)
+		}
+		// merge env
+		for i, c := range containers {
+			container := c.(map[string]interface{})
+			envs, b, err := unstructured.NestedSlice(container, "env")
+			if err != nil {
+				return fmt.Errorf("failed to get env from workload:%s, container:%s. %w", workload.ID, container["name"], err)
+			}
+			if !b {
+				envs = make([]interface{}, 0)
+			}
+
+			for _, env := range patcher.Environments {
+				us, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&env)
+				if err != nil {
+					return err
+				}
+				envs = append(envs, us)
+				log.Info("we're gonna patch env:%s,value:%s to workload:%s, container:%s", env.Name, env.Value, workload.ID,
+					container["name"])
+			}
+
+			container["env"] = envs
+			containers[i] = container
+		}
+
+		if err = unstructured.SetNestedSlice(un.Object, containers, "spec", "template", "spec", "containers"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -180,8 +297,6 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 			if err != nil {
 				return nil, err
 			}
-			// todo: validate resources format in response
-			// todo parse patches in the resources
 			resources = append(resources, *temp)
 		}
 	}
