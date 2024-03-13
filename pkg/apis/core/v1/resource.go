@@ -6,8 +6,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-type Resources []Resource
-
 // Resource is the representation of a resource in the state.
 type Resource struct {
 	// ID is the unique key of this resource in the whole State.
@@ -39,6 +37,8 @@ type Patcher struct {
 	// Annotations represent the annotations patched to both the workload and pod.
 	Annotations map[string]string `json:"annotations" yaml:"annotations"`
 }
+
+type Resources []Resource
 
 func (r *Resource) ResourceKey() string {
 	return r.ID
