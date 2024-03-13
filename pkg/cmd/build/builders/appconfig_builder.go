@@ -22,7 +22,7 @@ func (acg *AppsConfigBuilder) Build(
 
 	var gfs []modules.NewGeneratorFunc
 	err := modules.ForeachOrdered(acg.Apps, func(appName string, app v1.AppConfiguration) error {
-		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project, stack, appName, &app, acg.Workspace))
+		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project.Name, stack.Name, appName, &app, acg.Workspace))
 		return nil
 	})
 	if err != nil {

@@ -119,28 +119,6 @@ resources:
 
 	ws = &v1.Workspace{
 		Name: "default",
-		Modules: v1.ModuleConfigs{
-			"database": {
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "bar"},
-					},
-				},
-			},
-			"port": {
-				Default: v1.GenericConfig{
-					"type": "aws",
-				},
-			},
-		},
 		Runtimes: &v1.RuntimeConfigs{
 			Kubernetes: &v1.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
@@ -230,6 +208,14 @@ func TestBuildIntent(t *testing.T) {
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
+					mockey.Mock((*builders.AppsConfigBuilder).Build).To(func(
+						o *builders.Options, project *v1.Project,
+						stack *v1.Stack,
+					) (*v1.Intent,
+						error,
+					) {
+						return intentModel3, nil
+					}),
 				},
 			},
 			want: intentModel3,
@@ -274,6 +260,12 @@ func TestBuildIntent(t *testing.T) {
 				mockers: []*mockey.MockBuilder{
 					mockey.Mock(kcl.Run).Return(&kcl.CompileResult{Documents: []kclgo.KCLResult{apcMap}}, nil),
 					mockey.Mock(workspace.GetWorkspaceByDefaultOperator).Return(ws, nil),
+					mockey.Mock((*builders.AppsConfigBuilder).Build).To(func(
+						o *builders.Options, project *v1.Project,
+						stack *v1.Stack,
+					) (*v1.Intent, error) {
+						return intentModel3, nil
+					}),
 				},
 			},
 			want: intentModel3,

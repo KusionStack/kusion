@@ -22,6 +22,13 @@ const (
 
 var mu sync.Mutex
 
+// HandshakeConfig is a common handshake that is shared by plugin and host.
+var HandshakeConfig = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "MODULE_PLUGIN",
+	MagicCookieValue: "ON",
+}
+
 // PluginMap is the map of plugins we can dispense.
 var PluginMap = map[string]plugin.Plugin{
 	PluginKey: &GRPCPlugin{},
@@ -50,7 +57,7 @@ func NewPlugin(key string) (*Plugin, error) {
 func (p *Plugin) initModule() error {
 	key := p.key
 	split := strings.Split(key, "@")
-	msg := "invalid module key: %s. The correct format for a key should be as follows: namespace/resourceType@version. e.g. kusionstack/mysql@v0.1"
+	msg := "invalid module key: %s. The correct format for a key should be as follows: namespace/resourceType@version. e.g. kusionstack/mysql@v0.1.0"
 	if len(split) != 2 {
 		return fmt.Errorf(msg, key)
 	}
@@ -92,7 +99,8 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	}
 	goOs := runtime.GOOS
 	goArch := runtime.GOARCH
-	p := path.Join(prefixPath, namespace, resourceType, version, goOs, goArch, KusionModuleBinaryPrefix+resourceType)
+	name := resourceType + "_" + version
+	p := path.Join(prefixPath, namespace, resourceType, version, goOs, goArch, KusionModuleBinaryPrefix+name)
 	_, err = os.Stat(p)
 	if err != nil {
 		if os.IsNotExist(err) {
