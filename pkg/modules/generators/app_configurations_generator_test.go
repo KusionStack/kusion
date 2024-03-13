@@ -7,7 +7,11 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
@@ -263,4 +267,98 @@ func getNamespace(actual *unstructured.Unstructured) (string, error) {
 	}
 
 	return ns, nil
+}
+
+func Test_patchWorkload(t *testing.T) {
+	replica := int32(2)
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-deployment",
+			Labels: map[string]string{
+				"oldLabel": "oldValue",
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replica,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"oldLabel": "oldValue",
+					},
+					Annotations: map[string]string{
+						"oldAnnotation": "oldValue",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "my-app",
+							Image: "my-app-image",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "MY_ENV",
+									Value: "my-env-value",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	// convert deploy to unstructured
+	deploymentUnstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(deployment)
+	res := &v1.Resource{
+		ID:         "apps/v1:Deployment:default:default-dev-foo",
+		Type:       "Kubernetes",
+		Attributes: deploymentUnstructured,
+	}
+
+	t.Run("Patch labels and annotations", func(t *testing.T) {
+		patcher := &v1.Patcher{
+			Labels:      map[string]string{"newLabel": "newValue"},
+			Annotations: map[string]string{"newAnnotation": "newValue"},
+		}
+
+		err := patchWorkload(res, patcher)
+		assert.NoError(t, err)
+
+		workloadLabels := res.Attributes["metadata"].(map[string]interface{})["labels"].(map[string]interface{})
+		podLabels := res.Attributes["spec"].(map[string]interface{})["template"].(map[string]interface{})["metadata"].(map[string]interface{})["labels"].(map[string]interface{})
+
+		// assert deployment workloadLabels
+		assert.Equal(t, "newValue", workloadLabels["newLabel"])
+		assert.Equal(t, "oldValue", workloadLabels["oldLabel"])
+		// assert pod labels
+		assert.Equal(t, "newValue", podLabels["newLabel"])
+		assert.Equal(t, "oldValue", podLabels["oldLabel"])
+
+		annotations := res.Attributes["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
+		// get pod annotations
+		podAnnotations := res.Attributes["spec"].(map[string]interface{})["template"].(map[string]interface{})["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
+		// assert deployment annotations
+		assert.Equal(t, "newValue", annotations["newAnnotation"])
+		// assert pod annotations
+		assert.Equal(t, "newValue", podAnnotations["newAnnotation"])
+		assert.Equal(t, "oldValue", podLabels["oldLabel"])
+	})
+
+	t.Run("Patch environment variables", func(t *testing.T) {
+		patcher := &v1.Patcher{
+			Environments: []corev1.EnvVar{
+				{
+					Name:  "NEW_ENV",
+					Value: "my-new-value",
+				},
+			},
+		}
+
+		err = patchWorkload(res, patcher)
+		assert.NoError(t, err)
+
+		containers := res.Attributes["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]interface{})
+		env := containers[0].(map[string]interface{})["env"].([]interface{})
+		assert.Contains(t, env, map[string]interface{}{"name": "NEW_ENV", "value": "my-new-value"})
+		assert.Contains(t, env, map[string]interface{}{"name": "MY_ENV", "value": "my-env-value"})
+	})
 }
