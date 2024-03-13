@@ -4,9 +4,23 @@ import (
 	"os"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
-// CompleteMysqlConfig sets default value of mysql config if not set.
+// CompleteLocalConfig sets default value of path if not set, which uses the path of kusion data folder.
+func CompleteLocalConfig(config *v1.BackendLocalConfig) error {
+	if config.Path == "" {
+		path, err := kfile.KusionDataFolder()
+		if err != nil {
+			return err
+		}
+		config.Path = path
+	}
+	return nil
+}
+
+// CompleteMysqlConfig sets default value of port if not set, which is 3306, and fulfills password from environment
+// variables if set.
 func CompleteMysqlConfig(config *v1.BackendMysqlConfig) {
 	if config.Port == 0 {
 		config.Port = v1.DefaultMysqlPort
@@ -17,7 +31,7 @@ func CompleteMysqlConfig(config *v1.BackendMysqlConfig) {
 	}
 }
 
-// CompleteOssConfig constructs the whole oss config by environment variables if set.
+// CompleteOssConfig fulfills the whole oss config from environment variables if set.
 func CompleteOssConfig(config *v1.BackendOssConfig) {
 	accessKeyID := os.Getenv(v1.EnvOssAccessKeyID)
 	accessKeySecret := os.Getenv(v1.EnvOssAccessKeySecret)
@@ -30,7 +44,7 @@ func CompleteOssConfig(config *v1.BackendOssConfig) {
 	}
 }
 
-// CompleteS3Config constructs the whole s3 config by environment variables if set.
+// CompleteS3Config fulfills the whole s3 config from environment variables if set.
 func CompleteS3Config(config *v1.BackendS3Config) {
 	accessKeyID := os.Getenv(v1.EnvAwsAccessKeyID)
 	accessKeySecret := os.Getenv(v1.EnvAwsSecretAccessKey)

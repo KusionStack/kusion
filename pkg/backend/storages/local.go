@@ -2,6 +2,8 @@ package storages
 
 import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/state"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
 // LocalStorage is an implementation of backend.Backend which uses local filesystem as storage.
@@ -15,6 +17,6 @@ func NewLocalStorage(config *v1.BackendLocalConfig) *LocalStorage {
 	return &LocalStorage{path: config.Path}
 }
 
-func NewDefaultStorage() *LocalStorage {
-	return NewLocalStorage(&v1.BackendLocalConfig{})
+func (s *LocalStorage) StateStorage(project, stack, workspace string) state.Storage {
+	return statestorages.NewLocalStorage(statestorages.GenStateFilePath(s.path, project, stack, workspace))
 }
