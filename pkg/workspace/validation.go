@@ -32,17 +32,6 @@ var (
 	ErrEmptyTerraformProviderConfigKey   = errors.New("empty provider config key")
 	ErrEmptyTerraformProviderConfigValue = errors.New("empty provider config value")
 
-	ErrMultipleBackends     = errors.New("more than one backend configured")
-	ErrEmptyMysqlDBName     = errors.New("empty db name")
-	ErrEmptyMysqlUser       = errors.New("empty mysql db user")
-	ErrEmptyMysqlHost       = errors.New("empty mysql host")
-	ErrInvalidMysqlPort     = errors.New("mysql port must be between 1 and 65535")
-	ErrEmptyBucket          = errors.New("empty bucket")
-	ErrEmptyAccessKeyID     = errors.New("empty access key id")
-	ErrEmptyAccessKeySecret = errors.New("empty access key secret")
-	ErrEmptyOssEndpoint     = errors.New("empty oss endpoint")
-	ErrEmptyS3Region        = errors.New("empty s3 region")
-
 	ErrMissingProvider           = errors.New("invalid secret store spec, missing provider config")
 	ErrMultiSecretStoreProviders = errors.New("may not specify more than 1 secret store provider")
 	ErrEmptyAWSRegion            = errors.New("region must be provided when using AWS Secrets Manager")
@@ -53,8 +42,7 @@ var (
 	ErrMissingProviderType       = errors.New("must specify a provider type")
 )
 
-// ValidateWorkspace is used to validate the workspace get or set in the storage, and does not validate the
-// config which can get from environment variables, such as access key id in backend configs.
+// ValidateWorkspace is used to validate the workspace get or set in the storage.
 func ValidateWorkspace(ws *v1.Workspace) error {
 	if ws.Name == "" {
 		return ErrEmptyWorkspaceName
@@ -66,11 +54,6 @@ func ValidateWorkspace(ws *v1.Workspace) error {
 	}
 	if ws.Runtimes != nil {
 		if err := ValidateRuntimeConfigs(ws.Runtimes); err != nil {
-			return err
-		}
-	}
-	if ws.Backends != nil {
-		if err := ValidateBackendConfigs(ws.Backends); err != nil {
 			return err
 		}
 	}
@@ -221,117 +204,6 @@ func ValidateProviderConfig(config *v1.ProviderConfig) error {
 		if v == nil {
 			return fmt.Errorf("%w of field %s", ErrEmptyTerraformProviderConfigValue, k)
 		}
-	}
-	return nil
-}
-
-// ValidateBackendConfigs is used to validate backendConfigs is valid or not, and does not validate the
-// configs which can get from environment variables, such as access key id, etc.
-func ValidateBackendConfigs(configs *v1.DeprecatedBackendConfigs) error {
-	if configureMoreThanOneBackend(configs) {
-		return ErrMultipleBackends
-	}
-
-	// cause only one backend can be configured, hence the validity of the only one non-nil backend
-	// represents the validity of the backend.
-	if configs.Mysql != nil {
-		return ValidateMysqlConfig(configs.Mysql)
-	}
-	if configs.Oss != nil {
-		if err := ValidateGenericObjectStorageConfig(&configs.Oss.DeprecatedGenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
-		}
-		return nil
-	}
-	if configs.S3 != nil {
-		if err := ValidateGenericObjectStorageConfig(&configs.S3.DeprecatedGenericObjectStorageConfig); err != nil {
-			return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
-		}
-		return nil
-	}
-	return nil
-}
-
-// configureMoreThanOneBackend checks whether there are more than one backend configured.
-func configureMoreThanOneBackend(configs *v1.DeprecatedBackendConfigs) bool {
-	// configCondition returns: 1, if the backend configured or not; 2, if configured more than one backend.
-	configCondition := func(configured bool, hasNewConfig bool) (bool, bool) {
-		return configured || hasNewConfig, configured && hasNewConfig
-	}
-
-	var configured, moreThanOneConfig bool
-	configured = configs.Local != nil
-	configured, moreThanOneConfig = configCondition(configured, configs.Mysql != nil)
-	if moreThanOneConfig {
-		return moreThanOneConfig
-	}
-	configured, moreThanOneConfig = configCondition(configured, configs.Oss != nil)
-	if moreThanOneConfig {
-		return moreThanOneConfig
-	}
-	_, moreThanOneConfig = configCondition(configured, configs.S3 != nil)
-	return moreThanOneConfig
-}
-
-// ValidateMysqlConfig is used to validate mysqlConfig is valid or not.
-func ValidateMysqlConfig(config *v1.DeprecatedMysqlConfig) error {
-	if config.DBName == "" {
-		return ErrEmptyMysqlDBName
-	}
-	if config.User == "" {
-		return ErrEmptyMysqlUser
-	}
-	if config.Host == "" {
-		return ErrEmptyMysqlHost
-	}
-	if config.Port != nil && (*config.Port < 1 || *config.Port > 65535) {
-		return ErrInvalidMysqlPort
-	}
-	return nil
-}
-
-// ValidateGenericObjectStorageConfig is used to validate ossConfig and s3Config is valid or not, where the
-// sensitive data items set as environment variables are not included.
-func ValidateGenericObjectStorageConfig(config *v1.DeprecatedGenericObjectStorageConfig) error {
-	if config.Bucket == "" {
-		return ErrEmptyBucket
-	}
-	return nil
-}
-
-// ValidateWholeOssConfig is used to validate ossConfig is valid or not, where all the items are included.
-// If valid, the config contains all valid items to new an oss client.
-func ValidateWholeOssConfig(config *v1.DeprecatedOssConfig) error {
-	if err := validateWholeGenericObjectStorageConfig(&config.DeprecatedGenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendOss)
-	}
-	if config.Endpoint == "" {
-		return ErrEmptyOssEndpoint
-	}
-	return nil
-}
-
-// ValidateWholeS3Config is used to validate s3Config is valid or not, where all the items are included.
-// If valid, the config  contains all valid items to new a s3 client.
-func ValidateWholeS3Config(config *v1.DeprecatedS3Config) error {
-	if err := validateWholeGenericObjectStorageConfig(&config.DeprecatedGenericObjectStorageConfig); err != nil {
-		return fmt.Errorf("%w of %s", err, v1.DeprecatedBackendS3)
-	}
-	if config.Region == "" {
-		return ErrEmptyS3Region
-	}
-	return nil
-}
-
-func validateWholeGenericObjectStorageConfig(config *v1.DeprecatedGenericObjectStorageConfig) error {
-	if err := ValidateGenericObjectStorageConfig(config); err != nil {
-		return err
-	}
-	if config.AccessKeyID == "" {
-		return ErrEmptyAccessKeyID
-	}
-	if config.AccessKeySecret == "" {
-		return ErrEmptyAccessKeySecret
 	}
 	return nil
 }

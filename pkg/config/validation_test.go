@@ -117,7 +117,7 @@ func TestValidateBackendConfig(t *testing.T) {
 			name:    "invalid backend config invalid config item type",
 			success: false,
 			val: &v1.BackendConfig{
-				Type: v1.DeprecatedBackendMysql,
+				Type: v1.BackendTypeMysql,
 				Configs: map[string]any{
 					v1.BackendMysqlDBName: "kusion",
 					v1.BackendMysqlUser:   "kk",
@@ -130,7 +130,7 @@ func TestValidateBackendConfig(t *testing.T) {
 			name:    "invalid backend config unsupported config item",
 			success: false,
 			val: &v1.BackendConfig{
-				Type: v1.DeprecatedBackendMysql,
+				Type: v1.BackendTypeMysql,
 				Configs: map[string]any{
 					"not-support": "mock-not-support-value",
 				},

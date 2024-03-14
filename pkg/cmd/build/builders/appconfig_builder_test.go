@@ -54,9 +54,6 @@ func buildMockWorkspace() *v1.Workspace {
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &v1.DeprecatedBackendConfigs{
-			Local: &v1.DeprecatedLocalFileConfig{},
-		},
 	}
 }
 
