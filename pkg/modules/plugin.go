@@ -127,6 +127,7 @@ func newPluginClient(path string) *plugin.Client {
 }
 
 func (p *Plugin) KillPluginClient() {
+	// fixme: if p.client is nil, it will panic
 	p.client.Kill()
 }
 
