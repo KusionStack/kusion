@@ -3,15 +3,16 @@ package models
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/jinzhu/copier"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/pkg/util/json"
 )
 
 // Operation is the base model for all operations
@@ -20,7 +21,7 @@ type Operation struct {
 	OperationType OperationType
 
 	// StateStorage represents the storage where state will be saved during this operation
-	StateStorage states.StateStorage
+	StateStorage state.Storage
 
 	// CtxResourceIndex represents resources updated by this operation
 	CtxResourceIndex map[string]*v1.Resource
@@ -28,7 +29,7 @@ type Operation struct {
 	// PriorStateResourceIndex represents resource state saved during the last operation
 	PriorStateResourceIndex map[string]*v1.Resource
 
-	// StateResourceIndex represents resources that will be saved in states.StateStorage
+	// StateResourceIndex represents resources that will be saved in state.Storage
 	StateResourceIndex map[string]*v1.Resource
 
 	// IgnoreFields will be ignored in preview stage
@@ -51,7 +52,7 @@ type Operation struct {
 	Lock *sync.Mutex
 
 	// ResultState is the final State build by this operation, and this State will be saved in the StateStorage
-	ResultState *states.State
+	ResultState *v1.State
 }
 
 type Message struct {
@@ -61,12 +62,11 @@ type Message struct {
 }
 
 type Request struct {
-	Tenant   string      `json:"tenant"`
-	Project  *v1.Project `json:"project"`
-	Stack    *v1.Stack   `json:"stack"`
-	Cluster  string      `json:"cluster"`
-	Operator string      `json:"operator"`
-	Intent   *v1.Intent  `json:"intent"`
+	Project   *v1.Project `json:"project"`
+	Stack     *v1.Stack   `json:"stack"`
+	Workspace string      `json:"workspace"`
+	Operator  string      `json:"operator"`
+	Intent    *v1.Intent  `json:"intent"`
 }
 
 type OpResult string
@@ -96,38 +96,32 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *v1.Resour
 	return nil
 }
 
-func (o *Operation) InitStates(request *Request) (*states.State, *states.State) {
-	query := &states.StateQuery{
-		Tenant:  request.Tenant,
-		Stack:   request.Stack.Name,
-		Project: request.Project.Name,
-		Cluster: request.Cluster,
+func (o *Operation) InitStates(request *Request) (*v1.State, *v1.State) {
+	priorState, err := o.StateStorage.Get()
+	util.CheckNotError(err, fmt.Sprintf("get state failed with request: %v", json.Marshal2PrettyString(request)))
+	if priorState == nil {
+		log.Infof("can't find state with request: %v", json.Marshal2PrettyString(request))
+		priorState = v1.NewState()
 	}
-	latestState, err := o.StateStorage.GetLatestState(query)
-	util.CheckNotError(err, fmt.Sprintf("get the latest State failed with query: %v", jsonutil.Marshal2PrettyString(query)))
-	if latestState == nil {
-		log.Infof("can't find states with request: %v", jsonutil.Marshal2PrettyString(request))
-		latestState = states.NewState()
-	}
-	resultState := states.NewState()
-	resultState.Serial = latestState.Serial
+	resultState := v1.NewState()
+	resultState.Serial = priorState.Serial
 	err = copier.Copy(resultState, request)
-	util.CheckNotError(err, fmt.Sprintf("copy request to result State failed, request:%v", jsonutil.Marshal2PrettyString(request)))
+	util.CheckNotError(err, fmt.Sprintf("copy request to result State failed, request:%v", json.Marshal2PrettyString(request)))
 	resultState.Stack = request.Stack.Name
 	resultState.Project = request.Project.Name
 
 	resultState.Resources = nil
 
-	return latestState, resultState
+	return priorState, resultState
 }
 
 func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
-	state := o.ResultState
-	state.Serial += 1
-	state.Resources = nil
+	resultState := o.ResultState
+	resultState.Serial += 1
+	resultState.Resources = nil
 
 	res := make([]v1.Resource, 0, len(resourceIndex))
 	for key := range resourceIndex {
@@ -138,12 +132,16 @@ func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
 		res = append(res, *resourceIndex[key])
 	}
 
-	state.Resources = res
-	// todo: update
-	err := o.StateStorage.Apply(state)
+	resultState.Resources = res
+	now := time.Now()
+	if resultState.CreateTime.IsZero() {
+		resultState.CreateTime = now
+	}
+	resultState.ModifiedTime = now
+	err := o.StateStorage.Apply(resultState)
 	if err != nil {
 		return fmt.Errorf("apply State failed. %w", err)
 	}
-	log.Infof("update State:%v success", state.ID)
+	log.Infof("update State:%v success", resultState.ID)
 	return nil
 }

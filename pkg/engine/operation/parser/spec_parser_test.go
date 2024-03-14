@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
@@ -13,7 +13,7 @@ func TestSpecParser_Parse(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &apiv1.Intent{Resources: []apiv1.Resource{
+	mf := &v1.Intent{Resources: []v1.Resource{
 		{
 			ID: Pony,
 

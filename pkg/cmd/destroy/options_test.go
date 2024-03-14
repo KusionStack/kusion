@@ -13,20 +13,22 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
 )
 
 func TestDestroyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
 		mockDetectProjectAndStack()
-		mockGetLatestState()
+		mockGetState()
+		mockNewBackend()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -38,7 +40,8 @@ func TestDestroyOptions_Run(t *testing.T) {
 
 	mockey.PatchConvey("prompt no", t, func() {
 		mockDetectProjectAndStack()
-		mockGetLatestState()
+		mockGetState()
+		mockNewBackend()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -50,10 +53,11 @@ func TestDestroyOptions_Run(t *testing.T) {
 
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockDetectProjectAndStack()
-		mockGetLatestState()
+		mockGetState()
+		mockNewBackend()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
-		mockOperationDestroy(opsmodels.Success)
+		mockOperationDestroy(models.Success)
 
 		o := NewDestroyOptions()
 		mockPromptOutput("yes")
@@ -69,6 +73,7 @@ var (
 	s = &apiv1.Stack{
 		Name: "dev",
 	}
+	ws = "dev"
 )
 
 func mockDetectProjectAndStack() {
@@ -79,13 +84,8 @@ func mockDetectProjectAndStack() {
 	}).Build()
 }
 
-func mockGetLatestState() {
-	mockey.Mock((*local.FileSystemState).GetLatestState).To(func(
-		f *local.FileSystemState,
-		query *states.StateQuery,
-	) (*states.State, error) {
-		return &states.State{Resources: []apiv1.Resource{sa1}}, nil
-	}).Build()
+func mockGetState() {
+	mockey.Mock((*statestorages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{sa1}}, nil).Build()
 }
 
 func Test_preview(t *testing.T) {
@@ -94,8 +94,8 @@ func Test_preview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDestroyOptions()
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
-		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, p, s, stateStorage)
+		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
+		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, p, s, ws, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -110,18 +110,18 @@ var _ runtime.Runtime = (*fakerRuntime)(nil)
 
 type fakerRuntime struct{}
 
-func (f *fakerRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
+func (f *fakerRuntime) Import(_ context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
 	return &runtime.ImportResponse{Resource: request.PlanResource}
 }
 
-func (f *fakerRuntime) Apply(ctx context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
+func (f *fakerRuntime) Apply(_ context.Context, request *runtime.ApplyRequest) *runtime.ApplyResponse {
 	return &runtime.ApplyResponse{
 		Resource: request.PlanResource,
 		Status:   nil,
 	}
 }
 
-func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
+func (f *fakerRuntime) Read(_ context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	if request.PlanResource.ResourceKey() == "fake-id" {
 		return &runtime.ReadResponse{
 			Resource: nil,
@@ -134,11 +134,11 @@ func (f *fakerRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *
 	}
 }
 
-func (f *fakerRuntime) Delete(ctx context.Context, request *runtime.DeleteRequest) *runtime.DeleteResponse {
+func (f *fakerRuntime) Delete(_ context.Context, _ *runtime.DeleteRequest) *runtime.DeleteResponse {
 	return nil
 }
 
-func (f *fakerRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
+func (f *fakerRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.WatchResponse {
 	return nil
 }
 
@@ -146,12 +146,12 @@ func mockOperationPreview() {
 	mockey.Mock((*operation.PreviewOperation).Preview).To(
 		func(*operation.PreviewOperation, *operation.PreviewRequest) (rsp *operation.PreviewResponse, s v1.Status) {
 			return &operation.PreviewResponse{
-				Order: &opsmodels.ChangeOrder{
+				Order: &models.ChangeOrder{
 					StepKeys: []string{sa1.ID},
-					ChangeSteps: map[string]*opsmodels.ChangeStep{
+					ChangeSteps: map[string]*models.ChangeStep{
 						sa1.ID: {
 							ID:     sa1.ID,
-							Action: opsmodels.Delete,
+							Action: models.Delete,
 							From:   nil,
 						},
 					},
@@ -190,82 +190,86 @@ func newSA(name string) apiv1.Resource {
 func Test_destroy(t *testing.T) {
 	mockey.PatchConvey("destroy success", t, func() {
 		mockNewKubernetesRuntime()
-		mockOperationDestroy(opsmodels.Success)
+		mockOperationDestroy(models.Success)
 
 		o := NewDestroyOptions()
 		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa2}}
-		order := &opsmodels.ChangeOrder{
+		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
-			ChangeSteps: map[string]*opsmodels.ChangeStep{
+			ChangeSteps: map[string]*models.ChangeStep{
 				sa1.ID: {
 					ID:     sa1.ID,
-					Action: opsmodels.Delete,
+					Action: models.Delete,
 					From:   nil,
 				},
 				sa2.ID: {
 					ID:     sa2.ID,
-					Action: opsmodels.UnChanged,
+					Action: models.UnChanged,
 					From:   &sa2,
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(p, s, order)
+		changes := models.NewChanges(p, s, ws, order)
 
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
+		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
 
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("destroy failed", t, func() {
 		mockNewKubernetesRuntime()
-		mockOperationDestroy(opsmodels.Failed)
+		mockOperationDestroy(models.Failed)
 
 		o := NewDestroyOptions()
 		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
-		order := &opsmodels.ChangeOrder{
+		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
-			ChangeSteps: map[string]*opsmodels.ChangeStep{
+			ChangeSteps: map[string]*models.ChangeStep{
 				sa1.ID: {
 					ID:     sa1.ID,
-					Action: opsmodels.Delete,
+					Action: models.Delete,
 					From:   nil,
 				},
 			},
 		}
-		changes := opsmodels.NewChanges(p, s, order)
-		stateStorage := &local.FileSystemState{Path: filepath.Join(o.WorkDir, local.KusionStateFileFile)}
+		changes := models.NewChanges(p, s, ws, order)
+		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
 
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.NotNil(t, err)
 	})
 }
 
-func mockOperationDestroy(res opsmodels.OpResult) {
+func mockOperationDestroy(res models.OpResult) {
 	mockey.Mock((*operation.DestroyOperation).Destroy).To(
 		func(o *operation.DestroyOperation, request *operation.DestroyRequest) v1.Status {
 			var err error
-			if res == opsmodels.Failed {
+			if res == models.Failed {
 				err = errors.New("mock error")
 			}
 			for _, r := range request.Intent.Resources {
 				// ing -> $res
-				o.MsgCh <- opsmodels.Message{
+				o.MsgCh <- models.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   "",
 					OpErr:      nil,
 				}
-				o.MsgCh <- opsmodels.Message{
+				o.MsgCh <- models.Message{
 					ResourceID: r.ResourceKey(),
 					OpResult:   res,
 					OpErr:      err,
 				}
 			}
 			close(o.MsgCh)
-			if res == opsmodels.Failed {
+			if res == models.Failed {
 				return v1.NewErrorStatus(err)
 			}
 			return nil
 		}).Build()
+}
+
+func mockNewBackend() *mockey.Mocker {
+	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
 }
 
 func Test_prompt(t *testing.T) {

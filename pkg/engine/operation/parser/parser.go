@@ -7,7 +7,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -44,7 +44,7 @@ func LinkRefNodes(
 	refNodeKeys []string,
 	resourceIndex map[string]*apiv1.Resource,
 	rn dag.Vertex,
-	defaultAction opsmodels.ActionType,
+	defaultAction models.ActionType,
 	manifestGraphMap map[string]interface{},
 ) v1.Status {
 	if len(refNodeKeys) == 0 {
@@ -65,7 +65,7 @@ func LinkRefNodes(
 		}
 
 		switch defaultAction {
-		case opsmodels.Delete:
+		case models.Delete:
 			// if the parent node is a deleteNode, we will add an edge from child node to parent node.
 			// if parent node is not a deleteNode and manifestGraph contains parent node,
 			// we will add an edge from parent node to child node

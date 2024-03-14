@@ -13,17 +13,17 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/states"
-	"kusionstack.io/kusion/pkg/engine/states/local"
+	"kusionstack.io/kusion/pkg/engine/state"
+	"kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
-func Test_validateRequest(t *testing.T) {
+func Test_ValidateRequest(t *testing.T) {
 	type args struct {
-		request *opsmodels.Request
+		request *models.Request
 	}
 	tests := []struct {
 		name string
@@ -33,7 +33,7 @@ func Test_validateRequest(t *testing.T) {
 		{
 			name: "t1",
 			args: args{
-				request: &opsmodels.Request{},
+				request: &models.Request{},
 			},
 			want: v1.NewErrorStatusWithMsg(v1.InvalidArgument,
 				"request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
@@ -41,7 +41,7 @@ func Test_validateRequest(t *testing.T) {
 		{
 			name: "t2",
 			args: args{
-				request: &opsmodels.Request{
+				request: &models.Request{
 					Intent: &apiv1.Intent{Resources: []apiv1.Resource{}},
 				},
 			},
@@ -59,16 +59,16 @@ func Test_validateRequest(t *testing.T) {
 
 func TestOperation_Apply(t *testing.T) {
 	type fields struct {
-		OperationType           opsmodels.OperationType
-		StateStorage            states.StateStorage
+		OperationType           models.OperationType
+		StateStorage            state.Storage
 		CtxResourceIndex        map[string]*apiv1.Resource
 		PriorStateResourceIndex map[string]*apiv1.Resource
 		StateResourceIndex      map[string]*apiv1.Resource
-		Order                   *opsmodels.ChangeOrder
+		Order                   *models.ChangeOrder
 		RuntimeMap              map[apiv1.Type]runtime.Runtime
 		Stack                   *apiv1.Stack
-		MsgCh                   chan opsmodels.Message
-		resultState             *states.State
+		MsgCh                   chan models.Message
+		resultState             *apiv1.State
 		lock                    *sync.Mutex
 	}
 	type args struct {
@@ -87,15 +87,15 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}}
 
-	rs := &states.State{
+	rs := &apiv1.State{
 		ID:            0,
-		Tenant:        "fakeTenant",
-		Stack:         "fakeStack",
-		Project:       "fakeProject",
+		Stack:         "fake-stack",
+		Project:       "fake-project",
+		Workspace:     "fake-workspace",
 		Version:       0,
 		KusionVersion: "",
 		Serial:        1,
-		Operator:      "faker",
+		Operator:      "fake-operator",
 		Resources: []apiv1.Resource{
 			{
 				ID:   Jack,
@@ -109,12 +109,12 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	s := &apiv1.Stack{
-		Name: "fakeStack",
-		Path: "fakePath",
+		Name: "fake-stack",
+		Path: "fake-path",
 	}
 	p := &apiv1.Project{
-		Name:   "fakeProject",
-		Path:   "fakePath",
+		Name:   "fake-project",
+		Path:   "fake-path",
 		Stacks: []*apiv1.Stack{s},
 	}
 
@@ -128,17 +128,17 @@ func TestOperation_Apply(t *testing.T) {
 		{
 			name: "apply test",
 			fields: fields{
-				OperationType: opsmodels.Apply,
-				StateStorage:  &local.FileSystemState{Path: filepath.Join("test_data", local.KusionStateFileFile)},
+				OperationType: models.Apply,
+				StateStorage:  storages.NewLocalStorage(filepath.Join("testdata", "state.yaml")),
 				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
-				MsgCh:         make(chan opsmodels.Message, 5),
+				MsgCh:         make(chan models.Message, 5),
 			},
-			args: args{applyRequest: &ApplyRequest{opsmodels.Request{
-				Tenant:   "fakeTenant",
-				Stack:    s,
-				Project:  p,
-				Operator: "faker",
-				Intent:   mf,
+			args: args{applyRequest: &ApplyRequest{models.Request{
+				Stack:     s,
+				Project:   p,
+				Workspace: "fake-workspace",
+				Operator:  "fake-operator",
+				Intent:    mf,
 			}}},
 			wantRsp: &ApplyResponse{rs},
 			wantSt:  nil,
@@ -147,7 +147,7 @@ func TestOperation_Apply(t *testing.T) {
 
 	for _, tt := range tests {
 		mockey.PatchConvey(tt.name, t, func() {
-			o := &opsmodels.Operation{
+			o := &models.Operation{
 				OperationType:           tt.fields.OperationType,
 				StateStorage:            tt.fields.StateStorage,
 				CtxResourceIndex:        tt.fields.CtxResourceIndex,
@@ -164,7 +164,7 @@ func TestOperation_Apply(t *testing.T) {
 				Operation: *o,
 			}
 
-			mockey.Mock((*graph.ResourceNode).Execute).To(func(rn *graph.ResourceNode, operation *opsmodels.Operation) v1.Status {
+			mockey.Mock((*graph.ResourceNode).Execute).To(func(operation *models.Operation) v1.Status {
 				o.ResultState = rs
 				return nil
 			}).Build()

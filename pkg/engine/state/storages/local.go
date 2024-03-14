@@ -1,8 +1,10 @@
 package storages
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 
@@ -38,6 +40,10 @@ func (s *LocalStorage) Get() (*v1.State, error) {
 }
 
 func (s *LocalStorage) Apply(state *v1.State) error {
+	if err := os.MkdirAll(filepath.Dir(s.path), os.ModePerm); err != nil {
+		fmt.Println(err)
+	}
+
 	content, err := yaml.Marshal(state)
 	if err != nil {
 		return err

@@ -11,15 +11,14 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/engine/backend"
 	"kusionstack.io/kusion/pkg/engine/operation"
-	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/states"
+	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/signals"
 )
 
@@ -28,7 +27,6 @@ type Options struct {
 	Operator string
 	Yes      bool
 	Detail   bool
-	backend.BackendOptions
 }
 
 func NewDestroyOptions() *Options {
@@ -38,17 +36,12 @@ func NewDestroyOptions() *Options {
 }
 
 func (o *Options) Complete(args []string) {
-	o.Options.Complete(args)
+	_ = o.Options.Complete(args)
 }
 
 func (o *Options) Validate() error {
 	if err := o.Options.Validate(); err != nil {
 		return err
-	}
-	if !o.BackendOptions.IsEmpty() {
-		if err := o.BackendOptions.Validate(); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -57,39 +50,35 @@ func (o *Options) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
 	// Parse project and stack of work directory
-	project, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	// Get state storage from cli backend options, environment variables, workspace backend configs
-	stateStorage, err := backend.NewStateStorage(stack, &o.BackendOptions)
+	// new state storage
+	ws := "default"                   // fixme: use default workspace for tmp
+	bk, err := backend.NewBackend("") // fixme: use current backend for tmp
 	if err != nil {
 		return err
 	}
+	storage := bk.StateStorage(proj.Name, stack.Name, ws)
 
 	// only destroy resources we managed
-	// todo add the `cluster` field in query
-	query := &states.StateQuery{
-		Tenant:  "",
-		Stack:   stack.Name,
-		Project: project.Name,
-	}
-	latestState, err := stateStorage.GetLatestState(query)
-	if err != nil || latestState == nil {
-		log.Infof("can't find states with query: %v", jsonutil.Marshal2PrettyString(query))
+	priorState, err := storage.Get()
+	if err != nil || priorState == nil {
+		log.Infof("can't find state with project: %s, stack: %s, workspace: %s", proj.Name, stack.Name, ws)
 		return fmt.Errorf("can not find State in this stack")
 	}
-	destroyResources := latestState.Resources
+	destroyResources := priorState.Resources
 
-	if destroyResources == nil || len(latestState.Resources) == 0 {
+	if destroyResources == nil || len(priorState.Resources) == 0 {
 		pterm.Println(pterm.Green("No managed resources to destroy"))
 		return nil
 	}
 
 	// Compute changes for preview
 	i := &apiv1.Intent{Resources: destroyResources}
-	changes, err := o.preview(i, project, stack, stateStorage)
+	changes, err := o.preview(i, proj, stack, ws, storage)
 	if err != nil {
 		return err
 	}
@@ -105,7 +94,8 @@ func (o *Options) Run() error {
 	// Prompt
 	if !o.Yes {
 		for {
-			input, err := prompt()
+			var input string
+			input, err = prompt()
 			if err != nil {
 				return err
 			}
@@ -113,7 +103,8 @@ func (o *Options) Run() error {
 			if input == "yes" {
 				break
 			} else if input == "details" {
-				target, err := changes.PromptDetails()
+				var target string
+				target, err = changes.PromptDetails()
 				if err != nil {
 					return err
 				}
@@ -127,16 +118,19 @@ func (o *Options) Run() error {
 
 	// Destroy
 	fmt.Println("Start destroying resources......")
-	if err := o.destroy(i, changes, stateStorage); err != nil {
+	if err = o.destroy(i, changes, storage); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (o *Options) preview(
-	planResources *apiv1.Intent, project *apiv1.Project,
-	stack *apiv1.Stack, stateStorage states.StateStorage,
-) (*opsmodels.Changes, error) {
+	planResources *apiv1.Intent,
+	proj *apiv1.Project,
+	stack *apiv1.Stack,
+	ws string,
+	stateStorage state.Storage,
+) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
 	// Check and install terraform executable binary for
@@ -149,38 +143,38 @@ func (o *Options) preview(
 	}
 
 	pc := &operation.PreviewOperation{
-		Operation: opsmodels.Operation{
-			OperationType: opsmodels.DestroyPreview,
+		Operation: models.Operation{
+			OperationType: models.DestroyPreview,
 			Stack:         stack,
 			StateStorage:  stateStorage,
-			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+			ChangeOrder:   &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
 		},
 	}
 
 	log.Info("Start call pc.Preview() ...")
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
-		Request: opsmodels.Request{
-			Tenant:   "",
-			Project:  project,
-			Operator: o.Operator,
-			Stack:    stack,
-			Intent:   planResources,
+		Request: models.Request{
+			Project:   proj,
+			Stack:     stack,
+			Workspace: ws,
+			Operator:  o.Operator,
+			Intent:    planResources,
 		},
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}
 
-	return opsmodels.NewChanges(project, stack, rsp.Order), nil
+	return models.NewChanges(proj, stack, ws, rsp.Order), nil
 }
 
-func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Changes, stateStorage states.StateStorage) error {
+func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, stateStorage state.Storage) error {
 	do := &operation.DestroyOperation{
-		Operation: opsmodels.Operation{
+		Operation: models.Operation{
 			Stack:        changes.Stack(),
 			StateStorage: stateStorage,
-			MsgCh:        make(chan opsmodels.Message),
+			MsgCh:        make(chan models.Message),
 		},
 	}
 
@@ -213,13 +207,13 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Change
 				changeStep := changes.Get(msg.ResourceID)
 
 				switch msg.OpResult {
-				case opsmodels.Success, opsmodels.Skip:
+				case models.Success, models.Skip:
 					var title string
-					if changeStep.Action == opsmodels.UnChanged {
+					if changeStep.Action == models.UnChanged {
 						title = fmt.Sprintf("%s %s, %s",
 							changeStep.Action.String(),
 							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(opsmodels.Skip)),
+							strings.ToLower(string(models.Skip)),
 						)
 					} else {
 						title = fmt.Sprintf("%s %s %s",
@@ -232,7 +226,7 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Change
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					deleted++
-				case opsmodels.Failed:
+				case models.Failed:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.String(),
 						pterm.Bold.Sprint(changeStep.ID),
@@ -252,12 +246,12 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Change
 	}()
 
 	st := do.Destroy(&operation.DestroyRequest{
-		Request: opsmodels.Request{
-			Tenant:   "",
-			Project:  changes.Project(),
-			Operator: o.Operator,
-			Stack:    changes.Stack(),
-			Intent:   planResources,
+		Request: models.Request{
+			Project:   changes.Project(),
+			Stack:     changes.Stack(),
+			Workspace: changes.Workspace(),
+			Operator:  o.Operator,
+			Intent:    planResources,
 		},
 	})
 	if v1.IsErr(st) {
@@ -273,14 +267,14 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *opsmodels.Change
 }
 
 func prompt() (string, error) {
-	prompt := &survey.Select{
+	p := &survey.Select{
 		Message: `Do you want to destroy these diffs?`,
 		Options: []string{"yes", "details", "no"},
 		Default: "details",
 	}
 
 	var input string
-	err := survey.AskOne(prompt, &input)
+	err := survey.AskOne(p, &input)
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		return "", err
