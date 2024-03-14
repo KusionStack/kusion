@@ -127,7 +127,9 @@ func newPluginClient(path string) *plugin.Client {
 }
 
 func (p *Plugin) KillPluginClient() {
-	p.client.Kill()
+	if p.client != nil {
+		p.client.Kill()
+	}
 }
 
 func PluginDir() (string, error) {
