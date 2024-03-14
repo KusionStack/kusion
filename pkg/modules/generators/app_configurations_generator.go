@@ -227,9 +227,10 @@ func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 				if err != nil {
 					return err
 				}
-				envs = append(envs, us)
-				log.Info("we're gonna patch env:%s,value:%s to workload:%s, container:%s", env.Name, env.Value, workload.ID,
-					container["name"])
+				// prepend patch env to existing env slices so developers can reference them later on
+				// ref: https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/
+				envs = append([]interface{}{us}, envs...)
+				log.Info("we're gonna patch env:%s,value:%s to workload:%s, container:%s", env.Name, env.Value, workload.ID, container["name"])
 			}
 
 			container["env"] = envs
