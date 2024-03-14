@@ -18,7 +18,5 @@ runtimes:
     terraform:
         aws:
             region: us-east-1
-            source: hashicorp/aws
             version: 1.0.4
-backends:
-    local: {}
+            source: hashicorp/aws

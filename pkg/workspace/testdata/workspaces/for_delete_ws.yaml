@@ -20,5 +20,3 @@ runtimes:
             source: hashicorp/aws
             version: 1.0.4
             region: us-east-1
-backends:
-    local: {}

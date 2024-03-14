@@ -199,22 +199,25 @@ func TestOperator_UpdateWorkspace(t *testing.T) {
 
 func TestOperator_DeleteWorkspace(t *testing.T) {
 	testcases := []struct {
-		name     string
-		success  bool
-		operator *Operator
-		wsName   string
+		name         string
+		success      bool
+		operator     *Operator
+		wsName       string
+		needRecreate bool
 	}{
 		{
-			name:     "delete workspace successfully",
-			success:  true,
-			operator: mockValidOperator(),
-			wsName:   "for_delete_ws",
+			name:         "delete workspace successfully",
+			success:      true,
+			operator:     mockValidOperator(),
+			wsName:       "for_delete_ws",
+			needRecreate: true,
 		},
 		{
-			name:     "delete workspace not exist successfully",
-			success:  true,
-			operator: mockValidOperator(),
-			wsName:   "for_delete_failure_ws",
+			name:         "delete workspace not exist successfully",
+			success:      true,
+			operator:     mockValidOperator(),
+			wsName:       "for_delete_not_exist_ws",
+			needRecreate: false,
 		},
 	}
 
@@ -222,7 +225,7 @@ func TestOperator_DeleteWorkspace(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.operator.DeleteWorkspace(tc.wsName)
 			assert.Equal(t, tc.success, err == nil)
-			if err == nil {
+			if err == nil && tc.needRecreate {
 				ws := mockValidWorkspace(tc.wsName)
 				_ = tc.operator.CreateWorkspace(ws)
 			}

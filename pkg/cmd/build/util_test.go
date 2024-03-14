@@ -124,9 +124,6 @@ resources:
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
 		},
-		Backends: &v1.DeprecatedBackendConfigs{
-			Local: &v1.DeprecatedLocalFileConfig{},
-		},
 	}
 )
 
@@ -160,8 +157,10 @@ func TestBuildIntentFromFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			file, _ := os.Create(tt.path)
-			file.Write([]byte(tt.content))
-			defer os.Remove(tt.path)
+			_, _ = file.Write([]byte(tt.content))
+			defer func() {
+				_ = os.Remove(tt.path)
+			}()
 			got, err := IntentFromFile(tt.path)
 			if tt.wantErr {
 				require.Error(t, err)
