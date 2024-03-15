@@ -1,0 +1,5 @@
+current: dev
+availableWorkspaces:
+    - default
+    - dev
+    - prod
