@@ -10,8 +10,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func mockStateDO() *State {
-	return &State{
+func mockStateMysqlDO() *StateMysqlDO {
+	return &StateMysqlDO{
 		Project:   "wordpress",
 		Stack:     "dev",
 		Workspace: "dev",
@@ -27,13 +27,13 @@ func TestMysqlStorage_Get(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
-		stateDO *State
+		stateDO *StateMysqlDO
 		state   *v1.State
 	}{
 		{
 			name:    "get mysql state successfully",
 			success: true,
-			stateDO: mockStateDO(),
+			stateDO: mockStateMysqlDO(),
 			state:   mockState(),
 		},
 		{
@@ -46,7 +46,7 @@ func TestMysqlStorage_Get(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock mysql get", t, func() {
-				mockey.Mock(getState).Return(tc.stateDO, nil).Build()
+				mockey.Mock(getStateFromMysql).Return(tc.stateDO, nil).Build()
 				state, err := mockMysqlStorage().Get()
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.state, state)
@@ -59,13 +59,13 @@ func TestMysqlStorage_Apply(t *testing.T) {
 	testcases := []struct {
 		name        string
 		success     bool
-		lastStateDO *State
+		lastStateDO *StateMysqlDO
 		state       *v1.State
 	}{
 		{
 			name:        "update mysql state successfully",
 			success:     true,
-			lastStateDO: mockStateDO(),
+			lastStateDO: mockStateMysqlDO(),
 			state:       mockState(),
 		},
 		{
@@ -78,9 +78,10 @@ func TestMysqlStorage_Apply(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock mysql create and update", t, func() {
-				mockey.Mock(getState).Return(tc.lastStateDO, nil).Build()
-				mockey.Mock(createState).Return(nil).Build()
-				mockey.Mock(updateState).Return(nil).Build()
+				mockey.Mock(getStateFromMysql).Return(tc.lastStateDO, nil).Build()
+				mockey.Mock(checkStateExistenceInMysql).Return(tc.lastStateDO != nil, nil).Build()
+				mockey.Mock(createStateInMysql).Return(nil).Build()
+				mockey.Mock(updateStateInMysql).Return(nil).Build()
 				err := mockMysqlStorage().Apply(tc.state)
 				assert.Equal(t, tc.success, err == nil)
 			})

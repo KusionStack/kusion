@@ -1,6 +1,8 @@
 package storages
 
 import (
+	"errors"
+
 	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 
@@ -23,74 +25,80 @@ func NewMysqlStorage(db *gorm.DB, project, stack, workspace string) *MysqlStorag
 }
 
 func (s *MysqlStorage) Get() (*v1.State, error) {
-	stateDO, err := getState(s.db, s.project, s.stack, s.workspace)
+	stateDO, err := getStateFromMysql(s.db, s.project, s.stack, s.workspace)
 	if err != nil {
 		return nil, err
 	}
 	if stateDO == nil {
 		return nil, nil
 	}
-	return convertFromDO(stateDO)
+	return convertFromMysqlDO(stateDO)
 }
 
 func (s *MysqlStorage) Apply(state *v1.State) error {
-	exist, err := isStateExist(s.db, s.project, s.stack, s.workspace)
+	exist, err := checkStateExistenceInMysql(s.db, s.project, s.stack, s.workspace)
 	if err != nil {
 		return err
 	}
 
-	stateDO, err := convertToDO(state)
+	stateDO, err := convertToMysqlDO(state)
 	if err != nil {
 		return err
 	}
 	if exist {
-		return updateState(s.db, stateDO)
+		return updateStateInMysql(s.db, stateDO)
 	} else {
-		return createState(s.db, stateDO)
+		return createStateInMysql(s.db, stateDO)
 	}
 }
 
-// State is the data object stored in the mysql db.
-type State struct {
+// StateMysqlDO is the data object stored in the mysql db.
+type StateMysqlDO struct {
 	Project   string
 	Stack     string
 	Workspace string
 	Content   string
 }
 
-func (s State) TableName() string {
+func (s StateMysqlDO) TableName() string {
 	return stateTable
 }
 
-func getState(db *gorm.DB, project, stack, workspace string) (*State, error) {
-	q := &State{
+func getStateFromMysql(db *gorm.DB, project, stack, workspace string) (*StateMysqlDO, error) {
+	q := &StateMysqlDO{
 		Project:   project,
 		Stack:     stack,
 		Workspace: workspace,
 	}
-	s := &State{}
+	s := &StateMysqlDO{}
 	result := db.Where(q).First(s)
-	// if no record, return nil
-	if *s == (State{}) {
-		s = nil
+	// if no record, return nil state and nil error
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
 	}
 	return s, result.Error
 }
 
-func isStateExist(db *gorm.DB, project, stack, workspace string) (bool, error) {
-	s, err := getState(db, project, stack, workspace)
-	if err != nil {
-		return false, err
+func checkStateExistenceInMysql(db *gorm.DB, project, stack, workspace string) (bool, error) {
+	q := &StateMysqlDO{
+		Project:   project,
+		Stack:     stack,
+		Workspace: workspace,
 	}
-	return s != nil, err
+	s := &StateMysqlDO{}
+	result := db.Select("project").Where(q).First(s)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+	return result.Error == nil, result.Error
 }
 
-func createState(db *gorm.DB, s *State) error {
+func createStateInMysql(db *gorm.DB, s *StateMysqlDO) error {
 	return db.Create(s).Error
 }
 
-func updateState(db *gorm.DB, s *State) error {
-	q := &State{
+func updateStateInMysql(db *gorm.DB, s *StateMysqlDO) error {
+	q := &StateMysqlDO{
 		Project:   s.Project,
 		Stack:     s.Stack,
 		Workspace: s.Workspace,
@@ -98,12 +106,12 @@ func updateState(db *gorm.DB, s *State) error {
 	return db.Where(q).Updates(s).Error
 }
 
-func convertToDO(state *v1.State) (*State, error) {
+func convertToMysqlDO(state *v1.State) (*StateMysqlDO, error) {
 	content, err := yaml.Marshal(state)
 	if err != nil {
 		return nil, err
 	}
-	return &State{
+	return &StateMysqlDO{
 		Project:   state.Project,
 		Stack:     state.Stack,
 		Workspace: state.Workspace,
@@ -111,7 +119,7 @@ func convertToDO(state *v1.State) (*State, error) {
 	}, nil
 }
 
-func convertFromDO(s *State) (*v1.State, error) {
+func convertFromMysqlDO(s *StateMysqlDO) (*v1.State, error) {
 	state := &v1.State{}
 	if err := yaml.Unmarshal([]byte(s.Content), state); err != nil {
 		return nil, err
