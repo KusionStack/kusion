@@ -3,19 +3,6 @@ package v1
 const (
 	DefaultBlock         = "default"
 	ProjectSelectorField = "projectSelector"
-
-	DeprecatedBackendLocal            = "local"
-	DeprecatedBackendMysql            = "mysql"
-	DeprecatedBackendOss              = "oss"
-	DeprecatedBackendS3               = "s3"
-	DeprecatedEnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
-	DeprecatedEnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
-	DeprecatedEnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
-	DeprecatedEnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
-	DeprecatedEnvAwsRegion            = "AWS_REGION"
-	DeprecatedEnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
-	DeprecatedEnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
-	DeprecatedDefaultMysqlPort        = 3306
 )
 
 // Workspace is a logical concept representing a target that stacks will be deployed to.
@@ -32,10 +19,6 @@ type Workspace struct {
 
 	// Runtimes are the configs of a set of runtimes.
 	Runtimes *RuntimeConfigs `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
-
-	// Backends are the configs of a set of backends.
-	// Deprecated: do not support backend configs in workspace anymore
-	Backends *DeprecatedBackendConfigs `yaml:"backends,omitempty" json:"backends,omitempty"`
 
 	// SecretStore represents a secure external location for storing secrets.
 	SecretStore *SecretStoreSpec `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
@@ -120,77 +103,6 @@ type ProviderConfig struct {
 
 	// GenericConfig is used to describe the config of a specified terraform provider.
 	GenericConfig `yaml:",inline,omitempty" json:",inline,omitempty"`
-}
-
-// DeprecatedBackendConfigs contains config of the backend, which is used to store state, etc. Only one kind
-// backend can be configured.
-// Deprecated: do not support backend configs in workspace anymore
-type DeprecatedBackendConfigs struct {
-	// Local is the backend using local file system.
-	Local *DeprecatedLocalFileConfig `yaml:"local,omitempty" json:"local,omitempty"`
-
-	// Mysql is the backend using mysql database.
-	Mysql *DeprecatedMysqlConfig `yaml:"mysql,omitempty" json:"mysql,omitempty"`
-
-	// Oss is the backend using OSS.
-	Oss *DeprecatedOssConfig `yaml:"oss,omitempty" json:"oss,omitempty"`
-
-	// S3 is the backend using S3.
-	S3 *DeprecatedS3Config `yaml:"s3,omitempty" json:"s3,omitempty"`
-}
-
-// DeprecatedLocalFileConfig contains the config of using local file system as backend. Now there is no configuration
-// item for local file.
-// Deprecated: do not support backend configs in workspace anymore
-type DeprecatedLocalFileConfig struct{}
-
-// DeprecatedMysqlConfig contains the config of using mysql database as backend.
-// Deprecated: do not support backend configs in workspace anymore
-type DeprecatedMysqlConfig struct {
-	// DBName is the database name.
-	DBName string `yaml:"dbName" json:"dbName"`
-
-	// User of the database.
-	User string `yaml:"user" json:"user"`
-
-	// Password of the database.
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
-
-	// Host of the database.
-	Host string `yaml:"host" json:"host"`
-
-	// Port of the database. If not set, then it will be set to DeprecatedDefaultMysqlPort.
-	Port *int `yaml:"port,omitempty" json:"port,omitempty"`
-}
-
-// DeprecatedOssConfig contains the config of using OSS as backend.
-// Deprecated: do not support backend configs in workspace anymore
-type DeprecatedOssConfig struct {
-	DeprecatedGenericObjectStorageConfig `yaml:",inline" json:",inline"` // OSS asks for non-empty endpoint
-}
-
-// DeprecatedS3Config contains the config of using S3 as backend.
-// Deprecated: do not support backend configs in workspace anymore
-type DeprecatedS3Config struct {
-	DeprecatedGenericObjectStorageConfig `yaml:",inline" json:",inline"`
-
-	// Region of S3.
-	Region string `yaml:"region,omitempty" json:"region,omitempty"`
-}
-
-// DeprecatedGenericObjectStorageConfig contains generic configs which can be reused by DeprecatedOssConfig and DeprecatedS3Config.
-type DeprecatedGenericObjectStorageConfig struct {
-	// Endpoint of the object storage service.
-	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
-
-	// AccessKeyID of the object storage service.
-	AccessKeyID string `yaml:"accessKeyID,omitempty" json:"accessKeyID,omitempty"`
-
-	// AccessKeySecret of the object storage service.
-	AccessKeySecret string `yaml:"accessKeySecret,omitempty" json:"accessKeySecret,omitempty"`
-
-	// Bucket of the object storage service.
-	Bucket string `yaml:"bucket" json:"bucket"`
 }
 
 // GenericConfig is a generic model to describe config which shields the difference among multiple concrete

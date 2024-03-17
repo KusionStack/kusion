@@ -56,7 +56,7 @@ func mockValidCfgMap() map[string]any {
 				v1.BackendType: v1.BackendTypeLocal,
 			},
 			"pre": map[string]any{
-				v1.BackendType: v1.DeprecatedBackendMysql,
+				v1.BackendType: v1.BackendTypeMysql,
 				v1.BackendConfigItems: map[string]any{
 					v1.BackendMysqlDBName: "kusion",
 					v1.BackendMysqlUser:   "kk",

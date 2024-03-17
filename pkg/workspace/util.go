@@ -3,21 +3,16 @@ package workspace
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 var ErrEmptyProjectName = errors.New("empty project name")
 
-// CompleteWorkspace sets the workspace name and default value of unset item, should be called after Validatev1.
-// The config items set as environment variables are not got by Completev1.
+// CompleteWorkspace sets the workspace name and default value of unset item, should be called before ValidateWorkspace.
 func CompleteWorkspace(ws *v1.Workspace, name string) {
 	if ws.Name == "" {
 		ws.Name = name
-	}
-	if ws.Backends != nil && GetBackendName(ws.Backends) == v1.DeprecatedBackendMysql {
-		CompleteMysqlConfig(ws.Backends.Mysql)
 	}
 }
 
@@ -126,87 +121,6 @@ func GetProviderConfig(configs *v1.RuntimeConfigs, providerName string) (*v1.Pro
 		return nil, nil
 	}
 	return config[providerName], nil
-}
-
-// GetBackendName returns the backend name that is configured in DeprecatedBackendConfigs, should be called after
-// ValidateBackendConfigs.
-func GetBackendName(configs *v1.DeprecatedBackendConfigs) string {
-	if configs == nil {
-		return v1.DeprecatedBackendLocal
-	}
-	if configs.Local != nil {
-		return v1.DeprecatedBackendLocal
-	}
-	if configs.Mysql != nil {
-		return v1.DeprecatedBackendMysql
-	}
-	if configs.Oss != nil {
-		return v1.DeprecatedBackendOss
-	}
-	if configs.S3 != nil {
-		return v1.DeprecatedBackendS3
-	}
-	return v1.DeprecatedBackendLocal
-}
-
-// GetMysqlPasswordFromEnv returns mysql password set by environment variables.
-func GetMysqlPasswordFromEnv() string {
-	return os.Getenv(v1.DeprecatedEnvBackendMysqlPassword)
-}
-
-// GetOssSensitiveDataFromEnv returns oss accessKeyID, accessKeySecret set by environment variables.
-func GetOssSensitiveDataFromEnv() (string, string) {
-	return os.Getenv(v1.DeprecatedEnvOssAccessKeyID), os.Getenv(v1.DeprecatedEnvOssAccessKeySecret)
-}
-
-// GetS3SensitiveDataFromEnv returns s3 accessKeyID, accessKeySecret, region set by environment variables.
-func GetS3SensitiveDataFromEnv() (string, string, string) {
-	region := os.Getenv(v1.DeprecatedEnvAwsRegion)
-	if region == "" {
-		region = os.Getenv(v1.DeprecatedEnvAwsDefaultRegion)
-	}
-	return os.Getenv(v1.DeprecatedEnvAwsAccessKeyID), os.Getenv(v1.DeprecatedEnvAwsSecretAccessKey), region
-}
-
-// CompleteMysqlConfig sets default value of mysql config if not set.
-func CompleteMysqlConfig(config *v1.DeprecatedMysqlConfig) {
-	if config.Port == nil {
-		port := v1.DeprecatedDefaultMysqlPort
-		config.Port = &port
-	}
-}
-
-// CompleteWholeMysqlConfig constructs the whole mysql config by environment variables if set.
-func CompleteWholeMysqlConfig(config *v1.DeprecatedMysqlConfig) {
-	password := GetMysqlPasswordFromEnv()
-	if password != "" {
-		config.Password = password
-	}
-}
-
-// CompleteWholeOssConfig constructs the whole oss config by environment variables if set.
-func CompleteWholeOssConfig(config *v1.DeprecatedOssConfig) {
-	accessKeyID, accessKeySecret := GetOssSensitiveDataFromEnv()
-	if accessKeyID != "" {
-		config.AccessKeyID = accessKeyID
-	}
-	if accessKeySecret != "" {
-		config.AccessKeySecret = accessKeySecret
-	}
-}
-
-// CompleteWholeS3Config constructs the whole s3 config by environment variables if set.
-func CompleteWholeS3Config(config *v1.DeprecatedS3Config) {
-	accessKeyID, accessKeySecret, region := GetS3SensitiveDataFromEnv()
-	if accessKeyID != "" {
-		config.AccessKeyID = accessKeyID
-	}
-	if accessKeySecret != "" {
-		config.AccessKeySecret = accessKeySecret
-	}
-	if region != "" {
-		config.Region = region
-	}
 }
 
 // GetInt32PointerFromGenericConfig returns the value of the key in config which should be of type int.

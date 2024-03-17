@@ -24,7 +24,7 @@ import (
 
 type fakeModule struct{}
 
-func (f *fakeModule) Generate(ctx context.Context, req *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
+func (f *fakeModule) Generate(_ context.Context, _ *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
 	res := v1.Resource{
 		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo",
 		Type: "Kubernetes",
@@ -200,9 +200,6 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 			Kubernetes: &v1.KubernetesConfig{
 				KubeConfig: "/etc/kubeconfig.yaml",
 			},
-		},
-		Backends: &v1.DeprecatedBackendConfigs{
-			Local: &v1.DeprecatedLocalFileConfig{},
 		},
 	}
 }
