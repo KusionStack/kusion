@@ -94,8 +94,8 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	// preview
-	changes.Summary(os.Stdout)
+	// Preview
+	changes.Summary(os.Stdout, false)
 
 	// detail detection
 	if o.Detail {

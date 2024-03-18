@@ -16,9 +16,9 @@ import (
 	"kcl-lang.io/kpm/pkg/opt"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/crd"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders/crd"
+	"kusionstack.io/kusion/pkg/engine/api/builders/kcl/rest"
 	"kusionstack.io/kusion/pkg/log"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/yaml"

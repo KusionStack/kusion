@@ -1,4 +1,4 @@
-package build
+package api
 
 import (
 	"bytes"
@@ -13,18 +13,16 @@ import (
 	yamlv3 "gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-<<<<<<< HEAD
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
-=======
 	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/api/builders/kcl"
->>>>>>> b551565 (feat: kusion server, engine api and refactor preview logic)
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
-func IntentWithSpinner(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
+const JSONOutput = "json"
+
+func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -36,7 +34,7 @@ func IntentWithSpinner(o *builders.Options, proj *v1.Project, stack *v1.Stack, w
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !o.NoStyle && sp != nil
 
-	i, err := Intent(o, proj, stack, ws)
+	i, err := Intent(o, project, stack)
 	// failed
 	if err != nil {
 		if style {
@@ -57,10 +55,10 @@ func IntentWithSpinner(o *builders.Options, proj *v1.Project, stack *v1.Stack, w
 	return i, nil
 }
 
-func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
+func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
-	pg := proj.Generator
+	pg := p.Generator
 
 	// default AppsConfigBuilder
 	var bt v1.BuilderType
@@ -75,7 +73,11 @@ func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Works
 	case v1.KCLBuilder:
 		builder = &kcl.Builder{}
 	case v1.AppConfigurationBuilder:
-		appConfigs, err := buildAppConfigs(o, stack)
+		appConfigs, err := buildAppConfigs(o, s)
+		if err != nil {
+			return nil, err
+		}
+		ws, err := workspace.GetWorkspaceByDefaultOperator(s.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +89,7 @@ func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Works
 		return nil, fmt.Errorf("unknow generator type:%s", bt)
 	}
 
-	i, err := builder.Build(o, proj, stack)
+	i, err := builder.Build(o, p, s)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
@@ -115,7 +117,6 @@ func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]v1.AppCon
 	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
 	err = yaml.Unmarshal([]byte(out), appConfigs)
 	if err != nil {
-		// todo wrap error to human readable messages
 		return nil, err
 	}
 

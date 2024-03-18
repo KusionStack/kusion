@@ -9,10 +9,15 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
+<<<<<<< HEAD
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
+=======
+	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+>>>>>>> b551565 (feat: kusion server, engine api and refactor preview logic)
 	"kusionstack.io/kusion/pkg/engine"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/project"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )

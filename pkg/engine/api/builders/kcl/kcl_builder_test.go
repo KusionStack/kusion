@@ -11,9 +11,9 @@ import (
 	kcl "kcl-lang.io/kcl-go"
 	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders/kcl/rest"
 )
 
 func TestInit(t *testing.T) {

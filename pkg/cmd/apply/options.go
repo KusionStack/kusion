@@ -14,8 +14,9 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/preview"
+	engineapi "kusionstack.io/kusion/pkg/engine/api"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/state"
@@ -104,9 +105,17 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// compute changes for preview
+	// new state storage
 	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
-	changes, err := preview.Preview(&o.Options, storage, sp, proj, stack)
+
+	// Compute changes for preview
+	// Construct sdk option
+	previewOptions := &engineapi.APIOptions{
+		Operator:     o.Operator,
+		Cluster:      o.Arguments["cluster"],
+		IgnoreFields: o.IgnoreFields,
+	}
+	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack, ws)
 	if err != nil {
 		return err
 	}
@@ -116,8 +125,8 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// summary preview table
-	changes.Summary(os.Stdout)
+	// Summary preview table
+	changes.Summary(os.Stdout, false)
 
 	// detail detection
 	if o.Detail && o.All {

@@ -14,7 +14,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	engineapi "kusionstack.io/kusion/pkg/engine/api"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
@@ -147,11 +148,11 @@ func (o *Options) Run() error {
 	// generate Intent
 	var sp *apiv1.Intent
 	if o.IntentFile != "" {
-		sp, err = build.IntentFromFile(o.IntentFile)
+		sp, err = engineapi.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
-		sp, err = build.Intent(options, proj, stack, ws)
+		sp, err = engineapi.Intent(options, proj, stack)
 	} else {
-		sp, err = build.IntentWithSpinner(options, proj, stack, ws)
+		sp, err = engineapi.IntentWithSpinner(options, proj, stack)
 	}
 	if err != nil {
 		return err
@@ -166,9 +167,18 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// compute changes for preview
+	// new state storage
 	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
-	changes, err := Preview(o, storage, sp, proj, stack)
+
+	// Construct sdk option
+	previewOptions := &engineapi.APIOptions{
+		Operator:     o.Operator,
+		Cluster:      o.Arguments["cluster"],
+		IgnoreFields: o.IgnoreFields,
+	}
+
+	// Compute changes for preview
+	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack, ws)
 	if err != nil {
 		return err
 	}
@@ -188,8 +198,13 @@ func (o *Options) Run() error {
 		return nil
 	}
 
+<<<<<<< HEAD
 	// summary preview table
 	changes.Summary(os.Stdout)
+=======
+	// Summary preview table
+	changes.Summary(os.Stdout, false)
+>>>>>>> b551565 (feat: kusion server, engine api and refactor preview logic)
 
 	// detail detection
 	if o.Detail {
