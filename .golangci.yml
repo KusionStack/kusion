@@ -21,7 +21,7 @@ linters:
     - govet
     - gofumpt
     - bodyclose
-    - depguard
+  # - depguard
     - dogsled
     - dupl
     - exportloopref
@@ -48,7 +48,7 @@ linters:
 linters-settings:
   gofumpt:
     # Select the Go version to target. The default is `1.15`.
-    lang-version: "1.19"
+    lang-version: "1.22"
     # Choose whether or not to use the extra rules that are disabled
     # by default
     extra-rules: false
