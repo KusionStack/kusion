@@ -92,7 +92,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			Message: "Configuration Commands:",
 			Commands: []*cobra.Command{
 				workspace.NewCmd(),
-				cmdinit.NewCmdInit(),
+				cmdinit.NewCmd(),
 				build.NewCmdBuild(),
 			},
 		},
