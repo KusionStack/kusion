@@ -84,7 +84,6 @@ func GenDemoProject(dir, name string) error {
 
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
