@@ -35,14 +35,10 @@ func (s *S3Storage) Get() (*v1.State, error) {
 		Key:    &s.key,
 	}
 	output, err := s.s3.GetObject(input)
-	var notExist bool
 	if err != nil {
 		awsErr, ok := err.(awserr.Error)
 		// if no kusion state file, return nil state
 		if ok && awsErr.Code() == s3.ErrCodeNoSuchKey {
-			notExist = true
-		}
-		if notExist {
 			return nil, nil
 		}
 		return nil, err

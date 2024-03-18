@@ -65,9 +65,5 @@ func (s *OssStorage) Apply(state *v1.State) error {
 		return err
 	}
 
-	err = s.bucket.PutObject(s.key, bytes.NewReader(content))
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.bucket.PutObject(s.key, bytes.NewReader(content))
 }
