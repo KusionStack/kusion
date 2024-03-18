@@ -1,4 +1,4 @@
-package client
+package oci
 
 import (
 	"fmt"
@@ -10,9 +10,9 @@ import (
 // OCIRepositoryPrefix is the prefix used for OCIRepository URLs.
 const OCIRepositoryPrefix = "oci://"
 
-// parseArtifactRef parses a string representing an OCI repository URL.
-// If the string is not a valid representation of an OCI repository URL, parseArtifactRef returns an error.
-func parseArtifactRef(ociURL string) (name.Reference, error) {
+// ParseArtifactRef parses a string representing an OCI repository URL.
+// If the string is not a valid representation of an OCI repository URL, ParseArtifactRef returns an error.
+func ParseArtifactRef(ociURL string) (name.Reference, error) {
 	if !strings.HasPrefix(ociURL, OCIRepositoryPrefix) {
 		return nil, fmt.Errorf("URL must be in format 'oci://<domain>/<org>/<repo>'")
 	}

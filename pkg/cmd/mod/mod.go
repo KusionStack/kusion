@@ -16,7 +16,7 @@ var modLong = i18n.T(`
 // NewCmdMod returns an initialized Command instance for 'mod' sub command
 func NewCmdMod(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                   "mod SUBCOMMAND",
+		Use:                   "mod",
 		DisableFlagsInUseLine: true,
 		Short:                 "Manage Kusion modules",
 		Long:                  modLong,

@@ -14,6 +14,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 
+	"kusionstack.io/kusion/pkg/oci"
 	meta "kusionstack.io/kusion/pkg/oci/metadata"
 )
 
@@ -23,10 +24,10 @@ import (
 // - annotates the artifact with the given annotations
 // - uploads the final artifact to the OCI registry
 // - returns the digest URL of the upstream artifact
-func (c *Client) Push(ctx context.Context, registryURL, sourceDir string, metadata meta.Metadata, ignorePaths []string) (string, error) {
-	ref, err := parseArtifactRef(registryURL)
+func (c *Client) Push(ctx context.Context, ociURL, sourceDir string, metadata meta.Metadata, ignorePaths []string) (string, error) {
+	ref, err := oci.ParseArtifactRef(ociURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("invalid OCI repository url: %w", err)
 	}
 
 	tmpDir, err := os.MkdirTemp("", "oci")
@@ -55,12 +56,17 @@ func (c *Client) Push(ctx context.Context, registryURL, sourceDir string, metada
 		return "", fmt.Errorf("creating content layer failed: %w", err)
 	}
 
-	image, err = mutate.Append(image, mutate.Addendum{Layer: layer})
+	image, err = mutate.Append(image, mutate.Addendum{
+		Layer: layer,
+		Annotations: map[string]string{
+			meta.AnnotationTitle: "artifact",
+		},
+	})
 	if err != nil {
 		return "", fmt.Errorf("appeding content to artifact failed: %w", err)
 	}
 
-	if err := crane.Push(image, registryURL, c.optionsWithContext(ctx)...); err != nil {
+	if err := crane.Push(image, ref.String(), c.optionsWithContext(ctx)...); err != nil {
 		return "", fmt.Errorf("pushing artifact failed: %w", err)
 	}
 
@@ -69,5 +75,6 @@ func (c *Client) Push(ctx context.Context, registryURL, sourceDir string, metada
 		return "", fmt.Errorf("parsing artifact digest failed: %w", err)
 	}
 
-	return ref.Context().Digest(digest.String()).String(), err
+	digestURL := ref.Context().Digest(digest.String()).String()
+	return fmt.Sprintf("%s%s", oci.OCIRepositoryPrefix, digestURL), nil
 }
