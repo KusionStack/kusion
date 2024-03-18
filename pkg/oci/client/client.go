@@ -3,17 +3,19 @@ package client
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 )
 
 var (
 	// CanonicalConfigMediaType is the OCI media type for the config layer.
-	CanonicalConfigMediaType types.MediaType = "application/vnd.io.kusionstack.config.v1+json"
+	CanonicalConfigMediaType types.MediaType = "application/vnd.io.kusion.config.v1+json"
 
 	// CanonicalMediaTypePrefix is the suffix for OCI media type for the content layer.
-	CanonicalMediaTypePrefix types.MediaType = "application/vnd.io.kusionstack.content.v1"
+	CanonicalMediaTypePrefix types.MediaType = "application/vnd.io.kusion.content.v1"
 
 	// CanonicalContentMediaType is the OCI media type for the content layer.
 	CanonicalContentMediaType = types.MediaType(fmt.Sprintf("%s.tar+gzip", CanonicalMediaTypePrefix))
@@ -31,6 +33,34 @@ type ClientOption func(o *ClientOptions)
 func WithUserAgent(userAgent string) ClientOption {
 	return func(o *ClientOptions) {
 		o.craneOptions = append(o.craneOptions, crane.WithUserAgent(userAgent))
+	}
+}
+
+// WithCredentials sets authenticator for remote operations.
+func WithCredentials(credentials string) ClientOption {
+	return func(o *ClientOptions) {
+		if len(credentials) == 0 {
+			return
+		}
+
+		var authConfig authn.AuthConfig
+		parts := strings.SplitN(credentials, ":", 2)
+
+		if len(parts) == 1 {
+			authConfig = authn.AuthConfig{RegistryToken: parts[0]}
+		} else {
+			authConfig = authn.AuthConfig{Username: parts[0], Password: parts[1]}
+		}
+		o.craneOptions = append(o.craneOptions, crane.WithAuth(authn.FromConfig(authConfig)))
+	}
+}
+
+// WithInsecure returns a ClientOption which allows image references to be fetched without TLS.
+func WithInsecure(insecure bool) ClientOption {
+	return func(o *ClientOptions) {
+		if insecure {
+			o.craneOptions = append(o.craneOptions, crane.Insecure)
+		}
 	}
 }
 

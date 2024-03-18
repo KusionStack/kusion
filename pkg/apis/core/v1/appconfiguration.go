@@ -10,7 +10,7 @@ type Accessory map[string]interface{}
 // of experience from AntGroup in operating a large-scale internal developer platform and combines the best ideas and practices from the
 // community.
 //
-// Note: AppConfiguration per se is not a Kusion Module
+// Note: AppConfiguration per se is not a Kusion ModulePath
 //
 // Example:
 // import models.schema.v1 as ac

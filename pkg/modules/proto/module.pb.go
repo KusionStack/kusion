@@ -220,8 +220,8 @@ var file_module_proto_goTypes = []interface{}{
 	(*GeneratorResponse)(nil), // 1: GeneratorResponse
 }
 var file_module_proto_depIdxs = []int32{
-	0, // 0: Module.Generate:input_type -> GeneratorRequest
-	1, // 1: Module.Generate:output_type -> GeneratorResponse
+	0, // 0: ModulePath.Generate:input_type -> GeneratorRequest
+	1, // 1: ModulePath.Generate:output_type -> GeneratorResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
