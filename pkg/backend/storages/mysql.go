@@ -10,6 +10,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	"kusionstack.io/kusion/pkg/workspace"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 // MysqlStorage is an implementation of backend.Backend which uses mysql as storage.
@@ -40,4 +42,8 @@ func NewMysqlStorage(config *v1.BackendMysqlConfig) (*MysqlStorage, error) {
 
 func (s *MysqlStorage) StateStorage(project, stack, workspace string) state.Storage {
 	return statestorages.NewMysqlStorage(s.db, project, stack, workspace)
+}
+
+func (s *MysqlStorage) WorkspaceStorage() (workspace.Storage, error) {
+	return workspacestorages.NewMysqlStorage(s.db)
 }

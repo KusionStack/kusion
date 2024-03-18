@@ -10,6 +10,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestNewMysqlStorage(t *testing.T) {
@@ -68,7 +69,33 @@ func TestMysqlStorage_StateStorage(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			stateStorage := tc.mysqlStorage.StateStorage(tc.project, tc.stack, tc.workspace)
-			assert.Equal(t, stateStorage, tc.stateStorage)
+			assert.Equal(t, tc.stateStorage, stateStorage)
+		})
+	}
+}
+
+func TestMysqlStorage_WorkspaceStorage(t *testing.T) {
+	testcases := []struct {
+		name         string
+		success      bool
+		mysqlStorage *MysqlStorage
+	}{
+		{
+			name:    "workspace storage from mysql backend",
+			success: true,
+			mysqlStorage: &MysqlStorage{
+				db: &gorm.DB{},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new mysql workspace storage", t, func() {
+				mockey.Mock(workspacestorages.NewMysqlStorage).Return(&workspacestorages.MysqlStorage{}, nil).Build()
+				_, err := tc.mysqlStorage.WorkspaceStorage()
+				assert.Equal(t, tc.success, err == nil)
+			})
 		})
 	}
 }

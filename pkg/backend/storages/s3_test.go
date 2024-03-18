@@ -11,6 +11,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestNewS3Storage(t *testing.T) {
@@ -74,6 +75,34 @@ func TestS3Storage_StateStorage(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			stateStorage := tc.s3Storage.StateStorage(tc.project, tc.stack, tc.workspace)
 			assert.Equal(t, tc.stateStorage, stateStorage)
+		})
+	}
+}
+
+func TestS3Storage_WorkspaceStorage(t *testing.T) {
+	testcases := []struct {
+		name      string
+		success   bool
+		s3Storage *S3Storage
+	}{
+		{
+			name:    "workspace storage from s3 backend",
+			success: true,
+			s3Storage: &S3Storage{
+				s3:     &s3.S3{},
+				bucket: "infra",
+				prefix: "kusion",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new s3 workspace storage", t, func() {
+				mockey.Mock(workspacestorages.NewS3Storage).Return(&workspacestorages.S3Storage{}, nil).Build()
+				_, err := tc.s3Storage.WorkspaceStorage()
+				assert.Equal(t, tc.success, err == nil)
+			})
 		})
 	}
 }
