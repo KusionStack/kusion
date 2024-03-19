@@ -13,11 +13,17 @@ func NewCmd() *cobra.Command {
 		short = i18n.T(`Show a workspace configuration`)
 
 		long = i18n.T(`
-		This command gets a specified workspace configuration.`)
+		This command gets the current or a specified workspace configuration.`)
 
 		example = i18n.T(`
-		# Show a workspace configuration
-		kusion workspace show dev`)
+		# Show current workspace configuration
+		kusion workspace show
+
+		# Show a specified workspace configuration
+		kusion workspace show dev
+
+		# Show a specified workspace in a specified backend
+		kusion workspace show prod --backend oss-prod`)
 	)
 
 	o := NewOptions()
@@ -30,10 +36,11 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			util.CheckErr(o.Complete(args))
-			util.CheckErr(o.Validate())
 			util.CheckErr(o.Run())
 			return
 		},
 	}
+
+	cmd.Flags().StringVarP(&o.Backend, "backend", "", "", i18n.T("the backend name"))
 	return cmd
 }

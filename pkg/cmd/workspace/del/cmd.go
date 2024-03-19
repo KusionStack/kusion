@@ -13,11 +13,17 @@ func NewCmd() *cobra.Command {
 		short = i18n.T(`Delete a workspace`)
 
 		long = i18n.T(`
-		This command deletes a specified workspace.`)
+		This command deletes the current or a specified workspace.`)
 
 		example = i18n.T(`
-		# Delete a workspace
-		kusion workspace delete dev`)
+		# Delete the current workspace
+		kusion workspace delete
+
+		# Delete a specified workspace
+		kusion workspace delete dev
+
+		# Delete a specified workspace in a specified backend
+		kusion workspace delete prod --backend oss-prod`)
 	)
 
 	o := NewOptions()
@@ -30,10 +36,11 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			util.CheckErr(o.Complete(args))
-			util.CheckErr(o.Validate())
 			util.CheckErr(o.Run())
 			return
 		},
 	}
+
+	cmd.Flags().StringVarP(&o.Backend, "backend", "", "", i18n.T("the backend name"))
 	return cmd
 }

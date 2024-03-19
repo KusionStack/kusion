@@ -5,12 +5,13 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/workspace/util"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type Options struct {
-	Name string
+	Name    string
+	Backend string
 }
 
 func NewOptions() *Options {
@@ -26,15 +27,13 @@ func (o *Options) Complete(args []string) error {
 	return nil
 }
 
-func (o *Options) Validate() error {
-	if err := util.ValidateName(o.Name); err != nil {
+func (o *Options) Run() error {
+	storage, err := backend.NewWorkspaceStorage(o.Backend)
+	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func (o *Options) Run() error {
-	ws, err := workspace.GetWorkspaceByDefaultOperator(o.Name)
+	ws, err := storage.Get(o.Name)
 	if err != nil {
 		return err
 	}
@@ -42,6 +41,7 @@ func (o *Options) Run() error {
 	if err != nil {
 		return fmt.Errorf("yaml marshal workspace configuration failed: %w", err)
 	}
+	fmt.Printf("show configuration of workspace %s:\n", ws.Name)
 	fmt.Print(string(content))
 	return nil
 }

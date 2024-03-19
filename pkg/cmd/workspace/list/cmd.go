@@ -2,15 +2,12 @@ package list
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/util/i18n"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 var ErrNotEmptyArgs = errors.New("no args accepted")
@@ -24,9 +21,14 @@ func NewCmd() *cobra.Command {
 
 		example = i18n.T(`
 		# List all workspace names
-		kusion workspace list`)
+		kusion workspace list
+
+		# List all workspace names in a specified backend
+		kusion workspace list --backend oss-prod
+`)
 	)
 
+	o := NewOptions()
 	cmd := &cobra.Command{
 		Use:                   "list",
 		Short:                 short,
@@ -35,30 +37,12 @@ func NewCmd() *cobra.Command {
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
-			util.CheckErr(Validate(args))
-			util.CheckErr(Run())
+			util.CheckErr(o.Validate(args))
+			util.CheckErr(o.Run())
 			return
 		},
 	}
+
+	cmd.Flags().StringVarP(&o.Backend, "backend", "", "", i18n.T("the backend name"))
 	return cmd
-}
-
-func Validate(args []string) error {
-	if len(args) != 0 {
-		return ErrNotEmptyArgs
-	}
-	return nil
-}
-
-func Run() error {
-	names, err := workspace.GetWorkspaceNamesByDefaultOperator()
-	if err != nil {
-		return err
-	}
-	content, err := yaml.Marshal(names)
-	if err != nil {
-		return fmt.Errorf("yaml marshal workspace names failed: %w", err)
-	}
-	fmt.Print(string(content))
-	return nil
 }
