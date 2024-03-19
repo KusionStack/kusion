@@ -62,11 +62,10 @@ type Message struct {
 }
 
 type Request struct {
-	Project   *v1.Project `json:"project"`
-	Stack     *v1.Stack   `json:"stack"`
-	Workspace string      `json:"workspace"`
-	Operator  string      `json:"operator"`
-	Intent    *v1.Intent  `json:"intent"`
+	Project  *v1.Project `json:"project"`
+	Stack    *v1.Stack   `json:"stack"`
+	Operator string      `json:"operator"`
+	Intent   *v1.Intent  `json:"intent"`
 }
 
 type OpResult string

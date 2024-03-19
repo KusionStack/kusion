@@ -109,15 +109,10 @@ func (o *Options) ValidateIntentFile() error {
 }
 
 func (o *Options) Run() error {
-	// Set no style
+	// set no style
 	if o.NoStyle || o.Output == jsonOutput {
 		pterm.DisableStyling()
 		pterm.DisableColor()
-	}
-	// Parse project and stack of work directory
-	proj, stack, err := project.DetectProjectAndStack(o.WorkDir)
-	if err != nil {
-		return err
 	}
 
 	options := &builders.Options{
@@ -129,14 +124,34 @@ func (o *Options) Run() error {
 		NoStyle:   o.NoStyle,
 	}
 
-	// Generate Intent
+	// parse project and stack of work directory
+	proj, stack, err := project.DetectProjectAndStack(o.WorkDir)
+	if err != nil {
+		return err
+	}
+
+	// get workspace configurations
+	bk, err := backend.NewBackend(o.Backend)
+	if err != nil {
+		return err
+	}
+	wsStorage, err := bk.WorkspaceStorage()
+	if err != nil {
+		return err
+	}
+	ws, err := wsStorage.Get(o.Workspace)
+	if err != nil {
+		return err
+	}
+
+	// generate Intent
 	var sp *apiv1.Intent
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
-		sp, err = build.Intent(options, proj, stack)
+		sp, err = build.Intent(options, proj, stack, ws)
 	} else {
-		sp, err = build.IntentWithSpinner(options, proj, stack)
+		sp, err = build.IntentWithSpinner(options, proj, stack, ws)
 	}
 	if err != nil {
 		return err
@@ -151,16 +166,9 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// new state storage
-	ws := "default"                   // todo: use default workspace for tmp
-	bk, err := backend.NewBackend("") // todo: use current backend for tmp
-	if err != nil {
-		return err
-	}
-	storage := bk.StateStorage(proj.Name, stack.Name, ws)
-
-	// Compute changes for preview
-	changes, err := Preview(o, storage, sp, proj, stack, ws)
+	// compute changes for preview
+	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
+	changes, err := Preview(o, storage, sp, proj, stack)
 	if err != nil {
 		return err
 	}
@@ -180,10 +188,10 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Summary preview table
+	// summary preview table
 	changes.Summary(os.Stdout)
 
-	// Detail detection
+	// detail detection
 	if o.Detail {
 		for {
 			var target string
@@ -228,11 +236,10 @@ func Preview(
 	planResources *apiv1.Intent,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
-	ws string,
 ) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
-	// Check and install terraform executable binary for
+	// check and install terraform executable binary for
 	// resources with the type of Terraform.
 	tfInstaller := terraform.CLIInstaller{
 		Intent: planResources,
@@ -241,7 +248,7 @@ func Preview(
 		return nil, err
 	}
 
-	// Construct the preview operation
+	// construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: models.Operation{
 			OperationType: models.ApplyPreview,
@@ -257,16 +264,15 @@ func Preview(
 	// parse cluster in arguments
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: models.Request{
-			Project:   proj,
-			Stack:     stack,
-			Workspace: ws,
-			Operator:  o.Operator,
-			Intent:    planResources,
+			Project:  proj,
+			Stack:    stack,
+			Operator: o.Operator,
+			Intent:   planResources,
 		},
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 
-	return models.NewChanges(proj, stack, ws, rsp.Order), nil
+	return models.NewChanges(proj, stack, rsp.Order), nil
 }

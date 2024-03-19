@@ -23,6 +23,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 var (
@@ -30,13 +31,12 @@ var (
 	kind       = "ServiceAccount"
 	namespace  = "test-ns"
 
-	p = &apiv1.Project{
+	proj = &apiv1.Project{
 		Name: "testdata",
 	}
-	s = &apiv1.Stack{
+	stack = &apiv1.Stack{
 		Name: "dev",
 	}
-	ws = "dev"
 
 	sa1 = newSA("sa1")
 	sa2 = newSA("sa2")
@@ -50,7 +50,7 @@ func Test_preview(t *testing.T) {
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s, ws)
+		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
 		assert.Nil(t, err)
 	})
 }
@@ -64,89 +64,79 @@ func TestPreviewOptions_Run(t *testing.T) {
 	})
 
 	t.Run("compile failed", func(t *testing.T) {
-		m := mockDetectProjectAndStack()
-		defer m.UnPatch()
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
 
-		o := NewPreviewOptions()
-		o.Detail = true
-		err := o.Run()
-		assert.NotNil(t, err)
+			o := NewPreviewOptions()
+			o.Detail = true
+			err := o.Run()
+			assert.NotNil(t, err)
+		})
 	})
 
 	t.Run("no changes", func(t *testing.T) {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchBuildIntentWithSpinner()
-		m3 := mockNewKubernetesRuntime()
-		m4 := mockNewBackend()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
-		defer m4.UnPatch()
-
-		o := NewPreviewOptions()
-		o.Detail = true
-		err := o.Run()
-		assert.Nil(t, err)
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockPatchBuildIntentWithSpinner()
+			mockNewKubernetesRuntime()
+			mockNewBackend()
+			mockWorkspaceStorage()
+			o := NewPreviewOptions()
+			o.Detail = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
 	})
 
 	t.Run("detail is true", func(t *testing.T) {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchBuildIntentWithSpinner()
-		m3 := mockNewKubernetesRuntime()
-		m4 := mockOperationPreview()
-		m5 := mockPromptDetail("")
-		m6 := mockNewBackend()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
-		defer m4.UnPatch()
-		defer m5.UnPatch()
-		defer m6.UnPatch()
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockPatchBuildIntentWithSpinner()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockNewBackend()
+			mockWorkspaceStorage()
 
-		o := NewPreviewOptions()
-		o.Detail = true
-		err := o.Run()
-		assert.Nil(t, err)
+			o := NewPreviewOptions()
+			o.Detail = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
 	})
 
 	t.Run("json output is true", func(t *testing.T) {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockBuildIntent()
-		m3 := mockNewKubernetesRuntime()
-		m4 := mockOperationPreview()
-		m5 := mockPromptDetail("")
-		m6 := mockNewBackend()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
-		defer m4.UnPatch()
-		defer m5.UnPatch()
-		defer m6.UnPatch()
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockBuildIntent()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockNewBackend()
+			mockWorkspaceStorage()
 
-		o := NewPreviewOptions()
-		o.Output = jsonOutput
-		err := o.Run()
-		assert.Nil(t, err)
+			o := NewPreviewOptions()
+			o.Output = jsonOutput
+			err := o.Run()
+			assert.Nil(t, err)
+		})
 	})
 
 	t.Run("no style is true", func(t *testing.T) {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockPatchBuildIntentWithSpinner()
-		m3 := mockNewKubernetesRuntime()
-		m4 := mockOperationPreview()
-		m5 := mockPromptDetail("")
-		m6 := mockNewBackend()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
-		defer m4.UnPatch()
-		defer m5.UnPatch()
-		defer m6.UnPatch()
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockPatchBuildIntentWithSpinner()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockNewBackend()
+			mockWorkspaceStorage()
 
-		o := NewPreviewOptions()
-		o.NoStyle = true
-		err := o.Run()
-		assert.Nil(t, err)
+			o := NewPreviewOptions()
+			o.NoStyle = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
 	})
 }
 
@@ -229,48 +219,55 @@ func newSA(name string) apiv1.Resource {
 	}
 }
 
-func mockDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
-		p.Path = stackDir
-		s.Path = stackDir
-		return p, s, nil
+func mockDetectProjectAndStack() {
+	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
+		proj.Path = stackDir
+		stack.Path = stackDir
+		return proj, stack, nil
 	}).Build()
 }
 
-func mockBuildIntent() *mockey.Mocker {
-	return mockey.Mock(build.Intent).To(func(
+func mockBuildIntent() {
+	mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
-		project *apiv1.Project,
+		proj *apiv1.Project,
 		stack *apiv1.Stack,
+		ws *apiv1.Workspace,
 	) (*apiv1.Intent, error) {
 		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
-func mockPatchBuildIntentWithSpinner() *mockey.Mocker {
-	return mockey.Mock(build.IntentWithSpinner).To(func(
+func mockPatchBuildIntentWithSpinner() {
+	mockey.Mock(build.IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *apiv1.Project,
+		proj *apiv1.Project,
 		stack *apiv1.Stack,
+		ws *apiv1.Workspace,
 	) (*apiv1.Intent, error) {
 		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
-func mockNewKubernetesRuntime() *mockey.Mocker {
-	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
+func mockNewKubernetesRuntime() {
+	mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 		return &fooRuntime{}, nil
 	}).Build()
 }
 
-func mockPromptDetail(input string) *mockey.Mocker {
-	return mockey.Mock((*models.ChangeOrder).PromptDetails).To(func(co *models.ChangeOrder) (string, error) {
+func mockPromptDetail(input string) {
+	mockey.Mock((*models.ChangeOrder).PromptDetails).To(func(co *models.ChangeOrder) (string, error) {
 		return input, nil
 	}).Build()
 }
 
-func mockNewBackend() *mockey.Mocker {
-	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+func mockNewBackend() {
+	mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+}
+
+func mockWorkspaceStorage() {
+	mockey.Mock((*storages.LocalStorage).WorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*workspacestorages.LocalStorage).Get).Return(&apiv1.Workspace{}, nil).Build()
 }
 
 func TestPreviewOptions_ValidateIntentFile(t *testing.T) {

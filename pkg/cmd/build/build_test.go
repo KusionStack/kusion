@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCmdCompile(t *testing.T) {
+func TestNewCmdBuild(t *testing.T) {
 	m1 := mockey.Mock((*Options).Complete).To(func(o *Options, args []string) error {
 		o.Output = "stdout"
 		return nil

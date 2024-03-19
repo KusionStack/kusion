@@ -22,13 +22,15 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestDestroyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
 		mockDetectProjectAndStack()
 		mockGetState()
-		mockNewBackend()
+		mockBackend()
+		mockWorkspaceStorage()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -41,7 +43,8 @@ func TestDestroyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("prompt no", t, func() {
 		mockDetectProjectAndStack()
 		mockGetState()
-		mockNewBackend()
+		mockBackend()
+		mockWorkspaceStorage()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
@@ -54,7 +57,8 @@ func TestDestroyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockDetectProjectAndStack()
 		mockGetState()
-		mockNewBackend()
+		mockBackend()
+		mockWorkspaceStorage()
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 		mockOperationDestroy(models.Success)
@@ -67,20 +71,19 @@ func TestDestroyOptions_Run(t *testing.T) {
 }
 
 var (
-	p = &apiv1.Project{
+	proj = &apiv1.Project{
 		Name: "testdata",
 	}
-	s = &apiv1.Stack{
+	stack = &apiv1.Stack{
 		Name: "dev",
 	}
-	ws = "dev"
 )
 
 func mockDetectProjectAndStack() {
 	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
-		p.Path = stackDir
-		s.Path = stackDir
-		return p, s, nil
+		proj.Path = stackDir
+		stack.Path = stackDir
+		return proj, stack, nil
 	}).Build()
 }
 
@@ -95,7 +98,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
-		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, p, s, ws, stateStorage)
+		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, proj, stack, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -209,7 +212,7 @@ func Test_destroy(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(p, s, ws, order)
+		changes := models.NewChanges(proj, stack, order)
 
 		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
 
@@ -232,7 +235,7 @@ func Test_destroy(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(p, s, ws, order)
+		changes := models.NewChanges(proj, stack, order)
 		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
 
 		err := o.destroy(planResources, changes, stateStorage)
@@ -268,8 +271,13 @@ func mockOperationDestroy(res models.OpResult) {
 		}).Build()
 }
 
-func mockNewBackend() *mockey.Mocker {
-	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+func mockBackend() {
+	mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+}
+
+func mockWorkspaceStorage() {
+	mockey.Mock((*storages.LocalStorage).WorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*workspacestorages.LocalStorage).GetCurrent).Return("default", nil).Build()
 }
 
 func Test_prompt(t *testing.T) {

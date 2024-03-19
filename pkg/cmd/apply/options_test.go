@@ -25,6 +25,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestApplyOptions_Run(t *testing.T) {
@@ -33,6 +34,7 @@ func TestApplyOptions_Run(t *testing.T) {
 		mockPatchBuildIntent()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
+		mockWorkspaceStorage()
 		mockPatchOperationPreview()
 
 		o := NewApplyOptions()
@@ -48,6 +50,7 @@ func TestApplyOptions_Run(t *testing.T) {
 		mockPatchBuildIntent()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
+		mockWorkspaceStorage()
 		mockPatchOperationPreview()
 		mockOperationApply(models.Success)
 
@@ -60,28 +63,28 @@ func TestApplyOptions_Run(t *testing.T) {
 }
 
 var (
-	p = &apiv1.Project{
+	proj = &apiv1.Project{
 		Name: "testdata",
 	}
-	s = &apiv1.Stack{
+	stack = &apiv1.Stack{
 		Name: "dev",
 	}
-	ws = "dev"
 )
 
 func mockPatchDetectProjectAndStack() *mockey.Mocker {
 	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
-		p.Path = stackDir
-		s.Path = stackDir
-		return p, s, nil
+		proj.Path = stackDir
+		stack.Path = stackDir
+		return proj, stack, nil
 	}).Build()
 }
 
 func mockPatchBuildIntent() *mockey.Mocker {
 	return mockey.Mock(build.Intent).To(func(
 		o *builders.Options,
-		project *apiv1.Project,
+		proj *apiv1.Project,
 		stack *apiv1.Stack,
+		ws *apiv1.Workspace,
 	) (*apiv1.Intent, error) {
 		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
@@ -95,6 +98,11 @@ func mockPatchNewKubernetesRuntime() *mockey.Mocker {
 
 func mockNewBackend() *mockey.Mocker {
 	return mockey.Mock(backend.NewBackend).Return(&storages.LocalStorage{}, nil).Build()
+}
+
+func mockWorkspaceStorage() {
+	mockey.Mock((*storages.LocalStorage).WorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*workspacestorages.LocalStorage).Get).Return(&apiv1.Workspace{}, nil).Build()
 }
 
 var _ runtime.Runtime = (*fakerRuntime)(nil)
@@ -204,7 +212,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(p, s, ws, order)
+		changes := models.NewChanges(proj, stack, order)
 		o := NewApplyOptions()
 		o.DryRun = true
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
@@ -229,7 +237,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(p, s, ws, order)
+		changes := models.NewChanges(proj, stack, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.Nil(t, err)
@@ -249,7 +257,7 @@ func Test_apply(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(p, s, ws, order)
+		changes := models.NewChanges(proj, stack, order)
 
 		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
 		assert.NotNil(t, err)

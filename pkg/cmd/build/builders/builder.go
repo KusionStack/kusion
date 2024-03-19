@@ -1,7 +1,7 @@
 package builders
 
 import (
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
 // Builder represents a method to build an Intent. Typically, it is implemented by the AppConfigureBuilder,

@@ -83,9 +83,8 @@ var (
 type Changes struct {
 	*ChangeOrder `json:",inline" yaml:",inline"`
 
-	project   *v1.Project // the project of current changes
-	stack     *v1.Stack   // the stack of current changes
-	workspace string      // the workspace name of current changes
+	project *v1.Project // the project of current changes
+	stack   *v1.Stack   // the stack of current changes
 }
 
 type ChangeOrder struct {
@@ -93,12 +92,11 @@ type ChangeOrder struct {
 	ChangeSteps map[string]*ChangeStep `json:"changeSteps,omitempty" yaml:"changeSteps,omitempty"`
 }
 
-func NewChanges(p *v1.Project, s *v1.Stack, ws string, order *ChangeOrder) *Changes {
+func NewChanges(p *v1.Project, s *v1.Stack, order *ChangeOrder) *Changes {
 	return &Changes{
 		ChangeOrder: order,
 		project:     p,
 		stack:       s,
-		workspace:   ws,
 	}
 }
 
@@ -135,10 +133,6 @@ func (p *Changes) Stack() *v1.Stack {
 
 func (p *Changes) Project() *v1.Project {
 	return p.project
-}
-
-func (p *Changes) Workspace() string {
-	return p.workspace
 }
 
 func (o *ChangeOrder) Diffs() string {
