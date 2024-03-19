@@ -35,7 +35,7 @@ var PluginMap = map[string]plugin.Plugin{
 }
 
 type Plugin struct {
-	// key represents the module key, it consists of two parts: moduleName@version. e.g. "kusionstack/mysql@v0.1"
+	// key represents the module key, it consists of two parts: moduleName@version. e.g. "kusionstack/mysql@v0.1.0"
 	key    string
 	client *plugin.Client
 	// Module represents the real module impl
@@ -126,9 +126,12 @@ func newPluginClient(path string) *plugin.Client {
 	return client
 }
 
-func (p *Plugin) KillPluginClient() {
-	// fixme: if p.client is nil, it will panic
+func (p *Plugin) KillPluginClient() error {
+	if p.client == nil {
+		return fmt.Errorf("plugin: %s client is nil", p.key)
+	}
 	p.client.Kill()
+	return nil
 }
 
 func PluginDir() (string, error) {
