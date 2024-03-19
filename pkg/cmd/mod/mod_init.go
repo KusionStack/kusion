@@ -21,13 +21,13 @@ type InitOptions struct {
 }
 
 var example = i18n.T(`# Create a kusion module template in the current directory
-  kusion mod init my-app
+  kusion mod init my-module
 
   # Init a kusion module at the specified Path
-  kusion mod init my-app ./modules
+  kusion mod init my-module ./modules
 
   # Init a module from a remote git template repository 
-  kusion mod init my-app --template https://github.com/<user>/<repo>`)
+  kusion mod init my-module --template https://github.com/<user>/<repo>`)
 var short = i18n.T("Create a kusion module along with common files and directories in the current directory")
 
 const (
