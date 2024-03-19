@@ -10,6 +10,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestNewOssStorage(t *testing.T) {
@@ -69,7 +70,34 @@ func TestOssStorage_StateStorage(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			stateStorage := tc.ossStorage.StateStorage(tc.project, tc.stack, tc.workspace)
-			assert.Equal(t, stateStorage, tc.stateStorage)
+			assert.Equal(t, tc.stateStorage, stateStorage)
+		})
+	}
+}
+
+func TestOssStorage_WorkspaceStorage(t *testing.T) {
+	testcases := []struct {
+		name       string
+		success    bool
+		ossStorage *OssStorage
+	}{
+		{
+			name:    "workspace storage from oss backend",
+			success: true,
+			ossStorage: &OssStorage{
+				bucket: &oss.Bucket{},
+				prefix: "kusion",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new oss workspace storage", t, func() {
+				mockey.Mock(workspacestorages.NewOssStorage).Return(&workspacestorages.OssStorage{}, nil).Build()
+				_, err := tc.ossStorage.WorkspaceStorage()
+				assert.Equal(t, tc.success, err == nil)
+			})
 		})
 	}
 }

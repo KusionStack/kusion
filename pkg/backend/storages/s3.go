@@ -9,6 +9,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	"kusionstack.io/kusion/pkg/workspace"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 // S3Storage is an implementation of backend.Backend which uses s3 as storage.
@@ -44,4 +46,8 @@ func NewS3Storage(config *v1.BackendS3Config) (*S3Storage, error) {
 
 func (s *S3Storage) StateStorage(project, stack, workspace string) state.Storage {
 	return statestorages.NewS3Storage(s.s3, s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, stack, workspace))
+}
+
+func (s *S3Storage) WorkspaceStorage() (workspace.Storage, error) {
+	return workspacestorages.NewS3Storage(s.s3, s.bucket, workspacestorages.GenGenericOssWorkspacePrefixKey(s.prefix))
 }

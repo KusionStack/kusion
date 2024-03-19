@@ -2,19 +2,37 @@ package storages
 
 import (
 	"errors"
+	"fmt"
+	"path/filepath"
+	"strings"
 )
 
 const (
-	metadataFile     = ".metadata.yml"
+	workspacesPrefix = "workspaces"
 	workspaceTable   = "workspace"
-	yamlSuffix       = ".yaml"
 	defaultWorkspace = "default"
+	metadataFile     = ".metadata.yml"
+	yamlSuffix       = ".yaml"
 )
 
 var (
 	ErrWorkspaceNotExist     = errors.New("workspace does not exist")
 	ErrWorkspaceAlreadyExist = errors.New("workspace has already existed")
 )
+
+// GenWorkspaceDirPath generates the workspace directory path, which is used for LocalStorage.
+func GenWorkspaceDirPath(dir string) string {
+	return filepath.Join(dir, workspacesPrefix)
+}
+
+// GenGenericOssWorkspacePrefixKey generates generic oss workspace prefix key, which is use for OssStorage and S3Storage.
+func GenGenericOssWorkspacePrefixKey(prefix string) string {
+	prefix = strings.TrimPrefix(prefix, "/")
+	if prefix != "" {
+		prefix += "/"
+	}
+	return fmt.Sprintf("%s%s", prefix, workspacesPrefix)
+}
 
 // workspacesMetaData contains the name of current workspace and all workspaces, whose serialization
 // result contains in the metadataFile for LocalStorage, OssStorage and S3Storage.

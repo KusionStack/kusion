@@ -8,13 +8,15 @@ import (
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
 	"kusionstack.io/kusion/pkg/engine/state"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 // Backend is used to provide the storage service for Workspace, Spec and State.
 type Backend interface {
-	// todo: add functions to parse storage for workspace, spec and state, the format is like the following:
-	// WorkspaceStorage() workspace.Storage
+	// todo: add functions to parse storage for spec, the format is like the following:
 	// SpecStorage(projectName, stackName string) spec.Storage
+
+	WorkspaceStorage() (workspace.Storage, error)
 
 	StateStorage(project, stack, workspace string) state.Storage
 }
