@@ -129,10 +129,9 @@ func TestOperation_Preview(t *testing.T) {
 			args: args{
 				request: &PreviewRequest{
 					Request: models.Request{
-						Stack:     s,
-						Project:   p,
-						Workspace: "fake-workspace",
-						Operator:  "fake-operator",
+						Stack:    s,
+						Project:  p,
+						Operator: "fake-operator",
 						Intent: &apiv1.Intent{
 							Resources: []apiv1.Resource{
 								FakeResourceState,
@@ -167,10 +166,9 @@ func TestOperation_Preview(t *testing.T) {
 			args: args{
 				request: &PreviewRequest{
 					Request: models.Request{
-						Stack:     s,
-						Project:   p,
-						Workspace: "fake-workspace",
-						Operator:  "fake-operator",
+						Stack:    s,
+						Project:  p,
+						Operator: "fake-operator",
 						Intent: &apiv1.Intent{
 							Resources: []apiv1.Resource{
 								FakeResourceState2,
@@ -223,10 +221,9 @@ func TestOperation_Preview(t *testing.T) {
 			args: args{
 				request: &PreviewRequest{
 					Request: models.Request{
-						Stack:     s,
-						Project:   p,
-						Workspace: "fake-workspace",
-						Operator:  "fake-operator",
+						Stack:    s,
+						Project:  p,
+						Operator: "fake-operator",
 						Intent: &apiv1.Intent{
 							Resources: []apiv1.Resource{
 								{

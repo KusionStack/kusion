@@ -52,16 +52,10 @@ func (o *Options) Validate() error {
 }
 
 func (o *Options) Run() error {
-	// Set no style
+	// set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
 		pterm.DisableColor()
-	}
-
-	// Parse project and stack of work directory
-	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
-	if err != nil {
-		return err
 	}
 
 	options := &builders.Options{
@@ -73,12 +67,32 @@ func (o *Options) Run() error {
 		NoStyle:   o.NoStyle,
 	}
 
-	// Generate Intent
+	// parse project and stack of work directory
+	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	if err != nil {
+		return err
+	}
+
+	// get workspace configurations
+	bk, err := backend.NewBackend(o.Backend)
+	if err != nil {
+		return err
+	}
+	wsStorage, err := bk.WorkspaceStorage()
+	if err != nil {
+		return err
+	}
+	ws, err := wsStorage.Get(o.Workspace)
+	if err != nil {
+		return err
+	}
+
+	// generate Intent
 	var sp *apiv1.Intent
 	if o.IntentFile != "" {
 		sp, err = build.IntentFromFile(o.IntentFile)
 	} else {
-		sp, err = build.IntentWithSpinner(options, proj, stack)
+		sp, err = build.IntentWithSpinner(options, proj, stack, ws)
 	}
 	if err != nil {
 		return err
@@ -90,16 +104,9 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// new state storage
-	ws := "default"                   // todo: use default workspace for tmp
-	bk, err := backend.NewBackend("") // todo: use current backend for tmp
-	if err != nil {
-		return err
-	}
-	storage := bk.StateStorage(proj.Name, stack.Name, ws)
-
-	// Compute changes for preview
-	changes, err := preview.Preview(&o.Options, storage, sp, proj, stack, ws)
+	// compute changes for preview
+	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
+	changes, err := preview.Preview(&o.Options, storage, sp, proj, stack)
 	if err != nil {
 		return err
 	}
@@ -109,10 +116,10 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Summary preview table
+	// summary preview table
 	changes.Summary(os.Stdout)
 
-	// Detail detection
+	// detail detection
 	if o.Detail && o.All {
 		changes.OutputDiff("all")
 		if !o.Yes {
@@ -120,7 +127,7 @@ func (o *Options) Run() error {
 		}
 	}
 
-	// Prompt
+	// prompt
 	if !o.Yes {
 		for {
 			input, err := prompt()
@@ -147,7 +154,7 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	// If dry run, print the hint
+	// if dry run, print the hint
 	if o.DryRun {
 		fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
 		return nil
@@ -192,7 +199,7 @@ func Apply(
 	changes *models.Changes,
 	out io.Writer,
 ) error {
-	// Construct the apply operation
+	// construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
 			Stack:        changes.Stack(),
@@ -202,10 +209,10 @@ func Apply(
 		},
 	}
 
-	// Line summary
+	// line summary
 	var ls lineSummary
 
-	// Progress bar, print dag walk detail
+	// progress bar, print dag walk detail
 	progressbar, err := pterm.DefaultProgressbar.
 		WithMaxWidth(0). // Set to 0, the terminal width will be used
 		WithTotal(len(changes.StepKeys)).
@@ -214,9 +221,9 @@ func Apply(
 	if err != nil {
 		return err
 	}
-	// Wait msgCh close
+	// wait msgCh close
 	var wg sync.WaitGroup
-	// Receive msg and print detail
+	// receive msg and print detail
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
@@ -286,11 +293,10 @@ func Apply(
 		// parse cluster in arguments
 		_, st := ac.Apply(&operation.ApplyRequest{
 			Request: models.Request{
-				Project:   changes.Project(),
-				Stack:     changes.Stack(),
-				Workspace: changes.Workspace(),
-				Operator:  o.Operator,
-				Intent:    planResources,
+				Project:  changes.Project(),
+				Stack:    changes.Stack(),
+				Operator: o.Operator,
+				Intent:   planResources,
 			},
 		})
 		if v1.IsErr(st) {
@@ -298,9 +304,9 @@ func Apply(
 		}
 	}
 
-	// Wait for msgCh closed
+	// wait for msgCh closed
 	wg.Wait()
-	// Print summary
+	// print summary
 	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return nil
 }
@@ -330,7 +336,7 @@ func Watch(
 		return nil
 	}
 
-	// Filter out unchanged resources
+	// filter out unchanged resources
 	toBeWatched := apiv1.Resources{}
 	for _, res := range planResources.Resources {
 		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != models.UnChanged {
@@ -338,7 +344,7 @@ func Watch(
 		}
 	}
 
-	// Watch operation
+	// watch operation
 	wo := &operation.WatchOperation{}
 	if err := wo.Watch(&operation.WatchRequest{
 		Request: models.Request{

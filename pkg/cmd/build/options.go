@@ -9,6 +9,7 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"kcl-lang.io/kpm/pkg/api"
 
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/project"
 )
@@ -29,6 +30,8 @@ type Flags struct {
 	Settings  []string
 	Arguments map[string]string
 	NoStyle   bool
+	Backend   string
+	Workspace string
 }
 
 const Stdout = "stdout"
@@ -69,7 +72,17 @@ func (o *Options) Run() error {
 	}
 
 	// Parse project and stack of work directory
-	project, stack, err := project.DetectProjectAndStack(o.WorkDir)
+	proj, stack, err := project.DetectProjectAndStack(o.WorkDir)
+	if err != nil {
+		return err
+	}
+
+	// Get workspace from backend
+	storage, err := backend.NewWorkspaceStorage(o.Backend)
+	if err != nil {
+		return err
+	}
+	ws, err := storage.Get(o.Workspace)
 	if err != nil {
 		return err
 	}
@@ -83,8 +96,9 @@ func (o *Options) Run() error {
 			Arguments: o.Arguments,
 			NoStyle:   o.NoStyle,
 		},
-		project,
+		proj,
 		stack,
+		ws,
 	)
 	if err != nil {
 		return err

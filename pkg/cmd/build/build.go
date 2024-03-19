@@ -68,4 +68,8 @@ func (o *Options) AddBuildFlags(cmd *cobra.Command) {
 		i18n.T("Specify the command line setting files"))
 	cmd.Flags().StringToStringVarP(&o.Arguments, "argument", "D", map[string]string{},
 		i18n.T("Specify the top-level argument"))
+	cmd.Flags().StringVarP(&o.Backend, "backend", "", "",
+		i18n.T("the backend name"))
+	cmd.Flags().StringVarP(&o.Backend, "workspace", "", "",
+		i18n.T("the workspace name"))
 }

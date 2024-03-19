@@ -2,14 +2,12 @@ package scaffold
 
 import (
 	"embed"
-	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"text/template"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/workspace"
+	"kusionstack.io/kusion/pkg/backend"
 )
 
 const demoTmplDir = "quickstart"
@@ -19,18 +17,10 @@ var demoFS embed.FS
 
 // GenDemoProject creates the demo project with a specified name in the specified directory.
 func GenDemoProject(dir, name string) error {
-	// Create the default workspace for the initialized demo project if not exists.
-	_, err := workspace.GetWorkspaceByDefaultOperator("default")
+	// Init default workspace for the initialized demo project if not exists.
+	_, err := backend.NewWorkspaceStorage("")
 	if err != nil {
-		ws := &v1.Workspace{
-			Name: "default",
-		}
-
-		if err = workspace.CreateWorkspaceByDefaultOperator(ws); err != nil {
-			if !errors.Is(err, workspace.ErrWorkspaceAlreadyExist) {
-				return err
-			}
-		}
+		return err
 	}
 
 	// Define the embeded template parameter data.

@@ -20,6 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/signals"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type Options struct {
@@ -49,24 +50,34 @@ func (o *Options) Validate() error {
 func (o *Options) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
-	// Parse project and stack of work directory
+	// parse project and stack of work directory
 	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	// new state storage
-	ws := "default"                   // fixme: use default workspace for tmp
-	bk, err := backend.NewBackend("") // fixme: use current backend for tmp
+	// complete workspace name
+	bk, err := backend.NewBackend(o.Backend)
 	if err != nil {
 		return err
 	}
-	storage := bk.StateStorage(proj.Name, stack.Name, ws)
+	if o.Workspace == "" {
+		var wsStorage workspace.Storage
+		wsStorage, err = bk.WorkspaceStorage()
+		if err != nil {
+			return err
+		}
+		o.Workspace, err = wsStorage.GetCurrent()
+		if err != nil {
+			return err
+		}
+	}
 
 	// only destroy resources we managed
+	storage := bk.StateStorage(proj.Name, stack.Name, o.Workspace)
 	priorState, err := storage.Get()
 	if err != nil || priorState == nil {
-		log.Infof("can't find state with project: %s, stack: %s, workspace: %s", proj.Name, stack.Name, ws)
+		log.Infof("can't find state with project: %s, stack: %s, workspace: %s", proj.Name, stack.Name, o.Workspace)
 		return fmt.Errorf("can not find State in this stack")
 	}
 	destroyResources := priorState.Resources
@@ -76,22 +87,22 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-	// Compute changes for preview
+	// compute changes for preview
 	i := &apiv1.Intent{Resources: destroyResources}
-	changes, err := o.preview(i, proj, stack, ws, storage)
+	changes, err := o.preview(i, proj, stack, storage)
 	if err != nil {
 		return err
 	}
 
-	// Preview
+	// preview
 	changes.Summary(os.Stdout)
 
-	// Detail detection
+	// detail detection
 	if o.Detail {
 		changes.OutputDiff("all")
 		return nil
 	}
-	// Prompt
+	// prompt
 	if !o.Yes {
 		for {
 			var input string
@@ -116,7 +127,7 @@ func (o *Options) Run() error {
 		}
 	}
 
-	// Destroy
+	// destroy
 	fmt.Println("Start destroying resources......")
 	if err = o.destroy(i, changes, storage); err != nil {
 		return err
@@ -128,12 +139,11 @@ func (o *Options) preview(
 	planResources *apiv1.Intent,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
-	ws string,
 	stateStorage state.Storage,
 ) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
-	// Check and install terraform executable binary for
+	// check and install terraform executable binary for
 	// resources with the type of Terraform.
 	tfInstaller := terraform.CLIInstaller{
 		Intent: planResources,
@@ -155,18 +165,17 @@ func (o *Options) preview(
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: models.Request{
-			Project:   proj,
-			Stack:     stack,
-			Workspace: ws,
-			Operator:  o.Operator,
-			Intent:    planResources,
+			Project:  proj,
+			Stack:    stack,
+			Operator: o.Operator,
+			Intent:   planResources,
 		},
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
 	}
 
-	return models.NewChanges(proj, stack, ws, rsp.Order), nil
+	return models.NewChanges(proj, stack, rsp.Order), nil
 }
 
 func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, stateStorage state.Storage) error {
@@ -247,11 +256,10 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, 
 
 	st := do.Destroy(&operation.DestroyRequest{
 		Request: models.Request{
-			Project:   changes.Project(),
-			Stack:     changes.Stack(),
-			Workspace: changes.Workspace(),
-			Operator:  o.Operator,
-			Intent:    planResources,
+			Project:  changes.Project(),
+			Stack:    changes.Stack(),
+			Operator: o.Operator,
+			Intent:   planResources,
 		},
 	})
 	if v1.IsErr(st) {
@@ -260,7 +268,7 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, 
 
 	// wait for msgCh closed
 	wg.Wait()
-	// Print summary
+	// print summary
 	pterm.Println()
 	pterm.Printf("Destroy complete! Resources: %d deleted.\n", deleted)
 	return nil

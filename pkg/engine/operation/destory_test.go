@@ -20,10 +20,7 @@ import (
 )
 
 func TestOperation_Destroy(t *testing.T) {
-	var (
-		workspace = "fake-workspace"
-		operator  = "foo-user"
-	)
+	operator := "foo-user"
 
 	s := &apiv1.Stack{
 		Name: "fake-name",
@@ -53,11 +50,10 @@ func TestOperation_Destroy(t *testing.T) {
 	}
 	r := &DestroyRequest{
 		models.Request{
-			Stack:     s,
-			Project:   p,
-			Workspace: workspace,
-			Operator:  operator,
-			Intent:    mf,
+			Stack:    s,
+			Project:  p,
+			Operator: operator,
+			Intent:   mf,
 		},
 	}
 

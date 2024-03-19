@@ -9,10 +9,12 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/project"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 var (
@@ -20,10 +22,10 @@ var (
 	kind       = "ServiceAccount"
 	namespace  = "test-ns"
 
-	p = &apiv1.Project{
+	proj = &v1.Project{
 		Name: "testdata",
 	}
-	s = &apiv1.Stack{
+	stack = &v1.Stack{
 		Name: "dev",
 	}
 
@@ -64,7 +66,7 @@ func TestCompileOptions_preSet(t *testing.T) {
 			o := NewBuildOptions()
 
 			o.Output = tt.fields.Output
-			o.PreSet(func(cur string) bool {
+			_ = o.PreSet(func(cur string) bool {
 				return true
 			})
 
@@ -77,49 +79,48 @@ func TestCompileOptions_preSet(t *testing.T) {
 	}
 }
 
-func TestCompileOptions_Run(t *testing.T) {
-	defer func() {
-		os.Remove("kusion_state.json")
-	}()
-
+func TestBuildOptions_Run(t *testing.T) {
 	t.Run("no style is true", func(t *testing.T) {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateIntent()
-		m3 := mockWriteFile()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		defer m3.UnPatch()
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockWorkspaceStorage()
+			mockGenerateIntent()
+			mockWriteFile()
 
-		o := NewBuildOptions()
-		o.NoStyle = true
-		err := o.Run()
-		assert.Nil(t, err)
+			o := NewBuildOptions()
+			o.NoStyle = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
 	})
 
-	mockey.PatchConvey("detect project and stack failed", t, func() {
-		m1 := mockDetectProjectAndStackFail()
-		defer m1.UnPatch()
+	t.Run("detect project and stack failed", func(t *testing.T) {
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStackFail()
 
-		o := NewBuildOptions()
-		o.NoStyle = true
-		err := o.Run()
-		assert.Equal(t, errTest, err)
+			o := NewBuildOptions()
+			o.NoStyle = true
+			err := o.Run()
+			assert.Equal(t, errTest, err)
+		})
 	})
 
-	mockey.PatchConvey("generate intent failed", t, func() {
-		m1 := mockDetectProjectAndStack()
-		m2 := mockGenerateIntentFail()
-		defer m1.UnPatch()
-		defer m2.UnPatch()
-		o := NewBuildOptions()
-		o.NoStyle = true
-		err := o.Run()
-		assert.Equal(t, errTest, err)
+	t.Run("generate intent failed", func(t *testing.T) {
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockDetectProjectAndStack()
+			mockWorkspaceStorage()
+			mockGenerateIntentFail()
+
+			o := NewBuildOptions()
+			o.NoStyle = true
+			err := o.Run()
+			assert.Equal(t, errTest, err)
+		})
 	})
 }
 
-func newSA(name string) apiv1.Resource {
-	return apiv1.Resource{
+func newSA(name string) v1.Resource {
+	return v1.Resource{
 		ID:   engine.BuildID(apiVersion, kind, namespace, name),
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -133,44 +134,51 @@ func newSA(name string) apiv1.Resource {
 	}
 }
 
-func mockDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
-		p.Path = stackDir
-		s.Path = stackDir
-		return p, s, nil
+func mockDetectProjectAndStack() {
+	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*v1.Project, *v1.Stack, error) {
+		proj.Path = stackDir
+		stack.Path = stackDir
+		return proj, stack, nil
 	}).Build()
 }
 
-func mockDetectProjectAndStackFail() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
-		p.Path = stackDir
-		s.Path = stackDir
-		return p, s, errTest
+func mockDetectProjectAndStackFail() {
+	mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*v1.Project, *v1.Stack, error) {
+		proj.Path = stackDir
+		stack.Path = stackDir
+		return proj, stack, errTest
 	}).Build()
 }
 
-func mockGenerateIntent() *mockey.Mocker {
-	return mockey.Mock(IntentWithSpinner).To(func(
+func mockGenerateIntent() {
+	mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *apiv1.Project,
-		stack *apiv1.Stack,
-	) (*apiv1.Intent, error) {
-		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
+		proj *v1.Project,
+		stack *v1.Stack,
+		ws *v1.Workspace,
+	) (*v1.Intent, error) {
+		return &v1.Intent{Resources: []v1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
-func mockGenerateIntentFail() *mockey.Mocker {
-	return mockey.Mock(IntentWithSpinner).To(func(
+func mockGenerateIntentFail() {
+	mockey.Mock(IntentWithSpinner).To(func(
 		o *builders.Options,
-		project *apiv1.Project,
-		stack *apiv1.Stack,
-	) (*apiv1.Intent, error) {
-		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, errTest
+		proj *v1.Project,
+		stack *v1.Stack,
+		ws *v1.Workspace,
+	) (*v1.Intent, error) {
+		return &v1.Intent{Resources: []v1.Resource{sa1, sa2, sa3}}, errTest
 	}).Build()
 }
 
-func mockWriteFile() *mockey.Mocker {
-	return mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
+func mockWriteFile() {
+	mockey.Mock(os.WriteFile).To(func(name string, data []byte, perm fs.FileMode) error {
 		return nil
 	}).Build()
+}
+
+func mockWorkspaceStorage() {
+	mockey.Mock(backend.NewWorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*workspacestorages.LocalStorage).Get).Return(&v1.Workspace{Name: "default"}, nil).Build()
 }

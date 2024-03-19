@@ -317,7 +317,6 @@ func TestChanges_Project(t *testing.T) {
 		order   *ChangeOrder
 		project *apiv1.Project
 		stack   *apiv1.Stack
-		ws      string
 	}
 	tests := []struct {
 		name   string
@@ -340,7 +339,7 @@ func TestChanges_Project(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewChanges(tt.fields.project, tt.fields.stack, tt.fields.ws, tt.fields.order)
+			p := NewChanges(tt.fields.project, tt.fields.stack, tt.fields.order)
 			if got := p.Project(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Changes.Project() = %v, want %v", got, tt.want)
 			}

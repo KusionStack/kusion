@@ -12,15 +12,14 @@ import (
 	"gopkg.in/yaml.v2"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
-func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
+func IntentWithSpinner(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -32,7 +31,7 @@ func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !o.NoStyle && sp != nil
 
-	i, err := Intent(o, project, stack)
+	i, err := Intent(o, proj, stack, ws)
 	// failed
 	if err != nil {
 		if style {
@@ -53,10 +52,10 @@ func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack
 	return i, nil
 }
 
-func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error) {
+func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
-	pg := p.Generator
+	pg := proj.Generator
 
 	// default AppsConfigBuilder
 	var bt v1.BuilderType
@@ -71,11 +70,7 @@ func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error)
 	case v1.KCLBuilder:
 		builder = &kcl.Builder{}
 	case v1.AppConfigurationBuilder:
-		appConfigs, err := buildAppConfigs(o, s)
-		if err != nil {
-			return nil, err
-		}
-		ws, err := workspace.GetWorkspaceByDefaultOperator(s.Name)
+		appConfigs, err := buildAppConfigs(o, stack)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +82,7 @@ func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error)
 		return nil, fmt.Errorf("unknow generator type:%s", bt)
 	}
 
-	i, err := builder.Build(o, p, s)
+	i, err := builder.Build(o, proj, stack)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}
