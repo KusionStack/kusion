@@ -18,7 +18,7 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ModuleClient is the client API for ModulePath service.
+// ModuleClient is the client API for Module service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ModuleClient interface {
@@ -35,14 +35,14 @@ func NewModuleClient(cc grpc.ClientConnInterface) ModuleClient {
 
 func (c *moduleClient) Generate(ctx context.Context, in *GeneratorRequest, opts ...grpc.CallOption) (*GeneratorResponse, error) {
 	out := new(GeneratorResponse)
-	err := c.cc.Invoke(ctx, "/ModulePath/Generate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Module/Generate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ModuleServer is the server API for ModulePath service.
+// ModuleServer is the server API for Module service.
 // All implementations must embed UnimplementedModuleServer
 // for forward compatibility
 type ModuleServer interface {
@@ -80,7 +80,7 @@ func _Module_Generate_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ModulePath/Generate",
+		FullMethod: "/Module/Generate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ModuleServer).Generate(ctx, req.(*GeneratorRequest))
@@ -88,11 +88,11 @@ func _Module_Generate_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-// Module_ServiceDesc is the grpc.ServiceDesc for ModulePath service.
+// Module_ServiceDesc is the grpc.ServiceDesc for Module service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Module_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ModulePath",
+	ServiceName: "Module",
 	HandlerType: (*ModuleServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

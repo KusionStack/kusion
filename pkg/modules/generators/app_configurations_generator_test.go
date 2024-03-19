@@ -66,7 +66,7 @@ func mockPlugin() {
 	mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
 		return &modules.Plugin{Module: &fakeModule{}}, nil
 	}).Build()
-	mockey.Mock((*modules.Plugin).KillPluginClient).To(func() {}).Build()
+	mockey.Mock((*modules.Plugin).KillPluginClient).Return().Build()
 }
 
 func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {

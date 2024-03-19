@@ -23,6 +23,7 @@ message GeneratorRequest {
 message GeneratorResponse {
   // Resources is a v1.Resource array, which represents the generated resources by this module.
   repeated bytes resources = 1;
+  repeated bytes patchers = 2;
 }
 
 service Module {
