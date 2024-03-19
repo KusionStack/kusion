@@ -116,24 +116,22 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 	if spec.Resources == nil || len(spec.Resources) < 2 {
 		return fmt.Errorf("workload is not generated")
 	}
-	workload := spec.Resources[1]
+	wl := spec.Resources[1]
 
 	// call modules to generate customized resources
-	resources, err := g.callModules(projectModuleConfigs)
+	resources, patchers, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
 
 	// patch workload with resource patchers
-	for i, r := range resources {
-		if r.Patcher != nil {
-			if err = patchWorkload(&workload, r.Patcher); err != nil {
-				return err
-			}
-			resources[i] = r
+	for _, p := range patchers {
+		if err = patchWorkload(&wl, &p); err != nil {
+			return err
 		}
 	}
 
+	// append the generated resources to the spec
 	spec.Resources = append(spec.Resources, resources...)
 
 	// The OrderedResourcesGenerator should be executed after all resources are generated.
@@ -245,9 +243,7 @@ func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 	return nil
 }
 
-func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) ([]v1.Resource, error) {
-	var resources []v1.Resource
-
+func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		for _, plugin := range pluginMap {
@@ -266,10 +262,10 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		if pluginMap[t] == nil {
 			plugin, err := modules.NewPlugin(t)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if plugin == nil {
-				return nil, fmt.Errorf("init plugin for module %s failed", t)
+				return nil, nil, fmt.Errorf("init plugin for module %s failed", t)
 			}
 			pluginMap[t] = plugin
 		}
@@ -278,17 +274,17 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		// prepare the request
 		protoRequest, err := g.initModuleRequest(t, config)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// invoke the plugin
 		log.Infof("invoke module:%s with request:%s", t, protoRequest.String())
 		response, err := plugin.Module.Generate(context.Background(), protoRequest)
 		if err != nil {
-			return nil, fmt.Errorf("invoke kusion module: %s failed. %w", t, err)
+			return nil, nil, fmt.Errorf("invoke kusion module: %s failed. %w", t, err)
 		}
 		if response == nil {
-			return nil, fmt.Errorf("empty response from module %s", t)
+			return nil, nil, fmt.Errorf("empty response from module %s", t)
 		}
 
 		// parse module result
@@ -296,13 +292,22 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 			temp := &v1.Resource{}
 			err = yaml.Unmarshal(res, temp)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			resources = append(resources, *temp)
 		}
+		// parse patcher
+		for _, patcher := range response.Patchers {
+			temp := &v1.Patcher{}
+			err = yaml.Unmarshal(patcher, temp)
+			if err != nil {
+				return nil, nil, err
+			}
+			patchers = append(patchers, *temp)
+		}
 	}
 
-	return resources, nil
+	return resources, patchers, nil
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(key string, platformModuleConfig v1.GenericConfig) (*proto.GeneratorRequest, error) {
