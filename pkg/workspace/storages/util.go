@@ -8,9 +8,10 @@ import (
 )
 
 const (
+	DefaultWorkspace = "default"
+
 	workspacesPrefix = "workspaces"
 	workspaceTable   = "workspace"
-	defaultWorkspace = "default"
 	metadataFile     = ".metadata.yml"
 	yamlSuffix       = ".yaml"
 )
@@ -70,6 +71,6 @@ func removeAvailableWorkspaces(meta *workspacesMetaData, name string) {
 
 	// if the current workspace is the removing one, set current to default.
 	if meta.Current == name {
-		meta.Current = defaultWorkspace
+		meta.Current = DefaultWorkspace
 	}
 }

@@ -123,10 +123,7 @@ func TestLocalStorageOperation(t *testing.T) {
 			s, err := NewLocalStorage(tc.path)
 			assert.Equal(t, tc.success, err == nil)
 			if tc.success {
-				var meta *workspacesMetaData
-				meta, err = s.readMeta()
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedMeta, meta)
+				assert.Equal(t, tc.expectedMeta, s.meta)
 			}
 			if tc.deletePath {
 				_ = os.RemoveAll(tc.path)
@@ -203,10 +200,7 @@ func TestLocalStorage_Create(t *testing.T) {
 			err = s.Create(tc.workspace)
 			assert.Equal(t, tc.success, err == nil)
 			if tc.success {
-				var meta *workspacesMetaData
-				meta, err = s.readMeta()
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedMeta, meta)
+				assert.Equal(t, tc.expectedMeta, s.meta)
 				_ = s.Delete(tc.workspace.Name)
 			}
 		})
@@ -277,45 +271,8 @@ func TestLocalStorage_Delete(t *testing.T) {
 			err = s.Delete(tc.wsName)
 			assert.Equal(t, tc.success, err == nil)
 			if tc.success {
-				var meta *workspacesMetaData
-				meta, err = s.readMeta()
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedMeta, meta)
+				assert.Equal(t, tc.expectedMeta, s.meta)
 				_ = s.Create(mockWorkspace(tc.wsName))
-			}
-		})
-	}
-}
-
-func TestLocalStorage_Exist(t *testing.T) {
-	testcases := []struct {
-		name          string
-		success       bool
-		wsName        string
-		expectedExist bool
-	}{
-		{
-			name:          "exist workspace",
-			success:       true,
-			wsName:        "dev",
-			expectedExist: true,
-		},
-		{
-			name:          "not exist workspace",
-			success:       true,
-			wsName:        "pre",
-			expectedExist: false,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			s, err := NewLocalStorage(testDataFolder("workspaces"))
-			assert.NoError(t, err)
-			exist, err := s.Exist(tc.wsName)
-			assert.Equal(t, tc.success, err == nil)
-			if tc.success {
-				assert.Equal(t, tc.expectedExist, exist)
 			}
 		})
 	}

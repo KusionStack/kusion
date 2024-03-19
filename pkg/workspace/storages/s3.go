@@ -20,6 +20,8 @@ type S3Storage struct {
 
 	// The prefix to store the workspaces files.
 	prefix string
+
+	meta *workspacesMetaData
 }
 
 // NewS3Storage news s3 workspace storage and init default workspace.
@@ -29,15 +31,17 @@ func NewS3Storage(s3 *s3.S3, bucket, prefix string) (*S3Storage, error) {
 		bucket: bucket,
 		prefix: prefix,
 	}
+	if err := s.readMeta(); err != nil {
+		return nil, err
+	}
 	return s, s.initDefaultWorkspaceIf()
 }
 
 func (s *S3Storage) Get(name string) (*v1.Workspace, error) {
-	exist, err := s.Exist(name)
-	if err != nil {
-		return nil, err
+	if name == "" {
+		name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil, ErrWorkspaceNotExist
 	}
 
@@ -67,28 +71,23 @@ func (s *S3Storage) Get(name string) (*v1.Workspace, error) {
 }
 
 func (s *S3Storage) Create(ws *v1.Workspace) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if checkWorkspaceExistence(meta, ws.Name) {
+	if checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceAlreadyExist
 	}
 
-	if err = s.writeWorkspace(ws); err != nil {
+	if err := s.writeWorkspace(ws); err != nil {
 		return err
 	}
 
-	addAvailableWorkspaces(meta, ws.Name)
-	return s.writeMeta(meta)
+	addAvailableWorkspaces(s.meta, ws.Name)
+	return s.writeMeta()
 }
 
 func (s *S3Storage) Update(ws *v1.Workspace) error {
-	exist, err := s.Exist(ws.Name)
-	if err != nil {
-		return err
+	if ws.Name == "" {
+		ws.Name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceNotExist
 	}
 
@@ -96,11 +95,7 @@ func (s *S3Storage) Update(ws *v1.Workspace) error {
 }
 
 func (s *S3Storage) Delete(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil
 	}
 
@@ -108,70 +103,46 @@ func (s *S3Storage) Delete(name string) error {
 		Bucket: aws.String(s.bucket),
 		Key:    aws.String(s.prefix + "/" + name + yamlSuffix),
 	}
-	if _, err = s.s3.DeleteObject(input); err != nil {
+	if _, err := s.s3.DeleteObject(input); err != nil {
 		return fmt.Errorf("remove workspace in s3 failed: %w", err)
 	}
 
-	removeAvailableWorkspaces(meta, name)
-	return s.writeMeta(meta)
-}
-
-func (s *S3Storage) Exist(name string) (bool, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return false, err
-	}
-	return checkWorkspaceExistence(meta, name), nil
+	removeAvailableWorkspaces(s.meta, name)
+	return s.writeMeta()
 }
 
 func (s *S3Storage) GetNames() ([]string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return nil, err
-	}
-	return meta.AvailableWorkspaces, nil
+	return s.meta.AvailableWorkspaces, nil
 }
 
 func (s *S3Storage) GetCurrent() (string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return "", err
-	}
-	return meta.Current, nil
+	return s.meta.Current, nil
 }
 
 func (s *S3Storage) SetCurrent(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return ErrWorkspaceNotExist
 	}
-	meta.Current = name
-	return s.writeMeta(meta)
+	s.meta.Current = name
+	return s.writeMeta()
 }
 
 func (s *S3Storage) initDefaultWorkspaceIf() error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, defaultWorkspace) {
+	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.
-		if err = s.writeWorkspace(&v1.Workspace{Name: defaultWorkspace}); err != nil {
+		if err := s.writeWorkspace(&v1.Workspace{Name: DefaultWorkspace}); err != nil {
 			return err
 		}
-		addAvailableWorkspaces(meta, defaultWorkspace)
+		addAvailableWorkspaces(s.meta, DefaultWorkspace)
 	}
 
-	if meta.Current == "" {
-		meta.Current = defaultWorkspace
+	if s.meta.Current == "" {
+		s.meta.Current = DefaultWorkspace
 	}
-	return s.writeMeta(meta)
+	return s.writeMeta()
 }
 
-func (s *S3Storage) readMeta() (*workspacesMetaData, error) {
+func (s *S3Storage) readMeta() error {
 	key := s.prefix + "/" + metadataFile
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
@@ -181,9 +152,10 @@ func (s *S3Storage) readMeta() (*workspacesMetaData, error) {
 	if err != nil {
 		awsErr, ok := err.(awserr.Error)
 		if ok && awsErr.Code() == s3.ErrCodeNoSuchKey {
-			return &workspacesMetaData{}, nil
+			s.meta = &workspacesMetaData{}
+			return nil
 		}
-		return nil, fmt.Errorf("get workspaces meta data from s3 failed: %w", err)
+		return fmt.Errorf("get workspaces meta data from s3 failed: %w", err)
 	}
 	defer func() {
 		_ = output.Body.Close()
@@ -191,23 +163,25 @@ func (s *S3Storage) readMeta() (*workspacesMetaData, error) {
 
 	content, err := io.ReadAll(output.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read workspaces meta data failed: %w", err)
+		return fmt.Errorf("read workspaces meta data failed: %w", err)
 	}
 	if len(content) == 0 {
-		return &workspacesMetaData{}, nil
+		s.meta = &workspacesMetaData{}
+		return nil
 	}
 
 	meta := &workspacesMetaData{}
 	if err = yaml.Unmarshal(content, meta); err != nil {
-		return nil, fmt.Errorf("yaml unmarshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml unmarshal workspaces metadata failed: %w", err)
 	}
-	return meta, nil
+	s.meta = meta
+	return nil
 }
 
-func (s *S3Storage) writeMeta(meta *workspacesMetaData) error {
-	content, err := yaml.Marshal(meta)
+func (s *S3Storage) writeMeta() error {
+	content, err := yaml.Marshal(s.meta)
 	if err != nil {
-		return fmt.Errorf("yaml marshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml marshal workspaces metadata failed: %w", err)
 	}
 
 	input := &s3.PutObjectInput{
@@ -216,7 +190,7 @@ func (s *S3Storage) writeMeta(meta *workspacesMetaData) error {
 		Body:   bytes.NewReader(content),
 	}
 	if _, err = s.s3.PutObject(input); err != nil {
-		return fmt.Errorf("put workspaces meta data to s3 failed: %w", err)
+		return fmt.Errorf("put workspaces metadata to s3 failed: %w", err)
 	}
 	return nil
 }
