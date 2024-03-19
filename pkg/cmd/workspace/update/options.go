@@ -3,13 +3,15 @@ package update
 import (
 	"fmt"
 
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/workspace/util"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type Options struct {
 	Name     string
 	FilePath string
+	Backend  string
+	Current  bool
 }
 
 func NewOptions() *Options {
@@ -26,9 +28,6 @@ func (o *Options) Complete(args []string) error {
 }
 
 func (o *Options) Validate() error {
-	if err := util.ValidateName(o.Name); err != nil {
-		return err
-	}
 	if err := util.ValidateFilePath(o.FilePath); err != nil {
 		return err
 	}
@@ -36,14 +35,25 @@ func (o *Options) Validate() error {
 }
 
 func (o *Options) Run() error {
-	ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
+	storage, err := backend.NewWorkspaceStorage(o.Backend)
 	if err != nil {
 		return err
 	}
 
-	if err = workspace.UpdateWorkspaceByDefaultOperator(ws); err != nil {
+	ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
+	if err != nil {
 		return err
 	}
-	fmt.Printf("update workspace %s successfully\n", o.Name)
+	if err = storage.Update(ws); err != nil {
+		return err
+	}
+
+	if o.Current && o.Name != "" {
+		if err = storage.SetCurrent(o.Name); err != nil {
+			return err
+		}
+	}
+
+	fmt.Printf("update workspace %s successfully\n", ws.Name)
 	return nil
 }

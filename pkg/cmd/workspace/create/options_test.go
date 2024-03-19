@@ -8,8 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/workspace/util"
-	"kusionstack.io/kusion/pkg/workspace"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestOptions_Complete(t *testing.T) {
@@ -102,12 +103,10 @@ func TestOptions_Run(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock create workspace", t, func() {
-				mockey.Mock(util.GetValidWorkspaceFromFile).
-					Return(&v1.Workspace{Name: "dev"}, nil).
-					Build()
-				mockey.Mock(workspace.CreateWorkspaceByDefaultOperator).
-					Return(nil).
-					Build()
+				mockey.Mock(backend.NewWorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+				mockey.Mock((*workspacestorages.LocalStorage).Create).Return(nil).Build()
+				mockey.Mock((*workspacestorages.LocalStorage).SetCurrent).Return(nil).Build()
+				mockey.Mock(util.GetValidWorkspaceFromFile).Return(&v1.Workspace{Name: "dev"}, nil).Build()
 
 				err := tc.opts.Run()
 				assert.Equal(t, tc.success, err == nil)

@@ -9,26 +9,43 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/workspace"
+	"kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 var (
-	ErrNotOneArgs    = errors.New("only one arg accepted")
-	ErrEmptyName     = errors.New("empty workspace name")
-	ErrEmptyFilePath = errors.New("empty configuration file path")
+	ErrMoreThanOneArgs = errors.New("more than one args are not accepted")
+	ErrEmptyName       = errors.New("empty workspace name")
+	ErrInvalidDefault  = errors.New("invalid default workspace")
+	ErrEmptyFilePath   = errors.New("empty configuration file path")
 )
 
 // GetNameFromArgs returns workspace name specified by args.
 func GetNameFromArgs(args []string) (string, error) {
-	if len(args) != 1 {
-		return "", ErrNotOneArgs
+	if len(args) > 1 {
+		return "", ErrMoreThanOneArgs
 	}
-	return args[0], nil
+	if len(args) == 1 {
+		return args[0], nil
+	}
+	return "", nil
 }
 
-// ValidateName returns the workspace name is valid or not.
+// ValidateName returns the workspace name is valid or not, which is used for getting and updating workspace.
 func ValidateName(name string) error {
 	if name == "" {
 		return ErrEmptyName
+	}
+	return nil
+}
+
+// ValidateNotDefaultName returns true if ValidateName is true and the workspace name is not default, which is
+// used for creating and deleting workspace.
+func ValidateNotDefaultName(name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
+	if name == storages.DefaultWorkspace {
+		return ErrInvalidDefault
 	}
 	return nil
 }
@@ -53,7 +70,7 @@ func GetValidWorkspaceFromFile(filePath, name string) (*v1.Workspace, error) {
 		return nil, fmt.Errorf("yaml unmarshal file %s failed: %w", filePath, err)
 	}
 
-	workspace.CompleteWorkspace(ws, name)
+	ws.Name = name
 	if err = workspace.ValidateWorkspace(ws); err != nil {
 		return nil, fmt.Errorf("invalid workspace configuration: %w", err)
 	}

@@ -16,8 +16,14 @@ func NewCmd() *cobra.Command {
 		This command updates a workspace configuration with specified configuration file, where the file must be in the YAML format.`)
 
 		example = i18n.T(`
-		# Update a workspace configuration
-		kusion workspace update dev -f dev.yaml`)
+		# Update the current workspace
+		kusion workspace update -f dev.yaml
+
+		# Update a specified workspace and set as current
+		kusion workspace update dev -f dev.yaml --current
+
+		# Update a specified workspace in a specified backend
+		kusion workspace update prod -f prod.yaml --backend oss-prod`)
 	)
 
 	o := NewOptions()
@@ -35,7 +41,9 @@ func NewCmd() *cobra.Command {
 			return
 		},
 	}
-	cmd.Flags().StringVarP(&o.FilePath, "file", "f", "", i18n.T("the path of workspace configuration file"))
 
+	cmd.Flags().StringVarP(&o.FilePath, "file", "f", "", i18n.T("the path of workspace configuration file"))
+	cmd.Flags().StringVarP(&o.Backend, "backend", "", "", i18n.T("the backend name"))
+	cmd.Flags().BoolVarP(&o.Current, "current", "", false, i18n.T("set the creating workspace as current"))
 	return cmd
 }

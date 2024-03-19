@@ -7,7 +7,8 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/workspace"
+	"kusionstack.io/kusion/pkg/backend"
+	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
 func TestOptions_Complete(t *testing.T) {
@@ -43,34 +44,6 @@ func TestOptions_Complete(t *testing.T) {
 	}
 }
 
-func TestOptions_Validate(t *testing.T) {
-	testcases := []struct {
-		name    string
-		opts    *Options
-		success bool
-	}{
-		{
-			name: "valid options",
-			opts: &Options{
-				Name: "dev",
-			},
-			success: true,
-		},
-		{
-			name:    "invalid options empty name",
-			opts:    &Options{},
-			success: false,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.opts.Validate()
-			assert.Equal(t, tc.success, err == nil)
-		})
-	}
-}
-
 func TestOptions_Run(t *testing.T) {
 	testcases := []struct {
 		name    string
@@ -89,9 +62,9 @@ func TestOptions_Run(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock delete workspace", t, func() {
-				mockey.Mock(workspace.DeleteWorkspaceByDefaultOperator).
-					Return(nil).
-					Build()
+				mockey.Mock(backend.NewWorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+				mockey.Mock((*workspacestorages.LocalStorage).GetCurrent).Return("dev", nil).Build()
+				mockey.Mock((*workspacestorages.LocalStorage).Delete).Return(nil).Build()
 
 				err := tc.opts.Run()
 				assert.Equal(t, tc.success, err == nil)

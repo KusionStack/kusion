@@ -3,12 +3,13 @@ package del
 import (
 	"fmt"
 
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/workspace/util"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 type Options struct {
-	Name string
+	Name    string
+	Backend string
 }
 
 func NewOptions() *Options {
@@ -24,15 +25,26 @@ func (o *Options) Complete(args []string) error {
 	return nil
 }
 
-func (o *Options) Validate() error {
-	if err := util.ValidateName(o.Name); err != nil {
+func (o *Options) Run() error {
+	storage, err := backend.NewWorkspaceStorage(o.Backend)
+	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func (o *Options) Run() error {
-	if err := workspace.DeleteWorkspaceByDefaultOperator(o.Name); err != nil {
+	// get current workspace name if not specified.
+	if o.Name == "" {
+		var name string
+		name, err = storage.GetCurrent()
+		if err != nil {
+			return err
+		}
+		o.Name = name
+	}
+	if err = util.ValidateNotDefaultName(o.Name); err != nil {
+		return err
+	}
+
+	if err = storage.Delete(o.Name); err != nil {
 		return err
 	}
 	fmt.Printf("delete workspace %s successfully\n", o.Name)
