@@ -17,6 +17,8 @@ type OssStorage struct {
 
 	// The prefix to store the workspaces files.
 	prefix string
+
+	meta *workspacesMetaData
 }
 
 // NewOssStorage news oss workspace storage and init default workspace.
@@ -25,15 +27,17 @@ func NewOssStorage(bucket *oss.Bucket, prefix string) (*OssStorage, error) {
 		bucket: bucket,
 		prefix: prefix,
 	}
+	if err := s.readMeta(); err != nil {
+		return nil, err
+	}
 	return s, s.initDefaultWorkspaceIf()
 }
 
 func (s *OssStorage) Get(name string) (*v1.Workspace, error) {
-	exist, err := s.Exist(name)
-	if err != nil {
-		return nil, err
+	if name == "" {
+		name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil, ErrWorkspaceNotExist
 	}
 
@@ -58,28 +62,23 @@ func (s *OssStorage) Get(name string) (*v1.Workspace, error) {
 }
 
 func (s *OssStorage) Create(ws *v1.Workspace) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if checkWorkspaceExistence(meta, ws.Name) {
+	if checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceAlreadyExist
 	}
 
-	if err = s.writeWorkspace(ws); err != nil {
+	if err := s.writeWorkspace(ws); err != nil {
 		return err
 	}
 
-	addAvailableWorkspaces(meta, ws.Name)
-	return s.writeMeta(meta)
+	addAvailableWorkspaces(s.meta, ws.Name)
+	return s.writeMeta()
 }
 
 func (s *OssStorage) Update(ws *v1.Workspace) error {
-	exist, err := s.Exist(ws.Name)
-	if err != nil {
-		return err
+	if ws.Name == "" {
+		ws.Name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceNotExist
 	}
 
@@ -87,86 +86,62 @@ func (s *OssStorage) Update(ws *v1.Workspace) error {
 }
 
 func (s *OssStorage) Delete(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
+	if name == "" {
+		name = s.meta.Current
 	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil
 	}
 
-	if err = s.bucket.DeleteObject(s.prefix + "/" + name + yamlSuffix); err != nil {
+	if err := s.bucket.DeleteObject(s.prefix + "/" + name + yamlSuffix); err != nil {
 		return fmt.Errorf("remove workspace in oss failed: %w", err)
 	}
 
-	removeAvailableWorkspaces(meta, name)
-	return s.writeMeta(meta)
-}
-
-func (s *OssStorage) Exist(name string) (bool, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return false, err
-	}
-	return checkWorkspaceExistence(meta, name), nil
+	removeAvailableWorkspaces(s.meta, name)
+	return s.writeMeta()
 }
 
 func (s *OssStorage) GetNames() ([]string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return nil, err
-	}
-	return meta.AvailableWorkspaces, nil
+	return s.meta.AvailableWorkspaces, nil
 }
 
 func (s *OssStorage) GetCurrent() (string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return "", err
-	}
-	return meta.Current, nil
+	return s.meta.Current, nil
 }
 
 func (s *OssStorage) SetCurrent(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return ErrWorkspaceNotExist
 	}
-	meta.Current = name
-	return s.writeMeta(meta)
+	s.meta.Current = name
+	return s.writeMeta()
 }
 
 func (s *OssStorage) initDefaultWorkspaceIf() error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, defaultWorkspace) {
+	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.
-		if err = s.writeWorkspace(&v1.Workspace{Name: defaultWorkspace}); err != nil {
+		if err := s.writeWorkspace(&v1.Workspace{Name: DefaultWorkspace}); err != nil {
 			return err
 		}
-		addAvailableWorkspaces(meta, defaultWorkspace)
+		addAvailableWorkspaces(s.meta, DefaultWorkspace)
 	}
 
-	if meta.Current == "" {
-		meta.Current = defaultWorkspace
+	if s.meta.Current == "" {
+		s.meta.Current = DefaultWorkspace
 	}
-	return s.writeMeta(meta)
+	return s.writeMeta()
 }
 
-func (s *OssStorage) readMeta() (*workspacesMetaData, error) {
+func (s *OssStorage) readMeta() error {
 	body, err := s.bucket.GetObject(s.prefix + "/" + metadataFile)
 	if err != nil {
 		ossErr, ok := err.(oss.ServiceError)
 		// error code ref: github.com/aliyun/aliyun-oss-go-sdk@v2.1.8+incompatible/oss/bucket.go:553
 		if ok && ossErr.StatusCode == 404 {
-			return &workspacesMetaData{}, nil
+			s.meta = &workspacesMetaData{}
+			return nil
 		}
-		return nil, fmt.Errorf("get workspaces meta data from oss failed: %w", err)
+		return fmt.Errorf("get workspaces metadata from oss failed: %w", err)
 	}
 	defer func() {
 		_ = body.Close()
@@ -174,27 +149,29 @@ func (s *OssStorage) readMeta() (*workspacesMetaData, error) {
 
 	content, err := io.ReadAll(body)
 	if err != nil {
-		return nil, fmt.Errorf("read workspaces meta data failed: %w", err)
+		return fmt.Errorf("read workspaces metadata failed: %w", err)
 	}
 	if len(content) == 0 {
-		return &workspacesMetaData{}, nil
+		s.meta = &workspacesMetaData{}
+		return nil
 	}
 
 	meta := &workspacesMetaData{}
 	if err = yaml.Unmarshal(content, meta); err != nil {
-		return nil, fmt.Errorf("yaml unmarshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml unmarshal workspaces metadata failed: %w", err)
 	}
-	return meta, nil
+	s.meta = meta
+	return nil
 }
 
-func (s *OssStorage) writeMeta(meta *workspacesMetaData) error {
-	content, err := yaml.Marshal(meta)
+func (s *OssStorage) writeMeta() error {
+	content, err := yaml.Marshal(s.meta)
 	if err != nil {
-		return fmt.Errorf("yaml marshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml marshal workspaces metadata failed: %w", err)
 	}
 
 	if err = s.bucket.PutObject(s.prefix+"/"+metadataFile, bytes.NewReader(content)); err != nil {
-		return fmt.Errorf("put workspaces meta data to oss failed: %w", err)
+		return fmt.Errorf("put workspaces metadata to oss failed: %w", err)
 	}
 	return nil
 }

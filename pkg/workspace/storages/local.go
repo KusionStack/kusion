@@ -14,6 +14,8 @@ import (
 type LocalStorage struct {
 	// The directory path to store the workspace files.
 	path string
+
+	meta *workspacesMetaData
 }
 
 // NewLocalStorage news local workspace storage and init default workspace.
@@ -24,16 +26,19 @@ func NewLocalStorage(path string) (*LocalStorage, error) {
 	if err := os.MkdirAll(s.path, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("create workspace directory failed, %w", err)
 	}
+	// read workspaces metadata
+	if err := s.readMeta(); err != nil {
+		return nil, err
+	}
 
 	return s, s.initDefaultWorkspaceIf()
 }
 
 func (s *LocalStorage) Get(name string) (*v1.Workspace, error) {
-	exist, err := s.Exist(name)
-	if err != nil {
-		return nil, err
+	if name == "" {
+		name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil, ErrWorkspaceNotExist
 	}
 
@@ -51,28 +56,23 @@ func (s *LocalStorage) Get(name string) (*v1.Workspace, error) {
 }
 
 func (s *LocalStorage) Create(ws *v1.Workspace) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if checkWorkspaceExistence(meta, ws.Name) {
+	if checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceAlreadyExist
 	}
 
-	if err = s.writeWorkspace(ws); err != nil {
+	if err := s.writeWorkspace(ws); err != nil {
 		return err
 	}
 
-	addAvailableWorkspaces(meta, ws.Name)
-	return s.writeMeta(meta)
+	addAvailableWorkspaces(s.meta, ws.Name)
+	return s.writeMeta()
 }
 
 func (s *LocalStorage) Update(ws *v1.Workspace) error {
-	exist, err := s.Exist(ws.Name)
-	if err != nil {
-		return err
+	if ws.Name == "" {
+		ws.Name = s.meta.Current
 	}
-	if !exist {
+	if !checkWorkspaceExistence(s.meta, ws.Name) {
 		return ErrWorkspaceNotExist
 	}
 
@@ -80,100 +80,77 @@ func (s *LocalStorage) Update(ws *v1.Workspace) error {
 }
 
 func (s *LocalStorage) Delete(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
+	if name == "" {
+		name = s.meta.Current
 	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return nil
 	}
 
-	if err = os.Remove(filepath.Join(s.path, name+yamlSuffix)); err != nil {
+	if err := os.Remove(filepath.Join(s.path, name+yamlSuffix)); err != nil {
 		return fmt.Errorf("remove workspace file failed: %w", err)
 	}
 
-	removeAvailableWorkspaces(meta, name)
-	return s.writeMeta(meta)
-}
-
-func (s *LocalStorage) Exist(name string) (bool, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return false, err
-	}
-	return checkWorkspaceExistence(meta, name), nil
+	removeAvailableWorkspaces(s.meta, name)
+	return s.writeMeta()
 }
 
 func (s *LocalStorage) GetNames() ([]string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return nil, err
-	}
-	return meta.AvailableWorkspaces, nil
+	return s.meta.AvailableWorkspaces, nil
 }
 
 func (s *LocalStorage) GetCurrent() (string, error) {
-	meta, err := s.readMeta()
-	if err != nil {
-		return "", err
-	}
-	return meta.Current, nil
+	return s.meta.Current, nil
 }
 
 func (s *LocalStorage) SetCurrent(name string) error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, name) {
+	if !checkWorkspaceExistence(s.meta, name) {
 		return ErrWorkspaceNotExist
 	}
-	meta.Current = name
-	return s.writeMeta(meta)
+	s.meta.Current = name
+	return s.writeMeta()
 }
 
 func (s *LocalStorage) initDefaultWorkspaceIf() error {
-	meta, err := s.readMeta()
-	if err != nil {
-		return err
-	}
-	if !checkWorkspaceExistence(meta, defaultWorkspace) {
+	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.
-		if err = s.writeWorkspace(&v1.Workspace{Name: defaultWorkspace}); err != nil {
+		if err := s.writeWorkspace(&v1.Workspace{Name: DefaultWorkspace}); err != nil {
 			return err
 		}
-		addAvailableWorkspaces(meta, defaultWorkspace)
+		addAvailableWorkspaces(s.meta, DefaultWorkspace)
 	}
 
-	if meta.Current == "" {
-		meta.Current = defaultWorkspace
+	if s.meta.Current == "" {
+		s.meta.Current = DefaultWorkspace
 	}
-	return s.writeMeta(meta)
+	return s.writeMeta()
 }
 
-func (s *LocalStorage) readMeta() (*workspacesMetaData, error) {
+func (s *LocalStorage) readMeta() error {
 	content, err := os.ReadFile(filepath.Join(s.path, metadataFile))
 	if os.IsNotExist(err) {
-		return &workspacesMetaData{}, nil
+		s.meta = &workspacesMetaData{}
+		return nil
 	} else if err != nil {
-		return nil, fmt.Errorf("read workspace meta data file failed: %w", err)
+		return fmt.Errorf("read workspace metadata file failed: %w", err)
 	}
 
 	meta := &workspacesMetaData{}
 	if err = yaml.Unmarshal(content, meta); err != nil {
-		return nil, fmt.Errorf("yaml unmarshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml unmarshal workspaces metadata failed: %w", err)
 	}
-	return meta, nil
+	s.meta = meta
+	return nil
 }
 
-func (s *LocalStorage) writeMeta(meta *workspacesMetaData) error {
-	content, err := yaml.Marshal(meta)
+func (s *LocalStorage) writeMeta() error {
+	content, err := yaml.Marshal(s.meta)
 	if err != nil {
-		return fmt.Errorf("yaml marshal workspaces meta data failed: %w", err)
+		return fmt.Errorf("yaml marshal workspaces metadata failed: %w", err)
 	}
 
 	if err = os.WriteFile(filepath.Join(s.path, metadataFile), content, os.ModePerm); err != nil {
-		return fmt.Errorf("write workspaces meta data file failed: %w", err)
+		return fmt.Errorf("write workspaces metadata file failed: %w", err)
 	}
 	return nil
 }

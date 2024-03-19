@@ -12,12 +12,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func mockOssStorage() *OssStorage {
-	return &OssStorage{bucket: &oss.Bucket{}}
-}
-
-func mockOssStorageReadMeta(meta *workspacesMetaData) {
-	mockey.Mock((*OssStorage).readMeta).Return(meta, nil).Build()
+func mockOssStorage(meta *workspacesMetaData) *OssStorage {
+	return &OssStorage{bucket: &oss.Bucket{}, meta: meta}
 }
 
 func mockOssStorageWriteMeta() {
@@ -50,8 +46,7 @@ func TestOssStorage_Get(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
 				mockey.Mock(oss.Bucket.GetObject).Return(io.NopCloser(bytes.NewReader([]byte(""))), nil).Build()
 				mockey.Mock(io.ReadAll).Return(tc.content, nil).Build()
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
-				workspace, err := mockOssStorage().Get(tc.wsName)
+				workspace, err := mockOssStorage(mockWorkspacesMetaData()).Get(tc.wsName)
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.expectedWorkspace, workspace)
 			})
@@ -80,10 +75,9 @@ func TestOssStorage_Create(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
 				mockOssStorageWriteMeta()
 				mockOssStorageWriteWorkspace()
-				err := mockOssStorage().Create(tc.workspace)
+				err := mockOssStorage(mockWorkspacesMetaData()).Create(tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})
@@ -111,9 +105,8 @@ func TestOssStorage_Update(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
 				mockOssStorageWriteWorkspace()
-				err := mockOssStorage().Update(tc.workspace)
+				err := mockOssStorage(mockWorkspacesMetaData()).Update(tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})
@@ -137,43 +130,9 @@ func TestOssStorage_Delete(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
 				mockey.Mock(oss.Bucket.DeleteObject).Return(nil).Build()
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
 				mockOssStorageWriteMeta()
-				err := mockOssStorage().Delete(tc.wsName)
+				err := mockOssStorage(mockWorkspacesMetaData()).Delete(tc.wsName)
 				assert.Equal(t, tc.success, err == nil)
-			})
-		})
-	}
-}
-
-func TestOssStorage_Exist(t *testing.T) {
-	testcases := []struct {
-		name          string
-		success       bool
-		wsName        string
-		expectedExist bool
-	}{
-		{
-			name:          "exist workspace",
-			success:       true,
-			wsName:        "dev",
-			expectedExist: true,
-		},
-		{
-			name:          "not exist workspace",
-			success:       true,
-			wsName:        "pre",
-			expectedExist: false,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
-				exist, err := mockOssStorage().Exist(tc.wsName)
-				assert.Equal(t, tc.success, err == nil)
-				assert.Equal(t, tc.expectedExist, exist)
 			})
 		})
 	}
@@ -195,8 +154,7 @@ func TestOssStorage_GetNames(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
-				wsNames, err := mockOssStorage().GetNames()
+				wsNames, err := mockOssStorage(mockWorkspacesMetaData()).GetNames()
 				assert.Equal(t, tc.success, err == nil)
 				if tc.success {
 					assert.Equal(t, tc.expectedNames, wsNames)
@@ -222,8 +180,7 @@ func TestOssStorage_GetCurrent(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
-				current, err := mockOssStorage().GetCurrent()
+				current, err := mockOssStorage(mockWorkspacesMetaData()).GetCurrent()
 				assert.Equal(t, tc.success, err == nil)
 				if tc.success {
 					assert.Equal(t, tc.expectedCurrent, current)
@@ -254,9 +211,8 @@ func TestOssStorage_SetCurrent(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
-				mockOssStorageReadMeta(mockWorkspacesMetaData())
 				mockOssStorageWriteMeta()
-				err := mockOssStorage().SetCurrent(tc.current)
+				err := mockOssStorage(mockWorkspacesMetaData()).SetCurrent(tc.current)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

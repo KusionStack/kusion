@@ -12,12 +12,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func mockS3Storage() *S3Storage {
-	return &S3Storage{s3: &s3.S3{}}
-}
-
-func mockS3StorageReadMeta(meta *workspacesMetaData) {
-	mockey.Mock((*S3Storage).readMeta).Return(meta, nil).Build()
+func mockS3Storage(meta *workspacesMetaData) *S3Storage {
+	return &S3Storage{s3: &s3.S3{}, meta: meta}
 }
 
 func mockS3StorageWriteMeta() {
@@ -52,8 +48,7 @@ func TestS3Storage_Get(t *testing.T) {
 					Body: io.NopCloser(bytes.NewReader([]byte(""))),
 				}, nil).Build()
 				mockey.Mock(io.ReadAll).Return(tc.content, nil).Build()
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
-				workspace, err := mockS3Storage().Get(tc.wsName)
+				workspace, err := mockS3Storage(mockWorkspacesMetaData()).Get(tc.wsName)
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.expectedWorkspace, workspace)
 			})
@@ -82,10 +77,9 @@ func TestS3Storage_Create(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
 				mockS3StorageWriteMeta()
 				mockS3StorageWriteWorkspace()
-				err := mockS3Storage().Create(tc.workspace)
+				err := mockS3Storage(mockWorkspacesMetaData()).Create(tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})
@@ -113,9 +107,8 @@ func TestS3Storage_Update(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
 				mockS3StorageWriteWorkspace()
-				err := mockS3Storage().Update(tc.workspace)
+				err := mockS3Storage(mockWorkspacesMetaData()).Update(tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})
@@ -139,43 +132,9 @@ func TestS3Storage_Delete(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
 				mockey.Mock((*s3.S3).DeleteObject).Return(nil, nil).Build()
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
 				mockS3StorageWriteMeta()
-				err := mockS3Storage().Delete(tc.wsName)
+				err := mockS3Storage(mockWorkspacesMetaData()).Delete(tc.wsName)
 				assert.Equal(t, tc.success, err == nil)
-			})
-		})
-	}
-}
-
-func TestS3Storage_Exist(t *testing.T) {
-	testcases := []struct {
-		name          string
-		success       bool
-		wsName        string
-		expectedExist bool
-	}{
-		{
-			name:          "exist workspace",
-			success:       true,
-			wsName:        "dev",
-			expectedExist: true,
-		},
-		{
-			name:          "not exist workspace",
-			success:       true,
-			wsName:        "pre",
-			expectedExist: false,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
-				exist, err := mockS3Storage().Exist(tc.wsName)
-				assert.Equal(t, tc.success, err == nil)
-				assert.Equal(t, tc.expectedExist, exist)
 			})
 		})
 	}
@@ -197,8 +156,7 @@ func TestS3Storage_GetNames(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
-				wsNames, err := mockS3Storage().GetNames()
+				wsNames, err := mockS3Storage(mockWorkspacesMetaData()).GetNames()
 				assert.Equal(t, tc.success, err == nil)
 				if tc.success {
 					assert.Equal(t, tc.expectedNames, wsNames)
@@ -224,8 +182,7 @@ func TestS3Storage_GetCurrent(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
-				current, err := mockS3Storage().GetCurrent()
+				current, err := mockS3Storage(mockWorkspacesMetaData()).GetCurrent()
 				assert.Equal(t, tc.success, err == nil)
 				if tc.success {
 					assert.Equal(t, tc.expectedCurrent, current)
@@ -256,9 +213,8 @@ func TestS3Storage_SetCurrent(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
-				mockS3StorageReadMeta(mockWorkspacesMetaData())
 				mockS3StorageWriteMeta()
-				err := mockS3Storage().SetCurrent(tc.current)
+				err := mockS3Storage(mockWorkspacesMetaData()).SetCurrent(tc.current)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

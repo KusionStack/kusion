@@ -16,15 +16,17 @@ type Backend interface {
 	// todo: add functions to parse storage for spec, the format is like the following:
 	// SpecStorage(projectName, stackName string) spec.Storage
 
+	// WorkspaceStorage returns the workspace storage and init default workspace.
 	WorkspaceStorage() (workspace.Storage, error)
 
+	// StateStorage returns the state storage.
 	StateStorage(project, stack, workspace string) state.Storage
 }
 
-// NewBackend creates the Backend with the configuration set in the Kusion configuration file. If the
-// backend configuration of the specified name does not exist or is invalid, NewBackend will get failed.
-// If the input name is empty, use the current backend. If no current backend is specified or backends
-// config is empty, use the default local storage.
+// NewBackend creates the Backend with the configuration set in the Kusion configuration file, where the input
+// is the configured backend name. If the backend configuration is invalid, NewBackend will get failed. If the
+// input name is empty, use the current backend. If no current backend is specified or backends config is empty,
+// and the input name is empty, use the default local storage.
 func NewBackend(name string) (Backend, error) {
 	var emptyCfg bool
 	cfg, err := config.GetConfig()
@@ -92,4 +94,13 @@ func NewBackend(name string) (Backend, error) {
 		return nil, fmt.Errorf("invalid type %s of backend %s", bkCfg.Type, name)
 	}
 	return storage, nil
+}
+
+// NewWorkspaceStorage calls NewBackend and WorkspaceStorage to new a workspace storage from specified backend.
+func NewWorkspaceStorage(backendName string) (workspace.Storage, error) {
+	bk, err := NewBackend(backendName)
+	if err != nil {
+		return nil, err
+	}
+	return bk.WorkspaceStorage()
 }

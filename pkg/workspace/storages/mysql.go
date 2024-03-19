@@ -23,18 +23,14 @@ func NewMysqlStorage(db *gorm.DB) (*MysqlStorage, error) {
 }
 
 func (s *MysqlStorage) Get(name string) (*v1.Workspace, error) {
-	exist, err := checkWorkspaceExistenceInMysql(s.db, name)
-	if err != nil {
-		return nil, err
-	}
-	if !exist {
-		return nil, ErrWorkspaceNotExist
-	}
-
 	w, err := getWorkspaceFromMysql(s.db, name)
 	if err != nil {
 		return nil, fmt.Errorf("get workspace from mysql database failed: %w", err)
 	}
+	if w == nil {
+		return nil, ErrWorkspaceNotExist
+	}
+
 	ws, err := convertFromMysqlDO(w)
 	if err != nil {
 		return nil, err
@@ -60,6 +56,13 @@ func (s *MysqlStorage) Create(ws *v1.Workspace) error {
 }
 
 func (s *MysqlStorage) Update(ws *v1.Workspace) error {
+	if ws.Name == "" {
+		name, err := getCurrentWorkspaceNameFromMysql(s.db)
+		if err != nil {
+			return err
+		}
+		ws.Name = name
+	}
 	exist, err := checkWorkspaceExistenceInMysql(s.db, ws.Name)
 	if err != nil {
 		return err
@@ -76,11 +79,14 @@ func (s *MysqlStorage) Update(ws *v1.Workspace) error {
 }
 
 func (s *MysqlStorage) Delete(name string) error {
+	if name == "" {
+		var err error
+		name, err = getCurrentWorkspaceNameFromMysql(s.db)
+		if err != nil {
+			return err
+		}
+	}
 	return deleteWorkspaceInMysql(s.db, name)
-}
-
-func (s *MysqlStorage) Exist(name string) (bool, error) {
-	return checkWorkspaceExistenceInMysql(s.db, name)
 }
 
 func (s *MysqlStorage) GetNames() ([]string, error) {
@@ -104,7 +110,7 @@ func (s *MysqlStorage) SetCurrent(name string) error {
 }
 
 func (s *MysqlStorage) initDefaultWorkspaceIf() error {
-	exist, err := checkWorkspaceExistenceInMysql(s.db, defaultWorkspace)
+	exist, err := checkWorkspaceExistenceInMysql(s.db, DefaultWorkspace)
 	if err != nil {
 		return err
 	}
@@ -112,7 +118,7 @@ func (s *MysqlStorage) initDefaultWorkspaceIf() error {
 		return nil
 	}
 
-	w := &WorkspaceMysqlDO{Name: defaultWorkspace}
+	w := &WorkspaceMysqlDO{Name: DefaultWorkspace}
 	currentName, err := getCurrentWorkspaceNameFromMysql(s.db)
 	if err != nil {
 		return err
@@ -138,8 +144,15 @@ func (s WorkspaceMysqlDO) TableName() string {
 
 func getWorkspaceFromMysql(db *gorm.DB, name string) (*WorkspaceMysqlDO, error) {
 	q := &WorkspaceMysqlDO{Name: name}
+	if name == "" {
+		isCurrent := true
+		q.IsCurrent = &isCurrent
+	}
 	w := &WorkspaceMysqlDO{}
 	result := db.Where(q).First(w)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
 	return w, result.Error
 }
 
