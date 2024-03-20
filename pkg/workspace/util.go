@@ -9,13 +9,6 @@ import (
 
 var ErrEmptyProjectName = errors.New("empty project name")
 
-// CompleteWorkspace sets the workspace name and default value of unset item, should be called before ValidateWorkspace.
-func CompleteWorkspace(ws *v1.Workspace, name string) {
-	if ws.Name == "" {
-		ws.Name = name
-	}
-}
-
 // GetProjectModuleConfigs returns the module configs of a specified project, whose key is the module name, should be called after ValidateModuleConfigs.
 // If got empty module configs, return nil config and nil error.
 func GetProjectModuleConfigs(configs v1.ModuleConfigs, projectName string) (map[string]v1.GenericConfig, error) {
