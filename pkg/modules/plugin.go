@@ -9,8 +9,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
@@ -71,11 +73,15 @@ func (p *Plugin) initModule() error {
 	if err != nil {
 		return err
 	}
-	client := newPluginClient(pluginPath)
+	pluginName := prefix[0] + "-" + prefix[1]
+	client, err := newPluginClient(pluginPath, pluginName)
+	if err != nil {
+		return err
+	}
 	p.client = client
 	rpcClient, err := client.Client()
 	if err != nil {
-		return err
+		return fmt.Errorf("init kusion module plugin: %s failed. %w", key, err)
 	}
 
 	// dispense the plugin to get the real module
@@ -112,18 +118,43 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	return p, nil
 }
 
-func newPluginClient(path string) *plugin.Client {
-	// We're a host! Start by launching the plugin process.
-	// need to defer kill
+func newPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error) {
+	// create the plugin log file
+	var logFilePath string
+	dir, err := kfile.KusionDataFolder()
+	if err != nil {
+		return nil, err
+	}
+	logDir := path.Join(dir, log.Folder, Dir)
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
+			return nil, fmt.Errorf("failed to create module log dir: %w", err)
+		}
+	}
+	logFilePath = path.Join(logDir, moduleName+".log")
+	logFile, err := os.Create(logFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create module log file: %w", err)
+	}
+
+	// write log to a separate file
+	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   moduleName,
+		Output: logFile,
+		Level:  hclog.Debug,
+	})
+
+	// We're a host! Start by launching the plugin process.Need to defer kill
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: HandshakeConfig,
 		Plugins:         PluginMap,
-		Cmd:             exec.Command(path),
+		Cmd:             exec.Command(modulePluginPath),
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolGRPC,
 		},
+		Logger: logger,
 	})
-	return client
+	return client, nil
 }
 
 func (p *Plugin) KillPluginClient() error {

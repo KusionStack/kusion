@@ -87,7 +87,7 @@ func GetLevelFromStr(level string) Level {
 	}
 }
 
-func GetLogDir() LogDir {
+func GetLogDir() Dir {
 	return log.GetLogDir()
 }
 
