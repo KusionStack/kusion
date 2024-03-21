@@ -115,7 +115,7 @@ func (o *Options) Run() error {
 		Cluster:      o.Arguments["cluster"],
 		IgnoreFields: o.IgnoreFields,
 	}
-	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack, ws)
+	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack)
 	if err != nil {
 		return err
 	}

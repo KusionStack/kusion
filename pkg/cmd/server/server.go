@@ -16,7 +16,7 @@ func NewCmdServer() *cobra.Command {
 
 		serverExample = i18n.T(`
 		# Start kusion server
-		kusion server --mode kcp`)
+		kusion server --mode kcp --db_host localhost:3306 --db_user root --db_pass 123456`)
 	)
 
 	o := NewServerOptions()
@@ -39,7 +39,14 @@ func NewCmdServer() *cobra.Command {
 	return cmd
 }
 
-func (o *Options) AddServerFlags(cmd *cobra.Command) {
+func (o *ServerOptions) AddServerFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&o.Mode, "mode", "", "",
 		i18n.T("Specify the mode"))
+	// cmd.Flags().StringVarP(&o.Database.DBHost, "db_host", "", "",
+	// 	i18n.T("Specify the DB Host"))
+	// cmd.Flags().StringVarP(&o.Database.DBUser, "db_user", "", "",
+	// 	i18n.T("Specify the DB User"))
+	// cmd.Flags().StringVarP(&o.Database.DBPassword, "db_pass", "", "",
+	// 	i18n.T("Specify the DB Password"))
+	o.Database.AddFlags(cmd.Flags())
 }

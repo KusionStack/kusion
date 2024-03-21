@@ -1,9 +1,17 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
+)
+
+var (
+	ErrSourceDoesNotExist       = errors.New("the source does not exist")
+	ErrProjectDoesNotExist      = errors.New("the project does not exist")
+	ErrOrganizationDoesNotExist = errors.New("the organization does not exist")
+	ErrStackDoesNotExist        = errors.New("the stack does not exist")
 )
 
 // Payload is an interface for incoming requests payloads

@@ -17,12 +17,11 @@ import (
 	"kusionstack.io/kusion/pkg/engine/api/builders/kcl"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 const JSONOutput = "json"
 
-func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
+func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
 		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
@@ -34,7 +33,7 @@ func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !o.NoStyle && sp != nil
 
-	i, err := Intent(o, project, stack)
+	i, err := Intent(o, project, stack, ws)
 	// failed
 	if err != nil {
 		if style {
@@ -55,7 +54,7 @@ func IntentWithSpinner(o *builders.Options, project *v1.Project, stack *v1.Stack
 	return i, nil
 }
 
-func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error) {
+func Intent(o *builders.Options, p *v1.Project, s *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
 	// Choose the generator
 	var builder builders.Builder
 	pg := p.Generator
@@ -74,10 +73,6 @@ func Intent(o *builders.Options, p *v1.Project, s *v1.Stack) (*v1.Intent, error)
 		builder = &kcl.Builder{}
 	case v1.AppConfigurationBuilder:
 		appConfigs, err := buildAppConfigs(o, s)
-		if err != nil {
-			return nil, err
-		}
-		ws, err := workspace.GetWorkspaceByDefaultOperator(s.Name)
 		if err != nil {
 			return nil, err
 		}

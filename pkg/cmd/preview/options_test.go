@@ -51,7 +51,7 @@ func Test_preview(t *testing.T) {
 		defer m.UnPatch()
 
 		o := engineapi.NewAPIOptions()
-		_, err := engineapi.Preview(&o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, p, s, ws)
+		_, err := engineapi.Preview(&o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
 		assert.Nil(t, err)
 	})
 }

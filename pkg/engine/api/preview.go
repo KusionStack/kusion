@@ -53,7 +53,6 @@ func Preview(
 	planResources *apiv1.Intent,
 	project *apiv1.Project,
 	stack *apiv1.Stack,
-	workspace string,
 ) (*opsmodels.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -73,16 +72,15 @@ func Preview(
 	// parse cluster in arguments
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
-			Project:   project,
-			Stack:     stack,
-			Workspace: workspace,
-			Operator:  o.Operator,
-			Intent:    planResources,
+			Project:  project,
+			Stack:    stack,
+			Operator: o.Operator,
+			Intent:   planResources,
 		},
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
 	}
 
-	return opsmodels.NewChanges(project, stack, workspace, rsp.Order), nil
+	return opsmodels.NewChanges(project, stack, rsp.Order), nil
 }

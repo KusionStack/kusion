@@ -53,3 +53,7 @@ zz_*
 
 # version
 *z_update_version.go
+
+# startup script
+start.sh
+air.toml

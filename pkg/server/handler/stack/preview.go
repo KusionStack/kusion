@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -21,9 +20,9 @@ func ExecutePreview() http.HandlerFunc {
 		ctx := r.Context()
 		logger := util.GetLogger(ctx)
 		logger.Info("Executing Preview...")
-		projectParam := chi.URLParam(r, "projectName")
-		stackParam := chi.URLParam(r, "stackName")
-		workspaceParam := chi.URLParam(r, "workspaceName")
+		projectParam := r.URL.Query().Get("project")
+		stackParam := r.URL.Query().Get("stack")
+		workspaceParam := r.URL.Query().Get("workspace")
 		formatParam := r.URL.Query().Get("output")
 		// TODO: This is temporary. The path should be looked up based on project and stack eventually
 		pathParam := r.URL.Query().Get("path")
@@ -31,11 +30,28 @@ func ExecutePreview() http.HandlerFunc {
 		detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
 		isKCLPackageParam, _ := strconv.ParseBool(r.URL.Query().Get("isKCLPackage"))
 
+		// get workspace configurations
+		bk, err := backend.NewBackend("")
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		wsStorage, err := bk.WorkspaceStorage()
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		ws, err := wsStorage.Get(workspaceParam)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Build API inputs
 		intentOptions, previewOptions, project, stack := buildOptions(projectParam, stackParam, pathParam, isKCLPackageParam)
 
 		// Generate spec
-		sp, err := engineapi.Intent(intentOptions, project, stack)
+		sp, err := engineapi.Intent(intentOptions, project, stack, ws)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -63,7 +79,7 @@ func ExecutePreview() http.HandlerFunc {
 		stateStorage := backendInstance.StateStorage(projectParam, stackParam, pathParam)
 
 		// Compute changes for preview
-		changes, err := engineapi.Preview(previewOptions, stateStorage, sp, project, stack, workspaceParam)
+		changes, err := engineapi.Preview(previewOptions, stateStorage, sp, project, stack)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -103,7 +119,7 @@ func buildOptions(projectParam, stackParam, pathParam string, isKCLPackageParam 
 	// Construct intent options
 	intentOptions := &buildersapi.Options{
 		IsKclPkg:  isKCLPackageParam,
-		WorkDir:   pathParam + "/dev",
+		WorkDir:   pathParam + "/" + stackParam,
 		Arguments: map[string]string{},
 		NoStyle:   true,
 	}

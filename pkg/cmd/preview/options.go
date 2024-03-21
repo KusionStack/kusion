@@ -150,9 +150,9 @@ func (o *Options) Run() error {
 	if o.IntentFile != "" {
 		sp, err = engineapi.IntentFromFile(o.IntentFile)
 	} else if o.Output == jsonOutput {
-		sp, err = engineapi.Intent(options, proj, stack)
+		sp, err = engineapi.Intent(options, proj, stack, ws)
 	} else {
-		sp, err = engineapi.IntentWithSpinner(options, proj, stack)
+		sp, err = engineapi.IntentWithSpinner(options, proj, stack, ws)
 	}
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (o *Options) Run() error {
 	}
 
 	// Compute changes for preview
-	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack, ws)
+	changes, err := engineapi.Preview(previewOptions, storage, sp, proj, stack)
 	if err != nil {
 		return err
 	}
@@ -198,13 +198,8 @@ func (o *Options) Run() error {
 		return nil
 	}
 
-<<<<<<< HEAD
-	// summary preview table
-	changes.Summary(os.Stdout)
-=======
 	// Summary preview table
 	changes.Summary(os.Stdout, false)
->>>>>>> b551565 (feat: kusion server, engine api and refactor preview logic)
 
 	// detail detection
 	if o.Detail {

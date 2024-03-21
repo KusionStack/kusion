@@ -1,25 +1,35 @@
 package server
 
-import "kusionstack.io/kusion/pkg/server/route"
+import (
+	"kusionstack.io/kusion/pkg/server"
+	"kusionstack.io/kusion/pkg/server/route"
+)
 
-type Options struct {
-	Mode string
-}
-
-func NewServerOptions() *Options {
-	return &Options{
-		Mode: "KCP",
+func NewServerOptions() *ServerOptions {
+	return &ServerOptions{
+		Mode:     "KCP",
+		Database: DatabaseOptions{},
 	}
 }
 
-func (o *Options) Complete(args []string) {}
+func (o *ServerOptions) Complete(args []string) {}
 
-func (o *Options) Validate() error {
+func (o *ServerOptions) Validate() error {
 	return nil
 }
 
-func (o *Options) Run() error {
-	if _, err := route.NewCoreRoute(); err == nil {
+func (o *ServerOptions) Config() (*server.Config, error) {
+	cfg := server.NewConfig()
+	o.Database.ApplyTo(cfg)
+	return cfg, nil
+}
+
+func (o *ServerOptions) Run() error {
+	config, err := o.Config()
+	if err != nil {
+		return err
+	}
+	if _, err := route.NewCoreRoute(config); err == nil {
 		return nil
 	}
 	return nil

@@ -9,12 +9,8 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 	"kcl-lang.io/kpm/pkg/api"
 
-<<<<<<< HEAD
 	"kusionstack.io/kusion/pkg/backend"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
-=======
 	"kusionstack.io/kusion/pkg/engine/api/builders"
->>>>>>> b551565 (feat: kusion server, engine api and refactor preview logic)
 	"kusionstack.io/kusion/pkg/project"
 )
 
