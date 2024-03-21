@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +43,6 @@ func TestGetValidWorkspaceFromFile(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := GetValidWorkspaceFromFile(tc.filePath, tc.wsName)
-			fmt.Println(err)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
