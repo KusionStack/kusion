@@ -24,6 +24,6 @@ type Logger interface {
 	Fatalf(format string, args ...interface{})
 	Fatal(args ...interface{})
 	SetLevel(level Level)
-	GetLogDir() LogDir
+	GetLogDir() Dir
 	With(args ...interface{}) Logger
 }

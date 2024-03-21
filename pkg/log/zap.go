@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	logFolder    = "logs"
-	logDirConfig LogDir
+	Folder    = "logs"
+	dirConfig Dir
 )
 
-type LogDir struct {
+type Dir struct {
 	DefaultLogDir string
 	ErrorLogDir   string
 	DebugLogDir   string
@@ -56,14 +56,14 @@ func newZapLogger() (Logger, error) {
 	if v := os.Getenv("LOG_DIR"); v != "" {
 		kusionDataDir = v
 	}
-	logDirConfig = LogDir{
-		DefaultLogDir: filepath.Join(kusionDataDir, logFolder, "kusion.log"),
-		ErrorLogDir:   filepath.Join(kusionDataDir, logFolder, "kusion_error.log"),
-		DebugLogDir:   filepath.Join(kusionDataDir, logFolder, "kusion_debug.log"),
+	dirConfig = Dir{
+		DefaultLogDir: filepath.Join(kusionDataDir, Folder, "kusion.log"),
+		ErrorLogDir:   filepath.Join(kusionDataDir, Folder, "kusion_error.log"),
+		DebugLogDir:   filepath.Join(kusionDataDir, Folder, "kusion_debug.log"),
 	}
-	debugCore, debugAtom := newZapCore(logDirConfig.DebugLogDir, zapcore.DebugLevel)
-	defaultCore, defaultAtom := newZapCore(logDirConfig.DefaultLogDir, zapcore.InfoLevel)
-	errorCore, errorAtom := newZapCore(logDirConfig.ErrorLogDir, zapcore.ErrorLevel)
+	debugCore, debugAtom := newZapCore(dirConfig.DebugLogDir, zapcore.DebugLevel)
+	defaultCore, defaultAtom := newZapCore(dirConfig.DefaultLogDir, zapcore.InfoLevel)
+	errorCore, errorAtom := newZapCore(dirConfig.ErrorLogDir, zapcore.ErrorLevel)
 	combinedCore := zapcore.NewTee(defaultCore, errorCore, debugCore)
 	// AddCallerSkip skips 2 number of callers since the file that gets
 	// logged will always be the wrapped file.
@@ -131,8 +131,8 @@ func (l *zapLogger) SetLevel(level Level) {
 	}
 }
 
-func (l *zapLogger) GetLogDir() LogDir {
-	return logDirConfig
+func (l *zapLogger) GetLogDir() Dir {
+	return dirConfig
 }
 
 func (l *zapLogger) With(args ...interface{}) Logger {
