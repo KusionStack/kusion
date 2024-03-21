@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"kcl-lang.io/kpm/pkg/package"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
@@ -18,11 +20,12 @@ import (
 )
 
 type appConfigurationGenerator struct {
-	project string
-	stack   string
-	appName string
-	app     *v1.AppConfiguration
-	ws      *v1.Workspace
+	project      string
+	stack        string
+	appName      string
+	app          *v1.AppConfiguration
+	ws           *v1.Workspace
+	dependencies *pkg.Dependencies
 }
 
 var ignoreModules = map[string]bool{
@@ -35,6 +38,7 @@ func NewAppConfigurationGenerator(
 	appName string,
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
+	dependencies *pkg.Dependencies,
 ) (modules.Generator, error) {
 	if len(project) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
@@ -61,11 +65,12 @@ func NewAppConfigurationGenerator(
 	}
 
 	return &appConfigurationGenerator{
-		project: project,
-		stack:   stack,
-		appName: appName,
-		app:     app,
-		ws:      ws,
+		project:      project,
+		stack:        stack,
+		appName:      appName,
+		app:          app,
+		ws:           ws,
+		dependencies: dependencies,
 	}, nil
 }
 
@@ -75,9 +80,10 @@ func NewAppConfigurationGeneratorFunc(
 	appName string,
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
+	kpmDependencies *pkg.Dependencies,
 ) modules.NewGeneratorFunc {
 	return func() (modules.Generator, error) {
-		return NewAppConfigurationGenerator(project, stack, appName, app, ws)
+		return NewAppConfigurationGenerator(project, stack, appName, app, ws, kpmDependencies)
 	}
 }
 
@@ -119,7 +125,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 	wl := spec.Resources[1]
 
 	// call modules to generate customized resources
-	resources, patchers, err := g.callModules(projectModuleConfigs)
+	resources, patchers, err := g.callModules(projectModuleConfigs, g.dependencies)
 	if err != nil {
 		return err
 	}
@@ -243,16 +249,36 @@ func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 	return nil
 }
 
-func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []v1.Patcher, err error) {
+// moduleConfig represents the configuration of a module, either devConfig or platformConfig can be nil
+type moduleConfig struct {
+	devConfig      v1.Accessory
+	platformConfig v1.GenericConfig
+}
+
+func (g *appConfigurationGenerator) callModules(
+	projectModuleConfigs map[string]v1.GenericConfig, dependencies *pkg.Dependencies,
+) (resources []v1.Resource, patchers []v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		for _, plugin := range pluginMap {
-			plugin.KillPluginClient()
+			pluginErr := plugin.KillPluginClient()
+			if pluginErr != nil {
+				err = fmt.Errorf("call modules failed %w. %s", err, pluginErr)
+			}
 		}
 	}()
 
-	// Generate customized module resources
-	for t, config := range projectModuleConfigs {
+	// build module config index
+	if dependencies == nil {
+		return nil, nil, errors.New("dependencies should not be nil")
+	}
+	indexModuleConfig, err := buildModuleConfigIndex(g.app.Accessories, projectModuleConfigs, dependencies)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// generate customized module resources
+	for t, config := range indexModuleConfig {
 		// ignore workload and namespace modules
 		if ignoreModules[t] {
 			continue
@@ -272,7 +298,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		plugin := pluginMap[t]
 
 		// prepare the request
-		protoRequest, err := g.initModuleRequest(t, config)
+		protoRequest, err := g.initModuleRequest(config)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -310,7 +336,59 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 	return resources, patchers, nil
 }
 
-func (g *appConfigurationGenerator) initModuleRequest(key string, platformModuleConfig v1.GenericConfig) (*proto.GeneratorRequest, error) {
+func buildModuleConfigIndex(
+	accessories map[string]v1.Accessory,
+	projectModuleConfigs map[string]v1.GenericConfig,
+	dependencies *pkg.Dependencies,
+) (map[string]moduleConfig, error) {
+	indexModuleConfig := map[string]moduleConfig{}
+	for accName, accessory := range accessories {
+		// parse accessory module key
+		key, err := parseModuleKey(accessory, dependencies)
+		if err != nil {
+			return nil, err
+		}
+		log.Info("build module index of accessory:%s module key: %s", accName, key)
+		indexModuleConfig[key] = moduleConfig{
+			devConfig:      accessory,
+			platformConfig: projectModuleConfigs[key],
+		}
+	}
+	// append module configs only exist in platform configs
+	for key, platformConfig := range projectModuleConfigs {
+		if _, ok := indexModuleConfig[key]; !ok {
+			indexModuleConfig[key] = moduleConfig{
+				devConfig:      nil,
+				platformConfig: platformConfig,
+			}
+		}
+	}
+	return indexModuleConfig, nil
+}
+
+func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (string, error) {
+	split := strings.Split(accessory["_type"].(string), ".")
+	moduleName := split[0]
+	// find module namespace and version
+	d, ok := dependencies.Deps[moduleName]
+	if !ok {
+		return "", fmt.Errorf("can not find module %s in dependencies", moduleName)
+	}
+	// key example "kusionstack/mysql@v0.1.0"
+	var key string
+	if d.Oci != nil {
+		key = fmt.Sprintf("%s@%s", d.Oci.Repo, d.Version)
+	} else if d.Git != nil {
+		// todo: kpm will change the repo version with the filed `version` in d.Git.Version
+		url := strings.TrimSuffix(d.Git.Url, ".git")
+		splits := strings.Split(url, "/")
+		ns := splits[len(splits)-2] + "/" + splits[len(splits)-1]
+		key = fmt.Sprintf("%s@%s", ns, d.Git.Tag)
+	}
+	return key, nil
+}
+
+func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {
 	var workloadConfig, devConfig, platformConfig, runtimeConfig []byte
 	var err error
 	// Attention: we MUST yaml.v2 to serialize the object,
@@ -320,13 +398,13 @@ func (g *appConfigurationGenerator) initModuleRequest(key string, platformModule
 			return nil, fmt.Errorf("marshal workload config failed. %w", err)
 		}
 	}
-	if g.app.Accessories[key] != nil {
-		if devConfig, err = yaml.Marshal(g.app.Accessories[key]); err != nil {
+	if config.devConfig != nil {
+		if devConfig, err = yaml.Marshal(config.devConfig); err != nil {
 			return nil, fmt.Errorf("marshal dev module config failed. %w", err)
 		}
 	}
-	if platformModuleConfig != nil {
-		if platformConfig, err = yaml.Marshal(platformModuleConfig); err != nil {
+	if config.platformConfig != nil {
+		if platformConfig, err = yaml.Marshal(config.platformConfig); err != nil {
 			return nil, fmt.Errorf("marshal platform module config failed. %w", err)
 		}
 	}

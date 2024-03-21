@@ -3,10 +3,14 @@ package builders
 import (
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+	"kcl-lang.io/kpm/pkg/api"
+	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+	"kusionstack.io/kusion/pkg/modules"
 
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
@@ -21,7 +25,16 @@ func TestAppsConfigBuilder_Build(t *testing.T) {
 		Workspace: buildMockWorkspace(),
 	}
 
-	intent, err := acg.Build(&Options{}, p, s)
+	kpmMock := mockey.Mock((*api.KclPackage).GetDependenciesInModFile).Return(&pkg.Dependencies{Deps: make(map[string]pkg.Dependency)}).
+		Build()
+	callMock := mockey.Mock(modules.CallGenerators).Return(nil).Build()
+	defer func() {
+		kpmMock.UnPatch()
+		callMock.UnPatch()
+	}()
+
+	kclPkg := &api.KclPackage{}
+	intent, err := acg.Build(kclPkg, p, s)
 	assert.NoError(t, err)
 	assert.NotNil(t, intent)
 }

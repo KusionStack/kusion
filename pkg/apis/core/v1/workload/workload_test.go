@@ -36,7 +36,7 @@ func TestWorkload_MarshalJSON(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected:      `{"_type": "Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
+			expected:      `{"_type":"kam.v1.workload.Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
 			expectedError: nil,
 		},
 		{
@@ -49,7 +49,7 @@ func TestWorkload_MarshalJSON(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected:      `{"_type": "Job", "schedule": "* * * * *"}`,
+			expected:      `{"_type":"kam.v1.workload.Job", "schedule": "* * * * *"}`,
 			expectedError: nil,
 		},
 		{
@@ -90,7 +90,7 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			name: "Valid UnmarshalJSON for Service",
-			data: `{"_type": "Service", "replicas": 1, "labels": {}, "annotations": {}, "dirs": {}, "schedule": "* * * * *"}`,
+			data: `{"_type":"kam.v1.workload.Service", "replicas": 1, "labels": {}, "annotations": {}, "dirs": {}, "schedule": "* * * * *"}`,
 			expected: Workload{
 				Header: Header{
 					Type: TypeService,
@@ -108,7 +108,7 @@ func TestWorkload_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name: "Valid UnmarshalJSON for Job",
-			data: `{"_type": "Job", "schedule": "* * * * *"}`,
+			data: `{"_type":"kam.v1.workload.Job", "schedule": "* * * * *"}`,
 			expected: Workload{
 				Header: Header{
 					Type: TypeJob,
@@ -172,7 +172,7 @@ func TestWorkload_MarshalYAML(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected: `_type: Service
+			expected: `_type: kam.v1.workload.Service
 replicas: 2
 labels:
     app: my-service
@@ -198,7 +198,7 @@ type: Deployment`,
 					Schedule: "* * * * *",
 				},
 			},
-			expected: `_type: Job
+			expected: `_type: kam.v1.workload.Job
 schedule: '* * * * *'`,
 			expectedError: nil,
 		},
@@ -240,7 +240,7 @@ func TestWorkload_UnmarshalYAML(t *testing.T) {
 	}{
 		{
 			name: "Valid UnmarshalYAML for Service",
-			data: `_type: Service
+			data: `_type: kam.v1.workload.Service
 replicas: 1
 labels: {}
 annotations: {}
@@ -263,7 +263,7 @@ schedule: '* * * * *'`,
 		},
 		{
 			name: "Valid UnmarshalYAML for Job",
-			data: `_type: Job
+			data: `_type: kam.v1.workload.Job
 replicas: 1
 labels: {}
 annotations: {}

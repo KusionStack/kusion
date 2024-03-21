@@ -80,7 +80,7 @@ func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Works
 		return nil, fmt.Errorf("unknow generator type:%s", bt)
 	}
 
-	i, err := builder.Build(o, proj, stack)
+	i, err := builder.Build(o.KclPkg, proj, stack)
 	if err != nil {
 		return nil, errors.New(stripansi.Strip(err.Error()))
 	}

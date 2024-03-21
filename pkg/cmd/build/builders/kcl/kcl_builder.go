@@ -48,7 +48,7 @@ func Run(o *builders.Options, stack *v1.Stack) (*CompileResult, error) {
 	log.Debugf("Compile options: %s", jsonutil.MustMarshal2PrettyString(optList))
 
 	var result *kcl.KCLResultList
-	if o.IsKclPkg {
+	if o.KclPkg != nil {
 		result, err = api.RunWithOpts(
 			opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
 			opt.WithNoSumCheck(true),
@@ -145,7 +145,7 @@ func BuildKCLOptions(o *builders.Options) ([]kcl.Option, error) {
 	optList = append(optList, withOpt)
 
 	if arguments[IncludeSchemaTypePath] == "true" {
-		withOpt = kcl.WithIncludeSchemaTypePath(true)
+		withOpt = kcl.WithFullTypePath(true)
 		if withOpt.Err != nil {
 			return nil, withOpt.Err
 		}
@@ -153,4 +153,8 @@ func BuildKCLOptions(o *builders.Options) ([]kcl.Option, error) {
 	}
 
 	return optList, nil
+}
+
+func Overwrite(fileName string, overrides []string) (bool, error) {
+	return kcl.OverrideFile(fileName, overrides, []string{})
 }

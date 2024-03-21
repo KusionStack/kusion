@@ -1,18 +1,8 @@
 package e2e
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"path/filepath"
-	"time"
-
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 /*var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
@@ -27,7 +17,8 @@ import (
 	})
 })*/
 
-var _ = ginkgo.Describe("kusion Runtime Commands", func() {
+// todo: uncomment the following test cases after refactoring the Konfig examples
+/*var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 	ginkgo.It("kusion preview", func() {
 		path := filepath.Join(GetWorkDir(), "konfig", "example", "service-multi-stack", "dev")
 		_, err := ExecKusionWithWorkDir("kusion preview -d", path)
@@ -71,7 +62,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
 	})
-})
+})*/
 
 var _ = ginkgo.Describe("Kusion Other Commands", func() {
 	ginkgo.Context("kusion version testing", func() {

@@ -3,8 +3,18 @@ package container
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"gopkg.in/yaml.v2"
+
+	"kusionstack.io/kusion/pkg/apis/core"
+)
+
+const (
+	ProbePrefix = "v1.workload.container.probe."
+	TypeHTTP    = core.BuiltinModulePrefix + ProbePrefix + "Http"
+	TypeExec    = core.BuiltinModulePrefix + ProbePrefix + "Exec"
+	TypeTCP     = core.BuiltinModulePrefix + ProbePrefix + "Tcp"
 )
 
 // Container describes how the App's tasks are expected to be run.
@@ -136,7 +146,7 @@ type LifecycleHandler struct {
 // MarshalJSON implements the json.Marshaler interface for ProbeHandler.
 func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		return json.Marshal(struct {
 			TypeWrapper    `json:",inline"`
 			*HTTPGetAction `json:",inline"`
@@ -144,7 +154,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper:   TypeWrapper{p.Type},
 			HTTPGetAction: p.HTTPGetAction,
 		})
-	case "Exec":
+	case TypeExec:
 		return json.Marshal(struct {
 			TypeWrapper `json:",inline"`
 			*ExecAction `json:",inline"`
@@ -152,7 +162,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper: TypeWrapper{p.Type},
 			ExecAction:  p.ExecAction,
 		})
-	case "Tcp":
+	case TypeTCP:
 		return json.Marshal(struct {
 			TypeWrapper      `json:",inline"`
 			*TCPSocketAction `json:",inline"`
@@ -161,7 +171,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 			TCPSocketAction: p.TCPSocketAction,
 		})
 	default:
-		return nil, errors.New("unrecognized probe handler type")
+		return nil, fmt.Errorf("unrecognized probe handler type: %s", p.Type)
 	}
 }
 
@@ -175,20 +185,20 @@ func (p *ProbeHandler) UnmarshalJSON(data []byte) error {
 
 	p.Type = probeType.Type
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = json.Unmarshal(data, handler)
 		p.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = json.Unmarshal(data, handler)
 		p.ExecAction = handler
-	case "Tcp":
+	case TypeTCP:
 		handler := &TCPSocketAction{}
 		err = json.Unmarshal(data, handler)
 		p.TCPSocketAction = handler
 	default:
-		return errors.New("unrecognized probe handler type")
+		return fmt.Errorf("unrecognized probe handler type: %s", p.Type)
 	}
 
 	return err
@@ -197,7 +207,7 @@ func (p *ProbeHandler) UnmarshalJSON(data []byte) error {
 // MarshalYAML implements the yaml.Marshaler interface for ProbeHandler.
 func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		return struct {
 			TypeWrapper   `yaml:",inline" json:",inline"`
 			HTTPGetAction `yaml:",inline" json:",inline"`
@@ -205,7 +215,7 @@ func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper:   TypeWrapper{Type: p.Type},
 			HTTPGetAction: *p.HTTPGetAction,
 		}, nil
-	case "Exec":
+	case TypeExec:
 		return struct {
 			TypeWrapper `yaml:",inline" json:",inline"`
 			ExecAction  `yaml:",inline" json:",inline"`
@@ -213,7 +223,7 @@ func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper: TypeWrapper{Type: p.Type},
 			ExecAction:  *p.ExecAction,
 		}, nil
-	case "Tcp":
+	case TypeTCP:
 		return struct {
 			TypeWrapper     `yaml:",inline" json:",inline"`
 			TCPSocketAction `yaml:",inline" json:",inline"`
@@ -236,20 +246,20 @@ func (p *ProbeHandler) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	p.Type = probeType.Type
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = unmarshal(handler)
 		p.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = unmarshal(handler)
 		p.ExecAction = handler
-	case "Tcp":
+	case TypeTCP:
 		handler := &TCPSocketAction{}
 		err = unmarshal(handler)
 		p.TCPSocketAction = handler
 	default:
-		return errors.New("unrecognized probe handler type")
+		return fmt.Errorf("unrecognized probe handler type: %s", p.Type)
 	}
 
 	return err
@@ -258,7 +268,7 @@ func (p *ProbeHandler) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // MarshalJSON implements the json.Marshaler interface for LifecycleHandler.
 func (l *LifecycleHandler) MarshalJSON() ([]byte, error) {
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		return json.Marshal(struct {
 			TypeWrapper    `json:",inline"`
 			*HTTPGetAction `json:",inline"`
@@ -266,7 +276,7 @@ func (l *LifecycleHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper:   TypeWrapper{l.Type},
 			HTTPGetAction: l.HTTPGetAction,
 		})
-	case "Exec":
+	case TypeExec:
 		return json.Marshal(struct {
 			TypeWrapper `json:",inline"`
 			*ExecAction `json:",inline"`
@@ -289,11 +299,11 @@ func (l *LifecycleHandler) UnmarshalJSON(data []byte) error {
 
 	l.Type = handlerType.Type
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = json.Unmarshal(data, handler)
 		l.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = json.Unmarshal(data, handler)
 		l.ExecAction = handler
@@ -307,7 +317,7 @@ func (l *LifecycleHandler) UnmarshalJSON(data []byte) error {
 // MarshalYAML implements the yaml.Marshaler interface for LifecycleHandler.
 func (l *LifecycleHandler) MarshalYAML() (interface{}, error) {
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		return struct {
 			TypeWrapper   `yaml:",inline" json:",inline"`
 			HTTPGetAction `yaml:",inline" json:",inline"`
@@ -315,7 +325,7 @@ func (l *LifecycleHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper:   TypeWrapper{Type: l.Type},
 			HTTPGetAction: *l.HTTPGetAction,
 		}, nil
-	case "Exec":
+	case TypeExec:
 		return struct {
 			TypeWrapper `yaml:",inline" json:",inline"`
 			ExecAction  `yaml:",inline" json:",inline"`
@@ -338,11 +348,11 @@ func (l *LifecycleHandler) UnmarshalYAML(unmarshal func(interface{}) error) erro
 
 	l.Type = handlerType.Type
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = unmarshal(handler)
 		l.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = unmarshal(handler)
 		l.ExecAction = handler

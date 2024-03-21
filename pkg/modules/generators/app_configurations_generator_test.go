@@ -3,6 +3,7 @@ package generators
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -12,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
@@ -62,30 +64,44 @@ func (f *fakeModule) Generate(_ context.Context, _ *proto.GeneratorRequest) (*pr
 	}, nil
 }
 
-func mockPlugin() {
-	mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+func mockPlugin() (*mockey.Mocker, *mockey.Mocker) {
+	pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
 		return &modules.Plugin{Module: &fakeModule{}}, nil
 	}).Build()
-	mockey.Mock((*modules.Plugin).KillPluginClient).Return(nil).Build()
+	killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(nil).Build()
+	return pluginMock, killMock
 }
 
 func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 	appName, app := buildMockApp()
 	ws := buildMockWorkspace("fakeNs")
+	dep := &pkg.Dependencies{
+		Deps: map[string]pkg.Dependency{
+			"fake": {
+				Name: "fakeName",
+			},
+		},
+	}
 
 	g := &appConfigurationGenerator{
-		project: "testproject",
-		stack:   "test",
-		appName: appName,
-		app:     app,
-		ws:      ws,
+		project:      "testproject",
+		stack:        "test",
+		appName:      appName,
+		app:          app,
+		ws:           ws,
+		dependencies: dep,
 	}
 
 	spec := &v1.Intent{
 		Resources: []v1.Resource{},
 	}
 
-	mockPlugin()
+	m1, m2 := mockPlugin()
+	defer func() {
+		m1.UnPatch()
+		m2.UnPatch()
+	}()
+
 	err := g.Generate(spec)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, spec.Resources)
@@ -116,31 +132,31 @@ func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 	ws := buildMockWorkspace("")
 
 	t.Run("Valid app configuration generator func", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, ws, nil)()
 		assert.NoError(t, err)
 		assert.NotNil(t, g)
 	})
 
 	t.Run("Empty app name", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", "", app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", "", app, ws, nil)()
 		assert.EqualError(t, err, "app name must not be empty")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Nil app", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, nil, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, nil, ws, nil)()
 		assert.EqualError(t, err, "can not find app configuration when generating the Intent")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Empty project name", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("", "test", appName, app, ws)()
+		g, err := NewAppConfigurationGeneratorFunc("", "test", appName, app, ws, nil)()
 		assert.EqualError(t, err, "project name must not be empty")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Empty workspace", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, nil)()
+		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, nil, nil)()
 		assert.EqualError(t, err, "workspace must not be empty")
 		assert.Nil(t, g)
 	})
@@ -150,7 +166,7 @@ func buildMockApp() (string, *v1.AppConfiguration) {
 	return "app1", &v1.AppConfiguration{
 		Workload: &workload.Workload{
 			Header: workload.Header{
-				Type: "Service",
+				Type: workload.TypeService,
 			},
 			Service: &workload.Service{
 				Base: workload.Base{},
@@ -314,5 +330,83 @@ func Test_patchWorkload(t *testing.T) {
 		env := containers[0].(map[string]interface{})["env"].([]interface{})
 		assert.Contains(t, env, map[string]interface{}{"name": "NEW_ENV", "value": "my-new-value"})
 		assert.Contains(t, env, map[string]interface{}{"name": "MY_ENV", "value": "my-env-value"})
+	})
+}
+
+func TestAppConfigurationGenerator_CallModules(t *testing.T) {
+	// Mock dependencies
+	dependencies := &pkg.Dependencies{
+		Deps: map[string]pkg.Dependency{
+			"module1": {
+				Version: "v1.0.0",
+				Source: pkg.Source{
+					Oci: &pkg.Oci{
+						Repo: "kusionstack/module1",
+					},
+				},
+			},
+		},
+	}
+
+	// Mock project module configs
+	projectModuleConfigs := map[string]v1.GenericConfig{
+		"module1": {
+			"config1": "value1",
+		},
+	}
+
+	// Mock app appConfig generator
+	_, appConfig := buildMockApp()
+	g := &appConfigurationGenerator{
+		project:      "testproject",
+		stack:        "teststack",
+		appName:      "testapp",
+		app:          appConfig,
+		ws:           buildMockWorkspace(""),
+		dependencies: dependencies,
+	}
+
+	t.Run("Successful module call", func(t *testing.T) {
+		// Mock the plugin
+		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+			return &modules.Plugin{Module: &fakeModule{}}, nil
+		}).Build()
+		killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(nil).Build()
+		defer func() {
+			pluginMock.UnPatch()
+			killMock.UnPatch()
+		}()
+
+		resources, patchers, err := g.callModules(projectModuleConfigs, dependencies)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resources)
+		assert.Empty(t, patchers)
+	})
+
+	t.Run("Failed module call due to missing module in dependencies", func(t *testing.T) {
+		// Mock the plugin
+		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+			return nil, fmt.Errorf("module not found")
+		}).Build()
+		defer func() {
+			pluginMock.UnPatch()
+		}()
+
+		_, _, err := g.callModules(projectModuleConfigs, dependencies)
+		assert.Error(t, err)
+	})
+
+	t.Run("Failed module call due to error in plugin", func(t *testing.T) {
+		// Mock the plugin
+		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+			return &modules.Plugin{Module: &fakeModule{}}, nil
+		}).Build()
+		killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(fmt.Errorf("error in plugin")).Build()
+		defer func() {
+			pluginMock.UnPatch()
+			killMock.UnPatch()
+		}()
+		_, _, err := g.callModules(projectModuleConfigs, dependencies)
+		assert.Error(t, err)
 	})
 }

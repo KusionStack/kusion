@@ -116,7 +116,7 @@ func (o *Options) Run() error {
 	}
 
 	options := &builders.Options{
-		IsKclPkg:  o.IsKclPkg,
+		KclPkg:    o.KclPkg,
 		WorkDir:   o.WorkDir,
 		Filenames: o.Filenames,
 		Settings:  o.Settings,
