@@ -22,6 +22,7 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/fluxcd/pkg/sourceignore v0.5.0
 	github.com/fluxcd/pkg/tar v0.4.0
+	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-test/deep v1.0.3
 	github.com/goccy/go-yaml v1.11.0
@@ -95,7 +96,6 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
-	github.com/go-git/go-git/v5 v5.11.0 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
