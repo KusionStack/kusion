@@ -15,6 +15,7 @@ type APIOptions struct {
 	Operator     string
 	Cluster      string
 	IgnoreFields []string
+	DryRun       bool
 }
 
 func NewAPIOptions() APIOptions {
@@ -22,6 +23,7 @@ func NewAPIOptions() APIOptions {
 		// Operator:     "operator",
 		// Cluster:      "cluster",
 		// IgnoreFields: []string{},
+		DryRun: false,
 	}
 	return apiOptions
 }

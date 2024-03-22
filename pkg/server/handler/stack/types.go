@@ -6,6 +6,8 @@ import (
 	"kusionstack.io/kusion/pkg/domain/repository"
 )
 
+const Stdout = "stdout"
+
 var (
 	ErrGettingNonExistingStack  = errors.New("the stack does not exist")
 	ErrUpdatingNonExistingStack = errors.New("the stack to update does not exist")
