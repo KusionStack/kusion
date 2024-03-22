@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/domain/constant"
 )
 
@@ -10,7 +11,7 @@ import (
 type Project struct {
 	// ID is the id of the project.
 	ID uint `yaml:"id" json:"id"`
-	// Name is the name of the stack.
+	// Name is the name of the Project.
 	Name string `yaml:"name" json:"name"`
 	// DisplayName is the readability display name.
 	DisplayName string `yaml:"displayName,omitempty" json:"displayName,omitempty"`
@@ -56,4 +57,14 @@ func (p *Project) Validate() error {
 	}
 
 	return nil
+}
+
+// Convert Project to core Project
+func (p *Project) ConvertToCore() (*v1.Project, error) {
+	return &v1.Project{
+		Name:        p.Name,
+		Description: &p.Description,
+		Path:        p.Path,
+		Labels:      map[string]string{},
+	}, nil
 }

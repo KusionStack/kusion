@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/domain/constant"
 )
 
@@ -80,4 +81,14 @@ func (s *Stack) Validate() error {
 	}
 
 	return nil
+}
+
+// Convert stack to core stack
+func (s *Stack) ConvertToCore() (*v1.Stack, error) {
+	return &v1.Stack{
+		Name:        s.Name,
+		Description: &s.Description,
+		Path:        s.Path,
+		Labels:      map[string]string{},
+	}, nil
 }
