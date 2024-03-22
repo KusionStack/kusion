@@ -119,9 +119,10 @@ func setupRestAPIV1(
 	r.Route("/stack", func(r chi.Router) {
 		r.Route("/{stackID}", func(r chi.Router) {
 			r.Post("/", stackHandler.CreateStack())
-			r.Post("/build", stackHandler.BuildStack()) // TODO: Change to build
+			r.Post("/build", stackHandler.BuildStack())
 			r.Post("/preview", stackHandler.PreviewStack())
-			r.Post("/apply", stackHandler.ApplyStack()) // TODO: Change to apply
+			r.Post("/apply", stackHandler.ApplyStack())
+			r.Post("/destroy", stackHandler.DestroyStack())
 			r.Get("/", stackHandler.GetStack())
 			r.Put("/", stackHandler.UpdateStack())
 			r.Delete("/", stackHandler.DeleteStack())

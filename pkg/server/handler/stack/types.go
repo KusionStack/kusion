@@ -9,11 +9,12 @@ import (
 const Stdout = "stdout"
 
 var (
-	ErrGettingNonExistingStack  = errors.New("the stack does not exist")
-	ErrUpdatingNonExistingStack = errors.New("the stack to update does not exist")
-	ErrSourceNotFound           = errors.New("the specified source does not exist")
-	ErrProjectNotFound          = errors.New("the specified project does not exist")
-	ErrInvalidStacktID          = errors.New("the stack ID should be a uuid")
+	ErrGettingNonExistingStack         = errors.New("the stack does not exist")
+	ErrUpdatingNonExistingStack        = errors.New("the stack to update does not exist")
+	ErrSourceNotFound                  = errors.New("the specified source does not exist")
+	ErrProjectNotFound                 = errors.New("the specified project does not exist")
+	ErrInvalidStacktID                 = errors.New("the stack ID should be a uuid")
+	ErrGettingNonExistingStateForStack = errors.New("can not find State in this stack")
 )
 
 func NewHandler(

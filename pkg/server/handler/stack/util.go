@@ -5,7 +5,7 @@ import (
 	buildersapi "kusionstack.io/kusion/pkg/engine/api/builders"
 )
 
-func buildOptions(workDir string, isKCLPackageParam bool) (*buildersapi.Options, *engineapi.APIOptions) {
+func buildOptions(workDir string, isKCLPackageParam, dryrun bool) (*buildersapi.Options, *engineapi.APIOptions) {
 	// Construct intent options
 	intentOptions := &buildersapi.Options{
 		IsKclPkg:  isKCLPackageParam,
@@ -21,6 +21,7 @@ func buildOptions(workDir string, isKCLPackageParam bool) (*buildersapi.Options,
 		// Operator:     "operator",
 		// Cluster:      "cluster",
 		// IgnoreFields: []string{},
+		DryRun: dryrun,
 	}
 	return intentOptions, previewOptions
 }
