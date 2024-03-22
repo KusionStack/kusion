@@ -1,11 +1,19 @@
 package constant
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // SourceProviderType represents the type of varying source providers,
 // source provider is the general abstraction of version control systems (VCS),
 // also known as source control systems (SCM).
 type SourceProviderType string
+
+var (
+	ErrSourceNil               = errors.New("source is nil")
+	ErrDirectoryToCleanupEmpty = errors.New("temp kcp-kusion directory to clean up is empty")
+)
 
 const (
 	// SourceProviderTypeGithub represents github source provider type.

@@ -26,3 +26,13 @@ func (s *LocalStorage) StateStorage(project, stack, workspace string) state.Stor
 func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewLocalStorage(workspacestorages.GenWorkspaceDirPath(s.path))
 }
+
+// func (s *LocalStorage) CentralizedStateStorage(project, stack, workspace string) state.Storage {
+// 	homeDir, err := os.UserHomeDir()
+// 	if err != nil {
+// 		log.Errorf("get user home directory failed: %v. Using default instead...", err)
+// 		return s.StateStorage(project, stack, workspace)
+// 	}
+// 	kusionDir := filepath.Join(homeDir, ".kusion")
+// 	return statestorages.NewLocalStorage(statestorages.GenStateFilePath(kusionDir, project, stack, workspace))
+// }

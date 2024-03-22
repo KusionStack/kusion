@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -14,7 +15,9 @@ import (
 	"gorm.io/gorm"
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
+	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	"kusionstack.io/kusion/pkg/server/handler"
 	"kusionstack.io/kusion/pkg/server/util"
 )
@@ -43,7 +46,7 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 		formatParam := r.URL.Query().Get("output")
 		// TODO: Define default behaviors
 		detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
-		isKCLPackageParam, _ := strconv.ParseBool(r.URL.Query().Get("isKCLPackage"))
+		kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
 		// TODO: Should match automatically eventually
 		workspaceParam := r.URL.Query().Get("workspace")
 
@@ -53,7 +56,7 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
 			return
 		}
-		existingEntity, err := h.stackRepo.Get(ctx, uint(id))
+		stackEntity, err := h.stackRepo.Get(ctx, uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
@@ -64,14 +67,14 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 		}
 
 		// Get project by id
-		project, err := existingEntity.Project.ConvertToCore()
+		project, err := stackEntity.Project.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// Get stack by id
-		stack, err := existingEntity.ConvertToCore()
+		stack, err := stackEntity.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -95,8 +98,22 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 		}
 
 		// Build API inputs
-		workDir := stack.Path
-		intentOptions, previewOptions := buildOptions(workDir, isKCLPackageParam, false)
+		// get project to get source and workdir
+		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, stackEntity.Project.ID)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		directory, workDir, err := getWorkDirFromSource(ctx, stackEntity, projectEntity)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		intentOptions, previewOptions := buildOptions(workDir, kpmParam, false)
+
+		// Cleanup
+		defer sourceapi.Cleanup(ctx, directory)
 
 		// Generate spec
 		sp, err := engineapi.Intent(intentOptions, project, stack, ws)
@@ -118,7 +135,9 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 		}
 
 		// Compute state storage
-		stateStorage := bk.StateStorage(project.Name, stack.Name, workDir)
+		// TODO: this local storage is temporary, will support remote later
+		stateStorage := bk.StateStorage(project.Name, stack.Name, ws.Name)
+		logger.Info("Local state storage found", "Path", stateStorage)
 
 		// Compute changes for preview
 		changes, err := engineapi.Preview(previewOptions, stateStorage, sp, project, stack)
@@ -176,7 +195,7 @@ func (h *Handler) BuildStack() http.HandlerFunc {
 		// Get params from URL parameter
 		stackID := chi.URLParam(r, "stackID")
 		// TODO: Define default behaviors
-		isKCLPackageParam, _ := strconv.ParseBool(r.URL.Query().Get("isKCLPackage"))
+		kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
 		// TODO: Should match automatically eventually
 		workspaceParam := r.URL.Query().Get("workspace")
 
@@ -186,7 +205,7 @@ func (h *Handler) BuildStack() http.HandlerFunc {
 			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
 			return
 		}
-		existingEntity, err := h.stackRepo.Get(ctx, uint(id))
+		stackEntity, err := h.stackRepo.Get(ctx, uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
@@ -197,14 +216,14 @@ func (h *Handler) BuildStack() http.HandlerFunc {
 		}
 
 		// Get project by id
-		project, err := existingEntity.Project.ConvertToCore()
+		project, err := stackEntity.Project.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// Get stack by id
-		stack, err := existingEntity.ConvertToCore()
+		stack, err := stackEntity.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -228,8 +247,22 @@ func (h *Handler) BuildStack() http.HandlerFunc {
 		}
 
 		// Build API inputs
-		workDir := stack.Path
-		intentOptions, _ := buildOptions(workDir, isKCLPackageParam, false)
+		// get project to get source and workdir
+		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, stackEntity.Project.ID)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		directory, workDir, err := getWorkDirFromSource(ctx, stackEntity, projectEntity)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		intentOptions, _ := buildOptions(workDir, kpmParam, false)
+
+		// Cleanup
+		defer sourceapi.Cleanup(ctx, directory)
 
 		// Generate spec
 		sp, err := engineapi.Intent(intentOptions, project, stack, ws)
@@ -272,7 +305,7 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		dryRunParam, _ := strconv.ParseBool(r.URL.Query().Get("dryrun"))
 		// TODO: Define default behaviors
 		detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
-		isKCLPackageParam, _ := strconv.ParseBool(r.URL.Query().Get("isKCLPackage"))
+		kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
 		// TODO: Should match automatically eventually
 		workspaceParam := r.URL.Query().Get("workspace")
 
@@ -282,7 +315,7 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
 			return
 		}
-		existingEntity, err := h.stackRepo.Get(ctx, uint(id))
+		stackEntity, err := h.stackRepo.Get(ctx, uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
@@ -293,14 +326,14 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		}
 
 		// Get project by id
-		project, err := existingEntity.Project.ConvertToCore()
+		project, err := stackEntity.Project.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// Get stack by id
-		stack, err := existingEntity.ConvertToCore()
+		stack, err := stackEntity.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -324,8 +357,22 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		}
 
 		// Build API inputs
-		workDir := stack.Path
-		intentOptions, executeOptions := buildOptions(workDir, isKCLPackageParam, dryRunParam)
+		// get project to get source and workdir
+		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, stackEntity.Project.ID)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		directory, workDir, err := getWorkDirFromSource(ctx, stackEntity, projectEntity)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		// Cleanup
+		defer sourceapi.Cleanup(ctx, directory)
+
+		intentOptions, executeOptions := buildOptions(workDir, kpmParam, dryRunParam)
 
 		// Generate spec
 		sp, err := engineapi.Intent(intentOptions, project, stack, ws)
@@ -347,7 +394,9 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		}
 
 		// Compute state storage
-		stateStorage := bk.StateStorage(project.Name, stack.Name, workDir)
+		// TODO: this local storage is temporary, will support remote later
+		stateStorage := bk.StateStorage(project.Name, stack.Name, ws.Name)
+		logger.Info("Local state storage found", "Path", stateStorage)
 
 		// Compute changes for preview
 		changes, err := engineapi.Preview(executeOptions, stateStorage, sp, project, stack)
@@ -395,6 +444,17 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 			return
 		}
 
+		// Update LastSyncTimestamp to current time and set stack syncState to synced
+		stackEntity.LastSyncTimestamp = time.Now()
+		stackEntity.SyncState = constant.StackStateSynced
+
+		// Update stack with repository
+		err = h.stackRepo.Update(ctx, stackEntity)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Destroy completed
 		logger.Info("apply completed")
 		render.Render(w, r, handler.SuccessResponse(ctx, "apply completed"))
@@ -429,7 +489,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		// Get params from URL parameter
 		stackID := chi.URLParam(r, "stackID")
 		// TODO: Define default behaviors
-		isKCLPackageParam, _ := strconv.ParseBool(r.URL.Query().Get("isKCLPackage"))
+		kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
 		// TODO: Should match automatically eventually
 		workspaceParam := r.URL.Query().Get("workspace")
 		detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
@@ -441,7 +501,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
 			return
 		}
-		existingEntity, err := h.stackRepo.Get(ctx, uint(id))
+		stackEntity, err := h.stackRepo.Get(ctx, uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
@@ -452,14 +512,14 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		}
 
 		// Get project by id
-		project, err := existingEntity.Project.ConvertToCore()
+		project, err := stackEntity.Project.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// Get stack by id
-		stack, err := existingEntity.ConvertToCore()
+		stack, err := stackEntity.ConvertToCore()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -483,11 +543,27 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		}
 
 		// Build API inputs
-		workDir := stack.Path
-		_, destroyOptions := buildOptions(workDir, isKCLPackageParam, dryRunParam)
+		// get project to get source and workdir
+		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, stackEntity.Project.ID)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		directory, workDir, err := getWorkDirFromSource(ctx, stackEntity, projectEntity)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		// Cleanup
+		defer sourceapi.Cleanup(ctx, directory)
+
+		_, destroyOptions := buildOptions(workDir, kpmParam, dryRunParam)
 
 		// Compute state storage
-		stateStorage := bk.StateStorage(project.Name, stack.Name, workDir)
+		// TODO: this local storage is temporary, will support remote later
+		stateStorage := bk.StateStorage(project.Name, stack.Name, ws.Name)
+		logger.Info("Local state storage found", "Path", stateStorage)
 
 		priorState, err := stateStorage.Get()
 		if err != nil || priorState == nil {
@@ -534,5 +610,8 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		// Destroy completed
 		logger.Info("destroy completed")
 		render.Render(w, r, handler.SuccessResponse(ctx, "destroy completed"))
+
+		// Cleanup
+		sourceapi.Cleanup(ctx, directory)
 	}
 }
