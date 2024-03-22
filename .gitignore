@@ -57,3 +57,6 @@ zz_*
 # startup script
 start.sh
 air.toml
+
+# frontend
+frontend/

@@ -24,6 +24,7 @@ require (
 	github.com/fluxcd/pkg/sourceignore v0.5.0
 	github.com/fluxcd/pkg/tar v0.4.0
 	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/render v1.0.3
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.7.0

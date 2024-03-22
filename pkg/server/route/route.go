@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	httpswagger "github.com/swaggo/http-swagger"
 	"github.com/swaggo/swag/example/basic/docs"
 	"kusionstack.io/kusion/pkg/infra/persistence"
@@ -33,6 +34,17 @@ func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 	router.Use(appmiddleware.APILogger)
 	router.Use(appmiddleware.Timing)
 	router.Use(middleware.Recoverer)
+
+	router.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	// Set up the API routes for version 1 of the API.
 	router.Route("/api/v1", func(r chi.Router) {
