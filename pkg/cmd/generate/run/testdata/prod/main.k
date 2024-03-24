@@ -7,10 +7,3 @@ helloworld: ac.AppConfiguration {
         image = "nginx:v2"
     }
 }
-
-sampleapp: ac.AppConfiguration {
-    workload.containers.nginx: {
-        # prod stack has different image
-        image = "nginx:v3"
-    }
-}

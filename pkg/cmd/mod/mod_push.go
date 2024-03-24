@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -51,6 +52,11 @@ var (
 // LatestVersion is the tag name that
 // denotes the latest stable version of a module.
 const LatestVersion = "latest"
+
+// All supported platforms, to reduce module package size, not support arm64 for now.
+var supportPlatforms = []string{
+	"linux/amd64", "darwin/amd64", "windows/amd64",
+}
 
 // PushModFlags directly reflect the information that CLI is gathering via flags. They will be converted to
 // PushModOptions, which reflect the runtime requirements for the command.
@@ -195,7 +201,7 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 
 // Validate verifies if PushModOptions are valid and without conflicts.
 func (o *PushModOptions) Validate() error {
-	if fs, err := os.Stat(o.ModulePath); err != nil || !fs.IsDir() {
+	if fileInfo, err := os.Stat(o.ModulePath); err != nil || !fileInfo.IsDir() {
 		return fmt.Errorf("no module found at path %s", o.ModulePath)
 	}
 
@@ -220,8 +226,7 @@ func (o *PushModOptions) Run() error {
 	}()
 
 	generatorSourceDir := filepath.Join(o.ModulePath, "generator")
-	output := filepath.Join(tempModuleDir, "generator")
-	_, err = buildGenerator(generatorSourceDir, output, o.IOStreams)
+	err = buildGeneratorCrossPlatforms(generatorSourceDir, tempModuleDir, o.IOStreams)
 	if err != nil {
 		return err
 	}
@@ -260,41 +265,86 @@ func (o *PushModOptions) Run() error {
 	return nil
 }
 
-// This function takes a file target to specify where to compile to.
-// If `outfile` is "", the binary is compiled to a new temporary file.
-// This function returns the path of the file that was produced.
-func buildGenerator(generatorDirectory string, outfile string, ioStreams genericiooptions.IOStreams) (string, error) {
-	goFileSearchPattern := filepath.Join(generatorDirectory, "*.go")
+// This function loops through all support platforms to build target binary.
+func buildGeneratorCrossPlatforms(generatorSrcDir, targetDir string, ioStreams genericiooptions.IOStreams) error {
+	goFileSearchPattern := filepath.Join(generatorSrcDir, "*.go")
 	if matches, err := filepath.Glob(goFileSearchPattern); err != nil || len(matches) == 0 {
-		return "", fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
-	}
-
-	if outfile == "" {
-		// If no outfile is supplied, write the Go binary to a temporary file.
-		f, err := os.CreateTemp("", "generator.*")
-		if err != nil {
-			return "", fmt.Errorf("unable to create go program temp file: %w", err)
-		}
-
-		if err := f.Close(); err != nil {
-			return "", fmt.Errorf("unable to close go program temp file: %w", err)
-		}
-		outfile = f.Name()
+		return fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
 	}
 
 	gobin, err := executable.FindExecutable("go")
 	if err != nil {
-		return "", fmt.Errorf("unable to find 'go' executable: %w", err)
+		return fmt.Errorf("unable to find 'go' executable: %w", err)
 	}
+
+	var wg sync.WaitGroup
+	var failMu sync.Mutex
+	failed := false
+
+	// Build in parallel to reduce module push time
+	for _, platform := range supportPlatforms {
+		wg.Add(1)
+		go func(plat string) {
+			partialPath := strings.Replace(plat, "/", "-", 1)
+			output := filepath.Join(targetDir, "_dist", partialPath, "generator")
+			if strings.Contains(plat, "windows") {
+				output = filepath.Join(targetDir, "_dist", partialPath, "generator.exe")
+			}
+			f := false
+			buildErr := buildGenerator(gobin, plat, generatorSrcDir, output, ioStreams)
+			if buildErr != nil {
+				fmt.Printf("failed to build with %s\n", plat)
+				f = true
+			}
+			failMu.Lock()
+			failed = failed || f
+			failMu.Unlock()
+			wg.Done()
+		}(platform)
+	}
+	wg.Wait()
+
+	if failed {
+		return fmt.Errorf("failed to build generator bin")
+	}
+
+	return nil
+}
+
+// This function takes a file target to specify where to compile to.
+// If `outfile` is "", the binary is compiled to a new temporary file.
+// This function returns the path of the file that was produced.
+func buildGenerator(gobin, platform, generatorDirectory, outfile string, ioStreams genericiooptions.IOStreams) error {
+	if outfile == "" {
+		// If no outfile is supplied, write the Go binary to a temporary file.
+		f, err := os.CreateTemp("", "generator.*")
+		if err != nil {
+			return fmt.Errorf("unable to create go program temp file: %w", err)
+		}
+
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("unable to close go program temp file: %w", err)
+		}
+		outfile = f.Name()
+	}
+
+	osArch := strings.Split(platform, "/")
+	extraEnvs := []string{
+		"CGO_ENABLED=0",
+		fmt.Sprintf("GOOS=%s", osArch[0]),
+		fmt.Sprintf("GOARCH=%s", osArch[1]),
+	}
+
 	buildCmd := exec.Command(gobin, "build", "-o", outfile)
 	buildCmd.Dir = generatorDirectory
+	buildCmd.Env = append(os.Environ(), extraEnvs...)
 	buildCmd.Stdout, buildCmd.Stderr = ioStreams.Out, ioStreams.ErrOut
 
 	if err := buildCmd.Run(); err != nil {
-		return "", fmt.Errorf("unable to run `go build`: %w", err)
+		return fmt.Errorf("unable to run `go build`: %w", err)
 	}
 
-	return outfile, nil
+	return nil
 }
 
 // detectGitRepository detects existence of .git with target path.

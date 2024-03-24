@@ -18,6 +18,9 @@ import (
 	meta "kusionstack.io/kusion/pkg/oci/metadata"
 )
 
+// ArtifactTarballFileName defines name for the generated artifact tarball file
+const ArtifactTarballFileName = "artifact.tgz"
+
 // Push takes care of the actual artifact push behavior. It performs following operations:
 // - builds tarball from given directory also corresponding layer
 // - adds this layer to an empty OpenContainers artifact
@@ -36,7 +39,7 @@ func (c *Client) Push(ctx context.Context, ociURL, sourceDir string, metadata me
 	}
 	defer os.RemoveAll(tmpDir)
 
-	tmpFile := filepath.Join(tmpDir, "artifact.tgz")
+	tmpFile := filepath.Join(tmpDir, ArtifactTarballFileName)
 	if err := c.Build(tmpFile, sourceDir, ignorePaths); err != nil {
 		return "", err
 	}
@@ -59,7 +62,7 @@ func (c *Client) Push(ctx context.Context, ociURL, sourceDir string, metadata me
 	image, err = mutate.Append(image, mutate.Addendum{
 		Layer: layer,
 		Annotations: map[string]string{
-			meta.AnnotationTitle: "artifact",
+			meta.AnnotationTitle: ArtifactTarballFileName,
 		},
 	})
 	if err != nil {

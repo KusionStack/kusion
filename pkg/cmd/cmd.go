@@ -4,13 +4,13 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/kubectl/pkg/cmd/options"
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
-	"kusionstack.io/kusion/pkg/cmd/build"
+	"kusionstack.io/kusion/pkg/cmd/generate"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/mod"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
@@ -24,14 +24,14 @@ import (
 type KusionctlOptions struct {
 	Arguments []string
 
-	genericclioptions.IOStreams
+	genericiooptions.IOStreams
 }
 
 // NewDefaultKusionctlCommand creates the `kusionctl` command with default arguments
 func NewDefaultKusionctlCommand() *cobra.Command {
 	return NewDefaultKusionctlCommandWithArgs(KusionctlOptions{
 		Arguments: os.Args,
-		IOStreams: genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr},
+		IOStreams: genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr},
 	})
 }
 
@@ -93,7 +93,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			Commands: []*cobra.Command{
 				workspace.NewCmd(),
 				cmdinit.NewCmd(),
-				build.NewCmdBuild(),
+				generate.NewCmdGenerate(o.IOStreams),
 			},
 		},
 		{
