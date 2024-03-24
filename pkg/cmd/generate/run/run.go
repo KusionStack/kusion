@@ -1,6 +1,9 @@
 package run
 
 import (
+	"os"
+	"path/filepath"
+
 	kcl "kcl-lang.io/kcl-go"
 	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
 	"kcl-lang.io/kpm/pkg/api"
@@ -21,6 +24,9 @@ type KPMRunner struct{}
 
 // Run calls KPM api to compile and run KCL based configuration code.
 func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, error) {
+	cacheDir := filepath.Join(workDir, ".kclvm")
+	defer os.RemoveAll(cacheDir)
+
 	optList := buildKCLOptions(workDir, arguments)
 	result, err := api.RunWithOpts(
 		opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
@@ -36,7 +42,7 @@ func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, er
 
 // buildKCLOptions returns list of KCL options.
 func buildKCLOptions(workDir string, arguments map[string]string) []kcl.Option {
-	optList := make([]kcl.Option, 2)
+	optList := make([]kcl.Option, 3)
 
 	// build arguments option
 	for k, v := range arguments {
@@ -51,6 +57,10 @@ func buildKCLOptions(workDir string, arguments map[string]string) []kcl.Option {
 
 	// eliminate null values in the result
 	withOpt = kcl.WithDisableNone(true)
+	optList = append(optList, withOpt)
+
+	// holds include schema type path
+	withOpt = kcl.WithIncludeSchemaTypePath(true)
 	optList = append(optList, withOpt)
 
 	return optList

@@ -5,23 +5,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"gopkg.in/yaml.v3"
-
-	"kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/engine"
-	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/io"
-	kyaml "kusionstack.io/kusion/pkg/util/yaml"
 )
 
-const (
-	KusionKclPathEnv = "KUSION_KCL_PATH"
-	ID               = "id"
-	Type             = "type"
-	Attributes       = "attributes"
-)
-
-var kclAppPath = getKclPath()
+const KusionKclPathEnv = "KUSION_KCL_PATH"
 
 func getKclPath() string {
 	// 1. try ${KusionKclPathEnv}
@@ -58,43 +45,4 @@ func getKclPath() string {
 	}
 
 	return "kcl"
-}
-
-func k8sResource2ResourceMap(resource map[string]interface{}) (map[string]interface{}, error) {
-	// Get kubernetes manifestations, such as kind, metadata.name, metadata.namespace etc
-	resourceYaml, _ := yaml.Marshal(resource)
-	docs, err := kyaml.YAML2Documents(string(resourceYaml))
-	if err != nil {
-		return nil, err
-	}
-
-	if len(docs) > 1 {
-		log.Warn("document size is greater than 1")
-	}
-
-	doc := docs[0]
-
-	// Parse kubernetes resource
-	apiVersion, err := kyaml.GetByPathString(doc, "$.apiVersion")
-	if err != nil {
-		return nil, err
-	}
-
-	kind, err := kyaml.GetByPathString(doc, "$.kind")
-	if err != nil {
-		return nil, err
-	}
-
-	metadataName, err := kyaml.GetByPathString(doc, "$.metadata.name")
-	if err != nil {
-		return nil, err
-	}
-
-	metadataNamespace, _ := kyaml.GetByPathString(doc, "$.metadata.namespace")
-
-	return map[string]interface{}{
-		ID:         engine.BuildID(apiVersion, kind, metadataNamespace, metadataName),
-		Type:       v1.Kubernetes,
-		Attributes: resource,
-	}, nil
 }

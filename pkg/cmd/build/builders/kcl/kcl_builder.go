@@ -1,17 +1,11 @@
 package kcl
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	kcl "kcl-lang.io/kcl-go"
 	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
-	"kcl-lang.io/kcl-go/pkg/spec/gpyrpc"
 	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/opt"
 
@@ -21,15 +15,11 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/build/builders/kcl/rest"
 	"kusionstack.io/kusion/pkg/log"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/util/yaml"
 )
 
 type Builder struct{}
 
-var (
-	_          builders.Builder = (*Builder)(nil)
-	enableRest bool
-)
+var enableRest bool
 
 const (
 	MaxLogLength          = 3751
@@ -47,20 +37,6 @@ func Init() error {
 
 func EnableRPC() bool {
 	return !enableRest
-}
-
-func (g *Builder) Build(o *builders.Options, _ *v1.Project, stack *v1.Stack) (*v1.Intent, error) {
-	compileResult, err := Run(o, stack)
-	if err != nil {
-		return nil, err
-	}
-
-	// convert Run result to i
-	i, err := KCLResult2Intent(compileResult.Documents)
-	if err != nil {
-		return nil, err
-	}
-	return i, nil
 }
 
 func Run(o *builders.Options, stack *v1.Stack) (*CompileResult, error) {
@@ -102,28 +78,9 @@ func appendCRDs(workDir string, r *CompileResult) error {
 		return nil
 	}
 
-	crdObjs, err := readCRDs(workDir)
+	_, err := readCRDs(workDir)
 	if err != nil {
 		return err
-	}
-	if len(crdObjs) != 0 {
-		// Append to Documents
-		for _, obj := range crdObjs {
-			if doc, flag := obj.(map[string]interface{}); flag {
-				resource, err := k8sResource2ResourceMap(doc)
-				if err != nil {
-					return err
-				}
-				r.Documents = append(r.Documents, resource)
-			}
-		}
-
-		// Update RawYAMLResult
-		items := make([]interface{}, len(r.Documents))
-		for i, doc := range r.Documents {
-			items[i] = doc
-		}
-		r.RawYAMLResult = yaml.MergeToOneYAML(items...)
 	}
 
 	return nil
@@ -196,89 +153,4 @@ func BuildKCLOptions(o *builders.Options) ([]kcl.Option, error) {
 	}
 
 	return optList, nil
-}
-
-func normResult(resp *gpyrpc.ExecProgram_Result) (*CompileResult, error) {
-	var result CompileResult
-	if strings.TrimSpace(resp.JsonResult) == "" {
-		return &result, nil
-	}
-
-	var mList []map[string]interface{}
-	if err := json.Unmarshal([]byte(resp.JsonResult), &mList); err != nil {
-		return nil, err
-	}
-
-	if len(mList) == 0 {
-		return nil, fmt.Errorf("normResult: invalid result: %s", resp.JsonResult)
-	}
-
-	var kclResults []kcl.KCLResult
-	for _, m := range mList {
-		if len(m) != 0 {
-			kclResults = append(kclResults, m)
-		}
-	}
-
-	return &CompileResult{
-		Documents: kclResults,
-	}, nil
-}
-
-// CompileUsingCmd simply call kcl cmd
-func CompileUsingCmd(sourceKclFiles []string, targetFile string, args map[string]string, settings []string) (string, string, error) {
-	kclArgs := []string{
-		genKclArgs(args, settings), "-n", "-o", targetFile,
-	}
-	kclArgs = append(kclArgs, sourceKclFiles...)
-	cmd := exec.Command(kclAppPath, kclArgs...)
-	cmd.Env = os.Environ()
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
-}
-
-func genKclArgs(args map[string]string, settings []string) string {
-	kclArgs := ""
-	for key, value := range args {
-		kclArgs += fmt.Sprintf("-D %s=%s ", key, value)
-	}
-	if len(settings) > 0 {
-		kclArgs += fmt.Sprintf("-Y %s ", strings.Join(settings, " "))
-	}
-	return kclArgs
-}
-
-func Overwrite(fileName string, overrides []string) (bool, error) {
-	return kcl.OverrideFile(fileName, overrides, []string{})
-}
-
-func KCLResult2Intent(kclResults []kcl.KCLResult) (*v1.Intent, error) {
-	resources := make([]v1.Resource, len(kclResults))
-
-	for i, result := range kclResults {
-		// Marshal kcl result to bytes
-		bytes, err := json.Marshal(result)
-		if err != nil {
-			return nil, err
-		}
-
-		msg := string(bytes)
-		if len(msg) > MaxLogLength {
-			msg = msg[0:MaxLogLength]
-		}
-
-		log.Infof("convert kcl result to resource: %s", msg)
-
-		// Parse json data as models.Resource
-		var item v1.Resource
-		if err = json.Unmarshal(bytes, &item); err != nil {
-			return nil, err
-		}
-		resources[i] = item
-	}
-
-	return &v1.Intent{Resources: resources}, nil
 }

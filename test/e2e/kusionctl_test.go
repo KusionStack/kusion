@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
+/*var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 	ginkgo.Context("kusion build testing", func() {
 		ginkgo.It("kusion build", func() {
 			// kusion build testing
@@ -25,7 +25,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 			gomega.Expect(output).To(gomega.ContainSubstring("Generating Intent"))
 		})
 	})
-})
+})*/
 
 var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 	ginkgo.It("kusion preview", func() {

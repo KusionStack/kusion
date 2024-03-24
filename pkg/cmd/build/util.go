@@ -67,8 +67,6 @@ func Intent(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Works
 
 	// we can add more generators here
 	switch bt {
-	case v1.KCLBuilder:
-		builder = &kcl.Builder{}
 	case v1.AppConfigurationBuilder:
 		appConfigs, err := buildAppConfigs(o, stack)
 		if err != nil {

@@ -18,17 +18,6 @@ func NewCompileResult(k *kcl.KCLResultList) *CompileResult {
 	}
 }
 
-// NewCompileResultByMapList news a CompileResult by map array
-func NewCompileResultByMapList(mapList []map[string]interface{}) *CompileResult {
-	documents := []kcl.KCLResult{}
-	for _, mapItem := range mapList {
-		documents = append(documents, kcl.KCLResult(mapItem))
-	}
-	return &CompileResult{
-		Documents: documents,
-	}
-}
-
 func (c *CompileResult) RawYAML() string {
 	return c.RawYAMLResult
 }

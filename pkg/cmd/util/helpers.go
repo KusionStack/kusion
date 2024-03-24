@@ -26,6 +26,8 @@ func RecoverErr(err *error) {
 // status code 1.
 var ErrExit = fmt.Errorf("exit")
 
+// CheckErr prints a user-friendly error to STDERR and exits with a non-zero
+// exit code. Unrecognized errors will be printed with an "error: " prefix.
 func CheckErr(err error) {
 	if err != nil {
 		panic(err)

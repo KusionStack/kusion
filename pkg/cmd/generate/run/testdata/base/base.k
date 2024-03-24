@@ -2,6 +2,7 @@ import catalog.models.schema.v1 as ac
 import catalog.models.schema.v1.workload as wl
 import catalog.models.schema.v1.workload.container as c
 import catalog.models.schema.v1.workload.container.probe as p
+import opsrule as t
 
 # base.k declares reusable configurations for all stacks.
 helloworld: ac.AppConfiguration {
@@ -34,22 +35,10 @@ helloworld: ac.AppConfiguration {
         # Set the replicas
         replicas: 2
     }
-}
 
-sampleapp: ac.AppConfiguration {
-    workload: wl.Service {
-        containers: {
-            "nginx": c.Container {
-                image: "nginx:v1"
-                # Run the following command as defined
-                command: ["/bin/sh", "-c", "echo hi"]
-                # Extra arguments append to command defined above
-                args: ["/bin/sh", "-c", "echo hi"]
-                # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
-                workingDir: "/tmp"
-            }
+    accessories: {
+        "kusionstack/opsrule@v0.0.9": t.OpsRule {
+            maxUnavailable: "30%"
         }
-        # Set the replicas
-        replicas: 2
     }
 }
