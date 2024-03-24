@@ -40,10 +40,12 @@ func TestOptions_Complete(t *testing.T) {
 			}).Build()
 
 			opts := NewOptions()
+			opts.Flags.ProjectDir = "/dir/to/my-project"
 			args := []string{}
 
 			err := opts.Complete(args)
 			assert.Nil(t, err)
+			assert.Equal(t, "/dir/to/my-project", opts.ProjectDir)
 		})
 	})
 }

@@ -13,13 +13,16 @@ func NewCmd() *cobra.Command {
 
 		long = i18n.T(`
 		This command initializes the scaffolding for a demo project with the name of the current directory to help users quickly get started.
-		
-		Note that current directory needs to be an empty directory.`)
+
+		Note that target directory needs to be an empty directory.`)
 
 		example = i18n.T(`
 		# Initialize a demo project with the name of the current directory
 		mkdir quickstart && cd quickstart
-		kusion init`)
+		kusion init
+
+		# Initialize the demo project in a different target directory
+		kusion init --target projects/my-demo-project`)
 	)
 
 	o := NewOptions()
@@ -38,6 +41,9 @@ func NewCmd() *cobra.Command {
 			return
 		},
 	}
+
+	cmd.Flags().StringVarP(&o.ProjectDir, "target", "t", "",
+		i18n.T("specify the target direcotry"))
 
 	return cmd
 }
