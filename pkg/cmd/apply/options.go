@@ -257,7 +257,7 @@ func Apply(
 							strings.ToLower(string(msg.OpResult)),
 						)
 					}
-					pterm.Success.WithWriter(out).Println(title)
+					pretty.SuccessT.WithWriter(out).Printfln(title)
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					ls.Count(changeStep.Action)
@@ -267,7 +267,7 @@ func Apply(
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pterm.Error.WithWriter(out).Printf("%s\n", title)
+					pretty.ErrorT.WithWriter(out).Printf("%s\n", title)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),
@@ -307,6 +307,7 @@ func Apply(
 	// wait for msgCh closed
 	wg.Wait()
 	// print summary
+	pterm.Println()
 	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return nil
 }

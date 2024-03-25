@@ -19,6 +19,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/project"
+	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/util/signals"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -191,7 +192,7 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, 
 	var deleted int
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).Start()
+	progressbar, err := pterm.DefaultProgressbar.WithMaxWidth(0).WithTotal(len(changes.StepKeys)).Start()
 	if err != nil {
 		return err
 	}
@@ -231,7 +232,7 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, 
 							strings.ToLower(string(msg.OpResult)),
 						)
 					}
-					pterm.Success.Println(title)
+					pretty.SuccessT.Println(title)
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					deleted++
@@ -241,7 +242,7 @@ func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, 
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pterm.Error.Printf("%s\n", title)
+					pretty.ErrorT.Printf("%s\n", title)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),
