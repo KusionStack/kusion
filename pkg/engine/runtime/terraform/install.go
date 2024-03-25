@@ -117,7 +117,7 @@ func setTerraformExecPathEnv(execPath string) error {
 		pathSeparator = ":"
 	}
 
-	newPath := execPath + pathSeparator + currentPath
+	newPath := filepath.Dir(execPath) + pathSeparator + currentPath
 
 	return os.Setenv("PATH", newPath)
 }
