@@ -68,7 +68,7 @@ docker pull kusionstack/kusion:latest
 
 # 联系我们 
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
-- Slack: [Kusionstack](https://kusionstack.slack.com)
+- Slack: [Kusionstack](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
 - 钉钉: 42753001
 - 微信群 
 
