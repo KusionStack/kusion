@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"gopkg.in/yaml.v2"
+	yamlv2 "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
@@ -316,7 +317,7 @@ func (g *appConfigurationGenerator) initModuleRequest(key string, platformModule
 	// Attention: we MUST yaml.v2 to serialize the object,
 	// because we have introduced MapSlice in the Workload which is supported only in the yaml.v2
 	if g.app.Workload != nil {
-		if workloadConfig, err = yaml.Marshal(g.app.Workload); err != nil {
+		if workloadConfig, err = yamlv2.Marshal(g.app.Workload); err != nil {
 			return nil, fmt.Errorf("marshal workload config failed. %w", err)
 		}
 	}
