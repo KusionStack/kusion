@@ -255,12 +255,13 @@ func (h *Handler) BuildStack() http.HandlerFunc {
 		}
 
 		directory, workDir, err := getWorkDirFromSource(ctx, stackEntity, projectEntity)
+		logger.Info("workDir derived", "workDir", workDir)
+		logger.Info("directory derived", "directory", directory)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 		intentOptions, _ := buildOptions(workDir, kpmParam, false)
-
 		// Cleanup
 		defer sourceapi.Cleanup(ctx, directory)
 

@@ -7,9 +7,10 @@ import (
 	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	sp "kusionstack.io/kusion/pkg/domain/entity/source_providers"
+	"kusionstack.io/kusion/pkg/server/util"
 )
 
-// Pull() is a method that pulls the source code from the source provider.
+// Pull() is a method that pulls the source code from the git source provider.
 func Pull(ctx context.Context, source *entity.Source) (string, error) {
 	if source == nil {
 		return "", constant.ErrSourceNil
@@ -31,12 +32,13 @@ func Pull(ctx context.Context, source *entity.Source) (string, error) {
 }
 
 // Cleanup() is a method that cleans up tje temporary source code from the source provider.
-func Cleanup(ctx context.Context, localDirectory string) error {
+func Cleanup(ctx context.Context, localDirectory string) {
+	logger := util.GetLogger(ctx)
+	logger.Info("Cleaning up temp directory...")
 	if localDirectory == "" {
-		return constant.ErrDirectoryToCleanupEmpty
+		return
 	}
 	gsp := sp.NewGitSourceProvider("", localDirectory, "")
 	// Call the Cleanup() method of the source provider to clean up the source code.
 	gsp.Cleanup(ctx)
-	return nil
 }
