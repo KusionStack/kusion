@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/spec"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -46,4 +47,8 @@ func (s *MysqlStorage) StateStorage(project, stack, workspace string) state.Stor
 
 func (s *MysqlStorage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewMysqlStorage(s.db)
+}
+
+func (s *MysqlStorage) SpecStorage(project, stack, workspace string) spec.Storage {
+	return nil
 }

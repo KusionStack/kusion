@@ -7,14 +7,15 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
+	"kusionstack.io/kusion/pkg/engine/spec"
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
 // Backend is used to provide the storage service for Workspace, Spec and State.
 type Backend interface {
-	// todo: add functions to parse storage for spec, the format is like the following:
-	// SpecStorage(projectName, stackName string) spec.Storage
+	// SpecStorage returns the spec storage.
+	SpecStorage(project, stack, workspace string) spec.Storage
 
 	// WorkspaceStorage returns the workspace storage and init default workspace.
 	WorkspaceStorage() (workspace.Storage, error)
@@ -103,4 +104,13 @@ func NewWorkspaceStorage(backendName string) (workspace.Storage, error) {
 		return nil, err
 	}
 	return bk.WorkspaceStorage()
+}
+
+// NewSpecStorage calls NewBackend and returns a spec storage from specified backend.
+func NewSpecStorage(backendName string, project, stack, workspace string) (spec.Storage, error) {
+	bk, err := NewBackend(backendName)
+	if err != nil {
+		return nil, err
+	}
+	return bk.SpecStorage(project, stack, workspace), nil
 }

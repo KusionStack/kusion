@@ -1,20 +1,36 @@
 package generate
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/generate/generator"
+	"kusionstack.io/kusion/pkg/cmd/generate/run"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
+	"kusionstack.io/kusion/pkg/engine/spec"
+	"kusionstack.io/kusion/pkg/project"
+	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
 var (
-	generateLong = ``
+	generateLong = i18n.T(`
+		Generate versioned Spec of target Stack. 
+	
+		The command must be executed in a Stack or by specifying a Stack directory with the -w flag.`)
 
-	generateExample = ``
+	generateExample = i18n.T(`
+		# Generate spec with working directory
+		kusion generate -w /path/to/stack
+
+		# Generate spec with custom workspace
+		kusion generate -w /path/to/stack --workspace dev
+
+		# Generate spec with custom backend
+		kusion generate -w /path/to/stack --backend oss`)
 )
 
 // GenerateFlags directly reflect the information that CLI is gathering via flags. They will be converted to
@@ -22,9 +38,9 @@ var (
 //
 // This structure reduces the transformation to wiring and makes the logic itself easy to unit test.
 type GenerateFlags struct {
-	WorkDir string
-	Values  []string
-	Output  string
+	WorkDir   string
+	Backend   string
+	Workspace string
 
 	genericiooptions.IOStreams
 }
@@ -32,9 +48,13 @@ type GenerateFlags struct {
 // GenerateOptions defines flags and other configuration parameters for the `generate` command.
 type GenerateOptions struct {
 	WorkDir string
-	Output  string
 
-	Generator generator.Generator
+	Project   *v1.Project
+	Stack     *v1.Stack
+	Workspace *v1.Workspace
+
+	SpecStorage spec.Storage
+	Generator   generator.Generator
 }
 
 // NewGenerateFlags returns a default GenerateFlags
@@ -54,7 +74,7 @@ func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Long:    generateLong,
 		Example: generateExample,
 		Run: func(cmd *cobra.Command, args []string) {
-			o, err := flags.ToOptions(cmd, args)
+			o, err := flags.ToOptions()
 			cmdutil.CheckErr(err)
 			cmdutil.CheckErr(o.Validate(cmd, args))
 			cmdutil.CheckErr(o.Run())
@@ -68,21 +88,53 @@ func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
 
 // AddFlags registers flags for a cli.
 func (flags *GenerateFlags) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&flags.WorkDir, "workdir", "w", "", "The working directory for generate (default is current dir where executed)")
-	cmd.Flags().StringVarP(&flags.Output, "output", "o", "", "File to write generated Kusion spec to")
+	cmd.Flags().StringVarP(&flags.WorkDir, "workdir", "w", flags.WorkDir, i18n.T("The working directory for generate (default is current dir where executed)."))
+	cmd.Flags().StringVarP(&flags.Backend, "backend", "", flags.Backend, i18n.T("The backend to use, supports 'local', 'oss' and 's3'."))
+	cmd.Flags().StringVarP(&flags.Workspace, "workspace", "", flags.Workspace, i18n.T("The name of target workspace to operate in."))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
-func (flags *GenerateFlags) ToOptions(cmd *cobra.Command, args []string) (*GenerateOptions, error) {
+func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 	// If working directory not specified, use current dir where executed
 	workDir := flags.WorkDir
 	if len(workDir) == 0 {
 		workDir, _ = os.Getwd()
 	}
 
+	// Parse project and currentStack of work directory
+	currentProject, currentStack, err := project.DetectProjectAndStack(workDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get current workspace from backend
+	workspaceStorage, err := backend.NewWorkspaceStorage(flags.Backend)
+	if err != nil {
+		return nil, err
+	}
+	currentWorkspace, err := workspaceStorage.Get(flags.Workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get target spec storage
+	specStorage, err := backend.NewSpecStorage(flags.Backend, currentProject.Name, currentStack.Name, flags.Workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	// Construct generator instance
+	defaultGenerator := &generator.DefaultGenerator{
+		Project:   currentProject,
+		Stack:     currentStack,
+		Workspace: currentWorkspace,
+		Runner:    &run.KPMRunner{},
+	}
+
 	o := &GenerateOptions{
-		WorkDir: workDir,
-		Output:  flags.Output,
+		WorkDir:     workDir,
+		SpecStorage: specStorage,
+		Generator:   defaultGenerator,
 	}
 
 	return o, nil
@@ -103,6 +155,5 @@ func (o *GenerateOptions) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(intent.Resources)
-	return nil
+	return o.SpecStorage.Apply(intent)
 }

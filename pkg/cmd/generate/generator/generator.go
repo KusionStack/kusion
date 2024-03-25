@@ -11,10 +11,8 @@ import (
 	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
-	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
@@ -32,17 +30,15 @@ type Generator interface {
 
 // DefaultGenerator is the default Generator implementation.
 type DefaultGenerator struct {
+	Project   *v1.Project
+	Stack     *v1.Stack
+	Workspace *v1.Workspace
+
 	Runner run.CodeRunner
 }
 
 // Generate versioned Spec with target code runner.
 func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*v1.Intent, error) {
-	// Parse project and currentStack of work directory
-	currentProject, currentStack, err := project.DetectProjectAndStack(workDir)
-	if err != nil {
-		return nil, err
-	}
-
 	// Call code runner to generate raw data
 	if params == nil {
 		params = make(map[string]string, 1)
@@ -67,21 +63,11 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 		return nil, err
 	}
 
-	// Get workspace from backend
-	storage, err := backend.NewWorkspaceStorage("")
-	if err != nil {
-		return nil, err
-	}
-	ws, err := storage.Get("default")
-	if err != nil {
-		return nil, err
-	}
-
 	builder := &builders.AppsConfigBuilder{
-		Workspace: ws,
+		Workspace: g.Workspace,
 		Apps:      apps,
 	}
-	return builder.Build(nil, currentProject, currentStack)
+	return builder.Build(nil, g.Project, g.Stack)
 }
 
 // copyDependentModules copies dependent Kusion modules' generators to destination.
