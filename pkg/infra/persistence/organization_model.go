@@ -9,7 +9,7 @@ import (
 // OrganizationModel is a DO used to map the entity to the database.
 type OrganizationModel struct {
 	gorm.Model
-	Name        string
+	Name        string `gorm:"index:unique_org,unique"`
 	Description string
 	Labels      MultiString
 	Owners      MultiString

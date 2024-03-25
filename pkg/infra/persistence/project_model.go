@@ -9,12 +9,12 @@ import (
 // ProjectModel is a DO used to map the entity to the database.
 type ProjectModel struct {
 	gorm.Model
-	Name           string
+	Name           string `gorm:"index:unique_project,unique"`
 	SourceID       uint
 	Source         *SourceModel `gorm:"foreignKey:ID;references:SourceID"`
 	OrganizationID uint
 	Organization   *OrganizationModel `gorm:"foreignKey:ID;references:OrganizationID"`
-	Path           string
+	Path           string             `gorm:"index:unique_project,unique"`
 	Description    string
 	Labels         MultiString
 	Owners         MultiString

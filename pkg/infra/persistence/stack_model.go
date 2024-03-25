@@ -13,7 +13,7 @@ import (
 // StackModel is a DO used to map the entity to the database.
 type StackModel struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"index:unique_project,unique"`
 	// SourceID          uint
 	// Source            *SourceModel
 	ProjectID uint
@@ -21,7 +21,7 @@ type StackModel struct {
 	// OrganizationID    uint
 	// Organization      *OrganizationModel
 	Description       string
-	Path              string
+	Path              string `gorm:"index:unique_project,unique"`
 	DesiredVersion    string
 	Labels            MultiString
 	Owners            MultiString

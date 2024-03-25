@@ -13,9 +13,9 @@ import (
 type SourceModel struct {
 	gorm.Model
 	// SourceProvider is the type of the source provider.
-	SourceProvider string
+	SourceProvider string `gorm:"index:unique_source,unique"`
 	// Remote is the source URL, including scheme.
-	Remote string
+	Remote string `gorm:"index:unique_source,unique"`
 	// Description is a human-readable description of the source.
 	Description string
 	// Labels are custom labels associated with the source.
