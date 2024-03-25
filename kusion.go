@@ -16,7 +16,7 @@ func main() {
 
 	if err := command.Execute(); err != nil {
 		// Pretty-print the error and exit with an error.
-		pretty.Error.Println(err.Error())
+		pretty.ErrorT.Println(err.Error())
 		os.Exit(1)
 	}
 
