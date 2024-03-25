@@ -2,6 +2,8 @@ package storages
 
 import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/engine/spec"
+	specstorages "kusionstack.io/kusion/pkg/engine/spec/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -25,4 +27,8 @@ func (s *LocalStorage) StateStorage(project, stack, workspace string) state.Stor
 
 func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewLocalStorage(workspacestorages.GenWorkspaceDirPath(s.path))
+}
+
+func (s *LocalStorage) SpecStorage(project, stack, workspace string) spec.Storage {
+	return specstorages.NewLocalStorage(specstorages.GetSpecFilePath(s.path, project, stack, workspace))
 }
