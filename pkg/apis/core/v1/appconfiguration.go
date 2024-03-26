@@ -13,12 +13,12 @@ type Accessory map[string]interface{}
 // Note: AppConfiguration per se is not a Kusion ModulePath
 //
 // Example:
-// import models.schema.v1 as ac
-// import models.schema.v1.workload as wl
-// import models.schema.v1.workload.container as c
-// import models.schema.v1.workload.container.probe as p
-// import models.schema.v1.monitoring as m
-// import models.schema.v1.database as d
+// import kam.v1 as ac
+// import kam.v1.workload as wl
+// import kam.v1.workload.container as c
+// import kam.v1.workload.container.probe as p
+// import kam.v1.monitoring as m
+// import kam.v1.database as d
 //
 //	  helloWorld: ac.AppConfiguration {
 //	      # Built-in module
@@ -38,34 +38,20 @@ type Accessory map[string]interface{}
 //
 //	  # a collection of accessories that will be attached to the workload
 //	    accessories: {
-//	        # Built-in module, key represents the module source
-//	        "kusionstack/mysql@v0.1.0" : d.MySQL {
+//	        # Built-in module
+//	        "my-database" : d.MySQL {
 //	            type: "cloud"
 //	            version: "8.0"
 //	        }
-//	        # Built-in module, key represents the module source
-//	        "kusionstack/prometheus@v0.1.0" : m.Prometheus {
+//	        # Built-in module
+//	        "my-prometheus" : m.Prometheus {
 //	            path: "/metrics"
 //	        }
-//	        # Customized module, key represents the module source
-//	        "foo/customize@v0.1.0": customizedModule {
+//	        # Customized module
+//	        "my-customize": customizedModule {
 //	                ...
 //	        }
 //	    }
-//
-//	      # pipeline modules
-//	      pipeline: {
-//	          # Step is a module
-//	          "step" : Step {
-//	              use: "exec"
-//	              args: ["--test-all"]
-//	          }
-//	      }
-//
-//	      # dependent app list
-//	      dependency: {
-//	          dependentApps: ["init-kusion"]
-//	      }
 //	}
 type AppConfiguration struct {
 	// Name of the target App.
