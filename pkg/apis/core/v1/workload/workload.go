@@ -2,14 +2,16 @@ package workload
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
+
+	"kusionstack.io/kusion/pkg/apis/core"
 )
 
 type Type string
 
 const (
-	TypeJob       = "Job"
-	TypeService   = "Service"
+	TypeJob       = core.BuiltinModulePrefix + "v1.workload.Job"
+	TypeService   = core.BuiltinModulePrefix + "v1.workload.Service"
 	FieldReplicas = "replicas"
 )
 
@@ -42,7 +44,7 @@ func (w *Workload) MarshalJSON() ([]byte, error) {
 			Job:    w.Job,
 		})
 	default:
-		return nil, errors.New("unknown workload type")
+		return nil, fmt.Errorf("unknown workload type: %s", w.Header.Type)
 	}
 }
 
@@ -64,7 +66,7 @@ func (w *Workload) UnmarshalJSON(data []byte) error {
 		err = json.Unmarshal(data, &v)
 		w.Service = &v
 	default:
-		err = errors.New("unknown workload type")
+		err = fmt.Errorf("unknown workload type: %s", w.Header.Type)
 	}
 
 	return err
@@ -89,7 +91,7 @@ func (w *Workload) MarshalYAML() (interface{}, error) {
 			Job:    w.Job,
 		}, nil
 	default:
-		return nil, errors.New("unknown workload type")
+		return nil, fmt.Errorf("unknown workload type: %s", w.Header.Type)
 	}
 }
 
@@ -111,7 +113,7 @@ func (w *Workload) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		err = unmarshal(&v)
 		w.Service = &v
 	default:
-		err = errors.New("unknown workload type")
+		err = fmt.Errorf("unknown workload type: %s", w.Header.Type)
 	}
 
 	return err

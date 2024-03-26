@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -123,12 +124,18 @@ func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 		return nil, err
 	}
 
+	kclPkg, err := api.GetKclPackage(workDir)
+	if err != nil {
+		return nil, err
+	}
+
 	// Construct generator instance
 	defaultGenerator := &generator.DefaultGenerator{
 		Project:   currentProject,
 		Stack:     currentStack,
 		Workspace: currentWorkspace,
 		Runner:    &run.KPMRunner{},
+		KclPkg:    kclPkg,
 	}
 
 	o := &GenerateOptions{

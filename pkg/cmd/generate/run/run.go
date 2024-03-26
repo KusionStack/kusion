@@ -27,7 +27,10 @@ func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, er
 	cacheDir := filepath.Join(workDir, ".kclvm")
 	defer os.RemoveAll(cacheDir)
 
-	optList := buildKCLOptions(workDir, arguments)
+	optList, err := buildKCLOptions(workDir, arguments)
+	if err != nil {
+		return nil, err
+	}
 	result, err := api.RunWithOpts(
 		opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
 		opt.WithNoSumCheck(true),
@@ -41,7 +44,7 @@ func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, er
 }
 
 // buildKCLOptions returns list of KCL options.
-func buildKCLOptions(workDir string, arguments map[string]string) []kcl.Option {
+func buildKCLOptions(workDir string, arguments map[string]string) ([]kcl.Option, error) {
 	optList := make([]kcl.Option, 3)
 
 	// build arguments option
@@ -57,11 +60,17 @@ func buildKCLOptions(workDir string, arguments map[string]string) []kcl.Option {
 
 	// eliminate null values in the result
 	withOpt = kcl.WithDisableNone(true)
+	if withOpt.Err != nil {
+		return nil, withOpt.Err
+	}
 	optList = append(optList, withOpt)
 
 	// holds include schema type path
-	withOpt = kcl.WithIncludeSchemaTypePath(true)
+	withOpt = kcl.WithFullTypePath(true)
+	if withOpt.Err != nil {
+		return nil, withOpt.Err
+	}
 	optList = append(optList, withOpt)
 
-	return optList
+	return optList, nil
 }

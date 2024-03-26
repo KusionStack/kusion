@@ -24,7 +24,7 @@ require (
 	github.com/fluxcd/pkg/tar v0.4.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/go-test/deep v1.0.3
+	github.com/go-test/deep v1.0.8
 	github.com/goccy/go-yaml v1.11.3
 	github.com/gonvenience/bunt v1.1.1
 	github.com/gonvenience/neat v1.3.0
@@ -72,9 +72,9 @@ require (
 	k8s.io/component-base v0.27.2
 	k8s.io/kubectl v0.27.1
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
-	kcl-lang.io/kcl-go v0.8.1
+	kcl-lang.io/kcl-go v0.8.2
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.8.1
+	kcl-lang.io/kpm v0.8.3-0.20240321122901-fd054837ea5c
 	kusionstack.io/kube-api v0.1.1
 	sigs.k8s.io/controller-runtime v0.15.1
 )
@@ -137,7 +137,7 @@ require (
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
-	kcl-lang.io/lib v0.8.1 // indirect
+	kcl-lang.io/lib v0.8.2 // indirect
 	oras.land/oras-go v1.2.4 // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.14.3-0.20230601165947-6ce0bf390ce3 // indirect
@@ -272,7 +272,7 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect

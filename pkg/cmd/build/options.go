@@ -15,7 +15,7 @@ const (
 )
 
 type Options struct {
-	IsKclPkg  bool
+	KclPkg    *api.KclPackage
 	Filenames []string
 	Flags
 }
@@ -72,13 +72,17 @@ func (o *Options) PreSet(preCheck func(cur string) bool) error {
 		return nil
 	}
 
-	if _, err := api.GetKclPackage(o.WorkDir); err == nil {
-		o.IsKclPkg = true
-		return nil
+	var err error
+	o.KclPkg, err = api.GetKclPackage(o.WorkDir)
+	if err != nil {
+		return err
 	}
 
 	if len(o.Settings) == 0 {
-		o.Settings = []string{KclFile}
+		// if kcl.yaml exists, use it as settings
+		if _, err := os.Stat(filepath.Join(o.WorkDir, KclFile)); err == nil {
+			o.Settings = []string{KclFile}
+		}
 	}
 	return nil
 }

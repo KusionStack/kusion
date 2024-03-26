@@ -73,7 +73,6 @@ type AppConfiguration struct {
 	// Workload defines how to run your application code.
 	Workload *workload.Workload `json:"workload" yaml:"workload"`
 	// Accessories defines a collection of accessories that will be attached to the workload.
-	// The key in this map represents the module source. e.g. kusionstack/mysql@v0.1.0
 	Accessories map[string]Accessory `json:"accessories,omitempty" yaml:"accessories,omitempty"`
 	// Labels and Annotations can be used to attach arbitrary metadata as key-value pairs to resources.
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`

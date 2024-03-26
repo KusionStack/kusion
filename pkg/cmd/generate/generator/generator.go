@@ -7,6 +7,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
+	"kcl-lang.io/kpm/pkg/api"
 	"kcl-lang.io/kpm/pkg/env"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
@@ -33,8 +34,8 @@ type DefaultGenerator struct {
 	Project   *v1.Project
 	Stack     *v1.Stack
 	Workspace *v1.Workspace
-
-	Runner run.CodeRunner
+	Runner    run.CodeRunner
+	KclPkg    *api.KclPackage
 }
 
 // Generate versioned Spec with target code runner.
@@ -43,13 +44,13 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 	if params == nil {
 		params = make(map[string]string, 1)
 	}
-	params[IncludeSchemaTypePath] = "true"
 	rawAppConfiguration, err := g.Runner.Run(workDir, params)
 	if err != nil {
 		return nil, err
 	}
 
 	// Copy dependent modules before call builder
+	// fixme
 	err = copyDependentModules(workDir)
 	if err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 		Workspace: g.Workspace,
 		Apps:      apps,
 	}
-	return builder.Build(nil, g.Project, g.Stack)
+	return builder.Build(g.KclPkg, g.Project, g.Stack)
 }
 
 // copyDependentModules copies dependent Kusion modules' generators to destination.

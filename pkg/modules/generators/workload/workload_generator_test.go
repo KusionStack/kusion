@@ -59,7 +59,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			name: "Generate should generate the expected service",
 			expectedWorkload: &workload.Workload{
 				Header: workload.Header{
-					Type: "Service",
+					Type: workload.TypeService,
 				},
 				Service: &workload.Service{
 					Base: workload.Base{},
@@ -76,7 +76,7 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 			name: "Generate should generate the expected job",
 			expectedWorkload: &workload.Workload{
 				Header: workload.Header{
-					Type: "Job",
+					Type: workload.TypeJob,
 				},
 				Job: &workload.Job{
 					Base:     workload.Base{},

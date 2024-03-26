@@ -59,7 +59,7 @@ func NewPlugin(key string) (*Plugin, error) {
 func (p *Plugin) initModule() error {
 	key := p.key
 	split := strings.Split(key, "@")
-	msg := "invalid module key: %s. The correct format for a key should be as follows: namespace/resourceType@version. e.g. kusionstack/mysql@v0.1.0"
+	msg := "init module failed. Invalid plugin module key: %s. The correct format for a key should be as follows: namespace/resourceType@version. e.g. kusionstack/mysql@v0.1.0"
 	if len(split) != 2 {
 		return fmt.Errorf(msg, key)
 	}

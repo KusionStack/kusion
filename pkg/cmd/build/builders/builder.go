@@ -1,6 +1,8 @@
 package builders
 
 import (
+	"kcl-lang.io/kpm/pkg/api"
+
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
@@ -8,12 +10,12 @@ import (
 // but we have designed it as an interface to allow for more general usage. Any struct that implements this interface
 // is considered a Builder and can be integrated into the Kusion workflow.
 type Builder interface {
-	Build(o *Options, project *v1.Project, stack *v1.Stack) (*v1.Intent, error)
+	Build(kclPackage *api.KclPackage, project *v1.Project, stack *v1.Stack) (*v1.Intent, error)
 }
 
 type Options struct {
-	// IsKclPkg represents whether the operation is invoked in a KCL package
-	IsKclPkg bool
+	// KclPkg represents the kcl package information. If it is nil, it means this workdir is not a kcl package
+	KclPkg *api.KclPackage
 
 	// WorkDir represent the filesystem path where the operation is invoked
 	WorkDir string
