@@ -11,8 +11,8 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/backend"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/engine"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/project"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )

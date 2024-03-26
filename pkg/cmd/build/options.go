@@ -10,7 +10,7 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 
 	"kusionstack.io/kusion/pkg/backend"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/project"
 )
 
