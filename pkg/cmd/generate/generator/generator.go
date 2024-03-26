@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 
@@ -16,10 +17,6 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
-)
-
-const (
-	IncludeSchemaTypePath = "include_schema_type_path"
 )
 
 // Generator is an interface for things that can generate versioned Intent from
@@ -50,7 +47,6 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 	}
 
 	// Copy dependent modules before call builder
-	// fixme
 	err = copyDependentModules(workDir)
 	if err != nil {
 		return nil, err
@@ -96,6 +92,10 @@ func copyDependentModules(workDir string) error {
 				dest = fmt.Sprintf("%s.exe", dest)
 			}
 			err = io.CopyFile(source, dest)
+			if err == nil {
+				// mark the dest file executable
+				err = os.Chmod(dest, 0o755)
+			}
 			allErrs = append(allErrs, err)
 		}
 	}
