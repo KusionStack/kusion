@@ -1,5 +1,7 @@
 backends:
   current: dev
+  default:
+    type: local
   dev:
     type: local
   pre:

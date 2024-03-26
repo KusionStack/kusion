@@ -10,12 +10,6 @@ func GetConfig() (*v1.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = o.readConfig(); err != nil {
-		return nil, err
-	}
-	if o.config == nil {
-		return nil, ErrEmptyConfig
-	}
 	return o.config, nil
 }
 
@@ -26,9 +20,6 @@ func GetEncodedConfigItem(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err = o.readConfig(); err != nil {
-		return "", err
-	}
 	return o.getEncodedConfigItem(key)
 }
 
@@ -37,9 +28,6 @@ func GetEncodedConfigItem(key string) (string, error) {
 func SetEncodedConfigItem(key, strValue string) error {
 	o, err := newOperator()
 	if err != nil {
-		return err
-	}
-	if err = o.readConfig(); err != nil {
 		return err
 	}
 	if err = o.setEncodedConfigItem(key, strValue); err != nil {
@@ -53,9 +41,6 @@ func SetEncodedConfigItem(key, strValue string) error {
 func DeleteConfigItem(key string) error {
 	o, err := newOperator()
 	if err != nil {
-		return err
-	}
-	if err = o.readConfig(); err != nil {
 		return err
 	}
 	if err = o.deleteConfigItem(key); err != nil {

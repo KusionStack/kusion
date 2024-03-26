@@ -19,14 +19,13 @@ import (
 const configFile = "config.yaml"
 
 var (
-	ErrEmptyConfig            = errors.New("empty config")
-	ErrEmptyConfigItem        = errors.New("empty config item")
-	ErrConflictConfigItemType = errors.New("type of the config item conflicts between saved and registered")
-	ErrEmptyConfigItemKey     = errors.New("empty config item key")
-	ErrEmptyConfigItemValue   = errors.New("empty config item value")
-	ErrUnsupportedConfigItem  = errors.New("unsupported config item")
-	ErrEmptyBackendName       = errors.New("backend name should not be empty")
-	ErrInvalidBackendName     = errors.New("backend name should not be current")
+	ErrEmptyConfigItem           = errors.New("empty config item")
+	ErrConflictConfigItemType    = errors.New("type of the config item conflicts between saved and registered")
+	ErrEmptyConfigItemKey        = errors.New("empty config item key")
+	ErrEmptyConfigItemValue      = errors.New("empty config item value")
+	ErrUnsupportedConfigItem     = errors.New("unsupported config item")
+	ErrEmptyBackendName          = errors.New("backend name should not be empty")
+	ErrInvalidBackendNameCurrent = errors.New("backend name should not be current")
 )
 
 // operator is used to execute the config management operation.
@@ -48,10 +47,47 @@ func newOperator() (*operator, error) {
 		return nil, fmt.Errorf("get kusion data folder failed, %w", err)
 	}
 
-	return &operator{
+	o := &operator{
 		configFilePath:  filepath.Join(kusionDataDir, configFile),
 		registeredItems: newRegisteredItems(),
-	}, nil
+		config:          &v1.Config{},
+	}
+
+	if err = o.initDefaultConfig(); err != nil {
+		return nil, err
+	}
+	return o, nil
+}
+
+// initDefaultConfig reads config from the config file and inits default config, which is called when new
+// an operator. Now it inits the default backend.
+func (o *operator) initDefaultConfig() error {
+	if err := o.readConfig(); err != nil {
+		return err
+	}
+
+	// set default backend config
+	if o.config.Backends == nil {
+		o.config.Backends = &v1.BackendConfigs{}
+	}
+	if o.config.Backends.Backends == nil {
+		o.config.Backends.Backends = make(map[string]*v1.BackendConfig)
+	}
+	var needWrite bool
+	defaultBackend := &v1.BackendConfig{Type: v1.BackendTypeLocal}
+	if !reflect.DeepEqual(o.config.Backends.Backends[v1.DefaultBackendName], defaultBackend) {
+		needWrite = true
+		o.config.Backends.Backends[v1.DefaultBackendName] = defaultBackend
+	}
+	if o.config.Backends.Current == "" {
+		needWrite = true
+		o.config.Backends.Current = v1.DefaultBackendName
+	}
+
+	if needWrite {
+		return o.writeConfig()
+	}
+	return nil
 }
 
 // readConfig reads config from config file.
@@ -67,9 +103,6 @@ func (o *operator) readConfig() error {
 	cfg := &v1.Config{}
 	if err = yaml.Unmarshal(content, cfg); err != nil {
 		return fmt.Errorf("unmarshal kusion config failed, %w", err)
-	}
-	if reflect.ValueOf(*cfg).IsZero() {
-		cfg = nil
 	}
 	o.config = cfg
 	return nil
@@ -204,15 +237,12 @@ func (o *operator) deleteConfigItem(key string) error {
 	if err != nil {
 		return err
 	}
-	if info.validateDeleteFunc != nil {
-		if err = info.validateDeleteFunc(o.config, key); err != nil {
+	if info.validateUnsetFunc != nil {
+		if err = info.validateUnsetFunc(o.config, key); err != nil {
 			return err
 		}
 	}
 
-	if o.config == nil {
-		return nil
-	}
 	cfg, err := convertToCfgMap(o.config)
 	if err != nil {
 		return err
@@ -232,10 +262,6 @@ func (o *operator) deleteConfigItem(key string) error {
 // getConfigItemWithLaxType gets the value of the specified config item from config, where the type of the
 // value is that in the converted config map.
 func getConfigItemWithLaxType(config *v1.Config, key string) (any, error) {
-	if config == nil {
-		return nil, ErrEmptyConfigItem
-	}
-
 	cfg, err := convertToCfgMap(config)
 	if err != nil {
 		return nil, err
@@ -251,9 +277,6 @@ func setItemInConfig(config *v1.Config, info *itemInfo, key string, value any) (
 		return nil, err
 	}
 
-	if config == nil {
-		config = &v1.Config{}
-	}
 	cfg, err := convertToCfgMap(config)
 	if err != nil {
 		return nil, err
@@ -267,9 +290,6 @@ func setItemInConfig(config *v1.Config, info *itemInfo, key string, value any) (
 // tidyConfig is used to clean dirty empty block.
 func tidyConfig(configAddr **v1.Config) {
 	config := *configAddr
-	if config == nil {
-		return
-	}
 
 	if config.Backends != nil {
 		for name, cfg := range config.Backends.Backends {
@@ -281,16 +301,10 @@ func tidyConfig(configAddr **v1.Config) {
 			}
 		}
 		if len(config.Backends.Backends) == 0 {
-			config.Backends.Backends = nil
-		}
-		if reflect.ValueOf(*config.Backends).IsZero() {
-			config.Backends = nil
+			config.Backends.Backends = make(map[string]*v1.BackendConfig)
 		}
 	}
 
-	if reflect.ValueOf(*config).IsZero() {
-		config = nil
-	}
 	*configAddr = config
 }
 
@@ -299,8 +313,8 @@ func validateConfigItem(config *v1.Config, info *itemInfo, key string, value any
 	if reflect.ValueOf(value).IsZero() {
 		return ErrEmptyConfigItemValue
 	}
-	if info.validateFunc != nil {
-		return info.validateFunc(config, key, value)
+	if info.ValidateSetFunc != nil {
+		return info.ValidateSetFunc(config, key, value)
 	}
 	return nil
 }
@@ -384,8 +398,8 @@ func convertBackendKey(key string) (string, error) {
 	if fields[1] == v1.BackendCurrent && len(fields) == 2 {
 		return key, nil
 	}
-	if fields[1] == v1.BackendCurrent && len(fields) > 2 {
-		return "", ErrInvalidBackendName
+	if fields[1] == v1.BackendCurrent {
+		return "", ErrInvalidBackendNameCurrent
 	}
 	if fields[1] == "" {
 		return "", ErrEmptyBackendName

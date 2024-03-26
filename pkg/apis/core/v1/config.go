@@ -9,6 +9,8 @@ type Config struct {
 }
 
 const (
+	DefaultBackendName = "default"
+
 	BackendCurrent            = "current"
 	BackendType               = "type"
 	BackendConfigItems        = "configs"

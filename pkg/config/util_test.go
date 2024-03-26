@@ -28,11 +28,6 @@ func TestGetConfig(t *testing.T) {
 			success:        true,
 			expectedConfig: mockValidConfig(),
 		},
-		{
-			name:           "failed to get config empty config",
-			success:        false,
-			expectedConfig: nil,
-		},
 	}
 
 	for _, tc := range testcases {
@@ -119,7 +114,11 @@ func TestSetEncodedConfigItem(t *testing.T) {
 			success:       true,
 			configItemKey: "backends.dev.type",
 			configItem:    "local",
-			config:        nil,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			},
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -133,7 +132,11 @@ func TestSetEncodedConfigItem(t *testing.T) {
 			success:       true,
 			configItemKey: "backends.pre",
 			configItem:    `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
-			config:        nil,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			},
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -208,11 +211,18 @@ func TestDeleteConfigItem(t *testing.T) {
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: "local"},
+						v1.DefaultBackendName: {Type: "local"},
+						"dev":                 {Type: "local"},
 					},
 				},
 			},
-			expectedConfig: nil,
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {Type: "local"},
+					},
+				},
+			},
 		},
 		{
 			name:          "failed to delete config item invalid unset",
@@ -247,12 +257,8 @@ func TestDeleteConfigItem(t *testing.T) {
 				if err == nil {
 					var config *v1.Config
 					config, err = GetConfig()
-					if tc.expectedConfig == nil {
-						assert.Equal(t, ErrEmptyConfig, err)
-					} else {
-						assert.NoError(t, err)
-						assert.Equal(t, tc.expectedConfig, config)
-					}
+					assert.NoError(t, err)
+					assert.Equal(t, tc.expectedConfig, config)
 				}
 			})
 		})
