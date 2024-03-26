@@ -21,12 +21,12 @@ For more details, please visit our [official website](https://www.kusionstack.io
 ## Modules in AppConfiguration
 
 ```python
-import models.schema.v1 as ac
-import models.schema.v1.workload as wl
-import models.schema.v1.workload.container as c
-import models.schema.v1.workload.container.probe as p
-import models.schema.v1.monitoring as m
-import models.schema.v1.database as d
+import kam.v1 as ac
+import kam.v1.workload as wl
+import kam.v1.workload.container as c
+import kam.v1.workload.container.probe as p
+import monitoring as m
+import database as d
 
 # Note: AppConfiguration per se is not a Kusion Module
   helloWorld: ac.AppConfiguration {
@@ -45,37 +45,23 @@ import models.schema.v1.database as d
           }
       }
 
-  # A collection of accessories that will be attached to the workload
-    accessories: {
-        # Built-in module, key represents the module source
-        "kusionstack/mysql@v0.1.0" : d.MySQL {
-            type: "cloud"
-            version: "8.0"
-        }
-        # Built-in module, key represents the module source
-        "kusionstack/prometheus@v0.1.0" : m.Prometheus {
-            path: "/metrics"
-        }
-        # Customized module, key represents the module source
-        "foo/customize@v0.1.0": customizedModule {
-                ...
-        }
-    }
-
-      # pipeline modules
-      pipeline: {
-          # Step is a module
-          "step" : Step {
-              use: "exec"
-              args: ["--test-all"]
-          }
+      # a collection of accessories that will be attached to the workload
+      accessories: {
+       # Built-in module
+         "my-database" : d.MySQL {
+          type: "cloud"
+          version: "8.0"
+         }
+         # Built-in module
+         "my-prometheus" : m.Prometheus {
+          path: "/metrics"
+         }
+         # Customized module
+         "my-customize": customizedModule {
+           ...
+         }
       }
-
-      # Dependent app list
-      dependency: {
-          dependentApps: ["init-kusion"]
-      }
-}
+  }
 ```
 
 ## Structure
@@ -86,13 +72,17 @@ An app dev-orient schema, a generator and a license file are three components re
 $ tree example-module/
 .
 ├── schema.k
-├── kusion-module-name_v0.1.0 # binary
+├── kusion-module-name_0.1.0 # binary
 ├── kcl.mod
 ├── README.md
 ├── LICENSE
-├── examples/
-│   ├── main.k
-│   ├── workspace.yaml
+├── example
+│ ├── dev
+│ │ ├── example.k
+│ │ ├── kcl.mod
+| | ├── workspace.yaml
+│ │ └── stack.yaml
+│ └── project.yaml
 ``` 
 
 ## Lifecycle
@@ -101,17 +91,12 @@ $ tree example-module/
 
 #### Download and unzip
 
-A complete set of modules of one stack consists of two parts: modules in the AppConfig and modules in the workspace. In most scenes, the two parts are the same, but modules in the workspace can be bigger than those in the AppConfig as **some modules do not contain schemas**.
+A complete set of modules of one stack consists of two parts: modules in the AppConfig and modules in the workspace. In most scenes, the two parts are the same, but we also support one module **do not contain schemas**.
+During executing the command `kusion generate`, Kusion will download modules described in the AppConfiguration and `workspace.yaml` by reusing the download logic of KPM. After that Kusion should unzip the package and move the module binary to `$KUSION_HOME/modules`.
 
-We need to set KPM download path as `$KUSION_HOME/modules`, since it will always download schema-related modules in a certain path to guarantee it works correctly and then Kusion will download extra modules defined in the workspace.
+#### Build the Spec
 
-**Note:** In the first version of Kusion module, we assume modules in the AppConfig and workspace are the same.
-
-#### Build Intent
-
-All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final Intent.
-
-Considering workload is required for every application and other modules depend on it, Kusion will execute the `workload` module at first to generate the workload resource. For modules that need to modify attributes in the `workload` such as environments, labels and annotations, we provide a `patch`` interface to fulfill this demand.
+All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final [Spec](https://www.kusionstack.io/docs/kusion/concepts/spec).
 
 ##### Generator Interface
 
@@ -138,68 +123,76 @@ message GeneratorRequest {
 
 // GeneratorResponse represents the generate result of the generator.
 message GeneratorResponse {
-  // Resources is a v1.Resource array, which represents the generated resources by this module.
+  // Resource is a v1.Resource array, which represents the generated resources by this module.
   repeated bytes resources = 1;
+  // Patcher contains fields should be patched into the workload corresponding fields
+  repeated bytes patchers = 2;
 }
 
 service Module {
   rpc Generate(GeneratorRequest) returns (GeneratorResponse);
 }
 ```
-```go
-type Intent.Resource struct {
-	...
-	// Add a new field to represent patchers
-	Patcher Patcher
-}
 
-// Kusion will patch these fields into the workload corresponding fields
+```go
+// Patcher contains fields should be patched into the workload corresponding fields
 type Patcher struct{
-	Environments map[string]string `json:"environments" yaml:"environments"`
-	Labels map[string]string `json:"labels" yaml:"labels"`
-	Annotations map[string]string `json:"annotations" yaml:"annotations"`
-	...
+ Environments map[string]string `json:"environments" yaml:"environments"`
+ Labels map[string]string `json:"labels" yaml:"labels"`
+ Annotations map[string]string `json:"annotations" yaml:"annotations"`
+ ...
 } 
 ```
 
+Considering workload is required for every application and other modules depend on it, Kusion will execute the `workload` module at first to generate the workload resource. For modules that need to modify attributes in the `workload` such as environments, labels and annotations, we introduce a `patch` mechanism to fulfill this demand. The `Generate` interface returns two values `Resources` and `Patchers`. Kusion will append resources to the Spec and parse patchers to patch the workload corresponding fields.
+
 ### Clean up
 
-Close all connections with one module generator once it has been executed.
+Close all connections with one module once it has been executed.
 
 ## Develop lifecycle
 
 ### Set up a developing environment
 
-Developing a Kusion module includes defining a KCL schema and developing a Go project. We will provide a scaffold framework repository to help developers set up the developing environment easily.
+Developing a Kusion module includes defining a KCL schema and developing a Go project. We will provide a scaffold repository and a new command `kusion mod init` to help developers set up the developing environment easily.
 
-Download this repository by `git clone` and rename this project with your module name. The scaffold contains code templates and all files needed for developing a Kusion module. The structure looks like this:
+After executing the command `kusion mod init`, Kusion will download a scaffold repository and rename this project with your module name. The scaffold contains code templates and all files needed for developing a Kusion module. The structure looks like this:
 
 ```shell
 $ tree example-module/
 .
-├── schema.k
-├── generator.go
-├── go.mod
-├── go.sum
+├── example
+│ ├── dev
+│ │ ├── example.k
+│ │ ├── kcl.mod
+│ │ └── stack.yaml
+│ └── project.yaml
 ├── kcl.mod
-├── README.md
-├── LICENSE
+├── example_module_schema.k
+└── src
+    ├── Makefile
+    ├── go.mod
+    ├── go.sum
+    ├── example_module.go
+    └── example_module_test.go
 ```
 
 ### Developing
 
-1. Communicate with app developers and identify the schema parameters.
-2. Identify the left module input parameters initialized in the workspace
+As a platform engineer, the workflow of developing a Kusion module looks like this:
+
+1. Communicate with app developers and identify the fields that should exposed to app developers in the dev-orient schema
+2. Identify module input parameters should configured by platform engineers and initialized in the `workspace.yaml`
 3. Define the app dev-orient schema
-4. Develop the generator by implementing gRPC interfaces
+4. Develop the module plugin by implementing gRPC interfaces
 
 ### Local validation
 
-We will provide a new command `kusion module build` to help developers build a module from the root directory of this project. Once this new module is built, you can move it to `$KUSION_HOME/modules` and validate this module with Kusion CLI commands.
+Build your module code into a binary and copy it to the corresponding path in `$KUSION_HOME/modules`, and then you can validate your module with the command `kusion generate`.
 
 ### Publish
 
-Publish the Kusion module to a registry with the command `kusion module publish -r [registry path]`
+Publish the Kusion module to a registry with the command `kusion mod push`
 
 ## Relationship
 

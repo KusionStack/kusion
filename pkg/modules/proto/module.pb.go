@@ -131,7 +131,8 @@ type GeneratorResponse struct {
 
 	// Resources is a v1.Resource array, which represents the generated resources by this module.
 	Resources [][]byte `protobuf:"bytes,1,rep,name=resources,proto3" json:"resources,omitempty"`
-	Patchers  [][]byte `protobuf:"bytes,2,rep,name=patchers,proto3" json:"patchers,omitempty"`
+	// Patcher contains fields should be patched into the workload corresponding fields
+	Patchers [][]byte `protobuf:"bytes,2,rep,name=patchers,proto3" json:"patchers,omitempty"`
 }
 
 func (x *GeneratorResponse) Reset() {
