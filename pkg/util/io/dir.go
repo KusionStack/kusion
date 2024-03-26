@@ -68,7 +68,7 @@ func CopyDir(dst, src string, skip func(path string) bool) error {
 
 		// The "path" has the src prefixed to it. We need to join our
 		// destination with the path without the src on it.
-		dstPath := filepath.Join(dst, path[len(src):])
+		dstPath := filepath.Join(dst, path[len(src)-1:])
 
 		// we don't want to try and copy the same file over itself.
 		if eq, err := SameFile(path, dstPath); eq {
