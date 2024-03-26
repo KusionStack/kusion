@@ -10,6 +10,7 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
+	"kusionstack.io/kusion/pkg/cmd/config"
 	"kusionstack.io/kusion/pkg/cmd/generate"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/mod"
@@ -93,6 +94,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			Commands: []*cobra.Command{
 				workspace.NewCmd(),
 				cmdinit.NewCmd(),
+				config.NewCmd(),
 				generate.NewCmdGenerate(o.IOStreams),
 			},
 		},
