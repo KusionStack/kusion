@@ -53,9 +53,9 @@ var (
 // denotes the latest stable version of a module.
 const LatestVersion = "latest"
 
-// All supported platforms, to reduce module package size, not support arm64 for now.
+// All supported platforms, to reduce module package size, only support widely used os and arch.
 var supportPlatforms = []string{
-	"linux/amd64", "darwin/amd64", "windows/amd64",
+	"linux/amd64", "darwin/amd64", "windows/amd64", "darwin/arm64",
 }
 
 // PushModFlags directly reflect the information that CLI is gathering via flags. They will be converted to

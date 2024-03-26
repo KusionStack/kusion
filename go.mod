@@ -318,4 +318,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace kcl-lang.io/kpm => github.com/KusionStack/kpm v0.8.3
+replace kcl-lang.io/kpm => github.com/KusionStack/kpm v0.8.4
