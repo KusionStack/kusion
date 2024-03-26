@@ -225,7 +225,7 @@ func (o *PushModOptions) Run() error {
 		_ = sp.Stop()
 	}()
 
-	generatorSourceDir := filepath.Join(o.ModulePath, "generator")
+	generatorSourceDir := filepath.Join(o.ModulePath, "src")
 	err = buildGeneratorCrossPlatforms(generatorSourceDir, tempModuleDir, o.IOStreams)
 	if err != nil {
 		return err
@@ -373,7 +373,7 @@ func copyWithoutGeneratorSrc(modulePath, dstDir string) error {
 		if err != nil {
 			return err
 		}
-		if path == modulePath || strings.Contains(path, "generator") {
+		if path == modulePath || strings.Contains(path, "src") {
 			return nil
 		}
 		srcStat, err := os.Stat(path)
@@ -385,8 +385,22 @@ func copyWithoutGeneratorSrc(modulePath, dstDir string) error {
 			}
 		}
 
-		if !srcStat.Mode().IsRegular() {
-			return fmt.Errorf("%s is not a regular file", path)
+		if !srcStat.Mode().IsRegular() && !srcStat.Mode().IsDir() {
+			return fmt.Errorf("%s is not a regular file or directory", path)
+		}
+
+		relPath, err := filepath.Rel(modulePath, path)
+		if err != nil {
+			return err
+		}
+
+		dst := filepath.Join(dstDir, relPath)
+		if srcStat.IsDir() {
+			err = os.MkdirAll(dst, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 
 		source, err := os.Open(path)
@@ -395,7 +409,6 @@ func copyWithoutGeneratorSrc(modulePath, dstDir string) error {
 		}
 		defer source.Close()
 
-		dst := filepath.Join(dstDir, srcStat.Name())
 		destination, err := os.Create(dst)
 		if err != nil {
 			return err
