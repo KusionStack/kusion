@@ -341,12 +341,47 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		}
 
 		// get workspace configurations
-		bk, err := backend.NewBackend("")
+		localBackend, err := backend.NewBackend("")
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
-		wsStorage, err := bk.WorkspaceStorage()
+		// wsStorage, err := bk.WorkspaceStorage()
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+		// ws, err := wsStorage.Get(workspaceParam)
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+
+		// // Get backend by id
+		// workspaceEntity, err := h.workspaceRepo.GetByName(ctx, workspaceParam)
+		// if err != nil && err == gorm.ErrRecordNotFound {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, ErrWorkspaceNotFound))
+		// 	return
+		// } else if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+		// // Generate backend from entity
+		// remoteBackend, err := NewBackendFromEntity(*workspaceEntity.Backend)
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+
+		remoteBackend, err := h.GetBackendFromWorkspaceName(ctx, workspaceParam)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// Get workspace configurations from backend
+		// TODO: temporarily local for now, should be replaced by variable sets
+		wsStorage, err := localBackend.WorkspaceStorage()
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -396,8 +431,9 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 
 		// Compute state storage
 		// TODO: this local storage is temporary, will support remote later
-		stateStorage := bk.StateStorage(project.Name, stack.Name, ws.Name)
-		logger.Info("Local state storage found", "Path", stateStorage)
+		stateStorage := remoteBackend.StateStorage(project.Name, stack.Name, workspaceParam)
+		logger.Info("Remote state storage found", "Remote", stateStorage)
+		//logger.Info("Local state storage found", "Path", stateStorage)
 
 		// Compute changes for preview
 		changes, err := engineapi.Preview(executeOptions, stateStorage, sp, project, stack)
@@ -527,17 +563,23 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		}
 
 		// get workspace configurations
-		bk, err := backend.NewBackend("")
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		wsStorage, err := bk.WorkspaceStorage()
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		ws, err := wsStorage.Get(workspaceParam)
+		// localBackend, err := backend.NewBackend("")
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+		// wsStorage, err := bk.WorkspaceStorage()
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+		// ws, err := wsStorage.Get(workspaceParam)
+		// if err != nil {
+		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
+		// 	return
+		// }
+
+		remoteBackend, err := h.GetBackendFromWorkspaceName(ctx, workspaceParam)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -563,12 +605,13 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 
 		// Compute state storage
 		// TODO: this local storage is temporary, will support remote later
-		stateStorage := bk.StateStorage(project.Name, stack.Name, ws.Name)
-		logger.Info("Local state storage found", "Path", stateStorage)
+		stateStorage := remoteBackend.StateStorage(project.Name, stack.Name, workspaceParam)
+		//logger.Info("Local state storage found", "Path", stateStorage)
+		logger.Info("Remote state storage found", "Remote", stateStorage)
 
 		priorState, err := stateStorage.Get()
 		if err != nil || priorState == nil {
-			logger.Info("can't find state", "project", project.Name, "stack", stack.Name, "workspace", ws)
+			logger.Info("can't find state", "project", project.Name, "stack", stack.Name, "workspace", workspaceParam)
 			render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStateForStack))
 			return
 		}

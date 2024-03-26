@@ -12,12 +12,13 @@ import (
 	"github.com/swaggo/swag/example/basic/docs"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server"
-	endpoint "kusionstack.io/kusion/pkg/server/handler/endpoint"
+	"kusionstack.io/kusion/pkg/server/handler/backend"
+	"kusionstack.io/kusion/pkg/server/handler/endpoint"
 	"kusionstack.io/kusion/pkg/server/handler/organization"
-
 	"kusionstack.io/kusion/pkg/server/handler/project"
 	"kusionstack.io/kusion/pkg/server/handler/source"
 	"kusionstack.io/kusion/pkg/server/handler/stack"
+	"kusionstack.io/kusion/pkg/server/handler/workspace"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 
 	"kusionstack.io/kusion/pkg/server/util"
@@ -83,6 +84,8 @@ func setupRestAPIV1(
 	projectRepo := persistence.NewProjectRepository(config.DB)
 	stackRepo := persistence.NewStackRepository(config.DB)
 	sourceRepo := persistence.NewSourceRepository(config.DB)
+	workspaceRepo := persistence.NewWorkspaceRepository(config.DB)
+	backendRepo := persistence.NewBackendRepository(config.DB)
 
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceRepo)
@@ -100,9 +103,19 @@ func setupRestAPIV1(
 		logger.Error(err, "Error creating project handler...", "error", err)
 		return
 	}
-	stackHandler, err := stack.NewHandler(organizationRepo, projectRepo, stackRepo, sourceRepo)
+	stackHandler, err := stack.NewHandler(organizationRepo, projectRepo, stackRepo, sourceRepo, workspaceRepo)
 	if err != nil {
 		logger.Error(err, "Error creating stack handler...", "error", err)
+		return
+	}
+	workspaceHandler, err := workspace.NewHandler(workspaceRepo, backendRepo)
+	if err != nil {
+		logger.Error(err, "Error creating workspace handler...", "error", err)
+		return
+	}
+	backendHandler, err := backend.NewHandler(backendRepo)
+	if err != nil {
+		logger.Error(err, "Error creating backend handler...", "error", err)
 		return
 	}
 
@@ -146,6 +159,24 @@ func setupRestAPIV1(
 			r.Delete("/", orgHandler.DeleteOrganization())
 		})
 		r.Get("/", orgHandler.ListOrganizations())
+	})
+	r.Route("/workspace", func(r chi.Router) {
+		r.Route("/{workspaceID}", func(r chi.Router) {
+			r.Post("/", workspaceHandler.CreateWorkspace())
+			r.Get("/", workspaceHandler.GetWorkspace())
+			r.Put("/", workspaceHandler.UpdateWorkspace())
+			r.Delete("/", workspaceHandler.DeleteWorkspace())
+		})
+		r.Get("/", workspaceHandler.ListWorkspaces())
+	})
+	r.Route("/backend", func(r chi.Router) {
+		r.Route("/{backendID}", func(r chi.Router) {
+			r.Post("/", backendHandler.CreateBackend())
+			r.Get("/", backendHandler.GetBackend())
+			r.Put("/", backendHandler.UpdateBackend())
+			r.Delete("/", backendHandler.DeleteBackend())
+		})
+		r.Get("/", backendHandler.ListBackends())
 	})
 	// r.Route("/project", func(r chi.Router) {
 	// 	//r.Get("/", projectHandler.ListProjects())

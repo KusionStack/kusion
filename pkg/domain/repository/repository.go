@@ -75,3 +75,35 @@ type SourceRepository interface {
 	// Update updates an existing stack.
 	Update(ctx context.Context, stack *entity.Source) error
 }
+
+// WorkspaceRepository is an interface that defines the repository operations
+// for workspaces. It follows the principles of domain-driven design (DDD).
+type WorkspaceRepository interface {
+	// Create creates a new workspace.
+	Create(ctx context.Context, workspace *entity.Workspace) error
+	// Delete deletes a workspace by its ID.
+	Delete(ctx context.Context, id uint) error
+	// Update updates an existing workspace.
+	Update(ctx context.Context, workspace *entity.Workspace) error
+	// Get retrieves a workspace by its ID.
+	Get(ctx context.Context, id uint) (*entity.Workspace, error)
+	// GetByName retrieves a workspace by its name.
+	GetByName(ctx context.Context, name string) (*entity.Workspace, error)
+	// List retrieves all existing workspace.
+	List(ctx context.Context) ([]*entity.Workspace, error)
+}
+
+// BackendRepository is an interface that defines the repository operations
+// for backends. It follows the principles of domain-driven design (DDD).
+type BackendRepository interface {
+	// Create creates a new backend.
+	Create(ctx context.Context, backend *entity.Backend) error
+	// Delete deletes a backend by its ID.
+	Delete(ctx context.Context, id uint) error
+	// Update updates an existing backend.
+	Update(ctx context.Context, backend *entity.Backend) error
+	// Get retrieves a backend by its ID.
+	Get(ctx context.Context, id uint) (*entity.Backend, error)
+	// List retrieves all existing backend.
+	List(ctx context.Context) ([]*entity.Backend, error)
+}

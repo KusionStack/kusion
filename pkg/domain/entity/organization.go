@@ -10,9 +10,9 @@ import (
 type Organization struct {
 	// ID is the id of the organization.
 	ID uint `yaml:"id" json:"id"`
-	// Name is the name of the stack.
+	// Name is the name of the organization.
 	Name string `yaml:"name" json:"name"`
-	// DisplayName is the readability display name.
+	// DisplayName is the human-readable display name.
 	DisplayName string `yaml:"displayName,omitempty" json:"displayName,omitempty"`
 	// Description is a human-readable description of the organization.
 	Description string `yaml:"description,omitempty" json:"description,omitempty"`
@@ -38,7 +38,7 @@ func (p *Organization) Validate() error {
 	}
 
 	if len(p.Owners) == 0 {
-		return constant.ErrOrganizationOwnerNil
+		return constant.ErrOrgOwnerNil
 	}
 
 	return nil

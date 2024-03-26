@@ -102,16 +102,6 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 	return dataModel.ToEntity(ctx)
 }
 
-// // GetByRemote retrieves a stack by its remote.
-// func (r *stackRepository) GetByRemote(ctx context.Context, remote string) (*entity.Stack, error) {
-// 	var dataModel StackModel
-// 	err := r.db.WithContext(ctx).Where("remote = ?", remote).First(&dataModel).Error
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return dataModel.ToEntity()
-// }
-
 // List retrieves all stacks.
 func (r *stackRepository) List(ctx context.Context) ([]*entity.Stack, error) {
 	var dataModel []StackModel

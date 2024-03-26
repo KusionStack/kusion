@@ -56,3 +56,19 @@ func (payload *CreateOrganizationRequest) Decode(r *http.Request) error {
 func (payload *UpdateOrganizationRequest) Decode(r *http.Request) error {
 	return decode(r, payload)
 }
+
+func (payload *CreateWorkspaceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *UpdateWorkspaceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *CreateBackendRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *UpdateBackendRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}

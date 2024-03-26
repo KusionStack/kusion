@@ -31,12 +31,12 @@ type Source struct {
 
 // Validate checks if the source is valid.
 // It returns an error if the source is not valid.
-func (e *Source) Validate() error {
-	if e == nil {
+func (s *Source) Validate() error {
+	if s == nil {
 		return fmt.Errorf("source is nil")
 	}
 
-	if e.SourceProvider == "" {
+	if s.SourceProvider == "" {
 		return fmt.Errorf("source must have a source provider")
 	}
 
@@ -47,6 +47,6 @@ func (e *Source) Validate() error {
 	return nil
 }
 
-func (e *Source) Summary() string {
-	return fmt.Sprintf("[%s][%s]", string(e.SourceProvider), e.Remote.String())
+func (s *Source) Summary() string {
+	return fmt.Sprintf("[%s][%s]", string(s.SourceProvider), s.Remote.String())
 }

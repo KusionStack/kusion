@@ -11,9 +11,9 @@ import (
 type Project struct {
 	// ID is the id of the project.
 	ID uint `yaml:"id" json:"id"`
-	// Name is the name of the Project.
+	// Name is the name of the project.
 	Name string `yaml:"name" json:"name"`
-	// DisplayName is the readability display name.
+	// DisplayName is the human-readable display name.
 	DisplayName string `yaml:"displayName,omitempty" json:"displayName,omitempty"`
 	// Source is the configuration source associated with the project.
 	Source *Source `yaml:"source" json:"source"`

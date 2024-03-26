@@ -13,7 +13,7 @@ type Stack struct {
 	ID uint `yaml:"id" json:"id"`
 	// Name is the name of the stack.
 	Name string `yaml:"name" json:"name"`
-	// DisplayName is the readability display nams.
+	// DisplayName is the human-readable display nams.
 	DisplayName string `yaml:"displayName,omitempty" json:"displayName,omitempty"`
 	// Source is the configuration source associated with the stack.
 	// Source *Source `yaml:"source" json:"source"`

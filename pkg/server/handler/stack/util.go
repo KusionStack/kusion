@@ -2,8 +2,13 @@ package stack
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
+	"gorm.io/gorm"
+	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
@@ -55,4 +60,93 @@ func getWorkDirFromSource(ctx context.Context, stack *entity.Stack, project *ent
 		workDir = filepath.Join(directory, stack.Path)
 	}
 	return directory, workDir, nil
+}
+
+func NewBackendFromEntity(backendEntity entity.Backend) (backend.Backend, error) {
+	// var emptyCfg bool
+	// cfg, err := config.GetConfig()
+	// if errors.Is(err, config.ErrEmptyConfig) {
+	// 	emptyCfg = true
+	// } else if err != nil {
+	// 	return nil, err
+	// } else if cfg.Backends == nil {
+	// 	emptyCfg = true
+	// }
+
+	// var bkCfg *v1.BackendConfig
+	// if name == "" && (emptyCfg || cfg.Backends.Current == "") {
+	// 	// if empty backends config or empty current backend, use default local storage
+	// 	bkCfg = &v1.BackendConfig{Type: v1.BackendTypeLocal}
+	// } else {
+	// 	if name == "" {
+	// 		name = cfg.Backends.Current
+	// 	}
+	// 	bkCfg = cfg.Backends.Backends[name]
+	// 	if bkCfg == nil {
+	// 		return nil, fmt.Errorf("config of backend %s does not exist", name)
+	// 	}
+	// }
+
+	// TODO: refactor this so backend.NewBackend() share the same common logic
+	var storage backend.Backend
+	var err error
+	switch backendEntity.BackendConfig.Type {
+	case v1.BackendTypeLocal:
+		bkConfig := backendEntity.BackendConfig.ToLocalBackend()
+		if err = storages.CompleteLocalConfig(bkConfig); err != nil {
+			return nil, fmt.Errorf("complete local config failed, %w", err)
+		}
+		return storages.NewLocalStorage(bkConfig), nil
+	case v1.BackendTypeMysql:
+		bkConfig := backendEntity.BackendConfig.ToMysqlBackend()
+		storages.CompleteMysqlConfig(bkConfig)
+		if err = storages.ValidateMysqlConfig(bkConfig); err != nil {
+			return nil, fmt.Errorf("invalid config of backend %s, %w", backendEntity.Name, err)
+		}
+		storage, err = storages.NewMysqlStorage(bkConfig)
+		if err != nil {
+			return nil, fmt.Errorf("new mysql storage of backend %s failed, %w", backendEntity.Name, err)
+		}
+	case v1.BackendTypeOss:
+		bkConfig := backendEntity.BackendConfig.ToOssBackend()
+		storages.CompleteOssConfig(bkConfig)
+		if err = storages.ValidateOssConfig(bkConfig); err != nil {
+			return nil, fmt.Errorf("invalid config of backend %s, %w", backendEntity.Name, err)
+		}
+		storage, err = storages.NewOssStorage(bkConfig)
+		if err != nil {
+			return nil, fmt.Errorf("new oss storage of backend %s failed, %w", backendEntity.Name, err)
+		}
+	case v1.BackendTypeS3:
+		bkConfig := backendEntity.BackendConfig.ToS3Backend()
+		storages.CompleteS3Config(bkConfig)
+		if err = storages.ValidateS3Config(bkConfig); err != nil {
+			return nil, fmt.Errorf("invalid config of backend %s: %w", backendEntity.Name, err)
+		}
+		storage, err = storages.NewS3Storage(bkConfig)
+		if err != nil {
+			return nil, fmt.Errorf("new s3 storage of backend %s failed, %w", backendEntity.Name, err)
+		}
+	default:
+		return nil, fmt.Errorf("invalid type %s of backend %s", backendEntity.BackendConfig.Type, backendEntity.Name)
+	}
+	return storage, nil
+}
+
+func (h *Handler) GetBackendFromWorkspaceName(ctx context.Context, workspaceName string) (backend.Backend, error) {
+	logger := util.GetLogger(ctx)
+	logger.Info("Getting backend based on workspace name...")
+	// Get backend by id
+	workspaceEntity, err := h.workspaceRepo.GetByName(ctx, workspaceName)
+	if err != nil && err == gorm.ErrRecordNotFound {
+		return nil, err
+	} else if err != nil {
+		return nil, err
+	}
+	// Generate backend from entity
+	remoteBackend, err := NewBackendFromEntity(*workspaceEntity.Backend)
+	if err != nil {
+		return nil, err
+	}
+	return remoteBackend, nil
 }

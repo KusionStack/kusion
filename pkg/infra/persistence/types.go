@@ -1,6 +1,8 @@
 package persistence
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrSourceModelNil                 = errors.New("source model can't be nil")
@@ -13,5 +15,8 @@ var (
 	ErrFailedToConvertSourceToEntity  = errors.New("failed to convert source model to entity")
 	ErrFailedToConvertProjectToEntity = errors.New("failed to convert project model to entity")
 	ErrFailedToConvertOrgToEntity     = errors.New("failed to convert org model to entity")
+	ErrFailedToConvertBackendToEntity = errors.New("failed to convert backend model to entity")
 	ErrOrganizationModelNil           = errors.New("organization model can't be nil")
+	ErrWorkspaceModelNil              = errors.New("workspace model can't be nil")
+	ErrBackendModelNil                = errors.New("backend model can't be nil")
 )
