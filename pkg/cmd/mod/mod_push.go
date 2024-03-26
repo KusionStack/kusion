@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +22,7 @@ import (
 	"kusionstack.io/kusion/pkg/util/executable"
 	"kusionstack.io/kusion/pkg/util/gitutil"
 	"kusionstack.io/kusion/pkg/util/i18n"
+	ioutil "kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -235,7 +234,9 @@ func (o *PushModOptions) Run() error {
 	defer cancel()
 
 	// Copy to temp module dir and push artifact to OCI repository
-	err = copyWithoutGeneratorSrc(o.ModulePath, tempModuleDir)
+	err = ioutil.CopyDir(tempModuleDir, o.ModulePath, func(path string) bool {
+		return strings.Contains(path, "src")
+	})
 	if err != nil {
 		return err
 	}
@@ -365,57 +366,4 @@ func detectGitRepository(path string) (string, error) {
 		}
 	}
 	return path, nil
-}
-
-// copyWithoutGeneratorSrc copies module contents except for generator source code to dest dir.
-func copyWithoutGeneratorSrc(modulePath, dstDir string) error {
-	return filepath.WalkDir(modulePath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if path == modulePath || strings.Contains(path, "src") {
-			return nil
-		}
-		srcStat, err := os.Stat(path)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil
-			} else {
-				return err
-			}
-		}
-
-		if !srcStat.Mode().IsRegular() && !srcStat.Mode().IsDir() {
-			return fmt.Errorf("%s is not a regular file or directory", path)
-		}
-
-		relPath, err := filepath.Rel(modulePath, path)
-		if err != nil {
-			return err
-		}
-
-		dst := filepath.Join(dstDir, relPath)
-		if srcStat.IsDir() {
-			err = os.MkdirAll(dst, os.ModePerm)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-
-		source, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer source.Close()
-
-		destination, err := os.Create(dst)
-		if err != nil {
-			return err
-		}
-		defer destination.Close()
-
-		_, err = io.Copy(destination, source)
-		return err
-	})
 }

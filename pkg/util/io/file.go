@@ -104,3 +104,31 @@ func CopyFile(source, dest string) error {
 	}
 	return nil
 }
+
+// SameFile returns true if the two given paths refer to the same physical
+// file on disk, using the unique file identifiers from the underlying
+// operating system. For example, on Unix systems this checks whether the
+// two files are on the same device and have the same inode.
+func SameFile(a, b string) (bool, error) {
+	if a == b {
+		return true, nil
+	}
+
+	aInfo, err := os.Lstat(a)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	bInfo, err := os.Lstat(b)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return os.SameFile(aInfo, bInfo), nil
+}
