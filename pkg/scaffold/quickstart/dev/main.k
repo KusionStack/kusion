@@ -1,7 +1,7 @@
-import catalog.models.schema.v1 as ac
-import catalog.models.schema.v1.workload as wl
-import catalog.models.schema.v1.workload.container as c
-import catalog.models.schema.v1.workload.network as n
+import kam.v1.app_configuration as ac
+import kam.v1.workload as wl
+import kam.v1.workload.container as c
+import network as n
 
 # main.k declares the customized configuration codes for dev stack. 
 quickstart: ac.AppConfiguration {
@@ -11,10 +11,14 @@ quickstart: ac.AppConfiguration {
                 image: "kusionstack/kusion-quickstart:latest"
             }
         }
-        ports: [
-            n.Port {
-                port: 8080
-            }
-        ]
+    }
+    accessories: {
+        "network": n.Network {
+            ports: [
+                n.Port {
+                    port: 8080
+                }
+            ]
+        }
     }
 }
