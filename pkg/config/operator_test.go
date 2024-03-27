@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
@@ -13,7 +14,6 @@ import (
 var (
 	testDataPath             = "testdata"
 	testExistValidConfigPath = filepath.Join(testDataPath, "config.yaml")
-	testEmptyValidConfigPath = filepath.Join(testDataPath, "config_empty.yaml")
 	testWriteValidConfigPath = filepath.Join(testDataPath, "config_write.yaml")
 	testInvalidConfigPath    = filepath.Join(testDataPath, "config_invalid.yaml")
 
@@ -25,6 +25,9 @@ func mockValidConfig() *v1.Config {
 		Backends: &v1.BackendConfigs{
 			Current: "dev",
 			Backends: map[string]*v1.BackendConfig{
+				v1.DefaultBackendName: {
+					Type: v1.BackendTypeLocal,
+				},
 				"dev": {
 					Type: v1.BackendTypeLocal,
 				},
@@ -52,6 +55,9 @@ func mockValidCfgMap() map[string]any {
 	return map[string]any{
 		v1.ConfigBackends: map[string]any{
 			v1.BackendCurrent: "dev",
+			v1.DefaultBackendName: map[string]any{
+				v1.BackendType: v1.BackendTypeLocal,
+			},
 			"dev": map[string]any{
 				v1.BackendType: v1.BackendTypeLocal,
 			},
@@ -82,6 +88,102 @@ func mockOperator(configFilePath string, config *v1.Config) *operator {
 	}
 }
 
+func TestOperator_InitDefaultConfig(t *testing.T) {
+	testcases := []struct {
+		name           string
+		success        bool
+		config         *v1.Config
+		expectedConfig *v1.Config
+	}{
+		{
+			name:    "init default config for empty config",
+			success: true,
+			config:  &v1.Config{},
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: v1.DefaultBackendName,
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "init default config for empty current",
+			success: true,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
+						"dev": {
+							Type: v1.BackendTypeLocal,
+						},
+					},
+				},
+			},
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: v1.DefaultBackendName,
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
+						"dev": {
+							Type: v1.BackendTypeLocal,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "init default config for no defualt backend",
+			success: true,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: "dev",
+					Backends: map[string]*v1.BackendConfig{
+						"dev": {
+							Type: v1.BackendTypeLocal,
+						},
+					},
+				},
+			},
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: "dev",
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
+						"dev": {
+							Type: v1.BackendTypeLocal,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock operator read and write", t, func() {
+				mockey.Mock((*operator).readConfig).Return(nil).Build()
+				mockey.Mock((*operator).writeConfig).Return(nil).Build()
+				o := mockOperator(mockConfigPath, tc.config)
+				err := o.initDefaultConfig()
+				assert.Equal(t, tc.success, err == nil)
+				if tc.success {
+					assert.Equal(t, tc.expectedConfig, o.config)
+				}
+			})
+		})
+	}
+}
+
 func TestOperator_ReadConfig(t *testing.T) {
 	testcases := []struct {
 		name           string
@@ -90,21 +192,23 @@ func TestOperator_ReadConfig(t *testing.T) {
 		expectedConfig *v1.Config
 	}{
 		{
-			name:           "read config successfully",
-			success:        true,
-			o:              mockOperator(testExistValidConfigPath, nil),
+			name:    "read config successfully",
+			success: true,
+			o: mockOperator(testExistValidConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
 			expectedConfig: mockValidConfig(),
 		},
 		{
-			name:           "read not exist config successfully",
-			success:        true,
-			o:              mockOperator(testEmptyValidConfigPath, nil),
-			expectedConfig: nil,
-		},
-		{
-			name:           "failed to read config invalid structure",
-			success:        false,
-			o:              mockOperator(testInvalidConfigPath, nil),
+			name:    "failed to read config invalid structure",
+			success: false,
+			o: mockOperator(testInvalidConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
 			expectedConfig: nil,
 		},
 	}
@@ -113,7 +217,9 @@ func TestOperator_ReadConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.o.readConfig()
 			assert.Equal(t, tc.success, err == nil)
-			assert.Equal(t, tc.expectedConfig, tc.o.config)
+			if tc.success {
+				assert.Equal(t, tc.expectedConfig, tc.o.config)
+			}
 		})
 	}
 }
@@ -249,9 +355,13 @@ func TestOperator_SetConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type string",
 			success: true,
-			o:       mockOperator(mockConfigPath, nil),
-			key:     "backends.dev.type",
-			val:     v1.BackendTypeLocal,
+			o: mockOperator(mockConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
+			key: "backends.dev.type",
+			val: v1.BackendTypeLocal,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -303,6 +413,9 @@ func TestOperator_SetConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
 						},
@@ -337,6 +450,9 @@ func TestOperator_SetConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
 						},
@@ -360,25 +476,37 @@ func TestOperator_SetConfigItem(t *testing.T) {
 			},
 		},
 		{
-			name:           "failed to set config item invalid type",
-			success:        false,
-			o:              mockOperator(mockConfigPath, nil),
+			name:    "failed to set config item invalid type",
+			success: false,
+			o: mockOperator(mockConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
 			key:            "backends.dev.configs.path",
 			val:            234,
 			expectedConfig: nil,
 		},
 		{
-			name:           "failed to set config item empty value",
-			success:        false,
-			o:              mockOperator(mockConfigPath, nil),
+			name:    "failed to set config item empty value",
+			success: false,
+			o: mockOperator(mockConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
 			key:            "backends.dev.configs.path",
 			val:            "",
 			expectedConfig: nil,
 		},
 		{
-			name:           "failed to set config item validate func failed",
-			success:        false,
-			o:              mockOperator(mockConfigPath, nil),
+			name:    "failed to set config item validate func failed",
+			success: false,
+			o: mockOperator(mockConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
 			key:            "backends.dev.configs.path",
 			val:            "/etc",
 			expectedConfig: nil,
@@ -408,9 +536,13 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 		{
 			name:    "set config item successfully type string",
 			success: true,
-			o:       mockOperator(mockConfigPath, nil),
-			key:     "backends.dev.type",
-			val:     v1.BackendTypeLocal,
+			o: mockOperator(mockConfigPath, &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			}),
+			key: "backends.dev.type",
+			val: v1.BackendTypeLocal,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
@@ -454,6 +586,9 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
 						},
@@ -486,6 +621,9 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
 					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {
+							Type: v1.BackendTypeLocal,
+						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
 						},
@@ -543,8 +681,12 @@ func TestOperator_DeleteConfigItem(t *testing.T) {
 					},
 				},
 			}),
-			key:            "backends.dev",
-			expectedConfig: nil,
+			key: "backends.dev",
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			},
 		},
 		{
 			name:    "failed to delete config item validateUnsetFunc failed",
@@ -636,7 +778,11 @@ func TestTidyConfig(t *testing.T) {
 					},
 				},
 			},
-			expectedConfig: nil,
+			expectedConfig: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
+			},
 		},
 	}
 
@@ -800,7 +946,7 @@ func TestConvertToRegisteredKey(t *testing.T) {
 			registeredKey: "",
 		},
 		{
-			name:          "failed to convert to registered key invalid backend name",
+			name:          "failed to convert to registered key invalid backend name current",
 			success:       false,
 			key:           "backends.current.type",
 			registeredKey: "",

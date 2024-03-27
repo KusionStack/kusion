@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"errors"
 	"fmt"
 
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
@@ -29,28 +28,18 @@ type Backend interface {
 // input name is empty, use the current backend. If no current backend is specified or backends config is empty,
 // and the input name is empty, use the default local storage.
 func NewBackend(name string) (Backend, error) {
-	var emptyCfg bool
 	cfg, err := config.GetConfig()
-	if errors.Is(err, config.ErrEmptyConfig) {
-		emptyCfg = true
-	} else if err != nil {
+	if err != nil {
 		return nil, err
-	} else if cfg.Backends == nil {
-		emptyCfg = true
 	}
 
 	var bkCfg *v1.BackendConfig
-	if name == "" && (emptyCfg || cfg.Backends.Current == "") {
-		// if empty backends config or empty current backend, use default local storage
-		bkCfg = &v1.BackendConfig{Type: v1.BackendTypeLocal}
-	} else {
-		if name == "" {
-			name = cfg.Backends.Current
-		}
-		bkCfg = cfg.Backends.Backends[name]
-		if bkCfg == nil {
-			return nil, fmt.Errorf("config of backend %s does not exist", name)
-		}
+	if name == "" {
+		name = cfg.Backends.Current
+	}
+	bkCfg = cfg.Backends.Backends[name]
+	if bkCfg == nil {
+		return nil, fmt.Errorf("config of backend %s does not exist", name)
 	}
 
 	var storage Backend

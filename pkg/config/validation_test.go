@@ -8,7 +8,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 )
 
-func TestValidateCurrentBackend(t *testing.T) {
+func TestValidateSetCurrentBackend(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
@@ -39,23 +39,57 @@ func TestValidateCurrentBackend(t *testing.T) {
 			},
 			val: "dev-not-exist",
 		},
-		{
-			name:    "invalid current backend not exist config",
-			success: false,
-			config:  nil,
-			val:     "dev",
-		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateCurrentBackend(tc.config, "", tc.val)
+			err := validateSetCurrentBackend(tc.config, "", tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
 }
 
-func TestValidateBackendConfig(t *testing.T) {
+func TestValidateUnsetCurrentBackend(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		config  *v1.Config
+	}{
+		{
+			name:    "valid unsetting current backend",
+			success: true,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: "dev",
+					Backends: map[string]*v1.BackendConfig{
+						"dev": {Type: v1.BackendTypeLocal},
+					},
+				},
+			},
+		},
+		{
+			name:    "invalid unsetting default backend",
+			success: false,
+			config: &v1.Config{
+				Backends: &v1.BackendConfigs{
+					Current: v1.DefaultBackendName,
+					Backends: map[string]*v1.BackendConfig{
+						v1.DefaultBackendName: {Type: v1.BackendTypeLocal},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateUnsetCurrentBackend(tc.config, "")
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestValidateSetBackendConfig(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
@@ -140,7 +174,7 @@ func TestValidateBackendConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateBackendConfig(nil, "", tc.val)
+			err := validateSetBackendConfig(nil, "", tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -188,7 +222,7 @@ func TestValidateUnsetBackendConfig(t *testing.T) {
 	}
 }
 
-func TestValidateBackendType(t *testing.T) {
+func TestValidateSetBackendType(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
@@ -200,7 +234,9 @@ func TestValidateBackendType(t *testing.T) {
 			name:    "valid backend type new backend",
 			success: true,
 			config: &v1.Config{
-				Backends: nil,
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
 			},
 			key: "backends.dev.type",
 			val: "mysql",
@@ -209,7 +245,9 @@ func TestValidateBackendType(t *testing.T) {
 			name:    "invalid backend type unsupported type",
 			success: false,
 			config: &v1.Config{
-				Backends: nil,
+				Backends: &v1.BackendConfigs{
+					Backends: map[string]*v1.BackendConfig{},
+				},
 			},
 			key: "backends.dev.type",
 			val: "not-supported",
@@ -234,7 +272,7 @@ func TestValidateBackendType(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateBackendType(tc.config, tc.key, tc.val)
+			err := validateSetBackendType(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
@@ -297,7 +335,7 @@ func TestValidateUnsetBackendType(t *testing.T) {
 	}
 }
 
-func TestValidateBackendConfigItems(t *testing.T) {
+func TestValidateSetBackendConfigItems(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
@@ -345,13 +383,39 @@ func TestValidateBackendConfigItems(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateBackendConfigItems(tc.config, tc.key, tc.val)
+			err := validateSetBackendConfigItems(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
 }
 
-func TestValidateMysqlBackendPort(t *testing.T) {
+func TestValidateUnsetBackendConfigItems(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		key     string
+	}{
+		{
+			name:    "valid backend config items key",
+			success: true,
+			key:     "backends.dev.configs",
+		},
+		{
+			name:    "invalid backend config items key unset default backend",
+			success: false,
+			key:     "backends.default.configs",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateUnsetBackendConfigItems(nil, tc.key)
+			assert.Equal(t, tc.success, err == nil)
+		})
+	}
+}
+
+func TestValidateSetMysqlBackendPort(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
@@ -389,7 +453,7 @@ func TestValidateMysqlBackendPort(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := validateMysqlBackendPort(tc.config, tc.key, tc.val)
+			err := validateSetMysqlBackendPort(tc.config, tc.key, tc.val)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

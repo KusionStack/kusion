@@ -18,6 +18,9 @@ func mockConfig() *v1.Config {
 		Backends: &v1.BackendConfigs{
 			Current: "pre",
 			Backends: map[string]*v1.BackendConfig{
+				v1.DefaultBackendName: {
+					Type: v1.BackendTypeLocal,
+				},
 				"dev": {
 					Type: v1.BackendTypeLocal,
 					Configs: map[string]any{
@@ -76,7 +79,7 @@ func TestNewBackend(t *testing.T) {
 			success: true,
 			cfg: func() *v1.Config {
 				cfg := mockConfig()
-				cfg.Backends.Current = ""
+				cfg.Backends.Current = v1.DefaultBackendName
 				return cfg
 			}(),
 			envs:    nil,

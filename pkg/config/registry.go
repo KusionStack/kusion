@@ -25,22 +25,22 @@ const (
 
 func newRegisteredItems() map[string]*itemInfo {
 	return map[string]*itemInfo{
-		backendCurrent:            {"", validateCurrentBackend, nil},
-		backendConfig:             {&v1.BackendConfig{}, validateBackendConfig, validateUnsetBackendConfig},
-		backendConfigType:         {"", validateBackendType, validateUnsetBackendType},
-		backendConfigItems:        {map[string]any{}, validateBackendConfigItems, nil},
-		backendLocalPath:          {"", validateLocalBackendItem, nil},
-		backendMysqlDBName:        {"", validateMysqlBackendItem, nil},
-		backendMysqlUser:          {"", validateMysqlBackendItem, nil},
-		backendMysqlPassword:      {"", validateMysqlBackendItem, nil},
-		backendMysqlHost:          {"", validateMysqlBackendItem, nil},
-		backendMysqlPort:          {0, validateMysqlBackendPort, nil},
-		backendGenericOssEndpoint: {"", validateGenericOssBackendItem, nil},
-		backendGenericOssAK:       {"", validateGenericOssBackendItem, nil},
-		backendGenericOssSK:       {"", validateGenericOssBackendItem, nil},
-		backendGenericOssBucket:   {"", validateGenericOssBackendItem, nil},
-		backendGenericOssPrefix:   {"", validateGenericOssBackendItem, nil},
-		backendS3Region:           {"", validateS3BackendItem, nil},
+		backendCurrent:            {"", validateSetCurrentBackend, validateUnsetCurrentBackend},
+		backendConfig:             {&v1.BackendConfig{}, validateSetBackendConfig, validateUnsetBackendConfig},
+		backendConfigType:         {"", validateSetBackendType, validateUnsetBackendType},
+		backendConfigItems:        {map[string]any{}, validateSetBackendConfigItems, validateUnsetBackendConfigItems},
+		backendLocalPath:          {"", validateSetLocalBackendItem, validateUnsetLocalBackendItem},
+		backendMysqlDBName:        {"", validateSetMysqlBackendItem, nil},
+		backendMysqlUser:          {"", validateSetMysqlBackendItem, nil},
+		backendMysqlPassword:      {"", validateSetMysqlBackendItem, nil},
+		backendMysqlHost:          {"", validateSetMysqlBackendItem, nil},
+		backendMysqlPort:          {0, validateSetMysqlBackendPort, nil},
+		backendGenericOssEndpoint: {"", validateSetGenericOssBackendItem, nil},
+		backendGenericOssAK:       {"", validateSetGenericOssBackendItem, nil},
+		backendGenericOssSK:       {"", validateSetGenericOssBackendItem, nil},
+		backendGenericOssBucket:   {"", validateSetGenericOssBackendItem, nil},
+		backendGenericOssPrefix:   {"", validateSetGenericOssBackendItem, nil},
+		backendS3Region:           {"", validateSetS3BackendItem, nil},
 	}
 }
 
@@ -60,14 +60,14 @@ type itemInfo struct {
 	// may happen. Please do not use them.
 	zeroValue any
 
-	// validateFunc is used to check the config item is valid or not to set, calling before executing real
+	// ValidateSetFunc is used to check the config item is valid or not to set, calling before executing real
 	// config setting. The unregistered config item, empty item value and invalid item value type is forbidden
-	// by config operator by default, which are unnecessary to check in the validateFunc.
-	// Please do not do any real setting job in the validateFunc.
-	validateFunc validateFunc
+	// by config operator by default, which are unnecessary to check in the ValidateSetFunc.
+	// Please do not do any real setting job in the ValidateSetFunc.
+	ValidateSetFunc validateFunc
 
-	// validateDeleteFunc is used to check the config item is valid or not to unset, calling before executing
+	// validateUnsetFunc is used to check the config item is valid or not to unset, calling before executing
 	// real config unsetting.
-	// Please do not do any real unsetting job in the validateDeleteFunc.
-	validateDeleteFunc validateDeleteFunc
+	// Please do not do any real unsetting job in the validateUnsetFunc.
+	validateUnsetFunc validateDeleteFunc
 }

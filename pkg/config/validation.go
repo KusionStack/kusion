@@ -16,52 +16,67 @@ type (
 
 var (
 	ErrNotExistCurrentBackend     = errors.New("cannot assign current to not exist backend")
+	ErrUnsetDefaultCurrentBackend = errors.New("cannot unset default current backend")
 	ErrInUseCurrentBackend        = errors.New("unset in-use current backend")
 	ErrUnsupportedBackendType     = errors.New("unsupported backend type")
 	ErrNonEmptyBackendConfigItems = errors.New("non-empty backend config items")
 	ErrEmptyBackendType           = errors.New("empty backend type")
 	ErrConflictBackendType        = errors.New("conflict backend type")
 	ErrInvalidBackendMysqlPort    = errors.New("backend mysql port must be between 1 and 65535")
+	ErrInvalidBackNameDefault     = errors.New("backend name should not be default")
 )
 
-// validateCurrentBackend is used to check that setting the current backend is valid or not.
-func validateCurrentBackend(config *v1.Config, _ string, val any) error {
+// validateSetCurrentBackend is used to check that setting the current backend is valid or not.
+func validateSetCurrentBackend(config *v1.Config, _ string, val any) error {
 	current, _ := val.(string)
-	if config != nil && config.Backends != nil && config.Backends.Backends != nil {
-		_, ok := config.Backends.Backends[current]
-		if ok {
-			return nil
-		}
+	_, ok := config.Backends.Backends[current]
+	if ok {
+		return nil
 	}
 	return ErrNotExistCurrentBackend
 }
 
-// validateBackendConfig is used to check that setting the backend config is valid or not.
-func validateBackendConfig(_ *v1.Config, _ string, val any) error {
+// validateUnsetCurrentBackend is used to check that unsetting the current backend is valid or not.
+func validateUnsetCurrentBackend(config *v1.Config, _ string) error {
+	if config.Backends.Current == v1.DefaultBackendName {
+		return ErrUnsetDefaultCurrentBackend
+	}
+	return nil
+}
+
+// validateSetBackendConfig is used to check that setting the backend config is valid or not.
+func validateSetBackendConfig(_ *v1.Config, key string, val any) error {
+	if err := checkNotDefaultBackendName(parseBackendName(key)); err != nil {
+		return err
+	}
 	config, _ := val.(*v1.BackendConfig)
 	return checkBackendConfig(config)
 }
 
 // validateUnsetBackendConfig is used to check that unsetting the backend config is valid or not.
 func validateUnsetBackendConfig(config *v1.Config, key string) error {
-	if config == nil || config.Backends == nil {
-		return nil
+	backendName := parseBackendName(key)
+	if err := checkNotDefaultBackendName(backendName); err != nil {
+		return err
 	}
-	if config.Backends.Current == parseBackendName(key) {
+	if config.Backends.Current == backendName {
 		return fmt.Errorf("%w, cannot unset config of backend %s cause it's current backend", ErrInUseCurrentBackend, config.Backends.Current)
 	}
 	return nil
 }
 
-// validateBackendType is used to check that setting the backend type is valid or not.
-func validateBackendType(config *v1.Config, key string, val any) error {
+// validateSetBackendType is used to check that setting the backend type is valid or not.
+func validateSetBackendType(config *v1.Config, key string, val any) error {
 	backendType, _ := val.(string)
 	if backendType != v1.BackendTypeLocal && backendType != v1.BackendTypeMysql && backendType != v1.BackendTypeOss && backendType != v1.BackendTypeS3 {
 		return ErrUnsupportedBackendType
 	}
 
 	backendName := parseBackendName(key)
-	if config == nil || config.Backends == nil || config.Backends.Backends == nil || config.Backends.Backends[backendName] == nil {
+	if err := checkNotDefaultBackendName(backendName); err != nil {
+		return err
+	}
+	if config.Backends.Backends[backendName] == nil {
 		return nil
 	}
 	if config.Backends.Backends[backendName].Type != backendType && len(config.Backends.Backends[backendName].Configs) != 0 {
@@ -73,7 +88,10 @@ func validateBackendType(config *v1.Config, key string, val any) error {
 // validateUnsetBackendType is used to check that unsetting the backend config is valid or not.
 func validateUnsetBackendType(config *v1.Config, key string) error {
 	backendName := parseBackendName(key)
-	if config == nil || config.Backends == nil || config.Backends.Backends == nil || config.Backends.Backends[backendName] == nil {
+	if err := checkNotDefaultBackendName(backendName); err != nil {
+		return err
+	}
+	if config.Backends.Backends[backendName] == nil {
 		return nil
 	}
 	if len(config.Backends.Backends[backendName].Configs) != 0 {
@@ -85,11 +103,14 @@ func validateUnsetBackendType(config *v1.Config, key string) error {
 	return nil
 }
 
-// validateBackendConfigItems is used to check that setting the backend config items is valid or not.
-func validateBackendConfigItems(config *v1.Config, key string, val any) error {
+// validateSetBackendConfigItems is used to check that setting the backend config items is valid or not.
+func validateSetBackendConfigItems(config *v1.Config, key string, val any) error {
 	configItems, _ := val.(map[string]any)
 	backendName := parseBackendName(key)
-	if config == nil || config.Backends == nil || config.Backends.Backends == nil || config.Backends.Backends[backendName] == nil || config.Backends.Backends[backendName].Type == "" {
+	if err := checkNotDefaultBackendName(backendName); err != nil {
+		return err
+	}
+	if config.Backends.Backends[backendName] == nil || config.Backends.Backends[backendName].Type == "" {
 		return ErrEmptyBackendType
 	}
 	bkConfig := &v1.BackendConfig{
@@ -99,19 +120,32 @@ func validateBackendConfigItems(config *v1.Config, key string, val any) error {
 	return checkBackendConfig(bkConfig)
 }
 
-// validateLocalBackendItem is used to check that setting the config item for local-type backend is valid or not.
-func validateLocalBackendItem(config *v1.Config, key string, _ any) error {
+// validateUnsetBackendConfigItems is used to check that unsetting the backend config items is valid or not.
+func validateUnsetBackendConfigItems(_ *v1.Config, key string) error {
+	return checkNotDefaultBackendName(parseBackendName(key))
+}
+
+// validateSetLocalBackendItem is used to check that setting the config item for local-type backend is valid or not.
+func validateSetLocalBackendItem(config *v1.Config, key string, _ any) error {
+	if err := checkNotDefaultBackendName(parseBackendName(key)); err != nil {
+		return err
+	}
 	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeLocal)
 }
 
-// validateMysqlBackendItem is used to check that setting the config item for mysql-type backend is valid or not.
-func validateMysqlBackendItem(config *v1.Config, key string, _ any) error {
+// validateUnsetLocalBackendItem is used to check that unsetting the config item for local-type backend is valid or not.
+func validateUnsetLocalBackendItem(_ *v1.Config, key string) error {
+	return checkNotDefaultBackendName(parseBackendName(key))
+}
+
+// validateSetMysqlBackendItem is used to check that setting the config item for mysql-type backend is valid or not.
+func validateSetMysqlBackendItem(config *v1.Config, key string, _ any) error {
 	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeMysql)
 }
 
-// validateMysqlBackendPort is used to check that setting the port of mysql-type backend is valid or not.
-func validateMysqlBackendPort(config *v1.Config, key string, val any) error {
-	if err := validateMysqlBackendItem(config, key, val); err != nil {
+// validateSetMysqlBackendPort is used to check that setting the port of mysql-type backend is valid or not.
+func validateSetMysqlBackendPort(config *v1.Config, key string, val any) error {
+	if err := validateSetMysqlBackendItem(config, key, val); err != nil {
 		return err
 	}
 	port, _ := val.(int)
@@ -121,18 +155,18 @@ func validateMysqlBackendPort(config *v1.Config, key string, val any) error {
 	return nil
 }
 
-// validateGenericOssBackendItem is used to check that setting the generic config of oss/s3-type backend is valid or not.
-func validateGenericOssBackendItem(config *v1.Config, key string, _ any) error {
+// validateSetGenericOssBackendItem is used to check that setting the generic config of oss/s3-type backend is valid or not.
+func validateSetGenericOssBackendItem(config *v1.Config, key string, _ any) error {
 	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeOss, v1.BackendTypeS3)
 }
 
-// validateS3BackendItem is used to check that setting the bucket of s3-type backend is valid or not.
-func validateS3BackendItem(config *v1.Config, key string, _ any) error {
+// validateSetS3BackendItem is used to check that setting the bucket of s3-type backend is valid or not.
+func validateSetS3BackendItem(config *v1.Config, key string, _ any) error {
 	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeS3)
 }
 
 // checkBackendConfig is used to check that setting the backend config is valid or not, which is called
-// validateBackendConfig and validateBackendConfigItems.
+// validateSetBackendConfig and validateSetBackendConfigItems.
 func checkBackendConfig(config *v1.BackendConfig) error {
 	if err := checkBasalBackendConfig(config); err != nil {
 		return err
@@ -226,7 +260,7 @@ func checkBasalBackendConfigItems(backend *v1.BackendConfig, items map[string]ch
 // checkBackendTypeForBackendItem checks the backend type when setting backend config item
 func checkBackendTypeForBackendItem(config *v1.Config, key string, backendTypes ...string) error {
 	backendName := parseBackendName(key)
-	if config == nil || config.Backends == nil || config.Backends.Backends == nil || config.Backends.Backends[backendName] == nil || config.Backends.Backends[backendName].Type == "" {
+	if config.Backends.Backends[backendName] == nil || config.Backends.Backends[backendName].Type == "" {
 		return ErrEmptyBackendType
 	}
 
@@ -240,6 +274,14 @@ func checkBackendTypeForBackendItem(config *v1.Config, key string, backendTypes 
 	if !validType {
 		itemName := parseBackendItem(key)
 		return fmt.Errorf("%w, %s cannot assign to backend %s with type %s", ErrConflictBackendType, itemName, backendName, config.Backends.Backends[backendName].Type)
+	}
+	return nil
+}
+
+// checkNotDefaultBackendName returns error if the backend name is default.
+func checkNotDefaultBackendName(name string) error {
+	if name == v1.DefaultBackendName {
+		return ErrInvalidBackNameDefault
 	}
 	return nil
 }
