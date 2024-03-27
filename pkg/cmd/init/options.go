@@ -11,12 +11,20 @@ import (
 var ErrNotEmptyArgs = errors.New("no args accepted")
 
 type Options struct {
-	Name       string
+	Name string
+	Flags
+}
+
+type Flags struct {
 	ProjectDir string
 }
 
 func NewOptions() *Options {
-	return &Options{}
+	return &Options{
+		Flags: Flags{
+			ProjectDir: "",
+		},
+	}
 }
 
 func (o *Options) Complete(args []string) error {
@@ -29,8 +37,10 @@ func (o *Options) Complete(args []string) error {
 		return err
 	}
 
-	o.ProjectDir = dir
 	o.Name = name
+	if o.ProjectDir == "" {
+		o.ProjectDir = dir
+	}
 
 	return nil
 }
