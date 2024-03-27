@@ -390,7 +390,7 @@ func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (str
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {
-	var workloadConfig, devConfig, platformConfig, runtimeConfig []byte
+	var workloadConfig, devConfig, platformConfig []byte
 	var err error
 	// Attention: we MUST yaml.v2 to serialize the object,
 	// because we have introduced MapSlice in the Workload which is supported only in the yaml.v2
@@ -409,11 +409,7 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 			return nil, fmt.Errorf("marshal platform module config failed. %w", err)
 		}
 	}
-	if g.ws.Runtimes != nil {
-		if runtimeConfig, err = yaml.Marshal(g.ws.Runtimes); err != nil {
-			return nil, fmt.Errorf("marshal runtime config failed. %w", err)
-		}
-	}
+
 	protoRequest := &proto.GeneratorRequest{
 		Project:              g.project,
 		Stack:                g.stack,
@@ -421,7 +417,6 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 		Workload:             workloadConfig,
 		DevModuleConfig:      devConfig,
 		PlatformModuleConfig: platformConfig,
-		RuntimeConfig:        runtimeConfig,
 	}
 	return protoRequest, nil
 }

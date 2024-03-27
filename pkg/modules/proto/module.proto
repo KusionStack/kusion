@@ -15,8 +15,6 @@ message GeneratorRequest {
   bytes dev_module_config = 5;
   // PlatformModuleConfig is the platform engineer's inputs of this module
   bytes platform_module_config = 6;
-  // RuntimeConfig is the runtime configurations defined in the workspace
-  bytes runtime_config = 7;
 }
 
 // GeneratorResponse represents the generate result of the generator.
