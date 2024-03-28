@@ -76,6 +76,7 @@ func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Example: generateExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			o, err := flags.ToOptions()
+			defer cmdutil.RecoverErr(&err)
 			cmdutil.CheckErr(err)
 			cmdutil.CheckErr(o.Validate(cmd, args))
 			cmdutil.CheckErr(o.Run())

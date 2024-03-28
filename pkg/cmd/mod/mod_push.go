@@ -109,6 +109,7 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Example:               pushExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			o, err := flags.ToOptions(args, flags.IOStreams)
+			defer cmdutil.RecoverErr(&err)
 			cmdutil.CheckErr(err)
 			cmdutil.CheckErr(o.Validate())
 			cmdutil.CheckErr(o.Run())
