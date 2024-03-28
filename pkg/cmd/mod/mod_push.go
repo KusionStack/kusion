@@ -32,19 +32,22 @@ var (
 		OCI registry using the version as the image tag.`)
 
 	pushExample = i18n.T(`
-		# Push a module to GitHub Container Registry using a GitHub token
-		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 --creds $GITHUB_TOKEN
+		# Push a module to an OCI Registry using a token
+		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_TOKEN>
+		
+		# Push a module to an OCI Registry using a credentials in <YOUR_USERNAME>:<YOUR_TOKEN> format. 
+		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_USERNAME>:<YOUR_TOKEN>
 
 		# Push a release candidate without marking it as the latest stable
-		kusion mod push /path/to/my-module oci://ghcr.io/kusionstack/my-module --version=1.0.0-rc.1 --latest=false
+		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0-rc.1 --latest=false
 
 		# Push a module with custom OCI annotations
-		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 \
+		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 \
 		  --annotation='org.opencontainers.image.documentation=https://app.org/docs'
 
 		# Push and sign a module with Cosign (the cosign binary must be present in PATH)
 		export COSIGN_PASSWORD=password
-  		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 \
+  		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 \
 		  --sign=cosign --cosign-key=/path/to/cosign.key`)
 )
 
@@ -125,11 +128,13 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 func (flags *PushModFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&flags.Version, "version", "v", flags.Version, "The version of the module e.g. '1.0.0' or '1.0.0-rc.1'.")
 	cmd.Flags().BoolVar(&flags.Latest, "latest", flags.Latest, "Tags the current version as the latest stable module version.")
-	cmd.Flags().StringVar(&flags.Credentials, "creds", flags.Credentials, "The credentials for the OCI registry in '<username>[:<password>]' format.")
+	cmd.Flags().StringVar(&flags.Credentials, "creds", flags.Credentials,
+		"The credentials token for the OCI registry in <YOUR_TOKEN> or <YOUR_USERNAME>:<YOUR_TOKEN> format.")
 	cmd.Flags().StringVar(&flags.Sign, "sign", flags.Sign, "Signs the module with the specified provider.")
 	cmd.Flags().StringVar(&flags.CosignKey, "cosign-key", flags.CosignKey, "The Cosign private key for signing the module.")
 	cmd.Flags().BoolVar(&flags.InsecureRegistry, "insecure-registry", flags.InsecureRegistry, "If true, allows connecting to a OCI registry without TLS or with self-signed certificates.")
-	cmd.Flags().StringSliceVarP(&flags.Annotations, "annotations", "a", flags.Annotations, "Set custom OCI annotations in '<key>=<value>' format.")
+	cmd.Flags().StringSliceVarP(&flags.Annotations, "annotations", "a", flags.Annotations,
+		"Set custom OCI annotations in '<KEY>=<VALUE>' format.")
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
