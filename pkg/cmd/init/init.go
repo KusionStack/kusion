@@ -43,7 +43,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.ProjectDir, "target", "t", "",
-		i18n.T("specify the target direcotry"))
+		i18n.T("specify the target directory"))
 
 	return cmd
 }

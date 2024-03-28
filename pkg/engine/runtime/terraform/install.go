@@ -36,7 +36,7 @@ func (installer *CLIInstaller) CheckAndInstall() error {
 			break
 		}
 
-		if i == installer.Intent.Resources.Len() {
+		if i == installer.Intent.Resources.Len()-1 {
 			return nil
 		}
 	}

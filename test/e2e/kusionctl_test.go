@@ -12,7 +12,7 @@ import (
 			path := filepath.Join(GetWorkDir(), "konfig", "example", "service-multi-stack", "dev")
 			output, err := ExecKusionWithWorkDir("kusion build", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			gomega.Expect(output).To(gomega.ContainSubstring("Generating Intent"))
+			gomega.Expect(output).To(gomega.ContainSubstring("Generating Spec"))
 		})
 	})
 })*/
