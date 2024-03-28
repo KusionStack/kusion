@@ -33,18 +33,18 @@ var (
 
 	pushExample = i18n.T(`
 		# Push a module to GitHub Container Registry using a GitHub token
-		kusion mod push /path/to/module oci://ghcr.io/org/modules/app --version=1.0.0 --creds $GITHUB_TOKEN
+		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 --creds $GITHUB_TOKEN
 
 		# Push a release candidate without marking it as the latest stable
-		kusion mod push /path/to/module oci://ghcr.io/modules/app --version=1.0.0-rc.1 --latest=false
+		kusion mod push /path/to/my-module oci://ghcr.io/kusionstack/my-module --version=1.0.0-rc.1 --latest=false
 
 		# Push a module with custom OCI annotations
-		kusion mod push /path/to/module oci://ghcr.io/org/modules/app --version=1.0.0 \
+		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 \
 		  --annotation='org.opencontainers.image.documentation=https://app.org/docs'
 
 		# Push and sign a module with Cosign (the cosign binary must be present in PATH)
 		export COSIGN_PASSWORD=password
-  		kusion mod push /path/to/module oci://ghcr.io/org/modules/app --version=1.0.0 \
+  		kusion mod push /path/to/my-module oci://ghcr.io/org/kusionstack/my-module --version=1.0.0 \
 		  --sign=cosign --cosign-key=/path/to/cosign.key`)
 )
 
@@ -145,9 +145,7 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 
 	// If creds in <token> format, creds must be base64 encoded
 	if len(flags.Credentials) != 0 && !strings.Contains(flags.Credentials, ":") {
-		if _, err := base64.StdEncoding.DecodeString(flags.Credentials); err != nil {
-			return nil, fmt.Errorf("credentials must be base64 encoded")
-		}
+		flags.Credentials = base64.StdEncoding.EncodeToString([]byte(flags.Credentials))
 	}
 
 	// Parse custom annotations
@@ -219,7 +217,7 @@ func (o *PushModOptions) Run() error {
 	defer os.RemoveAll(tempModuleDir)
 
 	sp := &pretty.SpinnerT
-	sp, _ = sp.Start("building generator program")
+	sp, _ = sp.Start("building the module binary...")
 	defer func() {
 		_ = sp.Stop()
 	}()
@@ -241,7 +239,7 @@ func (o *PushModOptions) Run() error {
 		return err
 	}
 
-	sp.Info("pushing module")
+	sp.Info("pushing the module...")
 	digest, err := o.Client.Push(ctx, o.OCIUrl, tempModuleDir, o.Metadata, nil)
 	if err != nil {
 		return err
@@ -253,6 +251,7 @@ func (o *PushModOptions) Run() error {
 			return fmt.Errorf("tagging module version as latest failed: %w", err)
 		}
 	}
+	sp.Info("pushed successfully\n")
 	_ = sp.Stop()
 
 	// Signs the module with specific provider
