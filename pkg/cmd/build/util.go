@@ -22,10 +22,10 @@ import (
 func IntentWithSpinner(o *builders.Options, proj *v1.Project, stack *v1.Stack, ws *v1.Workspace) (*v1.Intent, error) {
 	var sp *pterm.SpinnerPrinter
 	if o.NoStyle {
-		fmt.Printf("Generating Intent in the Stack %s...\n", stack.Name)
+		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
 	} else {
 		sp = &pretty.SpinnerT
-		sp, _ = sp.Start(fmt.Sprintf("Generating Intent in the Stack %s...", stack.Name))
+		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
 	}
 
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
