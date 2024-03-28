@@ -56,7 +56,15 @@ func (installer *CLIInstaller) CheckAndInstall() error {
 
 // check whether the terraform executable binary has been installed.
 func checkTerraformExecutable() error {
-	if err := exec.Command("terraform", "--version").Run(); err == nil {
+	// select the executable file name according to the operating system.
+	var executable string
+	if runtime.GOOS == "windows" {
+		executable = "terraform.exe"
+	} else {
+		executable = "terraform"
+	}
+
+	if err := exec.Command(executable, "--version").Run(); err == nil {
 		return nil
 	}
 
@@ -65,7 +73,7 @@ func checkTerraformExecutable() error {
 		return err
 	}
 
-	execPath := filepath.Join(installDir, "terraform")
+	execPath := filepath.Join(installDir, executable)
 	if err := exec.Command(execPath, "--version").Run(); err != nil {
 		return err
 	}
