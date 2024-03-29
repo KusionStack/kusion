@@ -7,19 +7,19 @@
 
 [简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md) | [English](https://github.com/KusionStack/kusion/blob/main/README.md)
 
-[Konfig](https://github.com/KusionStack/konfig) | [KCLVM](https://github.com/KusionStack/KCLVM) | [Kusion](https://github.com/KusionStack/kusion) | [kusionstack.io](https://kusionstack.io/) | [CNCF Landscape](https://landscape.cncf.io/?selected=kusion-stack)
+[kusionstack.io](https://kusionstack.io/) | [Konfig](https://github.com/KusionStack/konfig) | [Catalog](https://github.com/KusionStack/catalog) | [CNCF Landscape](https://landscape.cncf.io/?selected=kusion-stack)
 
 [![Kusion](https://github.com/KusionStack/kusion/actions/workflows/release.yaml/badge.svg)](https://github.com/KusionStack/kusion/actions/workflows/release.yaml)
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
-[![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion)
+<!-- [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion) -->
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
 </div>
 
 # Kusion
 
-Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工程引擎，旨在帮助您构建高效且安全的内部开发者平台（IDP）。它允许应用程序开发者在一个地方轻松且一致地完成 DevOps 生命周期中的所有运维任务，跨越包括 Kubernetes、云平台和自建基础设置在内的不同基础设施。
+Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工程引擎，旨在帮助您构建高效且安全的内部开发者平台（IDP）。它允许应用开发者在一个地方、用统一的方式完成 DevOps 生命周期中的所有运维任务，而不用关心底层基础设（Kubernetes、云平台和自建服务）的复杂性。对于平台工程师也提供了灵活的 Module 扩展机制，方便他们实现基础设施能力的抽象、复用与标准化，以实现应用研发自服务。
 
 ## 核心能力
 
@@ -42,7 +42,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 参考 [Quick Start](https://www.kusionstack.io/docs/kusion/getting-started/deliver-wordpress) 通过 Kusion
 部署您的第一个应用
 
-![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/apply.gif)
+![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
 
 ## 安装
 
@@ -50,12 +50,6 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 
 ```shell
 brew install KusionStack/tap/kusion
-```
-
-### Go Install
-
-```shell
-go install kusionstack.io/kusion@latest
 ```
 
 ### Docker
