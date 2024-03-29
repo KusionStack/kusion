@@ -110,12 +110,13 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Short:                 "Push a module to OCI registry",
 		Long:                  pushLong,
 		Example:               pushExample,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			o, err := flags.ToOptions(args, flags.IOStreams)
 			defer cmdutil.RecoverErr(&err)
 			cmdutil.CheckErr(err)
 			cmdutil.CheckErr(o.Validate())
 			cmdutil.CheckErr(o.Run())
+			return
 		},
 	}
 

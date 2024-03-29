@@ -74,12 +74,13 @@ func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Short:   "Generate versioned Spec of target Stack",
 		Long:    generateLong,
 		Example: generateExample,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			o, err := flags.ToOptions()
 			defer cmdutil.RecoverErr(&err)
 			cmdutil.CheckErr(err)
 			cmdutil.CheckErr(o.Validate(cmd, args))
 			cmdutil.CheckErr(o.Run())
+			return
 		},
 	}
 
