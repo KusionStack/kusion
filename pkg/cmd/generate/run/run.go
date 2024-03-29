@@ -33,7 +33,7 @@ func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, er
 	}
 	result, err := api.RunWithOpts(
 		opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
-		opt.WithNoSumCheck(true),
+		opt.WithNoSumCheck(false),
 		opt.WithLogWriter(nil),
 	)
 	if err != nil {

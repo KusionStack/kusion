@@ -13,8 +13,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
-	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -58,17 +57,8 @@ func (o *Options) Run() error {
 		pterm.DisableColor()
 	}
 
-	options := &builders.Options{
-		KclPkg:    o.KclPkg,
-		WorkDir:   o.WorkDir,
-		Filenames: o.Filenames,
-		Settings:  o.Settings,
-		Arguments: o.Arguments,
-		NoStyle:   o.NoStyle,
-	}
-
 	// parse project and stack of work directory
-	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	currentProject, currentStack, err := project.DetectProjectAndStack(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}
@@ -82,31 +72,31 @@ func (o *Options) Run() error {
 	if err != nil {
 		return err
 	}
-	ws, err := wsStorage.Get(o.Workspace)
+	currentWorkspace, err := wsStorage.Get(o.Workspace)
 	if err != nil {
 		return err
 	}
 
-	// generate Intent
-	var sp *apiv1.Intent
-	if o.IntentFile != "" {
-		sp, err = build.IntentFromFile(o.IntentFile)
+	// Generate Intent
+	var intent *apiv1.Intent
+	if len(o.IntentFile) != 0 {
+		intent, err = generate.IntentFromFile(o.IntentFile)
 	} else {
-		sp, err = build.IntentWithSpinner(options, proj, stack, ws)
+		intent, err = generate.GenerateIntentWithSpinner(currentProject, currentStack, currentWorkspace, true)
 	}
 	if err != nil {
 		return err
 	}
 
 	// return immediately if no resource found in stack
-	if sp == nil || len(sp.Resources) == 0 {
+	if intent == nil || len(intent.Resources) == 0 {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
 
 	// compute changes for preview
-	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
-	changes, err := preview.Preview(&o.Options, storage, sp, proj, stack)
+	storage := bk.StateStorage(currentProject.Name, currentStack.Name, currentWorkspace.Name)
+	changes, err := preview.Preview(&o.Options, storage, intent, currentProject, currentStack)
 	if err != nil {
 		return err
 	}
@@ -150,7 +140,7 @@ func (o *Options) Run() error {
 	}
 
 	fmt.Println("Start applying diffs ...")
-	if err = Apply(o, storage, sp, changes, os.Stdout); err != nil {
+	if err = Apply(o, storage, intent, changes, os.Stdout); err != nil {
 		return err
 	}
 
@@ -162,7 +152,7 @@ func (o *Options) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err = Watch(o, sp, changes); err != nil {
+		if err = Watch(o, intent, changes); err != nil {
 			return err
 		}
 	}

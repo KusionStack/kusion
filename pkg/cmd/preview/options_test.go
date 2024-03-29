@@ -15,7 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -77,7 +77,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("no changes", func(t *testing.T) {
 		mockey.PatchConvey("mock engine operation", t, func() {
 			mockDetectProjectAndStack()
-			mockPatchBuildIntentWithSpinner()
+			mockGenerateIntentWithSpinner()
 			mockNewKubernetesRuntime()
 			mockNewBackend()
 			mockWorkspaceStorage()
@@ -91,7 +91,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("detail is true", func(t *testing.T) {
 		mockey.PatchConvey("mock engine operation", t, func() {
 			mockDetectProjectAndStack()
-			mockPatchBuildIntentWithSpinner()
+			mockGenerateIntentWithSpinner()
 			mockNewKubernetesRuntime()
 			mockOperationPreview()
 			mockPromptDetail("")
@@ -108,7 +108,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("json output is true", func(t *testing.T) {
 		mockey.PatchConvey("mock engine operation", t, func() {
 			mockDetectProjectAndStack()
-			mockBuildIntent()
+			mockGenerateIntentWithSpinner()
 			mockNewKubernetesRuntime()
 			mockOperationPreview()
 			mockPromptDetail("")
@@ -125,7 +125,7 @@ func TestPreviewOptions_Run(t *testing.T) {
 	t.Run("no style is true", func(t *testing.T) {
 		mockey.PatchConvey("mock engine operation", t, func() {
 			mockDetectProjectAndStack()
-			mockPatchBuildIntentWithSpinner()
+			mockGenerateIntentWithSpinner()
 			mockNewKubernetesRuntime()
 			mockOperationPreview()
 			mockPromptDetail("")
@@ -227,23 +227,12 @@ func mockDetectProjectAndStack() {
 	}).Build()
 }
 
-func mockBuildIntent() {
-	mockey.Mock(build.Intent).To(func(
-		o *builders.Options,
-		proj *apiv1.Project,
+func mockGenerateIntentWithSpinner() {
+	mockey.Mock(generate.GenerateIntentWithSpinner).To(func(
+		project *apiv1.Project,
 		stack *apiv1.Stack,
-		ws *apiv1.Workspace,
-	) (*apiv1.Intent, error) {
-		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
-	}).Build()
-}
-
-func mockPatchBuildIntentWithSpinner() {
-	mockey.Mock(build.IntentWithSpinner).To(func(
-		o *builders.Options,
-		proj *apiv1.Project,
-		stack *apiv1.Stack,
-		ws *apiv1.Workspace,
+		workspace *apiv1.Workspace,
+		noStyle bool,
 	) (*apiv1.Intent, error) {
 		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()

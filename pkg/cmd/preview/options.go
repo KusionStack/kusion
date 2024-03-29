@@ -6,15 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pterm/pterm"
-
 	"github.com/pkg/errors"
+	"github.com/pterm/pterm"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
@@ -115,22 +114,13 @@ func (o *Options) Run() error {
 		pterm.DisableColor()
 	}
 
-	options := &builders.Options{
-		KclPkg:    o.KclPkg,
-		WorkDir:   o.WorkDir,
-		Filenames: o.Filenames,
-		Settings:  o.Settings,
-		Arguments: o.Arguments,
-		NoStyle:   o.NoStyle,
-	}
-
-	// parse project and stack of work directory
-	proj, stack, err := project.DetectProjectAndStack(o.WorkDir)
+	// Parse project and currentStack of work directory
+	currentProject, currentStack, err := project.DetectProjectAndStack(o.WorkDir)
 	if err != nil {
 		return err
 	}
 
-	// get workspace configurations
+	// Get current workspace from backend
 	bk, err := backend.NewBackend(o.Backend)
 	if err != nil {
 		return err
@@ -139,19 +129,18 @@ func (o *Options) Run() error {
 	if err != nil {
 		return err
 	}
-	ws, err := wsStorage.Get(o.Workspace)
+	currentWorkspace, err := wsStorage.Get(o.Workspace)
 	if err != nil {
 		return err
 	}
 
-	// generate Intent
-	var sp *apiv1.Intent
-	if o.IntentFile != "" {
-		sp, err = build.IntentFromFile(o.IntentFile)
-	} else if o.Output == jsonOutput {
-		sp, err = build.Intent(options, proj, stack, ws)
+	// Generate Intent
+	// Generate Intent
+	var intent *apiv1.Intent
+	if len(o.IntentFile) != 0 {
+		intent, err = generate.IntentFromFile(o.IntentFile)
 	} else {
-		sp, err = build.IntentWithSpinner(options, proj, stack, ws)
+		intent, err = generate.GenerateIntentWithSpinner(currentProject, currentStack, currentWorkspace, true)
 	}
 	if err != nil {
 		return err
@@ -159,7 +148,7 @@ func (o *Options) Run() error {
 
 	// return immediately if no resource found in stack
 	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
-	if sp == nil || len(sp.Resources) == 0 {
+	if intent == nil || len(intent.Resources) == 0 {
 		if o.Output != jsonOutput {
 			fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		}
@@ -167,8 +156,8 @@ func (o *Options) Run() error {
 	}
 
 	// compute changes for preview
-	storage := bk.StateStorage(proj.Name, stack.Name, ws.Name)
-	changes, err := Preview(o, storage, sp, proj, stack)
+	storage := bk.StateStorage(currentProject.Name, currentStack.Name, currentWorkspace.Name)
+	changes, err := Preview(o, storage, intent, currentProject, currentStack)
 	if err != nil {
 		return err
 	}
