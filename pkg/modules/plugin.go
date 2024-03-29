@@ -37,7 +37,7 @@ var PluginMap = map[string]plugin.Plugin{
 }
 
 type Plugin struct {
-	// key represents the module key, it consists of two parts: moduleName@version. e.g. "kusionstack/mysql@v0.1.0"
+	// key represents the module key, it consists of two parts: namespace/moduleName@version. e.g. "kusionstack/mysql@v0.1.0"
 	key    string
 	client *plugin.Client
 	// Module represents the real module impl
@@ -59,7 +59,8 @@ func NewPlugin(key string) (*Plugin, error) {
 func (p *Plugin) initModule() error {
 	key := p.key
 	split := strings.Split(key, "@")
-	msg := "init module failed. Invalid plugin module key: %s. The correct format for a key should be as follows: namespace/resourceType@version. e.g. kusionstack/mysql@v0.1.0"
+	msg := "init module failed. Invalid plugin module key: %s. " +
+		"The correct format for a key should be as follows: namespace/moduleName@version. e.g. kusionstack/mysql@v0.1.0"
 	if len(split) != 2 {
 		return fmt.Errorf(msg, key)
 	}
