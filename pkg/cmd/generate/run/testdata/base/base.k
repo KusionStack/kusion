@@ -1,7 +1,7 @@
-import catalog.models.schema.v1 as ac
-import catalog.models.schema.v1.workload as wl
-import catalog.models.schema.v1.workload.container as c
-import catalog.models.schema.v1.workload.container.probe as p
+import kam.v1.app_configuration as ac
+import kam.v1.workload as wl
+import kam.v1.workload.container as c
+import kam.v1.workload.container.probe as p
 import opsrule as t
 
 # base.k declares reusable configurations for all stacks.

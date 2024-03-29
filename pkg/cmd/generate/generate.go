@@ -1,9 +1,14 @@
 package generate
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"os"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"kcl-lang.io/kpm/pkg/api"
 
@@ -15,6 +20,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/spec"
 	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/i18n"
+	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
 var (
@@ -125,24 +131,13 @@ func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 		return nil, err
 	}
 
-	kclPkg, err := api.GetKclPackage(workDir)
-	if err != nil {
-		return nil, err
-	}
-
-	// Construct generator instance
-	defaultGenerator := &generator.DefaultGenerator{
-		Project:   currentProject,
-		Stack:     currentStack,
-		Workspace: currentWorkspace,
-		Runner:    &run.KPMRunner{},
-		KclPkg:    kclPkg,
-	}
-
 	o := &GenerateOptions{
 		WorkDir:     workDir,
+		Project:     currentProject,
+		Stack:       currentStack,
+		Workspace:   currentWorkspace,
 		SpecStorage: specStorage,
-		Generator:   defaultGenerator,
+		Generator:   nil,
 	}
 
 	return o, nil
@@ -159,9 +154,74 @@ func (o *GenerateOptions) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `generate` command.
 func (o *GenerateOptions) Run() error {
-	intent, err := o.Generator.Generate(o.WorkDir, nil)
+	intent, err := GenerateIntentWithSpinner(o.Project, o.Stack, o.Workspace, true)
 	if err != nil {
 		return err
 	}
 	return o.SpecStorage.Apply(intent)
+}
+
+// GenerateIntentWithSpinner calls generator to generate versioned Spec. Add a method wrapper for testing purposes.
+func GenerateIntentWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1.Workspace, noStyle bool) (*v1.Intent, error) {
+	// Construct generator instance
+	defaultGenerator := &generator.DefaultGenerator{
+		Project:   project,
+		Stack:     stack,
+		Workspace: workspace,
+		Runner:    &run.KPMRunner{},
+	}
+
+	kclPkg, err := api.GetKclPackage(stack.Path)
+	if err != nil {
+		return nil, err
+	}
+	defaultGenerator.KclPkg = kclPkg
+
+	var sp *pterm.SpinnerPrinter
+	if noStyle {
+		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
+	} else {
+		sp = &pretty.SpinnerT
+		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
+	}
+
+	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
+	style := !noStyle && sp != nil
+
+	intent, err := defaultGenerator.Generate(stack.Path, nil)
+	if err != nil {
+		if style {
+			sp.Fail()
+			return nil, err
+		} else {
+			return nil, err
+		}
+	}
+
+	// success
+	if style {
+		sp.Success()
+	} else {
+		fmt.Println()
+	}
+
+	return intent, nil
+}
+
+func IntentFromFile(filePath string) (*v1.Intent, error) {
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: here we use decoder in yaml.v3 to parse resources because it converts
+	// map into map[string]interface{} by default which is inconsistent with yaml.v2.
+	// The use of yaml.v2 and yaml.v3 should be unified in the future.
+	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
+	decoder.KnownFields(true)
+	i := &v1.Intent{}
+	if err = decoder.Decode(i); err != nil && err != io.EOF {
+		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
+	}
+	return i, nil
 }

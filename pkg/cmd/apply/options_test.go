@@ -16,8 +16,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
-	"kusionstack.io/kusion/pkg/cmd/build"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -31,7 +30,7 @@ import (
 func TestApplyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
 		mockPatchDetectProjectAndStack()
-		mockPatchBuildIntent()
+		mockGenerateIntentWithSpinner()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
 		mockWorkspaceStorage()
@@ -47,7 +46,7 @@ func TestApplyOptions_Run(t *testing.T) {
 
 	mockey.PatchConvey("DryRun is true", t, func() {
 		mockPatchDetectProjectAndStack()
-		mockPatchBuildIntent()
+		mockGenerateIntentWithSpinner()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
 		mockWorkspaceStorage()
@@ -79,12 +78,12 @@ func mockPatchDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
-func mockPatchBuildIntent() *mockey.Mocker {
-	return mockey.Mock(build.Intent).To(func(
-		o *builders.Options,
-		proj *apiv1.Project,
+func mockGenerateIntentWithSpinner() {
+	mockey.Mock(generate.GenerateIntentWithSpinner).To(func(
+		project *apiv1.Project,
 		stack *apiv1.Stack,
-		ws *apiv1.Workspace,
+		workspace *apiv1.Workspace,
+		noStyle bool,
 	) (*apiv1.Intent, error) {
 		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
