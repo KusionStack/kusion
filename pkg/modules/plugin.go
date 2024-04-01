@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -107,7 +107,7 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	goOs := runtime.GOOS
 	goArch := runtime.GOARCH
 	name := resourceType + "_" + version
-	p := path.Join(prefixPath, namespace, resourceType, version, goOs, goArch, KusionModuleBinaryPrefix+name)
+	p := filepath.Join(prefixPath, namespace, resourceType, version, goOs, goArch, KusionModuleBinaryPrefix+name)
 	_, err = os.Stat(p)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -126,13 +126,13 @@ func newPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error
 	if err != nil {
 		return nil, err
 	}
-	logDir := path.Join(dir, log.Folder, Dir)
+	logDir := filepath.Join(dir, log.Folder, Dir)
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 			return nil, fmt.Errorf("failed to create module log dir: %w", err)
 		}
 	}
-	logFilePath = path.Join(logDir, moduleName+".log")
+	logFilePath = filepath.Join(logDir, moduleName+".log")
 	logFile, err := os.Create(logFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create module log file: %w", err)
@@ -170,7 +170,7 @@ func PluginDir() (string, error) {
 	if env, found := os.LookupEnv(DefaultModulePathEnv); found {
 		return env, nil
 	} else if dir, err := kfile.KusionDataFolder(); err == nil {
-		return path.Join(dir, Dir), nil
+		return filepath.Join(dir, Dir), nil
 	} else {
 		return "", err
 	}

@@ -3,7 +3,7 @@ package mod
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/gitutil"
@@ -90,7 +90,7 @@ func (o *InitOptions) Run() error {
 	}
 
 	// remove existing directory
-	dir := path.Join(o.Path, o.Name)
+	dir := filepath.Join(o.Path, o.Name)
 	if err := os.RemoveAll(dir); err != nil {
 		return fmt.Errorf("failed to remove existing directory: %v", err)
 	}
