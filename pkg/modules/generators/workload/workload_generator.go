@@ -3,7 +3,6 @@ package workload
 import (
 	"fmt"
 	"net/url"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -394,7 +393,7 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      sec.Name,
-				MountPath: path.Join("/", k),
+				MountPath: filepath.Join("/", k),
 				SubPath:   sec.Key,
 			})
 		} else if v.Content != "" {
@@ -455,7 +454,7 @@ func handleDirCreation(c container.Container) (volumes []corev1.Volume, volumeMo
 
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      sec.Name,
-			MountPath: path.Join("/", mountPath),
+			MountPath: filepath.Join("/", mountPath),
 		})
 		return nil
 	})
