@@ -108,10 +108,13 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	goArch := runtime.GOARCH
 	name := resourceType + "_" + version
 	p := filepath.Join(prefixPath, namespace, resourceType, version, goOs, goArch, KusionModuleBinaryPrefix+name)
+	if runtime.GOOS == "windows" && !strings.HasSuffix(p, ".exe") {
+		p += ".exe"
+	}
 	_, err = os.Stat(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("module dir doesn't exist. %s", p)
+			return "", fmt.Errorf("module binary doesn't exist. %s", p)
 		} else {
 			return "", err
 		}
