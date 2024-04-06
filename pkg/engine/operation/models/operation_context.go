@@ -7,7 +7,7 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
@@ -65,7 +65,7 @@ type Request struct {
 	Project  *v1.Project `json:"project"`
 	Stack    *v1.Stack   `json:"stack"`
 	Operator string      `json:"operator"`
-	Intent   *v1.Intent  `json:"intent"`
+	Intent   *v1.Spec    `json:"intent"`
 }
 
 type OpResult string

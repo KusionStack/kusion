@@ -3,7 +3,7 @@ package operation
 import (
 	"github.com/pkg/errors"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
@@ -48,7 +48,7 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	return DiffWithRequestResourceAndState(plan, priorState)
 }
 
-func DiffWithRequestResourceAndState(plan *v1.Intent, priorState *v1.State) (string, error) {
+func DiffWithRequestResourceAndState(plan *v1.Spec, priorState *v1.State) (string, error) {
 	planString := json.MustMarshal2String(plan.Resources)
 	var report *dyff.Report
 	var err error

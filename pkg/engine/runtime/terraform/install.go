@@ -11,7 +11,8 @@ import (
 
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
@@ -22,7 +23,7 @@ var (
 )
 
 type CLIInstaller struct {
-	Intent *apiv1.Intent
+	Intent *apiv1.Spec
 }
 
 // Check and install the terraform executable binary if it has not been downloaded.

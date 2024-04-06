@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
@@ -134,13 +134,12 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	// Generate Intent
-	// Generate Intent
-	var intent *apiv1.Intent
+	// Generate Spec
+	var spec *apiv1.Spec
 	if len(o.IntentFile) != 0 {
-		intent, err = generate.IntentFromFile(o.IntentFile)
+		spec, err = generate.SpecFromFile(o.IntentFile)
 	} else {
-		intent, err = generate.GenerateIntentWithSpinner(currentProject, currentStack, currentWorkspace, true)
+		spec, err = generate.GenerateSpecWithSpinner(currentProject, currentStack, currentWorkspace, true)
 	}
 	if err != nil {
 		return err
@@ -148,7 +147,7 @@ func (o *Options) Run() error {
 
 	// return immediately if no resource found in stack
 	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
-	if intent == nil || len(intent.Resources) == 0 {
+	if spec == nil || len(spec.Resources) == 0 {
 		if o.Output != jsonOutput {
 			fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		}
@@ -157,7 +156,7 @@ func (o *Options) Run() error {
 
 	// compute changes for preview
 	storage := bk.StateStorage(currentProject.Name, currentStack.Name, currentWorkspace.Name)
-	changes, err := Preview(o, storage, intent, currentProject, currentStack)
+	changes, err := Preview(o, storage, spec, currentProject, currentStack)
 	if err != nil {
 		return err
 	}
@@ -222,7 +221,7 @@ func (o *Options) Run() error {
 func Preview(
 	o *Options,
 	storage state.Storage,
-	planResources *apiv1.Intent,
+	planResources *apiv1.Spec,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
 ) (*models.Changes, error) {

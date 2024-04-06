@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func Test_namespaceGenerator_Generate(t *testing.T) {
@@ -13,13 +13,13 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 		namespace string
 	}
 	type args struct {
-		intent *apiv1.Intent
+		Spec *v1.Spec
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *apiv1.Intent
+		want    *v1.Spec
 		wantErr bool
 	}{
 		{
@@ -28,10 +28,10 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 				namespace: "fakeNs",
 			},
 			args: args{
-				intent: &apiv1.Intent{},
+				Spec: &v1.Spec{},
 			},
-			want: &apiv1.Intent{
-				Resources: []apiv1.Resource{
+			want: &v1.Spec{
+				Resources: []v1.Resource{
 					{
 						ID:   "v1:Namespace:fakeNs",
 						Type: "Kubernetes",
@@ -60,10 +60,10 @@ func Test_namespaceGenerator_Generate(t *testing.T) {
 			g := &namespaceGenerator{
 				namespace: tt.fields.namespace,
 			}
-			if err := g.Generate(tt.args.intent); (err != nil) != tt.wantErr {
+			if err := g.Generate(tt.args.Spec); (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			require.Equal(t, tt.want, tt.args.intent)
+			require.Equal(t, tt.want, tt.args.Spec)
 		})
 	}
 }

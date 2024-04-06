@@ -12,18 +12,19 @@ import (
 	"kcl-lang.io/kpm/pkg/env"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/cmd/build/builders"
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
-// Generator is an interface for things that can generate versioned Intent from
+// Generator is an interface for things that can generate versioned Spec from
 // configuration code under current working directory and given input parameters.
 type Generator interface {
 	// Generate creates versioned Intent given working directory and set of parameters
-	Generate(workDir string, params map[string]string) (*v1.Intent, error)
+	Generate(workDir string, params map[string]string) (*v1.Spec, error)
 }
 
 // DefaultGenerator is the default Generator implementation.
@@ -36,7 +37,7 @@ type DefaultGenerator struct {
 }
 
 // Generate versioned Spec with target code runner.
-func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*v1.Intent, error) {
+func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*v1.Spec, error) {
 	// Call code runner to generate raw data
 	if params == nil {
 		params = make(map[string]string, 1)
@@ -54,7 +55,7 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 
 	// Note: we use the type of MapSlice in yaml.v2 to maintain the order of container
 	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
-	apps := map[string]v1.AppConfiguration{}
+	apps := map[string]internalv1.AppConfiguration{}
 	err = yaml.Unmarshal(rawAppConfiguration, apps)
 	if err != nil {
 		return nil, err

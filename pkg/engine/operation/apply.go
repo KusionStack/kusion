@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	models "kusionstack.io/kusion/pkg/engine/operation/models"
@@ -28,7 +28,7 @@ type ApplyResponse struct {
 	State *apiv1.State
 }
 
-func NewApplyGraph(m *apiv1.Intent, priorState *apiv1.State) (*dag.AcyclicGraph, v1.Status) {
+func NewApplyGraph(m *apiv1.Spec, priorState *apiv1.State) (*dag.AcyclicGraph, v1.Status) {
 	intentParser := parser.NewIntentParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})

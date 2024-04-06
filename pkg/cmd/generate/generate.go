@@ -12,7 +12,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"kcl-lang.io/kpm/pkg/api"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/generate/generator"
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
@@ -155,15 +155,15 @@ func (o *GenerateOptions) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `generate` command.
 func (o *GenerateOptions) Run() error {
-	intent, err := GenerateIntentWithSpinner(o.Project, o.Stack, o.Workspace, true)
+	spec, err := GenerateSpecWithSpinner(o.Project, o.Stack, o.Workspace, true)
 	if err != nil {
 		return err
 	}
-	return o.SpecStorage.Apply(intent)
+	return o.SpecStorage.Apply(spec)
 }
 
-// GenerateIntentWithSpinner calls generator to generate versioned Spec. Add a method wrapper for testing purposes.
-func GenerateIntentWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1.Workspace, noStyle bool) (*v1.Intent, error) {
+// GenerateSpecWithSpinner calls generator to generate versioned Spec. Add a method wrapper for testing purposes.
+func GenerateSpecWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1.Workspace, noStyle bool) (*v1.Spec, error) {
 	// Construct generator instance
 	defaultGenerator := &generator.DefaultGenerator{
 		Project:   project,
@@ -189,7 +189,7 @@ func GenerateIntentWithSpinner(project *v1.Project, stack *v1.Stack, workspace *
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !noStyle && sp != nil
 
-	intent, err := defaultGenerator.Generate(stack.Path, nil)
+	spec, err := defaultGenerator.Generate(stack.Path, nil)
 	if err != nil {
 		if style {
 			sp.Fail()
@@ -206,10 +206,10 @@ func GenerateIntentWithSpinner(project *v1.Project, stack *v1.Stack, workspace *
 		fmt.Println()
 	}
 
-	return intent, nil
+	return spec, nil
 }
 
-func IntentFromFile(filePath string) (*v1.Intent, error) {
+func SpecFromFile(filePath string) (*v1.Spec, error) {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func IntentFromFile(filePath string) (*v1.Intent, error) {
 	// The use of yaml.v2 and yaml.v3 should be unified in the future.
 	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
 	decoder.KnownFields(true)
-	i := &v1.Intent{}
+	i := &v1.Spec{}
 	if err = decoder.Decode(i); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
 	}

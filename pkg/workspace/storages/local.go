@@ -7,7 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // LocalStorage is an implementation of workspace.Storage which uses local filesystem as storage.

@@ -8,11 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload/container"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
-
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 )
 
 func Test_workloadServiceGenerator_Generate(t *testing.T) {
@@ -169,11 +166,11 @@ status: {}
 		project       string
 		stack         string
 		appName       string
-		service       *workload.Service
-		serviceConfig apiv1.GenericConfig
+		service       *internalv1.Service
+		serviceConfig v1.GenericConfig
 	}
 	type args struct {
-		spec *apiv1.Intent
+		spec *v1.Spec
 	}
 
 	tests := []struct {
@@ -189,12 +186,12 @@ status: {}
 				project: "default",
 				stack:   "dev",
 				appName: "foo",
-				service: &workload.Service{
-					Base: workload.Base{
-						Containers: map[string]container.Container{
+				service: &internalv1.Service{
+					Base: internalv1.Base{
+						Containers: map[string]internalv1.Container{
 							"nginx": {
 								Image: "nginx:v1",
-								Files: map[string]container.FileSpec{
+								Files: map[string]internalv1.FileSpec{
 									"/tmp/example.txt": {
 										Content: "some file contents",
 										Mode:    "0777",
@@ -204,25 +201,25 @@ status: {}
 						},
 						Replicas: r2,
 					},
-					Ports: []network.Port{
+					Ports: []internalv1.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
 						},
 					},
 				},
-				serviceConfig: apiv1.GenericConfig{
+				serviceConfig: v1.GenericConfig{
 					"type": "CollaSet",
-					"labels": apiv1.GenericConfig{
+					"labels": v1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
-					"annotations": apiv1.GenericConfig{
+					"annotations": v1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
 				},
 			},
 			args: args{
-				spec: &apiv1.Intent{},
+				spec: &v1.Spec{},
 			},
 			wantErr: false,
 			want:    []string{cm, cs, csSvc},
@@ -233,12 +230,12 @@ status: {}
 				project: "default",
 				stack:   "dev",
 				appName: "foo",
-				service: &workload.Service{
-					Base: workload.Base{
-						Containers: map[string]container.Container{
+				service: &internalv1.Service{
+					Base: internalv1.Base{
+						Containers: map[string]internalv1.Container{
 							"nginx": {
 								Image: "nginx:v1",
-								Files: map[string]container.FileSpec{
+								Files: map[string]internalv1.FileSpec{
 									"/tmp/example.txt": {
 										Content: "some file contents",
 										Mode:    "0777",
@@ -247,22 +244,22 @@ status: {}
 							},
 						},
 					},
-					Ports: []network.Port{
+					Ports: []internalv1.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
 						},
 					},
 				},
-				serviceConfig: apiv1.GenericConfig{
+				serviceConfig: v1.GenericConfig{
 					"replicas": 4,
-					"labels": apiv1.GenericConfig{
+					"labels": v1.GenericConfig{
 						"service-workload-type": "Deployment",
 					},
 				},
 			},
 			args: args{
-				spec: &apiv1.Intent{},
+				spec: &v1.Spec{},
 			},
 			wantErr: false,
 			want:    []string{cm, deploy, deploySvc},
@@ -295,16 +292,16 @@ func TestCompleteServiceInput(t *testing.T) {
 
 	testcases := []struct {
 		name             string
-		service          *workload.Service
-		config           apiv1.GenericConfig
+		service          *internalv1.Service
+		config           v1.GenericConfig
 		success          bool
-		completedService *workload.Service
+		completedService *internalv1.Service
 	}{
 		{
 			name: "use type in workspace config",
-			service: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			service: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -318,13 +315,13 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: apiv1.GenericConfig{
+			config: v1.GenericConfig{
 				"type": "CollaSet",
 			},
 			success: true,
-			completedService: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			completedService: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -342,9 +339,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "use default type",
-			service: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			service: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -360,9 +357,9 @@ func TestCompleteServiceInput(t *testing.T) {
 			},
 			config:  nil,
 			success: true,
-			completedService: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			completedService: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -380,9 +377,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "invalid field type",
-			service: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			service: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -396,7 +393,7 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: apiv1.GenericConfig{
+			config: v1.GenericConfig{
 				"type": 1,
 			},
 			success:          false,
@@ -404,9 +401,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "unsupported type",
-			service: &workload.Service{
-				Base: workload.Base{
-					Containers: map[string]container.Container{
+			service: &internalv1.Service{
+				Base: internalv1.Base{
+					Containers: map[string]internalv1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -420,7 +417,7 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: apiv1.GenericConfig{
+			config: v1.GenericConfig{
 				"type": "unsupported",
 			},
 			success:          false,

@@ -14,9 +14,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload/container"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/util/net"
@@ -33,11 +32,11 @@ type Generator struct {
 	// Namespace represents the K8s Namespace
 	Namespace string
 	// Workload represents the Workload configuration
-	Workload *workload.Workload
+	Workload *internalv1.Workload
 	// PlatformConfigs represents the module platform configurations
-	PlatformConfigs map[string]apiv1.GenericConfig
+	PlatformConfigs map[string]v1.GenericConfig
 	// SecretStoreSpec contains configuration to describe target secret store.
-	SecretStoreSpec *apiv1.SecretStoreSpec
+	SecretStoreSpec *v1.SecretStoreSpec
 }
 
 func NewWorkloadGeneratorFunc(g *Generator) modules.NewGeneratorFunc {
@@ -58,23 +57,23 @@ func NewWorkloadGeneratorFunc(g *Generator) modules.NewGeneratorFunc {
 	}
 }
 
-func (g *Generator) Generate(spec *apiv1.Intent) error {
+func (g *Generator) Generate(spec *v1.Spec) error {
 	if spec.Resources == nil {
-		spec.Resources = make(apiv1.Resources, 0)
+		spec.Resources = make(v1.Resources, 0)
 	}
 
 	if g.Workload != nil {
 		var gfs []modules.NewGeneratorFunc
 
 		switch g.Workload.Header.Type {
-		case workload.TypeService:
+		case internalv1.TypeService:
 			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
 				Project:         g.Project,
 				Namespace:       g.Namespace,
 				Workload:        g.Workload,
 				SecretStoreSpec: g.SecretStoreSpec,
 			}))
-		case workload.TypeJob:
+		case internalv1.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
 				Project:         g.Project,
 				Namespace:       g.Namespace,
@@ -92,7 +91,7 @@ func (g *Generator) Generate(spec *apiv1.Intent) error {
 }
 
 func toOrderedContainers(
-	appContainers map[string]container.Container,
+	appContainers map[string]internalv1.Container,
 	uniqueAppName string,
 ) ([]corev1.Container, []corev1.Volume, []corev1.ConfigMap, error) {
 	// Create a slice of containers based on the App's containers.
@@ -103,7 +102,7 @@ func toOrderedContainers(
 	var volumeMounts []corev1.VolumeMount
 	var configMaps []corev1.ConfigMap
 
-	if err := modules.ForeachOrdered(appContainers, func(containerName string, c container.Container) error {
+	if err := modules.ForeachOrdered(appContainers, func(containerName string, c internalv1.Container) error {
 		// Create a slice of env vars based on the container's env vars.
 		var envs []corev1.EnvVar
 		for _, m := range c.Env {
@@ -154,7 +153,7 @@ func toOrderedContainers(
 }
 
 // updateContainer updates corev1.Container with passed parameters.
-func updateContainer(in *container.Container, out *corev1.Container) error {
+func updateContainer(in *internalv1.Container, out *corev1.Container) error {
 	if in.ReadinessProbe != nil {
 		readinessProbe, err := convertKusionProbeToV1Probe(in.ReadinessProbe)
 		if err != nil {
@@ -245,7 +244,7 @@ func populateResourceLists(name corev1.ResourceName, spec string) (corev1.Resour
 }
 
 // convertKusionProbeToV1Probe converts Kusion Probe to Kubernetes Probe types.
-func convertKusionProbeToV1Probe(p *container.Probe) (*corev1.Probe, error) {
+func convertKusionProbeToV1Probe(p *internalv1.Probe) (*corev1.Probe, error) {
 	result := &corev1.Probe{
 		InitialDelaySeconds: p.InitialDelaySeconds,
 		TimeoutSeconds:      p.TimeoutSeconds,
@@ -274,7 +273,7 @@ func convertKusionProbeToV1Probe(p *container.Probe) (*corev1.Probe, error) {
 }
 
 // convertKusionLifecycleToV1Lifecycle converts Kusion Lifecycle to Kubernetes Lifecycle types.
-func convertKusionLifecycleToV1Lifecycle(l *container.Lifecycle) (*corev1.Lifecycle, error) {
+func convertKusionLifecycleToV1Lifecycle(l *internalv1.Lifecycle) (*corev1.Lifecycle, error) {
 	result := &corev1.Lifecycle{}
 	if l.PreStop != nil {
 		preStop, err := lifecycleHandler(l.PreStop)
@@ -293,7 +292,7 @@ func convertKusionLifecycleToV1Lifecycle(l *container.Lifecycle) (*corev1.Lifecy
 	return result, nil
 }
 
-func lifecycleHandler(in *container.LifecycleHandler) (*corev1.LifecycleHandler, error) {
+func lifecycleHandler(in *internalv1.LifecycleHandler) (*corev1.LifecycleHandler, error) {
 	result := &corev1.LifecycleHandler{}
 	switch in.Type {
 	case "Http":
@@ -350,14 +349,14 @@ func tcpSocketAction(urlstr string) (*corev1.TCPSocketAction, error) {
 
 // handleFileCreation handles the creation of the files declared in container.Files
 // and returns the generated ConfigMap, Volume and VolumeMount.
-func handleFileCreation(c container.Container, uniqueAppName, containerName string) (
+func handleFileCreation(c internalv1.Container, uniqueAppName, containerName string) (
 	volumes []corev1.Volume,
 	volumeMounts []corev1.VolumeMount,
 	configMaps []corev1.ConfigMap,
 	err error,
 ) {
 	var idx int
-	err = modules.ForeachOrdered(c.Files, func(k string, v container.FileSpec) error {
+	err = modules.ForeachOrdered(c.Files, func(k string, v internalv1.FileSpec) error {
 		// The declared file path needs to include the file name.
 		if filepath.Base(k) == "." || filepath.Base(k) == "/" {
 			return fmt.Errorf("the declared file path needs to include the file name")
@@ -436,7 +435,7 @@ func handleFileCreation(c container.Container, uniqueAppName, containerName stri
 
 // handleDirCreation handles the creation of folder declared in container.Dirs and returns
 // the generated Volume and VolumeMount.
-func handleDirCreation(c container.Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
+func handleDirCreation(c internalv1.Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
 	err = modules.ForeachOrdered(c.Dirs, func(mountPath string, v string) error {
 		sec, ok, parseErr := parseSecretReference(v)
 		if parseErr != nil || !ok {
@@ -462,8 +461,8 @@ func handleDirCreation(c container.Container) (volumes []corev1.Volume, volumeMo
 }
 
 // completeBaseWorkload uses config from workspace to complete the Workload base config.
-func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error {
-	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, workload.FieldReplicas)
+func completeBaseWorkload(base *internalv1.Base, config v1.GenericConfig) error {
+	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, internalv1.FieldReplicas)
 	if err != nil {
 		return err
 	}
@@ -472,7 +471,7 @@ func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error
 	if base.Replicas == nil {
 		base.Replicas = replicas
 	}
-	labels, err := workspace.GetStringMapFromGenericConfig(config, workload.FieldLabels)
+	labels, err := workspace.GetStringMapFromGenericConfig(config, internalv1.FieldLabels)
 	if err != nil {
 		return err
 	}
@@ -481,7 +480,7 @@ func completeBaseWorkload(base *workload.Base, config apiv1.GenericConfig) error
 			return err
 		}
 	}
-	annotations, err := workspace.GetStringMapFromGenericConfig(config, workload.FieldAnnotations)
+	annotations, err := workspace.GetStringMapFromGenericConfig(config, internalv1.FieldAnnotations)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 )
 
@@ -17,10 +17,10 @@ var (
 			"namespace": "foo",
 			"name":      "bar",
 		},
-		"intent": map[string]interface{}{
+		"Spec": map[string]interface{}{
 			"replica": 1,
 			"template": map[string]interface{}{
-				"intent": map[string]interface{}{
+				"Spec": map[string]interface{}{
 					"containers": []map[string]interface{}{
 						{
 							"image": "foo.bar.com:v1",
@@ -46,9 +46,9 @@ var (
 			"name": "foo",
 		},
 	}
-	genOldSpec = func() *apiv1.Intent {
-		return &apiv1.Intent{
-			Resources: apiv1.Resources{
+	genOldSpec = func() *v1.Spec {
+		return &v1.Spec{
+			Resources: v1.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",
 					Type:       runtime.Kubernetes,
@@ -67,9 +67,9 @@ var (
 			},
 		}
 	}
-	genNewSpec = func() *apiv1.Intent {
-		return &apiv1.Intent{
-			Resources: apiv1.Resources{
+	genNewSpec = func() *v1.Spec {
+		return &v1.Spec{
+			Resources: v1.Resources{
 				{
 					ID:         "apps/v1:Deployment:foo:bar",
 					Type:       runtime.Kubernetes,
@@ -123,7 +123,7 @@ func TestInjectAllDependsOn(t *testing.T) {
 	dependKinds := []string{"Namespace"}
 
 	expected := []string{"v1:Namespace:foo"}
-	actual := resource([]apiv1.Resource(spec.Resources)[0])
+	actual := resource([]v1.Resource(spec.Resources)[0])
 	actual.injectDependsOn(dependKinds, spec.Resources)
 
 	assert.Equal(t, expected, actual.DependsOn)
@@ -166,7 +166,7 @@ func TestFindDependResources(t *testing.T) {
 	dependKind := "Namespace"
 	resources := genOldSpec().Resources
 
-	expected := []*apiv1.Resource{
+	expected := []*v1.Resource{
 		{
 			ID:         "v1:Namespace:foo",
 			Type:       runtime.Kubernetes,

@@ -13,7 +13,7 @@ import (
 	"github.com/bytedance/mockey"
 	yamlv3 "gopkg.in/yaml.v3"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )

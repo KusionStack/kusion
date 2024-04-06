@@ -9,7 +9,7 @@ import (
 
 	"github.com/bytedance/mockey"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -132,7 +132,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &apiv1.Intent{
+						Intent: &apiv1.Spec{
 							Resources: []apiv1.Resource{
 								FakeResourceState,
 							},
@@ -169,7 +169,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &apiv1.Intent{
+						Intent: &apiv1.Spec{
 							Resources: []apiv1.Resource{
 								FakeResourceState2,
 							},
@@ -224,7 +224,7 @@ func TestOperation_Preview(t *testing.T) {
 						Stack:    s,
 						Project:  p,
 						Operator: "fake-operator",
-						Intent: &apiv1.Intent{
+						Intent: &apiv1.Spec{
 							Resources: []apiv1.Resource{
 								{
 									ID:         "fake-id",

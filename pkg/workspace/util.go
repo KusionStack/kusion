@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 var ErrEmptyProjectName = errors.New("empty project name")

@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/spec"
 )
 
@@ -34,7 +34,7 @@ func NewS3Storage(s3 *s3.S3, bucket, key string) *S3Storage {
 }
 
 // Get returns the Spec, if the Spec does not exist, return nil.
-func (s *S3Storage) Get() (*v1.Intent, error) {
+func (s *S3Storage) Get() (*v1.Spec, error) {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
 		Key:    &s.key,
@@ -60,7 +60,7 @@ func (s *S3Storage) Get() (*v1.Intent, error) {
 		return nil, nil
 	}
 
-	intent := &v1.Intent{}
+	intent := &v1.Spec{}
 	err = yaml.Unmarshal(content, intent)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (s *S3Storage) Get() (*v1.Intent, error) {
 }
 
 // Apply updates the spec if already exists, or create a new spec.
-func (s *S3Storage) Apply(intent *v1.Intent) error {
+func (s *S3Storage) Apply(intent *v1.Spec) error {
 	content, err := yaml.Marshal(intent)
 	if err != nil {
 		return err

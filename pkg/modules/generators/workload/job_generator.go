@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -16,8 +16,8 @@ type jobGenerator struct {
 	project   string
 	stack     string
 	appName   string
-	job       *workload.Job
-	jobConfig apiv1.GenericConfig
+	job       *internalv1.Job
+	jobConfig v1.GenericConfig
 	namespace string
 }
 
@@ -27,7 +27,7 @@ func NewJobGenerator(generator *Generator) (modules.Generator, error) {
 		stack:     generator.Stack,
 		appName:   generator.App,
 		job:       generator.Workload.Job,
-		jobConfig: generator.PlatformConfigs[workload.ModuleJob],
+		jobConfig: generator.PlatformConfigs[internalv1.ModuleJob],
 		namespace: generator.Namespace,
 	}, nil
 }
@@ -38,14 +38,14 @@ func NewJobGeneratorFunc(generator *Generator) modules.NewGeneratorFunc {
 	}
 }
 
-func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
+func (g *jobGenerator) Generate(spec *v1.Spec) error {
 	job := g.job
 	if job == nil {
 		return nil
 	}
 
 	if spec.Resources == nil {
-		spec.Resources = make(apiv1.Resources, 0)
+		spec.Resources = make(v1.Resources, 0)
 	}
 
 	if err := completeBaseWorkload(&g.job.Base, g.jobConfig); err != nil {
@@ -74,8 +74,8 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 	for _, cm := range configMaps {
 		cmObj := cm
 		cmObj.Namespace = g.namespace
-		if err = modules.AppendToIntent(
-			apiv1.Kubernetes,
+		if err = modules.AppendToSpec(
+			v1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
 			&cmObj,
@@ -112,7 +112,7 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 			},
 			Spec: jobSpec,
 		}
-		return modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+		return modules.AppendToSpec(v1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 	}
 
 	resource := &batchv1.CronJob{
@@ -128,5 +128,5 @@ func (g *jobGenerator) Generate(spec *apiv1.Intent) error {
 			Schedule: job.Schedule,
 		},
 	}
-	return modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
+	return modules.AppendToSpec(v1.Kubernetes, modules.KubernetesResourceID(resource.TypeMeta, resource.ObjectMeta), spec, resource)
 }

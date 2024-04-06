@@ -3,7 +3,7 @@ package backend
 import (
 	"fmt"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
 	"kusionstack.io/kusion/pkg/engine/spec"

@@ -10,7 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -42,7 +42,7 @@ func Test_ValidateRequest(t *testing.T) {
 			name: "t2",
 			args: args{
 				request: &models.Request{
-					Intent: &apiv1.Intent{Resources: []apiv1.Resource{}},
+					Intent: &apiv1.Spec{Resources: []apiv1.Resource{}},
 				},
 			},
 			want: nil,
@@ -76,7 +76,7 @@ func TestOperation_Apply(t *testing.T) {
 	}
 
 	const Jack = "jack"
-	mf := &apiv1.Intent{Resources: []apiv1.Resource{
+	mf := &apiv1.Spec{Resources: []apiv1.Resource{
 		{
 			ID:   Jack,
 			Type: runtime.Kubernetes,

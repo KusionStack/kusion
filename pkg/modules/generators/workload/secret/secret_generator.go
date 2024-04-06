@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"golang.org/x/exp/maps"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/secrets"
 )
@@ -21,8 +21,8 @@ import (
 type secretGenerator struct {
 	project         string
 	namespace       string
-	secrets         map[string]workload.Secret
-	secretStoreSpec *apiv1.SecretStoreSpec
+	secrets         map[string]internalv1.Secret
+	secretStoreSpec *v1.SecretStoreSpec
 }
 
 type GeneratorRequest struct {
@@ -31,9 +31,9 @@ type GeneratorRequest struct {
 	// Namespace represents the K8s Namespace
 	Namespace string
 	// Workload represents the Workload configuration
-	Workload *workload.Workload
+	Workload *internalv1.Workload
 	// SecretStoreSpec contains configuration to describe target secret store.
-	SecretStoreSpec *apiv1.SecretStoreSpec
+	SecretStoreSpec *v1.SecretStoreSpec
 }
 
 func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
@@ -41,7 +41,7 @@ func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
-	var secretMap map[string]workload.Secret
+	var secretMap map[string]internalv1.Secret
 	if request.Workload.Service != nil {
 		secretMap = request.Workload.Service.Secrets
 	} else {
@@ -62,9 +62,9 @@ func NewSecretGeneratorFunc(request *GeneratorRequest) modules.NewGeneratorFunc 
 	}
 }
 
-func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
+func (g *secretGenerator) Generate(spec *v1.Spec) error {
 	if spec.Resources == nil {
-		spec.Resources = make(apiv1.Resources, 0)
+		spec.Resources = make(v1.Resources, 0)
 	}
 
 	for secretName, secretRef := range g.secrets {
@@ -74,8 +74,8 @@ func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
 		}
 
 		resourceID := modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
-		err = modules.AppendToIntent(
-			apiv1.Kubernetes,
+		err = modules.AppendToSpec(
+			v1.Kubernetes,
 			resourceID,
 			spec,
 			secret,
@@ -91,7 +91,7 @@ func (g *secretGenerator) Generate(spec *apiv1.Intent) error {
 // generateSecret generates target secret based on secret type. Most of these secret types are just semantic wrapper
 // of native Kubernetes secret types:https://kubernetes.io/docs/concepts/configuration/secret/#secret-types, and more
 // detailed usage info can be found in public documentation.
-func (g *secretGenerator) generateSecret(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func (g *secretGenerator) generateSecret(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
 	switch secretRef.Type {
 	case "basic":
 		return g.generateBasic(secretName, secretRef)
@@ -110,11 +110,11 @@ func (g *secretGenerator) generateSecret(secretName string, secretRef workload.S
 
 // generateBasic generates secret used for basic authentication. The basic secret type
 // is used for username / password pairs.
-func (g *secretGenerator) generateBasic(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
-	secret := initBasicSecret(g.namespace, secretName, v1.SecretTypeBasicAuth, secretRef.Immutable)
-	secret.Data = grabData(secretRef.Data, v1.BasicAuthUsernameKey, v1.BasicAuthPasswordKey)
+func (g *secretGenerator) generateBasic(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
+	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeBasicAuth, secretRef.Immutable)
+	secret.Data = grabData(secretRef.Data, corev1.BasicAuthUsernameKey, corev1.BasicAuthPasswordKey)
 
-	for _, key := range []string{v1.BasicAuthUsernameKey, v1.BasicAuthPasswordKey} {
+	for _, key := range []string{corev1.BasicAuthUsernameKey, corev1.BasicAuthPasswordKey} {
 		if len(secret.Data[key]) == 0 {
 			v := GenerateRandomString(54)
 			secret.Data[key] = []byte(v)
@@ -126,8 +126,8 @@ func (g *secretGenerator) generateBasic(secretName string, secretRef workload.Se
 
 // generateToken generates secret used for password. Token secrets are useful for generating
 // a password or secure string used for passwords when the user is already known or not required.
-func (g *secretGenerator) generateToken(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
-	secret := initBasicSecret(g.namespace, secretName, v1.SecretTypeOpaque, secretRef.Immutable)
+func (g *secretGenerator) generateToken(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
+	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeOpaque, secretRef.Immutable)
 	secret.Data = grabData(secretRef.Data, "token")
 
 	if len(secret.Data["token"]) == 0 {
@@ -139,29 +139,29 @@ func (g *secretGenerator) generateToken(secretName string, secretRef workload.Se
 }
 
 // generateOpaque generates secret used for arbitrary user-defined data.
-func (g *secretGenerator) generateOpaque(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
-	secret := initBasicSecret(g.namespace, secretName, v1.SecretTypeOpaque, secretRef.Immutable)
+func (g *secretGenerator) generateOpaque(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
+	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeOpaque, secretRef.Immutable)
 	secret.Data = grabData(secretRef.Data, maps.Keys(secretRef.Data)...)
 	return secret, nil
 }
 
 // generateCertificate generates secret used for storing a certificate and its associated key.
 // One common use for TLS Secrets is to configure encryption in transit for an Ingress, but
-// you can also use it with other resources or directly in your workload.
-func (g *secretGenerator) generateCertificate(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
-	secret := initBasicSecret(g.namespace, secretName, v1.SecretTypeTLS, secretRef.Immutable)
-	secret.Data = grabData(secretRef.Data, v1.TLSCertKey, v1.TLSPrivateKeyKey)
+// you can also use it with other resources or directly in your internalv1.
+func (g *secretGenerator) generateCertificate(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
+	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeTLS, secretRef.Immutable)
+	secret.Data = grabData(secretRef.Data, corev1.TLSCertKey, corev1.TLSPrivateKeyKey)
 	return secret, nil
 }
 
 // generateSecretWithExternalProvider retrieves target sensitive information from external secret provider and
 // generates corresponding Kubernetes Secret object.
-func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, secretRef workload.Secret) (*v1.Secret, error) {
+func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, secretRef internalv1.Secret) (*corev1.Secret, error) {
 	if g.secretStoreSpec == nil {
 		return nil, errors.New("secret store is missing, please add valid secret store spec in workspace")
 	}
 
-	secret := initBasicSecret(g.namespace, secretName, v1.SecretTypeOpaque, secretRef.Immutable)
+	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeOpaque, secretRef.Immutable)
 	secret.Data = make(map[string][]byte)
 
 	var allErrs []error
@@ -212,13 +212,13 @@ func grabData(from map[string]string, keys ...string) map[string][]byte {
 
 // parseExternalSecretDataRef knows how to parse the remote data ref string, returns the
 // corresponding ExternalSecretRef object.
-func parseExternalSecretDataRef(dataRefStr string) (*apiv1.ExternalSecretRef, error) {
+func parseExternalSecretDataRef(dataRefStr string) (*v1.ExternalSecretRef, error) {
 	uri, err := url.Parse(dataRefStr)
 	if err != nil {
 		return nil, err
 	}
 
-	ref := &apiv1.ExternalSecretRef{}
+	ref := &v1.ExternalSecretRef{}
 	if len(uri.Path) > 0 {
 		partialName, property := parsePath(uri.Path)
 		if len(partialName) > 0 {
@@ -250,10 +250,10 @@ func parsePath(path string) (partialName string, property string) {
 	return partialName, property
 }
 
-func initBasicSecret(namespace, name string, secretType v1.SecretType, immutable bool) *v1.Secret {
-	secret := &v1.Secret{
+func initBasicSecret(namespace, name string, secretType corev1.SecretType, immutable bool) *corev1.Secret {
+	secret := &corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1.SchemeGroupVersion.String(),
+			APIVersion: corev1.SchemeGroupVersion.String(),
 			Kind:       "Secret",
 		},
 		ObjectMeta: metav1.ObjectMeta{

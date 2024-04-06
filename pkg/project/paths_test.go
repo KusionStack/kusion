@@ -9,7 +9,7 @@ import (
 
 	"github.com/bytedance/mockey"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/util/json"
 )
 

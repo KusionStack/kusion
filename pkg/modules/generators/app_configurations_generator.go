@@ -12,7 +12,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"kcl-lang.io/kpm/pkg/package"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
@@ -24,7 +25,7 @@ type appConfigurationGenerator struct {
 	project      string
 	stack        string
 	appName      string
-	app          *v1.AppConfiguration
+	app          *internalv1.AppConfiguration
 	ws           *v1.Workspace
 	dependencies *pkg.Dependencies
 }
@@ -37,7 +38,7 @@ func NewAppConfigurationGenerator(
 	project string,
 	stack string,
 	appName string,
-	app *v1.AppConfiguration,
+	app *internalv1.AppConfiguration,
 	ws *v1.Workspace,
 	dependencies *pkg.Dependencies,
 ) (modules.Generator, error) {
@@ -54,7 +55,7 @@ func NewAppConfigurationGenerator(
 	}
 
 	if app == nil {
-		return nil, fmt.Errorf("can not find app configuration when generating the Intent")
+		return nil, fmt.Errorf("can not find app configuration when generating the Spec")
 	}
 
 	if ws == nil {
@@ -79,7 +80,7 @@ func NewAppConfigurationGeneratorFunc(
 	project string,
 	stack string,
 	appName string,
-	app *v1.AppConfiguration,
+	app *internalv1.AppConfiguration,
 	ws *v1.Workspace,
 	kpmDependencies *pkg.Dependencies,
 ) modules.NewGeneratorFunc {
@@ -88,7 +89,7 @@ func NewAppConfigurationGeneratorFunc(
 	}
 }
 
-func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
+func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	if spec.Resources == nil {
 		spec.Resources = make(v1.Resources, 0)
 	}
@@ -151,7 +152,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Intent) error {
 	return nil
 }
 
-func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
+func patchWorkload(workload *v1.Resource, patcher *internalv1.Patcher) error {
 	if patcher == nil {
 		return nil
 	}
@@ -252,13 +253,13 @@ func patchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 
 // moduleConfig represents the configuration of a module, either devConfig or platformConfig can be nil
 type moduleConfig struct {
-	devConfig      v1.Accessory
+	devConfig      internalv1.Accessory
 	platformConfig v1.GenericConfig
 }
 
 func (g *appConfigurationGenerator) callModules(
 	projectModuleConfigs map[string]v1.GenericConfig, dependencies *pkg.Dependencies,
-) (resources []v1.Resource, patchers []v1.Patcher, err error) {
+) (resources []v1.Resource, patchers []internalv1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		for _, plugin := range pluginMap {
@@ -325,7 +326,7 @@ func (g *appConfigurationGenerator) callModules(
 		}
 		// parse patcher
 		for _, patcher := range response.Patchers {
-			temp := &v1.Patcher{}
+			temp := &internalv1.Patcher{}
 			err = yaml.Unmarshal(patcher, temp)
 			if err != nil {
 				return nil, nil, err
@@ -338,7 +339,7 @@ func (g *appConfigurationGenerator) callModules(
 }
 
 func buildModuleConfigIndex(
-	accessories map[string]v1.Accessory,
+	accessories map[string]internalv1.Accessory,
 	projectModuleConfigs map[string]v1.GenericConfig,
 	dependencies *pkg.Dependencies,
 ) (map[string]moduleConfig, error) {
@@ -367,7 +368,7 @@ func buildModuleConfigIndex(
 	return indexModuleConfig, nil
 }
 
-func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (string, error) {
+func parseModuleKey(accessory internalv1.Accessory, dependencies *pkg.Dependencies) (string, error) {
 	split := strings.Split(accessory["_type"].(string), ".")
 	moduleName := split[0]
 	// find module namespace and version

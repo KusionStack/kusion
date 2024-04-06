@@ -9,9 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -30,7 +29,7 @@ type ServiceGenerator struct {
 	Stack     string
 	App       string
 	Namespace string
-	Service   *workload.Service
+	Service   *internalv1.Service
 	Config    apiv1.GenericConfig
 }
 
@@ -53,7 +52,7 @@ func NewWorkloadServiceGenerator(request *Generator) (modules.Generator, error) 
 		Stack:     request.Stack,
 		App:       request.App,
 		Service:   request.Workload.Service,
-		Config:    request.PlatformConfigs[workload.ModuleService],
+		Config:    request.PlatformConfigs[internalv1.ModuleService],
 		Namespace: request.Namespace,
 	}, nil
 }
@@ -66,7 +65,7 @@ func NewWorkloadServiceGeneratorFunc(workloadGenerator *Generator) modules.NewGe
 }
 
 // Generate generates a Service Workload resource to the given spec.
-func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
+func (g *ServiceGenerator) Generate(spec *apiv1.Spec) error {
 	service := g.Service
 	if service == nil {
 		return nil
@@ -94,7 +93,7 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
 	for _, cm := range configMaps {
 		cmObj := cm
 		cmObj.Namespace = g.Namespace
-		if err = modules.AppendToIntent(
+		if err = modules.AppendToSpec(
 			apiv1.Kubernetes,
 			modules.KubernetesResourceID(cmObj.TypeMeta, cmObj.ObjectMeta),
 			spec,
@@ -131,10 +130,10 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
 	typeMeta := metav1.TypeMeta{}
 
 	switch service.Type {
-	case workload.Deployment:
+	case internalv1.Deployment:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       string(workload.Deployment),
+			Kind:       string(internalv1.Deployment),
 		}
 		spec := appsv1.DeploymentSpec{
 			Replicas: service.Replicas,
@@ -146,10 +145,10 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
 			ObjectMeta: objectMeta,
 			Spec:       spec,
 		}
-	case workload.Collaset:
+	case internalv1.Collaset:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       string(workload.Collaset),
+			Kind:       string(internalv1.Collaset),
 		}
 		resource = &v1alpha1.CollaSet{
 			TypeMeta:   typeMeta,
@@ -163,7 +162,7 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
 	}
 
 	// Add the Deployment resource to the spec.
-	if err = modules.AppendToIntent(apiv1.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
+	if err = modules.AppendToSpec(apiv1.Kubernetes, modules.KubernetesResourceID(typeMeta, objectMeta), spec, resource); err != nil {
 		return err
 	}
 
@@ -179,7 +178,7 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Intent) error {
 	return nil
 }
 
-func validatePorts(ports []network.Port) error {
+func validatePorts(ports []internalv1.Port) error {
 	portProtocolRecord := make(map[string]struct{})
 	for _, port := range ports {
 		if err := validatePort(&port); err != nil {
@@ -196,20 +195,20 @@ func validatePorts(ports []network.Port) error {
 	return nil
 }
 
-func validatePort(port *network.Port) error {
+func validatePort(port *internalv1.Port) error {
 	if port.Port < 1 || port.Port > 65535 {
 		return ErrInvalidPort
 	}
 	if port.TargetPort < 0 || port.Port > 65535 {
 		return ErrInvalidTargetPort
 	}
-	if port.Protocol != network.TCP && port.Protocol != network.UDP {
+	if port.Protocol != internalv1.TCP && port.Protocol != internalv1.UDP {
 		return ErrInvalidProtocol
 	}
 	return nil
 }
 
-func validate(selectors map[string]string, ports []network.Port) error {
+func validate(selectors map[string]string, ports []internalv1.Port) error {
 	if len(selectors) == 0 {
 		return ErrEmptySelectors
 	}
@@ -219,7 +218,7 @@ func validate(selectors map[string]string, ports []network.Port) error {
 	return nil
 }
 
-func complete(ports []network.Port) error {
+func complete(ports []internalv1.Port) error {
 	for i := range ports {
 		if ports[i].TargetPort == 0 {
 			ports[i].TargetPort = ports[i].Port
@@ -228,20 +227,20 @@ func complete(ports []network.Port) error {
 	return nil
 }
 
-func completeServiceInput(service *workload.Service, config apiv1.GenericConfig) error {
+func completeServiceInput(service *internalv1.Service, config apiv1.GenericConfig) error {
 	if err := completeBaseWorkload(&service.Base, config); err != nil {
 		return err
 	}
-	serviceTypeStr, err := workspace.GetStringFromGenericConfig(config, workload.ModuleServiceType)
-	platformServiceType := workload.ServiceType(serviceTypeStr)
+	serviceTypeStr, err := workspace.GetStringFromGenericConfig(config, internalv1.ModuleServiceType)
+	platformServiceType := internalv1.ServiceType(serviceTypeStr)
 	if err != nil {
 		return err
 	}
 	// if not set in workspace, use Deployment as default type
 	if platformServiceType == "" {
-		platformServiceType = workload.Deployment
+		platformServiceType = internalv1.Deployment
 	}
-	if platformServiceType != workload.Deployment && platformServiceType != workload.Collaset {
+	if platformServiceType != internalv1.Deployment && platformServiceType != internalv1.Collaset {
 		return fmt.Errorf("unsupported Service type %s", platformServiceType)
 	}
 	if service.Type == "" {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	// ensure we can get correct secret store provider
 	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 )
@@ -16,14 +16,14 @@ var testProject = "helloworld"
 
 func initGeneratorRequest(
 	project string,
-	secrets map[string]workload.Secret,
-	secretStoreSpec *apiv1.SecretStoreSpec,
+	secrets map[string]internalv1.Secret,
+	secretStoreSpec *v1.SecretStoreSpec,
 ) *GeneratorRequest {
 	return &GeneratorRequest{
 		Project: project,
-		Workload: &workload.Workload{
-			Service: &workload.Service{
-				Base: workload.Base{
+		Workload: &internalv1.Workload{
+			Service: &internalv1.Service{
+				Base: internalv1.Base{
 					Secrets: secrets,
 				},
 			},
@@ -33,10 +33,10 @@ func initGeneratorRequest(
 	}
 }
 
-func initSecretStoreSpec(data []apiv1.FakeProviderData) *apiv1.SecretStoreSpec {
-	return &apiv1.SecretStoreSpec{
-		Provider: &apiv1.ProviderSpec{
-			Fake: &apiv1.FakeProvider{
+func initSecretStoreSpec(data []v1.FakeProviderData) *v1.SecretStoreSpec {
+	return &v1.SecretStoreSpec{
+		Provider: &v1.ProviderSpec{
+			Fake: &v1.FakeProvider{
 				Data: data,
 			},
 		},
@@ -106,7 +106,7 @@ func TestGenerateSecret(t *testing.T) {
 	// run all the tests
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			secrets := map[string]workload.Secret{
+			secrets := map[string]internalv1.Secret{
 				name: {
 					Type: test.secretType,
 					Data: test.secretData,
@@ -114,7 +114,7 @@ func TestGenerateSecret(t *testing.T) {
 			}
 			context := initGeneratorRequest(testProject, secrets, nil)
 			generator, _ := NewSecretGenerator(context)
-			err := generator.Generate(&apiv1.Intent{})
+			err := generator.Generate(&v1.Spec{})
 			if test.expectErr == "" {
 				require.NoError(t, err)
 			} else {
@@ -131,7 +131,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 		secretType string
 		secretData map[string]string
 
-		providerData []apiv1.FakeProviderData
+		providerData []v1.FakeProviderData
 
 		expectErr string
 	}{
@@ -142,7 +142,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 				"accessKey": "ref://api-auth-info/accessKey?version=1",
 				"secretKey": "ref://api-auth-info/secretKey?version=1",
 			},
-			providerData: []apiv1.FakeProviderData{
+			providerData: []v1.FakeProviderData{
 				{
 					Key:     "api-auth-info",
 					Value:   `{"accessKey":"some sensitive info","secretKey":"*******"}`,
@@ -156,7 +156,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 			secretData: map[string]string{
 				"accessToken": "ref://token?version=1",
 			},
-			providerData: []apiv1.FakeProviderData{
+			providerData: []v1.FakeProviderData{
 				{
 					Key:     "token-info",
 					Value:   "some sensitive info",
@@ -170,7 +170,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 	// run all the tests
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			secrets := map[string]workload.Secret{
+			secrets := map[string]internalv1.Secret{
 				name: {
 					Type: test.secretType,
 					Data: test.secretData,
@@ -179,7 +179,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 			secretStoreSpec := initSecretStoreSpec(test.providerData)
 			context := initGeneratorRequest(testProject, secrets, secretStoreSpec)
 			generator, _ := NewSecretGenerator(context)
-			err := generator.Generate(&apiv1.Intent{})
+			err := generator.Generate(&v1.Spec{})
 			if test.expectErr == "" {
 				require.NoError(t, err)
 			} else {
@@ -194,7 +194,7 @@ func TestParseExternalSecretDataRef(t *testing.T) {
 	tests := []struct {
 		name       string
 		dataRefStr string
-		want       *apiv1.ExternalSecretRef
+		want       *v1.ExternalSecretRef
 		wantErr    bool
 	}{
 		{
@@ -206,7 +206,7 @@ func TestParseExternalSecretDataRef(t *testing.T) {
 		{
 			name:       "only secret name",
 			dataRefStr: "ref://secret-name",
-			want: &apiv1.ExternalSecretRef{
+			want: &v1.ExternalSecretRef{
 				Name: "secret-name",
 			},
 			wantErr: false,
@@ -214,7 +214,7 @@ func TestParseExternalSecretDataRef(t *testing.T) {
 		{
 			name:       "secret name with version",
 			dataRefStr: "ref://secret-name?version=1",
-			want: &apiv1.ExternalSecretRef{
+			want: &v1.ExternalSecretRef{
 				Name:    "secret-name",
 				Version: "1",
 			},
@@ -223,7 +223,7 @@ func TestParseExternalSecretDataRef(t *testing.T) {
 		{
 			name:       "secret name with property and version",
 			dataRefStr: "ref://secret-name/property?version=1",
-			want: &apiv1.ExternalSecretRef{
+			want: &v1.ExternalSecretRef{
 				Name:     "secret-name",
 				Property: "property",
 				Version:  "1",
@@ -233,7 +233,7 @@ func TestParseExternalSecretDataRef(t *testing.T) {
 		{
 			name:       "nested secret name with property and version",
 			dataRefStr: "ref://customer/acme/customer_name?version=1",
-			want: &apiv1.ExternalSecretRef{
+			want: &v1.ExternalSecretRef{
 				Name:     "customer/acme",
 				Property: "customer_name",
 				Version:  "1",

@@ -1,7 +1,7 @@
 package storages
 
 import (
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/spec"
 	specstorages "kusionstack.io/kusion/pkg/engine/spec/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
