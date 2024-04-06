@@ -11,7 +11,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
@@ -98,7 +98,7 @@ func Test_preview(t *testing.T) {
 
 		o := NewDestroyOptions()
 		stateStorage := statestorages.NewLocalStorage(filepath.Join(o.WorkDir, "state.yaml"))
-		_, err := o.preview(&apiv1.Intent{Resources: []apiv1.Resource{sa1}}, proj, stack, stateStorage)
+		_, err := o.preview(&apiv1.Spec{Resources: []apiv1.Resource{sa1}}, proj, stack, stateStorage)
 		assert.Nil(t, err)
 	})
 }
@@ -196,7 +196,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(models.Success)
 
 		o := NewDestroyOptions()
-		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa2}}
+		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa2}}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -224,7 +224,7 @@ func Test_destroy(t *testing.T) {
 		mockOperationDestroy(models.Failed)
 
 		o := NewDestroyOptions()
-		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
+		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{

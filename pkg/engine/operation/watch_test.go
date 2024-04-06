@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/watch"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -20,7 +20,7 @@ func TestWatchOperation_Watch(t *testing.T) {
 	mockey.PatchConvey("test watch operation: watch", t, func() {
 		req := &WatchRequest{
 			Request: models.Request{
-				Intent: &apiv1.Intent{
+				Intent: &apiv1.Spec{
 					Resources: apiv1.Resources{
 						{
 							ID:         "apps/v1:Deployment:foo:bar",

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/tidwall/gjson"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 	"kusionstack.io/kusion/pkg/secrets/providers/aws/auth"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/build"
@@ -89,7 +89,7 @@ func (o *Options) Run() error {
 	}
 
 	// compute changes for preview
-	i := &apiv1.Intent{Resources: destroyResources}
+	i := &apiv1.Spec{Resources: destroyResources}
 	changes, err := o.preview(i, proj, stack, storage)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (o *Options) Run() error {
 }
 
 func (o *Options) preview(
-	planResources *apiv1.Intent,
+	planResources *apiv1.Spec,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
 	stateStorage state.Storage,
@@ -179,7 +179,7 @@ func (o *Options) preview(
 	return models.NewChanges(proj, stack, rsp.Order), nil
 }
 
-func (o *Options) destroy(planResources *apiv1.Intent, changes *models.Changes, stateStorage state.Storage) error {
+func (o *Options) destroy(planResources *apiv1.Spec, changes *models.Changes, stateStorage state.Storage) error {
 	do := &operation.DestroyOperation{
 		Operation: models.Operation{
 			Stack:        changes.Stack(),

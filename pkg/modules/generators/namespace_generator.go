@@ -4,7 +4,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -24,9 +24,9 @@ func NewNamespaceGeneratorFunc(namespace string) modules.NewGeneratorFunc {
 	}
 }
 
-func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
+func (g *namespaceGenerator) Generate(i *v1.Spec) error {
 	if i.Resources == nil {
-		i.Resources = make(apiv1.Resources, 0)
+		i.Resources = make(v1.Resources, 0)
 	}
 
 	ns := &corev1.Namespace{
@@ -45,5 +45,5 @@ func (g *namespaceGenerator) Generate(i *apiv1.Intent) error {
 		}
 	}
 
-	return modules.AppendToIntent(apiv1.Kubernetes, id, i, ns)
+	return modules.AppendToSpec(v1.Kubernetes, id, i, ns)
 }

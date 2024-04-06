@@ -12,7 +12,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
@@ -30,7 +30,7 @@ import (
 func TestApplyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("Detail is true", t, func() {
 		mockPatchDetectProjectAndStack()
-		mockGenerateIntentWithSpinner()
+		mockGenerateSpecWithSpinner()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
 		mockWorkspaceStorage()
@@ -46,7 +46,7 @@ func TestApplyOptions_Run(t *testing.T) {
 
 	mockey.PatchConvey("DryRun is true", t, func() {
 		mockPatchDetectProjectAndStack()
-		mockGenerateIntentWithSpinner()
+		mockGenerateSpecWithSpinner()
 		mockPatchNewKubernetesRuntime()
 		mockNewBackend()
 		mockWorkspaceStorage()
@@ -78,14 +78,14 @@ func mockPatchDetectProjectAndStack() *mockey.Mocker {
 	}).Build()
 }
 
-func mockGenerateIntentWithSpinner() {
-	mockey.Mock(generate.GenerateIntentWithSpinner).To(func(
+func mockGenerateSpecWithSpinner() {
+	mockey.Mock(generate.GenerateSpecWithSpinner).To(func(
 		project *apiv1.Project,
 		stack *apiv1.Stack,
 		workspace *apiv1.Workspace,
 		noStyle bool,
-	) (*apiv1.Intent, error) {
-		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Spec, error) {
+		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 
@@ -200,7 +200,7 @@ func newSA(name string) apiv1.Resource {
 func Test_apply(t *testing.T) {
 	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	mockey.PatchConvey("dry run", t, func() {
-		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
+		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -220,7 +220,7 @@ func Test_apply(t *testing.T) {
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(models.Success)
 		o := NewApplyOptions()
-		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2}}
+		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2}}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -245,7 +245,7 @@ func Test_apply(t *testing.T) {
 		mockOperationApply(models.Failed)
 
 		o := NewApplyOptions()
-		planResources := &apiv1.Intent{Resources: []apiv1.Resource{sa1}}
+		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{

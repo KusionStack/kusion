@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 var providerAddr = "registry.terraform.io/hashicorp/local/2.2.3"

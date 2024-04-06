@@ -3,7 +3,7 @@ package generators
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/modules"
 )
@@ -60,9 +60,9 @@ func NewOrderedResourcesGeneratorFunc(multipleOrderedKinds ...[]string) modules.
 }
 
 // Generate inject the dependsOn of resources in a specified order.
-func (g *orderedResourcesGenerator) Generate(itt *apiv1.Intent) error {
+func (g *orderedResourcesGenerator) Generate(itt *v1.Spec) error {
 	if itt.Resources == nil {
-		itt.Resources = make(apiv1.Resources, 0)
+		itt.Resources = make(v1.Resources, 0)
 	}
 
 	for i := 0; i < len(itt.Resources); i++ {
@@ -79,7 +79,7 @@ func (g *orderedResourcesGenerator) Generate(itt *apiv1.Intent) error {
 	return nil
 }
 
-type resource apiv1.Resource
+type resource v1.Resource
 
 // kubernetesKind returns the kubernetes kind of the given resource.
 func (r resource) kubernetesKind() string {
@@ -89,7 +89,7 @@ func (r resource) kubernetesKind() string {
 }
 
 // injectDependsOn injects all dependsOn relationships for the given resource and dependent kinds.
-func (r *resource) injectDependsOn(orderedKinds []string, rs []apiv1.Resource) {
+func (r *resource) injectDependsOn(orderedKinds []string, rs []v1.Resource) {
 	kinds := r.findDependKinds(orderedKinds)
 	for _, kind := range kinds {
 		drs := findDependResources(kind, rs)
@@ -98,7 +98,7 @@ func (r *resource) injectDependsOn(orderedKinds []string, rs []apiv1.Resource) {
 }
 
 // appendDependsOn injects dependsOn relationships for the given resource and dependent resources.
-func (r *resource) appendDependsOn(dependResources []*apiv1.Resource) {
+func (r *resource) appendDependsOn(dependResources []*v1.Resource) {
 	for _, dr := range dependResources {
 		r.DependsOn = append(r.DependsOn, dr.ID)
 	}
@@ -118,8 +118,8 @@ func (r *resource) findDependKinds(orderedKinds []string) []string {
 }
 
 // findDependResources returns the dependent resources of the specified kind.
-func findDependResources(dependKind string, rs []apiv1.Resource) []*apiv1.Resource {
-	var dependResources []*apiv1.Resource
+func findDependResources(dependKind string, rs []v1.Resource) []*v1.Resource {
+	var dependResources []*v1.Resource
 	for i := 0; i < len(rs); i++ {
 		if resource(rs[i]).kubernetesKind() == dependKind {
 			dependResources = append(dependResources, &rs[i])

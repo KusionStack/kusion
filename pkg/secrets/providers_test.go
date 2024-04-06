@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // FakeSecretStore is the fake implementation of SecretStore.

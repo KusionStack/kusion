@@ -10,7 +10,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -40,7 +40,7 @@ func TestOperation_Destroy(t *testing.T) {
 		},
 		DependsOn: nil,
 	}
-	mf := &apiv1.Intent{Resources: []apiv1.Resource{resourceState}}
+	mf := &apiv1.Spec{Resources: []apiv1.Resource{resourceState}}
 	o := &DestroyOperation{
 		models.Operation{
 			OperationType: models.Destroy,

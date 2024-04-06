@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/apis/core/v1"
+	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 
 	"github.com/aliyun/aliyun-secretsmanager-client-go/sdk"

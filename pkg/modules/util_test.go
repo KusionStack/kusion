@@ -5,30 +5,30 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 type mockGenerator struct {
-	GenerateFunc func(intent *apiv1.Intent) error
+	GenerateFunc func(Spec *v1.Spec) error
 }
 
-func (m *mockGenerator) Generate(i *apiv1.Intent) error {
+func (m *mockGenerator) Generate(i *v1.Spec) error {
 	return m.GenerateFunc(i)
 }
 
 func TestCallGenerators(t *testing.T) {
-	i := &apiv1.Intent{}
+	i := &v1.Spec{}
 
 	var (
 		generator1 Generator = &mockGenerator{
-			GenerateFunc: func(intent *apiv1.Intent) error {
+			GenerateFunc: func(Spec *v1.Spec) error {
 				return nil
 			},
 		}
 		generator2 Generator = &mockGenerator{
-			GenerateFunc: func(intent *apiv1.Intent) error {
+			GenerateFunc: func(Spec *v1.Spec) error {
 				return assert.AnError
 			},
 		}
@@ -106,12 +106,12 @@ func TestMergeMaps(t *testing.T) {
 }
 
 func TestKubernetesResourceID(t *testing.T) {
-	typeMeta := v1.TypeMeta{
+	typeMeta := metav1.TypeMeta{
 		APIVersion: "apps/v1",
 		Kind:       "Deployment",
 	}
 
-	objectMeta := v1.ObjectMeta{
+	objectMeta := metav1.ObjectMeta{
 		Namespace: "example",
 		Name:      "my-deployment",
 	}
@@ -120,9 +120,9 @@ func TestKubernetesResourceID(t *testing.T) {
 	assert.Equal(t, "apps/v1:Deployment:example:my-deployment", id)
 }
 
-func TestAppendToIntent(t *testing.T) {
-	i := &apiv1.Intent{}
-	resource := &apiv1.Resource{
+func TestAppendToSpec(t *testing.T) {
+	i := &v1.Spec{}
+	resource := &v1.Resource{
 		ID:   "v1:Namespace:fake-project",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -140,23 +140,23 @@ func TestAppendToIntent(t *testing.T) {
 	}
 
 	ns := &corev1.Namespace{
-		TypeMeta: v1.TypeMeta{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "Namespace",
 			APIVersion: "v1",
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: "fake-project",
 		},
 	}
 
-	err := AppendToIntent(apiv1.Kubernetes, resource.ID, i, ns)
+	err := AppendToSpec(v1.Kubernetes, resource.ID, i, ns)
 
 	assert.NoError(t, err)
 	assert.Len(t, i.Resources, 1)
 	assert.Equal(t, resource.ID, i.Resources[0].ID)
 	assert.Equal(t, resource.Type, i.Resources[0].Type)
 	assert.Equal(t, resource.Attributes, i.Resources[0].Attributes)
-	assert.Equal(t, ns.GroupVersionKind().String(), i.Resources[0].Extensions[apiv1.ResourceExtensionGVK])
+	assert.Equal(t, ns.GroupVersionKind().String(), i.Resources[0].Extensions[v1.ResourceExtensionGVK])
 }
 
 func TestUniqueAppName(t *testing.T) {
@@ -185,7 +185,7 @@ func TestUniqueAppLabels(t *testing.T) {
 }
 
 func TestPatchResource(t *testing.T) {
-	resources := map[string][]*apiv1.Resource{
+	resources := map[string][]*v1.Resource{
 		"/v1, Kind=Namespace": {
 			{
 				ID:   "v1:Namespace:default",
@@ -223,16 +223,16 @@ func TestPatchResource(t *testing.T) {
 
 func TestAddKubeConfigIf(t *testing.T) {
 	testcases := []struct {
-		name           string
-		ws             *apiv1.Workspace
-		i              *apiv1.Intent
-		expectedIntent *apiv1.Intent
+		name         string
+		ws           *v1.Workspace
+		i            *v1.Spec
+		expectedSpec *v1.Spec
 	}{
 		{
 			name: "empty workspace runtime config",
-			ws:   &apiv1.Workspace{Name: "dev"},
-			i: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			ws:   &v1.Workspace{Name: "dev"},
+			i: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -243,8 +243,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			expectedSpec: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -258,14 +258,14 @@ func TestAddKubeConfigIf(t *testing.T) {
 		},
 		{
 			name: "empty kubeConfig in workspace",
-			ws: &apiv1.Workspace{
+			ws: &v1.Workspace{
 				Name: "dev",
-				Runtimes: &apiv1.RuntimeConfigs{
-					Kubernetes: &apiv1.KubernetesConfig{},
+				Runtimes: &v1.RuntimeConfigs{
+					Kubernetes: &v1.KubernetesConfig{},
 				},
 			},
-			i: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			i: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -276,8 +276,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			expectedSpec: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -291,16 +291,16 @@ func TestAddKubeConfigIf(t *testing.T) {
 		},
 		{
 			name: "add kubeConfig",
-			ws: &apiv1.Workspace{
+			ws: &v1.Workspace{
 				Name: "dev",
-				Runtimes: &apiv1.RuntimeConfigs{
-					Kubernetes: &apiv1.KubernetesConfig{
+				Runtimes: &v1.RuntimeConfigs{
+					Kubernetes: &v1.KubernetesConfig{
 						KubeConfig: "/etc/kubeConfig.yaml",
 					},
 				},
 			},
-			i: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			i: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -349,8 +349,8 @@ func TestAddKubeConfigIf(t *testing.T) {
 					},
 				},
 			},
-			expectedIntent: &apiv1.Intent{
-				Resources: apiv1.Resources{
+			expectedSpec: &v1.Spec{
+				Resources: v1.Resources{
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
@@ -408,7 +408,7 @@ func TestAddKubeConfigIf(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			AddKubeConfigIf(tc.i, tc.ws)
-			assert.Equal(t, *tc.expectedIntent, *tc.i)
+			assert.Equal(t, *tc.expectedSpec, *tc.i)
 		})
 	}
 }

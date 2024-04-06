@@ -3,7 +3,7 @@ package secrets
 import (
 	"context"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // SecretStore provides the interface to interact with various cloud secret manager.

@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
 

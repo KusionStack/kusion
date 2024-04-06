@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules/proto"
 )
 
@@ -17,7 +17,7 @@ const PluginKey = "module-default"
 // todo it's for built-in generators and we should consider to convert it to a general Module interface
 type Generator interface {
 	// Generate performs the intent generate operation.
-	Generate(intent *v1.Intent) error
+	Generate(intent *v1.Spec) error
 }
 
 // Module is the interface that we're exposing as a kusion module plugin.

@@ -6,13 +6,14 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestCLIInstaller_CheckAndInstall(t *testing.T) {
 	mockey.PatchConvey("NoResources", t, func() {
 		installer := &CLIInstaller{
-			Intent: &v1.Intent{
+			Intent: &v1.Spec{
 				Resources: v1.Resources{},
 			},
 		}
@@ -22,7 +23,7 @@ func TestCLIInstaller_CheckAndInstall(t *testing.T) {
 
 	mockey.PatchConvey("NoTerraformResources", t, func() {
 		installer := &CLIInstaller{
-			Intent: &v1.Intent{
+			Intent: &v1.Spec{
 				Resources: v1.Resources{
 					v1.Resource{
 						Type: v1.Kubernetes,
@@ -39,7 +40,7 @@ func TestCLIInstaller_CheckAndInstall(t *testing.T) {
 			return nil
 		}).Build()
 		installer := &CLIInstaller{
-			Intent: &v1.Intent{
+			Intent: &v1.Spec{
 				Resources: v1.Resources{
 					v1.Resource{
 						Type: v1.Terraform,
@@ -59,7 +60,7 @@ func TestCLIInstaller_CheckAndInstall(t *testing.T) {
 			return fmt.Errorf("install timeout")
 		}).Build()
 		installer := &CLIInstaller{
-			Intent: &v1.Intent{
+			Intent: &v1.Spec{
 				Resources: v1.Resources{
 					v1.Resource{
 						Type: v1.Terraform,
@@ -79,7 +80,7 @@ func TestCLIInstaller_CheckAndInstall(t *testing.T) {
 			return nil
 		}).Build()
 		installer := &CLIInstaller{
-			Intent: &v1.Intent{
+			Intent: &v1.Spec{
 				Resources: v1.Resources{
 					v1.Resource{
 						Type: v1.Terraform,

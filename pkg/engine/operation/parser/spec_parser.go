@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -13,10 +13,10 @@ import (
 )
 
 type IntentParser struct {
-	intent *apiv1.Intent
+	intent *apiv1.Spec
 }
 
-func NewIntentParser(i *apiv1.Intent) *IntentParser {
+func NewIntentParser(i *apiv1.Spec) *IntentParser {
 	return &IntentParser{intent: i}
 }
 

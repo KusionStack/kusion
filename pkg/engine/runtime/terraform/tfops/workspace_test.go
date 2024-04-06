@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zclconf/go-cty/cty"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 

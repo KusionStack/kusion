@@ -1,7 +1,7 @@
 package workspace
 
 import (
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // Storage is used to provide the storage service for multiple workspaces.

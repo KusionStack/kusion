@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/spec"
 )
 
@@ -28,7 +28,7 @@ func NewLocalStorage(path string) *LocalStorage {
 }
 
 // Get returns the Spec, if the Spec does not exist, return nil.
-func (s *LocalStorage) Get() (*v1.Intent, error) {
+func (s *LocalStorage) Get() (*v1.Spec, error) {
 	content, err := os.ReadFile(s.path)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
@@ -39,7 +39,7 @@ func (s *LocalStorage) Get() (*v1.Intent, error) {
 		return nil, nil
 	}
 
-	state := &v1.Intent{}
+	state := &v1.Spec{}
 	err = yaml.Unmarshal(content, state)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *LocalStorage) Get() (*v1.Intent, error) {
 }
 
 // Apply updates the spec if already exists, or create a new spec.
-func (s *LocalStorage) Apply(state *v1.Intent) error {
+func (s *LocalStorage) Apply(state *v1.Spec) error {
 	if err := os.MkdirAll(filepath.Dir(s.path), os.ModePerm); err != nil {
 		fmt.Println(err)
 	}

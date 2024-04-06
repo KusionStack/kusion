@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -27,7 +27,7 @@ func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) 
 
 // CallGenerators calls the Generate method of each Generator instance
 // returned by the given NewGeneratorFuncs.
-func CallGenerators(i *apiv1.Intent, newGenerators ...NewGeneratorFunc) error {
+func CallGenerators(i *v1.Spec, newGenerators ...NewGeneratorFunc) error {
 	gs, err := CallGeneratorFuncs(newGenerators...)
 	if err != nil {
 		return err
@@ -106,11 +106,11 @@ func KusionPathDependency(id, name string) string {
 	return "$kusion_path." + id + "." + name
 }
 
-// AppendToIntent adds a Kubernetes resource to the Intent resources slice.
-func AppendToIntent(resourceType apiv1.Type, resourceID string, i *apiv1.Intent, resource any) error {
+// AppendToSpec adds a Kubernetes resource to the Spec resources slice.
+func AppendToSpec(resourceType v1.Type, resourceID string, i *v1.Spec, resource any) error {
 	// this function is only used for Kubernetes resources
-	if resourceType != apiv1.Kubernetes {
-		return errors.New("AppendToIntent is only used for Kubernetes resources")
+	if resourceType != v1.Kubernetes {
+		return errors.New("AppendToSpec is only used for Kubernetes resources")
 	}
 
 	gvk := resource.(runtime.Object).GetObjectKind().GroupVersionKind().String()
@@ -119,13 +119,13 @@ func AppendToIntent(resourceType apiv1.Type, resourceID string, i *apiv1.Intent,
 	if err != nil {
 		return err
 	}
-	r := apiv1.Resource{
+	r := v1.Resource{
 		ID:         resourceID,
 		Type:       resourceType,
 		Attributes: unstructured,
 		DependsOn:  nil,
 		Extensions: map[string]any{
-			apiv1.ResourceExtensionGVK: gvk,
+			v1.ResourceExtensionGVK: gvk,
 		},
 	}
 	i.Resources = append(i.Resources, r)
@@ -146,7 +146,7 @@ func UniqueAppLabels(projectName, appName string) map[string]string {
 }
 
 // PatchResource patches the resource with the given patch.
-func PatchResource[T any](resources map[string][]*apiv1.Resource, gvk string, patchFunc func(*T) error) error {
+func PatchResource[T any](resources map[string][]*v1.Resource, gvk string, patchFunc func(*T) error) error {
 	var obj T
 	for _, r := range resources[gvk] {
 		// convert unstructured to typed object
@@ -170,18 +170,18 @@ func PatchResource[T any](resources map[string][]*apiv1.Resource, gvk string, pa
 
 // AddKubeConfigIf adds kubeConfig from workspace to extensions of Kubernetes type resource in intent.
 // If there is already has kubeConfig in extensions, use the kubeConfig in extensions.
-func AddKubeConfigIf(i *apiv1.Intent, ws *apiv1.Workspace) {
+func AddKubeConfigIf(i *v1.Spec, ws *v1.Workspace) {
 	config := workspace.GetKubernetesConfig(ws.Runtimes)
 	if config == nil || config.KubeConfig == "" {
 		return
 	}
 	for n, resource := range i.Resources {
-		if resource.Type == apiv1.Kubernetes {
+		if resource.Type == v1.Kubernetes {
 			if resource.Extensions == nil {
 				i.Resources[n].Extensions = make(map[string]any)
 			}
-			if extensionsKubeConfig, ok := resource.Extensions[apiv1.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
-				i.Resources[n].Extensions[apiv1.ResourceExtensionKubeConfig] = config.KubeConfig
+			if extensionsKubeConfig, ok := resource.Extensions[v1.ResourceExtensionKubeConfig]; !ok || extensionsKubeConfig == "" {
+				i.Resources[n].Extensions[v1.ResourceExtensionKubeConfig] = config.KubeConfig
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
@@ -30,7 +30,7 @@ func TestResourceNode_Execute(t *testing.T) {
 	const Jack = "jack"
 	const Pony = "pony"
 	const Eric = "eric"
-	mf := &apiv1.Intent{Resources: []apiv1.Resource{
+	mf := &apiv1.Spec{Resources: []apiv1.Resource{
 		{
 			ID:   Pony,
 			Type: runtime.Kubernetes,

@@ -15,13 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload/network"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/proto"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 )
 
 type fakeModule struct{}
@@ -92,7 +90,7 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 		dependencies: dep,
 	}
 
-	spec := &v1.Intent{
+	spec := &v1.Spec{
 		Resources: []v1.Resource{},
 	}
 
@@ -145,7 +143,7 @@ func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 
 	t.Run("Nil app", func(t *testing.T) {
 		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, nil, ws, nil)()
-		assert.EqualError(t, err, "can not find app configuration when generating the Intent")
+		assert.EqualError(t, err, "can not find app configuration when generating the Spec")
 		assert.Nil(t, g)
 	})
 
@@ -162,16 +160,16 @@ func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 	})
 }
 
-func buildMockApp() (string, *v1.AppConfiguration) {
-	return "app1", &v1.AppConfiguration{
-		Workload: &workload.Workload{
-			Header: workload.Header{
-				Type: workload.TypeService,
+func buildMockApp() (string, *internalv1.AppConfiguration) {
+	return "app1", &internalv1.AppConfiguration{
+		Workload: &internalv1.Workload{
+			Header: internalv1.Header{
+				Type: internalv1.TypeService,
 			},
-			Service: &workload.Service{
-				Base: workload.Base{},
+			Service: &internalv1.Service{
+				Base: internalv1.Base{},
 				Type: "Deployment",
-				Ports: []network.Port{
+				Ports: []internalv1.Port{
 					{
 						Port:     80,
 						Protocol: "TCP",
@@ -285,7 +283,7 @@ func Test_patchWorkload(t *testing.T) {
 	}
 
 	t.Run("Patch labels and annotations", func(t *testing.T) {
-		patcher := &v1.Patcher{
+		patcher := &internalv1.Patcher{
 			Labels:      map[string]string{"newLabel": "newValue"},
 			Annotations: map[string]string{"newAnnotation": "newValue"},
 		}
@@ -314,7 +312,7 @@ func Test_patchWorkload(t *testing.T) {
 	})
 
 	t.Run("Patch environment variables", func(t *testing.T) {
-		patcher := &v1.Patcher{
+		patcher := &internalv1.Patcher{
 			Environments: []corev1.EnvVar{
 				{
 					Name:  "NEW_ENV",

@@ -7,7 +7,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/workspace"
 	"kusionstack.io/kusion/pkg/workspace/storages"
 )

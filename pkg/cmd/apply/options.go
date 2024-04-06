@@ -10,7 +10,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/generate"
@@ -77,26 +77,26 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	// Generate Intent
-	var intent *apiv1.Intent
+	// Generate Spec
+	var spec *apiv1.Spec
 	if len(o.IntentFile) != 0 {
-		intent, err = generate.IntentFromFile(o.IntentFile)
+		spec, err = generate.SpecFromFile(o.IntentFile)
 	} else {
-		intent, err = generate.GenerateIntentWithSpinner(currentProject, currentStack, currentWorkspace, true)
+		spec, err = generate.GenerateSpecWithSpinner(currentProject, currentStack, currentWorkspace, true)
 	}
 	if err != nil {
 		return err
 	}
 
 	// return immediately if no resource found in stack
-	if intent == nil || len(intent.Resources) == 0 {
+	if spec == nil || len(spec.Resources) == 0 {
 		fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
 		return nil
 	}
 
 	// compute changes for preview
 	storage := bk.StateStorage(currentProject.Name, currentStack.Name, currentWorkspace.Name)
-	changes, err := preview.Preview(&o.Options, storage, intent, currentProject, currentStack)
+	changes, err := preview.Preview(&o.Options, storage, spec, currentProject, currentStack)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (o *Options) Run() error {
 	}
 
 	fmt.Println("Start applying diffs ...")
-	if err = Apply(o, storage, intent, changes, os.Stdout); err != nil {
+	if err = Apply(o, storage, spec, changes, os.Stdout); err != nil {
 		return err
 	}
 
@@ -152,7 +152,7 @@ func (o *Options) Run() error {
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err = Watch(o, intent, changes); err != nil {
+		if err = Watch(o, spec, changes); err != nil {
 			return err
 		}
 	}
@@ -185,7 +185,7 @@ func (o *Options) Run() error {
 func Apply(
 	o *Options,
 	storage state.Storage,
-	planResources *apiv1.Intent,
+	planResources *apiv1.Spec,
 	changes *models.Changes,
 	out io.Writer,
 ) error {
@@ -319,7 +319,7 @@ func Apply(
 //	}
 func Watch(
 	o *Options,
-	planResources *apiv1.Intent,
+	planResources *apiv1.Spec,
 	changes *models.Changes,
 ) error {
 	if o.DryRun {
@@ -341,7 +341,7 @@ func Watch(
 		Request: models.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Intent:  &apiv1.Intent{Resources: toBeWatched},
+			Intent:  &apiv1.Spec{Resources: toBeWatched},
 		},
 	}); err != nil {
 		return err

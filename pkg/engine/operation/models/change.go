@@ -9,7 +9,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"

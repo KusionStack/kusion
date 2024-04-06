@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
@@ -50,7 +50,7 @@ func Test_preview(t *testing.T) {
 		defer m.UnPatch()
 
 		o := NewPreviewOptions()
-		_, err := Preview(o, stateStorage, &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
+		_, err := Preview(o, stateStorage, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
 		assert.Nil(t, err)
 	})
 }
@@ -228,13 +228,13 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGenerateIntentWithSpinner() {
-	mockey.Mock(generate.GenerateIntentWithSpinner).To(func(
+	mockey.Mock(generate.GenerateSpecWithSpinner).To(func(
 		project *apiv1.Project,
 		stack *apiv1.Stack,
 		workspace *apiv1.Workspace,
 		noStyle bool,
-	) (*apiv1.Intent, error) {
-		return &apiv1.Intent{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
+	) (*apiv1.Spec, error) {
+		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
 	}).Build()
 }
 

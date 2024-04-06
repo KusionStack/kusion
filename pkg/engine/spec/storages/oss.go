@@ -7,7 +7,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"gopkg.in/yaml.v3"
 
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/spec"
 )
 
@@ -30,7 +30,7 @@ func NewOssStorage(bucket *oss.Bucket, key string) *OssStorage {
 }
 
 // Get returns the Spec, if the Spec does not exist, return nil.
-func (s *OssStorage) Get() (*v1.Intent, error) {
+func (s *OssStorage) Get() (*v1.Spec, error) {
 	var exist bool
 	body, err := s.bucket.GetObject(s.key)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *OssStorage) Get() (*v1.Intent, error) {
 		return nil, nil
 	}
 
-	intent := &v1.Intent{}
+	intent := &v1.Spec{}
 	err = yaml.Unmarshal(content, intent)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (s *OssStorage) Get() (*v1.Intent, error) {
 }
 
 // Apply updates the spec if already exists, or create a new spec.
-func (s *OssStorage) Apply(intent *v1.Intent) error {
+func (s *OssStorage) Apply(intent *v1.Spec) error {
 	content, err := yaml.Marshal(intent)
 	if err != nil {
 		return err
