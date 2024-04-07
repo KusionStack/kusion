@@ -205,17 +205,17 @@ func TestDetectProjectAndStack(t *testing.T) {
 	for _, tt := range tests {
 		mockey.PatchConvey(tt.name, t, func() {
 			tt.preRun()
-			project, stack, err := DetectProjectAndStack(tt.args.stackDir)
+			project, stack, err := DetectProjectAndStackFrom(tt.args.stackDir)
 			tt.postRun()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DetectProjectAndStack() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DetectProjectAndStackFrom() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(project, tt.project) {
-				t.Errorf("DetectProjectAndStack() got = %v, want %v", project, tt.project)
+				t.Errorf("DetectProjectAndStackFrom() got = %v, want %v", project, tt.project)
 			}
 			if !reflect.DeepEqual(stack, tt.stack) {
-				t.Errorf("DetectProjectAndStack() gosuccess = %v, want %v", stack, tt.stack)
+				t.Errorf("DetectProjectAndStackFrom() gosuccess = %v, want %v", stack, tt.stack)
 			}
 		})
 	}

@@ -11,14 +11,13 @@ import (
 
 	"kusionstack.io/kusion/pkg/cmd/apply"
 	"kusionstack.io/kusion/pkg/cmd/config"
+	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/generate"
 	cmdinit "kusionstack.io/kusion/pkg/cmd/init"
 	"kusionstack.io/kusion/pkg/cmd/mod"
-	"kusionstack.io/kusion/pkg/cmd/workspace"
-
-	"kusionstack.io/kusion/pkg/cmd/destroy"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/version"
+	"kusionstack.io/kusion/pkg/cmd/workspace"
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
@@ -57,7 +56,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 	_ = i18n.LoadTranslations(i18n.DomainKusion, nil)
 
 	// Parent command to which all subcommands are added.
-	cmds := &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "kusion",
 		Short: i18n.T(`Kusion is the Platform Orchestrator of Internal Developer Platform`),
 		Long: templates.LongDesc(`
@@ -82,9 +81,9 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 	}
 
 	// From this point and forward we get warnings on flags that contain "_" separators
-	cmds.SetGlobalNormalizationFunc(cliflag.WarnWordSepNormalizeFunc)
+	rootCmd.SetGlobalNormalizationFunc(cliflag.WarnWordSepNormalizeFunc)
 
-	flags := cmds.PersistentFlags()
+	flags := rootCmd.PersistentFlags()
 
 	addProfilingFlags(flags)
 
@@ -113,15 +112,15 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			},
 		},
 	}
-	groups.Add(cmds)
+	groups.Add(rootCmd)
 
 	filters := []string{"options"}
 
-	templates.ActsAsRootCommand(cmds, filters, groups...)
-	cmds.AddCommand(version.NewCmdVersion())
-	cmds.AddCommand(options.NewCmdOptions(o.IOStreams.Out))
+	templates.ActsAsRootCommand(rootCmd, filters, groups...)
+	rootCmd.AddCommand(version.NewCmdVersion())
+	rootCmd.AddCommand(options.NewCmdOptions(o.IOStreams.Out))
 
-	return cmds
+	return rootCmd
 }
 
 func runHelp(cmd *cobra.Command, args []string) {

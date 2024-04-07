@@ -71,7 +71,7 @@ var (
 )
 
 func mockPatchDetectProjectAndStack() *mockey.Mocker {
-	return mockey.Mock(project.DetectProjectAndStack).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
+	return mockey.Mock(project.DetectProjectAndStackFrom).To(func(stackDir string) (*apiv1.Project, *apiv1.Stack, error) {
 		proj.Path = stackDir
 		stack.Path = stackDir
 		return proj, stack, nil
