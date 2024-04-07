@@ -16,9 +16,9 @@ import (
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/cmd/generate/generator"
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
+	"kusionstack.io/kusion/pkg/cmd/meta"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/spec"
-	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
@@ -46,27 +46,24 @@ var (
 // This structure reduces the transformation to wiring and makes the logic itself easy to unit test.
 type GenerateFlags struct {
 	WorkDir   string
-	Backend   string
-	Workspace string
+	MetaFlags *meta.MetaFlags
 
 	genericiooptions.IOStreams
 }
 
 // GenerateOptions defines flags and other configuration parameters for the `generate` command.
 type GenerateOptions struct {
+	*meta.MetaOptions
+
 	WorkDir string
 
-	Project   *v1.Project
-	Stack     *v1.Stack
-	Workspace *v1.Workspace
-
 	SpecStorage spec.Storage
-	Generator   generator.Generator
 }
 
 // NewGenerateFlags returns a default GenerateFlags
 func NewGenerateFlags(streams genericiooptions.IOStreams) *GenerateFlags {
 	return &GenerateFlags{
+		MetaFlags: meta.NewMetaFlags(),
 		IOStreams: streams,
 	}
 }
@@ -97,9 +94,10 @@ func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
 
 // AddFlags registers flags for a cli.
 func (flags *GenerateFlags) AddFlags(cmd *cobra.Command) {
+	// bind flag structs
+	flags.MetaFlags.AddFlags(cmd)
+
 	cmd.Flags().StringVarP(&flags.WorkDir, "workdir", "w", flags.WorkDir, i18n.T("The working directory for generate (default is current dir where executed)."))
-	cmd.Flags().StringVarP(&flags.Backend, "backend", "", flags.Backend, i18n.T("The backend to use, supports 'local', 'oss' and 's3'."))
-	cmd.Flags().StringVarP(&flags.Workspace, "workspace", "", flags.Workspace, i18n.T("The name of target workspace to operate in."))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -110,35 +108,27 @@ func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 		workDir, _ = os.Getwd()
 	}
 
-	// Parse project and currentStack of work directory
-	currentProject, currentStack, err := project.DetectProjectAndStack(workDir)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get current workspace from backend
-	workspaceStorage, err := backend.NewWorkspaceStorage(flags.Backend)
-	if err != nil {
-		return nil, err
-	}
-	currentWorkspace, err := workspaceStorage.Get(flags.Workspace)
+	// Convert meta options
+	metaOptions, err := flags.MetaFlags.ToOptions()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get target spec storage
-	specStorage, err := backend.NewSpecStorage(flags.Backend, currentProject.Name, currentStack.Name, flags.Workspace)
+	specStorage, err := backend.NewSpecStorage(
+		*flags.MetaFlags.Backend,
+		metaOptions.RefProject.Name,
+		metaOptions.RefStack.Name,
+		metaOptions.RefWorkspace.Name,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	o := &GenerateOptions{
 		WorkDir:     workDir,
-		Project:     currentProject,
-		Stack:       currentStack,
-		Workspace:   currentWorkspace,
+		MetaOptions: metaOptions,
 		SpecStorage: specStorage,
-		Generator:   nil,
 	}
 
 	return o, nil
@@ -155,11 +145,11 @@ func (o *GenerateOptions) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `generate` command.
 func (o *GenerateOptions) Run() error {
-	spec, err := GenerateSpecWithSpinner(o.Project, o.Stack, o.Workspace, true)
+	versionedSpec, err := GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, true)
 	if err != nil {
 		return err
 	}
-	return o.SpecStorage.Apply(spec)
+	return o.SpecStorage.Apply(versionedSpec)
 }
 
 // GenerateSpecWithSpinner calls generator to generate versioned Spec. Add a method wrapper for testing purposes.
@@ -189,7 +179,7 @@ func GenerateSpecWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !noStyle && sp != nil
 
-	spec, err := defaultGenerator.Generate(stack.Path, nil)
+	versionedSpec, err := defaultGenerator.Generate(stack.Path, nil)
 	if err != nil {
 		if style {
 			sp.Fail()
@@ -206,7 +196,7 @@ func GenerateSpecWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1
 		fmt.Println()
 	}
 
-	return spec, nil
+	return versionedSpec, nil
 }
 
 func SpecFromFile(filePath string) (*v1.Spec, error) {

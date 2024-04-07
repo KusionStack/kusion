@@ -27,8 +27,19 @@ const (
 	StackFile   = "stack.yaml"
 )
 
-// DetectProjectAndStack try to get stack and project from given path
-func DetectProjectAndStack(stackDir string) (p *v1.Project, s *v1.Stack, err error) {
+// DetectProjectAndStacks locates the closest project and stack from the current working directory,
+// or an error if not found.
+func DetectProjectAndStacks() (*v1.Project, *v1.Stack, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return DetectProjectAndStackFrom(dir)
+}
+
+// DetectProjectAndStackFrom try to get stack and project from given path
+func DetectProjectAndStackFrom(stackDir string) (p *v1.Project, s *v1.Stack, err error) {
 	stackDir, err = filepath.Abs(stackDir)
 	if err != nil {
 		return nil, nil, err

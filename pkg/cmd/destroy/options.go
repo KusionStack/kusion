@@ -52,7 +52,7 @@ func (o *Options) Run() error {
 	// listen for interrupts or the SIGTERM signal
 	signals.HandleInterrupt()
 	// parse project and stack of work directory
-	proj, stack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	proj, stack, err := project.DetectProjectAndStackFrom(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}

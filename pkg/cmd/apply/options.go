@@ -58,7 +58,7 @@ func (o *Options) Run() error {
 	}
 
 	// parse project and stack of work directory
-	currentProject, currentStack, err := project.DetectProjectAndStack(o.Options.WorkDir)
+	currentProject, currentStack, err := project.DetectProjectAndStackFrom(o.Options.WorkDir)
 	if err != nil {
 		return err
 	}

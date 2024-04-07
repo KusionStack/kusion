@@ -115,7 +115,7 @@ func (o *Options) Run() error {
 	}
 
 	// Parse project and currentStack of work directory
-	currentProject, currentStack, err := project.DetectProjectAndStack(o.WorkDir)
+	currentProject, currentStack, err := project.DetectProjectAndStackFrom(o.WorkDir)
 	if err != nil {
 		return err
 	}
