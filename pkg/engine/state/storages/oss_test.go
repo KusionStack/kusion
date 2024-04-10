@@ -21,7 +21,7 @@ func TestOssStorage_Get(t *testing.T) {
 		name    string
 		success bool
 		content []byte
-		state   *v1.State
+		state   *v1.DeprecatedState
 	}{
 		{
 			name:    "get oss state successfully",
@@ -53,7 +53,7 @@ func TestOssStorage_Apply(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
-		state   *v1.State
+		state   *v1.DeprecatedState
 	}{
 		{
 			name:    "apply oss state successfully",

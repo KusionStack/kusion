@@ -28,7 +28,7 @@ func TestMysqlStorage_Get(t *testing.T) {
 		name    string
 		success bool
 		stateDO *StateMysqlDO
-		state   *v1.State
+		state   *v1.DeprecatedState
 	}{
 		{
 			name:    "get mysql state successfully",
@@ -60,7 +60,7 @@ func TestMysqlStorage_Apply(t *testing.T) {
 		name        string
 		success     bool
 		lastStateDO *StateMysqlDO
-		state       *v1.State
+		state       *v1.DeprecatedState
 	}{
 		{
 			name:        "update mysql state successfully",

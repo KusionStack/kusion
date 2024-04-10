@@ -10,8 +10,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
-func mockState() *v1.State {
-	return &v1.State{
+func mockState() *v1.DeprecatedState {
+	return &v1.DeprecatedState{
 		ID:            1,
 		Project:       "wordpress",
 		Stack:         "dev",
@@ -69,7 +69,7 @@ func TestLocalStorage_Get(t *testing.T) {
 		name    string
 		success bool
 		content []byte
-		state   *v1.State
+		state   *v1.DeprecatedState
 	}{
 		{
 			name:    "get local state successfully",
@@ -100,7 +100,7 @@ func TestLocalStorage_Apply(t *testing.T) {
 	testcases := []struct {
 		name    string
 		success bool
-		state   *v1.State
+		state   *v1.DeprecatedState
 	}{
 		{
 			name:    "apply local state successfully",

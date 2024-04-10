@@ -52,7 +52,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	}
 
 	var (
-		priorState, resultState *apiv1.State
+		priorState, resultState *apiv1.DeprecatedState
 		priorStateResourceIndex map[string]*apiv1.Resource
 		ag                      *dag.AcyclicGraph
 	)

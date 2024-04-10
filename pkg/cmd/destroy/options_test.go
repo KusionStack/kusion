@@ -88,7 +88,7 @@ func mockDetectProjectAndStack() {
 }
 
 func mockGetState() {
-	mockey.Mock((*statestorages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{sa1}}, nil).Build()
+	mockey.Mock((*statestorages.LocalStorage).Get).Return(&apiv1.DeprecatedState{Resources: []apiv1.Resource{sa1}}, nil).Build()
 }
 
 func Test_preview(t *testing.T) {

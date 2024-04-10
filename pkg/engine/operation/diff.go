@@ -48,7 +48,7 @@ func (d *Diff) Diff(request *DiffRequest) (string, error) {
 	return DiffWithRequestResourceAndState(plan, priorState)
 }
 
-func DiffWithRequestResourceAndState(plan *v1.Spec, priorState *v1.State) (string, error) {
+func DiffWithRequestResourceAndState(plan *v1.Spec, priorState *v1.DeprecatedState) (string, error) {
 	planString := json.MustMarshal2String(plan.Resources)
 	var report *dyff.Report
 	var err error

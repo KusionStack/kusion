@@ -79,7 +79,7 @@ func (o *Options) Run() error {
 	priorState, err := storage.Get()
 	if err != nil || priorState == nil {
 		log.Infof("can't find state with project: %s, stack: %s, workspace: %s", proj.Name, stack.Name, o.Workspace)
-		return fmt.Errorf("can not find State in this stack")
+		return fmt.Errorf("can not find DeprecatedState in this stack")
 	}
 	destroyResources := priorState.Resources
 

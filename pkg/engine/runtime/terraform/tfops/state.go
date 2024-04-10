@@ -107,7 +107,7 @@ type resource struct {
 // resource, whose structure depends on the resource type schema.
 type attributeValues map[string]interface{}
 
-// ConvertTFState convert Terraform State to kusion State
+// ConvertTFState convert Terraform DeprecatedState to kusion DeprecatedState
 func ConvertTFState(tfState *StateRepresentation, providerAddr string) v1.Resource {
 	if tfState == nil || tfState.Values == nil {
 		return v1.Resource{}

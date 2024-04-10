@@ -25,7 +25,7 @@ func NewOssStorage(bucket *oss.Bucket, key string) *OssStorage {
 	}
 }
 
-func (s *OssStorage) Get() (*v1.State, error) {
+func (s *OssStorage) Get() (*v1.DeprecatedState, error) {
 	var exist bool
 	body, err := s.bucket.GetObject(s.key)
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *OssStorage) Get() (*v1.State, error) {
 		return nil, nil
 	}
 
-	state := &v1.State{}
+	state := &v1.DeprecatedState{}
 	err = yaml.Unmarshal(content, state)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (s *OssStorage) Get() (*v1.State, error) {
 	return state, nil
 }
 
-func (s *OssStorage) Apply(state *v1.State) error {
+func (s *OssStorage) Apply(state *v1.DeprecatedState) error {
 	content, err := yaml.Marshal(state)
 	if err != nil {
 		return err

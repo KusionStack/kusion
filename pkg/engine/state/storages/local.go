@@ -21,14 +21,14 @@ func NewLocalStorage(path string) *LocalStorage {
 	return &LocalStorage{path: path}
 }
 
-func (s *LocalStorage) Get() (*v1.State, error) {
+func (s *LocalStorage) Get() (*v1.DeprecatedState, error) {
 	content, err := os.ReadFile(s.path)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 
 	if len(content) != 0 {
-		state := &v1.State{}
+		state := &v1.DeprecatedState{}
 		err = yaml.Unmarshal(content, state)
 		if err != nil {
 			return nil, err
@@ -39,7 +39,7 @@ func (s *LocalStorage) Get() (*v1.State, error) {
 	}
 }
 
-func (s *LocalStorage) Apply(state *v1.State) error {
+func (s *LocalStorage) Apply(state *v1.DeprecatedState) error {
 	if err := os.MkdirAll(filepath.Dir(s.path), os.ModePerm); err != nil {
 		fmt.Println(err)
 	}

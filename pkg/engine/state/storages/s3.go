@@ -29,7 +29,7 @@ func NewS3Storage(s3 *s3.S3, bucket, key string) *S3Storage {
 	}
 }
 
-func (s *S3Storage) Get() (*v1.State, error) {
+func (s *S3Storage) Get() (*v1.DeprecatedState, error) {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
 		Key:    &s.key,
@@ -55,7 +55,7 @@ func (s *S3Storage) Get() (*v1.State, error) {
 		return nil, nil
 	}
 
-	state := &v1.State{}
+	state := &v1.DeprecatedState{}
 	err = yaml.Unmarshal(content, state)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (s *S3Storage) Get() (*v1.State, error) {
 	return state, nil
 }
 
-func (s *S3Storage) Apply(state *v1.State) error {
+func (s *S3Storage) Apply(state *v1.DeprecatedState) error {
 	content, err := yaml.Marshal(state)
 	if err != nil {
 		return err
