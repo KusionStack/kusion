@@ -294,7 +294,7 @@ func (w *WorkSpace) show(ctx context.Context, fileName string) ([]byte, error) {
 	return out, nil
 }
 
-// RefreshOnly refresh Terraform State
+// RefreshOnly refresh Terraform DeprecatedState
 func (w *WorkSpace) RefreshOnly(ctx context.Context) (*StateRepresentation, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	err := w.CleanAndInitWorkspace(ctx)

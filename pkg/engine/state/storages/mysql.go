@@ -24,7 +24,7 @@ func NewMysqlStorage(db *gorm.DB, project, stack, workspace string) *MysqlStorag
 	}
 }
 
-func (s *MysqlStorage) Get() (*v1.State, error) {
+func (s *MysqlStorage) Get() (*v1.DeprecatedState, error) {
 	stateDO, err := getStateFromMysql(s.db, s.project, s.stack, s.workspace)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (s *MysqlStorage) Get() (*v1.State, error) {
 	return convertFromMysqlDO(stateDO)
 }
 
-func (s *MysqlStorage) Apply(state *v1.State) error {
+func (s *MysqlStorage) Apply(state *v1.DeprecatedState) error {
 	exist, err := checkStateExistenceInMysql(s.db, s.project, s.stack, s.workspace)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func updateStateInMysql(db *gorm.DB, s *StateMysqlDO) error {
 	return db.Where(q).Updates(s).Error
 }
 
-func convertToMysqlDO(state *v1.State) (*StateMysqlDO, error) {
+func convertToMysqlDO(state *v1.DeprecatedState) (*StateMysqlDO, error) {
 	content, err := yaml.Marshal(state)
 	if err != nil {
 		return nil, err
@@ -119,8 +119,8 @@ func convertToMysqlDO(state *v1.State) (*StateMysqlDO, error) {
 	}, nil
 }
 
-func convertFromMysqlDO(s *StateMysqlDO) (*v1.State, error) {
-	state := &v1.State{}
+func convertFromMysqlDO(s *StateMysqlDO) (*v1.DeprecatedState, error) {
+	state := &v1.DeprecatedState{}
 	if err := yaml.Unmarshal([]byte(s.Content), state); err != nil {
 		return nil, err
 	}

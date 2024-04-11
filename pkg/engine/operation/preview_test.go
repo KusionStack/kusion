@@ -96,7 +96,7 @@ func TestOperation_Preview(t *testing.T) {
 		Order                   *models.ChangeOrder
 		RuntimeMap              map[apiv1.Type]runtime.Runtime
 		MsgCh                   chan models.Message
-		resultState             *apiv1.State
+		resultState             *apiv1.DeprecatedState
 		lock                    *sync.Mutex
 	}
 	type args struct {

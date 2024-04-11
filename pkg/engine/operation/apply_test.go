@@ -68,7 +68,7 @@ func TestOperation_Apply(t *testing.T) {
 		RuntimeMap              map[apiv1.Type]runtime.Runtime
 		Stack                   *apiv1.Stack
 		MsgCh                   chan models.Message
-		resultState             *apiv1.State
+		resultState             *apiv1.DeprecatedState
 		lock                    *sync.Mutex
 	}
 	type args struct {
@@ -87,7 +87,7 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}}
 
-	rs := &apiv1.State{
+	rs := &apiv1.DeprecatedState{
 		ID:            0,
 		Stack:         "fake-stack",
 		Project:       "fake-project",

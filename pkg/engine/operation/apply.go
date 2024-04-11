@@ -25,10 +25,10 @@ type ApplyRequest struct {
 }
 
 type ApplyResponse struct {
-	State *apiv1.State
+	State *apiv1.DeprecatedState
 }
 
-func NewApplyGraph(m *apiv1.Spec, priorState *apiv1.State) (*dag.AcyclicGraph, v1.Status) {
+func NewApplyGraph(m *apiv1.Spec, priorState *apiv1.DeprecatedState) (*dag.AcyclicGraph, v1.Status) {
 	intentParser := parser.NewIntentParser(m)
 	g := &dag.AcyclicGraph{}
 	g.Add(&graph.RootNode{})

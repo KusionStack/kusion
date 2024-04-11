@@ -177,7 +177,7 @@ func TestResourceNode_Execute(t *testing.T) {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
 				}).Build()
 			mockey.Mock(mockey.GetMethod(tt.args.operation.StateStorage, "Apply")).To(
-				func(f *storages.LocalStorage, state *apiv1.State) error {
+				func(f *storages.LocalStorage, state *apiv1.DeprecatedState) error {
 					return nil
 				}).Build()
 

@@ -59,7 +59,7 @@ func TestOperation_Destroy(t *testing.T) {
 
 	mockey.PatchConvey("destroy success", t, func() {
 		mockey.Mock((*graph.ResourceNode).Execute).Return(nil).Build()
-		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{resourceState}}, nil).Build()
+		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.DeprecatedState{Resources: []apiv1.Resource{resourceState}}, nil).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
 			return &fakerRuntime{}, nil
 		}).Build()
@@ -72,7 +72,7 @@ func TestOperation_Destroy(t *testing.T) {
 
 	mockey.PatchConvey("destroy failed", t, func() {
 		mockey.Mock((*graph.ResourceNode).Execute).Return(v1.NewErrorStatus(errors.New("mock error"))).Build()
-		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.State{Resources: []apiv1.Resource{resourceState}}, nil).Build()
+		mockey.Mock((*storages.LocalStorage).Get).Return(&apiv1.DeprecatedState{Resources: []apiv1.Resource{resourceState}}, nil).Build()
 		mockey.Mock(kubernetes.NewKubernetesRuntime).Return(&fakerRuntime{}, nil).Build()
 
 		o.MsgCh = make(chan models.Message, 1)

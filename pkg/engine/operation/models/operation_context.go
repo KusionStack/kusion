@@ -51,8 +51,8 @@ type Operation struct {
 	// Lock is the operation-wide mutex
 	Lock *sync.Mutex
 
-	// ResultState is the final State build by this operation, and this State will be saved in the StateStorage
-	ResultState *v1.State
+	// ResultState is the final DeprecatedState build by this operation, and this DeprecatedState will be saved in the StateStorage
+	ResultState *v1.DeprecatedState
 }
 
 type Message struct {
@@ -95,7 +95,7 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *v1.Resour
 	return nil
 }
 
-func (o *Operation) InitStates(request *Request) (*v1.State, *v1.State) {
+func (o *Operation) InitStates(request *Request) (*v1.DeprecatedState, *v1.DeprecatedState) {
 	priorState, err := o.StateStorage.Get()
 	util.CheckNotError(err, fmt.Sprintf("get state failed with request: %v", json.Marshal2PrettyString(request)))
 	if priorState == nil {
@@ -105,7 +105,7 @@ func (o *Operation) InitStates(request *Request) (*v1.State, *v1.State) {
 	resultState := v1.NewState()
 	resultState.Serial = priorState.Serial
 	err = copier.Copy(resultState, request)
-	util.CheckNotError(err, fmt.Sprintf("copy request to result State failed, request:%v", json.Marshal2PrettyString(request)))
+	util.CheckNotError(err, fmt.Sprintf("copy request to result DeprecatedState failed, request:%v", json.Marshal2PrettyString(request)))
 	resultState.Stack = request.Stack.Name
 	resultState.Project = request.Project.Name
 
@@ -139,8 +139,8 @@ func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
 	resultState.ModifiedTime = now
 	err := o.StateStorage.Apply(resultState)
 	if err != nil {
-		return fmt.Errorf("apply State failed. %w", err)
+		return fmt.Errorf("apply DeprecatedState failed. %w", err)
 	}
-	log.Infof("update State:%v success", resultState.ID)
+	log.Infof("update DeprecatedState:%v success", resultState.ID)
 	return nil
 }
