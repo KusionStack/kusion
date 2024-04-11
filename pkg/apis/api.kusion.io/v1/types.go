@@ -30,6 +30,10 @@ type Project struct {
 type Stack struct {
 	// Name is a required fully qualified name.
 	Name string `json:"name" yaml:"name"`
+	// Backend is the place to store the workspace config and versioned releases of a stack.
+	Backend string `json:"backend" yaml:"backend"`
+	// Workspace is the target environment to deploy a stack.
+	Workspace string `json:"workspace" yaml:"workspace"`
 	// Description is an optional informational description.
 	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
 	// Labels is the list of labels that are assigned to this stack.
