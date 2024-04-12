@@ -254,15 +254,15 @@ func convertKusionProbeToV1Probe(p *internalv1.Probe) (*corev1.Probe, error) {
 	}
 	probeHandler := p.ProbeHandler
 	switch probeHandler.Type {
-	case internalv1.TypeHTTP:
+	case "Http":
 		action, err := httpGetAction(probeHandler.HTTPGetAction.URL, probeHandler.Headers)
 		if err != nil {
 			return nil, err
 		}
 		result.HTTPGet = action
-	case internalv1.TypeExec:
+	case "Exec":
 		result.Exec = &corev1.ExecAction{Command: probeHandler.Command}
-	case internalv1.TypeTCP:
+	case "Tcp":
 		action, err := tcpSocketAction(probeHandler.TCPSocketAction.URL)
 		if err != nil {
 			return nil, err
@@ -295,13 +295,13 @@ func convertKusionLifecycleToV1Lifecycle(l *internalv1.Lifecycle) (*corev1.Lifec
 func lifecycleHandler(in *internalv1.LifecycleHandler) (*corev1.LifecycleHandler, error) {
 	result := &corev1.LifecycleHandler{}
 	switch in.Type {
-	case internalv1.TypeHTTP:
+	case "Http":
 		action, err := httpGetAction(in.HTTPGetAction.URL, in.Headers)
 		if err != nil {
 			return nil, err
 		}
 		result.HTTPGet = action
-	case internalv1.TypeExec:
+	case "Exec":
 		result.Exec = &corev1.ExecAction{Command: in.Command}
 	}
 	return result, nil
