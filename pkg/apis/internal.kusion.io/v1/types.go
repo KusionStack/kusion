@@ -5,6 +5,14 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+const (
+	BuiltinModulePrefix = "kam."
+	ProbePrefix         = "v1.workload.container.probe."
+	TypeHTTP            = BuiltinModulePrefix + ProbePrefix + "Http"
+	TypeExec            = BuiltinModulePrefix + ProbePrefix + "Exec"
+	TypeTCP             = BuiltinModulePrefix + ProbePrefix + "Tcp"
+)
+
 // Container describes how the App's tasks are expected to be run.
 type Container struct {
 	// Image to run for this container

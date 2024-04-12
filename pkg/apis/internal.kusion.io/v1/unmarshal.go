@@ -15,15 +15,15 @@ func (p *ProbeHandler) UnmarshalJSON(data []byte) error {
 
 	p.Type = probeType.Type
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = json.Unmarshal(data, handler)
 		p.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = json.Unmarshal(data, handler)
 		p.ExecAction = handler
-	case "Tcp":
+	case TypeTCP:
 		handler := &TCPSocketAction{}
 		err = json.Unmarshal(data, handler)
 		p.TCPSocketAction = handler
@@ -44,15 +44,15 @@ func (p *ProbeHandler) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	p.Type = probeType.Type
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = unmarshal(handler)
 		p.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = unmarshal(handler)
 		p.ExecAction = handler
-	case "Tcp":
+	case TypeTCP:
 		handler := &TCPSocketAction{}
 		err = unmarshal(handler)
 		p.TCPSocketAction = handler
@@ -73,11 +73,11 @@ func (l *LifecycleHandler) UnmarshalJSON(data []byte) error {
 
 	l.Type = handlerType.Type
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = json.Unmarshal(data, handler)
 		l.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = json.Unmarshal(data, handler)
 		l.ExecAction = handler
@@ -98,11 +98,11 @@ func (l *LifecycleHandler) UnmarshalYAML(unmarshal func(interface{}) error) erro
 
 	l.Type = handlerType.Type
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		handler := &HTTPGetAction{}
 		err = unmarshal(handler)
 		l.HTTPGetAction = handler
-	case "Exec":
+	case TypeExec:
 		handler := &ExecAction{}
 		err = unmarshal(handler)
 		l.ExecAction = handler
@@ -132,7 +132,7 @@ func (w *Workload) UnmarshalJSON(data []byte) error {
 		err = json.Unmarshal(data, &v)
 		w.Service = &v
 	default:
-		err = errors.New("unknown workload type")
+		err = errors.New("unknown workload type unmarshall")
 	}
 
 	return err

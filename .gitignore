@@ -44,6 +44,7 @@ _python37_home_/
 /kclopenapi
 .kclvm/
 kusion_state*.json
+kusion_state*.yaml
 
 # Vscode
 __debug_bin
@@ -52,3 +53,10 @@ zz_*
 
 # version
 *z_update_version.go
+
+# startup script
+start.sh
+air.toml
+
+# frontend
+frontend/

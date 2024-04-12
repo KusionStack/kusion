@@ -28,10 +28,10 @@ import (
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/cmd/generate/generator"
-	"kusionstack.io/kusion/pkg/cmd/generate/run"
 	"kusionstack.io/kusion/pkg/cmd/meta"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
+	"kusionstack.io/kusion/pkg/engine/api/generate/generator"
+	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )

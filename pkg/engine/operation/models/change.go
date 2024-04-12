@@ -28,7 +28,7 @@ type ChangeStep struct {
 
 // Diff compares objects(from and to) which stores in ChangeStep,
 // and return a human-readable string report.
-func (cs *ChangeStep) Diff() (string, error) {
+func (cs *ChangeStep) Diff(noStyle bool) (string, error) {
 	// Generate diff report
 	diffReport, err := diff.ToReport(cs.From, cs.To)
 	if err != nil {
@@ -44,17 +44,72 @@ func (cs *ChangeStep) Diff() (string, error) {
 
 	buf := bytes.NewBufferString("")
 
+	if noStyle {
+		if len(cs.ID) != 0 {
+			buf.WriteString("ID: ")
+			buf.WriteString(fmt.Sprintf("%s\n", cs.ID))
+		}
+		if cs.Action != Undefined {
+			buf.WriteString("Plan: ")
+			buf.WriteString(fmt.Sprintf("%s\n", cs.Action.String()))
+		}
+		buf.WriteString("Diff: ")
+		if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChanged {
+			buf.WriteString("<EMPTY>")
+		} else {
+			// TODO: reportString is formatted with color, need to remove color eventually
+			buf.WriteString("\n" + strings.TrimSpace(reportString))
+		}
+	} else {
+		if len(cs.ID) != 0 {
+			buf.WriteString(pretty.GreenBold("ID: "))
+			buf.WriteString(pretty.Green("%s\n", cs.ID))
+		}
+		if cs.Action != Undefined {
+			buf.WriteString(pretty.GreenBold("Plan: "))
+			buf.WriteString(pterm.Sprintf("%s\n", cs.Action.PrettyString()))
+		}
+		buf.WriteString(pretty.GreenBold("Diff: "))
+		if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChanged {
+			buf.WriteString(pretty.Gray("<EMPTY>"))
+		} else {
+			buf.WriteString("\n" + strings.TrimSpace(reportString))
+		}
+	}
+	buf.WriteString("\n")
+	return buf.String(), nil
+}
+
+// NoStyleDiff compares objects(from and to) which stores in ChangeStep,
+// and return a string report with no style
+func (cs *ChangeStep) NoStyleDiff() (string, error) {
+	// Generate diff report
+	diffReport, err := diff.ToReport(cs.From, cs.To)
+	if err != nil {
+		log.Errorf("failed to compute diff with ChangeStep ID: %s", cs.ID)
+		return "", err
+	}
+
+	reportString, err := diff.ToHumanString(diff.NewHumanReport(diffReport))
+
+	if err != nil {
+		log.Warn("diff to string error: %v", err)
+		return "", err
+	}
+
+	buf := bytes.NewBufferString("")
+
 	if len(cs.ID) != 0 {
-		buf.WriteString(pretty.GreenBold("ID: "))
-		buf.WriteString(pretty.Green("%s\n", cs.ID))
+		buf.WriteString("ID: ")
+		buf.WriteString(cs.ID + "\n")
 	}
 	if cs.Action != Undefined {
-		buf.WriteString(pretty.GreenBold("Plan: "))
-		buf.WriteString(pterm.Sprintf("%s\n", cs.Action.PrettyString()))
+		buf.WriteString("Plan: ")
+		buf.WriteString(cs.Action.String() + "\n")
 	}
-	buf.WriteString(pretty.GreenBold("Diff: "))
+	buf.WriteString("Diff: ")
 	if len(strings.TrimSpace(reportString)) == 0 && cs.Action == UnChanged {
-		buf.WriteString(pretty.Gray("<EMPTY>"))
+		buf.WriteString("<EMPTY>")
 	} else {
 		buf.WriteString("\n" + strings.TrimSpace(reportString))
 	}
@@ -135,13 +190,15 @@ func (p *Changes) Project() *v1.Project {
 	return p.project
 }
 
-func (o *ChangeOrder) Diffs() string {
+func (o *ChangeOrder) Diffs(NoStyle bool) string {
 	buf := bytes.NewBufferString("")
+	var diffString string
+	var err error
 
 	for _, key := range o.StepKeys {
 		step := o.ChangeSteps[key]
 		// Generate diff report
-		diffString, err := step.Diff()
+		diffString, err = step.Diff(NoStyle)
 		if err != nil {
 			log.Errorf("failed to generate diff string with ChangeStep ID: %s", step.ID)
 			continue
@@ -162,11 +219,16 @@ func (p *Changes) AllUnChange() bool {
 	return true
 }
 
-func (p *Changes) Summary(writer io.Writer) {
+func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 	// Create a fork of the default table, fill it with data and print it.
 	// Data can also be generated and inserted later.
 	tableHeader := []string{fmt.Sprintf("Stack: %s\nID", p.stack.Name), "\nAction"}
 	tableData := pterm.TableData{tableHeader}
+
+	if noStyle {
+		pterm.DisableStyling()
+		pterm.DisableColor()
+	}
 
 	for _, step := range p.Values() {
 		tableData = append(tableData, []string{step.ID, step.Action.String()})
@@ -216,11 +278,11 @@ func (o *ChangeOrder) PromptDetails() (string, error) {
 func (o *ChangeOrder) OutputDiff(target string) {
 	switch target {
 	case "all":
-		fmt.Println(o.Diffs())
+		fmt.Println(o.Diffs(false))
 	default:
 		rinID := target
 		if cs, ok := o.ChangeSteps[rinID]; ok {
-			diffString, err := cs.Diff()
+			diffString, err := cs.Diff(false)
 			if err != nil {
 				log.Error("failed to output specify diff with rinID: %s, err: %v", rinID, err)
 			}

@@ -9,7 +9,7 @@ import (
 // MarshalJSON implements the json.Marshaler interface for ProbeHandler.
 func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		return json.Marshal(struct {
 			TypeWrapper    `json:",inline"`
 			*HTTPGetAction `json:",inline"`
@@ -17,7 +17,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper:   TypeWrapper{p.Type},
 			HTTPGetAction: p.HTTPGetAction,
 		})
-	case "Exec":
+	case TypeExec:
 		return json.Marshal(struct {
 			TypeWrapper `json:",inline"`
 			*ExecAction `json:",inline"`
@@ -25,7 +25,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper: TypeWrapper{p.Type},
 			ExecAction:  p.ExecAction,
 		})
-	case "Tcp":
+	case TypeTCP:
 		return json.Marshal(struct {
 			TypeWrapper      `json:",inline"`
 			*TCPSocketAction `json:",inline"`
@@ -41,7 +41,7 @@ func (p *ProbeHandler) MarshalJSON() ([]byte, error) {
 // MarshalYAML implements the yaml.Marshaler interface for ProbeHandler.
 func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 	switch p.Type {
-	case "Http":
+	case TypeHTTP:
 		return struct {
 			TypeWrapper   `yaml:",inline" json:",inline"`
 			HTTPGetAction `yaml:",inline" json:",inline"`
@@ -49,7 +49,7 @@ func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper:   TypeWrapper{Type: p.Type},
 			HTTPGetAction: *p.HTTPGetAction,
 		}, nil
-	case "Exec":
+	case TypeExec:
 		return struct {
 			TypeWrapper `yaml:",inline" json:",inline"`
 			ExecAction  `yaml:",inline" json:",inline"`
@@ -57,7 +57,7 @@ func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper: TypeWrapper{Type: p.Type},
 			ExecAction:  *p.ExecAction,
 		}, nil
-	case "Tcp":
+	case TypeTCP:
 		return struct {
 			TypeWrapper     `yaml:",inline" json:",inline"`
 			TCPSocketAction `yaml:",inline" json:",inline"`
@@ -73,7 +73,7 @@ func (p *ProbeHandler) MarshalYAML() (interface{}, error) {
 // MarshalJSON implements the json.Marshaler interface for LifecycleHandler.
 func (l *LifecycleHandler) MarshalJSON() ([]byte, error) {
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		return json.Marshal(struct {
 			TypeWrapper    `json:",inline"`
 			*HTTPGetAction `json:",inline"`
@@ -81,7 +81,7 @@ func (l *LifecycleHandler) MarshalJSON() ([]byte, error) {
 			TypeWrapper:   TypeWrapper{l.Type},
 			HTTPGetAction: l.HTTPGetAction,
 		})
-	case "Exec":
+	case TypeExec:
 		return json.Marshal(struct {
 			TypeWrapper `json:",inline"`
 			*ExecAction `json:",inline"`
@@ -97,7 +97,7 @@ func (l *LifecycleHandler) MarshalJSON() ([]byte, error) {
 // MarshalYAML implements the yaml.Marshaler interface for LifecycleHandler.
 func (l *LifecycleHandler) MarshalYAML() (interface{}, error) {
 	switch l.Type {
-	case "Http":
+	case TypeHTTP:
 		return struct {
 			TypeWrapper   `yaml:",inline" json:",inline"`
 			HTTPGetAction `yaml:",inline" json:",inline"`
@@ -105,7 +105,7 @@ func (l *LifecycleHandler) MarshalYAML() (interface{}, error) {
 			TypeWrapper:   TypeWrapper{Type: l.Type},
 			HTTPGetAction: *l.HTTPGetAction,
 		}, nil
-	case "Exec":
+	case TypeExec:
 		return struct {
 			TypeWrapper `yaml:",inline" json:",inline"`
 			ExecAction  `yaml:",inline" json:",inline"`
@@ -138,7 +138,7 @@ func (w *Workload) MarshalJSON() ([]byte, error) {
 			Job:    w.Job,
 		})
 	default:
-		return nil, errors.New("unknown workload type")
+		return nil, errors.New("unknown workload type marshal")
 	}
 }
 
