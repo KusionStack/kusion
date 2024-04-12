@@ -3,6 +3,8 @@ package metadata
 import (
 	"fmt"
 	"strings"
+
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
 const (
@@ -28,13 +30,13 @@ const (
 )
 
 // Metadata holds the upstream information about on artifact's source.
-// https://github.com/opencontainers/image-spec/blob/main/annotations.md
 type Metadata struct {
 	Created     string
 	Source      string
 	Revision    string
 	Digest      string
 	URL         string
+	Platform    *v1.Platform
 	Annotations map[string]string
 }
 

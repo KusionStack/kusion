@@ -7,11 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 
@@ -32,8 +33,11 @@ var (
 		OCI registry using the version as the image tag.`)
 
 	pushExample = i18n.T(`
-		# Push a module to an OCI Registry using a token
+		# Push a module of current OS arch to an OCI Registry using a token
 		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_TOKEN>
+
+		# Push a module of specific OS arch to an OCI Registry using a token
+		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --os-arch==darwin/arm64 --version=1.0.0 --creds <YOUR_TOKEN>
 		
 		# Push a module to an OCI Registry using a credentials in <YOUR_USERNAME>:<YOUR_TOKEN> format. 
 		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_USERNAME>:<YOUR_TOKEN>
@@ -55,11 +59,6 @@ var (
 // denotes the latest stable version of a module.
 const LatestVersion = "latest"
 
-// All supported platforms, to reduce module package size, only support widely used os and arch.
-var supportPlatforms = []string{
-	"linux/amd64", "darwin/amd64", "windows/amd64", "darwin/arm64",
-}
-
 // PushModFlags directly reflect the information that CLI is gathering via flags. They will be converted to
 // PushModOptions, which reflect the runtime requirements for the command.
 //
@@ -67,6 +66,7 @@ var supportPlatforms = []string{
 type PushModFlags struct {
 	Version          string
 	Latest           bool
+	OSArch           string
 	Annotations      []string
 	Credentials      string
 	Sign             string
@@ -82,6 +82,8 @@ type PushModOptions struct {
 	ModulePath string
 	OCIUrl     string
 	Latest     bool
+	OSArch     string
+	Version    string
 	Sign       string
 	CosignKey  string
 
@@ -127,7 +129,8 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 
 // AddFlags registers flags for a cli.
 func (flags *PushModFlags) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&flags.Version, "version", "v", flags.Version, "The version of the module e.g. '1.0.0' or '1.0.0-rc.1'.")
+	cmd.Flags().StringVarP(&flags.Version, "version", "v", "", "The version of the module e.g. '1.0.0' or '1.0.0-rc.1'.")
+	cmd.Flags().StringVar(&flags.OSArch, "os-arch", "", "The os arch of the module e.g. 'darwin/arm64', 'linux/amd64'.")
 	cmd.Flags().BoolVar(&flags.Latest, "latest", flags.Latest, "Tags the current version as the latest stable module version.")
 	cmd.Flags().StringVar(&flags.Credentials, "creds", flags.Credentials,
 		"The credentials token for the OCI registry in <YOUR_TOKEN> or <YOUR_USERNAME>:<YOUR_TOKEN> format.")
@@ -144,11 +147,18 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 		return nil, fmt.Errorf("path to module and OCI registry url are required")
 	}
 
+	// Prepare metadata
+	if flags.OSArch == "" {
+		// set as the current OS arch
+		flags.OSArch = runtime.GOOS + "/" + runtime.GOARCH
+	}
+	osArch := strings.Split(flags.OSArch, "/")
+
 	version := flags.Version
 	if _, err := semver.StrictNewVersion(version); err != nil {
 		return nil, fmt.Errorf("version is not in semver format: %w", err)
 	}
-	fullURL := fmt.Sprintf("%s:%s", args[1], version)
+	fullURL := fmt.Sprintf("%s-%s_%s:%s", args[1], osArch[0], osArch[1], version)
 
 	// If creds in <token> format, creds must be base64 encoded
 	if len(flags.Credentials) != 0 && !strings.Contains(flags.Credentials, ":") {
@@ -169,12 +179,15 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 		info = gitutil.Get(repoRoot)
 	}
 
-	// Prepare metadata
 	meta := metadata.Metadata{
 		Created:     info.CommitDate,
 		Source:      info.RemoteURL,
 		Revision:    info.Commit,
 		Annotations: annotations,
+		Platform: &v1.Platform{
+			OS:           osArch[0],
+			Architecture: osArch[1],
+		},
 	}
 	if len(meta.Created) == 0 {
 		ct := time.Now().UTC()
@@ -186,6 +199,7 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 		ociclient.WithUserAgent(oci.UserAgent),
 		ociclient.WithCredentials(flags.Credentials),
 		ociclient.WithInsecure(flags.InsecureRegistry),
+		ociclient.WithPlatform(meta.Platform),
 	}
 	client := ociclient.NewClient(opts...)
 
@@ -215,39 +229,39 @@ func (o *PushModOptions) Validate() error {
 
 // Run executes the `mod push` command.
 func (o *PushModOptions) Run() error {
-	// First build executable binary via compilation
-	// Create temp module dir for later tar operation
-	tempModuleDir, err := os.MkdirTemp("", filepath.Base(o.ModulePath))
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tempModuleDir)
-
 	sp := &pretty.SpinnerT
 	sp, _ = sp.Start("building the module binary...")
 	defer func() {
 		_ = sp.Stop()
 	}()
 
-	generatorSourceDir := filepath.Join(o.ModulePath, "src")
-	err = buildGeneratorCrossPlatforms(generatorSourceDir, tempModuleDir, o.IOStreams)
+	targetDir, err := o.buildModule()
+	defer os.RemoveAll(targetDir)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
 	// Copy to temp module dir and push artifact to OCI repository
-	err = ioutil.CopyDir(tempModuleDir, o.ModulePath, func(path string) bool {
-		return strings.Contains(path, "src")
+	err = ioutil.CopyDir(targetDir, o.ModulePath, func(path string) bool {
+		skipDirs := []string{filepath.Join(o.ModulePath, ".git"), filepath.Join(o.ModulePath, "src")}
+
+		// skip files in skipDirs
+		for _, dir := range skipDirs {
+			if strings.HasPrefix(path, dir) {
+				return true
+			}
+		}
+		return false
 	})
 	if err != nil {
 		return err
 	}
 
 	sp.Info("pushing the module...")
-	digest, err := o.Client.Push(ctx, o.OCIUrl, tempModuleDir, o.Metadata, nil)
+	digest, err := o.Client.Push(ctx, o.OCIUrl, targetDir, o.Metadata, nil)
 	if err != nil {
 		return err
 	}
@@ -272,86 +286,85 @@ func (o *PushModOptions) Run() error {
 	return nil
 }
 
-// This function loops through all support platforms to build target binary.
-func buildGeneratorCrossPlatforms(generatorSrcDir, targetDir string, ioStreams genericiooptions.IOStreams) error {
-	goFileSearchPattern := filepath.Join(generatorSrcDir, "*.go")
-	if matches, err := filepath.Glob(goFileSearchPattern); err != nil || len(matches) == 0 {
-		return fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
-	}
-
-	gobin, err := executable.FindExecutable("go")
+// build target os arch module binary
+func (o *PushModOptions) buildModule() (string, error) {
+	// First build executable binary via compilation
+	// Create temp module dir for later tar operation
+	targetDir, err := os.MkdirTemp("", filepath.Base(o.ModulePath))
 	if err != nil {
-		return fmt.Errorf("unable to find 'go' executable: %w", err)
+		return "", err
 	}
 
-	var wg sync.WaitGroup
-	var failMu sync.Mutex
-	failed := false
+	moduleSrc := filepath.Join(o.ModulePath, "src")
+	goFileSearchPattern := filepath.Join(moduleSrc, "*.go")
 
-	// Build in parallel to reduce module push time
-	for _, platform := range supportPlatforms {
-		wg.Add(1)
-		go func(plat string) {
-			partialPath := strings.Replace(plat, "/", "-", 1)
-			output := filepath.Join(targetDir, "_dist", partialPath, "generator")
-			if strings.Contains(plat, "windows") {
-				output = filepath.Join(targetDir, "_dist", partialPath, "generator.exe")
-			}
-			f := false
-			buildErr := buildGenerator(gobin, plat, generatorSrcDir, output, ioStreams)
-			if buildErr != nil {
-				fmt.Printf("failed to build with %s\n", plat)
-				f = true
-			}
-			failMu.Lock()
-			failed = failed || f
-			failMu.Unlock()
-			wg.Done()
-		}(platform)
-	}
-	wg.Wait()
+	// OCIUrl example: oci://ghcr.io/org/my-module-linux_amd64:0.1.0
+	split := strings.Split(o.OCIUrl, "/")
+	nameVersion := strings.Split(split[len(split)-1], ":")
+	name := nameVersion[0]
+	version := nameVersion[1]
 
-	if failed {
-		return fmt.Errorf("failed to build generator bin")
+	if matches, err := filepath.Glob(goFileSearchPattern); err != nil || len(matches) == 0 {
+		return "", fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
 	}
 
-	return nil
+	goBin, err := executable.FindExecutable("go")
+	if err != nil {
+		return "", fmt.Errorf("unable to find executable 'go' binary: %w", err)
+	}
+
+	// prepare platform
+	if o.Metadata.Platform == nil {
+		return "", fmt.Errorf("platform is not set in metadata")
+	}
+	pOS := o.Metadata.Platform.OS
+	pArch := o.Metadata.Platform.Architecture
+	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+version)
+	if strings.Contains(o.OSArch, "windows") {
+		output = filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+version+".exe")
+	}
+
+	path, err := buildBinary(goBin, pOS, pArch, moduleSrc, output, o.IOStreams)
+	if err != nil {
+		return "", fmt.Errorf("failed to build the module %w", err)
+	}
+
+	return filepath.Dir(path), nil
 }
 
 // This function takes a file target to specify where to compile to.
 // If `outfile` is "", the binary is compiled to a new temporary file.
 // This function returns the path of the file that was produced.
-func buildGenerator(gobin, platform, generatorDirectory, outfile string, ioStreams genericiooptions.IOStreams) error {
+func buildBinary(goBin, operatingSystem, arch, srcDirectory, outfile string, ioStreams genericiooptions.IOStreams) (string, error) {
 	if outfile == "" {
 		// If no outfile is supplied, write the Go binary to a temporary file.
 		f, err := os.CreateTemp("", "generator.*")
 		if err != nil {
-			return fmt.Errorf("unable to create go program temp file: %w", err)
+			return "", fmt.Errorf("unable to create go program temp file: %w", err)
 		}
 
 		if err := f.Close(); err != nil {
-			return fmt.Errorf("unable to close go program temp file: %w", err)
+			return "", fmt.Errorf("unable to close go program temp file: %w", err)
 		}
 		outfile = f.Name()
 	}
 
-	osArch := strings.Split(platform, "/")
 	extraEnvs := []string{
 		"CGO_ENABLED=0",
-		fmt.Sprintf("GOOS=%s", osArch[0]),
-		fmt.Sprintf("GOARCH=%s", osArch[1]),
+		fmt.Sprintf("GOOS=%s", operatingSystem),
+		fmt.Sprintf("GOARCH=%s", arch),
 	}
 
-	buildCmd := exec.Command(gobin, "build", "-o", outfile)
-	buildCmd.Dir = generatorDirectory
+	buildCmd := exec.Command(goBin, "build", "-o", outfile)
+	buildCmd.Dir = srcDirectory
 	buildCmd.Env = append(os.Environ(), extraEnvs...)
 	buildCmd.Stdout, buildCmd.Stderr = ioStreams.Out, ioStreams.ErrOut
 
 	if err := buildCmd.Run(); err != nil {
-		return fmt.Errorf("unable to run `go build`: %w", err)
+		return "", fmt.Errorf("unable to run `go build`: %w", err)
 	}
 
-	return nil
+	return outfile, nil
 }
 
 // detectGitRepository detects existence of .git with target path.

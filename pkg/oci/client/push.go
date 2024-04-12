@@ -54,6 +54,18 @@ func (c *Client) Push(ctx context.Context, ociURL, sourceDir string, metadata me
 	image = mutate.ConfigMediaType(image, CanonicalConfigMediaType)
 	image = mutate.Annotations(image, metadata.ToAnnotations()).(v1.Image)
 
+	platform := metadata.Platform
+	if platform == nil {
+		return "", fmt.Errorf("platform is not set")
+	}
+	image, err = mutate.ConfigFile(image, &v1.ConfigFile{
+		Architecture: platform.Architecture,
+		OS:           platform.OS,
+	})
+	if err != nil {
+		return "", fmt.Errorf("setting image config file failed: %w", err)
+	}
+
 	layer, err := tarball.LayerFromFile(tmpFile, tarball.WithMediaType(CanonicalContentMediaType))
 	if err != nil {
 		return "", fmt.Errorf("creating content layer failed: %w", err)
