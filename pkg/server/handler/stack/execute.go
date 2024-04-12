@@ -437,7 +437,7 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		// TODO: this local storage is temporary, will support remote later
 		stateStorage := remoteBackend.StateStorage(project.Name, stack.Name, workspaceParam)
 		logger.Info("Remote state storage found", "Remote", stateStorage)
-		//logger.Info("Local state storage found", "Path", stateStorage)
+		// logger.Info("Local state storage found", "Path", stateStorage)
 
 		// Compute changes for preview
 		changes, err := engineapi.Preview(executeOptions, stateStorage, sp, project, stack)
@@ -530,7 +530,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		// Get params from URL parameter
 		stackID := chi.URLParam(r, "stackID")
 		// TODO: Define default behaviors
-		//kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
+		// kpmParam, _ := strconv.ParseBool(r.URL.Query().Get("kpm"))
 		// TODO: Should match automatically eventually
 		workspaceParam := r.URL.Query().Get("workspace")
 		detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
@@ -611,7 +611,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		// Compute state storage
 		// TODO: this local storage is temporary, will support remote later
 		stateStorage := remoteBackend.StateStorage(project.Name, stack.Name, workspaceParam)
-		//logger.Info("Local state storage found", "Path", stateStorage)
+		// logger.Info("Local state storage found", "Path", stateStorage)
 		logger.Info("Remote state storage found", "Remote", stateStorage)
 
 		priorState, err := stateStorage.Get()

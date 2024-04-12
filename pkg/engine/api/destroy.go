@@ -64,7 +64,8 @@ func Destroy(
 	o *APIOptions,
 	planResources *apiv1.Spec,
 	changes *models.Changes,
-	stateStorage state.Storage) error {
+	stateStorage state.Storage,
+) error {
 	do := &operation.DestroyOperation{
 		Operation: models.Operation{
 			Stack:        changes.Stack(),

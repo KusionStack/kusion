@@ -107,7 +107,7 @@ func (r *backendRepository) GetByName(ctx context.Context, name string) (*entity
 // List retrieves all backends.
 func (r *backendRepository) List(ctx context.Context) ([]*entity.Backend, error) {
 	var dataModel []BackendModel
-	var backendEntityList []*entity.Backend
+	backendEntityList := make([]*entity.Backend, 0)
 	result := r.db.WithContext(ctx).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error

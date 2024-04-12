@@ -110,7 +110,7 @@ func (r *projectRepository) Get(ctx context.Context, id uint) (*entity.Project, 
 // List retrieves all projects.
 func (r *projectRepository) List(ctx context.Context) ([]*entity.Project, error) {
 	var dataModel []ProjectModel
-	var projectEntityList []*entity.Project
+	projectEntityList := make([]*entity.Project, 0)
 	result := r.db.WithContext(ctx).Preload("Source").Preload("Organization").Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error

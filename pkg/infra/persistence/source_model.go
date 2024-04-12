@@ -77,7 +77,6 @@ func (m *SourceModel) FromEntity(e *entity.Source) error {
 
 	m.ID = e.ID
 	m.SourceProvider = string(e.SourceProvider)
-	//m.Remote = e.Remote.String()
 	m.Description = e.Description
 	m.Labels = MultiString(e.Labels)
 	m.Owners = MultiString(e.Owners)

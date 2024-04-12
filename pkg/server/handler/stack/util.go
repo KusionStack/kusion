@@ -34,7 +34,7 @@ func buildOptions(dryrun bool) *engineapi.APIOptions {
 		// IgnoreFields: []string{},
 		DryRun: dryrun,
 	}
-	//return intentOptions, previewOptions
+	// return intentOptions, previewOptions
 	return previewOptions
 }
 

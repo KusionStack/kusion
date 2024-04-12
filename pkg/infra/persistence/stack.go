@@ -92,8 +92,6 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 	var dataModel StackModel
 	err := r.db.WithContext(ctx).
 		Preload("Project").
-		//Preload("Source").
-		//Preload("Organization").
 		First(&dataModel, id).Error
 	if err != nil {
 		return nil, err
@@ -105,11 +103,9 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 // List retrieves all stacks.
 func (r *stackRepository) List(ctx context.Context) ([]*entity.Stack, error) {
 	var dataModel []StackModel
-	var stackEntityList []*entity.Stack
+	stackEntityList := make([]*entity.Stack, 0)
 	result := r.db.WithContext(ctx).
 		Preload("Project").
-		//Preload("Source").
-		//Preload("Organization").
 		Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error

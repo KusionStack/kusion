@@ -91,7 +91,6 @@ func (cs *ChangeStep) NoStyleDiff() (string, error) {
 	}
 
 	reportString, err := diff.ToHumanString(diff.NewHumanReport(diffReport))
-
 	if err != nil {
 		log.Warn("diff to string error: %v", err)
 		return "", err
@@ -190,7 +189,7 @@ func (p *Changes) Project() *v1.Project {
 	return p.project
 }
 
-func (o *ChangeOrder) Diffs(NoStyle bool) string {
+func (o *ChangeOrder) Diffs(noStyle bool) string {
 	buf := bytes.NewBufferString("")
 	var diffString string
 	var err error
@@ -198,7 +197,7 @@ func (o *ChangeOrder) Diffs(NoStyle bool) string {
 	for _, key := range o.StepKeys {
 		step := o.ChangeSteps[key]
 		// Generate diff report
-		diffString, err = step.Diff(NoStyle)
+		diffString, err = step.Diff(noStyle)
 		if err != nil {
 			log.Errorf("failed to generate diff string with ChangeStep ID: %s", step.ID)
 			continue

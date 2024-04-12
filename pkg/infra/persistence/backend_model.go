@@ -48,17 +48,12 @@ func (m *BackendModel) ToEntity() (*entity.Backend, error) {
 	}
 
 	return &entity.Backend{
-		ID:   m.ID,
-		Name: m.Name,
-		//Type:              m.Type,
+		ID:                m.ID,
+		Name:              m.Name,
 		Description:       m.Description,
 		CreationTimestamp: m.CreatedAt,
 		UpdateTimestamp:   m.UpdatedAt,
 		BackendConfig:     m.BackendConfig,
-		// BackendConfig: v1.BackendConfig{
-		// 	Type:    m.Type,
-		// 	Configs: m.BackendConfig,
-		// },
 	}, nil
 }
 
@@ -70,11 +65,9 @@ func (m *BackendModel) FromEntity(e *entity.Backend) error {
 
 	m.ID = e.ID
 	m.Name = e.Name
-	//m.Type = e.Type
 	m.Description = e.Description
 	m.CreatedAt = e.CreationTimestamp
 	m.UpdatedAt = e.UpdateTimestamp
-	//m.BackendConfig = e.BackendConfig.Configs
 	m.BackendConfig = e.BackendConfig
 
 	return nil

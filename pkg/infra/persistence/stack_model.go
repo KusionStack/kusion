@@ -55,7 +55,7 @@ func (m *StackModel) ToEntity(ctx context.Context) (*entity.Stack, error) {
 	// 	return nil, ErrFailedToConvertSourceToEntity
 	// }
 
-	//projectEntity, err := m.Project.ToEntityWithSourceAndOrg(sourceEntity, organizationEntity)
+	// projectEntity, err := m.Project.ToEntityWithSourceAndOrg(sourceEntity, organizationEntity)
 	projectEntity, err := m.Project.ToEntityWithSourceAndOrg(nil, nil)
 	if err != nil {
 		return nil, ErrFailedToConvertProjectToEntity
@@ -64,9 +64,9 @@ func (m *StackModel) ToEntity(ctx context.Context) (*entity.Stack, error) {
 	return &entity.Stack{
 		ID:   m.ID,
 		Name: m.Name,
-		//Source:            sourceEntity,
+		// Source:            sourceEntity,
 		Project: projectEntity,
-		//Organization:      organizationEntity,
+		// Organization:      organizationEntity,
 		Description:       m.Description,
 		Path:              m.Path,
 		DesiredVersion:    m.DesiredVersion,

@@ -111,7 +111,7 @@ func (r *workspaceRepository) GetByName(ctx context.Context, name string) (*enti
 // List retrieves all workspaces.
 func (r *workspaceRepository) List(ctx context.Context) ([]*entity.Workspace, error) {
 	var dataModel []WorkspaceModel
-	var workspaceEntityList []*entity.Workspace
+	workspaceEntityList := make([]*entity.Workspace, 0)
 	result := r.db.WithContext(ctx).
 		Preload("Backend").
 		Find(&dataModel)

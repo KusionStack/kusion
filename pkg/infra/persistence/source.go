@@ -133,7 +133,7 @@ func (r *sourceRepository) GetByRemote(ctx context.Context, remote string) (*ent
 // List retrieves all sources.
 func (r *sourceRepository) List(ctx context.Context) ([]*entity.Source, error) {
 	var dataModel []SourceModel
-	var sourceEntityList []*entity.Source
+	sourceEntityList := make([]*entity.Source, 0)
 	result := r.db.WithContext(ctx).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error

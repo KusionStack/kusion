@@ -58,23 +58,23 @@ type SyncOptions struct {
 	CommonOptions `json:",inline" yaml:",inline"`
 }
 
-// setupResult represents the result of a setup operation.
-type setupResult struct {
-	*pullResult     `json:",inline" yaml:",inline"`
-	*getStateResult `json:",inline" yaml:",inline"`
-}
+// // setupResult represents the result of a setup operation.
+// type setupResult struct {
+// 	*pullResult     `json:",inline" yaml:",inline"`
+// 	*getStateResult `json:",inline" yaml:",inline"`
+// }
 
-// pullResult represents the result of a pull operation.
-type pullResult struct {
-	SourceRoot   string `json:"sourceRoot" yaml:"sourceRoot"`
-	StackAbsPath string `json:"stackAbsPath" yaml:"stackAbsPath"`
-}
+// // pullResult represents the result of a pull operation.
+// type pullResult struct {
+// 	SourceRoot   string `json:"sourceRoot" yaml:"sourceRoot"`
+// 	StackAbsPath string `json:"stackAbsPath" yaml:"stackAbsPath"`
+// }
 
-// getStateResult represents the result of a getState operation.
-type getStateResult struct {
-	StorageKey   string `json:"storageKey" yaml:"storageKey"`
-	StateAbsPath string `json:"stateAbsPath" yaml:"stateAbsPath"`
-}
+// // getStateResult represents the result of a getState operation.
+// type getStateResult struct {
+// 	StorageKey   string `json:"storageKey" yaml:"storageKey"`
+// 	StateAbsPath string `json:"stateAbsPath" yaml:"stateAbsPath"`
+// }
 
 // PreviewResult represents the result of a preview operation.
 type PreviewResult struct {

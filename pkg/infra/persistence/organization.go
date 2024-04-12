@@ -107,7 +107,7 @@ func (r *organizationRepository) Get(ctx context.Context, id uint) (*entity.Orga
 // List retrieves all organizations.
 func (r *organizationRepository) List(ctx context.Context) ([]*entity.Organization, error) {
 	var dataModel []OrganizationModel
-	var organizationEntityList []*entity.Organization
+	organizationEntityList := make([]*entity.Organization, 0)
 	result := r.db.WithContext(ctx).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
