@@ -1,3 +1,17 @@
+// Copyright 2024 KusionStack Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package generator
 
 import (
@@ -21,7 +35,7 @@ import (
 )
 
 // Generator is an interface for things that can generate versioned Spec from
-// configuration code under current working directory and given input parameters.
+// configuration code under current working directory with given input parameters.
 type Generator interface {
 	// Generate creates versioned Intent given working directory and set of parameters
 	Generate(workDir string, params map[string]string) (*v1.Spec, error)
@@ -32,8 +46,8 @@ type DefaultGenerator struct {
 	Project   *v1.Project
 	Stack     *v1.Stack
 	Workspace *v1.Workspace
-	Runner    run.CodeRunner
-	KclPkg    *api.KclPackage
+
+	Runner run.CodeRunner
 }
 
 // Generate versioned Spec with target code runner.
@@ -61,11 +75,16 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 		return nil, err
 	}
 
+	kclPkg, err := api.GetKclPackage(g.Stack.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	builder := &builders.AppsConfigBuilder{
 		Workspace: g.Workspace,
 		Apps:      apps,
 	}
-	return builder.Build(g.KclPkg, g.Project, g.Stack)
+	return builder.Build(kclPkg, g.Project, g.Stack)
 }
 
 // copyDependentModules copies dependent Kusion modules' generators to destination.
