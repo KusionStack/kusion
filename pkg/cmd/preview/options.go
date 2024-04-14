@@ -139,7 +139,7 @@ func (o *Options) Run() error {
 	if len(o.IntentFile) != 0 {
 		spec, err = generate.SpecFromFile(o.IntentFile)
 	} else {
-		spec, err = generate.GenerateSpecWithSpinner(currentProject, currentStack, currentWorkspace, true)
+		spec, err = generate.GenerateSpecWithSpinner(currentProject, currentStack, currentWorkspace, nil, true)
 	}
 	if err != nil {
 		return err

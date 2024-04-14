@@ -232,6 +232,7 @@ func mockGenerateIntentWithSpinner() {
 		project *apiv1.Project,
 		stack *apiv1.Stack,
 		workspace *apiv1.Workspace,
+		parameters map[string]string,
 		noStyle bool,
 	) (*apiv1.Spec, error) {
 		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
