@@ -100,8 +100,8 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 		{
 			Message: "Runtime Commands:",
 			Commands: []*cobra.Command{
-				preview.NewCmdPreview(),
-				apply.NewCmdApply(),
+				preview.NewCmdPreview(o.IOStreams),
+				apply.NewCmdApply(o.IOStreams),
 				destroy.NewCmdDestroy(),
 			},
 		},

@@ -39,11 +39,14 @@ type MetaOptions struct {
 	// RefProject references the project for this CLI invocation.
 	RefProject *v1.Project
 
-	// RefStack referenced the stack for this CLI invocation
+	// RefStack referenced the stack for this CLI invocation.
 	RefStack *v1.Stack
 
-	// RefWorkspace referenced the workspace for this CLI invocation
+	// RefWorkspace referenced the workspace for this CLI invocation.
 	RefWorkspace *v1.Workspace
+
+	// StorageBackend referenced the target storage backend for this CLI invocation.
+	StorageBackend backend.Backend
 }
 
 // NewMetaFlags provides default flags and values for use in other commands.
@@ -82,9 +85,18 @@ func (f *MetaFlags) ToOptions() (*MetaOptions, error) {
 	opts.RefProject = refProject
 	opts.RefStack = refStack
 
+	var storageBackend backend.Backend
+	if f.Backend != nil {
+		storageBackend, err = backend.NewBackend(*f.Backend)
+		opts.StorageBackend = storageBackend
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	// Get current workspace from backend
-	if f.Backend != nil && f.Workspace != nil {
-		workspaceStorage, err := backend.NewWorkspaceStorage(*f.Backend)
+	if f.Workspace != nil && storageBackend != nil {
+		workspaceStorage, err := storageBackend.WorkspaceStorage()
 		if err != nil {
 			return nil, err
 		}
