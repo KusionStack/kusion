@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
+	"github.com/hashicorp/waypoint-plugin-sdk/terminal"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -24,6 +26,9 @@ import (
 type KusionctlOptions struct {
 	Arguments []string
 
+	// UI is used to write to the CLI.
+	UI terminal.UI
+
 	genericiooptions.IOStreams
 }
 
@@ -31,6 +36,7 @@ type KusionctlOptions struct {
 func NewDefaultKusionctlCommand() *cobra.Command {
 	return NewDefaultKusionctlCommandWithArgs(KusionctlOptions{
 		Arguments: os.Args,
+		UI:        terminal.ConsoleUI(context.Background()),
 		IOStreams: genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr},
 	})
 }
@@ -94,7 +100,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 				workspace.NewCmd(),
 				cmdinit.NewCmd(),
 				config.NewCmd(),
-				generate.NewCmdGenerate(o.IOStreams),
+				generate.NewCmdGenerate(o.UI, o.IOStreams),
 			},
 		},
 		{

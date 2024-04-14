@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/waypoint-plugin-sdk/terminal"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -59,6 +60,8 @@ type GenerateFlags struct {
 	Output string
 	Values []string
 
+	UI terminal.UI
+
 	genericiooptions.IOStreams
 }
 
@@ -69,20 +72,23 @@ type GenerateOptions struct {
 	Output string
 	Values []string
 
+	UI terminal.UI
+
 	genericiooptions.IOStreams
 }
 
 // NewGenerateFlags returns a default GenerateFlags
-func NewGenerateFlags(streams genericiooptions.IOStreams) *GenerateFlags {
+func NewGenerateFlags(ui terminal.UI, streams genericiooptions.IOStreams) *GenerateFlags {
 	return &GenerateFlags{
 		MetaFlags: meta.NewMetaFlags(),
+		UI:        ui,
 		IOStreams: streams,
 	}
 }
 
 // NewCmdGenerate creates the `generate` command.
-func NewCmdGenerate(ioStreams genericiooptions.IOStreams) *cobra.Command {
-	flags := NewGenerateFlags(ioStreams)
+func NewCmdGenerate(ui terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+	flags := NewGenerateFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
 		Use:     "generate",
@@ -126,6 +132,7 @@ func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 		Output:      flags.Output,
 		Values:      flags.Values,
 
+		UI:        flags.UI,
 		IOStreams: flags.IOStreams,
 	}
 
@@ -153,13 +160,19 @@ func (o *GenerateOptions) Run() error {
 	parameters := o.buildParameters()
 
 	// call default generator to generate Spec
+	o.UI.Output("Generating...", terminal.WithHeaderStyle())
 	spec, err := GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, true)
 	if err != nil {
 		return err
 	}
 
 	// write Spec to output file or a writer
-	return write(spec, o.Output, o.Out)
+	err = write(spec, o.Output, o.Out)
+	if err != nil {
+		o.UI.Output("Error writing generated Spec: %s", err.Error(), terminal.WithErrorStyle())
+		return err
+	}
+	return nil
 }
 
 // buildParameters builds parameters with given values.
