@@ -215,7 +215,7 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// summary preview table
-	changes.Summary(o.IOStreams.Out)
+	changes.Summary(o.IOStreams.Out, false)
 
 	// detail detection
 	if o.Detail {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/pterm/pterm"
 	yamlv3 "gopkg.in/yaml.v3"
-	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/api/generate/generator"
@@ -68,12 +67,6 @@ func GenerateSpecWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1
 		Workspace: workspace,
 		Runner:    &run.KPMRunner{},
 	}
-
-	kclPkg, err := api.GetKclPackage(stack.Path)
-	if err != nil {
-		return nil, err
-	}
-	defaultGenerator.KclPkg = kclPkg
 
 	var sp *pterm.SpinnerPrinter
 	if noStyle {

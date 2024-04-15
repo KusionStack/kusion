@@ -51,7 +51,6 @@ func checkoutRevision(repoPath string, revision string) error {
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash: plumbing.NewHash(revision),
 	})
-
 	if err != nil {
 		return err
 	}
