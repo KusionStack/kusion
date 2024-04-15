@@ -102,7 +102,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			Commands: []*cobra.Command{
 				preview.NewCmdPreview(o.IOStreams),
 				apply.NewCmdApply(o.IOStreams),
-				destroy.NewCmdDestroy(),
+				destroy.NewCmdDestroy(o.IOStreams),
 			},
 		},
 		{
