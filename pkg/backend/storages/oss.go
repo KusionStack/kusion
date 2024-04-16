@@ -4,8 +4,6 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 
 	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/engine/spec"
-	specstorages "kusionstack.io/kusion/pkg/engine/spec/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -39,8 +37,4 @@ func (s *OssStorage) StateStorage(project, stack, workspace string) state.Storag
 
 func (s *OssStorage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewOssStorage(s.bucket, workspacestorages.GenGenericOssWorkspacePrefixKey(s.prefix))
-}
-
-func (s *OssStorage) SpecStorage(project, stack, workspace string) spec.Storage {
-	return specstorages.NewOssStorage(s.bucket, specstorages.GetObjectStoreSpecFileKey(s.prefix, project, stack, workspace))
 }
