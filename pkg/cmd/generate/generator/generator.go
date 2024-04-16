@@ -28,7 +28,7 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/cmd/build/builders"
+	"kusionstack.io/kusion/pkg/cmd/generate/builders"
 	"kusionstack.io/kusion/pkg/cmd/generate/run"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
