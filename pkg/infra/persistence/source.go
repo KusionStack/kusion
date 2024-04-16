@@ -26,7 +26,7 @@ func NewSourceRepository(db *gorm.DB) repository.SourceRepository {
 
 // Create saves a source to the repository.
 func (r *sourceRepository) Create(ctx context.Context, dataEntity *entity.Source) error {
-	r.db.AutoMigrate(&SourceModel{})
+	// r.db.AutoMigrate(&SourceModel{})
 	err := dataEntity.Validate()
 	if err != nil {
 		return err

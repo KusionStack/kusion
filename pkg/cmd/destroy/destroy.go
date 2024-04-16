@@ -170,7 +170,7 @@ func (o *DeleteOptions) Run() error {
 	}
 
 	// preview
-	changes.Summary(os.Stdout)
+	changes.Summary(os.Stdout, false)
 
 	// detail detection
 	if o.Detail {

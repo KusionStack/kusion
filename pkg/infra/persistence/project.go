@@ -27,7 +27,7 @@ func NewProjectRepository(db *gorm.DB) repository.ProjectRepository {
 
 // Create saves a project to the repository.
 func (r *projectRepository) Create(ctx context.Context, dataEntity *entity.Project) error {
-	r.db.AutoMigrate(&ProjectModel{})
+	// r.db.AutoMigrate(&ProjectModel{})
 	err := dataEntity.Validate()
 	if err != nil {
 		return err

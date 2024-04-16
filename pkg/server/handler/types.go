@@ -21,7 +21,7 @@ type Payload interface {
 }
 
 // response defines the structure for API response payloads.
-type response struct {
+type Response struct {
 	Success   bool       `json:"success" yaml:"success"`                         // Indicates success status.
 	Message   string     `json:"message" yaml:"message"`                         // Descriptive message.
 	Data      any        `json:"data,omitempty" yaml:"data,omitempty"`           // Data payload.
@@ -32,7 +32,7 @@ type response struct {
 }
 
 // Render is a no-op method that satisfies the render.Renderer interface.
-func (rep *response) Render(w http.ResponseWriter, r *http.Request) error {
+func (rep *Response) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 

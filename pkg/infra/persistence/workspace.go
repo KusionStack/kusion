@@ -27,7 +27,7 @@ func NewWorkspaceRepository(db *gorm.DB) repository.WorkspaceRepository {
 
 // Create saves a workspace to the repository.
 func (r *workspaceRepository) Create(ctx context.Context, dataEntity *entity.Workspace) error {
-	r.db.AutoMigrate(&WorkspaceModel{})
+	// r.db.AutoMigrate(&WorkspaceModel{})
 	err := dataEntity.Validate()
 	if err != nil {
 		return err

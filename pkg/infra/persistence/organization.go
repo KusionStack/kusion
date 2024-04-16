@@ -27,7 +27,7 @@ func NewOrganizationRepository(db *gorm.DB) repository.OrganizationRepository {
 
 // Create saves a organization to the repository.
 func (r *organizationRepository) Create(ctx context.Context, dataEntity *entity.Organization) error {
-	r.db.AutoMigrate(&OrganizationModel{})
+	// r.db.AutoMigrate(&OrganizationModel{})
 	err := dataEntity.Validate()
 	if err != nil {
 		return err

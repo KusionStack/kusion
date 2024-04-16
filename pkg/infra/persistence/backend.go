@@ -27,7 +27,7 @@ func NewBackendRepository(db *gorm.DB) repository.BackendRepository {
 
 // Create saves a backend to the repository.
 func (r *backendRepository) Create(ctx context.Context, dataEntity *entity.Backend) error {
-	r.db.AutoMigrate(&BackendModel{})
+	// r.db.AutoMigrate(&BackendModel{})
 	err := dataEntity.Validate()
 	if err != nil {
 		return err

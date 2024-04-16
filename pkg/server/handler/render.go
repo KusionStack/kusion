@@ -13,8 +13,8 @@ import (
 const SuccessMessage = "OK"
 
 // Response creates a standard API response renderer.
-func Response(ctx context.Context, data any, err error) render.Renderer {
-	resp := &response{}
+func GenerateResponse(ctx context.Context, data any, err error) render.Renderer {
+	resp := &Response{}
 
 	// Set the Success and Message fields based on the error parameter.
 	if err == nil {
@@ -44,10 +44,10 @@ func Response(ctx context.Context, data any, err error) render.Renderer {
 
 // FailureResponse creates a response renderer for a failed request.
 func FailureResponse(ctx context.Context, err error) render.Renderer {
-	return Response(ctx, nil, err)
+	return GenerateResponse(ctx, nil, err)
 }
 
 // SuccessResponse creates a response renderer for a successful request.
 func SuccessResponse(ctx context.Context, data any) render.Renderer {
-	return Response(ctx, data, nil)
+	return GenerateResponse(ctx, data, nil)
 }
