@@ -31,8 +31,8 @@ func NewOssStorage(config *v1.BackendOssConfig) (*OssStorage, error) {
 	return &OssStorage{bucket: bucket, prefix: config.Prefix}, nil
 }
 
-func (s *OssStorage) StateStorage(project, stack, workspace string) state.Storage {
-	return statestorages.NewOssStorage(s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, stack, workspace))
+func (s *OssStorage) StateStorage(project, workspace string) state.Storage {
+	return statestorages.NewOssStorage(s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, workspace))
 }
 
 func (s *OssStorage) WorkspaceStorage() (workspace.Storage, error) {

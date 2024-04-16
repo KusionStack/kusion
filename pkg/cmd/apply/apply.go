@@ -177,7 +177,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// compute changes for preview
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 	changes, err := preview.Preview(o.PreviewOptions, storage, spec, o.RefProject, o.RefStack)
 	if err != nil {
 		return err

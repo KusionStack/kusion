@@ -46,10 +46,10 @@ func TestNewOssStorage(t *testing.T) {
 
 func TestOssStorage_StateStorage(t *testing.T) {
 	testcases := []struct {
-		name                      string
-		ossStorage                *OssStorage
-		project, stack, workspace string
-		stateStorage              state.Storage
+		name               string
+		ossStorage         *OssStorage
+		project, workspace string
+		stateStorage       state.Storage
 	}{
 		{
 			name: "state storage from oss backend",
@@ -58,18 +58,17 @@ func TestOssStorage_StateStorage(t *testing.T) {
 				prefix: "kusion",
 			},
 			project:   "wordpress",
-			stack:     "dev",
 			workspace: "dev",
 			stateStorage: statestorages.NewOssStorage(
 				&oss.Bucket{},
-				"kusion/states/wordpress/dev/dev/state.yaml",
+				"kusion/states/wordpress/dev/state.yaml",
 			),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.ossStorage.StateStorage(tc.project, tc.stack, tc.workspace)
+			stateStorage := tc.ossStorage.StateStorage(tc.project, tc.workspace)
 			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}

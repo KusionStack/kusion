@@ -40,8 +40,8 @@ func NewMysqlStorage(config *v1.BackendMysqlConfig) (*MysqlStorage, error) {
 	return &MysqlStorage{db: db}, nil
 }
 
-func (s *MysqlStorage) StateStorage(project, stack, workspace string) state.Storage {
-	return statestorages.NewMysqlStorage(s.db, project, stack, workspace)
+func (s *MysqlStorage) StateStorage(project, workspace string) state.Storage {
+	return statestorages.NewMysqlStorage(s.db, project, workspace)
 }
 
 func (s *MysqlStorage) WorkspaceStorage() (workspace.Storage, error) {

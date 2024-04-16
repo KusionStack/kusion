@@ -44,10 +44,10 @@ func TestNewMysqlStorage(t *testing.T) {
 
 func TestMysqlStorage_StateStorage(t *testing.T) {
 	testcases := []struct {
-		name                      string
-		mysqlStorage              *MysqlStorage
-		project, stack, workspace string
-		stateStorage              state.Storage
+		name               string
+		mysqlStorage       *MysqlStorage
+		project, workspace string
+		stateStorage       state.Storage
 	}{
 		{
 			name: "state storage from mysql",
@@ -55,12 +55,10 @@ func TestMysqlStorage_StateStorage(t *testing.T) {
 				db: &gorm.DB{},
 			},
 			project:   "wordpress",
-			stack:     "dev",
 			workspace: "dev",
 			stateStorage: statestorages.NewMysqlStorage(
 				&gorm.DB{},
 				"wordpress",
-				"dev",
 				"dev",
 			),
 		},
@@ -68,7 +66,7 @@ func TestMysqlStorage_StateStorage(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.mysqlStorage.StateStorage(tc.project, tc.stack, tc.workspace)
+			stateStorage := tc.mysqlStorage.StateStorage(tc.project, tc.workspace)
 			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}

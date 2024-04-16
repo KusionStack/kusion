@@ -154,7 +154,7 @@ func (o *DeleteOptions) Run() error {
 	signals.HandleInterrupt()
 
 	// only destroy resources we managed
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 	priorState, err := storage.Get()
 	if err != nil || priorState == nil {
 		return fmt.Errorf("can not find DeprecatedState in this stack")

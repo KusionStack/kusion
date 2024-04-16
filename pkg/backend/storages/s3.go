@@ -44,8 +44,8 @@ func NewS3Storage(config *v1.BackendS3Config) (*S3Storage, error) {
 	}, nil
 }
 
-func (s *S3Storage) StateStorage(project, stack, workspace string) state.Storage {
-	return statestorages.NewS3Storage(s.s3, s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, stack, workspace))
+func (s *S3Storage) StateStorage(project, workspace string) state.Storage {
+	return statestorages.NewS3Storage(s.s3, s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, workspace))
 }
 
 func (s *S3Storage) WorkspaceStorage() (workspace.Storage, error) {

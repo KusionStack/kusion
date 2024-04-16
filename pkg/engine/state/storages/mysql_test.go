@@ -13,7 +13,6 @@ import (
 func mockStateMysqlDO() *StateMysqlDO {
 	return &StateMysqlDO{
 		Project:   "wordpress",
-		Stack:     "dev",
 		Workspace: "dev",
 		Content:   mockStateContent(),
 	}

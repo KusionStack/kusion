@@ -11,21 +11,20 @@ import (
 
 // MysqlStorage is an implementation of state.Storage which uses mysql as storage.
 type MysqlStorage struct {
-	db                        *gorm.DB
-	project, stack, workspace string
+	db                 *gorm.DB
+	project, workspace string
 }
 
-func NewMysqlStorage(db *gorm.DB, project, stack, workspace string) *MysqlStorage {
+func NewMysqlStorage(db *gorm.DB, project, workspace string) *MysqlStorage {
 	return &MysqlStorage{
 		db:        db,
 		project:   project,
-		stack:     stack,
 		workspace: workspace,
 	}
 }
 
 func (s *MysqlStorage) Get() (*v1.DeprecatedState, error) {
-	stateDO, err := getStateFromMysql(s.db, s.project, s.stack, s.workspace)
+	stateDO, err := getStateFromMysql(s.db, s.project, s.workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +35,7 @@ func (s *MysqlStorage) Get() (*v1.DeprecatedState, error) {
 }
 
 func (s *MysqlStorage) Apply(state *v1.DeprecatedState) error {
-	exist, err := checkStateExistenceInMysql(s.db, s.project, s.stack, s.workspace)
+	exist, err := checkStateExistenceInMysql(s.db, s.project, s.workspace)
 	if err != nil {
 		return err
 	}
@@ -55,7 +54,6 @@ func (s *MysqlStorage) Apply(state *v1.DeprecatedState) error {
 // StateMysqlDO is the data object stored in the mysql db.
 type StateMysqlDO struct {
 	Project   string
-	Stack     string
 	Workspace string
 	Content   string
 }
@@ -64,10 +62,9 @@ func (s StateMysqlDO) TableName() string {
 	return stateTable
 }
 
-func getStateFromMysql(db *gorm.DB, project, stack, workspace string) (*StateMysqlDO, error) {
+func getStateFromMysql(db *gorm.DB, project, workspace string) (*StateMysqlDO, error) {
 	q := &StateMysqlDO{
 		Project:   project,
-		Stack:     stack,
 		Workspace: workspace,
 	}
 	s := &StateMysqlDO{}
@@ -79,10 +76,9 @@ func getStateFromMysql(db *gorm.DB, project, stack, workspace string) (*StateMys
 	return s, result.Error
 }
 
-func checkStateExistenceInMysql(db *gorm.DB, project, stack, workspace string) (bool, error) {
+func checkStateExistenceInMysql(db *gorm.DB, project, workspace string) (bool, error) {
 	q := &StateMysqlDO{
 		Project:   project,
-		Stack:     stack,
 		Workspace: workspace,
 	}
 	s := &StateMysqlDO{}
@@ -100,7 +96,6 @@ func createStateInMysql(db *gorm.DB, s *StateMysqlDO) error {
 func updateStateInMysql(db *gorm.DB, s *StateMysqlDO) error {
 	q := &StateMysqlDO{
 		Project:   s.Project,
-		Stack:     s.Stack,
 		Workspace: s.Workspace,
 	}
 	return db.Where(q).Updates(s).Error
@@ -113,7 +108,6 @@ func convertToMysqlDO(state *v1.DeprecatedState) (*StateMysqlDO, error) {
 	}
 	return &StateMysqlDO{
 		Project:   state.Project,
-		Stack:     state.Stack,
 		Workspace: state.Workspace,
 		Content:   string(content),
 	}, nil

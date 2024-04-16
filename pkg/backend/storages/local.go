@@ -19,8 +19,8 @@ func NewLocalStorage(config *v1.BackendLocalConfig) *LocalStorage {
 	return &LocalStorage{path: config.Path}
 }
 
-func (s *LocalStorage) StateStorage(project, stack, workspace string) state.Storage {
-	return statestorages.NewLocalStorage(statestorages.GenStateFilePath(s.path, project, stack, workspace))
+func (s *LocalStorage) StateStorage(project, workspace string) state.Storage {
+	return statestorages.NewLocalStorage(statestorages.GenStateFilePath(s.path, project, workspace))
 }
 
 func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {
