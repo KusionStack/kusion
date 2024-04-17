@@ -37,7 +37,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
-	"kusionstack.io/kusion/pkg/util/signals"
 )
 
 var (
@@ -150,9 +149,6 @@ func (o *DeleteOptions) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `delete` command.
 func (o *DeleteOptions) Run() error {
-	// listen for interrupts or the SIGTERM signal
-	signals.HandleInterrupt()
-
 	// only destroy resources we managed
 	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
 	priorState, err := storage.Get()
