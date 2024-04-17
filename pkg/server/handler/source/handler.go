@@ -1,18 +1,16 @@
 package source
 
 import (
+	"context"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/entity"
+	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
+	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 	"kusionstack.io/kusion/pkg/server/util"
 )
 
@@ -42,29 +40,8 @@ func (h *Handler) CreateSource() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Source
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Convert Remote string to URL
-		remote, err := url.Parse(requestPayload.Remote)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.Remote = remote
-
-		// Create source with repository
-		err = h.sourceRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
 		// Return created entity
+		createdEntity, err := h.sourceManager.CreateSource(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -83,22 +60,14 @@ func (h *Handler) CreateSource() http.HandlerFunc {
 func (h *Handler) DeleteSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		sourceID := chi.URLParam(r, "sourceID")
-
-		// Delete source with repository
-		id, err := strconv.Atoi(sourceID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidSourceID))
-			return
-		}
-		err = h.sourceRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting source...")
+
+		err = h.sourceManager.DeleteSourceByID(ctx, params.SourceID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -118,17 +87,12 @@ func (h *Handler) DeleteSource() http.HandlerFunc {
 func (h *Handler) UpdateSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating source...")
-		sourceID := chi.URLParam(r, "sourceID")
-
-		// Convert sourceID to int
-		id, err := strconv.Atoi(sourceID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidSourceID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating source...")
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateSourceRequest
@@ -137,43 +101,8 @@ func (h *Handler) UpdateSource() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var requestEntity entity.Source
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Convert Remote string to URL
-		remote, err := url.Parse(requestPayload.Remote)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		requestEntity.Remote = remote
-
-		// Get the existing source by id
-		updatedEntity, err := h.sourceRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingSource))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-
-		// Update source with repository
-		err = h.sourceRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
 		// Return updated source
+		updatedEntity, err := h.sourceManager.UpdateSourceByID(ctx, params.SourceID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -192,28 +121,14 @@ func (h *Handler) UpdateSource() http.HandlerFunc {
 func (h *Handler) GetSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting source...")
-		sourceID := chi.URLParam(r, "sourceID")
-
-		// Get source with repository
-		id, err := strconv.Atoi(sourceID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidSourceID))
-			return
-		}
-		existingEntity, err := h.sourceRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingSource))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting source...")
 
-		// Return found source
+		existingEntity, err := h.sourceManager.GetSourceByID(ctx, params.SourceID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -235,17 +150,23 @@ func (h *Handler) ListSources() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing source...")
 
-		existingEntity, err := h.sourceRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingSource))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return found source
-		handler.HandleResult(w, r, ctx, err, existingEntity)
+		// List sources
+		sourceEntities, err := h.sourceManager.ListSources(ctx)
+		handler.HandleResult(w, r, ctx, err, sourceEntities)
 	}
+}
+
+func requestHelper(r *http.Request) (context.Context, *logr.Logger, *SourceRequestParams, error) {
+	ctx := r.Context()
+	sourceID := chi.URLParam(r, "sourceID")
+	// Get stack with repository
+	id, err := strconv.Atoi(sourceID)
+	if err != nil {
+		return nil, nil, nil, sourcemanager.ErrInvalidSourceID
+	}
+	logger := util.GetLogger(ctx)
+	params := SourceRequestParams{
+		SourceID: uint(id),
+	}
+	return ctx, &logger, &params, nil
 }

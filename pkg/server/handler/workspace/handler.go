@@ -1,18 +1,16 @@
 package workspace
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/entity"
+	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
+	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	"kusionstack.io/kusion/pkg/server/util"
 )
 
@@ -42,33 +40,7 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Workspace
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		// The default state is UnSynced
-		createdEntity.CreationTimestamp = time.Now()
-		createdEntity.UpdateTimestamp = time.Now()
-
-		// Get backend by id
-		backendEntity, err := h.backendRepo.Get(ctx, requestPayload.BackendID)
-		if err != nil && err == gorm.ErrRecordNotFound {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrBackendNotFound))
-			return
-		} else if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.Backend = backendEntity
-
-		// Create workspace with repository
-		err = h.workspaceRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
+		createdEntity, err := h.workspaceManager.CreateWorkspace(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -88,22 +60,14 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		workspaceID := chi.URLParam(r, "workspaceID")
-
-		// Delete workspace with repository
-		id, err := strconv.Atoi(workspaceID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidWorkspaceID))
-			return
-		}
-		err = h.workspaceRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting source...", "workspaceID", params.WorkspaceID)
+
+		err = h.workspaceManager.DeleteWorkspaceByID(ctx, params.WorkspaceID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -123,17 +87,12 @@ func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating workspace...")
-		workspaceID := chi.URLParam(r, "workspaceID")
-
-		// convert workspace ID to int
-		id, err := strconv.Atoi(workspaceID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidWorkspaceID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating workspace...", "workspaceID", params.WorkspaceID)
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateWorkspaceRequest
@@ -142,35 +101,7 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var requestEntity entity.Workspace
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Get the existing workspace by id
-		updatedEntity, err := h.workspaceRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingWorkspace))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-
-		// Update workspace with repository
-		err = h.workspaceRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return updated workspace
+		updatedEntity, err := h.workspaceManager.UpdateWorkspaceByID(ctx, params.WorkspaceID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -189,28 +120,15 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 func (h *Handler) GetWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting workspace...")
-		workspaceID := chi.URLParam(r, "workspaceID")
-
-		// Get workspace with repository
-		id, err := strconv.Atoi(workspaceID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidWorkspaceID))
-			return
-		}
-		existingEntity, err := h.workspaceRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingWorkspace))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting workspace...", "workspaceID", params.WorkspaceID)
 
 		// Return found workspace
+		existingEntity, err := h.workspaceManager.GetWorkspaceByID(ctx, params.WorkspaceID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -232,17 +150,23 @@ func (h *Handler) ListWorkspaces() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing workspace...")
 
-		workspaceEntities, err := h.workspaceRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingWorkspace))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
 		// Return found workspaces
+		workspaceEntities, err := h.workspaceManager.ListWorkspaces(ctx)
 		handler.HandleResult(w, r, ctx, err, workspaceEntities)
 	}
+}
+
+func requestHelper(r *http.Request) (context.Context, *logr.Logger, *WorkspaceRequestParams, error) {
+	ctx := r.Context()
+	workspaceID := chi.URLParam(r, "workspaceID")
+	// Get stack with repository
+	id, err := strconv.Atoi(workspaceID)
+	if err != nil {
+		return nil, nil, nil, workspacemanager.ErrInvalidWorkspaceID
+	}
+	logger := util.GetLogger(ctx)
+	params := WorkspaceRequestParams{
+		WorkspaceID: uint(id),
+	}
+	return ctx, &logger, &params, nil
 }

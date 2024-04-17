@@ -1,17 +1,9 @@
 package stack
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
-	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/constant"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	"kusionstack.io/kusion/pkg/server/util"
@@ -35,7 +27,6 @@ func (h *Handler) CreateStack() http.HandlerFunc {
 		ctx := r.Context()
 		logger := util.GetLogger(ctx)
 		logger.Info("Creating stack...")
-		// workspaceParam := chi.URLParam(r, "workspaceName")
 
 		// Decode the request body into the payload.
 		var requestPayload request.CreateStackRequest
@@ -44,50 +35,7 @@ func (h *Handler) CreateStack() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Stack
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		// The default state is UnSynced
-		createdEntity.SyncState = constant.StackStateUnSynced
-		createdEntity.CreationTimestamp = time.Now()
-		createdEntity.UpdateTimestamp = time.Now()
-		createdEntity.LastSyncTimestamp = time.Unix(0, 0) // default to none
-
-		// TODO: Only project ID should be needed here. Not source and org IDs.
-		// Get source by id
-		// sourceEntity, err := handler.GetSourceByID(ctx, h.sourceRepo, requestPayload.SourceID)
-		// if err != nil {
-		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
-		// 	return
-		// }
-		// createdEntity.Source = sourceEntity
-
-		// Get project by id
-		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, requestPayload.ProjectID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.Project = projectEntity
-
-		// // Get organization by id
-		// organizationEntity, err := handler.GetOrganizationByID(ctx, h.orgRepository, requestPayload.OrganizationID)
-		// if err != nil {
-		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
-		// 	return
-		// }
-		// createdEntity.Organization = organizationEntity
-		// TODO: Only project ID should be needed here. Not source and org IDs.
-
-		// Create stack with repository
-		err = h.stackRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
+		createdEntity, err := h.stackManager.CreateStack(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -107,22 +55,14 @@ func (h *Handler) CreateStack() http.HandlerFunc {
 func (h *Handler) DeleteStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		stackID := chi.URLParam(r, "stackID")
-
-		// Delete stack with repository
-		id, err := strconv.Atoi(stackID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
-			return
-		}
-		err = h.stackRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting source...", "stackID", params.StackID)
+
+		err = h.stackManager.DeleteStackByID(ctx, params.StackID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -142,17 +82,12 @@ func (h *Handler) DeleteStack() http.HandlerFunc {
 func (h *Handler) UpdateStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating stack...")
-		stackID := chi.URLParam(r, "stackID")
-
-		// convert stack ID to int
-		id, err := strconv.Atoi(stackID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating stack...", "stackID", params.StackID)
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateStackRequest
@@ -161,61 +96,7 @@ func (h *Handler) UpdateStack() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var requestEntity entity.Stack
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// TODO: Only project ID should be needed here. Not source and org IDs.
-		// Get source by id
-		// sourceEntity, err := handler.GetSourceByID(ctx, h.sourceRepo, requestPayload.SourceID)
-		// if err != nil {
-		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
-		// 	return
-		// }
-		// requestEntity.Source = sourceEntity
-
-		// Get project by id
-		projectEntity, err := handler.GetProjectByID(ctx, h.projectRepo, requestPayload.ProjectID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		requestEntity.Project = projectEntity
-
-		// // Get organization by id
-		// organizationEntity, err := handler.GetOrganizationByID(ctx, h.orgRepository, requestPayload.OrganizationID)
-		// if err != nil {
-		// 	render.Render(w, r, handler.FailureResponse(ctx, err))
-		// 	return
-		// }
-		// requestEntity.Organization = organizationEntity
-		// TODO: Only project ID should be needed here. Not source and org IDs.
-
-		// Get the existing stack by id
-		updatedEntity, err := h.stackRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingStack))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-
-		// Update stack with repository
-		err = h.stackRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return updated stack
+		updatedEntity, err := h.stackManager.UpdateStackByID(ctx, params.StackID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -234,28 +115,14 @@ func (h *Handler) UpdateStack() http.HandlerFunc {
 func (h *Handler) GetStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting stack...")
-		stackID := chi.URLParam(r, "stackID")
-
-		// Get stack with repository
-		id, err := strconv.Atoi(stackID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidStacktID))
-			return
-		}
-		existingEntity, err := h.stackRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting stack...", "stackID", params.StackID)
 
-		// Return found stack
+		existingEntity, err := h.stackManager.GetStackByID(ctx, params.StackID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -277,17 +144,7 @@ func (h *Handler) ListStacks() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing stack...")
 
-		stackEntities, err := h.stackRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingStack))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return found stacks
+		stackEntities, err := h.stackManager.ListStacks(ctx)
 		handler.HandleResult(w, r, ctx, err, stackEntities)
 	}
 }

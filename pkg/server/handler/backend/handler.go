@@ -1,18 +1,16 @@
 package backend
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/entity"
+	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
+	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	"kusionstack.io/kusion/pkg/server/util"
 )
 
@@ -42,22 +40,7 @@ func (h *Handler) CreateBackend() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Backend
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		// The default state is UnSynced
-		createdEntity.CreationTimestamp = time.Now()
-		createdEntity.UpdateTimestamp = time.Now()
-
-		// Create backend with repository
-		err := h.backendRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
+		createdEntity, err := h.backendManager.CreateBackend(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -77,22 +60,14 @@ func (h *Handler) CreateBackend() http.HandlerFunc {
 func (h *Handler) DeleteBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		backendID := chi.URLParam(r, "backendID")
-
-		// Delete backend with repository
-		id, err := strconv.Atoi(backendID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidBackendID))
-			return
-		}
-		err = h.backendRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting backend...", "backendID", params.BackendID)
+
+		err = h.backendManager.DeleteBackendByID(ctx, params.BackendID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -112,17 +87,12 @@ func (h *Handler) DeleteBackend() http.HandlerFunc {
 func (h *Handler) UpdateBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating backend...")
-		backendID := chi.URLParam(r, "backendID")
-
-		// convert backend ID to int
-		id, err := strconv.Atoi(backendID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidBackendID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating backend..., backendID", params.BackendID)
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateBackendRequest
@@ -131,35 +101,7 @@ func (h *Handler) UpdateBackend() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var requestEntity entity.Backend
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Get the existing backend by id
-		updatedEntity, err := h.backendRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingBackend))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-
-		// Update backend with repository
-		err = h.backendRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return updated backend
+		updatedEntity, err := h.backendManager.UpdateBackendByID(ctx, params.BackendID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -178,28 +120,14 @@ func (h *Handler) UpdateBackend() http.HandlerFunc {
 func (h *Handler) GetBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting backend...")
-		backendID := chi.URLParam(r, "backendID")
-
-		// Get backend with repository
-		id, err := strconv.Atoi(backendID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidBackendID))
-			return
-		}
-		existingEntity, err := h.backendRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingBackend))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting backend...", "backendID", params.BackendID)
 
-		// Return found backend
+		existingEntity, err := h.backendManager.GetBackendByID(ctx, params.BackendID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -221,17 +149,22 @@ func (h *Handler) ListBackends() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing backend...")
 
-		backendEntities, err := h.backendRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingBackend))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return found backends
+		backendEntities, err := h.backendManager.ListBackends(ctx)
 		handler.HandleResult(w, r, ctx, err, backendEntities)
 	}
+}
+
+func requestHelper(r *http.Request) (context.Context, *logr.Logger, *BackendRequestParams, error) {
+	ctx := r.Context()
+	backendID := chi.URLParam(r, "backendID")
+	// Get stack with repository
+	id, err := strconv.Atoi(backendID)
+	if err != nil {
+		return nil, nil, nil, backendmanager.ErrInvalidBackendID
+	}
+	logger := util.GetLogger(ctx)
+	params := BackendRequestParams{
+		BackendID: uint(id),
+	}
+	return ctx, &logger, &params, nil
 }

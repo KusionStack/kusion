@@ -1,33 +1,21 @@
 package project
 
 import (
-	"errors"
-
-	"kusionstack.io/kusion/pkg/domain/repository"
-)
-
-var (
-	ErrGettingNonExistingProject  = errors.New("the project does not exist")
-	ErrUpdatingNonExistingProject = errors.New("the project to update does not exist")
-	ErrSourceNotFound             = errors.New("the specified source does not exist")
-	ErrOrgNotFound                = errors.New("the specified org does not exist")
-	ErrInvalidProjectID           = errors.New("the project ID should be a uuid")
+	projectmanager "kusionstack.io/kusion/pkg/server/manager/project"
 )
 
 func NewHandler(
-	organizationRepo repository.OrganizationRepository,
-	projectRepo repository.ProjectRepository,
-	sourceRepo repository.SourceRepository,
+	projectManager *projectmanager.ProjectManager,
 ) (*Handler, error) {
 	return &Handler{
-		organizationRepo: organizationRepo,
-		projectRepo:      projectRepo,
-		sourceRepo:       sourceRepo,
+		projectManager: projectManager,
 	}, nil
 }
 
 type Handler struct {
-	organizationRepo repository.OrganizationRepository
-	projectRepo      repository.ProjectRepository
-	sourceRepo       repository.SourceRepository
+	projectManager *projectmanager.ProjectManager
+}
+
+type ProjectRequestParams struct {
+	ProjectID uint
 }

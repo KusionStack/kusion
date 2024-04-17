@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/repository"
+	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 )
 
 func HandleResult(w http.ResponseWriter, r *http.Request, ctx context.Context, err error, data any) {
@@ -22,7 +23,7 @@ func GetSourceByID(ctx context.Context, sourceRepo repository.SourceRepository, 
 	// Get source by id
 	sourceEntity, err := sourceRepo.Get(ctx, id)
 	if err != nil && err == gorm.ErrRecordNotFound {
-		return nil, ErrSourceDoesNotExist
+		return nil, sourcemanager.ErrGettingNonExistingSource
 	} else if err != nil {
 		return nil, err
 	}

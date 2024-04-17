@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	ErrSourceDoesNotExist       = errors.New("the source does not exist")
 	ErrProjectDoesNotExist      = errors.New("the project does not exist")
 	ErrOrganizationDoesNotExist = errors.New("the organization does not exist")
 	ErrStackDoesNotExist        = errors.New("the stack does not exist")

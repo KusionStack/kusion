@@ -1,25 +1,21 @@
 package source
 
 import (
-	"errors"
-
-	"kusionstack.io/kusion/pkg/domain/repository"
-)
-
-var (
-	ErrGettingNonExistingSource  = errors.New("the source does not exist")
-	ErrUpdatingNonExistingSource = errors.New("the source to update does not exist")
-	ErrInvalidSourceID           = errors.New("the source ID should be a uuid")
+	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 )
 
 func NewHandler(
-	sourceRepo repository.SourceRepository,
+	sourceManager *sourcemanager.SourceManager,
 ) (*Handler, error) {
 	return &Handler{
-		sourceRepo: sourceRepo,
+		sourceManager: sourceManager,
 	}, nil
 }
 
 type Handler struct {
-	sourceRepo repository.SourceRepository
+	sourceManager *sourcemanager.SourceManager
+}
+
+type SourceRequestParams struct {
+	SourceID uint
 }

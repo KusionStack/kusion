@@ -1,18 +1,16 @@
 package organization
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/entity"
+	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
+	organizationmanager "kusionstack.io/kusion/pkg/server/manager/organization"
 	"kusionstack.io/kusion/pkg/server/util"
 )
 
@@ -42,22 +40,7 @@ func (h *Handler) CreateOrganization() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Organization
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		// The default state is UnSynced
-		createdEntity.CreationTimestamp = time.Now()
-		createdEntity.UpdateTimestamp = time.Now()
-
-		// Create organization with repository
-		err := h.organizationRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
+		createdEntity, err := h.organizationManager.CreateOrganization(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -72,27 +55,18 @@ func (h *Handler) CreateOrganization() http.HandlerFunc {
 // @Failure      429             {object}  errors.DetailError   "Too Many Requests"
 // @Failure      404             {object}  errors.DetailError   "Not Found"
 // @Failure      500             {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/organization/{organizationName}  [delete]
 // @Router       /api/v1/organization/{organizationID} [delete]
 func (h *Handler) DeleteOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		organizationID := chi.URLParam(r, "organizationID")
-
-		// Delete organization with repository
-		id, err := strconv.Atoi(organizationID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidOrganizationID))
-			return
-		}
-		err = h.organizationRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting organization...")
+
+		err = h.organizationManager.DeleteOrganizationByID(ctx, params.OrganizationID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -112,17 +86,12 @@ func (h *Handler) DeleteOrganization() http.HandlerFunc {
 func (h *Handler) UpdateOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating organization...")
-		organizationID := chi.URLParam(r, "organizationID")
-
-		// convert organization ID to int
-		id, err := strconv.Atoi(organizationID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidOrganizationID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating organization...")
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateOrganizationRequest
@@ -131,35 +100,7 @@ func (h *Handler) UpdateOrganization() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var requestEntity entity.Organization
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Get the existing organization by id
-		updatedEntity, err := h.organizationRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingOrganization))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-
-		// Update organization with repository
-		err = h.organizationRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return updated organization
+		updatedEntity, err := h.organizationManager.UpdateOrganizationByID(ctx, params.OrganizationID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -178,28 +119,14 @@ func (h *Handler) UpdateOrganization() http.HandlerFunc {
 func (h *Handler) GetOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting organization...")
-		organizationID := chi.URLParam(r, "organizationID")
-
-		// Get organization with repository
-		id, err := strconv.Atoi(organizationID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidOrganizationID))
-			return
-		}
-		existingEntity, err := h.organizationRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingOrganization))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting organization...")
 
-		// Return found organization
+		existingEntity, err := h.organizationManager.GetOrganizationByID(ctx, params.OrganizationID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -221,17 +148,22 @@ func (h *Handler) ListOrganizations() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing organization...")
 
-		organizationEntities, err := h.organizationRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingOrganization))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return found organizations
+		organizationEntities, err := h.organizationManager.ListOrganizations(ctx)
 		handler.HandleResult(w, r, ctx, err, organizationEntities)
 	}
+}
+
+func requestHelper(r *http.Request) (context.Context, *logr.Logger, *OrganizationRequestParams, error) {
+	ctx := r.Context()
+	organizationID := chi.URLParam(r, "organizationID")
+	// Get stack with repository
+	id, err := strconv.Atoi(organizationID)
+	if err != nil {
+		return nil, nil, nil, organizationmanager.ErrInvalidOrganizationID
+	}
+	logger := util.GetLogger(ctx)
+	params := OrganizationRequestParams{
+		OrganizationID: uint(id),
+	}
+	return ctx, &logger, &params, nil
 }

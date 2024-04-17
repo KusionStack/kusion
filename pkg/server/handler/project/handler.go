@@ -1,18 +1,16 @@
 package project
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"kusionstack.io/kusion/pkg/domain/entity"
+	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
+	projectmanager "kusionstack.io/kusion/pkg/server/manager/project"
 	"kusionstack.io/kusion/pkg/server/util"
 )
 
@@ -42,43 +40,7 @@ func (h *Handler) CreateProject() http.HandlerFunc {
 			return
 		}
 
-		// Convert request payload to domain model
-		var createdEntity entity.Project
-		if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.CreationTimestamp = time.Now()
-		createdEntity.UpdateTimestamp = time.Now()
-
-		// Get source by id
-		sourceEntity, err := h.sourceRepo.Get(ctx, requestPayload.SourceID)
-		if err != nil && err == gorm.ErrRecordNotFound {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrSourceNotFound))
-			return
-		} else if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.Source = sourceEntity
-
-		// Get org by id
-		organizationEntity, err := h.organizationRepo.Get(ctx, requestPayload.OrganizationID)
-		if err != nil && err == gorm.ErrRecordNotFound {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrOrgNotFound))
-			return
-		} else if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		createdEntity.Organization = organizationEntity
-
-		// Create project with repository
-		err = h.projectRepo.Create(ctx, &createdEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
+		createdEntity, err := h.projectManager.CreateProject(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
@@ -98,22 +60,14 @@ func (h *Handler) CreateProject() http.HandlerFunc {
 func (h *Handler) DeleteProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Deleting source...")
-		projectID := chi.URLParam(r, "projectID")
-
-		// Delete project with repository
-		id, err := strconv.Atoi(projectID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidProjectID))
-			return
-		}
-		err = h.projectRepo.Delete(ctx, uint(id))
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Deleting source...", "projectID", params.ProjectID)
+
+		err = h.projectManager.DeleteProjectByID(ctx, params.ProjectID)
 		handler.HandleResult(w, r, ctx, err, "Deletion Success")
 	}
 }
@@ -133,17 +87,12 @@ func (h *Handler) DeleteProject() http.HandlerFunc {
 func (h *Handler) UpdateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Updating project...")
-		projectID := chi.URLParam(r, "projectID")
-
-		// convert project ID to int
-		id, err := strconv.Atoi(projectID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidProjectID))
+			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Updating project...", "projectID", params.ProjectID)
 
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateProjectRequest
@@ -151,54 +100,8 @@ func (h *Handler) UpdateProject() http.HandlerFunc {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
-		// fmt.Printf("requestPayload.SourceID: %v; requestPayload.Organization: %v", requestPayload.SourceID, requestPayload.OrganizationID)
 
-		// Convert request payload to domain model
-		var requestEntity entity.Project
-		if err := copier.Copy(&requestEntity, &requestPayload); err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Get source by id
-		sourceEntity, err := handler.GetSourceByID(ctx, h.sourceRepo, requestPayload.SourceID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		requestEntity.Source = sourceEntity
-
-		// Get organization by id
-		organizationEntity, err := handler.GetOrganizationByID(ctx, h.organizationRepo, requestPayload.OrganizationID)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-		requestEntity.Organization = organizationEntity
-
-		// Get the existing project by id
-		updatedEntity, err := h.projectRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrUpdatingNonExistingProject))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Overwrite non-zero values in request entity to existing entity
-		copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-		// fmt.Printf("updatedEntity.Source: %v; updatedEntity.Organization: %v", updatedEntity.Source, updatedEntity.Organization)
-
-		// Update project with repository
-		err = h.projectRepo.Update(ctx, updatedEntity)
-		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return updated project
+		updatedEntity, err := h.projectManager.UpdateProjectByID(ctx, params.ProjectID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
@@ -217,28 +120,14 @@ func (h *Handler) UpdateProject() http.HandlerFunc {
 func (h *Handler) GetProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
-		ctx := r.Context()
-		logger := util.GetLogger(ctx)
-		logger.Info("Getting project...")
-		projectID := chi.URLParam(r, "projectID")
-
-		// Get project with repository
-		id, err := strconv.Atoi(projectID)
+		ctx, logger, params, err := requestHelper(r)
 		if err != nil {
-			render.Render(w, r, handler.FailureResponse(ctx, ErrInvalidProjectID))
-			return
-		}
-		existingEntity, err := h.projectRepo.Get(ctx, uint(id))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingProject))
-				return
-			}
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
+		logger.Info("Getting project...", "projectID", params.ProjectID)
 
-		// Return found project
+		existingEntity, err := h.projectManager.GetProjectByID(ctx, params.ProjectID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
 	}
 }
@@ -260,17 +149,22 @@ func (h *Handler) ListProjects() http.HandlerFunc {
 		logger := util.GetLogger(ctx)
 		logger.Info("Listing project...")
 
-		projectEntities, err := h.projectRepo.List(ctx)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				render.Render(w, r, handler.FailureResponse(ctx, ErrGettingNonExistingProject))
-				return
-			}
-			render.Render(w, r, handler.FailureResponse(ctx, err))
-			return
-		}
-
-		// Return found projects
+		projectEntities, err := h.projectManager.ListProjects(ctx)
 		handler.HandleResult(w, r, ctx, err, projectEntities)
 	}
+}
+
+func requestHelper(r *http.Request) (context.Context, *logr.Logger, *ProjectRequestParams, error) {
+	ctx := r.Context()
+	projectID := chi.URLParam(r, "projectID")
+	// Get stack with repository
+	id, err := strconv.Atoi(projectID)
+	if err != nil {
+		return nil, nil, nil, projectmanager.ErrInvalidProjectID
+	}
+	logger := util.GetLogger(ctx)
+	params := ProjectRequestParams{
+		ProjectID: uint(id),
+	}
+	return ctx, &logger, &params, nil
 }

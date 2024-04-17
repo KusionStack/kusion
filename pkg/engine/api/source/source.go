@@ -31,7 +31,7 @@ func Pull(ctx context.Context, source *entity.Source) (string, error) {
 	return directory, nil
 }
 
-// Cleanup() is a method that cleans up tje temporary source code from the source provider.
+// Cleanup() is a method that cleans up the temporary source code from the source provider.
 func Cleanup(ctx context.Context, localDirectory string) {
 	logger := util.GetLogger(ctx)
 	logger.Info("Cleaning up temp directory...")

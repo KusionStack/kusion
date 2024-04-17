@@ -19,6 +19,12 @@ import (
 	"kusionstack.io/kusion/pkg/server/handler/source"
 	"kusionstack.io/kusion/pkg/server/handler/stack"
 	"kusionstack.io/kusion/pkg/server/handler/workspace"
+	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
+	organizationmanager "kusionstack.io/kusion/pkg/server/manager/organization"
+	projectmanager "kusionstack.io/kusion/pkg/server/manager/project"
+	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
+	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
+	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 
 	"kusionstack.io/kusion/pkg/server/util"
@@ -87,33 +93,40 @@ func setupRestAPIV1(
 	workspaceRepo := persistence.NewWorkspaceRepository(config.DB)
 	backendRepo := persistence.NewBackendRepository(config.DB)
 
+	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo)
+	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
+	organizationManager := organizationmanager.NewOrganizationManager(organizationRepo)
+	backendManager := backendmanager.NewBackendManager(backendRepo)
+	workspaceManager := workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo)
+	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo)
+
 	// Set up the handlers for the resources.
-	sourceHandler, err := source.NewHandler(sourceRepo)
+	sourceHandler, err := source.NewHandler(sourceManager)
 	if err != nil {
 		logger.Error(err, "Error creating source handler...", "error", err)
 		return
 	}
-	orgHandler, err := organization.NewHandler(organizationRepo)
+	orgHandler, err := organization.NewHandler(organizationManager)
 	if err != nil {
 		logger.Error(err, "Error creating org handler...", "error", err)
 		return
 	}
-	projectHandler, err := project.NewHandler(organizationRepo, projectRepo, sourceRepo)
+	projectHandler, err := project.NewHandler(projectManager)
 	if err != nil {
 		logger.Error(err, "Error creating project handler...", "error", err)
 		return
 	}
-	stackHandler, err := stack.NewHandler(organizationRepo, projectRepo, stackRepo, sourceRepo, workspaceRepo)
+	stackHandler, err := stack.NewHandler(stackManager)
 	if err != nil {
 		logger.Error(err, "Error creating stack handler...", "error", err)
 		return
 	}
-	workspaceHandler, err := workspace.NewHandler(workspaceRepo, backendRepo)
+	workspaceHandler, err := workspace.NewHandler(workspaceManager)
 	if err != nil {
 		logger.Error(err, "Error creating workspace handler...", "error", err)
 		return
 	}
-	backendHandler, err := backend.NewHandler(backendRepo)
+	backendHandler, err := backend.NewHandler(backendManager)
 	if err != nil {
 		logger.Error(err, "Error creating backend handler...", "error", err)
 		return
@@ -132,7 +145,7 @@ func setupRestAPIV1(
 	r.Route("/stack", func(r chi.Router) {
 		r.Route("/{stackID}", func(r chi.Router) {
 			r.Post("/", stackHandler.CreateStack())
-			r.Post("/build", stackHandler.BuildStack())
+			r.Post("/generate", stackHandler.GenerateStack())
 			r.Post("/preview", stackHandler.PreviewStack())
 			r.Post("/apply", stackHandler.ApplyStack())
 			r.Post("/destroy", stackHandler.DestroyStack())
@@ -178,24 +191,4 @@ func setupRestAPIV1(
 		})
 		r.Get("/", backendHandler.ListBackends())
 	})
-	// r.Route("/project", func(r chi.Router) {
-	// 	//r.Get("/", projectHandler.ListProjects())
-	// 	r.Route("/{projectName}", func(r chi.Router) {
-	// 		// r.Post("/", projectHandler.CreateProject())
-	// 		// r.Get("/", projectHandler.GetProject())
-	// 		// r.Put("/", projectHandler.UpdateProject())
-	// 		// r.Delete("/", projectHandler.DeleteProject())
-	// 		r.Route("/stack", func(r chi.Router) {
-	// 			//r.Get("/", stackHandler.ListStacks())
-	// 			r.Route("/{stackName}", func(r chi.Router) {
-	// 				r.Post("/", stackHandler.CreateStack())
-	// 				// r.Get("/", stackHandler.GetStack())
-	// 				// r.Put("/", stackHandler.UpdateStack())
-	// 				// r.Delete("/", stackHandler.DeleteStack())
-	// 				r.Post("/preview", stack.ExecutePreview())
-	// 				//r.Post("/apply", stack.ExecuteApply())
-	// 			})
-	// 		})
-	// 	})
-	// })
 }
