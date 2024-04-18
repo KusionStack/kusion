@@ -132,7 +132,7 @@ func TestPreview(t *testing.T) {
 		mockOperationPreview()
 
 		o := NewDeleteOptions()
-		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 		_, err := o.preview(&apiv1.Spec{Resources: []apiv1.Resource{sa1}}, proj, stack, stateStorage)
 		assert.Nil(t, err)
 	})
@@ -249,7 +249,7 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.Nil(t, err)
 	})
@@ -271,7 +271,7 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+		stateStorage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 		err := o.destroy(planResources, changes, stateStorage)
 		assert.NotNil(t, err)
 	})

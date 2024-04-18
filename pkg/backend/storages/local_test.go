@@ -37,10 +37,10 @@ func TestNewLocalStorage(t *testing.T) {
 
 func TestLocalStorage_StateStorage(t *testing.T) {
 	testcases := []struct {
-		name                      string
-		localStorage              *LocalStorage
-		project, stack, workspace string
-		stateStorage              state.Storage
+		name               string
+		localStorage       *LocalStorage
+		project, workspace string
+		stateStorage       state.Storage
 	}{
 		{
 			name: "state storage from local backend",
@@ -48,17 +48,16 @@ func TestLocalStorage_StateStorage(t *testing.T) {
 				path: "kusion",
 			},
 			project:   "wordpress",
-			stack:     "dev",
 			workspace: "dev",
 			stateStorage: statestorages.NewLocalStorage(
-				filepath.Join("kusion", "states", "wordpress", "dev", "dev", "state.yaml"),
+				filepath.Join("kusion", "states", "wordpress", "dev", "state.yaml"),
 			),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.localStorage.StateStorage(tc.project, tc.stack, tc.workspace)
+			stateStorage := tc.localStorage.StateStorage(tc.project, tc.workspace)
 			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}

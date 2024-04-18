@@ -16,7 +16,7 @@ type Backend interface {
 	WorkspaceStorage() (workspace.Storage, error)
 
 	// StateStorage returns the state storage.
-	StateStorage(project, stack, workspace string) state.Storage
+	StateStorage(project, workspace string) state.Storage
 }
 
 // NewBackend creates the Backend with the configuration set in the Kusion configuration file, where the input

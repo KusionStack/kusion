@@ -48,10 +48,10 @@ func TestNewS3Storage(t *testing.T) {
 
 func TestS3Storage_StateStorage(t *testing.T) {
 	testcases := []struct {
-		name                      string
-		s3Storage                 *S3Storage
-		project, stack, workspace string
-		stateStorage              state.Storage
+		name               string
+		s3Storage          *S3Storage
+		project, workspace string
+		stateStorage       state.Storage
 	}{
 		{
 			name: "state storage from s3 backend",
@@ -61,19 +61,18 @@ func TestS3Storage_StateStorage(t *testing.T) {
 				prefix: "kusion",
 			},
 			project:   "wordpress",
-			stack:     "dev",
 			workspace: "dev",
 			stateStorage: statestorages.NewS3Storage(
 				&s3.S3{},
 				"infra",
-				"kusion/states/wordpress/dev/dev/state.yaml",
+				"kusion/states/wordpress/dev/state.yaml",
 			),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.s3Storage.StateStorage(tc.project, tc.stack, tc.workspace)
+			stateStorage := tc.s3Storage.StateStorage(tc.project, tc.workspace)
 			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}

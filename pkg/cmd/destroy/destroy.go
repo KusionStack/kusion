@@ -150,7 +150,7 @@ func (o *DeleteOptions) Validate(cmd *cobra.Command, args []string) error {
 // Run executes the `delete` command.
 func (o *DeleteOptions) Run() error {
 	// only destroy resources we managed
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
 	priorState, err := storage.Get()
 	if err != nil || priorState == nil {
 		return fmt.Errorf("can not find DeprecatedState in this stack")
