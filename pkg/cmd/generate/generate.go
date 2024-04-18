@@ -262,7 +262,7 @@ func write(spec *v1.Spec, output string, out io.Writer) error {
 
 	switch {
 	case output == "":
-		_, err := fmt.Fprintln(out, specStr)
+		_, err = fmt.Fprintln(out, string(specStr))
 		return err
 	default:
 		return dumpToFile(string(specStr), output)
