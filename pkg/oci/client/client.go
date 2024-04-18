@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 )
 
@@ -61,6 +62,13 @@ func WithInsecure(insecure bool) ClientOption {
 		if insecure {
 			o.craneOptions = append(o.craneOptions, crane.Insecure)
 		}
+	}
+}
+
+// WithPlatform sets a platform for the client.
+func WithPlatform(platform *v1.Platform) ClientOption {
+	return func(o *ClientOptions) {
+		o.craneOptions = append(o.craneOptions, crane.WithPlatform(platform))
 	}
 }
 
