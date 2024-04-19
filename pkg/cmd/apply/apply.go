@@ -50,7 +50,7 @@ var (
 	applyExample = i18n.T(`
 		# Apply with specified work directory
 		kusion apply -w /path/to/workdir
-	
+
 		# Apply with specified arguments
 		kusion apply -D name=test -D age=18
 	
@@ -58,7 +58,10 @@ var (
 		kusion apply --yes
 		
 		# Apply without output style and color
-		kusion apply --no-style=true`)
+		kusion apply --no-style=true
+		
+		# Apply with localhost port forwarding
+		kusion apply --port-forward=8080`)
 )
 
 // ApplyFlags directly reflect the information that CLI is gathering via flags. They will be converted to
@@ -68,9 +71,10 @@ var (
 type ApplyFlags struct {
 	*preview.PreviewFlags
 
-	Yes    bool
-	DryRun bool
-	Watch  bool
+	Yes         bool
+	DryRun      bool
+	Watch       bool
+	PortForward int
 
 	genericiooptions.IOStreams
 }
@@ -79,9 +83,10 @@ type ApplyFlags struct {
 type ApplyOptions struct {
 	*preview.PreviewOptions
 
-	Yes    bool
-	DryRun bool
-	Watch  bool
+	Yes         bool
+	DryRun      bool
+	Watch       bool
+	PortForward int
 
 	genericiooptions.IOStreams
 }
@@ -126,6 +131,7 @@ func (f *ApplyFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&f.Yes, "yes", "y", false, i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&f.DryRun, "dry-run", "", false, i18n.T("Preview the execution effect (always successful) without actually applying the changes"))
 	cmd.Flags().BoolVarP(&f.Watch, "watch", "", false, i18n.T("After creating/updating/deleting the requested object, watch for changes"))
+	cmd.Flags().IntVarP(&f.PortForward, "port-forward", "", 0, i18n.T("Forward an available local port to the specified service port"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -141,6 +147,7 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 		Yes:            f.Yes,
 		DryRun:         f.DryRun,
 		Watch:          f.Watch,
+		PortForward:    f.PortForward,
 		IOStreams:      f.IOStreams,
 	}
 
@@ -151,6 +158,10 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) != 0 {
 		return cmdutil.UsageErrorf(cmd, "Unexpected args: %v", args)
+	}
+
+	if o.PortForward < 0 || o.PortForward > 65535 {
+		return cmdutil.UsageErrorf(cmd, "Invalid port number to forward: %d, must be between 1 and 65535", o.PortForward)
 	}
 
 	return nil
@@ -235,6 +246,13 @@ func (o *ApplyOptions) Run() error {
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
 		if err = Watch(o, spec, changes); err != nil {
+			return err
+		}
+	}
+
+	if o.PortForward > 0 {
+		fmt.Printf("\nStart port-forwarding ...\n")
+		if err = PortForward(o, spec); err != nil {
 			return err
 		}
 	}
@@ -430,6 +448,47 @@ func Watch(
 	}
 
 	fmt.Println("Watch Finish! All resources have been reconciled.")
+	return nil
+}
+
+// PortForward function will forward an available local port to the specified port
+// of the project Kubernetes Service.
+//
+// Example:
+//
+// o := NewApplyOptions()
+// spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.NoStyle)
+//
+//	if err != nil {
+//		 return err
+//	}
+//
+// err = PortForward(o, spec)
+//
+//	if err != nil {
+//	  return err
+//	}
+func PortForward(
+	o *ApplyOptions,
+	spec *apiv1.Spec,
+) error {
+	if o.DryRun {
+		fmt.Println("NOTE: Portforward doesn't work in DryRun mode")
+		return nil
+	}
+
+	// portforward operation
+	wo := &operation.PortForwardOperation{}
+	if err := wo.PortForward(&operation.PortForwardRequest{
+		Request: models.Request{
+			Intent: spec,
+		},
+		Port: o.PortForward,
+	}); err != nil {
+		return err
+	}
+
+	fmt.Println("Portforward has been completed!")
 	return nil
 }
 
