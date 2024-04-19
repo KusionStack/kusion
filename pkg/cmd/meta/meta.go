@@ -28,8 +28,7 @@ import (
 //
 // This structure reduces the transformation to wiring and makes the logic itself easy to unit test.
 type MetaFlags struct {
-	Application *string
-	Workspace   *string
+	Workspace *string
 
 	Backend *string
 }
@@ -51,14 +50,12 @@ type MetaOptions struct {
 
 // NewMetaFlags provides default flags and values for use in other commands.
 func NewMetaFlags() *MetaFlags {
-	application := ""
 	workspace := ""
 	backendType := ""
 
 	return &MetaFlags{
-		Application: &application,
-		Workspace:   &workspace,
-		Backend:     &backendType,
+		Workspace: &workspace,
+		Backend:   &backendType,
 	}
 }
 
