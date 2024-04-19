@@ -1,3 +1,17 @@
+// Copyright 2024 KusionStack Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package v1
 
 import (
@@ -12,15 +26,22 @@ import (
 // which contains the project's desired intent.
 type Project struct {
 	// Name is a required fully qualified name.
-	Name string `json:"name" yaml:"name"`
+	Name string `yaml:"name" json:"name"`
+
 	// Description is an optional informational description.
-	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	Description *string `yaml:"description,omitempty" json:"description,omitempty"`
+
 	// Labels is the list of labels that are assigned to this project.
-	Labels map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
+
 	// Path is a directory path within the Git repository.
-	Path string `json:"path,omitempty" yaml:"path,omitempty"`
-	// The set of stacks that are known about this project.
-	Stacks []*Stack `json:"stacks,omitempty" yaml:"stacks,omitempty"`
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+
+	// Stacks that belong to this project.
+	Stacks []*Stack `yaml:"stacks,omitempty" json:"stacks,omitempty"`
+
+	// Extensions allow you to customize how resources are generated of this project.
+	Extensions []*Extension `yaml:"extensions,omitempty" json:"extensions,omitempty"`
 }
 
 // Stack is a definition of Kusion stack resource.
@@ -29,17 +50,25 @@ type Project struct {
 // where application will be deployed to, the smallest operation unit that can be operated independently.
 type Stack struct {
 	// Name is a required fully qualified name.
-	Name string `json:"name" yaml:"name"`
+	Name string `yaml:"name" json:"name"`
+
 	// Backend is the place to store the workspace config and versioned releases of a stack.
-	Backend string `json:"backend" yaml:"backend"`
+	Backend string `yaml:"backend" json:"backend"`
+
 	// Workspace is the target environment to deploy a stack.
-	Workspace string `json:"workspace" yaml:"workspace"`
+	Workspace string `yaml:"workspace" json:"workspace"`
+
 	// Description is an optional informational description.
-	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	Description *string `yaml:"description,omitempty" json:"description,omitempty"`
+
 	// Labels is the list of labels that are assigned to this stack.
-	Labels map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
+
 	// Path is a directory path within the Git repository.
-	Path string `json:"path,omitempty" yaml:"path,omitempty"`
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+
+	// Extensions allow you to customize how resources are generated of this project.
+	Extensions []*Extension `yaml:"extensions,omitempty" json:"extensions,omitempty"`
 }
 
 const (
@@ -151,12 +180,39 @@ type ProviderConfig struct {
 	GenericConfig `yaml:",inline,omitempty" json:",inline,omitempty"`
 }
 
-type VaultKVStoreVersion string
+type ExtensionKind string
 
 const (
-	VaultKVStoreV1 VaultKVStoreVersion = "v1"
-	VaultKVStoreV2 VaultKVStoreVersion = "v2"
+	KubernetesMetadata  ExtensionKind = "kubernetesMetadata"
+	KubernetesNamespace ExtensionKind = "kubernetesNamespace"
 )
+
+// Extension allows you to customize how resources are generated or customized as part of deployment.
+type Extension struct {
+	// Kind is a string value representing the extension.
+	Kind ExtensionKind `yaml:"kind" json:"kind"`
+
+	// The KubeNamespaceExtension
+	KubeNamespace KubeNamespaceExtension `yaml:",inline,omitempty" json:",inline,omitempty"`
+
+	// The KubeMetadataExtension
+	KubeMetadata KubeMetadataExtension `yaml:",inline,omitempty" json:",inline,omitempty"`
+}
+
+// KubeNamespaceExtension allows you to override kubernetes namespace.
+type KubeNamespaceExtension struct {
+	// The custom namespace name
+	Namespace string `yaml:"namespace,omitempty" json:"namespace,omitempty"`
+}
+
+// KubeMetadataExtension allows you to append labels&annotations to kubernetes resources.
+type KubeMetadataExtension struct {
+	// Labels to add to kubernetes resources.
+	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
+
+	// Annotations to add to kubernetes resources.
+	Annotations map[string]string `yaml:"annotations,omitempty" json:"annotations,omitempty"`
+}
 
 // ExternalSecretRef contains information that points to the secret store data location.
 type ExternalSecretRef struct {
@@ -210,6 +266,13 @@ type AWSProvider struct {
 	// If not set, the default profile created with `aws configure` will be used.
 	Profile string `yaml:"profile,omitempty" json:"profile,omitempty"`
 }
+
+type VaultKVStoreVersion string
+
+const (
+	VaultKVStoreV1 VaultKVStoreVersion = "v1"
+	VaultKVStoreV2 VaultKVStoreVersion = "v2"
+)
 
 // VaultProvider configures a store to retrieve secrets from HashiCorp Vault.
 type VaultProvider struct {
@@ -282,7 +345,7 @@ const (
 // the Kusion engine takes care of updating the production state to match the Intent.
 type Spec struct {
 	// Resources is the list of Resource this Spec contains.
-	Resources Resources `json:"resources" yaml:"resources"`
+	Resources Resources `yaml:"resources" json:"resources"`
 }
 
 type Resources []Resource
@@ -292,19 +355,19 @@ type Resource struct {
 	// ID is the unique key of this resource in the whole DeprecatedState.
 	// ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
 	// providerNamespace:providerName:resourceType:resourceName for Terraform resources
-	ID string `json:"id" yaml:"id"`
+	ID string `yaml:"id" json:"id"`
 
 	// Type represents all Runtimes we supported like Kubernetes and Terraform
-	Type Type `json:"type" yaml:"type"`
+	Type Type `yaml:"type" json:"type"`
 
 	// Attributes represents all specified attributes of this resource
-	Attributes map[string]interface{} `json:"attributes" yaml:"attributes"`
+	Attributes map[string]interface{} `yaml:"attributes" json:"attributes"`
 
 	// DependsOn contains all resources this resource depends on
-	DependsOn []string `json:"dependsOn,omitempty" yaml:"dependsOn,omitempty"`
+	DependsOn []string `yaml:"dependsOn,omitempty" json:"dependsOn,omitempty"`
 
 	// Extensions specifies arbitrary metadata of this resource
-	Extensions map[string]interface{} `json:"extensions,omitempty" yaml:"extensions,omitempty"`
+	Extensions map[string]interface{} `yaml:"extensions,omitempty" json:"extensions,omitempty"`
 }
 
 // DeprecatedState is a record of an operation's result. It is a mapping between resources in KCL and the actual infra
@@ -312,37 +375,37 @@ type Resource struct {
 // Deprecated: DeprecatedState will not in use in time
 type DeprecatedState struct {
 	// DeprecatedState ID
-	ID int64 `json:"id" yaml:"id"`
+	ID int64 `yaml:"id" json:"id"`
 
 	// Project name
-	Project string `json:"project" yaml:"project"`
+	Project string `yaml:"project" json:"project"`
 
 	// Stack name
-	Stack string `json:"stack" yaml:"stack"`
+	Stack string `yaml:"stack" json:"stack"`
 
 	// Workspace name
-	Workspace string `json:"workspace" yaml:"workspace"`
+	Workspace string `yaml:"workspace" json:"workspace"`
 
 	// DeprecatedState version
-	Version int `json:"version" yaml:"version"`
+	Version int `yaml:"version" json:"version"`
 
-	// KusionVersion represents the Kusion's version when this DeprecatedState is created
-	KusionVersion string `json:"kusionVersion" yaml:"kusionVersion"`
+	// KusionVersion represents the Kusion version when this DeprecatedState is created
+	KusionVersion string `yaml:"kusionVersion" json:"kusionVersion"`
 
 	// Serial is an auto-increase number that represents how many times this DeprecatedState is modified
-	Serial uint64 `json:"serial" yaml:"serial"`
+	Serial uint64 `yaml:"serial" json:"serial"`
 
 	// Operator represents the person who triggered this operation
-	Operator string `json:"operator,omitempty" yaml:"operator,omitempty"`
+	Operator string `yaml:"operator,omitempty" json:"operator,omitempty"`
 
 	// Resources records all resources in this operation
-	Resources Resources `json:"resources" yaml:"resources"`
+	Resources Resources `yaml:"resources" json:"resources"`
 
 	// CreateTime is the time DeprecatedState is created
-	CreateTime time.Time `json:"createTime" yaml:"createTime"`
+	CreateTime time.Time `yaml:"createTime" json:"createTime"`
 
 	// ModifiedTime is the time DeprecatedState is modified each time
-	ModifiedTime time.Time `json:"modifiedTime,omitempty" yaml:"modifiedTime,omitempty"`
+	ModifiedTime time.Time `yaml:"modifiedTime,omitempty" json:"modifiedTime,omitempty"`
 }
 
 func NewState() *DeprecatedState {
