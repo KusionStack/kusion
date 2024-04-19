@@ -267,6 +267,14 @@ func (o *PushModOptions) Run() error {
 		return err
 	}
 
+	// Tag version
+	if err = o.Client.Tag(ctx, imgDigestURL, o.Version); err != nil {
+		return fmt.Errorf("tagging module image version as latest failed: %w", err)
+	}
+	if err = o.Client.Tag(ctx, idxDigestURL, o.Version); err != nil {
+		return fmt.Errorf("tagging module index version as latest failed: %w", err)
+	}
+
 	// Tag latest version if required
 	if o.Latest {
 		if err = o.Client.Tag(ctx, imgDigestURL, LatestVersion); err != nil {
