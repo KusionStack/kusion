@@ -38,7 +38,8 @@ func (c *Client) Push(
 	metadata meta.Metadata,
 	ignorePaths []string,
 ) (string, string, error) {
-	ref, err := oci.ParseArtifactRef(ociURL)
+	idxURL := fmt.Sprintf("%s:%s", ociURL, version)
+	ref, err := oci.ParseArtifactRef(idxURL)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid OCI repository url: %w", err)
 	}
@@ -159,7 +160,7 @@ func (c *Client) Push(
 
 	idxDigestURL := ref.Context().Digest(idxDigest.String()).String()
 	imgDigestURL := ref.Context().Digest(imgDigest.String()).String()
-	idxURL := fmt.Sprintf("%s%s", oci.OCIRepositoryPrefix, idxDigestURL)
+	idxURL = fmt.Sprintf("%s%s", oci.OCIRepositoryPrefix, idxDigestURL)
 	imgURL = fmt.Sprintf("%s%s", oci.OCIRepositoryPrefix, imgDigestURL)
 	return idxURL, imgURL, nil
 }
