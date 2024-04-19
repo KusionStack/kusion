@@ -1,6 +1,6 @@
 package fake
 
-import "kusionstack.io/kusion/pkg/cmd/generate/run"
+import "kusionstack.io/kusion/pkg/engine/api/generate/run"
 
 var _ run.CodeRunner = &KPMRunner{}
 
