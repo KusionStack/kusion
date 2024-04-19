@@ -131,7 +131,7 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 func (flags *PushModFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&flags.Version, "version", "v", "", "The version of the module e.g. '1.0.0' or '1.0.0-rc.1'.")
 	cmd.Flags().StringVar(&flags.OSArch, "os-arch", "", "The os arch of the module e.g. 'darwin/arm64', 'linux/amd64'.")
-	cmd.Flags().BoolVar(&flags.Latest, "latest", flags.Latest, "Tags the current version as the latest stable module version.")
+	cmd.Flags().BoolVar(&flags.Latest, "latest", true, "Tags the current version as the latest stable module version.")
 	cmd.Flags().StringVar(&flags.Credentials, "creds", flags.Credentials,
 		"The credentials token for the OCI registry in <YOUR_TOKEN> or <YOUR_USERNAME>:<YOUR_TOKEN> format.")
 	cmd.Flags().StringVar(&flags.Sign, "sign", flags.Sign, "Signs the module with the specified provider.")
@@ -147,18 +147,11 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 		return nil, fmt.Errorf("path to module and OCI registry url are required")
 	}
 
-	// Prepare metadata
-	if flags.OSArch == "" {
-		// set as the current OS arch
-		flags.OSArch = runtime.GOOS + "/" + runtime.GOARCH
-	}
-	osArch := strings.Split(flags.OSArch, "/")
-
+	// version
 	version := flags.Version
 	if _, err := semver.StrictNewVersion(version); err != nil {
 		return nil, fmt.Errorf("version is not in semver format: %w", err)
 	}
-	fullURL := fmt.Sprintf("%s-%s_%s:%s", args[1], osArch[0], osArch[1], version)
 
 	// If creds in <token> format, creds must be base64 encoded
 	if len(flags.Credentials) != 0 && !strings.Contains(flags.Credentials, ":") {
@@ -178,6 +171,13 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 	if err == nil && len(repoRoot) != 0 {
 		info = gitutil.Get(repoRoot)
 	}
+
+	// os arch
+	if flags.OSArch == "" {
+		// set as the current OS arch
+		flags.OSArch = runtime.GOOS + "/" + runtime.GOARCH
+	}
+	osArch := strings.Split(flags.OSArch, "/")
 
 	meta := metadata.Metadata{
 		Created:     info.CommitDate,
@@ -205,12 +205,13 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 
 	opt := &PushModOptions{
 		ModulePath: args[0],
-		OCIUrl:     fullURL,
+		OCIUrl:     args[1],
 		Latest:     flags.Latest,
 		Sign:       flags.Sign,
 		CosignKey:  flags.CosignKey,
 		Client:     client,
 		Metadata:   meta,
+		Version:    version,
 		IOStreams:  ioStreams,
 	}
 
@@ -261,27 +262,35 @@ func (o *PushModOptions) Run() error {
 	}
 
 	sp.Info("pushing the module...")
-	digest, err := o.Client.Push(ctx, o.OCIUrl, targetDir, o.Metadata, nil)
+	idxDigestURL, imgDigestURL, err := o.Client.Push(ctx, o.OCIUrl, o.Version, targetDir, o.Metadata, nil)
 	if err != nil {
 		return err
 	}
 
 	// Tag latest version if required
 	if o.Latest {
-		if err = o.Client.Tag(ctx, digest, LatestVersion); err != nil {
-			return fmt.Errorf("tagging module version as latest failed: %w", err)
+		if err = o.Client.Tag(ctx, imgDigestURL, LatestVersion); err != nil {
+			return fmt.Errorf("tagging module image version as latest failed: %w", err)
+		}
+		if err = o.Client.Tag(ctx, idxDigestURL, LatestVersion); err != nil {
+			return fmt.Errorf("tagging module index version as latest failed: %w", err)
 		}
 	}
-	sp.Info("pushed successfully\n")
-	_ = sp.Stop()
 
 	// Signs the module with specific provider
 	if len(o.Sign) != 0 {
-		err = oci.SignArtifact(o.Sign, digest, o.CosignKey)
+		err = oci.SignArtifact(o.Sign, imgDigestURL, o.CosignKey)
+		if err != nil {
+			return err
+		}
+		err = oci.SignArtifact(o.Sign, idxDigestURL, o.CosignKey)
 		if err != nil {
 			return err
 		}
 	}
+
+	sp.Info("pushed successfully\n")
+	_ = sp.Stop()
 
 	return nil
 }
@@ -298,11 +307,16 @@ func (o *PushModOptions) buildModule() (string, error) {
 	moduleSrc := filepath.Join(o.ModulePath, "src")
 	goFileSearchPattern := filepath.Join(moduleSrc, "*.go")
 
-	// OCIUrl example: oci://ghcr.io/org/my-module-linux_amd64:0.1.0
+	// prepare platform
+	if o.Metadata.Platform == nil {
+		return "", fmt.Errorf("platform is not set in metadata")
+	}
+	pOS := o.Metadata.Platform.OS
+	pArch := o.Metadata.Platform.Architecture
+
+	// OCIUrl example: oci://ghcr.io/org/my-module
 	split := strings.Split(o.OCIUrl, "/")
-	nameVersion := strings.Split(split[len(split)-1], ":")
-	name := nameVersion[0]
-	version := nameVersion[1]
+	name := split[len(split)-1]
 
 	if matches, err := filepath.Glob(goFileSearchPattern); err != nil || len(matches) == 0 {
 		return "", fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
@@ -313,15 +327,9 @@ func (o *PushModOptions) buildModule() (string, error) {
 		return "", fmt.Errorf("unable to find executable 'go' binary: %w", err)
 	}
 
-	// prepare platform
-	if o.Metadata.Platform == nil {
-		return "", fmt.Errorf("platform is not set in metadata")
-	}
-	pOS := o.Metadata.Platform.OS
-	pArch := o.Metadata.Platform.Architecture
-	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+version)
+	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+o.Version)
 	if strings.Contains(o.OSArch, "windows") {
-		output = filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+version+".exe")
+		output = filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+o.Version+".exe")
 	}
 
 	path, err := buildBinary(goBin, pOS, pArch, moduleSrc, output, o.IOStreams)
