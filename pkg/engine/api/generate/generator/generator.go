@@ -28,10 +28,10 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/clipath"
 	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 	"kusionstack.io/kusion/pkg/util/io"
-	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 // Generator is an interface for things that can generate versioned Spec from
@@ -96,7 +96,7 @@ func copyDependentModules(workDir string) error {
 	}
 
 	absPkgPath, _ := env.GetAbsPkgPath()
-	kusionHomePath, _ := kfile.KusionDataFolder()
+	kusionDataPath, _ := clipath.DataPath()
 
 	var allErrs []error
 	for _, dep := range modFile.Deps {
@@ -105,7 +105,7 @@ func copyDependentModules(workDir string) error {
 			pkgDir := filepath.Join(absPkgPath, dep.FullName)
 			platform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
 			source := filepath.Join(pkgDir, "_dist", platform, "generator")
-			moduleDir := filepath.Join(kusionHomePath, "modules", info.Repo, info.Tag, runtime.GOOS, runtime.GOARCH)
+			moduleDir := filepath.Join(kusionDataPath, "modules", info.Repo, info.Tag, runtime.GOOS, runtime.GOARCH)
 			dest := filepath.Join(moduleDir, fmt.Sprintf("kusion-module-%s", dep.FullName))
 			if runtime.GOOS == "windows" {
 				source = fmt.Sprintf("%s.exe", source)

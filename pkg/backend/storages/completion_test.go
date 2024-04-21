@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/pkg/clipath"
 )
 
 func TestCompleteLocalConfig(t *testing.T) {
@@ -33,7 +33,7 @@ func TestCompleteLocalConfig(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockey.PatchConvey("mock kusion data folder", t, func() {
-				mockey.Mock(kfile.KusionDataFolder).Return(tc.mockKusionDataFolder, nil).Build()
+				mockey.Mock(clipath.DataPath).Return(tc.mockKusionDataFolder, nil).Build()
 				err := CompleteLocalConfig(tc.config)
 				assert.Equal(t, tc.success, err == nil)
 				assert.Equal(t, tc.completeConfig, tc.config)

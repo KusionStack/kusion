@@ -15,7 +15,6 @@
 package generate
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -233,24 +232,6 @@ func GenerateSpecWithSpinner(
 	}
 
 	return versionedSpec, nil
-}
-
-func SpecFromFile(filePath string) (*v1.Spec, error) {
-	b, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: here we use decoder in yaml.v3 to parse resources because it converts
-	// map into map[string]interface{} by default which is inconsistent with yaml.v2.
-	// The use of yaml.v2 and yaml.v3 should be unified in the future.
-	decoder := yamlv3.NewDecoder(bytes.NewBuffer(b))
-	decoder.KnownFields(true)
-	i := &v1.Spec{}
-	if err = decoder.Decode(i); err != nil && err != io.EOF {
-		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
-	}
-	return i, nil
 }
 
 // write writes Spec resources to a file or a writer.

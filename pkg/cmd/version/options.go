@@ -13,9 +13,9 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/djherbis/times"
 
+	"kusionstack.io/kusion/pkg/clipath"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/gitutil"
-	"kusionstack.io/kusion/pkg/util/kfile"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/version"
 )
@@ -128,7 +128,7 @@ func getUpgradeMessage(latest semver.Version, current semver.Version) string {
 
 // getCachedVersionInfo reads cached information about the newest CLI version, returning the newest version available.
 func getCachedVersionInfo() (semver.Version, error) {
-	updateCheckFile, err := kfile.GetCachedVersionFilePath()
+	updateCheckFile, err := clipath.CachePath(".cached_version")
 	if err != nil {
 		return semver.Version{}, err
 	}
@@ -157,7 +157,7 @@ func getCachedVersionInfo() (semver.Version, error) {
 
 // cacheVersionInfo saves version information in a cache file to be looked up later.
 func cacheVersionInfo(latest semver.Version) error {
-	updateCheckFile, err := kfile.GetCachedVersionFilePath()
+	updateCheckFile, err := clipath.CachePath(".cached_version")
 	if err != nil {
 		return err
 	}

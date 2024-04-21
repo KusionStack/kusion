@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/hc-install/releases"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/clipath"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 var (
@@ -26,7 +26,7 @@ type CLIInstaller struct {
 	Intent *apiv1.Spec
 }
 
-// Check and install the terraform executable binary if it has not been downloaded.
+// CheckAndInstall checks and installs terraform executable binary if it has not been downloaded.
 func (installer *CLIInstaller) CheckAndInstall() error {
 	if len(installer.Intent.Resources) < 1 {
 		return nil
@@ -55,7 +55,7 @@ func (installer *CLIInstaller) CheckAndInstall() error {
 	return nil
 }
 
-// check whether the terraform executable binary has been installed.
+// check whether terraform executable binary has been installed.
 func checkTerraformExecutable() error {
 	// select the executable file name according to the operating system.
 	var executable string
@@ -134,18 +134,16 @@ func setTerraformExecPathEnv(execPath string) error {
 // get the installation directory for terraform binary, and by default
 // it is ~/.kusion/terraform.
 func getTerraformInstallDir() (string, error) {
-	kusionDir, err := kfile.KusionDataFolder()
+	tfInstallDir, err := clipath.DataPath(tfInstallSubDir)
 	if err != nil {
 		return "", err
 	}
 
-	installDir := filepath.Join(kusionDir, tfInstallSubDir)
-
-	if _, err = os.Stat(installDir); os.IsNotExist(err) {
-		if err := os.Mkdir(installDir, 0o755); err != nil {
+	if _, err = os.Stat(tfInstallDir); os.IsNotExist(err) {
+		if err := os.Mkdir(tfInstallDir, 0o755); err != nil {
 			return "", fmt.Errorf("failed to create terraform install directory: %v", err)
 		}
 	}
 
-	return installDir, nil
+	return tfInstallDir, nil
 }

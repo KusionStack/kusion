@@ -4,13 +4,13 @@ import (
 	"os"
 
 	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/pkg/clipath"
 )
 
 // CompleteLocalConfig sets default value of path if not set, which uses the path of kusion data folder.
 func CompleteLocalConfig(config *v1.BackendLocalConfig) error {
 	if config.Path == "" {
-		path, err := kfile.KusionDataFolder()
+		path, err := clipath.DataPath()
 		if err != nil {
 			return err
 		}

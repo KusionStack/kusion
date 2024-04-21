@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
+	"kusionstack.io/kusion/pkg/clipath"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 const (
@@ -125,11 +125,10 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 func newPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error) {
 	// create the plugin log file
 	var logFilePath string
-	dir, err := kfile.KusionDataFolder()
+	logDir, err := clipath.StatePath(log.Folder, Dir)
 	if err != nil {
 		return nil, err
 	}
-	logDir := filepath.Join(dir, log.Folder, Dir)
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 			return nil, fmt.Errorf("failed to create module log dir: %w", err)
@@ -172,7 +171,7 @@ func (p *Plugin) KillPluginClient() error {
 func PluginDir() (string, error) {
 	if env, found := os.LookupEnv(DefaultModulePathEnv); found {
 		return env, nil
-	} else if dir, err := kfile.KusionDataFolder(); err == nil {
+	} else if dir, err := clipath.DataPath(); err == nil {
 		return filepath.Join(dir, Dir), nil
 	} else {
 		return "", err

@@ -1,7 +1,6 @@
 package log
 
 import (
-	"os"
 	"path/filepath"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/pkg/clipath"
 )
 
 var (
@@ -52,14 +51,11 @@ func newZapCore(logDir string, level zapcore.Level) (zapcore.Core, zap.AtomicLev
 }
 
 func newZapLogger() (Logger, error) {
-	kusionDataDir, _ := kfile.KusionDataFolder()
-	if v := os.Getenv("LOG_DIR"); v != "" {
-		kusionDataDir = v
-	}
+	logDir, _ := clipath.StatePath(Folder)
 	dirConfig = Dir{
-		DefaultLogDir: filepath.Join(kusionDataDir, Folder, "kusion.log"),
-		ErrorLogDir:   filepath.Join(kusionDataDir, Folder, "kusion_error.log"),
-		DebugLogDir:   filepath.Join(kusionDataDir, Folder, "kusion_debug.log"),
+		DefaultLogDir: filepath.Join(logDir, "kusion.log"),
+		ErrorLogDir:   filepath.Join(logDir, "kusion_error.log"),
+		DebugLogDir:   filepath.Join(logDir, "kusion_debug.log"),
 	}
 	debugCore, debugAtom := newZapCore(dirConfig.DebugLogDir, zapcore.DebugLevel)
 	defaultCore, defaultAtom := newZapCore(dirConfig.DefaultLogDir, zapcore.InfoLevel)

@@ -17,10 +17,10 @@ import (
 	"github.com/spf13/afero"
 
 	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/clipath"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/io"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
-	"kusionstack.io/kusion/pkg/util/kfile"
 )
 
 const (
@@ -419,15 +419,12 @@ func (w *WorkSpace) checkVersionUpdate() (bool, error) {
 // getProviderLogPath returns the provider log path environmental variable,
 // the environmental variables that determine the provider log go to a file.
 func (w *WorkSpace) getEnvProviderLogPath() (string, error) {
-	kusionDataDir, err := kfile.KusionDataFolder()
+	logDir, err := clipath.StatePath("logs")
 	if err != nil {
 		return "", err
 	}
-	if v := os.Getenv("LOG_DIR"); v != "" {
-		kusionDataDir = v
-	}
 	provider := strings.Split(w.resource.Extensions["provider"].(string), "/")
-	providerLogPath := filepath.Join(kusionDataDir, "logs", fmt.Sprintf("%s-%s.log", tfProviderPrefix, provider[len(provider)-2]))
+	providerLogPath := filepath.Join(logDir, "logs", fmt.Sprintf("%s-%s.log", tfProviderPrefix, provider[len(provider)-2]))
 	envTFLogPath := fmt.Sprintf("%s=%s", envLogPath, providerLogPath)
 	return envTFLogPath, nil
 }

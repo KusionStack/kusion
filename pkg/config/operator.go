@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -13,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/pkg/clipath"
 )
 
 const configFile = "config.yaml"
@@ -42,13 +41,13 @@ type operator struct {
 
 // newOperator returns a kusion config operator.
 func newOperator() (*operator, error) {
-	kusionDataDir, err := kfile.KusionDataFolder()
+	configFilePath, err := clipath.ConfigPath(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("get kusion data folder failed, %w", err)
 	}
 
 	o := &operator{
-		configFilePath:  filepath.Join(kusionDataDir, configFile),
+		configFilePath:  configFilePath,
 		registeredItems: newRegisteredItems(),
 		config:          &v1.Config{},
 	}
