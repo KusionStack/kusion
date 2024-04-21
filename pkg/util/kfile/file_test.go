@@ -1,7 +1,6 @@
 package kfile
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -10,10 +9,7 @@ import (
 	"github.com/bytedance/mockey"
 )
 
-const (
-	mockHomeDir = "/home/test"
-	mockToken   = "testtoken"
-)
+const mockHomeDir = "/home/test"
 
 func TestFileExists(t *testing.T) {
 	type args struct {
@@ -87,30 +83,6 @@ func TestKusionDataFolder(t *testing.T) {
 	}
 }
 
-func TestGetCredentialsToken(t *testing.T) {
-	// Run test
-	tests := []struct {
-		name string
-		want string
-	}{
-		{
-			name: "success",
-			want: mockToken,
-		},
-	}
-	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
-			// Mock data
-			mockUserCurrent()
-			mockMkdirall()
-			mockReadFile()
-			if got := GetCredentialsToken(); got != tt.want {
-				t.Errorf("GetCredentialsToken() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func mockUserCurrent() {
 	mockey.Mock(user.Current).To(func() (*user.User, error) {
 		return &user.User{
@@ -122,11 +94,5 @@ func mockUserCurrent() {
 func mockMkdirall() {
 	mockey.Mock(os.MkdirAll).To(func(path string, perm os.FileMode) error {
 		return nil
-	}).Build()
-}
-
-func mockReadFile() {
-	mockey.Mock(os.ReadFile).To(func(filename string) ([]byte, error) {
-		return []byte(fmt.Sprintf(`{"token": "%s"}`, mockToken)), nil
 	}).Build()
 }
