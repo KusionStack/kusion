@@ -1,7 +1,6 @@
 package kfile
 
 import (
-	"encoding/json"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -78,42 +77,6 @@ func KusionDataFolder() (string, error) {
 	}
 
 	return kusionDataFolder, nil
-}
-
-// Get the file name of the kusion credentials file
-func KusionCredentialsFilename() string {
-	return "credentials.json"
-}
-
-// GetCredentialsToken returns the token from credentials file
-func GetCredentialsToken() string {
-	// Get token from credentials.json in kusion data folder
-	credentials, err := GetCredentials()
-	if err != nil {
-		return ""
-	}
-	return credentials["token"].(string)
-}
-
-// Get the kusion credentials data
-func GetCredentials() (map[string]interface{}, error) {
-	// Get kusion data folder
-	kusionDataFolder, err := KusionDataFolder()
-	if err != nil {
-		return nil, err
-	}
-	// Get kusion credentials data from credentials.json in kusion data folder
-	credentialsFilepath := filepath.Join(kusionDataFolder, KusionCredentialsFilename())
-	data, err := os.ReadFile(credentialsFilepath)
-	if err != nil {
-		return nil, err
-	}
-	var credentials map[string]interface{}
-	err = json.Unmarshal(data, &credentials)
-	if err != nil {
-		return nil, err
-	}
-	return credentials, nil
 }
 
 // GetCachedVersionFilePath returns the location where the CLI caches information from pulumi.com on the newest
