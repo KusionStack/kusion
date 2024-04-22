@@ -337,7 +337,7 @@ func (o *PushModOptions) buildModule() (string, error) {
 
 	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+o.Version)
 	if strings.Contains(o.OSArch, "windows") {
-		output = filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+o.Version+".exe")
+		output += ".exe"
 	}
 
 	path, err := buildBinary(goBin, pOS, pArch, moduleSrc, output, o.IOStreams)

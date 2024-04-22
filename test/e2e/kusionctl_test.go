@@ -1,18 +1,10 @@
 package e2e
 
 import (
-	"context"
-	"fmt"
-	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
@@ -28,9 +20,11 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 })
 
 var _ = ginkgo.Describe("kusion Runtime Commands", func() {
-	ginkgo.It("kusion preview", func() {
+	// comment out before we have upgrade modules in the registry
+
+	/* ginkgo.It("kusion preview", func() {
 		path := filepath.Join(GetWorkDir(), "konfig", "example", "service-multi-stack", "dev")
-		_, err := ExecKusionWithWorkDir("kusion preview -d=false", path)
+		_, err := ExecKusionWithWorkDir("kusion preview -d", path)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	})
 
@@ -70,7 +64,7 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 				return errors.IsNotFound(err)
 			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
-	})
+	}) */
 })
 
 var _ = ginkgo.Describe("Kusion Other Commands", func() {
