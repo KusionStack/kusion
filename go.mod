@@ -46,7 +46,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/hcl/v2 v2.16.1
 	github.com/hashicorp/vault/api v1.10.0
-	github.com/hashicorp/waypoint-plugin-sdk v0.0.0-20230412210808-dcdb2a03f714
 	github.com/howieyuen/uilive v0.0.6
 	github.com/jinzhu/copier v0.3.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
@@ -252,6 +251,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/hc-install v0.6.2
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/waypoint-plugin-sdk v0.0.0-20230412210808-dcdb2a03f714
 	github.com/imdario/mergo v0.3.16
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
