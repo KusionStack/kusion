@@ -193,10 +193,10 @@ type Extension struct {
 	Kind ExtensionKind `yaml:"kind" json:"kind"`
 
 	// The KubeNamespaceExtension
-	KubeNamespace KubeNamespaceExtension `yaml:",inline,omitempty" json:",inline,omitempty"`
+	KubeNamespace KubeNamespaceExtension `yaml:"kubernetesNamespace,omitempty" json:"kubernetesNamespace,omitempty"`
 
 	// The KubeMetadataExtension
-	KubeMetadata KubeMetadataExtension `yaml:",inline,omitempty" json:",inline,omitempty"`
+	KubeMetadata KubeMetadataExtension `yaml:"kubernetesMetadata,omitempty" json:"kubernetesMetadata,omitempty"`
 }
 
 // KubeNamespaceExtension allows you to override kubernetes namespace.

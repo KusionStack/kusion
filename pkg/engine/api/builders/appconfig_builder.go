@@ -17,6 +17,7 @@ package builders
 import (
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -51,5 +52,53 @@ func (acg *AppsConfigBuilder) Build(kclPackage *api.KclPackage, project *v1.Proj
 		return nil, err
 	}
 
+	// updates generated spec resources based on project and stack extensions.
+	patchResourcesWithExtensions(project, stack, i)
+
 	return i, nil
+}
+
+// patchResourcesWithExtensions updates generated spec resources based on project and stack extensions.
+func patchResourcesWithExtensions(project *v1.Project, stack *v1.Stack, spec *v1.Spec) {
+	extensions := mergeExtensions(project, stack)
+	if len(extensions) == 0 {
+		return
+	}
+
+	for _, extension := range extensions {
+		switch extension.Kind {
+		case v1.KubernetesNamespace:
+			patchResourcesKubeNamespace(spec, extension.KubeNamespace.Namespace)
+		default:
+			// do nothing
+		}
+	}
+}
+
+func patchResourcesKubeNamespace(spec *v1.Spec, namespace string) {
+	for _, resource := range spec.Resources {
+		if resource.Type == v1.Kubernetes {
+			u := &unstructured.Unstructured{Object: resource.Attributes}
+			u.SetNamespace(namespace)
+		}
+	}
+}
+
+func mergeExtensions(project *v1.Project, stack *v1.Stack) []*v1.Extension {
+	var extensions []*v1.Extension
+	extensionKindMap := make(map[string]struct{})
+	if stack.Extensions != nil && len(stack.Extensions) != 0 {
+		for _, extension := range stack.Extensions {
+			extensions = append(extensions, extension)
+			extensionKindMap[string(extension.Kind)] = struct{}{}
+		}
+	}
+	if project.Extensions != nil && len(project.Extensions) != 0 {
+		for _, extension := range project.Extensions {
+			if _, exist := extensionKindMap[string(extension.Kind)]; !exist {
+				extensions = append(extensions, extension)
+			}
+		}
+	}
+	return extensions
 }
