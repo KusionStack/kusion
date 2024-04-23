@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -105,7 +103,6 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 	}
 
 	// Port-forward the Service with client-go.
-	var localPort int
 	failed := make(chan error)
 	for res, svc := range services {
 		namespace := svc.GetNamespace()
@@ -129,25 +126,8 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 			return err
 		}
 
-		// Get an available local port for forwarding.
-		minPort, maxPort := 1024, 65535
-
-		for {
-			localPort = rand.Intn(maxPort-minPort) + minPort
-
-			// Try to listen to the port.
-			addr := fmt.Sprintf(":%d", localPort)
-			listener, err := net.Listen("tcp", addr)
-			if err != nil {
-				continue
-			}
-			_ = listener.Close()
-
-			break
-		}
-
 		go func() {
-			err := ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, localPort)
+			err := ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort)
 			failed <- err
 		}()
 	}
