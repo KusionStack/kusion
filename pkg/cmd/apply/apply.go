@@ -131,7 +131,7 @@ func (f *ApplyFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&f.Yes, "yes", "y", false, i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&f.DryRun, "dry-run", "", false, i18n.T("Preview the execution effect (always successful) without actually applying the changes"))
 	cmd.Flags().BoolVarP(&f.Watch, "watch", "", false, i18n.T("After creating/updating/deleting the requested object, watch for changes"))
-	cmd.Flags().IntVarP(&f.PortForward, "port-forward", "", 0, i18n.T("Forward an available local port to the specified service port"))
+	cmd.Flags().IntVarP(&f.PortForward, "port-forward", "", 0, i18n.T("Forward the specified port from local to service"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -451,8 +451,7 @@ func Watch(
 	return nil
 }
 
-// PortForward function will forward an available local port to the specified port
-// of the project Kubernetes Service.
+// PortForward function will forward the specified port from local to the project Kubernetes Service.
 //
 // Example:
 //
