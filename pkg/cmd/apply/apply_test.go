@@ -19,11 +19,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/bytedance/mockey"
+	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -39,6 +38,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	"kusionstack.io/kusion/pkg/util/pretty"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -72,6 +72,7 @@ func NewApplyOptions() *ApplyOptions {
 			NoStyle:      false,
 			Output:       "",
 			IgnoreFields: nil,
+			UI:           pretty.DefaultUI(),
 		},
 	}
 }
@@ -112,6 +113,7 @@ func mockGenerateSpecWithSpinner() {
 		stack *apiv1.Stack,
 		workspace *apiv1.Workspace,
 		parameters map[string]string,
+		ui *pretty.UI,
 		noStyle bool,
 	) (*apiv1.Spec, error) {
 		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
@@ -317,21 +319,18 @@ func mockOperationApply(res models.OpResult) {
 
 func TestPrompt(t *testing.T) {
 	mockey.PatchConvey("prompt error", t, func() {
-		mockey.Mock(survey.AskOne).Return(errors.New("mock error")).Build()
-		_, err := prompt()
+		mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return("", errors.New("mock error")).Build()
+		_, err := prompt(pretty.DefaultUI())
 		assert.NotNil(t, err)
 	})
 
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
-		_, err := prompt()
+		_, err := prompt(pretty.DefaultUI())
 		assert.Nil(t, err)
 	})
 }
 
 func mockPromptOutput(res string) {
-	mockey.Mock(survey.AskOne).To(func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
-		reflect.ValueOf(response).Elem().Set(reflect.ValueOf(res))
-		return nil
-	}).Build()
+	mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return(res, nil).Build()
 }

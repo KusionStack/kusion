@@ -78,7 +78,10 @@ func Destroy(
 	var deleted int
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithTotal(len(changes.StepKeys)).Start()
+	progressbar, err := pterm.DefaultProgressbar.
+		WithTotal(len(changes.StepKeys)).
+		WithRemoveWhenDone().
+		Start()
 	if err != nil {
 		return err
 	}

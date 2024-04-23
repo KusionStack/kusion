@@ -20,7 +20,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
@@ -92,16 +91,16 @@ type ApplyOptions struct {
 }
 
 // NewApplyFlags returns a default ApplyFlags
-func NewApplyFlags(streams genericiooptions.IOStreams) *ApplyFlags {
+func NewApplyFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *ApplyFlags {
 	return &ApplyFlags{
-		PreviewFlags: preview.NewPreviewFlags(streams),
+		PreviewFlags: preview.NewPreviewFlags(ui, streams),
 		IOStreams:    streams,
 	}
 }
 
 // NewCmdApply creates the `apply` command.
-func NewCmdApply(ioStreams genericiooptions.IOStreams) *cobra.Command {
-	flags := NewApplyFlags(ioStreams)
+func NewCmdApply(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+	flags := NewApplyFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
 		Use:     "apply",
@@ -172,11 +171,10 @@ func (o *ApplyOptions) Run() error {
 	// set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
-		pterm.DisableColor()
 	}
 
 	// Generate Spec
-	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.NoStyle)
+	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
 	if err != nil {
 		return err
 	}
@@ -200,7 +198,7 @@ func (o *ApplyOptions) Run() error {
 	}
 
 	// summary preview table
-	changes.Summary(o.IOStreams.Out, false)
+	changes.Summary(o.IOStreams.Out, o.NoStyle)
 
 	// detail detection
 	if o.Detail && o.All {
@@ -213,14 +211,14 @@ func (o *ApplyOptions) Run() error {
 	// prompt
 	if !o.Yes {
 		for {
-			input, err := prompt()
+			input, err := prompt(o.UI)
 			if err != nil {
 				return err
 			}
 			if input == "yes" {
 				break
 			} else if input == "details" {
-				target, err := changes.PromptDetails()
+				target, err := changes.PromptDetails(o.UI)
 				if err != nil {
 					return err
 				}
@@ -303,10 +301,11 @@ func Apply(
 	var ls lineSummary
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.
+	progressbar, err := o.UI.ProgressbarPrinter.
 		WithMaxWidth(0). // Set to 0, the terminal width will be used
 		WithTotal(len(changes.StepKeys)).
 		WithWriter(out).
+		WithRemoveWhenDone().
 		Start()
 	if err != nil {
 		return err
@@ -517,21 +516,19 @@ func allUnChange(changes *models.Changes) bool {
 	return true
 }
 
-func prompt() (string, error) {
+func prompt(ui *pretty.UI) (string, error) {
 	// don`t display yes item when only preview
 	options := []string{"yes", "details", "no"}
-
-	p := &survey.Select{
-		Message: `Do you want to apply these diffs?`,
-		Options: options,
-		Default: "details",
-	}
-
-	var input string
-	err := survey.AskOne(p, &input)
+	input, err := ui.InteractiveSelectPrinter.
+		WithFilter(false).
+		WithDefaultText(`Do you want to apply these diffs?`).
+		WithOptions(options).
+		WithDefaultOption("details").
+		Show()
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
+		fmt.Printf("Prompt failed: %v\n", err)
 		return "", err
 	}
+
 	return input, nil
 }

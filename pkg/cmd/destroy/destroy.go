@@ -20,7 +20,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
@@ -62,6 +61,9 @@ type DeleteFlags struct {
 	Operator string
 	Yes      bool
 	Detail   bool
+	NoStyle  bool
+
+	UI *pretty.UI
 
 	genericiooptions.IOStreams
 }
@@ -73,21 +75,25 @@ type DeleteOptions struct {
 	Operator string
 	Yes      bool
 	Detail   bool
+	NoStyle  bool
+
+	UI *pretty.UI
 
 	genericiooptions.IOStreams
 }
 
 // NewDeleteFlags returns a default DeleteFlags
-func NewDeleteFlags(streams genericiooptions.IOStreams) *DeleteFlags {
+func NewDeleteFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *DeleteFlags {
 	return &DeleteFlags{
 		MetaFlags: meta.NewMetaFlags(),
+		UI:        ui,
 		IOStreams: streams,
 	}
 }
 
 // NewCmdDestroy creates the `delete` command.
-func NewCmdDestroy(ioStreams genericiooptions.IOStreams) *cobra.Command {
-	flags := NewDeleteFlags(ioStreams)
+func NewCmdDestroy(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+	flags := NewDeleteFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
 		Use:     "destroy",
@@ -117,6 +123,7 @@ func (flags *DeleteFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&flags.Operator, "operator", "", flags.Operator, i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&flags.Yes, "yes", "y", false, i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&flags.Detail, "detail", "d", false, i18n.T("Automatically show preview details after previewing it"))
+	cmd.Flags().BoolVarP(&flags.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -132,6 +139,8 @@ func (flags *DeleteFlags) ToOptions() (*DeleteOptions, error) {
 		Operator:    flags.Operator,
 		Detail:      flags.Detail,
 		Yes:         flags.Yes,
+		NoStyle:     flags.NoStyle,
+		UI:          flags.UI,
 		IOStreams:   flags.IOStreams,
 	}
 
@@ -170,18 +179,24 @@ func (o *DeleteOptions) Run() error {
 	}
 
 	// preview
-	changes.Summary(os.Stdout, false)
+	changes.Summary(os.Stdout, o.NoStyle)
 
 	// detail detection
 	if o.Detail {
 		changes.OutputDiff("all")
 		return nil
 	}
+
+	// set no style
+	if o.NoStyle {
+		pterm.DisableStyling()
+	}
+
 	// prompt
 	if !o.Yes {
 		for {
 			var input string
-			input, err = prompt()
+			input, err = prompt(o.UI)
 			if err != nil {
 				return err
 			}
@@ -190,7 +205,7 @@ func (o *DeleteOptions) Run() error {
 				break
 			} else if input == "details" {
 				var target string
-				target, err = changes.PromptDetails()
+				target, err = changes.PromptDetails(o.UI)
 				if err != nil {
 					return err
 				}
@@ -266,7 +281,11 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 	var deleted int
 
 	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.WithMaxWidth(0).WithTotal(len(changes.StepKeys)).Start()
+	progressbar, err := o.UI.ProgressbarPrinter.
+		WithMaxWidth(0).
+		WithTotal(len(changes.StepKeys)).
+		WithRemoveWhenDone().
+		Start()
 	if err != nil {
 		return err
 	}
@@ -349,18 +368,18 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 	return nil
 }
 
-func prompt() (string, error) {
-	p := &survey.Select{
-		Message: `Do you want to destroy these diffs?`,
-		Options: []string{"yes", "details", "no"},
-		Default: "details",
-	}
-
-	var input string
-	err := survey.AskOne(p, &input)
+func prompt(ui *pretty.UI) (string, error) {
+	options := []string{"yes", "details", "no"}
+	input, err := ui.InteractiveSelectPrinter.
+		WithFilter(false).
+		WithDefaultText(`Do you want to destroy these diffs?`).
+		WithOptions(options).
+		WithDefaultOption("details").
+		Show()
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
+		fmt.Printf("Prompt failed: %v\n", err)
 		return "", err
 	}
+
 	return input, nil
 }

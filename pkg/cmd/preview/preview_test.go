@@ -34,6 +34,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	"kusionstack.io/kusion/pkg/util/pretty"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -215,6 +216,7 @@ func mockGenerateSpecWithSpinner() {
 		stack *apiv1.Stack,
 		workspace *apiv1.Workspace,
 		parameters map[string]string,
+		ui *pretty.UI,
 		noStyle bool,
 	) (*apiv1.Spec, error) {
 		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
@@ -228,7 +230,7 @@ func mockNewKubernetesRuntime() {
 }
 
 func mockPromptDetail(input string) {
-	mockey.Mock((*models.ChangeOrder).PromptDetails).To(func(co *models.ChangeOrder) (string, error) {
+	mockey.Mock((*models.ChangeOrder).PromptDetails).To(func(ui *pretty.UI) (string, error) {
 		return input, nil
 	}).Build()
 }

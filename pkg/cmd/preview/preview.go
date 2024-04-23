@@ -77,6 +77,8 @@ type PreviewFlags struct {
 	Output       string
 	IgnoreFields []string
 
+	UI *pretty.UI
+
 	genericiooptions.IOStreams
 }
 
@@ -91,20 +93,23 @@ type PreviewOptions struct {
 	Output       string
 	IgnoreFields []string
 
+	UI *pretty.UI
+
 	genericiooptions.IOStreams
 }
 
 // NewPreviewFlags returns a default PreviewFlags
-func NewPreviewFlags(streams genericiooptions.IOStreams) *PreviewFlags {
+func NewPreviewFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *PreviewFlags {
 	return &PreviewFlags{
 		MetaFlags: meta.NewMetaFlags(),
+		UI:        ui,
 		IOStreams: streams,
 	}
 }
 
 // NewCmdPreview creates the `preview` command.
-func NewCmdPreview(ioStreams genericiooptions.IOStreams) *cobra.Command {
-	flags := NewPreviewFlags(ioStreams)
+func NewCmdPreview(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+	flags := NewPreviewFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
 		Use:     "preview",
@@ -155,6 +160,7 @@ func (f *PreviewFlags) ToOptions() (*PreviewOptions, error) {
 		NoStyle:      f.NoStyle,
 		Output:       f.Output,
 		IgnoreFields: f.IgnoreFields,
+		UI:           f.UI,
 		IOStreams:    f.IOStreams,
 	}
 
@@ -175,11 +181,10 @@ func (o *PreviewOptions) Run() error {
 	// set no style
 	if o.NoStyle || o.Output == jsonOutput {
 		pterm.DisableStyling()
-		pterm.DisableColor()
 	}
 
 	// Generate spec
-	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.NoStyle)
+	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
 	if err != nil {
 		return err
 	}
@@ -215,13 +220,13 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// summary preview table
-	changes.Summary(o.IOStreams.Out, false)
+	changes.Summary(o.IOStreams.Out, o.NoStyle)
 
 	// detail detection
 	if o.Detail {
 		for {
 			var target string
-			target, err = changes.PromptDetails()
+			target, err = changes.PromptDetails(o.UI)
 			if err != nil {
 				return err
 			}
