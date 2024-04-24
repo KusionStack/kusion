@@ -22,14 +22,14 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
 	"kusionstack.io/kusion/pkg/util/i18n"
-	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 type KusionctlOptions struct {
 	Arguments []string
 
 	// UI is used to write to the CLI.
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
@@ -38,7 +38,7 @@ type KusionctlOptions struct {
 func NewDefaultKusionctlCommand() *cobra.Command {
 	return NewDefaultKusionctlCommandWithArgs(KusionctlOptions{
 		Arguments: os.Args,
-		UI:        pretty.DefaultUI(),
+		UI:        terminal.DefaultUI(),
 		IOStreams: genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr},
 	})
 }

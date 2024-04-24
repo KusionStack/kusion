@@ -32,7 +32,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/api/generate/generator"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 	"kusionstack.io/kusion/pkg/util/i18n"
-	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var (
@@ -60,7 +60,7 @@ type GenerateFlags struct {
 	Values  []string
 	NoStyle bool
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
@@ -73,13 +73,13 @@ type GenerateOptions struct {
 	Values  []string
 	NoStyle bool
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
 
 // NewGenerateFlags returns a default GenerateFlags
-func NewGenerateFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *GenerateFlags {
+func NewGenerateFlags(ui *terminal.UI, streams genericiooptions.IOStreams) *GenerateFlags {
 	return &GenerateFlags{
 		MetaFlags: meta.NewMetaFlags(),
 		UI:        ui,
@@ -88,7 +88,7 @@ func NewGenerateFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *Genera
 }
 
 // NewCmdGenerate creates the `generate` command.
-func NewCmdGenerate(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdGenerate(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewGenerateFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
@@ -201,7 +201,7 @@ func GenerateSpecWithSpinner(
 	stack *v1.Stack,
 	workspace *v1.Workspace,
 	parameters map[string]string,
-	ui *pretty.UI,
+	ui *terminal.UI,
 	noStyle bool,
 ) (*v1.Spec, error) {
 	// Construct generator instance

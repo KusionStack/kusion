@@ -35,6 +35,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var (
@@ -77,7 +78,7 @@ type PreviewFlags struct {
 	Output       string
 	IgnoreFields []string
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
@@ -93,13 +94,13 @@ type PreviewOptions struct {
 	Output       string
 	IgnoreFields []string
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
 
 // NewPreviewFlags returns a default PreviewFlags
-func NewPreviewFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *PreviewFlags {
+func NewPreviewFlags(ui *terminal.UI, streams genericiooptions.IOStreams) *PreviewFlags {
 	return &PreviewFlags{
 		MetaFlags: meta.NewMetaFlags(),
 		UI:        ui,
@@ -108,7 +109,7 @@ func NewPreviewFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *Preview
 }
 
 // NewCmdPreview creates the `preview` command.
-func NewCmdPreview(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdPreview(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewPreviewFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{

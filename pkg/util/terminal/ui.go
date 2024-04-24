@@ -1,6 +1,9 @@
-package pretty
+package terminal
 
-import "github.com/pterm/pterm"
+import (
+	"github.com/pterm/pterm"
+	"kusionstack.io/kusion/pkg/util/pretty"
+)
 
 type UI struct {
 	SpinnerPrinter           *pterm.SpinnerPrinter
@@ -12,7 +15,7 @@ type UI struct {
 // SpinnerPrinter, ProgressbarPrinter and InteractiveSelectPrinter.
 func DefaultUI() *UI {
 	return &UI{
-		SpinnerPrinter:           &SpinnerT,
+		SpinnerPrinter:           &pretty.SpinnerT,
 		ProgressbarPrinter:       &pterm.DefaultProgressbar,
 		InteractiveSelectPrinter: &pterm.DefaultInteractiveSelect,
 	}

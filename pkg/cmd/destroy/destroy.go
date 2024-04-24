@@ -36,6 +36,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var (
@@ -63,7 +64,7 @@ type DeleteFlags struct {
 	Detail   bool
 	NoStyle  bool
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
@@ -77,13 +78,13 @@ type DeleteOptions struct {
 	Detail   bool
 	NoStyle  bool
 
-	UI *pretty.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
 
 // NewDeleteFlags returns a default DeleteFlags
-func NewDeleteFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *DeleteFlags {
+func NewDeleteFlags(ui *terminal.UI, streams genericiooptions.IOStreams) *DeleteFlags {
 	return &DeleteFlags{
 		MetaFlags: meta.NewMetaFlags(),
 		UI:        ui,
@@ -92,7 +93,7 @@ func NewDeleteFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *DeleteFl
 }
 
 // NewCmdDestroy creates the `delete` command.
-func NewCmdDestroy(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdDestroy(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewDeleteFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
@@ -368,7 +369,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 	return nil
 }
 
-func prompt(ui *pretty.UI) (string, error) {
+func prompt(ui *terminal.UI) (string, error) {
 	options := []string{"yes", "details", "no"}
 	input, err := ui.InteractiveSelectPrinter.
 		WithFilter(false).

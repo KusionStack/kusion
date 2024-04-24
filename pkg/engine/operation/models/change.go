@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 type ChangeStep struct {
@@ -242,7 +243,7 @@ func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 	pterm.Println() // Blank line
 }
 
-func (o *ChangeOrder) PromptDetails(ui *pretty.UI) (string, error) {
+func (o *ChangeOrder) PromptDetails(ui *terminal.UI) (string, error) {
 	// Prepare the selects
 	options := []string{"all"}
 	optionMaps := map[string]string{"all": "all"}

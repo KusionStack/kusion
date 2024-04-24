@@ -38,7 +38,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
-	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -68,7 +68,7 @@ func NewDeleteOptions() *DeleteOptions {
 		},
 		Operator: "",
 		Detail:   false,
-		UI:       pretty.DefaultUI(),
+		UI:       terminal.DefaultUI(),
 	}
 }
 
@@ -318,13 +318,13 @@ func mockWorkspaceStorage() {
 func TestPrompt(t *testing.T) {
 	mockey.PatchConvey("prompt error", t, func() {
 		mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return("", errors.New("mock error")).Build()
-		_, err := prompt(pretty.DefaultUI())
+		_, err := prompt(terminal.DefaultUI())
 		assert.NotNil(t, err)
 	})
 
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
-		_, err := prompt(pretty.DefaultUI())
+		_, err := prompt(terminal.DefaultUI())
 		assert.Nil(t, err)
 	})
 }

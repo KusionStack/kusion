@@ -36,6 +36,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var (
@@ -91,7 +92,7 @@ type ApplyOptions struct {
 }
 
 // NewApplyFlags returns a default ApplyFlags
-func NewApplyFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *ApplyFlags {
+func NewApplyFlags(ui *terminal.UI, streams genericiooptions.IOStreams) *ApplyFlags {
 	return &ApplyFlags{
 		PreviewFlags: preview.NewPreviewFlags(ui, streams),
 		IOStreams:    streams,
@@ -99,7 +100,7 @@ func NewApplyFlags(ui *pretty.UI, streams genericiooptions.IOStreams) *ApplyFlag
 }
 
 // NewCmdApply creates the `apply` command.
-func NewCmdApply(ui *pretty.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdApply(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewApplyFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
@@ -516,7 +517,7 @@ func allUnChange(changes *models.Changes) bool {
 	return true
 }
 
-func prompt(ui *pretty.UI) (string, error) {
+func prompt(ui *terminal.UI) (string, error) {
 	// don`t display yes item when only preview
 	options := []string{"yes", "details", "no"}
 	input, err := ui.InteractiveSelectPrinter.
