@@ -30,7 +30,7 @@ var _ = ginkgo.Describe("Kusion Configuration Commands", func() {
 var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 	ginkgo.It("kusion preview", func() {
 		path := filepath.Join(GetWorkDir(), "konfig", "example", "service-multi-stack", "dev")
-		_, err := ExecKusionWithWorkDir("kusion preview -d", path)
+		_, err := ExecKusionWithWorkDir("kusion preview -d=false", path)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	})
 

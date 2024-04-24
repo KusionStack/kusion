@@ -63,6 +63,7 @@ func Apply(
 		WithMaxWidth(0). // Set to 0, the terminal width will be used
 		WithTotal(len(changes.StepKeys)).
 		WithWriter(out).
+		WithRemoveWhenDone().
 		Start()
 	if err != nil {
 		return err

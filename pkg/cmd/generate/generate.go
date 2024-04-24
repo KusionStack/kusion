@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/waypoint-plugin-sdk/terminal"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -33,7 +32,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/api/generate/generator"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 	"kusionstack.io/kusion/pkg/util/i18n"
-	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var (
@@ -57,10 +56,11 @@ var (
 type GenerateFlags struct {
 	MetaFlags *meta.MetaFlags
 
-	Output string
-	Values []string
+	Output  string
+	Values  []string
+	NoStyle bool
 
-	UI terminal.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
@@ -69,16 +69,17 @@ type GenerateFlags struct {
 type GenerateOptions struct {
 	*meta.MetaOptions
 
-	Output string
-	Values []string
+	Output  string
+	Values  []string
+	NoStyle bool
 
-	UI terminal.UI
+	UI *terminal.UI
 
 	genericiooptions.IOStreams
 }
 
 // NewGenerateFlags returns a default GenerateFlags
-func NewGenerateFlags(ui terminal.UI, streams genericiooptions.IOStreams) *GenerateFlags {
+func NewGenerateFlags(ui *terminal.UI, streams genericiooptions.IOStreams) *GenerateFlags {
 	return &GenerateFlags{
 		MetaFlags: meta.NewMetaFlags(),
 		UI:        ui,
@@ -87,7 +88,7 @@ func NewGenerateFlags(ui terminal.UI, streams genericiooptions.IOStreams) *Gener
 }
 
 // NewCmdGenerate creates the `generate` command.
-func NewCmdGenerate(ui terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdGenerate(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewGenerateFlags(ui, ioStreams)
 
 	cmd := &cobra.Command{
@@ -117,6 +118,7 @@ func (flags *GenerateFlags) AddFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringVarP(&flags.Output, "output", "o", flags.Output, i18n.T("File to write generated Spec resources to"))
 	cmd.Flags().StringArrayVar(&flags.Values, "set", []string{}, i18n.T("Set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)"))
+	cmd.Flags().BoolVarP(&flags.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -131,6 +133,7 @@ func (flags *GenerateFlags) ToOptions() (*GenerateOptions, error) {
 		MetaOptions: metaOptions,
 		Output:      flags.Output,
 		Values:      flags.Values,
+		NoStyle:     flags.NoStyle,
 
 		UI:        flags.UI,
 		IOStreams: flags.IOStreams,
@@ -156,12 +159,16 @@ func (o *GenerateOptions) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `generate` command.
 func (o *GenerateOptions) Run() error {
+	// set no style
+	if o.NoStyle {
+		pterm.DisableStyling()
+	}
+
 	// build parameters
 	parameters := o.buildParameters()
 
 	// call default generator to generate Spec
-	o.UI.Output("Generating...", terminal.WithHeaderStyle())
-	spec, err := GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, true)
+	spec, err := GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, o.UI, o.NoStyle)
 	if err != nil {
 		return err
 	}
@@ -169,7 +176,7 @@ func (o *GenerateOptions) Run() error {
 	// write Spec to output file or a writer
 	err = write(spec, o.Output, o.Out)
 	if err != nil {
-		o.UI.Output("Error writing generated Spec: %s", err.Error(), terminal.WithErrorStyle())
+		// o.UI.Output("Error writing generated Spec: %s", err.Error(), terminal.WithErrorStyle())
 		return err
 	}
 	return nil
@@ -194,6 +201,7 @@ func GenerateSpecWithSpinner(
 	stack *v1.Stack,
 	workspace *v1.Workspace,
 	parameters map[string]string,
+	ui *terminal.UI,
 	noStyle bool,
 ) (*v1.Spec, error) {
 	// Construct generator instance
@@ -204,13 +212,12 @@ func GenerateSpecWithSpinner(
 		Runner:    &run.KPMRunner{},
 	}
 
-	var sp *pterm.SpinnerPrinter
 	if noStyle {
-		fmt.Printf("Generating Spec in the Stack %s...\n", stack.Name)
-	} else {
-		sp = &pretty.SpinnerT
-		sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
+		pterm.DisableStyling()
 	}
+
+	sp := ui.SpinnerPrinter
+	sp, _ = sp.Start(fmt.Sprintf("Generating Spec in the Stack %s...", stack.Name))
 
 	// style means color and prompt here. Currently, sp will be nil only when o.NoStyle is true
 	style := !noStyle && sp != nil

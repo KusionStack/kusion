@@ -6,13 +6,13 @@ import (
 	"io"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/pterm/pterm"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 type ChangeStep struct {
@@ -226,7 +226,6 @@ func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 
 	if noStyle {
 		pterm.DisableStyling()
-		pterm.DisableColor()
 	}
 
 	for _, step := range p.Values() {
@@ -244,7 +243,7 @@ func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 	pterm.Println() // Blank line
 }
 
-func (o *ChangeOrder) PromptDetails() (string, error) {
+func (o *ChangeOrder) PromptDetails(ui *terminal.UI) (string, error) {
 	// Prepare the selects
 	options := []string{"all"}
 	optionMaps := map[string]string{"all": "all"}
@@ -258,19 +257,17 @@ func (o *ChangeOrder) PromptDetails() (string, error) {
 
 	options = append(options, "cancel")
 
-	// Build prompt
-	prompt := &survey.Select{
-		Message: `Which diff detail do you want to see?`,
-		Options: options,
-	}
-
-	// Run prompt
-	var input string
-	err := survey.AskOne(prompt, &input)
+	input, err := ui.InteractiveSelectPrinter.
+		WithFilter(false).
+		WithDefaultText(`Which diff detail do you want to see?`).
+		WithOptions(options).
+		WithDefaultOption("all").
+		Show()
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
+		fmt.Printf("Prompt failed: %v\n", err)
 		return "", err
 	}
+
 	return optionMaps[input], nil
 }
 

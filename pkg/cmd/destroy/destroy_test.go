@@ -19,11 +19,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/bytedance/mockey"
+	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -39,6 +38,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/project"
+	"kusionstack.io/kusion/pkg/util/terminal"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -68,6 +68,7 @@ func NewDeleteOptions() *DeleteOptions {
 		},
 		Operator: "",
 		Detail:   false,
+		UI:       terminal.DefaultUI(),
 	}
 }
 
@@ -316,29 +317,18 @@ func mockWorkspaceStorage() {
 
 func TestPrompt(t *testing.T) {
 	mockey.PatchConvey("prompt error", t, func() {
-		mockey.Mock(
-			survey.AskOne).To(
-			func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
-				return errors.New("mock error")
-			},
-		).Build()
-		_, err := prompt()
+		mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return("", errors.New("mock error")).Build()
+		_, err := prompt(terminal.DefaultUI())
 		assert.NotNil(t, err)
 	})
 
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
-		_, err := prompt()
+		_, err := prompt(terminal.DefaultUI())
 		assert.Nil(t, err)
 	})
 }
 
 func mockPromptOutput(res string) {
-	mockey.Mock(
-		survey.AskOne).To(
-		func(p survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
-			reflect.ValueOf(response).Elem().Set(reflect.ValueOf(res))
-			return nil
-		},
-	).Build()
+	mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return(res, nil).Build()
 }
