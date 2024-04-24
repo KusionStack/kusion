@@ -75,7 +75,7 @@ func (p *Plugin) initModule() error {
 		return err
 	}
 	pluginName := prefix[0] + "-" + prefix[1]
-	client, err := newPluginClient(pluginPath, pluginName)
+	client, err := NewPluginClient(pluginPath, pluginName)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	return p, nil
 }
 
-func newPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error) {
+func NewPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error) {
 	// create the plugin log file
 	var logFilePath string
 	dir, err := kfile.KusionDataFolder()

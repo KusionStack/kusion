@@ -134,7 +134,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 
 	// patch workload with resource patchers
 	for _, p := range patchers {
-		if err = patchWorkload(&wl, &p); err != nil {
+		if err = PatchWorkload(&wl, &p); err != nil {
 			return err
 		}
 	}
@@ -152,7 +152,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	return nil
 }
 
-func patchWorkload(workload *v1.Resource, patcher *internalv1.Patcher) error {
+func PatchWorkload(workload *v1.Resource, patcher *internalv1.Patcher) error {
 	if patcher == nil {
 		return nil
 	}
