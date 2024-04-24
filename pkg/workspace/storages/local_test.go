@@ -19,24 +19,30 @@ func mockWorkspace(name string) *v1.Workspace {
 	return &v1.Workspace{
 		Name: name,
 		Modules: map[string]*v1.ModuleConfig{
-			"database": {
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
+			"mysql": {
+				Path:    "ghcr.io/kusionstack/mysql",
+				Version: "0.1.0",
+				Configs: v1.Configs{
+					Default: v1.GenericConfig{
+						"type":         "aws",
+						"version":      "5.7",
+						"instanceType": "db.t3.micro",
+					},
+					ModulePatcherConfigs: v1.ModulePatcherConfigs{
+						"smallClass": {
+							GenericConfig: v1.GenericConfig{
+								"instanceType": "db.t3.small",
+							},
+							ProjectSelector: []string{"foo", "bar"},
 						},
-						ProjectSelector: []string{"foo", "bar"},
 					},
 				},
 			},
-			"port": {
-				Default: v1.GenericConfig{
-					"type": "aws",
+			"network": {
+				Configs: v1.Configs{
+					Default: v1.GenericConfig{
+						"type": "aws",
+					},
 				},
 			},
 		},
@@ -60,27 +66,31 @@ func mockWorkspace(name string) *v1.Workspace {
 func mockWorkspaceContent() string {
 	return `
 modules:
-    database:
-        default:
-            instanceType: db.t3.micro
-            type: aws
-            version: "5.7"
-        smallClass:
-            projectSelector:
-                - foo
-                - bar
-            instanceType: db.t3.small
-    port:
-        default:
-            type: aws
+  mysql:
+    path: ghcr.io/kusionstack/mysql
+    version: 0.1.0
+    configs:
+      default:
+        instanceType: db.t3.micro
+        type: aws
+        version: '5.7'
+      smallClass:
+        projectSelector:
+          - foo
+          - bar
+        instanceType: db.t3.small
+  network:
+    configs:
+      default:
+        type: aws
 runtimes:
-    kubernetes:
-        kubeConfig: /etc/kubeconfig.yaml
-    terraform:
-        aws:
-            source: hashicorp/aws
-            version: 1.0.4
-            region: us-east-1
+  kubernetes:
+    kubeConfig: /etc/kubeconfig.yaml
+  terraform:
+    aws:
+      source: hashicorp/aws
+      version: 1.0.4
+      region: us-east-1
 `
 }
 
