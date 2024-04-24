@@ -20,7 +20,7 @@ type InitOptions struct {
 	TemplateURL string
 }
 
-var example = i18n.T(`# Create a kusion module template in the current directory
+var initExample = i18n.T(`# Create a kusion module template in the current directory
   kusion mod init my-module
 
   # Init a kusion module at the specified Path
@@ -28,7 +28,7 @@ var example = i18n.T(`# Create a kusion module template in the current directory
 
   # Init a module from a remote git template repository 
   kusion mod init my-module --template https://github.com/<user>/<repo>`)
-var short = i18n.T("Create a kusion module along with common files and directories in the current directory")
+var initShort = i18n.T("Create a kusion module along with common files and directories in the current directory")
 
 const (
 	defaultTemplateURL = "https://github.com/KusionStack/kusion-module-scaffolding.git"
@@ -41,8 +41,8 @@ func NewCmdInit() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "init [MODULE NAME] [PATH]",
-		Short:   short,
-		Example: templates.Examples(example),
+		Short:   initShort,
+		Example: templates.Examples(initExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			util.CheckErr(o.Validate(args))

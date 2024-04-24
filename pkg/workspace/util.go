@@ -51,12 +51,12 @@ func GetProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.Gen
 
 // getProjectModuleConfig gets the module config of a specified project without checking the correctness of project name.
 func getProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.GenericConfig, error) {
-	projectCfg := config.Default
+	projectCfg := config.Configs.Default
 	if len(projectCfg) == 0 {
 		projectCfg = make(v1.GenericConfig)
 	}
 
-	for name, cfg := range config.ModulePatcherConfigs {
+	for name, cfg := range config.Configs.ModulePatcherConfigs {
 		if name == v1.DefaultBlock {
 			continue
 		}

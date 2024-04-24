@@ -184,29 +184,37 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
 		Modules: v1.ModuleConfigs{
-			"kusionstack/database@v0.1": {
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
+			"mysql": &v1.ModuleConfig{
+				Path:    "kusionstack.io/mysql",
+				Version: "v1.0.0",
+				Configs: v1.Configs{
+					Default: v1.GenericConfig{
+						"type":         "aws",
+						"version":      "5.7",
+						"instanceType": "db.t3.micro",
+					},
+					ModulePatcherConfigs: v1.ModulePatcherConfigs{
+						"smallClass": {
+							GenericConfig: v1.GenericConfig{
+								"instanceType": "db.t3.small",
+							},
+							ProjectSelector: []string{"foo", "bar"},
 						},
-						ProjectSelector: []string{"foo", "bar"},
 					},
 				},
 			},
-			"port": {
-				Default: v1.GenericConfig{
-					"type": "aws",
+			"port": &v1.ModuleConfig{
+				Configs: v1.Configs{
+					Default: v1.GenericConfig{
+						"type": "aws",
+					},
 				},
 			},
-			"namespace": {
-				Default: v1.GenericConfig{
-					"name": namespace,
+			"namespace": &v1.ModuleConfig{
+				Configs: v1.Configs{
+					Default: v1.GenericConfig{
+						"name": namespace,
+					},
 				},
 			},
 		},
