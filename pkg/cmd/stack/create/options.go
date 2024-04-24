@@ -102,8 +102,12 @@ func (o *Options) Run() error {
 			return err
 		}
 	} else {
-		return util.CreateWithRefStack(o.Name, o.StackDir, o.CopyFrom)
+		if err := util.CreateWithRefStack(o.Name, o.StackDir, o.CopyFrom); err != nil {
+			return err
+		}
 	}
+
+	fmt.Printf("Created stack '%s' under project directory '%s' successfully\n", o.Name, o.ProjectDir)
 
 	return nil
 }

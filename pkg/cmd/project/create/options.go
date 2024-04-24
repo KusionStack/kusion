@@ -70,5 +70,11 @@ func (o *Options) Run() error {
 	path := filepath.Join(o.ProjectDir, util.ProjectYAMLFile)
 	content := fmt.Sprintf(util.ProjectYAMLTemplate, o.Name)
 
-	return os.WriteFile(path, []byte(content), 0o644)
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return err
+	}
+
+	fmt.Printf("Created project '%s' successfully\n", o.Name)
+
+	return nil
 }
