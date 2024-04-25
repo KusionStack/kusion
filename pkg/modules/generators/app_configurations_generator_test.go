@@ -296,7 +296,7 @@ func Test_patchWorkload(t *testing.T) {
 			Annotations: map[string]string{"newAnnotation": "newValue"},
 		}
 
-		err := patchWorkload(res, patcher)
+		err := PatchWorkload(res, patcher)
 		assert.NoError(t, err)
 
 		workloadLabels := res.Attributes["metadata"].(map[string]interface{})["labels"].(map[string]interface{})
@@ -329,7 +329,7 @@ func Test_patchWorkload(t *testing.T) {
 			},
 		}
 
-		err = patchWorkload(res, patcher)
+		err = PatchWorkload(res, patcher)
 		assert.NoError(t, err)
 
 		containers := res.Attributes["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]interface{})
