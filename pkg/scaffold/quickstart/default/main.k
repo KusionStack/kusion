@@ -3,7 +3,7 @@ import kam.v1.workload as wl
 import kam.v1.workload.container as c
 import network as n
 
-# main.k declares the customized configuration codes for dev stack. 
+# main.k declares the customized configuration codes for default stack. 
 quickstart: ac.AppConfiguration {
     workload: wl.Service {
         containers: {
