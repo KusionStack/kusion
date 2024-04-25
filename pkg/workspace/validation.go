@@ -84,11 +84,10 @@ func ValidateModuleConfigs(configs v1.ModuleConfigs) error {
 
 // ValidateModuleConfig is used to validate the moduleConfig is valid or not.
 func ValidateModuleConfig(config *v1.ModuleConfig) error {
-	// todo validate path and version in the config when we have turned workload into a module
-	if err := ValidateModuleDefaultConfig(config.Configs.Default); err != nil {
+	if err := ValidateModuleDefaultConfig(config.Default); err != nil {
 		return err
 	}
-	if err := ValidateModulePatcherConfigs(config.Configs.ModulePatcherConfigs); err != nil {
+	if err := ValidateModulePatcherConfigs(config.ModulePatcherConfigs); err != nil {
 		return err
 	}
 	return nil

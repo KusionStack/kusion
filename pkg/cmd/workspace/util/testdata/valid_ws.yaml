@@ -1,21 +1,17 @@
 modules:
-  mysql:
-    path: ghcr.io/kusionstack/mysql
-    version: 0.1.0
-    configs:
-      default:
-        instanceType: db.t3.micro
-        type: aws
-        version: '5.7'
-      smallClass:
-        projectSelector:
-          - foo
-          - bar
-        instanceType: db.t3.small
-  network:
-    configs:
-      default:
-        type: aws
+  database:
+    default:
+      instanceType: db.t3.micro
+      type: aws
+      version: "5.7"
+    smallClass:
+      projectSelector:
+        - foo
+        - bar
+      instanceType: db.t3.small
+  port:
+    default:
+      type: aws
 runtimes:
   kubernetes:
     kubeConfig: /etc/kubeconfig.yaml

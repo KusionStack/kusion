@@ -96,6 +96,7 @@ type Workspace struct {
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
+// The module name format is "source@version".
 type ModuleConfigs map[string]*ModuleConfig
 
 // GenericConfig is a generic model to describe config which shields the difference among multiple concrete
@@ -112,11 +113,9 @@ type GenericConfig map[string]any
 // in multiple patchers is not allowed. For a project, if not specified in the patcher block's
 // "projectSelector" field, the default config will be used.
 //
-// Take the ModuleConfig of "mysql" for an example, which is shown as below:
+// Take the ModuleConfig of "database" for an example, which is shown as below:
 //
-//	config := ModuleConfig {
-//		"path": "ghcr.io/kusionstack/mysql"
-//		"version": "0.1.0"
+//	 config := ModuleConfig {
 //		"default": {
 //			"type":         "aws",
 //			"version":      "5.7",
@@ -128,17 +127,9 @@ type GenericConfig map[string]any
 //		},
 //	}
 type ModuleConfig struct {
-	// Path is the path of the module. It can be a local path or a remote URL
-	Path string `yaml:"path" json:"path"`
-	// Version is the version of the module.
-	Version string `yaml:"version" json:"version"`
-	// Configs contains all levels of module configs
-	Configs Configs `yaml:"configs" json:"configs"`
-}
-
-type Configs struct {
 	// Default is default block of the module config.
 	Default GenericConfig `yaml:"default" json:"default"`
+
 	// ModulePatcherConfigs are the patcher blocks of the module config.
 	ModulePatcherConfigs `yaml:",inline,omitempty" json:",inline,omitempty"`
 }
