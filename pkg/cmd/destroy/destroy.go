@@ -285,6 +285,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 	progressbar, err := o.UI.ProgressbarPrinter.
 		WithMaxWidth(0).
 		WithTotal(len(changes.StepKeys)).
+		WithWriter(o.IOStreams.Out).
 		WithRemoveWhenDone().
 		Start()
 	if err != nil {
@@ -326,7 +327,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 							strings.ToLower(string(msg.OpResult)),
 						)
 					}
-					pretty.SuccessT.Println(title)
+					pretty.SuccessT.WithWriter(o.IOStreams.Out).Println(title)
 					progressbar.UpdateTitle(title)
 					progressbar.Increment()
 					deleted++
@@ -336,7 +337,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 						pterm.Bold.Sprint(changeStep.ID),
 						strings.ToLower(string(msg.OpResult)),
 					)
-					pretty.ErrorT.Printf("%s\n", title)
+					pretty.ErrorT.WithWriter(o.IOStreams.Out).Printf("%s\n", title)
 				default:
 					title := fmt.Sprintf("%s %s %s",
 						changeStep.Action.Ing(),
@@ -365,7 +366,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 	wg.Wait()
 	// print summary
 	pterm.Println()
-	pterm.Printf("Destroy complete! Resources: %d deleted.\n", deleted)
+	pterm.Fprintln(o.IOStreams.Out, fmt.Sprintf("Destroy complete! Resources: %d deleted.", deleted))
 	return nil
 }
 
