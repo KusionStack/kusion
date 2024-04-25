@@ -97,16 +97,23 @@ func (f *MetaFlags) ToOptions() (*MetaOptions, error) {
 	opts.RefProject = refProject
 	opts.RefStack = refStack
 
-	var storageBackend backend.Backend
-	if f.Backend != nil {
-		storageBackend, err = backend.NewBackend(*f.Backend)
-		opts.StorageBackend = storageBackend
-	}
+	storageBackend, err := f.ParseBackend()
 	if err != nil {
 		return nil, err
 	}
+	opts.StorageBackend = storageBackend
 
 	// Get current workspace from backend
+	workspace, err := f.ParseWorkspace(storageBackend)
+	if err != nil {
+		return nil, err
+	}
+	opts.RefWorkspace = workspace
+
+	return opts, nil
+}
+
+func (f *MetaFlags) ParseWorkspace(storageBackend backend.Backend) (*v1.Workspace, error) {
 	if f.Workspace != nil && storageBackend != nil {
 		workspaceStorage, err := storageBackend.WorkspaceStorage()
 		if err != nil {
@@ -116,8 +123,19 @@ func (f *MetaFlags) ToOptions() (*MetaOptions, error) {
 		if err != nil {
 			return nil, err
 		}
-		opts.RefWorkspace = refWorkspace
+		return refWorkspace, nil
 	}
+	return nil, nil
+}
 
-	return opts, nil
+func (f *MetaFlags) ParseBackend() (backend.Backend, error) {
+	var storageBackend backend.Backend
+	var err error
+	if f.Backend != nil {
+		storageBackend, err = backend.NewBackend(*f.Backend)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return storageBackend, nil
 }
