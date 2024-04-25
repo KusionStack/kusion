@@ -3,6 +3,7 @@ package init
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"kusionstack.io/kusion/pkg/cmd/init/util"
 	"kusionstack.io/kusion/pkg/scaffold"
@@ -40,6 +41,14 @@ func (o *Options) Complete(args []string) error {
 	o.Name = name
 	if o.ProjectDir == "" {
 		o.ProjectDir = dir
+	} else {
+		// Use the absolute path of the target project directory.
+		absTargetDir, err := filepath.Abs(o.ProjectDir)
+		if err != nil {
+			return err
+		}
+		o.ProjectDir = absTargetDir
+		o.Name = filepath.Base(o.ProjectDir)
 	}
 
 	return nil
