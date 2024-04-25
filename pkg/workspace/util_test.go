@@ -37,12 +37,12 @@ func Test_GetProjectModuleConfigs(t *testing.T) {
 			moduleConfigs: mockValidModuleConfigs(),
 			success:       true,
 			expectedProjectConfigs: map[string]v1.GenericConfig{
-				"mysql": {
+				"database": {
 					"type":         "aws",
 					"version":      "5.7",
 					"instanceType": "db.t3.small",
 				},
-				"network": {
+				"port": {
 					"type": "aws",
 				},
 			},
@@ -69,7 +69,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 		{
 			name:         "successfully get default project module config",
 			projectName:  "baz",
-			moduleConfig: mockValidModuleConfigs()["mysql"],
+			moduleConfig: mockValidModuleConfigs()["database"],
 			success:      true,
 			expectedProjectConfig: v1.GenericConfig{
 				"type":         "aws",
@@ -80,7 +80,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 		{
 			name:         "successfully get override project module config",
 			projectName:  "foo",
-			moduleConfig: mockValidModuleConfigs()["mysql"],
+			moduleConfig: mockValidModuleConfigs()["database"],
 			success:      true,
 			expectedProjectConfig: v1.GenericConfig{
 				"type":         "aws",
@@ -91,7 +91,7 @@ func Test_GetProjectModuleConfig(t *testing.T) {
 		{
 			name:                  "failed to get config empty project name",
 			projectName:           "",
-			moduleConfig:          mockValidModuleConfigs()["mysql"],
+			moduleConfig:          mockValidModuleConfigs()["database"],
 			success:               false,
 			expectedProjectConfig: nil,
 		},

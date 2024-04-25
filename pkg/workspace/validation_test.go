@@ -18,30 +18,24 @@ func mockValidWorkspace(name string) *v1.Workspace {
 
 func mockValidModuleConfigs() map[string]*v1.ModuleConfig {
 	return map[string]*v1.ModuleConfig{
-		"mysql": {
-			Path:    "ghcr.io/kusionstack/mysql",
-			Version: "0.1.0",
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "bar"},
+		"database": {
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
 					},
+					ProjectSelector: []string{"foo", "bar"},
 				},
 			},
 		},
-		"network": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type": "aws",
-				},
+		"port": {
+			Default: v1.GenericConfig{
+				"type": "aws",
 			},
 		},
 	}
@@ -50,133 +44,115 @@ func mockValidModuleConfigs() map[string]*v1.ModuleConfig {
 func mockInvalidModuleConfigs() map[string]v1.ModuleConfig {
 	return map[string]v1.ModuleConfig{
 		"empty default block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{},
-			},
+			Default: v1.GenericConfig{},
 		},
 		"not empty projectSelector in default block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":            "aws",
-					"version":         "5.7",
-					"instanceType":    "db.t3.micro",
-					"projectSelector": []string{"foo", "bar"},
-				},
+			Default: v1.GenericConfig{
+				"type":            "aws",
+				"version":         "5.7",
+				"instanceType":    "db.t3.micro",
+				"projectSelector": []string{"foo", "bar"},
 			},
 		},
 		"empty patcher block name": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "bar"},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
 					},
+					ProjectSelector: []string{"foo", "bar"},
 				},
 			},
 		},
 		"empty patcher block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": nil,
-				},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": nil,
 			},
 		},
 		"empty config in patcher block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						ProjectSelector: []string{"foo", "bar"},
-					},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					ProjectSelector: []string{"foo", "bar"},
 				},
 			},
 		},
 		"empty project selector in patcher block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
 					},
 				},
 			},
 		},
 		"empty project name": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"", "bar"},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
 					},
+					ProjectSelector: []string{"", "bar"},
 				},
 			},
 		},
 		"repeated projects in one patcher block": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
-				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "foo"},
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
 					},
+					ProjectSelector: []string{"foo", "foo"},
 				},
 			},
 		},
 		"repeated projects in multiple patcher blocks": {
-			Configs: v1.Configs{
-				Default: v1.GenericConfig{
-					"type":         "aws",
-					"version":      "5.7",
-					"instanceType": "db.t3.micro",
+			Default: v1.GenericConfig{
+				"type":         "aws",
+				"version":      "5.7",
+				"instanceType": "db.t3.micro",
+			},
+			ModulePatcherConfigs: v1.ModulePatcherConfigs{
+				"smallClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.small",
+					},
+					ProjectSelector: []string{"foo", "bar"},
 				},
-				ModulePatcherConfigs: v1.ModulePatcherConfigs{
-					"smallClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.small",
-						},
-						ProjectSelector: []string{"foo", "bar"},
+				"largeClass": {
+					GenericConfig: v1.GenericConfig{
+						"instanceType": "db.t3.large",
 					},
-					"largeClass": {
-						GenericConfig: v1.GenericConfig{
-							"instanceType": "db.t3.large",
-						},
-						ProjectSelector: []string{"foo"},
-					},
+					ProjectSelector: []string{"foo"},
 				},
 			},
 		},
@@ -278,7 +254,7 @@ func TestValidateModuleConfig(t *testing.T) {
 		{
 			name:         "valid module config",
 			success:      true,
-			moduleConfig: *mockValidModuleConfigs()["mysql"],
+			moduleConfig: *mockValidModuleConfigs()["database"],
 		},
 	}
 	for desc, cfg := range mockInvalidModuleConfigs() {
