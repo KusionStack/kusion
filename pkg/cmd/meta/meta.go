@@ -72,7 +72,7 @@ func (f *MetaFlags) AddFlags(cmd *cobra.Command) {
 		cmd.Flags().StringVarP(f.Backend, "backend", "", *f.Backend, i18n.T("The backend to use, supports 'local', 'oss' and 's3'."))
 	}
 	if f.WorkDir != nil {
-		cmd.Flags().StringVarP(f.WorkDir, "workdir", "", *f.WorkDir, i18n.T("The work directory to run Kusion CLI."))
+		cmd.Flags().StringVarP(f.WorkDir, "workdir", "w", *f.WorkDir, i18n.T("The work directory to run Kusion CLI."))
 	}
 }
 
