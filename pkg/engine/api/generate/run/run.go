@@ -3,10 +3,12 @@ package run
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 
 	kcl "kcl-lang.io/kcl-go"
 	kclpkg "kcl-lang.io/kcl-go/pkg/kcl"
-	"kcl-lang.io/kpm/pkg/api"
+	"kcl-lang.io/kpm/pkg/client"
+	"kcl-lang.io/kpm/pkg/downloader"
 	"kcl-lang.io/kpm/pkg/opt"
 )
 
@@ -23,15 +25,26 @@ var _ CodeRunner = &KPMRunner{}
 type KPMRunner struct{}
 
 // Run calls KPM api to compile and run KCL based configuration code.
-func (r *KPMRunner) Run(workDir string, arguments map[string]string) ([]byte, error) {
+func (r *KPMRunner) Run(workDir string, arguments map[string]string) (res []byte, err error) {
 	cacheDir := filepath.Join(workDir, ".kclvm")
-	defer os.RemoveAll(cacheDir)
+	defer func(path string) {
+		if err != nil {
+			return
+		}
+		err = os.RemoveAll(path)
+	}(cacheDir)
 
 	optList, err := buildKCLOptions(workDir, arguments)
 	if err != nil {
 		return nil, err
 	}
-	result, err := api.RunWithOpts(
+	cli, err := client.NewKpmClient()
+	if err != nil {
+		return nil, err
+	}
+	cli.DepDownloader = downloader.NewOciDownloader(runtime.GOOS + "/" + runtime.GOARCH)
+
+	result, err := cli.RunWithOpts(
 		opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
 		opt.WithNoSumCheck(false),
 		opt.WithLogWriter(nil),
