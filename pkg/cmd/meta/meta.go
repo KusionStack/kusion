@@ -31,6 +31,8 @@ type MetaFlags struct {
 	Workspace *string
 
 	Backend *string
+
+	WorkDir *string
 }
 
 // MetaOptions are the meta-options that are available on all or most commands.
@@ -52,10 +54,12 @@ type MetaOptions struct {
 func NewMetaFlags() *MetaFlags {
 	workspace := ""
 	backendType := ""
+	workDir := ""
 
 	return &MetaFlags{
 		Workspace: &workspace,
 		Backend:   &backendType,
+		WorkDir:   &workDir,
 	}
 }
 
@@ -67,6 +71,9 @@ func (f *MetaFlags) AddFlags(cmd *cobra.Command) {
 	if f.Backend != nil {
 		cmd.Flags().StringVarP(f.Backend, "backend", "", *f.Backend, i18n.T("The backend to use, supports 'local', 'oss' and 's3'."))
 	}
+	if f.WorkDir != nil {
+		cmd.Flags().StringVarP(f.WorkDir, "workdir", "", *f.WorkDir, i18n.T("The work directory to run Kusion CLI."))
+	}
 }
 
 // ToOptions converts MetaFlags to MetaOptions.
@@ -74,7 +81,15 @@ func (f *MetaFlags) ToOptions() (*MetaOptions, error) {
 	opts := &MetaOptions{}
 
 	// Parse project and currentStack of work directory
-	refProject, refStack, err := project.DetectProjectAndStacks()
+	var refProject *v1.Project
+	var refStack *v1.Stack
+	var err error
+	if f.WorkDir != nil && *f.WorkDir != "" {
+		refProject, refStack, err = project.DetectProjectAndStackFrom(*f.WorkDir)
+	} else {
+		refProject, refStack, err = project.DetectProjectAndStacks()
+	}
+
 	if err != nil {
 		return nil, err
 	}
