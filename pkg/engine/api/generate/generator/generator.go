@@ -103,8 +103,8 @@ func copyDependentModules(workDir string) error {
 		if dep.Source.Oci != nil {
 			info := dep.Source.Oci
 			pkgDir := filepath.Join(absPkgPath, dep.FullName)
-			platform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
-			source := filepath.Join(pkgDir, "_dist", platform, "generator")
+			source := filepath.Join(pkgDir, runtime.GOOS, runtime.GOARCH, "kusion-module-"+dep.FullName)
+
 			moduleDir := filepath.Join(kusionHomePath, "modules", info.Repo, info.Tag, runtime.GOOS, runtime.GOARCH)
 			dest := filepath.Join(moduleDir, fmt.Sprintf("kusion-module-%s", dep.FullName))
 			if runtime.GOOS == "windows" {
