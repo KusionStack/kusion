@@ -40,6 +40,13 @@ func (o *Options) Run() error {
 		return err
 	}
 
+	// Use current workspace if not specifed.
+	if o.Name == "" {
+		if o.Name, err = storage.GetCurrent(); err != nil {
+			return err
+		}
+	}
+
 	ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
 	if err != nil {
 		return err
