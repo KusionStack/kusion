@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/empty"
+	"github.com/google/go-containerregistry/pkg/v1/match"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/partial"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -147,7 +148,10 @@ func (c *Client) Push(
 		Add:        image,
 		Descriptor: *newDesc,
 	}
-	idx := mutate.AppendManifests(base, addendum)
+
+	// replace current platform image with the new one
+	// remove is removed before adds
+	idx := mutate.AppendManifests(mutate.RemoveManifests(base, match.Platforms(*newDesc.Platform)), addendum)
 	idxDigest, err := idx.Digest()
 	if err != nil {
 		return "", "", fmt.Errorf("parsing index digest failed: %w", err)

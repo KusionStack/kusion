@@ -247,7 +247,7 @@ func (o *PushModOptions) Run() error {
 
 	// Copy to temp module dir and push artifact to OCI repository
 	err = ioutil.CopyDir(targetDir, o.ModulePath, func(path string) bool {
-		skipDirs := []string{filepath.Join(o.ModulePath, ".git"), filepath.Join(o.ModulePath, "src")}
+		skipDirs := []string{filepath.Join(o.ModulePath, ".git"), filepath.Join(o.ModulePath, ".idea"), filepath.Join(o.ModulePath, "src")}
 
 		// skip files in skipDirs
 		for _, dir := range skipDirs {
@@ -354,7 +354,7 @@ func (o *PushModOptions) buildModule() (string, error) {
 func buildBinary(goBin, operatingSystem, arch, srcDirectory, outfile string, ioStreams genericiooptions.IOStreams) (string, error) {
 	if outfile == "" {
 		// If no outfile is supplied, write the Go binary to a temporary file.
-		f, err := os.CreateTemp("", "generator.*")
+		f, err := os.CreateTemp("", "module.*")
 		if err != nil {
 			return "", fmt.Errorf("unable to create go program temp file: %w", err)
 		}
