@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"kcl-lang.io/kpm/pkg/api"
 
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/oci"
@@ -34,24 +36,24 @@ var (
 
 	pushExample = i18n.T(`
 		# Push a module of current OS arch to an OCI Registry using a token
-		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_TOKEN>
+		kusion mod push /path/to/my-module oci://ghcr.io/org --creds <YOUR_TOKEN>
 
 		# Push a module of specific OS arch to an OCI Registry using a token
-		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --os-arch==darwin/arm64 --version=1.0.0 --creds <YOUR_TOKEN>
+		kusion mod push /path/to/my-module oci://ghcr.io/org --os-arch==darwin/arm64 --creds <YOUR_TOKEN>
 		
 		# Push a module to an OCI Registry using a credentials in <YOUR_USERNAME>:<YOUR_TOKEN> format. 
-		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 --creds <YOUR_USERNAME>:<YOUR_TOKEN>
+		kusion mod push /path/to/my-module oci://ghcr.io/org --creds <YOUR_USERNAME>:<YOUR_TOKEN>
 
 		# Push a release candidate without marking it as the latest stable
-		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0-rc.1 --latest=false
+		kusion mod push /path/to/my-module oci://ghcr.io/org --latest=false
 
 		# Push a module with custom OCI annotations
-		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 \
+		kusion mod push /path/to/my-module oci://ghcr.io/org \
 		  --annotation='org.opencontainers.image.documentation=https://app.org/docs'
 
 		# Push and sign a module with Cosign (the cosign binary must be present in PATH)
 		export COSIGN_PASSWORD=password
-  		kusion mod push /path/to/my-module oci://ghcr.io/org/my-module --version=1.0.0 \
+  		kusion mod push /path/to/my-module oci://ghcr.io/org \
 		  --sign=cosign --cosign-key=/path/to/cosign.key`)
 )
 
@@ -64,7 +66,6 @@ const LatestVersion = "latest"
 //
 // This structure reduces the transformation to wiring and makes the logic itself easy to unit test.
 type PushModFlags struct {
-	Version          string
 	Latest           bool
 	OSArch           string
 	Annotations      []string
@@ -83,6 +84,7 @@ type PushModOptions struct {
 	OCIUrl     string
 	Latest     bool
 	OSArch     string
+	Name       string
 	Version    string
 	Sign       string
 	CosignKey  string
@@ -129,7 +131,6 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 
 // AddFlags registers flags for a cli.
 func (flags *PushModFlags) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&flags.Version, "version", "v", "", "The version of the module e.g. '1.0.0' or '1.0.0-rc.1'.")
 	cmd.Flags().StringVar(&flags.OSArch, "os-arch", "", "The os arch of the module e.g. 'darwin/arm64', 'linux/amd64'.")
 	cmd.Flags().BoolVar(&flags.Latest, "latest", true, "Tags the current version as the latest stable module version.")
 	cmd.Flags().StringVar(&flags.Credentials, "creds", flags.Credentials,
@@ -148,10 +149,21 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 	}
 
 	// version
-	version := flags.Version
-	if _, err := semver.StrictNewVersion(version); err != nil {
+	kclPkg, err := api.GetKclPackage(args[0])
+	if err != nil {
+		return nil, err
+	}
+	version := kclPkg.GetVersion()
+	if _, err = semver.StrictNewVersion(version); err != nil {
 		return nil, fmt.Errorf("version is not in semver format: %w", err)
 	}
+
+	name := kclPkg.GetPkgName()
+	if name == "" {
+		return nil, fmt.Errorf("module name is empty")
+	}
+
+	ociURL := strings.TrimRight(args[1], "/") + "/" + name
 
 	// If creds in <token> format, creds must be base64 encoded
 	if len(flags.Credentials) != 0 && !strings.Contains(flags.Credentials, ":") {
@@ -205,12 +217,13 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 
 	opt := &PushModOptions{
 		ModulePath: args[0],
-		OCIUrl:     args[1],
+		OCIUrl:     ociURL,
 		Latest:     flags.Latest,
 		Sign:       flags.Sign,
 		CosignKey:  flags.CosignKey,
 		Client:     client,
 		Metadata:   meta,
+		Name:       name,
 		Version:    version,
 		IOStreams:  ioStreams,
 	}
@@ -224,7 +237,10 @@ func (o *PushModOptions) Validate() error {
 		return fmt.Errorf("no module found at path %s", o.ModulePath)
 	}
 
-	// TODO: add oci url validation
+	_, err := url.Parse(o.OCIUrl)
+	if err != nil {
+		return fmt.Errorf("illegal oci url:%s, %w", o.OCIUrl, err)
+	}
 	return nil
 }
 
@@ -322,10 +338,6 @@ func (o *PushModOptions) buildModule() (string, error) {
 	pOS := o.Metadata.Platform.OS
 	pArch := o.Metadata.Platform.Architecture
 
-	// OCIUrl example: oci://ghcr.io/org/my-module
-	split := strings.Split(o.OCIUrl, "/")
-	name := split[len(split)-1]
-
 	if matches, err := filepath.Glob(goFileSearchPattern); err != nil || len(matches) == 0 {
 		return "", fmt.Errorf("no go source code files found for 'go build' matching %s", goFileSearchPattern)
 	}
@@ -335,7 +347,7 @@ func (o *PushModOptions) buildModule() (string, error) {
 		return "", fmt.Errorf("unable to find executable 'go' binary: %w", err)
 	}
 
-	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+name+"_"+o.Version)
+	output := filepath.Join(targetDir, "_dist", pOS, pArch, "kusion-module-"+o.Name+"_"+o.Version)
 	if strings.Contains(o.OSArch, "windows") {
 		output += ".exe"
 	}
