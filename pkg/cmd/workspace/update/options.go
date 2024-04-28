@@ -47,6 +47,12 @@ func (o *Options) Run() error {
 		}
 	}
 
+	if o.Name == "" {
+		o.Name, err = storage.GetCurrent()
+		if err != nil {
+			return err
+		}
+	}
 	ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
 	if err != nil {
 		return err
