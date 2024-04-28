@@ -26,7 +26,7 @@ Kusion is a cloud-native platform engineering engine from [KusionStack](https://
 
 - **Platform as Code**: Managing all application operations in one place, in a unified, easy way.
 - **Dynamic Configuration Management**: Developers deploy to any environment using one environment-agnostic configuration, while Kusion handles the underlying complexity.
-- **Enable Self-Service**: Developers fulfill their own needs by choosing the capabilities provided by the platform engineers in [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module).
+- **Enable Self-Service**: Developers fulfill their own needs by choosing the capabilities provided by the platform engineers in [Kusion Modules](https://www.kusionstack.io/docs/concepts/kusion-module/overview).
 - **Built-in Security and Compliance**: Platform engineers standardize application deliveries with security, compliance, and best practices by flexible platform configurations.
 - **Open Module Ecosystem**: A growing open module ecosystem covers all stages of the DevOps lifecycle, with extensive connections to various cloud-native infrastructures.
 - **Lightweight and Kubernetes-friendly**: As a pure client-side solution with rich APIs, Kusion offers excellent portability and ease of integration. Meanwhile, user-friendly observability and troubleshooting capabilities make Kubernetes operations easier.
@@ -40,7 +40,7 @@ Kusion is a cloud-native platform engineering engine from [KusionStack](https://
 
 ### Deploy your first App
 
-Visit [Quick Start](https://www.kusionstack.io/docs/kusion/getting-started/deliver-wordpress) to deliver an
+Visit [Quick Start](https://www.kusionstack.io/docs/getting-started/deliver-quickstart) to deliver an
 App with one Kusion command
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
@@ -59,7 +59,7 @@ brew install KusionStack/tap/kusion
 docker pull kusionstack/kusion:latest
 ```
 
-> For more information about installation, please check the [Installation Guide](https://www.kusionstack.io/docs/kusion/getting-started/install-kusion) on KusionStack official website
+> For more information about installation, please check the [Installation Guide](https://www.kusionstack.io/docs/getting-started/install-kusion) on KusionStack official website
 
 
 # Contact Us

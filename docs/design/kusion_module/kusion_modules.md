@@ -9,7 +9,7 @@ Kusion module is a reusable building block of KusionStack designed by platform e
 3. Modules should not have dependencies or be nested within each other.
 4. AppConfig is not a Module.
 
-For more details, please visit our [official website](https://www.kusionstack.io/docs/kusion/concepts/kusion-module).
+For more details, please visit our [official website](https://www.kusionstack.io/docs/concepts/kusion-module/overview).
 
 ![module](../collaboration/kusion-module.png)
 
@@ -96,7 +96,7 @@ During executing the command `kusion generate`, Kusion will download modules des
 
 #### Build the Spec
 
-All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final [Spec](https://www.kusionstack.io/docs/kusion/concepts/spec).
+All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final [Spec](https://www.kusionstack.io/docs/concepts/spec).
 
 ##### Generator Interface
 

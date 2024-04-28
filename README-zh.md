@@ -25,7 +25,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 
 - **平台代码化**：在同一个地方、以统一的方式，管理应用所有的运维操作。
 - **动态配置管理**：开发人员可用一份与环境无关的配置，部署到任何环境，环境差异性由 Kusion 处理。
-- **研发自服务**：开发人员可以通过选择平台工程师在 [Kusion Modules](https://www.kusionstack.io/docs/next/kusion/concepts/kusion-module) 中提供的功能来自助满足需求。
+- **研发自服务**：开发人员可以通过选择平台工程师在 [Kusion Modules](https://www.kusionstack.io/docs/concepts/kusion-module/overview) 中提供的功能来自助满足需求。
 - **内置安全性和合规性**：平台工程师可以通过灵活的平台配置，实现满足安全性、合规性和最佳实践的标准化应用程序交付。
 - **开放模块生态系统**：不断增长的开放模块生态系统涵盖了 DevOps 生命周期的所有阶段，并与各种云原生基础设施有广泛的连接。
 - **轻量级并且 Kubernetes 友好**：Kusion 作为一个纯客户端解决方案，拥有丰富的 API，提供了出色的可移植性和集成便利性。同时用户友好的可观察性和故障排除能力使得 Kubernetes 操作更加简单。
@@ -39,7 +39,7 @@ Kusion 是 [KusionStack](https://github.com/KusionStack) 的云原生平台工�
 
 ### 部署第一个应用
 
-参考 [Quick Start](https://www.kusionstack.io/docs/kusion/getting-started/deliver-wordpress) 通过 Kusion
+参考 [Quick Start](https://www.kusionstack.io/docs/getting-started/deliver-quickstart) 通过 Kusion
 部署您的第一个应用
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
@@ -58,7 +58,7 @@ brew install KusionStack/tap/kusion
 docker pull kusionstack/kusion:latest
 ```
 
-> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://www.kusionstack.io/docs/kusion/getting-started/install-kusion)。
+> 有关安装的更多信息，请查看 KusionStack 官网的[安装指南](https://www.kusionstack.io/docs/getting-started/install-kusion)。
 
 # 联系我们 
 - Twitter: [KusionStack](https://twitter.com/KusionStack)
