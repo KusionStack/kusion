@@ -17,7 +17,6 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/mod"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/project"
-	"kusionstack.io/kusion/pkg/cmd/server"
 	"kusionstack.io/kusion/pkg/cmd/stack"
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
@@ -96,12 +95,6 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 	addProfilingFlags(flags)
 
 	groups := templates.CommandGroups{
-		{
-			Message: "Server Commands:",
-			Commands: []*cobra.Command{
-				server.NewCmdServer(),
-			},
-		},
 		{
 			Message: "Configuration Commands:",
 			Commands: []*cobra.Command{
