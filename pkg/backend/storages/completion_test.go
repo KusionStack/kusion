@@ -42,44 +42,6 @@ func TestCompleteLocalConfig(t *testing.T) {
 	}
 }
 
-func TestCompleteMysqlConfig(t *testing.T) {
-	testcases := []struct {
-		name           string
-		config         *v1.BackendMysqlConfig
-		envs           map[string]string
-		completeConfig *v1.BackendMysqlConfig
-	}{
-		{
-			name: "complete mysql config",
-			config: &v1.BackendMysqlConfig{
-				DBName: "kusion",
-				User:   "kk",
-				Host:   "127.0.0.1",
-			},
-			envs: map[string]string{
-				v1.EnvBackendMysqlPassword: "fake-password",
-			},
-			completeConfig: &v1.BackendMysqlConfig{
-				DBName:   "kusion",
-				User:     "kk",
-				Host:     "127.0.0.1",
-				Port:     3306,
-				Password: "fake-password",
-			},
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			for k, v := range tc.envs {
-				_ = os.Setenv(k, v)
-			}
-			CompleteMysqlConfig(tc.config)
-			assert.Equal(t, tc.completeConfig, tc.config)
-		})
-	}
-}
-
 func TestCompleteOssConfig(t *testing.T) {
 	testcases := []struct {
 		name           string

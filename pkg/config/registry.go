@@ -10,11 +10,6 @@ const (
 	backendConfigType         = backendConfig + "." + v1.BackendType
 	backendConfigItems        = backendConfig + "." + v1.BackendConfigItems
 	backendLocalPath          = backendConfigItems + "." + v1.BackendLocalPath
-	backendMysqlDBName        = backendConfigItems + "." + v1.BackendMysqlDBName
-	backendMysqlUser          = backendConfigItems + "." + v1.BackendMysqlUser
-	backendMysqlPassword      = backendConfigItems + "." + v1.BackendMysqlPassword
-	backendMysqlHost          = backendConfigItems + "." + v1.BackendMysqlHost
-	backendMysqlPort          = backendConfigItems + "." + v1.BackendMysqlPort
 	backendGenericOssEndpoint = backendConfigItems + "." + v1.BackendGenericOssEndpoint
 	backendGenericOssAK       = backendConfigItems + "." + v1.BackendGenericOssAK
 	backendGenericOssSK       = backendConfigItems + "." + v1.BackendGenericOssSK
@@ -30,11 +25,6 @@ func newRegisteredItems() map[string]*itemInfo {
 		backendConfigType:         {"", validateSetBackendType, validateUnsetBackendType},
 		backendConfigItems:        {map[string]any{}, validateSetBackendConfigItems, validateUnsetBackendConfigItems},
 		backendLocalPath:          {"", validateSetLocalBackendItem, validateUnsetLocalBackendItem},
-		backendMysqlDBName:        {"", validateSetMysqlBackendItem, nil},
-		backendMysqlUser:          {"", validateSetMysqlBackendItem, nil},
-		backendMysqlPassword:      {"", validateSetMysqlBackendItem, nil},
-		backendMysqlHost:          {"", validateSetMysqlBackendItem, nil},
-		backendMysqlPort:          {0, validateSetMysqlBackendPort, nil},
 		backendGenericOssEndpoint: {"", validateSetGenericOssBackendItem, nil},
 		backendGenericOssAK:       {"", validateSetGenericOssBackendItem, nil},
 		backendGenericOssSK:       {"", validateSetGenericOssBackendItem, nil},

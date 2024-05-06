@@ -18,11 +18,11 @@ func TestOptions_Complete(t *testing.T) {
 	}{
 		{
 			name:    "successfully complete options",
-			args:    []string{"backends.current", "mysql-pre"},
+			args:    []string{"backends.current", "s3-pre"},
 			success: true,
 			expectedOpts: &Options{
 				Item:  "backends.current",
-				Value: "mysql-pre",
+				Value: "s3-pre",
 			},
 		},
 		{
@@ -55,14 +55,14 @@ func TestOptions_Validate(t *testing.T) {
 			name: "valid options",
 			opts: &Options{
 				Item:  "backends.current",
-				Value: "mysql-pre",
+				Value: "s3-pre",
 			},
 			success: true,
 		},
 		{
 			name: "invalid options empty config item",
 			opts: &Options{
-				Value: "mysql-pre",
+				Value: "s3-pre",
 			},
 			success: false,
 		},
@@ -93,7 +93,7 @@ func TestOptions_Run(t *testing.T) {
 			name: "successfully run",
 			opts: &Options{
 				Item:  "backends.current",
-				Value: "mysql-pre",
+				Value: "s3-pre",
 			},
 			success: true,
 		},

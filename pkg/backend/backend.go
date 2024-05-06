@@ -46,16 +46,6 @@ func NewBackend(name string) (Backend, error) {
 			return nil, fmt.Errorf("complete local config failed, %w", err)
 		}
 		return storages.NewLocalStorage(bkConfig), nil
-	case v1.BackendTypeMysql:
-		bkConfig := bkCfg.ToMysqlBackend()
-		storages.CompleteMysqlConfig(bkConfig)
-		if err = storages.ValidateMysqlConfig(bkConfig); err != nil {
-			return nil, fmt.Errorf("invalid config of backend %s, %w", name, err)
-		}
-		storage, err = storages.NewMysqlStorage(bkConfig)
-		if err != nil {
-			return nil, fmt.Errorf("new mysql storage of backend %s failed, %w", name, err)
-		}
 	case v1.BackendTypeOss:
 		bkConfig := bkCfg.ToOssBackend()
 		storages.CompleteOssConfig(bkConfig)

@@ -106,19 +106,6 @@ func TestValidateSetBackendConfig(t *testing.T) {
 			},
 		},
 		{
-			name:    "valid database backend",
-			success: true,
-			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
-				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
-				},
-			},
-		},
-		{
 			name:    "valid oss backend",
 			success: true,
 			val: &v1.BackendConfig{
@@ -145,29 +132,6 @@ func TestValidateSetBackendConfig(t *testing.T) {
 			success: false,
 			val: &v1.BackendConfig{
 				Type: "not-support-type",
-			},
-		},
-		{
-			name:    "invalid backend config invalid config item type",
-			success: false,
-			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
-				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   "3306",
-				},
-			},
-		},
-		{
-			name:    "invalid backend config unsupported config item",
-			success: false,
-			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
-				Configs: map[string]any{
-					"not-support": "mock-not-support-value",
-				},
 			},
 		},
 	}
@@ -239,7 +203,7 @@ func TestValidateSetBackendType(t *testing.T) {
 				},
 			},
 			key: "backends.dev.type",
-			val: "mysql",
+			val: "s3",
 		},
 		{
 			name:    "invalid backend type unsupported type",
@@ -266,7 +230,7 @@ func TestValidateSetBackendType(t *testing.T) {
 				},
 			},
 			key: "backends.dev.type",
-			val: "mysql",
+			val: "s3",
 		},
 	}
 
@@ -349,16 +313,13 @@ func TestValidateSetBackendConfigItems(t *testing.T) {
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: v1.BackendTypeMysql},
+						"dev": {Type: v1.BackendTypeS3},
 					},
 				},
 			},
 			key: "backends.dev.configs",
 			val: map[string]any{
-				v1.BackendMysqlDBName: "kusion",
-				v1.BackendMysqlUser:   "kk",
-				v1.BackendMysqlHost:   "127.0.0.1",
-				v1.BackendMysqlPort:   3306,
+				v1.BackendGenericOssBucket: "kusion",
 			},
 		},
 		{
@@ -373,10 +334,7 @@ func TestValidateSetBackendConfigItems(t *testing.T) {
 			},
 			key: "backends.dev.configs",
 			val: map[string]any{
-				v1.BackendMysqlDBName: "kusion",
-				v1.BackendMysqlUser:   "kk",
-				v1.BackendMysqlHost:   "127.0.0.1",
-				v1.BackendMysqlPort:   3306,
+				v1.BackendGenericOssBucket: "kusion",
 			},
 		},
 	}
@@ -415,50 +373,6 @@ func TestValidateUnsetBackendConfigItems(t *testing.T) {
 	}
 }
 
-func TestValidateSetMysqlBackendPort(t *testing.T) {
-	testcases := []struct {
-		name    string
-		success bool
-		config  *v1.Config
-		key     string
-		val     int
-	}{
-		{
-			name:    "valid mysql port",
-			success: true,
-			config: &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: v1.BackendTypeMysql},
-					},
-				},
-			},
-			key: "backends.dev.configs.port",
-			val: 3306,
-		},
-		{
-			name:    "invalid mysql port",
-			success: false,
-			config: &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: v1.BackendTypeMysql},
-					},
-				},
-			},
-			key: "backends.dev.configs.port",
-			val: -1,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := validateSetMysqlBackendPort(tc.config, tc.key, tc.val)
-			assert.Equal(t, tc.success, err == nil)
-		})
-	}
-}
-
 func TestCheckBackendTypeForBackendItem(t *testing.T) {
 	testcases := []struct {
 		name         string
@@ -473,12 +387,12 @@ func TestCheckBackendTypeForBackendItem(t *testing.T) {
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: v1.BackendTypeMysql},
+						"dev": {Type: v1.BackendTypeOss},
 					},
 				},
 			},
-			key:          "backends.dev.configs.dbName",
-			backendTypes: []string{v1.BackendTypeMysql},
+			key:          "backends.dev.configs.bucket",
+			backendTypes: []string{v1.BackendTypeOss},
 		},
 		{
 			name:    "invalid backend config item empty backend type",
@@ -490,8 +404,8 @@ func TestCheckBackendTypeForBackendItem(t *testing.T) {
 					},
 				},
 			},
-			key:          "backends.dev.configs.dbName",
-			backendTypes: []string{v1.BackendTypeMysql},
+			key:          "backends.dev.configs.bucket",
+			backendTypes: []string{v1.BackendTypeOss},
 		},
 		{
 			name:    "invalid backend config item conflict backend type",
@@ -499,12 +413,12 @@ func TestCheckBackendTypeForBackendItem(t *testing.T) {
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
-						"dev": {Type: v1.BackendTypeOss},
+						"dev": {Type: v1.BackendTypeLocal},
 					},
 				},
 			},
-			key:          "backends.dev.configs.dbName",
-			backendTypes: []string{v1.BackendTypeMysql},
+			key:          "backends.dev.configs.bucket",
+			backendTypes: []string{v1.BackendTypeOss},
 		},
 	}
 

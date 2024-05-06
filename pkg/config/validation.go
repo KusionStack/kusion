@@ -22,7 +22,6 @@ var (
 	ErrNonEmptyBackendConfigItems = errors.New("non-empty backend config items")
 	ErrEmptyBackendType           = errors.New("empty backend type")
 	ErrConflictBackendType        = errors.New("conflict backend type")
-	ErrInvalidBackendMysqlPort    = errors.New("backend mysql port must be between 1 and 65535")
 	ErrInvalidBackNameDefault     = errors.New("backend name should not be default")
 )
 
@@ -68,7 +67,7 @@ func validateUnsetBackendConfig(config *v1.Config, key string) error {
 // validateSetBackendType is used to check that setting the backend type is valid or not.
 func validateSetBackendType(config *v1.Config, key string, val any) error {
 	backendType, _ := val.(string)
-	if backendType != v1.BackendTypeLocal && backendType != v1.BackendTypeMysql && backendType != v1.BackendTypeOss && backendType != v1.BackendTypeS3 {
+	if backendType != v1.BackendTypeLocal && backendType != v1.BackendTypeOss && backendType != v1.BackendTypeS3 {
 		return ErrUnsupportedBackendType
 	}
 
@@ -138,23 +137,6 @@ func validateUnsetLocalBackendItem(_ *v1.Config, key string) error {
 	return checkNotDefaultBackendName(parseBackendName(key))
 }
 
-// validateSetMysqlBackendItem is used to check that setting the config item for mysql-type backend is valid or not.
-func validateSetMysqlBackendItem(config *v1.Config, key string, _ any) error {
-	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeMysql)
-}
-
-// validateSetMysqlBackendPort is used to check that setting the port of mysql-type backend is valid or not.
-func validateSetMysqlBackendPort(config *v1.Config, key string, val any) error {
-	if err := validateSetMysqlBackendItem(config, key, val); err != nil {
-		return err
-	}
-	port, _ := val.(int)
-	if port < 1 || port > 65535 {
-		return ErrInvalidBackendMysqlPort
-	}
-	return nil
-}
-
 // validateSetGenericOssBackendItem is used to check that setting the generic config of oss/s3-type backend is valid or not.
 func validateSetGenericOssBackendItem(config *v1.Config, key string, _ any) error {
 	return checkBackendTypeForBackendItem(config, key, v1.BackendTypeOss, v1.BackendTypeS3)
@@ -173,11 +155,6 @@ func checkBackendConfig(config *v1.BackendConfig) error {
 	}
 
 	switch config.Type {
-	case v1.BackendTypeMysql:
-		mysqlBackend := config.ToMysqlBackend()
-		if err := storages.ValidateMysqlConfigFromFile(mysqlBackend); err != nil {
-			return err
-		}
 	case v1.BackendTypeOss:
 		ossBackend := config.ToOssBackend()
 		if err := storages.ValidateOssConfigFromFile(ossBackend); err != nil {
@@ -199,17 +176,6 @@ func checkBasalBackendConfig(config *v1.BackendConfig) error {
 	case v1.BackendTypeLocal:
 		items := map[string]checkTypeFunc{
 			v1.BackendLocalPath: checkString,
-		}
-		if err := checkBasalBackendConfigItems(config, items); err != nil {
-			return err
-		}
-	case v1.BackendTypeMysql:
-		items := map[string]checkTypeFunc{
-			v1.BackendMysqlDBName:   checkString,
-			v1.BackendMysqlUser:     checkString,
-			v1.BackendMysqlPassword: checkString,
-			v1.BackendMysqlHost:     checkString,
-			v1.BackendMysqlPort:     checkInt,
 		}
 		if err := checkBasalBackendConfigItems(config, items); err != nil {
 			return err
@@ -286,7 +252,7 @@ func checkNotDefaultBackendName(name string) error {
 	return nil
 }
 
-// parseBackendName parses the backend name from the config key, the key is like "backends.dev.configs.dbName",
+// parseBackendName parses the backend name from the config key, the key is like "backends.dev.configs.bucket",
 // "backends.dev.type", "backends.dev"
 func parseBackendName(key string) string {
 	fields := strings.Split(key, ".")
@@ -296,7 +262,7 @@ func parseBackendName(key string) string {
 	return fields[1]
 }
 
-// parseBackendItem parses the backend config item from the config key, the key is like "backends.dev.configs.dbName"
+// parseBackendItem parses the backend config item from the config key, the key is like "backends.dev.configs.bucket"
 func parseBackendItem(key string) string {
 	fields := strings.Split(key, ".")
 	if len(fields) != 4 {
@@ -316,13 +282,6 @@ var (
 func checkString(val any) error {
 	if _, ok := val.(string); !ok {
 		return ErrNotString
-	}
-	return nil
-}
-
-func checkInt(val any) error {
-	if _, ok := val.(int); !ok {
-		return ErrNotInt
 	}
 	return nil
 }

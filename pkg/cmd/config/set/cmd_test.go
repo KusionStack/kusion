@@ -12,7 +12,7 @@ func TestNewCmd(t *testing.T) {
 		mockey.PatchConvey("mock cmd", t, func() {
 			mockey.Mock((*Options).Complete).To(func(o *Options, args []string) error {
 				o.Item = "backends.current"
-				o.Value = "mysql-pre"
+				o.Value = "s3-pre"
 				return nil
 			}).Build()
 			mockey.Mock((*Options).Run).Return(nil).Build()

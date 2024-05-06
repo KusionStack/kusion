@@ -11,7 +11,7 @@ func TestNewCmd(t *testing.T) {
 	t.Run("successfully unset config item", func(t *testing.T) {
 		mockey.PatchConvey("mock cmd", t, func() {
 			mockey.Mock((*Options).Complete).To(func(o *Options, args []string) error {
-				o.Item = "backends.mysql-pre.configs.port"
+				o.Item = "backends.s3-pre.configs.bucket"
 				return nil
 			}).Build()
 			mockey.Mock((*Options).Run).Return(nil).Build()
