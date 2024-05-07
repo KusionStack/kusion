@@ -17,7 +17,7 @@ func NewCmd() *cobra.Command {
 
 		example = i18n.T(`
 		# Unset a config item
-		kusion config unset backends.mysql-pre.configs.port`)
+		kusion config unset backends.s3-pre.configs.bucket`)
 	)
 
 	o := NewOptions()

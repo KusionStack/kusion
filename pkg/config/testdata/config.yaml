@@ -4,13 +4,6 @@ backends:
     type: local
   dev:
     type: local
-  pre:
-    type: mysql
-    configs:
-      dbName: kusion
-      host: 127.0.0.1
-      port: 3306
-      user: kk
   prod:
     type: s3
     configs:

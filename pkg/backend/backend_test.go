@@ -27,15 +27,6 @@ func mockConfig() *v1.Config {
 						v1.BackendLocalPath: "/etc",
 					},
 				},
-				"pre": {
-					Type: v1.BackendTypeMysql,
-					Configs: map[string]any{
-						v1.BackendMysqlDBName: "kusion",
-						v1.BackendMysqlUser:   "kk",
-						v1.BackendMysqlHost:   "127.0.0.1",
-						v1.BackendMysqlPort:   3306,
-					},
-				},
 				"staging": {
 					Type: v1.BackendTypeOss,
 					Configs: map[string]any{
@@ -60,7 +51,6 @@ func mockCompleteLocalStorage() {
 
 func mockNewStorage() {
 	mockey.Mock(storages.NewLocalStorage).Return(&storages.LocalStorage{}).Build()
-	mockey.Mock(storages.NewMysqlStorage).Return(&storages.MysqlStorage{}, nil).Build()
 	mockey.Mock(storages.NewOssStorage).Return(&storages.OssStorage{}, nil).Build()
 	mockey.Mock(storages.NewS3Storage).Return(&storages.S3Storage{}, nil).Build()
 }
@@ -87,14 +77,6 @@ func TestNewBackend(t *testing.T) {
 			storage: &storages.LocalStorage{},
 		},
 		{
-			name:    "new current backend",
-			success: true,
-			cfg:     mockConfig(),
-			envs:    nil,
-			bkName:  "",
-			storage: &storages.MysqlStorage{},
-		},
-		{
 			name:    "new local backend",
 			success: true,
 			cfg:     mockConfig(),
@@ -109,16 +91,6 @@ func TestNewBackend(t *testing.T) {
 			envs:    nil,
 			bkName:  "dev",
 			storage: &storages.LocalStorage{},
-		},
-		{
-			name:    "new mysql backend",
-			success: true,
-			cfg:     mockConfig(),
-			envs: map[string]string{
-				v1.EnvBackendMysqlPassword: "fake-password",
-			},
-			bkName:  "pre",
-			storage: &storages.MysqlStorage{},
 		},
 		{
 			name:    "new oss backend",

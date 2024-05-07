@@ -332,11 +332,6 @@ const (
 	BackendType               = "type"
 	BackendConfigItems        = "configs"
 	BackendLocalPath          = "path"
-	BackendMysqlDBName        = "dbName"
-	BackendMysqlUser          = "user"
-	BackendMysqlPassword      = "password"
-	BackendMysqlHost          = "host"
-	BackendMysqlPort          = "port"
 	BackendGenericOssEndpoint = "endpoint"
 	BackendGenericOssAK       = "accessKeyID"
 	BackendGenericOssSK       = "accessKeySecret"
@@ -345,19 +340,15 @@ const (
 	BackendS3Region           = "region"
 
 	BackendTypeLocal = "local"
-	BackendTypeMysql = "mysql"
 	BackendTypeOss   = "oss"
 	BackendTypeS3    = "s3"
 
-	EnvBackendMysqlPassword = "KUSION_BACKEND_MYSQL_PASSWORD"
-	EnvOssAccessKeyID       = "OSS_ACCESS_KEY_ID"
-	EnvOssAccessKeySecret   = "OSS_ACCESS_KEY_SECRET"
-	EnvAwsAccessKeyID       = "AWS_ACCESS_KEY_ID"
-	EnvAwsSecretAccessKey   = "AWS_SECRET_ACCESS_KEY"
-	EnvAwsDefaultRegion     = "AWS_DEFAULT_REGION"
-	EnvAwsRegion            = "AWS_REGION"
-
-	DefaultMysqlPort = 3306
+	EnvOssAccessKeyID     = "OSS_ACCESS_KEY_ID"
+	EnvOssAccessKeySecret = "OSS_ACCESS_KEY_SECRET"
+	EnvAwsAccessKeyID     = "AWS_ACCESS_KEY_ID"
+	EnvAwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
+	EnvAwsDefaultRegion   = "AWS_DEFAULT_REGION"
+	EnvAwsRegion          = "AWS_REGION"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.
@@ -371,7 +362,7 @@ type BackendConfigs struct {
 
 // BackendConfig contains the type and configs of a backend, which is used to store Spec, State and Workspace.
 type BackendConfig struct {
-	// Type is the backend type, supports BackendTypeLocal, BackendTypeMysql, BackendTypeOss, BackendTypeS3.
+	// Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.
 	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 
 	// Configs contains config items of the backend, whose keys differ from different backend types.
@@ -383,25 +374,6 @@ type BackendConfig struct {
 type BackendLocalConfig struct {
 	// Path of the directory to store the files.
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
-}
-
-// BackendMysqlConfig contains the config of using mysql database as backend, which can be converted
-// from BackendConfig if Type is BackendMysqlConfig.
-type BackendMysqlConfig struct {
-	// DBName is the database name.
-	DBName string `yaml:"dbName" json:"dbName"`
-
-	// User of the database.
-	User string `yaml:"user" json:"user"`
-
-	// Password of the database.
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
-
-	// Host of the database.
-	Host string `yaml:"host" json:"host"`
-
-	// Port of the database. If not set, then it will be set to DeprecatedDefaultMysqlPort.
-	Port int `yaml:"port,omitempty" json:"port,omitempty"`
 }
 
 // BackendOssConfig contains the config of using OSS as backend, which can be converted from BackendConfig
@@ -447,26 +419,6 @@ func (b *BackendConfig) ToLocalBackend() *BackendLocalConfig {
 	path, _ := b.Configs[BackendLocalPath].(string)
 	return &BackendLocalConfig{
 		Path: path,
-	}
-}
-
-// ToMysqlBackend converts BackendConfig to structured BackendMysqlConfig, works only when the Type
-// is BackendTypeMysql, and the Configs are with correct type, or return nil.
-func (b *BackendConfig) ToMysqlBackend() *BackendMysqlConfig {
-	if b.Type != BackendTypeMysql {
-		return nil
-	}
-	dbName, _ := b.Configs[BackendMysqlDBName].(string)
-	user, _ := b.Configs[BackendMysqlUser].(string)
-	password, _ := b.Configs[BackendMysqlPassword].(string)
-	host, _ := b.Configs[BackendMysqlHost].(string)
-	port, _ := b.Configs[BackendMysqlPort].(int)
-	return &BackendMysqlConfig{
-		DBName:   dbName,
-		User:     user,
-		Password: password,
-		Host:     host,
-		Port:     port,
 	}
 }
 

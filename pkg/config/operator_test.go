@@ -31,15 +31,6 @@ func mockValidConfig() *v1.Config {
 				"dev": {
 					Type: v1.BackendTypeLocal,
 				},
-				"pre": {
-					Type: v1.BackendTypeMysql,
-					Configs: map[string]any{
-						v1.BackendMysqlDBName: "kusion",
-						v1.BackendMysqlUser:   "kk",
-						v1.BackendMysqlHost:   "127.0.0.1",
-						v1.BackendMysqlPort:   3306,
-					},
-				},
 				"prod": {
 					Type: v1.BackendTypeS3,
 					Configs: map[string]any{
@@ -60,15 +51,6 @@ func mockValidCfgMap() map[string]any {
 			},
 			"dev": map[string]any{
 				v1.BackendType: v1.BackendTypeLocal,
-			},
-			"pre": map[string]any{
-				v1.BackendType: v1.BackendTypeMysql,
-				v1.BackendConfigItems: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
-				},
 			},
 			"prod": map[string]any{
 				v1.BackendType: v1.BackendTypeS3,
@@ -258,28 +240,18 @@ func TestOperator_GetConfigItem(t *testing.T) {
 			name:        "get structured config item successfully type string",
 			success:     true,
 			o:           mockOperator(mockConfigPath, mockValidConfig()),
-			key:         "backends.pre.configs.host",
-			expectedVal: "127.0.0.1",
-		},
-		{
-			name:        "get structured config item successfully type int",
-			success:     true,
-			o:           mockOperator(mockConfigPath, mockValidConfig()),
-			key:         "backends.pre.configs.port",
-			expectedVal: 3306,
+			key:         "backends.prod.configs.bucket",
+			expectedVal: "kusion",
 		},
 		{
 			name:    "get structured config item successfully type pointer of struct",
 			success: true,
 			o:       mockOperator(mockConfigPath, mockValidConfig()),
-			key:     "backends.pre",
+			key:     "backends.prod",
 			expectedVal: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
+				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
+					v1.BackendGenericOssBucket: "kusion",
 				},
 			},
 		},
@@ -315,22 +287,15 @@ func TestOperator_GetEncodedConfigItem(t *testing.T) {
 			name:        "get encoding config item successfully type string",
 			success:     true,
 			o:           mockOperator(mockConfigPath, mockValidConfig()),
-			key:         "backends.pre.configs.host",
-			expectedVal: "127.0.0.1",
-		},
-		{
-			name:        "get encoding config item successfully type int",
-			success:     true,
-			o:           mockOperator(mockConfigPath, mockValidConfig()),
-			key:         "backends.pre.configs.port",
-			expectedVal: "3306",
+			key:         "backends.prod.configs.bucket",
+			expectedVal: "kusion",
 		},
 		{
 			name:        "get encoding config item successfully type map",
 			success:     true,
 			o:           mockOperator(mockConfigPath, mockValidConfig()),
-			key:         "backends.pre",
-			expectedVal: `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			key:         "backends.prod",
+			expectedVal: `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 		},
 	}
 
@@ -371,42 +336,14 @@ func TestOperator_SetConfigItem(t *testing.T) {
 			},
 		},
 		{
-			name:    "set config item successfully type int",
-			success: true,
-			o: mockOperator(mockConfigPath, &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"pre": {Type: v1.BackendTypeMysql},
-					},
-				},
-			}),
-			key: "backends.pre.configs.port",
-			val: 3306,
-			expectedConfig: &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlPort: 3306,
-							},
-						},
-					},
-				},
-			},
-		},
-		{
 			name:    "set config item successfully type struct",
 			success: true,
 			o:       mockOperator(mockConfigPath, mockValidConfig()),
-			key:     "backends.pre",
+			key:     "backends.prod",
 			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
+				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk-tired",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
+					v1.BackendGenericOssBucket: "kusion-s3",
 				},
 			},
 			expectedConfig: &v1.Config{
@@ -419,19 +356,10 @@ func TestOperator_SetConfigItem(t *testing.T) {
 						"dev": {
 							Type: v1.BackendTypeLocal,
 						},
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk-tired",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
-							},
-						},
 						"prod": {
 							Type: v1.BackendTypeS3,
 							Configs: map[string]any{
-								v1.BackendGenericOssBucket: "kusion",
+								v1.BackendGenericOssBucket: "kusion-s3",
 							},
 						},
 					},
@@ -455,15 +383,6 @@ func TestOperator_SetConfigItem(t *testing.T) {
 						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
-						},
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
-							},
 						},
 						"prod": {
 							Type: v1.BackendTypeS3,
@@ -552,36 +471,11 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 			},
 		},
 		{
-			name:    "set config item successfully type int",
-			success: true,
-			o: mockOperator(mockConfigPath, &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"pre": {Type: v1.BackendTypeMysql},
-					},
-				},
-			}),
-			key: "backends.pre.configs.port",
-			val: "3306",
-			expectedConfig: &v1.Config{
-				Backends: &v1.BackendConfigs{
-					Backends: map[string]*v1.BackendConfig{
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlPort: 3306,
-							},
-						},
-					},
-				},
-			},
-		},
-		{
 			name:    "set config item successfully type struct",
 			success: true,
 			o:       mockOperator(mockConfigPath, mockValidConfig()),
-			key:     "backends.pre",
-			val:     `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk-tired"},"type":"mysql"}`,
+			key:     "backends.prod",
+			val:     `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 			expectedConfig: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Current: "dev",
@@ -591,15 +485,6 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
-						},
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk-tired",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
-							},
 						},
 						"prod": {
 							Type: v1.BackendTypeS3,
@@ -626,15 +511,6 @@ func TestOperator_setEncodedConfigItem(t *testing.T) {
 						},
 						"dev": {
 							Type: v1.BackendTypeLocal,
-						},
-						"pre": {
-							Type: v1.BackendTypeMysql,
-							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
-							},
 						},
 						"prod": {
 							Type: v1.BackendTypeS3,
@@ -837,13 +713,6 @@ func TestParseStructuredConfigItem(t *testing.T) {
 			val:     "dev",
 		},
 		{
-			name:    "parse structured config item successfully int",
-			success: true,
-			info:    newRegisteredItems()["backends.*.configs.port"],
-			strVal:  "3306",
-			val:     3306,
-		},
-		{
 			name:    "parse structured config item successfully bool",
 			success: true,
 			info:    &itemInfo{false, nil, nil},
@@ -854,14 +723,11 @@ func TestParseStructuredConfigItem(t *testing.T) {
 			name:    "parse structured config item successfully struct ptr",
 			success: true,
 			info:    newRegisteredItems()["backends.*"],
-			strVal:  `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			strVal:  `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
+				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
+					v1.BackendGenericOssBucket: "kusion",
 				},
 			},
 		},
@@ -869,14 +735,11 @@ func TestParseStructuredConfigItem(t *testing.T) {
 			name:    "parse structured config item successfully struct",
 			success: true,
 			info:    &itemInfo{v1.BackendConfig{}, nil, nil},
-			strVal:  `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			strVal:  `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 			val: v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
+				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
+					v1.BackendGenericOssBucket: "kusion",
 				},
 			},
 		},
@@ -888,13 +751,6 @@ func TestParseStructuredConfigItem(t *testing.T) {
 			val: map[string]any{
 				v1.BackendGenericOssBucket: "kusion",
 			},
-		},
-		{
-			name:    "failed to parse structured config item int",
-			success: false,
-			info:    newRegisteredItems()["backends.*.configs.port"],
-			strVal:  "not_valid_int",
-			val:     nil,
 		},
 		{
 			name:    "failed to parse structured config item bool",
@@ -1005,13 +861,6 @@ func TestGetItemFromCfgMap(t *testing.T) {
 			expectedVal: "dev",
 		},
 		{
-			name:        "get item from config map successfully type int",
-			success:     true,
-			cfg:         mockValidCfgMap(),
-			key:         "backends.pre.configs.port",
-			expectedVal: 3306,
-		},
-		{
 			name:    "get item from config map successfully type map",
 			success: true,
 			cfg:     mockValidCfgMap(),
@@ -1075,22 +924,22 @@ func TestSetItemFromCfgMap(t *testing.T) {
 			cfg: map[string]any{
 				"backends": map[string]any{
 					"pre": map[string]any{
-						"type": "mysql",
+						"type": "s3",
 						"configs": map[string]any{
-							"user": "kusion",
+							"bucket": "kusion",
 						},
 					},
 				},
 			},
-			key: "backends.pre.configs.dbName",
+			key: "backends.pre.configs.prefix",
 			val: "kusion",
 			expectedCfg: map[string]any{
 				"backends": map[string]any{
 					"pre": map[string]any{
-						"type": "mysql",
+						"type": "s3",
 						"configs": map[string]any{
-							"dbName": "kusion",
-							"user":   "kusion",
+							"bucket": "kusion",
+							"prefix": "kusion",
 						},
 					},
 				},
@@ -1102,46 +951,18 @@ func TestSetItemFromCfgMap(t *testing.T) {
 			cfg: map[string]any{
 				"backends": map[string]any{
 					"pre": map[string]any{
-						"type": "mysql",
+						"type": "s3",
 					},
 				},
 			},
-			key: "backends.pre.configs.dbName",
+			key: "backends.pre.configs.bucket",
 			val: "kusion",
 			expectedCfg: map[string]any{
 				"backends": map[string]any{
 					"pre": map[string]any{
-						"type": "mysql",
+						"type": "s3",
 						"configs": map[string]any{
-							"dbName": "kusion",
-						},
-					},
-				},
-			},
-		},
-		{
-			name:    "set item in config map successfully int",
-			success: true,
-			cfg: map[string]any{
-				"backends": map[string]any{
-					"pre": map[string]any{
-						"type": "mysql",
-						"configs": map[string]any{
-							"dbName": "kusion",
-							"port":   8222,
-						},
-					},
-				},
-			},
-			key: "backends.pre.configs.port",
-			val: 3306,
-			expectedCfg: map[string]any{
-				"backends": map[string]any{
-					"pre": map[string]any{
-						"type": "mysql",
-						"configs": map[string]any{
-							"port":   3306,
-							"dbName": "kusion",
+							"bucket": "kusion",
 						},
 					},
 				},
@@ -1153,23 +974,17 @@ func TestSetItemFromCfgMap(t *testing.T) {
 			cfg:     map[string]any{},
 			key:     "backends.pre",
 			val: &v1.BackendConfig{
-				Type: v1.BackendTypeMysql,
+				Type: v1.BackendTypeS3,
 				Configs: map[string]any{
-					v1.BackendMysqlDBName: "kusion",
-					v1.BackendMysqlUser:   "kk",
-					v1.BackendMysqlHost:   "127.0.0.1",
-					v1.BackendMysqlPort:   3306,
+					v1.BackendGenericOssBucket: "kusion",
 				},
 			},
 			expectedCfg: map[string]any{
 				"backends": map[string]any{
 					"pre": &v1.BackendConfig{
-						Type: v1.BackendTypeMysql,
+						Type: v1.BackendTypeS3,
 						Configs: map[string]any{
-							v1.BackendMysqlDBName: "kusion",
-							v1.BackendMysqlUser:   "kk",
-							v1.BackendMysqlHost:   "127.0.0.1",
-							v1.BackendMysqlPort:   3306,
+							v1.BackendGenericOssBucket: "kusion",
 						},
 					},
 				},

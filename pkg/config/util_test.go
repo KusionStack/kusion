@@ -59,13 +59,6 @@ func TestGetEncodedConfigItem(t *testing.T) {
 			expectedConfigItem: "local",
 		},
 		{
-			name:               "get encoded config item successfully type int",
-			success:            true,
-			config:             mockValidConfig(),
-			configItemKey:      "backends.pre.configs.port",
-			expectedConfigItem: "3306",
-		},
-		{
 			name:               "get encoded config item successfully type struct",
 			success:            true,
 			config:             mockValidConfig(),
@@ -131,7 +124,7 @@ func TestSetEncodedConfigItem(t *testing.T) {
 			name:          "set encoded config item successfully type struct",
 			success:       true,
 			configItemKey: "backends.pre",
-			configItem:    `{"configs":{"dbName":"kusion","host":"127.0.0.1","port":3306,"user":"kk"},"type":"mysql"}`,
+			configItem:    `{"configs":{"bucket":"kusion"},"type":"s3"}`,
 			config: &v1.Config{
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{},
@@ -141,12 +134,9 @@ func TestSetEncodedConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"pre": {
-							Type: v1.BackendTypeMysql,
+							Type: v1.BackendTypeS3,
 							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
+								v1.BackendGenericOssBucket: "kusion",
 							},
 						},
 					},
@@ -232,12 +222,9 @@ func TestDeleteConfigItem(t *testing.T) {
 				Backends: &v1.BackendConfigs{
 					Backends: map[string]*v1.BackendConfig{
 						"pre": {
-							Type: v1.BackendTypeMysql,
+							Type: v1.BackendTypeOss,
 							Configs: map[string]any{
-								v1.BackendMysqlDBName: "kusion",
-								v1.BackendMysqlUser:   "kk",
-								v1.BackendMysqlHost:   "127.0.0.1",
-								v1.BackendMysqlPort:   3306,
+								v1.BackendGenericOssBucket: "kusion",
 							},
 						},
 					},

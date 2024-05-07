@@ -8,7 +8,6 @@ import "errors"
 // const (
 // 	// SourceProviderTypeGithub represents github source provider type.
 // 	BackendTypeOss   BackendType = "oss"
-// 	BackendTypeMysql BackendType = "mysql"
 // 	BackendTypeLocal BackendType = "local"
 // )
 

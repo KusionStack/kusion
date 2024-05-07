@@ -19,18 +19,6 @@ func CompleteLocalConfig(config *v1.BackendLocalConfig) error {
 	return nil
 }
 
-// CompleteMysqlConfig sets default value of port if not set, which is 3306, and fulfills password from environment
-// variables if set.
-func CompleteMysqlConfig(config *v1.BackendMysqlConfig) {
-	if config.Port == 0 {
-		config.Port = v1.DefaultMysqlPort
-	}
-	password := os.Getenv(v1.EnvBackendMysqlPassword)
-	if password != "" {
-		config.Password = password
-	}
-}
-
 // CompleteOssConfig fulfills the whole oss config from environment variables if set.
 func CompleteOssConfig(config *v1.BackendOssConfig) {
 	accessKeyID := os.Getenv(v1.EnvOssAccessKeyID)

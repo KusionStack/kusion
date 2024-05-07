@@ -17,13 +17,10 @@ func NewCmd() *cobra.Command {
 
 		example = i18n.T(`
 		# Set a config item with string type value
-		kusion config set backends.current mysql-pre
-		
-		# Set a config item with int type value
-		kusion config set backends.mysql-pre.configs.port 3306
+		kusion config set backends.current s3-pre
 
 		# Set a config item with struct or map type value
-		kusion config set backends.mysql-pre.configs '{"dbName":"kusion","user":"kk","host":"127.0.0.1","port":3306}'`)
+		kusion config set backends.s3-pre.configs '{"bucket":"kusion"}'`)
 	)
 
 	o := NewOptions()

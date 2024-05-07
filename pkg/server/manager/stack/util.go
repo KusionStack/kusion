@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"gorm.io/gorm"
+
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -68,16 +69,6 @@ func NewBackendFromEntity(backendEntity entity.Backend) (backend.Backend, error)
 			return nil, fmt.Errorf("complete local config failed, %w", err)
 		}
 		return storages.NewLocalStorage(bkConfig), nil
-	case v1.BackendTypeMysql:
-		bkConfig := backendEntity.BackendConfig.ToMysqlBackend()
-		storages.CompleteMysqlConfig(bkConfig)
-		if err = storages.ValidateMysqlConfig(bkConfig); err != nil {
-			return nil, fmt.Errorf("invalid config of backend %s, %w", backendEntity.Name, err)
-		}
-		storage, err = storages.NewMysqlStorage(bkConfig)
-		if err != nil {
-			return nil, fmt.Errorf("new mysql storage of backend %s failed, %w", backendEntity.Name, err)
-		}
 	case v1.BackendTypeOss:
 		bkConfig := backendEntity.BackendConfig.ToOssBackend()
 		storages.CompleteOssConfig(bkConfig)
