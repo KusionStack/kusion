@@ -174,6 +174,13 @@ func (o *ApplyOptions) Run() error {
 		pterm.DisableStyling()
 	}
 
+	// build parameters
+	parameters := make(map[string]string)
+	for _, value := range o.PreviewOptions.Values {
+		parts := strings.SplitN(value, "=", 2)
+		parameters[parts[0]] = parts[1]
+	}
+
 	// Generate Spec
 	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
 	if err != nil {

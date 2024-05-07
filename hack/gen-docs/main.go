@@ -17,7 +17,8 @@ const defaultCmdDocsDir = "docs/cmd/"
 
 var docsMatrix = map[string]string{
 	i18n.LangEnUS: i18n.LangValueEnUS,
-	i18n.LangZhCN: i18n.LangValueZhCN,
+	// TODO: optimize the multi-language support.
+	// i18n.LangZhCN: i18n.LangValueZhCN,
 }
 
 func main() {

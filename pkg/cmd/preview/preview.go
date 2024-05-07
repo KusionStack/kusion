@@ -17,6 +17,7 @@ package preview
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -53,7 +54,7 @@ var (
 		kusion preview -D name=test -D age=18
 
 		# Preview with ignored fields
-		kusion preview --ignore-fields="metadata.generation,metadata.managedFields
+		kusion preview --ignore-fields="metadata.generation,metadata.managedFields"
 		
 		# Preview with json format result
 		kusion preview -o json
@@ -77,6 +78,7 @@ type PreviewFlags struct {
 	NoStyle      bool
 	Output       string
 	IgnoreFields []string
+	Values       []string
 
 	UI *terminal.UI
 
@@ -93,6 +95,7 @@ type PreviewOptions struct {
 	NoStyle      bool
 	Output       string
 	IgnoreFields []string
+	Values       []string
 
 	UI *terminal.UI
 
@@ -143,6 +146,7 @@ func (f *PreviewFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&f.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 	cmd.Flags().StringSliceVarP(&f.IgnoreFields, "ignore-fields", "", f.IgnoreFields, i18n.T("Ignore differences of target fields"))
 	cmd.Flags().StringVarP(&f.Output, "output", "o", f.Output, i18n.T("Specify the output format"))
+	cmd.Flags().StringArrayVarP(&f.Values, "argument", "D", []string{}, i18n.T("Specify arguments on the command line"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -163,6 +167,7 @@ func (f *PreviewFlags) ToOptions() (*PreviewOptions, error) {
 		IgnoreFields: f.IgnoreFields,
 		UI:           f.UI,
 		IOStreams:    f.IOStreams,
+		Values:       f.Values,
 	}
 
 	return o, nil
@@ -184,8 +189,15 @@ func (o *PreviewOptions) Run() error {
 		pterm.DisableStyling()
 	}
 
+	// build parameters
+	parameters := make(map[string]string)
+	for _, value := range o.Values {
+		parts := strings.SplitN(value, "=", 2)
+		parameters[parts[0]] = parts[1]
+	}
+
 	// Generate spec
-	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
+	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, o.UI, o.NoStyle)
 	if err != nil {
 		return err
 	}
