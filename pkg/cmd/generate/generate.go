@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"k8s.io/kubectl/pkg/util/templates"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/cmd/meta"
@@ -46,7 +47,10 @@ var (
 		kusion generate -o /tmp/spec.yaml
 
 		# Generate spec with custom workspace
-		kusion generate -o /tmp/spec.yaml --workspace dev`)
+		kusion generate -o /tmp/spec.yaml --workspace dev
+		
+		# Generate spec with specified arguments
+		kusion generate -D name=test -D age=18`)
 )
 
 // GenerateFlags directly reflect the information that CLI is gathering via flags. They will be converted to
@@ -94,8 +98,8 @@ func NewCmdGenerate(ui *terminal.UI, ioStreams genericiooptions.IOStreams) *cobr
 	cmd := &cobra.Command{
 		Use:     "generate",
 		Short:   "Generate and print the resulting Spec resources of target Stack",
-		Long:    generateLong,
-		Example: generateExample,
+		Long:    templates.LongDesc(generateLong),
+		Example: templates.Examples(generateExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			o, err := flags.ToOptions()
 			defer cmdutil.RecoverErr(&err)
@@ -117,7 +121,7 @@ func (flags *GenerateFlags) AddFlags(cmd *cobra.Command) {
 	flags.MetaFlags.AddFlags(cmd)
 
 	cmd.Flags().StringVarP(&flags.Output, "output", "o", flags.Output, i18n.T("File to write generated Spec resources to"))
-	cmd.Flags().StringArrayVar(&flags.Values, "set", []string{}, i18n.T("Set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)"))
+	cmd.Flags().StringArrayVarP(&flags.Values, "argument", "D", []string{}, i18n.T("Specify arguments on the command line"))
 	cmd.Flags().BoolVarP(&flags.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 }
 

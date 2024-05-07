@@ -16,6 +16,7 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"k8s.io/kubectl/pkg/util/templates"
 	"kcl-lang.io/kpm/pkg/api"
 
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
@@ -112,8 +113,8 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 		Use:                   "push [MODULE PATH] [OCI REPOSITORY URL]",
 		DisableFlagsInUseLine: true,
 		Short:                 "Push a module to OCI registry",
-		Long:                  pushLong,
-		Example:               pushExample,
+		Long:                  templates.LongDesc(pushLong),
+		Example:               templates.Examples(pushExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			o, err := flags.ToOptions(args, flags.IOStreams)
 			defer cmdutil.RecoverErr(&err)

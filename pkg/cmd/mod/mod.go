@@ -3,6 +3,7 @@ package mod
 import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/util/templates"
 
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/util/i18n"
@@ -19,7 +20,7 @@ func NewCmdMod(streams genericclioptions.IOStreams) *cobra.Command {
 		Use:                   "mod",
 		DisableFlagsInUseLine: true,
 		Short:                 "Manage Kusion modules",
-		Long:                  modLong,
+		Long:                  templates.LongDesc(modLong),
 		Run:                   cmdutil.DefaultSubCommandRun(streams.ErrOut),
 	}
 

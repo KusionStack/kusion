@@ -58,20 +58,23 @@ func NewDefaultKusionctlCommandWithArgs(o KusionctlOptions) *cobra.Command {
 }
 
 func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
+	// TODO: optimize the multi-language support.
 	// Sending in 'nil' for the getLanguageFn() results in using LANGUAGE, LC_ALL,
 	// LC_MESSAGES, or LANG environment variable in sequence.
-	_ = i18n.LoadTranslations(i18n.DomainKusion, nil)
+	// _ = i18n.LoadTranslations(i18n.DomainKusion, nil)
 
 	// Parent command to which all subcommands are added.
 	rootCmd := &cobra.Command{
-		Use:   "kusion",
-		Short: i18n.T(`Kusion is the Platform Orchestrator of Internal Developer Platform`),
-		Long: templates.LongDesc(`
-      As a Platform Orchestrator, Kusion delivers user intentions to Kubernetes, Clouds and On-Premise resources.
-      Also enables asynchronous cooperation between the development and the platform team and drives separation of concerns.
+		Use: "kusion",
+		Short: i18n.T(`Kusion is the Platform Orchestrator of Internal Developer Platform
+		
+Find more information at: https://www.kusionstack.io`),
+		// 	Long: templates.LongDesc(`
+		//   As a Platform Orchestrator, Kusion delivers user intentions to Kubernetes, Clouds and On-Premise infrastructures.
+		//   It also enables asynchronous cooperation between the developer and the platform team, and drives separation of concerns.
 
-      Find more information at:
-            https://www.kusionstack.io/docs/user_docs/reference/cli/kusion/`),
+		//   Find more information at:
+		//   		https://www.kusionstack.io/docs/`),
 		SilenceErrors: true,
 		Run:           runHelp,
 		// Hook before and after Run initialize and write profiles to disk,
@@ -96,9 +99,14 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 
 	groups := templates.CommandGroups{
 		{
-			Message: "Configuration Commands:",
+			Message: "Initialization Commands:",
 			Commands: []*cobra.Command{
 				cmdinit.NewCmd(),
+			},
+		},
+		{
+			Message: "Configuration Management Commands:",
+			Commands: []*cobra.Command{
 				config.NewCmd(),
 				workspace.NewCmd(),
 				project.NewCmd(),
@@ -107,7 +115,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 			},
 		},
 		{
-			Message: "Runtime Commands:",
+			Message: "Operational Commands:",
 			Commands: []*cobra.Command{
 				preview.NewCmdPreview(o.UI, o.IOStreams),
 				apply.NewCmdApply(o.UI, o.IOStreams),
@@ -128,6 +136,7 @@ func NewKusionctlCmd(o KusionctlOptions) *cobra.Command {
 	templates.ActsAsRootCommand(rootCmd, filters, groups...)
 	rootCmd.AddCommand(version.NewCmdVersion())
 	rootCmd.AddCommand(options.NewCmdOptions(o.IOStreams.Out))
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	return rootCmd
 }
