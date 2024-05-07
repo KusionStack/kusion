@@ -340,14 +340,6 @@ const (
 	ResourceExtensionKubeConfig = "kubeConfig"
 )
 
-// Spec describes the desired state how the infrastructure should look like: which workload to run,
-// the load-balancer setup, the location of the database schema, and so on. Based on that information,
-// the Kusion engine takes care of updating the production state to match the Intent.
-type Spec struct {
-	// Resources is the list of Resource this Spec contains.
-	Resources Resources `yaml:"resources" json:"resources"`
-}
-
 type Resources []Resource
 
 // Resource is the representation of a resource in the state.
@@ -368,6 +360,77 @@ type Resource struct {
 
 	// Extensions specifies arbitrary metadata of this resource
 	Extensions map[string]interface{} `yaml:"extensions,omitempty" json:"extensions,omitempty"`
+}
+
+// Spec describes the desired state how the infrastructure should look like: which workload to run,
+// the load-balancer setup, the location of the database schema, and so on. Based on that information,
+// the Kusion engine takes care of updating the production state to match the Intent.
+type Spec struct {
+	// Resources is the list of Resource this Spec contains.
+	Resources Resources `yaml:"resources" json:"resources"`
+}
+
+// State is a record of an operation's result. It is a mapping between resources in KCL and the actual
+// infra resource and often used as a datasource for 3-way merge/diff in operations like Apply or Preview.
+type State struct {
+	// Resources records all resources in this operation.
+	Resources Resources `yaml:"resources" json:"resources"`
+}
+
+// ReleasePhase is the Phase of a Release.
+type ReleasePhase string
+
+const (
+	// ReleasePhaseGenerating indicates the stage of generating Spec.
+	ReleasePhaseGenerating = "generating"
+
+	// ReleasePhasePreviewing indicated the stage of previewing.
+	ReleasePhasePreviewing = "previewing"
+
+	// ReleasePhaseApplying indicates the stage of applying.
+	ReleasePhaseApplying = "applying"
+
+	// ReleasePhaseDestroying indicates the stage of destroying.
+	ReleasePhaseDestroying = "destroying"
+
+	// ReleasePhaseSucceeded is a final phase, indicates the Release is successful.
+	ReleasePhaseSucceeded = "succeeded"
+
+	// ReleasePhaseFailed is a final phase, indicates the Release is failed.
+	ReleasePhaseFailed = "failed"
+)
+
+// Release describes the generation, preview and deployment of a specified Stack. When the operation
+// Apply or Destroy is executed, a Release will be created.
+type Release struct {
+	// Project name of the Release.
+	Project string `yaml:"project" json:"project"`
+
+	// Workspace name of the Release.
+	Workspace string `yaml:"workspace" json:"workspace"`
+
+	// Revision of the Release, auto-increasing from one under per Project and Workspace. The group of
+	// Project, Workspace and Revision can identify a Release uniquely.
+	Revision uint64 `yaml:"revision" json:"revision"`
+
+	// Stack name of the Release.
+	Stack string `yaml:"stack" json:"stack"`
+
+	// Spec of the Release, which can be provided when creating release or generated during Release.
+	Spec *Spec `yaml:"spec" json:"spec"`
+
+	// State of the Release, which will be generated and updated during Release. When a Release is created,
+	// the State will be filled with the latest State, which indicates the current infra resources.
+	State *State `yaml:"state" json:"state"`
+
+	// Phase is the current phase of the Release.
+	Phase ReleasePhase `yaml:"phase" json:"phase"`
+
+	// CreateTime is the time that the Release is created.
+	CreateTime time.Time `yaml:"createTime" json:"createTime"`
+
+	// ModifiedTime is the time that the Release is modified.
+	ModifiedTime time.Time `yaml:"modifiedTime,omitempty" json:"modifiedTime,omitempty"`
 }
 
 // DeprecatedState is a record of an operation's result. It is a mapping between resources in KCL and the actual infra
