@@ -8,7 +8,6 @@ import (
 
 const (
 	stateFile    = "state.yaml"
-	stateTable   = "state"
 	statesPrefix = "states"
 )
 

@@ -11,7 +11,6 @@ const (
 	DefaultWorkspace = "default"
 
 	workspacesPrefix = "workspaces"
-	workspaceTable   = "workspace"
 	metadataFile     = ".metadata.yml"
 	yamlSuffix       = ".yaml"
 )
