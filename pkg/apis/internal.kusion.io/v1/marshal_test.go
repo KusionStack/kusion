@@ -35,7 +35,7 @@ func TestContainerMarshalJSON(t *testing.T) {
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -43,14 +43,14 @@ func TestContainerMarshalJSON(t *testing.T) {
 					InitialDelaySeconds: 10,
 				},
 			},
-			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"kam.v1.workload.container.probe.Http","url":"http://localhost:80"},"initialDelaySeconds":10}}`,
+			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"service.container.probe.Http","url":"http://localhost:80"},"initialDelaySeconds":10}}`,
 		},
 		{
 			input: Container{
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -58,14 +58,14 @@ func TestContainerMarshalJSON(t *testing.T) {
 					InitialDelaySeconds: 10,
 				},
 			},
-			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"kam.v1.workload.container.probe.Exec","command":["cat","/tmp/healthy"]},"initialDelaySeconds":10}}`,
+			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"service.container.probe.Exec","command":["cat","/tmp/healthy"]},"initialDelaySeconds":10}}`,
 		},
 		{
 			input: Container{
 				Image: "nginx:v1",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{Type: "kam.v1.workload.container.probe.Tcp"},
+						TypeWrapper: TypeWrapper{Type: "service.container.probe.Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
@@ -73,47 +73,47 @@ func TestContainerMarshalJSON(t *testing.T) {
 					InitialDelaySeconds: 10,
 				},
 			},
-			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"kam.v1.workload.container.probe.Tcp","url":"127.0.0.1:8080"},"initialDelaySeconds":10}}`,
+			result: `{"image":"nginx:v1","readinessProbe":{"probeHandler":{"_type":"service.container.probe.Tcp","url":"127.0.0.1:8080"},"initialDelaySeconds":10}}`,
 		},
 		{
 			input: Container{
 				Image: "nginx:v1",
 				Lifecycle: &Lifecycle{
 					PostStart: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
 						},
 					},
 					PreStop: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
 						},
 					},
 				},
 			},
-			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"kam.v1.workload.container.probe.Exec","command":["/bin/sh","-c","echo Hello from the postStart handler \u003e /usr/share/message"]},"postStart":{"_type":"kam.v1.workload.container.probe.Exec","command":["/bin/sh","-c","nginx -s quit; while killall -0 nginx; do sleep 1; done"]}}}`,
+			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"service.container.probe.Exec","command":["/bin/sh","-c","echo Hello from the postStart handler \u003e /usr/share/message"]},"postStart":{"_type":"service.container.probe.Exec","command":["/bin/sh","-c","nginx -s quit; while killall -0 nginx; do sleep 1; done"]}}}`,
 		},
 		{
 			input: Container{
 				Image: "nginx:v1",
 				Lifecycle: &Lifecycle{
 					PostStart: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
 					},
 					PreStop: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
 					},
 				},
 			},
-			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"kam.v1.workload.container.probe.Http","url":"http://localhost:80"},"postStart":{"_type":"kam.v1.workload.container.probe.Http","url":"http://localhost:80"}}}`,
+			result: `{"image":"nginx:v1","lifecycle":{"preStop":{"_type":"service.container.probe.Http","url":"http://localhost:80"},"postStart":{"_type":"service.container.probe.Http","url":"http://localhost:80"}}}`,
 		},
 	}
 
@@ -174,7 +174,7 @@ workingDir: /tmp
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{Type: "kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{Type: "service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -196,7 +196,7 @@ env:
 workingDir: /tmp
 readinessProbe:
   probeHandler:
-    _type: kam.v1.workload.container.probe.Http
+    _type: service.container.probe.Http
     url: http://localhost:80
   initialDelaySeconds: 10
 `,
@@ -215,7 +215,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{Type: "kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{Type: "service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"cat", "/tmp/healthy"},
 						},
@@ -237,7 +237,7 @@ env:
 workingDir: /tmp
 readinessProbe:
   probeHandler:
-    _type: kam.v1.workload.container.probe.Exec
+    _type: service.container.probe.Exec
     command:
     - cat
     - /tmp/healthy
@@ -258,7 +258,7 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				ReadinessProbe: &Probe{
 					ProbeHandler: &ProbeHandler{
-						TypeWrapper: TypeWrapper{Type: "kam.v1.workload.container.probe.Tcp"},
+						TypeWrapper: TypeWrapper{Type: "service.container.probe.Tcp"},
 						TCPSocketAction: &TCPSocketAction{
 							URL: "127.0.0.1:8080",
 						},
@@ -280,7 +280,7 @@ env:
 workingDir: /tmp
 readinessProbe:
   probeHandler:
-    _type: kam.v1.workload.container.probe.Tcp
+    _type: service.container.probe.Tcp
     url: 127.0.0.1:8080
   initialDelaySeconds: 10
 `,
@@ -299,13 +299,13 @@ readinessProbe:
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{
 					PostStart: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"},
 						},
 					},
 					PreStop: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Exec"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Exec"},
 						ExecAction: &ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"},
 						},
@@ -326,13 +326,13 @@ env:
 workingDir: /tmp
 lifecycle:
   preStop:
-    _type: kam.v1.workload.container.probe.Exec
+    _type: service.container.probe.Exec
     command:
     - /bin/sh
     - -c
     - echo Hello from the postStart handler > /usr/share/message
   postStart:
-    _type: kam.v1.workload.container.probe.Exec
+    _type: service.container.probe.Exec
     command:
     - /bin/sh
     - -c
@@ -353,13 +353,13 @@ lifecycle:
 				WorkingDir: "/tmp",
 				Lifecycle: &Lifecycle{
 					PostStart: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
 					},
 					PreStop: &LifecycleHandler{
-						TypeWrapper: TypeWrapper{"kam.v1.workload.container.probe.Http"},
+						TypeWrapper: TypeWrapper{"service.container.probe.Http"},
 						HTTPGetAction: &HTTPGetAction{
 							URL: "http://localhost:80",
 						},
@@ -380,10 +380,10 @@ env:
 workingDir: /tmp
 lifecycle:
   preStop:
-    _type: kam.v1.workload.container.probe.Http
+    _type: service.container.probe.Http
     url: http://localhost:80
   postStart:
-    _type: kam.v1.workload.container.probe.Http
+    _type: service.container.probe.Http
     url: http://localhost:80
 `,
 		},
@@ -427,7 +427,7 @@ func TestWorkloadMarshalJSON(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected:      `{"_type": "kam.v1.workload.Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
+			expected:      `{"_type": "service.Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
 			expectedError: nil,
 		},
 		{
@@ -440,7 +440,7 @@ func TestWorkloadMarshalJSON(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected:      `{"_type": "kam.v1.workload.Job", "schedule": "* * * * *"}`,
+			expected:      `{"_type": "job.Job", "schedule": "* * * * *"}`,
 			expectedError: nil,
 		},
 		{
@@ -495,7 +495,7 @@ func TestWorkloadMarshalYAML(t *testing.T) {
 					},
 				},
 			},
-			expected:      `{"_type":"kam.v1.workload.Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
+			expected:      `{"_type":"service.Service", "replicas": 2, "labels": {"app": "my-service"}, "type": "Deployment"}`,
 			expectedError: nil,
 		},
 		{
@@ -508,7 +508,7 @@ func TestWorkloadMarshalYAML(t *testing.T) {
 					Schedule: "* * * * *",
 				},
 			},
-			expected:      `{"_type":"kam.v1.workload.Job", "schedule": "* * * * *"}`,
+			expected:      `{"_type":"job.Job", "schedule": "* * * * *"}`,
 			expectedError: nil,
 		},
 		{
