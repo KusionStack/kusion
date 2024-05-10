@@ -37,7 +37,7 @@ import (
 // Generator is an interface for things that can generate versioned Spec from
 // configuration code under current working directory with given input parameters.
 type Generator interface {
-	// Generate creates versioned Intent given working directory and set of parameters
+	// Generate creates versioned Intent given working directory and a set of parameters
 	Generate(workDir string, params map[string]string) (*v1.Spec, error)
 }
 
@@ -46,8 +46,7 @@ type DefaultGenerator struct {
 	Project   *v1.Project
 	Stack     *v1.Stack
 	Workspace *v1.Workspace
-
-	Runner run.CodeRunner
+	Runner    run.CodeRunner
 }
 
 // Generate versioned Spec with target code runner.
@@ -62,7 +61,7 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 	}
 
 	// Copy dependent modules before call builder
-	err = copyDependentModules(workDir)
+	err = CopyDependentModules(workDir)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +86,8 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 	return builder.Build(kclPkg, g.Project, g.Stack)
 }
 
-// copyDependentModules copies dependent Kusion modules' generators to destination.
-func copyDependentModules(workDir string) error {
+// CopyDependentModules copies dependent Kusion modules' generators to destination.
+func CopyDependentModules(workDir string) error {
 	modFile := &pkg.ModFile{}
 	err := modFile.LoadModFile(filepath.Join(workDir, pkg.MOD_FILE))
 	if err != nil {
