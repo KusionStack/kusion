@@ -218,9 +218,9 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 				},
 			},
 		},
-		Runtimes: &v1.RuntimeConfigs{
-			Kubernetes: &v1.KubernetesConfig{
-				KubeConfig: "/etc/kubeconfig.yaml",
+		Context: map[string]any{
+			"Kubernetes": map[string]string{
+				"Config": "/etc/kubeconfig.yaml",
 			},
 		},
 	}

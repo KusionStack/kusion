@@ -46,18 +46,9 @@ func mockWorkspace(name string) *v1.Workspace {
 				},
 			},
 		},
-		Runtimes: &v1.RuntimeConfigs{
-			Kubernetes: &v1.KubernetesConfig{
-				KubeConfig: "/etc/kubeconfig.yaml",
-			},
-			Terraform: v1.TerraformConfig{
-				"aws": {
-					Source:  "hashicorp/aws",
-					Version: "1.0.4",
-					GenericConfig: v1.GenericConfig{
-						"region": "us-east-1",
-					},
-				},
+		Context: map[string]any{
+			"kubernetes": v1.GenericConfig{
+				"config": "/etc/kubeconfig.yaml",
 			},
 		},
 	}
@@ -83,14 +74,9 @@ modules:
     configs:
       default:
         type: aws
-runtimes:
-  kubernetes:
-    kubeConfig: /etc/kubeconfig.yaml
-  terraform:
-    aws:
-      source: hashicorp/aws
-      version: 1.0.4
-      region: us-east-1
+context:
+    kubernetes:
+        config: /etc/kubeconfig.yaml
 `
 }
 

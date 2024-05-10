@@ -82,40 +82,6 @@ func getProjectModuleConfig(config *v1.ModuleConfig, projectName string) (v1.Gen
 	return projectCfg, nil
 }
 
-// GetKubernetesConfig returns kubernetes config from runtime config, should be called after
-// ValidateRuntimeConfigs.
-// If got empty kubernetes config, return nil.
-func GetKubernetesConfig(configs *v1.RuntimeConfigs) *v1.KubernetesConfig {
-	if configs == nil {
-		return nil
-	}
-	return configs.Kubernetes
-}
-
-// GetTerraformConfig returns terraform config from runtime config, should be called after
-// ValidateRuntimeConfigs.
-// If got empty terraform config, return nil.
-func GetTerraformConfig(configs *v1.RuntimeConfigs) v1.TerraformConfig {
-	if configs == nil {
-		return nil
-	}
-	return configs.Terraform
-}
-
-// GetProviderConfig returns the specified terraform provider config from runtime config, should be called
-// after ValidateRuntimeConfigs.
-// If got empty terraform config, return nil config and nil error.
-func GetProviderConfig(configs *v1.RuntimeConfigs, providerName string) (*v1.ProviderConfig, error) {
-	if providerName == "" {
-		return nil, ErrEmptyTerraformProviderName
-	}
-	config := GetTerraformConfig(configs)
-	if config == nil {
-		return nil, nil
-	}
-	return config[providerName], nil
-}
-
 // GetInt32PointerFromGenericConfig returns the value of the key in config which should be of type int.
 // If exist but not int, return error. If not exist, return nil.
 func GetInt32PointerFromGenericConfig(config v1.GenericConfig, key string) (*int32, error) {

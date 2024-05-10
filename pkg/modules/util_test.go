@@ -260,9 +260,6 @@ func TestAddKubeConfigIf(t *testing.T) {
 			name: "empty kubeConfig in workspace",
 			ws: &v1.Workspace{
 				Name: "dev",
-				Runtimes: &v1.RuntimeConfigs{
-					Kubernetes: &v1.KubernetesConfig{},
-				},
 			},
 			i: &v1.Spec{
 				Resources: v1.Resources{
@@ -281,120 +278,6 @@ func TestAddKubeConfigIf(t *testing.T) {
 					{
 						ID:   "mock-id-1",
 						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: nil,
-					},
-				},
-			},
-		},
-		{
-			name: "add kubeConfig",
-			ws: &v1.Workspace{
-				Name: "dev",
-				Runtimes: &v1.RuntimeConfigs{
-					Kubernetes: &v1.KubernetesConfig{
-						KubeConfig: "/etc/kubeConfig.yaml",
-					},
-				},
-			},
-			i: &v1.Spec{
-				Resources: v1.Resources{
-					{
-						ID:   "mock-id-1",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: nil,
-					},
-					{
-						ID:   "mock-id-2",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"mock-extensions-key": "mock-extensions-value",
-						},
-					},
-					{
-						ID:   "mock-id-2",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"kubeConfig": "/etc/should-use-kubeConfig.yaml",
-						},
-					},
-					{
-						ID:   "mock-id-3",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"kubeConfig": "",
-						},
-					},
-					{
-						ID:   "mock-id-4",
-						Type: "Terraform",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: nil,
-					},
-				},
-			},
-			expectedSpec: &v1.Spec{
-				Resources: v1.Resources{
-					{
-						ID:   "mock-id-1",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"kubeConfig": "/etc/kubeConfig.yaml",
-						},
-					},
-					{
-						ID:   "mock-id-2",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"mock-extensions-key": "mock-extensions-value",
-							"kubeConfig":          "/etc/kubeConfig.yaml",
-						},
-					},
-					{
-						ID:   "mock-id-2",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"kubeConfig": "/etc/should-use-kubeConfig.yaml",
-						},
-					},
-					{
-						ID:   "mock-id-3",
-						Type: "Kubernetes",
-						Attributes: map[string]any{
-							"mock-key": "mock-value",
-						},
-						Extensions: map[string]any{
-							"kubeConfig": "/etc/kubeConfig.yaml",
-						},
-					},
-					{
-						ID:   "mock-id-4",
-						Type: "Terraform",
 						Attributes: map[string]any{
 							"mock-key": "mock-value",
 						},
@@ -407,7 +290,6 @@ func TestAddKubeConfigIf(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			AddKubeConfigIf(tc.i, tc.ws)
 			assert.Equal(t, *tc.expectedSpec, *tc.i)
 		})
 	}
