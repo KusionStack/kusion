@@ -1,0 +1,53 @@
+project: test_project
+workspace: test_ws
+revision: 3
+stack: test_stack
+spec:
+    resources:
+        - id: apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo
+          type: Kubernetes
+          attributes:
+            apiVersion: apps.kusionstack.io/v1alpha1
+            kind: PodTransitionRule
+            metadata:
+                creationTimestamp: null
+                name: default-dev-foo
+                namespace: fakeNs
+            spec:
+                rules:
+                    - availablePolicy:
+                        maxUnavailableValue: 30%
+                      name: maxUnavailable
+                selector:
+                    matchLabels:
+                        app.kubernetes.io/name: foo
+                        app.kubernetes.io/part-of: default
+            status: {}
+          extensions:
+            GVK: apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule
+state:
+    resources:
+        - id: apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo
+          type: Kubernetes
+          attributes:
+            apiVersion: apps.kusionstack.io/v1alpha1
+            kind: PodTransitionRule
+            metadata:
+                creationTimestamp: null
+                name: default-dev-foo
+                namespace: fakeNs
+            spec:
+                rules:
+                    - availablePolicy:
+                        maxUnavailableValue: 30%
+                      name: maxUnavailable
+                selector:
+                    matchLabels:
+                        app.kubernetes.io/name: foo
+                        app.kubernetes.io/part-of: default
+            status: {}
+          extensions:
+            GVK: apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule
+phase: succeeded
+createTime: 2024-05-10T16:48:00+08:00
+modifiedTime: 2024-05-10T16:48:00+08:00

@@ -4,20 +4,20 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
-// Storage is used to provide storage service for multiple releases.
+// Storage is used to provide storage service for multiple Releases of a specified Project
+// and Workspace.
 type Storage interface {
-	// Get returns a specified Release which is determined by the group of Project, Workspace
-	// and Revision.
-	Get(project, workspace string, revision uint64) (*v1.Release, error)
+	// Get returns a specified Release by Revision.
+	Get(revision uint64) (*v1.Release, error)
 
-	// GetRevisions returns the Revisions of a specified Project and Workspace.
-	GetRevisions(project, workspace string) ([]uint64, error)
+	// GetRevisions returns all the Revisions.
+	GetRevisions() []uint64
 
-	// GetStackBoundRevisions returns the Revisions of a specified Project, Stack and Workspace.
-	GetStackBoundRevisions(project, stack, workspace string) ([]uint64, error)
+	// GetStackBoundRevisions returns the Revisions of a specified Stack.
+	GetStackBoundRevisions(stack string) []uint64
 
 	// GetLatestRevision returns the latest State which corresponds to the current infra Resources.
-	GetLatestRevision(project, workspace string) (uint64, error)
+	GetLatestRevision() uint64
 
 	// Create creates a new Release in the Storage.
 	Create(release *v1.Release) error
