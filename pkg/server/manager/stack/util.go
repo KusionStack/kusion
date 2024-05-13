@@ -10,8 +10,7 @@ import (
 
 	"gorm.io/gorm"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/domain/constant"
@@ -140,7 +139,11 @@ func (m *StackManager) getBackendFromWorkspaceName(ctx context.Context, workspac
 	return remoteBackend, nil
 }
 
-func (m *StackManager) previewHelper(ctx context.Context, id uint, workspaceName string) (*apiv1.Spec, *models.Changes, state.Storage, error) {
+func (m *StackManager) previewHelper(
+	ctx context.Context,
+	id uint,
+	workspaceName string,
+) (*v1.Spec, *models.Changes, state.Storage, error) {
 	logger := util.GetLogger(ctx)
 	logger.Info("Starting previewing stack in StackManager ...")
 

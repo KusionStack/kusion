@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
@@ -56,7 +55,7 @@ var (
 
 func NewDeleteOptions() *DeleteOptions {
 	cwd, _ := os.Getwd()
-	storageBackend := storages.NewLocalStorage(&internalv1.BackendLocalConfig{
+	storageBackend := storages.NewLocalStorage(&apiv1.BackendLocalConfig{
 		Path: filepath.Join(cwd, "state.yaml"),
 	})
 	return &DeleteOptions{

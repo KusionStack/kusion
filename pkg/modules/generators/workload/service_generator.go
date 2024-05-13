@@ -10,7 +10,6 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -29,7 +28,7 @@ type ServiceGenerator struct {
 	Stack     string
 	App       string
 	Namespace string
-	Service   *internalv1.Service
+	Service   *apiv1.Service
 	Config    apiv1.GenericConfig
 }
 
@@ -52,7 +51,7 @@ func NewWorkloadServiceGenerator(request *Generator) (modules.Generator, error) 
 		Stack:     request.Stack,
 		App:       request.App,
 		Service:   request.Workload.Service,
-		Config:    request.PlatformConfigs[internalv1.ModuleService],
+		Config:    request.PlatformConfigs[apiv1.ModuleService],
 		Namespace: request.Namespace,
 	}, nil
 }
@@ -130,10 +129,10 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Spec) error {
 	typeMeta := metav1.TypeMeta{}
 
 	switch service.Type {
-	case internalv1.Deployment:
+	case apiv1.Deployment:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: appsv1.SchemeGroupVersion.String(),
-			Kind:       string(internalv1.Deployment),
+			Kind:       string(apiv1.Deployment),
 		}
 		spec := appsv1.DeploymentSpec{
 			Replicas: service.Replicas,
@@ -145,10 +144,10 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Spec) error {
 			ObjectMeta: objectMeta,
 			Spec:       spec,
 		}
-	case internalv1.Collaset:
+	case apiv1.Collaset:
 		typeMeta = metav1.TypeMeta{
 			APIVersion: v1alpha1.GroupVersion.String(),
-			Kind:       string(internalv1.Collaset),
+			Kind:       string(apiv1.Collaset),
 		}
 		resource = &v1alpha1.CollaSet{
 			TypeMeta:   typeMeta,
@@ -178,7 +177,7 @@ func (g *ServiceGenerator) Generate(spec *apiv1.Spec) error {
 	return nil
 }
 
-func validatePorts(ports []internalv1.Port) error {
+func validatePorts(ports []apiv1.Port) error {
 	portProtocolRecord := make(map[string]struct{})
 	for _, port := range ports {
 		if err := validatePort(&port); err != nil {
@@ -195,20 +194,20 @@ func validatePorts(ports []internalv1.Port) error {
 	return nil
 }
 
-func validatePort(port *internalv1.Port) error {
+func validatePort(port *apiv1.Port) error {
 	if port.Port < 1 || port.Port > 65535 {
 		return ErrInvalidPort
 	}
 	if port.TargetPort < 0 || port.Port > 65535 {
 		return ErrInvalidTargetPort
 	}
-	if port.Protocol != internalv1.TCP && port.Protocol != internalv1.UDP {
+	if port.Protocol != apiv1.TCP && port.Protocol != apiv1.UDP {
 		return ErrInvalidProtocol
 	}
 	return nil
 }
 
-func validate(selectors map[string]string, ports []internalv1.Port) error {
+func validate(selectors map[string]string, ports []apiv1.Port) error {
 	if len(selectors) == 0 {
 		return ErrEmptySelectors
 	}
@@ -218,7 +217,7 @@ func validate(selectors map[string]string, ports []internalv1.Port) error {
 	return nil
 }
 
-func complete(ports []internalv1.Port) error {
+func complete(ports []apiv1.Port) error {
 	for i := range ports {
 		if ports[i].TargetPort == 0 {
 			ports[i].TargetPort = ports[i].Port
@@ -227,20 +226,20 @@ func complete(ports []internalv1.Port) error {
 	return nil
 }
 
-func completeServiceInput(service *internalv1.Service, config apiv1.GenericConfig) error {
+func completeServiceInput(service *apiv1.Service, config apiv1.GenericConfig) error {
 	if err := completeBaseWorkload(&service.Base, config); err != nil {
 		return err
 	}
-	serviceTypeStr, err := workspace.GetStringFromGenericConfig(config, internalv1.ModuleServiceType)
-	platformServiceType := internalv1.ServiceType(serviceTypeStr)
+	serviceTypeStr, err := workspace.GetStringFromGenericConfig(config, apiv1.ModuleServiceType)
+	platformServiceType := apiv1.ServiceType(serviceTypeStr)
 	if err != nil {
 		return err
 	}
 	// if not set in workspace, use Deployment as default type
 	if platformServiceType == "" {
-		platformServiceType = internalv1.Deployment
+		platformServiceType = apiv1.Deployment
 	}
-	if platformServiceType != internalv1.Deployment && platformServiceType != internalv1.Collaset {
+	if platformServiceType != apiv1.Deployment && platformServiceType != apiv1.Collaset {
 		return fmt.Errorf("unsupported Service type %s", platformServiceType)
 	}
 	if service.Type == "" {

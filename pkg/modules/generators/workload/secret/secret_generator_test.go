@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	// ensure we can get correct secret store provider
 	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 )
@@ -16,14 +15,14 @@ var testProject = "helloworld"
 
 func initGeneratorRequest(
 	project string,
-	secrets map[string]internalv1.Secret,
+	secrets map[string]v1.Secret,
 	secretStoreSpec *v1.SecretStoreSpec,
 ) *GeneratorRequest {
 	return &GeneratorRequest{
 		Project: project,
-		Workload: &internalv1.Workload{
-			Service: &internalv1.Service{
-				Base: internalv1.Base{
+		Workload: &v1.Workload{
+			Service: &v1.Service{
+				Base: v1.Base{
 					Secrets: secrets,
 				},
 			},
@@ -106,7 +105,7 @@ func TestGenerateSecret(t *testing.T) {
 	// run all the tests
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			secrets := map[string]internalv1.Secret{
+			secrets := map[string]v1.Secret{
 				name: {
 					Type: test.secretType,
 					Data: test.secretData,
@@ -170,7 +169,7 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 	// run all the tests
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			secrets := map[string]internalv1.Secret{
+			secrets := map[string]v1.Secret{
 				name: {
 					Type: test.secretType,
 					Data: test.secretData,

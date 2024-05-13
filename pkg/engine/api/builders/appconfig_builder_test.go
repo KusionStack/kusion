@@ -24,7 +24,6 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -32,7 +31,7 @@ func TestBuild(t *testing.T) {
 	p, s := buildMockProjectAndStack()
 	appName, app := buildMockApp()
 	acg := &AppsConfigBuilder{
-		Apps: map[string]internalv1.AppConfiguration{
+		Apps: map[string]v1.AppConfiguration{
 			appName: *app,
 		},
 		Workspace: buildMockWorkspace(),
@@ -53,16 +52,16 @@ func TestBuild(t *testing.T) {
 	assert.NotNil(t, intent)
 }
 
-func buildMockApp() (string, *internalv1.AppConfiguration) {
-	return "app1", &internalv1.AppConfiguration{
-		Workload: &internalv1.Workload{
-			Header: internalv1.Header{
+func buildMockApp() (string, *v1.AppConfiguration) {
+	return "app1", &v1.AppConfiguration{
+		Workload: &v1.Workload{
+			Header: v1.Header{
 				Type: "Service",
 			},
-			Service: &internalv1.Service{
-				Base: internalv1.Base{},
+			Service: &v1.Service{
+				Base: v1.Base{},
 				Type: "Deployment",
-				Ports: []internalv1.Port{
+				Ports: []v1.Port{
 					{
 						Port:     80,
 						Protocol: "TCP",

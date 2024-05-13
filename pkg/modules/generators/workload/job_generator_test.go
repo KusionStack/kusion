@@ -7,7 +7,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -15,7 +14,7 @@ func TestNewJobGenerator(t *testing.T) {
 	expectedProject := "test"
 	expectedStack := "dev"
 	expectedAppName := "test"
-	expectedJob := &internalv1.Job{}
+	expectedJob := &v1.Job{}
 	expectedJobConfig := v1.GenericConfig{
 		"labels": v1.GenericConfig{
 			"Workload-type": "Job",
@@ -29,11 +28,11 @@ func TestNewJobGenerator(t *testing.T) {
 		Stack:     expectedStack,
 		App:       expectedAppName,
 		Namespace: expectedAppName,
-		Workload: &internalv1.Workload{
+		Workload: &v1.Workload{
 			Job: expectedJob,
 		},
 		PlatformConfigs: map[string]v1.GenericConfig{
-			internalv1.ModuleJob: expectedJobConfig,
+			v1.ModuleJob: expectedJobConfig,
 		},
 	})
 
@@ -50,7 +49,7 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 	expectedProject := "test"
 	expectedStack := "dev"
 	expectedAppName := "test"
-	expectedJob := &internalv1.Job{}
+	expectedJob := &v1.Job{}
 	expectedJobConfig := v1.GenericConfig{
 		"labels": v1.GenericConfig{
 			"workload-type": "Job",
@@ -64,11 +63,11 @@ func TestNewJobGeneratorFunc(t *testing.T) {
 		Stack:     expectedStack,
 		App:       expectedAppName,
 		Namespace: expectedAppName,
-		Workload: &internalv1.Workload{
+		Workload: &v1.Workload{
 			Job: expectedJob,
 		},
 		PlatformConfigs: map[string]v1.GenericConfig{
-			internalv1.ModuleJob: expectedJobConfig,
+			v1.ModuleJob: expectedJobConfig,
 		},
 	})
 	actualGenerator, err := generatorFunc()
@@ -88,7 +87,7 @@ func TestJobGenerator_Generate(t *testing.T) {
 		expectedProject   string
 		expectedStack     string
 		expectedAppName   string
-		expectedJob       *internalv1.Job
+		expectedJob       *v1.Job
 		expectedJobConfig v1.GenericConfig
 	}{
 		{
@@ -96,7 +95,7 @@ func TestJobGenerator_Generate(t *testing.T) {
 			expectedProject: "test",
 			expectedStack:   "dev",
 			expectedAppName: "test",
-			expectedJob:     &internalv1.Job{},
+			expectedJob:     &v1.Job{},
 			expectedJobConfig: v1.GenericConfig{
 				"labels": v1.GenericConfig{
 					"workload-type": "Job",
@@ -115,11 +114,11 @@ func TestJobGenerator_Generate(t *testing.T) {
 				Stack:     tc.expectedStack,
 				App:       tc.expectedAppName,
 				Namespace: tc.expectedAppName,
-				Workload: &internalv1.Workload{
+				Workload: &v1.Workload{
 					Job: tc.expectedJob,
 				},
 				PlatformConfigs: map[string]v1.GenericConfig{
-					internalv1.ModuleJob: tc.expectedJobConfig,
+					v1.ModuleJob: tc.expectedJobConfig,
 				},
 			})
 			spec := &v1.Spec{}

@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 )
 
 func Test_workloadServiceGenerator_Generate(t *testing.T) {
@@ -166,7 +165,7 @@ status: {}
 		project       string
 		stack         string
 		appName       string
-		service       *internalv1.Service
+		service       *v1.Service
 		serviceConfig v1.GenericConfig
 	}
 	type args struct {
@@ -186,12 +185,12 @@ status: {}
 				project: "default",
 				stack:   "dev",
 				appName: "foo",
-				service: &internalv1.Service{
-					Base: internalv1.Base{
-						Containers: map[string]internalv1.Container{
+				service: &v1.Service{
+					Base: v1.Base{
+						Containers: map[string]v1.Container{
 							"nginx": {
 								Image: "nginx:v1",
-								Files: map[string]internalv1.FileSpec{
+								Files: map[string]v1.FileSpec{
 									"/tmp/example.txt": {
 										Content: "some file contents",
 										Mode:    "0777",
@@ -201,7 +200,7 @@ status: {}
 						},
 						Replicas: r2,
 					},
-					Ports: []internalv1.Port{
+					Ports: []v1.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
@@ -230,12 +229,12 @@ status: {}
 				project: "default",
 				stack:   "dev",
 				appName: "foo",
-				service: &internalv1.Service{
-					Base: internalv1.Base{
-						Containers: map[string]internalv1.Container{
+				service: &v1.Service{
+					Base: v1.Base{
+						Containers: map[string]v1.Container{
 							"nginx": {
 								Image: "nginx:v1",
-								Files: map[string]internalv1.FileSpec{
+								Files: map[string]v1.FileSpec{
 									"/tmp/example.txt": {
 										Content: "some file contents",
 										Mode:    "0777",
@@ -244,7 +243,7 @@ status: {}
 							},
 						},
 					},
-					Ports: []internalv1.Port{
+					Ports: []v1.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
@@ -292,16 +291,16 @@ func TestCompleteServiceInput(t *testing.T) {
 
 	testcases := []struct {
 		name             string
-		service          *internalv1.Service
+		service          *v1.Service
 		config           v1.GenericConfig
 		success          bool
-		completedService *internalv1.Service
+		completedService *v1.Service
 	}{
 		{
 			name: "use type in workspace config",
-			service: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			service: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -319,9 +318,9 @@ func TestCompleteServiceInput(t *testing.T) {
 				"type": "CollaSet",
 			},
 			success: true,
-			completedService: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			completedService: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -339,9 +338,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "use default type",
-			service: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			service: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -357,9 +356,9 @@ func TestCompleteServiceInput(t *testing.T) {
 			},
 			config:  nil,
 			success: true,
-			completedService: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			completedService: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -377,9 +376,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "invalid field type",
-			service: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			service: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},
@@ -401,9 +400,9 @@ func TestCompleteServiceInput(t *testing.T) {
 		},
 		{
 			name: "unsupported type",
-			service: &internalv1.Service{
-				Base: internalv1.Base{
-					Containers: map[string]internalv1.Container{
+			service: &v1.Service{
+				Base: v1.Base{
+					Containers: map[string]v1.Container{
 						"nginx": {
 							Image: "nginx:v1",
 						},

@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -16,7 +15,7 @@ type jobGenerator struct {
 	project   string
 	stack     string
 	appName   string
-	job       *internalv1.Job
+	job       *v1.Job
 	jobConfig v1.GenericConfig
 	namespace string
 }
@@ -27,7 +26,7 @@ func NewJobGenerator(generator *Generator) (modules.Generator, error) {
 		stack:     generator.Stack,
 		appName:   generator.App,
 		job:       generator.Workload.Job,
-		jobConfig: generator.PlatformConfigs[internalv1.ModuleJob],
+		jobConfig: generator.PlatformConfigs[v1.ModuleJob],
 		namespace: generator.Namespace,
 	}, nil
 }

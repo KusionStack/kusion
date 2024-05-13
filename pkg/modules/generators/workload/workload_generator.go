@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 	"kusionstack.io/kusion/pkg/util/net"
@@ -32,7 +31,7 @@ type Generator struct {
 	// Namespace represents the K8s Namespace
 	Namespace string
 	// Workload represents the Workload configuration
-	Workload *internalv1.Workload
+	Workload *v1.Workload
 	// PlatformConfigs represents the module platform configurations
 	PlatformConfigs map[string]v1.GenericConfig
 	// SecretStoreSpec contains configuration to describe target secret store.
@@ -66,14 +65,14 @@ func (g *Generator) Generate(spec *v1.Spec) error {
 		var gfs []modules.NewGeneratorFunc
 
 		switch g.Workload.Header.Type {
-		case internalv1.TypeService:
+		case v1.TypeService:
 			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
 				Project:         g.Project,
 				Namespace:       g.Namespace,
 				Workload:        g.Workload,
 				SecretStoreSpec: g.SecretStoreSpec,
 			}))
-		case internalv1.TypeJob:
+		case v1.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
 				Project:         g.Project,
 				Namespace:       g.Namespace,
@@ -91,7 +90,7 @@ func (g *Generator) Generate(spec *v1.Spec) error {
 }
 
 func toOrderedContainers(
-	appContainers map[string]internalv1.Container,
+	appContainers map[string]v1.Container,
 	uniqueAppName string,
 ) ([]corev1.Container, []corev1.Volume, []corev1.ConfigMap, error) {
 	// Create a slice of containers based on the App's containers.
@@ -102,7 +101,7 @@ func toOrderedContainers(
 	var volumeMounts []corev1.VolumeMount
 	var configMaps []corev1.ConfigMap
 
-	if err := modules.ForeachOrdered(appContainers, func(containerName string, c internalv1.Container) error {
+	if err := modules.ForeachOrdered(appContainers, func(containerName string, c v1.Container) error {
 		// Create a slice of env vars based on the container's env vars.
 		var envs []corev1.EnvVar
 		for _, m := range c.Env {
@@ -153,7 +152,7 @@ func toOrderedContainers(
 }
 
 // updateContainer updates corev1.Container with passed parameters.
-func updateContainer(in *internalv1.Container, out *corev1.Container) error {
+func updateContainer(in *v1.Container, out *corev1.Container) error {
 	if in.ReadinessProbe != nil {
 		readinessProbe, err := convertKusionProbeToV1Probe(in.ReadinessProbe)
 		if err != nil {
@@ -244,7 +243,7 @@ func populateResourceLists(name corev1.ResourceName, spec string) (corev1.Resour
 }
 
 // convertKusionProbeToV1Probe converts Kusion Probe to Kubernetes Probe types.
-func convertKusionProbeToV1Probe(p *internalv1.Probe) (*corev1.Probe, error) {
+func convertKusionProbeToV1Probe(p *v1.Probe) (*corev1.Probe, error) {
 	result := &corev1.Probe{
 		InitialDelaySeconds: p.InitialDelaySeconds,
 		TimeoutSeconds:      p.TimeoutSeconds,
@@ -273,7 +272,7 @@ func convertKusionProbeToV1Probe(p *internalv1.Probe) (*corev1.Probe, error) {
 }
 
 // convertKusionLifecycleToV1Lifecycle converts Kusion Lifecycle to Kubernetes Lifecycle types.
-func convertKusionLifecycleToV1Lifecycle(l *internalv1.Lifecycle) (*corev1.Lifecycle, error) {
+func convertKusionLifecycleToV1Lifecycle(l *v1.Lifecycle) (*corev1.Lifecycle, error) {
 	result := &corev1.Lifecycle{}
 	if l.PreStop != nil {
 		preStop, err := lifecycleHandler(l.PreStop)
@@ -292,7 +291,7 @@ func convertKusionLifecycleToV1Lifecycle(l *internalv1.Lifecycle) (*corev1.Lifec
 	return result, nil
 }
 
-func lifecycleHandler(in *internalv1.LifecycleHandler) (*corev1.LifecycleHandler, error) {
+func lifecycleHandler(in *v1.LifecycleHandler) (*corev1.LifecycleHandler, error) {
 	result := &corev1.LifecycleHandler{}
 	switch in.Type {
 	case "Http":
@@ -349,14 +348,14 @@ func tcpSocketAction(urlstr string) (*corev1.TCPSocketAction, error) {
 
 // handleFileCreation handles the creation of the files declared in container.Files
 // and returns the generated ConfigMap, Volume and VolumeMount.
-func handleFileCreation(c internalv1.Container, uniqueAppName, containerName string) (
+func handleFileCreation(c v1.Container, uniqueAppName, containerName string) (
 	volumes []corev1.Volume,
 	volumeMounts []corev1.VolumeMount,
 	configMaps []corev1.ConfigMap,
 	err error,
 ) {
 	var idx int
-	err = modules.ForeachOrdered(c.Files, func(k string, v internalv1.FileSpec) error {
+	err = modules.ForeachOrdered(c.Files, func(k string, v v1.FileSpec) error {
 		// The declared file path needs to include the file name.
 		if filepath.Base(k) == "." || filepath.Base(k) == "/" {
 			return fmt.Errorf("the declared file path needs to include the file name")
@@ -435,7 +434,7 @@ func handleFileCreation(c internalv1.Container, uniqueAppName, containerName str
 
 // handleDirCreation handles the creation of folder declared in container.Dirs and returns
 // the generated Volume and VolumeMount.
-func handleDirCreation(c internalv1.Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
+func handleDirCreation(c v1.Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
 	err = modules.ForeachOrdered(c.Dirs, func(mountPath string, v string) error {
 		sec, ok, parseErr := parseSecretReference(v)
 		if parseErr != nil || !ok {
@@ -461,8 +460,8 @@ func handleDirCreation(c internalv1.Container) (volumes []corev1.Volume, volumeM
 }
 
 // completeBaseWorkload uses config from workspace to complete the Workload base config.
-func completeBaseWorkload(base *internalv1.Base, config v1.GenericConfig) error {
-	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, internalv1.FieldReplicas)
+func completeBaseWorkload(base *v1.Base, config v1.GenericConfig) error {
+	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, v1.FieldReplicas)
 	if err != nil {
 		return err
 	}
@@ -471,7 +470,7 @@ func completeBaseWorkload(base *internalv1.Base, config v1.GenericConfig) error 
 	if base.Replicas == nil {
 		base.Replicas = replicas
 	}
-	labels, err := workspace.GetStringMapFromGenericConfig(config, internalv1.FieldLabels)
+	labels, err := workspace.GetStringMapFromGenericConfig(config, v1.FieldLabels)
 	if err != nil {
 		return err
 	}
@@ -480,7 +479,7 @@ func completeBaseWorkload(base *internalv1.Base, config v1.GenericConfig) error 
 			return err
 		}
 	}
-	annotations, err := workspace.GetStringMapFromGenericConfig(config, internalv1.FieldAnnotations)
+	annotations, err := workspace.GetStringMapFromGenericConfig(config, v1.FieldAnnotations)
 	if err != nil {
 		return err
 	}
