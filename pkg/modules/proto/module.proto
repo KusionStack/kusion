@@ -12,9 +12,11 @@ message GeneratorRequest {
   // Workload represents the v1.Workload defined in the AppConfiguration
   bytes workload = 4;
   // DevModuleConfig is the developer's inputs of this module
-  bytes dev_module_config = 5;
+  bytes dev_config = 5;
   // PlatformModuleConfig is the platform engineer's inputs of this module
-  bytes platform_module_config = 6;
+  bytes platform_config = 6;
+ // context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
+  bytes context = 7;
 }
 
 // GeneratorResponse represents the generate result of the generator.
