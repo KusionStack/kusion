@@ -18,11 +18,6 @@ modules:
         configs:
             default:
                 type: aws
-runtimes:
+context:
     kubernetes:
-        kubeConfig: /etc/kubeconfig.yaml
-    terraform:
-        aws:
-            source: hashicorp/aws
-            version: 1.0.4
-            region: us-east-1
+        config: /etc/kubeconfig.yaml

@@ -10,9 +10,13 @@ import (
 
 func mockValidWorkspace(name string) *v1.Workspace {
 	return &v1.Workspace{
-		Name:     name,
-		Modules:  mockValidModuleConfigs(),
-		Runtimes: mockValidRuntimeConfigs(),
+		Name:    name,
+		Modules: mockValidModuleConfigs(),
+		Context: map[string]any{
+			"Kubernetes": map[string]string{
+				"Config": "/etc/kubeconfig.yaml",
+			},
+		},
 	}
 }
 
@@ -183,31 +187,6 @@ func mockInvalidModuleConfigs() map[string]v1.ModuleConfig {
 	}
 }
 
-func mockValidRuntimeConfigs() *v1.RuntimeConfigs {
-	return &v1.RuntimeConfigs{
-		Kubernetes: mockValidKubernetesConfig(),
-		Terraform:  mockValidTerraformConfig(),
-	}
-}
-
-func mockValidKubernetesConfig() *v1.KubernetesConfig {
-	return &v1.KubernetesConfig{
-		KubeConfig: "/etc/kubeconfig.yaml",
-	}
-}
-
-func mockValidTerraformConfig() v1.TerraformConfig {
-	return v1.TerraformConfig{
-		"aws": {
-			Source:  "hashicorp/aws",
-			Version: "1.0.4",
-			GenericConfig: v1.GenericConfig{
-				"region": "us-east-1",
-			},
-		},
-	}
-}
-
 func TestValidateWorkspace(t *testing.T) {
 	testcases := []struct {
 		name      string
@@ -296,146 +275,6 @@ func TestValidateModuleConfig(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := ValidateModuleConfig(&tc.moduleConfig)
-			assert.Equal(t, tc.success, err == nil)
-		})
-	}
-}
-
-func TestValidateRuntimeConfigs(t *testing.T) {
-	testcases := []struct {
-		name           string
-		success        bool
-		runtimeConfigs *v1.RuntimeConfigs
-	}{
-		{
-			name:           "valid runtime configs",
-			success:        true,
-			runtimeConfigs: mockValidRuntimeConfigs(),
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateRuntimeConfigs(tc.runtimeConfigs)
-			assert.Equal(t, tc.success, err == nil)
-		})
-	}
-}
-
-func TestValidateKubernetesConfig(t *testing.T) {
-	testcases := []struct {
-		name             string
-		success          bool
-		kubernetesConfig *v1.KubernetesConfig
-	}{
-		{
-			name:             "valid kubernetes config",
-			success:          true,
-			kubernetesConfig: mockValidKubernetesConfig(),
-		},
-		{
-			name:             "invalid kubernetes config empty kubeconfig",
-			success:          false,
-			kubernetesConfig: &v1.KubernetesConfig{},
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateKubernetesConfig(tc.kubernetesConfig)
-			assert.Equal(t, tc.success, err == nil)
-		})
-	}
-}
-
-func TestValidateTerraformConfig(t *testing.T) {
-	testcases := []struct {
-		name            string
-		success         bool
-		terraformConfig v1.TerraformConfig
-	}{
-		{
-			name:            "valid terraform config",
-			success:         true,
-			terraformConfig: mockValidTerraformConfig(),
-		},
-		{
-			name:    "invalid terraform config empty provider name",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"": {
-					Source:  "hashicorp/aws",
-					Version: "1.0.4",
-					GenericConfig: v1.GenericConfig{
-						"region": "us-east-1",
-					},
-				},
-			},
-		},
-		{
-			name:    "invalid terraform config empty provider config",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"aws": nil,
-			},
-		},
-		{
-			name:    "invalid terraform config empty provider source",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"aws": {
-					Source:  "",
-					Version: "1.0.4",
-					GenericConfig: v1.GenericConfig{
-						"region": "us-east-1",
-					},
-				},
-			},
-		},
-		{
-			name:    "invalid terraform config empty provider version",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"aws": {
-					Source:  "hashicorp/aws",
-					Version: "",
-					GenericConfig: v1.GenericConfig{
-						"region": "us-east-1",
-					},
-				},
-			},
-		},
-		{
-			name:    "invalid terraform config empty provider config key",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"aws": {
-					Source:  "hashicorp/aws",
-					Version: "1.0.4",
-					GenericConfig: v1.GenericConfig{
-						"": "us-east-1",
-					},
-				},
-			},
-		},
-		{
-			name:    "invalid terraform config empty provider config value",
-			success: false,
-			terraformConfig: v1.TerraformConfig{
-				"aws": {
-					Source:  "hashicorp/aws",
-					Version: "1.0.4",
-					GenericConfig: v1.GenericConfig{
-						"region": nil,
-					},
-				},
-			},
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateTerraformConfig(tc.terraformConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

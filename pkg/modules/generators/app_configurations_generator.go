@@ -147,8 +147,6 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 		return err
 	}
 
-	// Add kubeConfig from workspace if exist
-	modules.AddKubeConfigIf(spec, g.ws)
 	return nil
 }
 
@@ -316,7 +314,6 @@ func (g *appConfigurationGenerator) callModules(
 		}
 
 		// parse module result
-		// todo extract to a method
 		for _, res := range response.Resources {
 			temp := &v1.Resource{}
 			err = yaml.Unmarshal(res, temp)
@@ -327,7 +324,6 @@ func (g *appConfigurationGenerator) callModules(
 		}
 
 		// parse patcher
-		// todo extract to a method
 		for _, patcher := range response.Patchers {
 			temp := &internalv1.Patcher{}
 			err = yaml.Unmarshal(patcher, temp)

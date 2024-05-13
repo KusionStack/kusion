@@ -88,11 +88,11 @@ type Workspace struct {
 	// Modules are the configs of a set of modules.
 	Modules ModuleConfigs `yaml:"modules,omitempty" json:"modules,omitempty"`
 
-	// Runtimes are the configs of a set of runtimes.
-	Runtimes *RuntimeConfigs `yaml:"runtimes,omitempty" json:"runtimes,omitempty"`
-
 	// SecretStore represents a secure external location for storing secrets.
 	SecretStore *SecretStoreSpec `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
+
+	// Context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
+	Context GenericConfig `yaml:"context,omitempty" json:"context,omitempty"`
 }
 
 // ModuleConfigs is a set of multiple ModuleConfig, whose key is the module name.
@@ -114,17 +114,19 @@ type GenericConfig map[string]any
 //
 // Take the ModuleConfig of "mysql" for an example, which is shown as below:
 //
-//	config := ModuleConfig {
-//		"path": "ghcr.io/kusionstack/mysql"
+//	config := ModuleConfig{
+//		"path":    "ghcr.io/kusionstack/mysql"
 //		"version": "0.1.0"
-//		"default": {
-//			"type":         "aws",
-//			"version":      "5.7",
-//			"instanceType": "db.t3.micro",
-//		},
-//		"smallClass": {
-//		 	"instanceType":    "db.t3.small",
-//		 	"projectSelector": []string{"foo", "bar"},
+//		"configs": {
+//			"default": {
+//				"type":         "aws",
+//				"version":      "5.7",
+//				"instanceType": "db.t3.micro",
+//			},
+//			"smallClass": {
+//				"instanceType":    "db.t3.small",
+//				"projectSelector": []string{"foo", "bar"},
+//			},
 //		},
 //	}
 type ModuleConfig struct {
@@ -150,43 +152,8 @@ type ModulePatcherConfigs map[string]*ModulePatcherConfig
 type ModulePatcherConfig struct {
 	// GenericConfig contains the module configs.
 	GenericConfig `yaml:",inline" json:",inline"`
-
 	// ProjectSelector contains the selected projects.
 	ProjectSelector []string `yaml:"projectSelector" json:"projectSelector"`
-}
-
-// RuntimeConfigs contains a set of runtime config.
-type RuntimeConfigs struct {
-	// Kubernetes contains the config to access a kubernetes cluster.
-	Kubernetes *KubernetesConfig `yaml:"kubernetes,omitempty" json:"kubernetes,omitempty"`
-
-	// Terraform contains the config of multiple terraform providers.
-	Terraform TerraformConfig `yaml:"terraform,omitempty" json:"terraform,omitempty"`
-}
-
-// KubernetesConfig contains config to access a kubernetes cluster.
-type KubernetesConfig struct {
-	// KubeConfig is the path of the kubeconfig file.
-	KubeConfig string `yaml:"kubeConfig" json:"kubeConfig"`
-}
-
-// TerraformConfig contains the config of multiple terraform provider config, whose key is
-// the provider name.
-type TerraformConfig map[string]*ProviderConfig
-
-// ProviderConfig contains the full configurations of a specified provider. It is the combination
-// of the specified provider's config in blocks "terraform/required_providers" and "providers" in
-// terraform hcl file, where the former is described by fields Source and Version, and the latter
-// is described by GenericConfig cause different provider has different config.
-type ProviderConfig struct {
-	// Source of the provider.
-	Source string `yaml:"source" json:"source"`
-
-	// Version of the provider.
-	Version string `yaml:"version" json:"version"`
-
-	// GenericConfig is used to describe the config of a specified terraform provider.
-	GenericConfig `yaml:",inline,omitempty" json:",inline,omitempty"`
 }
 
 type ExtensionKind string
@@ -358,7 +325,7 @@ type Resource struct {
 	// providerNamespace:providerName:resourceType:resourceName for Terraform resources
 	ID string `yaml:"id" json:"id"`
 
-	// Type represents all Runtimes we supported like Kubernetes and Terraform
+	// Type represents all Context we supported like Kubernetes and Terraform
 	Type Type `yaml:"type" json:"type"`
 
 	// Attributes represents all specified attributes of this resource

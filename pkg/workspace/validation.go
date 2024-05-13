@@ -23,23 +23,14 @@ var (
 	ErrEmptyModuleConfigProjectName         = errors.New("empty project name at projectSelector in module config patcher block")
 	ErrRepeatedModuleConfigSelectedProjects = errors.New("project should not repeat in one patcher block's projectSelector")
 	ErrMultipleModuleConfigSelectedProjects = errors.New("a project cannot assign in more than one patcher block's projectSelector")
-
-	ErrEmptyKubeConfig                   = errors.New("empty kubeconfig")
-	ErrEmptyTerraformProviderName        = errors.New("empty terraform provider name")
-	ErrEmptyTerraformProviderConfig      = errors.New("empty terraform provider config")
-	ErrEmptyTerraformProviderSource      = errors.New("empty provider source")
-	ErrEmptyTerraformProviderVersion     = errors.New("empty provider version")
-	ErrEmptyTerraformProviderConfigKey   = errors.New("empty provider config key")
-	ErrEmptyTerraformProviderConfigValue = errors.New("empty provider config value")
-
-	ErrMissingProvider           = errors.New("invalid secret store spec, missing provider config")
-	ErrMultiSecretStoreProviders = errors.New("may not specify more than 1 secret store provider")
-	ErrEmptyAWSRegion            = errors.New("region must be provided when using AWS Secrets Manager")
-	ErrEmptyVaultServer          = errors.New("server address must be provided when using Hashicorp Vault")
-	ErrEmptyVaultURL             = errors.New("vault url must be provided when using Azure KeyVault")
-	ErrEmptyTenantID             = errors.New("azure tenant id must be provided when using Azure KeyVault")
-	ErrEmptyAlicloudRegion       = errors.New("region must be provided when using Alicloud Secrets Manager")
-	ErrMissingProviderType       = errors.New("must specify a provider type")
+	ErrMissingProvider                      = errors.New("invalid secret store spec, missing provider config")
+	ErrMultiSecretStoreProviders            = errors.New("may not specify more than 1 secret store provider")
+	ErrEmptyAWSRegion                       = errors.New("region must be provided when using AWS Secrets Manager")
+	ErrEmptyVaultServer                     = errors.New("server address must be provided when using Hashicorp Vault")
+	ErrEmptyVaultURL                        = errors.New("vault url must be provided when using Azure KeyVault")
+	ErrEmptyTenantID                        = errors.New("azure tenant id must be provided when using Azure KeyVault")
+	ErrEmptyAlicloudRegion                  = errors.New("region must be provided when using Alicloud Secrets Manager")
+	ErrMissingProviderType                  = errors.New("must specify a provider type")
 )
 
 // ValidateWorkspace is used to validate the workspace get or set in the storage.
@@ -49,11 +40,6 @@ func ValidateWorkspace(ws *v1.Workspace) error {
 	}
 	if ws.Modules != nil {
 		if err := ValidateModuleConfigs(ws.Modules); err != nil {
-			return err
-		}
-	}
-	if ws.Runtimes != nil {
-		if err := ValidateRuntimeConfigs(ws.Runtimes); err != nil {
 			return err
 		}
 	}
@@ -148,64 +134,6 @@ func ValidateModulePatcherConfigs(config v1.ModulePatcherConfigs) error {
 		}
 	}
 
-	return nil
-}
-
-// ValidateRuntimeConfigs is used to validate the runtimeConfigs is valid or not.
-func ValidateRuntimeConfigs(configs *v1.RuntimeConfigs) error {
-	if configs.Kubernetes != nil {
-		if err := ValidateKubernetesConfig(configs.Kubernetes); err != nil {
-			return err
-		}
-	}
-	if configs.Terraform != nil {
-		if err := ValidateTerraformConfig(configs.Terraform); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// ValidateKubernetesConfig is used to validate the kubernetesConfig is valid or not.
-func ValidateKubernetesConfig(config *v1.KubernetesConfig) error {
-	if config.KubeConfig == "" {
-		return ErrEmptyKubeConfig
-	}
-	return nil
-}
-
-// ValidateTerraformConfig is used to validate the terraformConfig is valid or not.
-func ValidateTerraformConfig(config v1.TerraformConfig) error {
-	for name, cfg := range config {
-		if name == "" {
-			return ErrEmptyTerraformProviderName
-		}
-		if cfg == nil {
-			return fmt.Errorf("%w of provider %s", ErrEmptyTerraformProviderConfig, name)
-		}
-		if err := ValidateProviderConfig(cfg); err != nil {
-			return fmt.Errorf("invalid terraform provider %s: %w", name, err)
-		}
-	}
-	return nil
-}
-
-// ValidateProviderConfig is used to validate the providerConfig is valid or not.
-func ValidateProviderConfig(config *v1.ProviderConfig) error {
-	if config.Source == "" {
-		return ErrEmptyTerraformProviderSource
-	}
-	if config.Version == "" {
-		return ErrEmptyTerraformProviderVersion
-	}
-	for k, v := range config.GenericConfig {
-		if k == "" {
-			return ErrEmptyTerraformProviderConfigKey
-		}
-		if v == nil {
-			return fmt.Errorf("%w of field %s", ErrEmptyTerraformProviderConfigValue, k)
-		}
-	}
 	return nil
 }
 

@@ -76,9 +76,9 @@ func buildMockApp() (string, *internalv1.AppConfiguration) {
 func buildMockWorkspace() *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
-		Runtimes: &v1.RuntimeConfigs{
-			Kubernetes: &v1.KubernetesConfig{
-				KubeConfig: "/etc/kubeconfig.yaml",
+		Context: map[string]any{
+			"Kubernetes": map[string]string{
+				"Config": "/etc/kubeconfig.yaml",
 			},
 		},
 	}
