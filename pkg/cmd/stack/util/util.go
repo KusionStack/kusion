@@ -24,8 +24,8 @@ kam = { git = "https://github.com/KusionStack/kam.git", tag = "0.1.0" }`
 	MainKCLFile         = "main.k"
 	MainKCLFileTemplate = `# The configuration codes in perspective of developers.
 import kam.v1.app_configuration as ac
-import kam.v1.workload as wl
-import kam.v1.workload.container as c
+import service as wl
+import service.container as c
 
 # Please replace the ${APPLICATION_NAME} with the name of your application, and complete the 
 # 'AppConfiguration' instance with your own workload and accessories.

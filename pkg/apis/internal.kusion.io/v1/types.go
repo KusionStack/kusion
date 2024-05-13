@@ -6,11 +6,10 @@ import (
 )
 
 const (
-	BuiltinModulePrefix = "kam."
-	ProbePrefix         = "v1.workload.container.probe."
-	TypeHTTP            = BuiltinModulePrefix + ProbePrefix + "Http"
-	TypeExec            = BuiltinModulePrefix + ProbePrefix + "Exec"
-	TypeTCP             = BuiltinModulePrefix + ProbePrefix + "Tcp"
+	ProbePrefix = "service.container.probe."
+	TypeHTTP    = ProbePrefix + "Http"
+	TypeExec    = ProbePrefix + "Exec"
+	TypeTCP     = ProbePrefix + "Tcp"
 )
 
 // Container describes how the App's tasks are expected to be run.
@@ -217,8 +216,8 @@ type Job struct {
 type Type string
 
 const (
-	TypeJob     = "kam.v1.workload.Job"
-	TypeService = "kam.v1.workload.Service"
+	TypeJob     = "job.Job"
+	TypeService = "service.Service"
 )
 
 type Header struct {
