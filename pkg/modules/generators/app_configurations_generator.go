@@ -127,7 +127,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	wl := spec.Resources[1]
 
 	// call modules to generate customized resources
-	resources, patchers, err := g.callModules(projectModuleConfigs, g.dependencies)
+	resources, patchers, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
@@ -253,11 +253,10 @@ func PatchWorkload(workload *v1.Resource, patcher *internalv1.Patcher) error {
 type moduleConfig struct {
 	devConfig      internalv1.Accessory
 	platformConfig v1.GenericConfig
+	ctx            v1.GenericConfig
 }
 
-func (g *appConfigurationGenerator) callModules(
-	projectModuleConfigs map[string]v1.GenericConfig, dependencies *pkg.Dependencies,
-) (resources []v1.Resource, patchers []internalv1.Patcher, err error) {
+func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []internalv1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		for _, plugin := range pluginMap {
@@ -269,10 +268,10 @@ func (g *appConfigurationGenerator) callModules(
 	}()
 
 	// build module config index
-	if dependencies == nil {
+	if g.dependencies == nil {
 		return nil, nil, errors.New("dependencies should not be nil")
 	}
-	indexModuleConfig, err := buildModuleConfigIndex(g.app.Accessories, projectModuleConfigs, dependencies)
+	indexModuleConfig, err := g.buildModuleConfigIndex(projectModuleConfigs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -337,30 +336,28 @@ func (g *appConfigurationGenerator) callModules(
 	return resources, patchers, nil
 }
 
-func buildModuleConfigIndex(
-	accessories map[string]internalv1.Accessory,
-	projectModuleConfigs map[string]v1.GenericConfig,
-	dependencies *pkg.Dependencies,
-) (map[string]moduleConfig, error) {
+func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs map[string]v1.GenericConfig) (map[string]moduleConfig, error) {
 	indexModuleConfig := map[string]moduleConfig{}
-	for accName, accessory := range accessories {
+	for accName, accessory := range g.app.Accessories {
 		// parse accessory module key
-		key, err := parseModuleKey(accessory, dependencies)
+		key, err := parseModuleKey(accessory, g.dependencies)
 		if err != nil {
 			return nil, err
 		}
 		log.Info("build module index of accessory:%s module key: %s", accName, key)
 		indexModuleConfig[key] = moduleConfig{
 			devConfig:      accessory,
-			platformConfig: projectModuleConfigs[key],
+			platformConfig: platformModuleConfigs[key],
+			ctx:            g.ws.Context,
 		}
 	}
 	// append module configs only exist in platform configs
-	for key, platformConfig := range projectModuleConfigs {
+	for key, platformConfig := range platformModuleConfigs {
 		if _, ok := indexModuleConfig[key]; !ok {
 			indexModuleConfig[key] = moduleConfig{
 				devConfig:      nil,
 				platformConfig: platformConfig,
+				ctx:            g.ws.Context,
 			}
 		}
 	}
@@ -390,7 +387,7 @@ func parseModuleKey(accessory internalv1.Accessory, dependencies *pkg.Dependenci
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {
-	var workloadConfig, devConfig, platformConfig []byte
+	var workloadConfig, devConfig, platformConfig, ctx []byte
 	var err error
 	// Attention: we MUST yaml.v2 to serialize the object,
 	// because we have introduced MapSlice in the Workload which is supported only in the yaml.v2
@@ -409,14 +406,20 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 			return nil, fmt.Errorf("marshal platform module config failed. %w", err)
 		}
 	}
+	if config.ctx != nil {
+		if ctx, err = yaml.Marshal(config.ctx); err != nil {
+			return nil, fmt.Errorf("marshal context config failed. %w", err)
+		}
+	}
 
 	protoRequest := &proto.GeneratorRequest{
-		Project:              g.project,
-		Stack:                g.stack,
-		App:                  g.appName,
-		Workload:             workloadConfig,
-		DevModuleConfig:      devConfig,
-		PlatformModuleConfig: platformConfig,
+		Project:        g.project,
+		Stack:          g.stack,
+		App:            g.appName,
+		Workload:       workloadConfig,
+		DevConfig:      devConfig,
+		PlatformConfig: platformConfig,
+		Context:        ctx,
 	}
 	return protoRequest, nil
 }

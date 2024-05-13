@@ -383,7 +383,7 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 			killMock.UnPatch()
 		}()
 
-		resources, patchers, err := g.callModules(projectModuleConfigs, dependencies)
+		resources, patchers, err := g.callModules(projectModuleConfigs)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resources)
 		assert.Empty(t, patchers)
@@ -398,7 +398,7 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 			pluginMock.UnPatch()
 		}()
 
-		_, _, err := g.callModules(projectModuleConfigs, dependencies)
+		_, _, err := g.callModules(projectModuleConfigs)
 		assert.Error(t, err)
 	})
 
@@ -412,7 +412,7 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 			pluginMock.UnPatch()
 			killMock.UnPatch()
 		}()
-		_, _, err := g.callModules(projectModuleConfigs, dependencies)
+		_, _, err := g.callModules(projectModuleConfigs)
 		assert.Error(t, err)
 	})
 }
