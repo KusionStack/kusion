@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
@@ -95,6 +96,36 @@ func TestOssStorage_WorkspaceStorage(t *testing.T) {
 			mockey.PatchConvey("mock new oss workspace storage", t, func() {
 				mockey.Mock(workspacestorages.NewOssStorage).Return(&workspacestorages.OssStorage{}, nil).Build()
 				_, err := tc.ossStorage.WorkspaceStorage()
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestOssStorage_ReleaseStorage(t *testing.T) {
+	testcases := []struct {
+		name               string
+		success            bool
+		ossStorage         *OssStorage
+		project, workspace string
+	}{
+		{
+			name:    "release storage from s3 backend",
+			success: true,
+			ossStorage: &OssStorage{
+				bucket: &oss.Bucket{},
+				prefix: "kusion",
+			},
+			project:   "wordpress",
+			workspace: "dev",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new oss release storage", t, func() {
+				mockey.Mock(releasestorages.NewOssStorage).Return(&releasestorages.OssStorage{}, nil).Build()
+				_, err := tc.ossStorage.ReleaseStorage(tc.project, tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

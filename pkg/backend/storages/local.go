@@ -2,6 +2,8 @@ package storages
 
 import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/engine/release"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -25,4 +27,8 @@ func (s *LocalStorage) StateStorage(project, workspace string) state.Storage {
 
 func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewLocalStorage(workspacestorages.GenWorkspaceDirPath(s.path))
+}
+
+func (s *LocalStorage) ReleaseStorage(project, workspace string) (release.Storage, error) {
+	return releasestorages.NewLocalStorage(releasestorages.GenReleaseDirPath(s.path, project, workspace))
 }
