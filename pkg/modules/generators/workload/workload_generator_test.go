@@ -8,13 +8,12 @@ import (
 	"gopkg.in/yaml.v2"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
 func TestNewWorkloadGeneratorFunc(t *testing.T) {
 	t.Run("NewWorkloadGeneratorFunc should return a valid generator function", func(t *testing.T) {
-		expectedWorkload := &internalv1.Workload{}
+		expectedWorkload := &v1.Workload{}
 		expectedAppName := "test"
 		expectedProject := "test"
 		expectedStack := "test"
@@ -50,17 +49,17 @@ func TestNewWorkloadGeneratorFunc(t *testing.T) {
 func TestWorkloadGenerator_Generate(t *testing.T) {
 	testCases := []struct {
 		name             string
-		expectedWorkload *internalv1.Workload
+		expectedWorkload *v1.Workload
 	}{
 		{
 			name: "Generate should generate the expected service",
-			expectedWorkload: &internalv1.Workload{
-				Header: internalv1.Header{
-					Type: internalv1.TypeService,
+			expectedWorkload: &v1.Workload{
+				Header: v1.Header{
+					Type: v1.TypeService,
 				},
-				Service: &internalv1.Service{
-					Base: internalv1.Base{},
-					Ports: []internalv1.Port{
+				Service: &v1.Service{
+					Base: v1.Base{},
+					Ports: []v1.Port{
 						{
 							Port:     80,
 							Protocol: "TCP",
@@ -71,12 +70,12 @@ func TestWorkloadGenerator_Generate(t *testing.T) {
 		},
 		{
 			name: "Generate should generate the expected job",
-			expectedWorkload: &internalv1.Workload{
-				Header: internalv1.Header{
-					Type: internalv1.TypeJob,
+			expectedWorkload: &v1.Workload{
+				Header: v1.Header{
+					Type: v1.TypeJob,
 				},
-				Job: &internalv1.Job{
-					Base:     internalv1.Base{},
+				Job: &v1.Job{
+					Base:     v1.Base{},
 					Schedule: "* * * * *",
 				},
 			},
@@ -137,23 +136,23 @@ func TestGenerate(t *testing.T) {
 		project     string
 		stack       string
 		application string
-		workload    *internalv1.Workload
+		workload    *v1.Workload
 	}{
 		{
 			name:        "simple service workload",
 			project:     "helloworld",
 			stack:       "dev",
 			application: "nginx",
-			workload: &internalv1.Workload{
-				Header: internalv1.Header{
-					Type: internalv1.TypeService,
+			workload: &v1.Workload{
+				Header: v1.Header{
+					Type: v1.TypeService,
 				},
-				Service: &internalv1.Service{
-					Base: internalv1.Base{
-						Containers: map[string]internalv1.Container{
+				Service: &v1.Service{
+					Base: v1.Base{
+						Containers: map[string]v1.Container{
 							"main": {
 								Image: "nginx:latest",
-								Files: map[string]internalv1.FileSpec{
+								Files: map[string]v1.FileSpec{
 									"/run/secret/password": {
 										ContentFrom: "secret://sec-name/key?mode=0400",
 										Mode:        "0644",
@@ -162,7 +161,7 @@ func TestGenerate(t *testing.T) {
 							},
 						},
 					},
-					Type: internalv1.Deployment,
+					Type: v1.Deployment,
 				},
 			},
 		},
@@ -171,19 +170,19 @@ func TestGenerate(t *testing.T) {
 			project:     "beep",
 			stack:       "test",
 			application: "nginx",
-			workload: &internalv1.Workload{
-				Header: internalv1.Header{
-					Type: internalv1.TypeService,
+			workload: &v1.Workload{
+				Header: v1.Header{
+					Type: v1.TypeService,
 				},
-				Service: &internalv1.Service{
-					Base: internalv1.Base{
-						Containers: map[string]internalv1.Container{
+				Service: &v1.Service{
+					Base: v1.Base{
+						Containers: map[string]v1.Container{
 							"main": {
 								Image: "nginx:latest",
 								Dirs: map[string]string{
 									"/var/tmp-secret": "secret://other-sec-name",
 								},
-								Files: map[string]internalv1.FileSpec{
+								Files: map[string]v1.FileSpec{
 									"/run/secret/password": {
 										ContentFrom: "secret://sec-name/key?mode=0400",
 										Mode:        "0644",
@@ -192,7 +191,7 @@ func TestGenerate(t *testing.T) {
 							},
 						},
 					},
-					Type: internalv1.Deployment,
+					Type: v1.Deployment,
 				},
 			},
 		},
@@ -215,12 +214,12 @@ func TestGenerate(t *testing.T) {
 
 func TestToOrderedContainers(t *testing.T) {
 	t.Run("toOrderedContainers should convert app containers to ordered containers", func(t *testing.T) {
-		appContainers := make(map[string]internalv1.Container)
-		appContainers["container1"] = internalv1.Container{
+		appContainers := make(map[string]v1.Container)
+		appContainers["container1"] = v1.Container{
 			Image: "image1",
 			Env:   make(yaml.MapSlice, 0),
 		}
-		appContainers["container2"] = internalv1.Container{
+		appContainers["container2"] = v1.Container{
 			Image: "image2",
 			Env: yaml.MapSlice{
 				{
@@ -229,9 +228,9 @@ func TestToOrderedContainers(t *testing.T) {
 				},
 			},
 		}
-		appContainers["container3"] = internalv1.Container{
+		appContainers["container3"] = v1.Container{
 			Image: "image3",
-			Files: map[string]internalv1.FileSpec{
+			Files: map[string]v1.FileSpec{
 				"/tmp/example1/file.txt": {
 					Content: "some file contents",
 					Mode:    "0777",
@@ -266,29 +265,29 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Equal(t, wantedConfigMapData, actualConfigMaps[1].Data, "ConfigMap data mismatch")
 	})
 	t.Run("toOrderedContainers should convert app containers with probe to ordered containers", func(t *testing.T) {
-		appContainers := map[string]internalv1.Container{
+		appContainers := map[string]v1.Container{
 			"nginx": {
 				Image: "nginx:v1",
 				Resources: map[string]string{
 					"cpu":    "2-4",
 					"memory": "4Gi-8Gi",
 				},
-				LivenessProbe: &internalv1.Probe{
-					ProbeHandler: &internalv1.ProbeHandler{
-						TypeWrapper: internalv1.TypeWrapper{
+				LivenessProbe: &v1.Probe{
+					ProbeHandler: &v1.ProbeHandler{
+						TypeWrapper: v1.TypeWrapper{
 							Type: "Exec",
 						},
-						ExecAction: &internalv1.ExecAction{
+						ExecAction: &v1.ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo live"},
 						},
 					},
 				},
-				ReadinessProbe: &internalv1.Probe{
-					ProbeHandler: &internalv1.ProbeHandler{
-						TypeWrapper: internalv1.TypeWrapper{
+				ReadinessProbe: &v1.Probe{
+					ProbeHandler: &v1.ProbeHandler{
+						TypeWrapper: v1.TypeWrapper{
 							Type: "Http",
 						},
-						HTTPGetAction: &internalv1.HTTPGetAction{
+						HTTPGetAction: &v1.HTTPGetAction{
 							URL: "http://localhost:8080/readiness",
 							Headers: map[string]string{
 								"header": "value",
@@ -297,12 +296,12 @@ func TestToOrderedContainers(t *testing.T) {
 					},
 					InitialDelaySeconds: 10,
 				},
-				StartupProbe: &internalv1.Probe{
-					ProbeHandler: &internalv1.ProbeHandler{
-						TypeWrapper: internalv1.TypeWrapper{
+				StartupProbe: &v1.Probe{
+					ProbeHandler: &v1.ProbeHandler{
+						TypeWrapper: v1.TypeWrapper{
 							Type: "Tcp",
 						},
-						TCPSocketAction: &internalv1.TCPSocketAction{
+						TCPSocketAction: &v1.TCPSocketAction{
 							URL: "10.0.0.1:8888",
 						},
 					},
@@ -349,23 +348,23 @@ func TestToOrderedContainers(t *testing.T) {
 		assert.Equal(t, "8888", actualContainers[0].StartupProbe.TCPSocket.Port.String(), "TCPSocket.Port mismatch")
 	})
 	t.Run("toOrderedContainers should convert app containers with lifecycle to ordered containers", func(t *testing.T) {
-		appContainers := map[string]internalv1.Container{
+		appContainers := map[string]v1.Container{
 			"nginx": {
 				Image: "nginx:v1",
-				Lifecycle: &internalv1.Lifecycle{
-					PreStop: &internalv1.LifecycleHandler{
-						TypeWrapper: internalv1.TypeWrapper{
+				Lifecycle: &v1.Lifecycle{
+					PreStop: &v1.LifecycleHandler{
+						TypeWrapper: v1.TypeWrapper{
 							Type: "Exec",
 						},
-						ExecAction: &internalv1.ExecAction{
+						ExecAction: &v1.ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo live"},
 						},
 					},
-					PostStart: &internalv1.LifecycleHandler{
-						TypeWrapper: internalv1.TypeWrapper{
+					PostStart: &v1.LifecycleHandler{
+						TypeWrapper: v1.TypeWrapper{
 							Type: "Http",
 						},
-						HTTPGetAction: &internalv1.HTTPGetAction{
+						HTTPGetAction: &v1.HTTPGetAction{
 							URL: "http://localhost:8080/readiness",
 							Headers: map[string]string{
 								"header": "value",
@@ -403,15 +402,15 @@ func TestCompleteBaseWorkload(t *testing.T) {
 
 	testcases := []struct {
 		name          string
-		base          *internalv1.Base
+		base          *v1.Base
 		config        v1.GenericConfig
 		success       bool
-		completedBase *internalv1.Base
+		completedBase *v1.Base
 	}{
 		{
 			name: "successfully complete base",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -432,8 +431,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 				"replicas": 4,
 			},
 			success: true,
-			completedBase: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			completedBase: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -451,8 +450,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 		},
 		{
 			name: "use base replicas",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -469,8 +468,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 				"replicas": 4,
 			},
 			success: true,
-			completedBase: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			completedBase: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -486,8 +485,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 		},
 		{
 			name: "use platform replicas",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -503,8 +502,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 				"replicas": 4,
 			},
 			success: true,
-			completedBase: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			completedBase: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -520,8 +519,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 		},
 		{
 			name: "invalid replicas config",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -535,8 +534,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 		},
 		{
 			name: "invalid labels config",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},
@@ -550,8 +549,8 @@ func TestCompleteBaseWorkload(t *testing.T) {
 		},
 		{
 			name: "invalid annotations config",
-			base: &internalv1.Base{
-				Containers: map[string]internalv1.Container{
+			base: &v1.Base{
+				Containers: map[string]v1.Container{
 					"nginx": {
 						Image: "nginx:v1",
 					},

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend/storages"
 )
 

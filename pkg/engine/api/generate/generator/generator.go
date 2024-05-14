@@ -27,7 +27,6 @@ import (
 	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	internalv1 "kusionstack.io/kusion/pkg/apis/internal.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 	"kusionstack.io/kusion/pkg/util/io"
@@ -68,7 +67,7 @@ func (g *DefaultGenerator) Generate(workDir string, params map[string]string) (*
 
 	// Note: we use the type of MapSlice in yaml.v2 to maintain the order of container
 	// environment variables, thus we unmarshal appConfigs with yaml.v2 rather than yaml.v3.
-	apps := map[string]internalv1.AppConfiguration{}
+	apps := map[string]v1.AppConfiguration{}
 	err = yaml.Unmarshal(rawAppConfiguration, apps)
 	if err != nil {
 		return nil, err
