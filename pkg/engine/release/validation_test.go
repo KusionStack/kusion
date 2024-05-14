@@ -57,6 +57,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -71,6 +72,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -85,6 +87,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -99,6 +102,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     0,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -113,6 +117,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -120,13 +125,29 @@ func TestValidateRelease(t *testing.T) {
 			},
 		},
 		{
-			name:    "invalid release empty state",
+			name:    "invalid release invalid spec",
 			success: false,
 			release: &v1.Release{
 				Project:      "fake-project",
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         nil,
+				State:        &v1.State{Resources: v1.Resources{mockResource()}},
+				Phase:        v1.ReleasePhaseApplying,
+				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
+				ModifiedTime: time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
+			},
+		},
+		{
+			name:    "invalid release invalid state",
+			success: false,
+			release: &v1.Release{
+				Project:      "fake-project",
+				Workspace:    "fake-ws",
+				Revision:     1,
+				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        nil,
 				Phase:        v1.ReleasePhaseApplying,
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -141,6 +162,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        "",
 				CreateTime:   time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -155,6 +177,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:    "fake-ws",
 				Revision:     1,
 				Stack:        "fake-stack",
+				Spec:         &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:        &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:        v1.ReleasePhaseApplying,
 				ModifiedTime: time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -168,6 +191,7 @@ func TestValidateRelease(t *testing.T) {
 				Workspace:  "fake-ws",
 				Revision:   1,
 				Stack:      "fake-stack",
+				Spec:       &v1.Spec{Resources: v1.Resources{mockResource()}},
 				State:      &v1.State{Resources: v1.Resources{mockResource()}},
 				Phase:      v1.ReleasePhaseApplying,
 				CreateTime: time.Date(2024, 5, 10, 16, 48, 0, 0, loc),
@@ -205,7 +229,7 @@ func TestValidateState(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateState(tc.state)
+			err := validateState(tc.state)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}

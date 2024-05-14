@@ -32,8 +32,8 @@ import (
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/util/terminal"
@@ -53,7 +53,7 @@ var (
 )
 
 // DeleteFlags directly reflect the information that CLI is gathering via flags. They will be converted to
-// DeleteOptions, which reflect the runtime requirements for the command.
+// DestroyOptions, which reflect the runtime requirements for the command.
 //
 // This structure reduces the transformation to wiring and makes the logic itself easy to unit test.
 type DeleteFlags struct {
@@ -69,14 +69,13 @@ type DeleteFlags struct {
 	genericiooptions.IOStreams
 }
 
-// DeleteOptions defines flags and other configuration parameters for the `delete` command.
-type DeleteOptions struct {
+// DestroyOptions defines flags and other configuration parameters for the `delete` command.
+type DestroyOptions struct {
 	*meta.MetaOptions
 
-	Operator string
-	Yes      bool
-	Detail   bool
-	NoStyle  bool
+	Yes     bool
+	Detail  bool
+	NoStyle bool
 
 	UI *terminal.UI
 
@@ -121,23 +120,21 @@ func (flags *DeleteFlags) AddFlags(cmd *cobra.Command) {
 	// bind flag structs
 	flags.MetaFlags.AddFlags(cmd)
 
-	cmd.Flags().StringVarP(&flags.Operator, "operator", "", flags.Operator, i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&flags.Yes, "yes", "y", false, i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&flags.Detail, "detail", "d", false, i18n.T("Automatically show preview details after previewing it"))
 	cmd.Flags().BoolVarP(&flags.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
-func (flags *DeleteFlags) ToOptions() (*DeleteOptions, error) {
+func (flags *DeleteFlags) ToOptions() (*DestroyOptions, error) {
 	// Convert meta options
 	metaOptions, err := flags.MetaFlags.ToOptions()
 	if err != nil {
 		return nil, err
 	}
 
-	o := &DeleteOptions{
+	o := &DestroyOptions{
 		MetaOptions: metaOptions,
-		Operator:    flags.Operator,
 		Detail:      flags.Detail,
 		Yes:         flags.Yes,
 		NoStyle:     flags.NoStyle,
@@ -148,8 +145,8 @@ func (flags *DeleteFlags) ToOptions() (*DeleteOptions, error) {
 	return o, nil
 }
 
-// Validate verifies if DeleteOptions are valid and without conflicts.
-func (o *DeleteOptions) Validate(cmd *cobra.Command, args []string) error {
+// Validate verifies if DestroyOptions are valid and without conflicts.
+func (o *DestroyOptions) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) != 0 {
 		return cmdutil.UsageErrorf(cmd, "Unexpected args: %v", args)
 	}
@@ -158,25 +155,43 @@ func (o *DeleteOptions) Validate(cmd *cobra.Command, args []string) error {
 }
 
 // Run executes the `delete` command.
-func (o *DeleteOptions) Run() error {
-	// only destroy resources we managed
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
-	priorState, err := storage.Get()
-	if err != nil || priorState == nil {
-		return fmt.Errorf("can not find DeprecatedState in this stack")
-	}
-	destroyResources := priorState.Resources
+func (o *DestroyOptions) Run() (err error) {
+	// update release to succeeded or failed
+	var storage release.Storage
+	var rel *apiv1.Release
+	releaseCreated := false
+	defer func() {
+		if !releaseCreated {
+			return
+		}
+		if err != nil {
+			rel.Phase = apiv1.ReleasePhaseFailed
+			_ = release.UpdateDestroyRelease(storage, rel)
+		} else {
+			rel.Phase = apiv1.ReleasePhaseSucceeded
+			err = release.UpdateDestroyRelease(storage, rel)
+		}
+	}()
 
-	if destroyResources == nil || len(priorState.Resources) == 0 {
-		pterm.Println(pterm.Green("No managed resources to destroy"))
-		return nil
+	// only destroy resources we managed
+	storage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return
 	}
+	rel, err = release.CreateDestroyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return
+	}
+	if len(rel.Spec.Resources) == 0 {
+		pterm.Println(pterm.Green("No managed resources to destroy"))
+		return
+	}
+	releaseCreated = true
 
 	// compute changes for preview
-	i := &apiv1.Spec{Resources: destroyResources}
-	changes, err := o.preview(i, o.RefProject, o.RefStack, storage)
+	changes, err := o.preview(rel.Spec, rel.State, o.RefProject, o.RefStack, storage)
 	if err != nil {
-		return err
+		return
 	}
 
 	// preview
@@ -199,16 +214,15 @@ func (o *DeleteOptions) Run() error {
 			var input string
 			input, err = prompt(o.UI)
 			if err != nil {
-				return err
+				return
 			}
-
 			if input == "yes" {
 				break
 			} else if input == "details" {
 				var target string
 				target, err = changes.PromptDetails(o.UI)
 				if err != nil {
-					return err
+					return
 				}
 				changes.OutputDiff(target)
 			} else {
@@ -218,19 +232,29 @@ func (o *DeleteOptions) Run() error {
 		}
 	}
 
+	// update release phase to destroying
+	rel.Phase = apiv1.ReleasePhaseDestroying
+	if err = release.UpdateDestroyRelease(storage, rel); err != nil {
+		return
+	}
 	// destroy
 	fmt.Println("Start destroying resources......")
-	if err = o.destroy(i, changes, storage); err != nil {
+	var updatedRel *apiv1.Release
+	updatedRel, err = o.destroy(rel, changes, storage)
+	if err != nil {
 		return err
 	}
+	rel = updatedRel
+
 	return nil
 }
 
-func (o *DeleteOptions) preview(
+func (o *DestroyOptions) preview(
 	planResources *apiv1.Spec,
+	priorResources *apiv1.State,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
-	stateStorage state.Storage,
+	storage release.Storage,
 ) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -245,10 +269,10 @@ func (o *DeleteOptions) preview(
 
 	pc := &operation.PreviewOperation{
 		Operation: models.Operation{
-			OperationType: models.DestroyPreview,
-			Stack:         stack,
-			StateStorage:  stateStorage,
-			ChangeOrder:   &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
+			OperationType:  models.DestroyPreview,
+			Stack:          stack,
+			ReleaseStorage: storage,
+			ChangeOrder:    &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
 		},
 	}
 
@@ -256,11 +280,11 @@ func (o *DeleteOptions) preview(
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: models.Request{
-			Project:  proj,
-			Stack:    stack,
-			Operator: o.Operator,
-			Intent:   planResources,
+			Project: proj,
+			Stack:   stack,
 		},
+		Spec:  planResources,
+		State: priorResources,
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
@@ -269,12 +293,12 @@ func (o *DeleteOptions) preview(
 	return models.NewChanges(proj, stack, rsp.Order), nil
 }
 
-func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Changes, stateStorage state.Storage) error {
+func (o *DestroyOptions) destroy(rel *apiv1.Release, changes *models.Changes, storage release.Storage) (*apiv1.Release, error) {
 	destroyOpt := &operation.DestroyOperation{
 		Operation: models.Operation{
-			Stack:        changes.Stack(),
-			StateStorage: stateStorage,
-			MsgCh:        make(chan models.Message),
+			Stack:          changes.Stack(),
+			ReleaseStorage: storage,
+			MsgCh:          make(chan models.Message),
 		},
 	}
 
@@ -289,7 +313,7 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 		WithRemoveWhenDone().
 		Start()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// wait msgCh close
 	var wg sync.WaitGroup
@@ -350,24 +374,25 @@ func (o *DeleteOptions) destroy(planResources *apiv1.Spec, changes *models.Chang
 		}
 	}()
 
-	st := destroyOpt.Destroy(&operation.DestroyRequest{
+	req := &operation.DestroyRequest{
 		Request: models.Request{
-			Project:  changes.Project(),
-			Stack:    changes.Stack(),
-			Operator: o.Operator,
-			Intent:   planResources,
+			Project: changes.Project(),
+			Stack:   changes.Stack(),
 		},
-	})
-	if v1.IsErr(st) {
-		return fmt.Errorf("destroy failed, status: %v", st)
+		Release: rel,
 	}
+	rsp, status := destroyOpt.Destroy(req)
+	if v1.IsErr(status) {
+		return nil, fmt.Errorf("destroy failed, status: %v", status)
+	}
+	updatedRel := rsp.Release
 
 	// wait for msgCh closed
 	wg.Wait()
 	// print summary
 	pterm.Println()
 	pterm.Fprintln(o.IOStreams.Out, fmt.Sprintf("Destroy complete! Resources: %d deleted.", deleted))
-	return nil
+	return updatedRel, nil
 }
 
 func prompt(ui *terminal.UI) (string, error) {

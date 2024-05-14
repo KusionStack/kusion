@@ -18,8 +18,8 @@ import (
 	"context"
 	"errors"
 	"os"
-	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/bytedance/mockey"
 	"github.com/pterm/pterm"
@@ -34,96 +34,12 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/util/terminal"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
-
-var (
-	proj = &apiv1.Project{
-		Name: "testdata",
-	}
-	stack = &apiv1.Stack{
-		Name: "dev",
-	}
-	workspace = &apiv1.Workspace{
-		Name: "default",
-	}
-)
-
-func NewApplyOptions() *ApplyOptions {
-	storageBackend := storages.NewLocalStorage(&apiv1.BackendLocalConfig{
-		Path: filepath.Join("", "state.yaml"),
-	})
-	return &ApplyOptions{
-		PreviewOptions: &preview.PreviewOptions{
-			MetaOptions: &meta.MetaOptions{
-				RefProject:     proj,
-				RefStack:       stack,
-				RefWorkspace:   workspace,
-				StorageBackend: storageBackend,
-			},
-			Operator:     "",
-			Detail:       false,
-			All:          false,
-			NoStyle:      false,
-			Output:       "",
-			IgnoreFields: nil,
-			UI:           terminal.DefaultUI(),
-		},
-	}
-}
-
-func TestApplyOptionsRun(t *testing.T) {
-	/*mockey.PatchConvey("Detail is true", t, func() {
-		mockGenerateSpecWithSpinner()
-		mockPatchNewKubernetesRuntime()
-		mockPatchOperationPreview()
-		mockStateStorage()
-
-		o := NewApplyOptions()
-		o.Detail = true
-		o.All = true
-		o.NoStyle = true
-		err := o.Run()
-		assert.Nil(t, err)
-	})*/
-
-	mockey.PatchConvey("DryRun is true", t, func() {
-		mockGenerateSpecWithSpinner()
-		mockPatchNewKubernetesRuntime()
-		mockPatchOperationPreview()
-		mockStateStorage()
-		mockOperationApply(models.Success)
-
-		o := NewApplyOptions()
-		o.DryRun = true
-		mockPromptOutput("yes")
-		err := o.Run()
-		assert.Nil(t, err)
-	})
-}
-
-func mockGenerateSpecWithSpinner() {
-	mockey.Mock(generate.GenerateSpecWithSpinner).To(func(
-		project *apiv1.Project,
-		stack *apiv1.Stack,
-		workspace *apiv1.Workspace,
-		parameters map[string]string,
-		ui *terminal.UI,
-		noStyle bool,
-	) (*apiv1.Spec, error) {
-		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
-	}).Build()
-}
-
-func mockPatchNewKubernetesRuntime() *mockey.Mocker {
-	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
-		return &fakerRuntime{}, nil
-	}).Build()
-}
 
 var _ runtime.Runtime = (*fakerRuntime)(nil)
 
@@ -161,6 +77,56 @@ func (f *fakerRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtim
 	return nil
 }
 
+var (
+	proj = &apiv1.Project{
+		Name: "fake-proj",
+	}
+	stack = &apiv1.Stack{
+		Name: "fake-stack",
+	}
+	workspace = &apiv1.Workspace{
+		Name: "fake-workspace",
+	}
+)
+
+func newApplyOptions() *ApplyOptions {
+	return &ApplyOptions{
+		PreviewOptions: &preview.PreviewOptions{
+			MetaOptions: &meta.MetaOptions{
+				RefProject:   proj,
+				RefStack:     stack,
+				RefWorkspace: workspace,
+				Backend:      &storages.LocalStorage{},
+			},
+			Detail:       false,
+			All:          false,
+			NoStyle:      false,
+			Output:       "",
+			IgnoreFields: nil,
+			UI:           terminal.DefaultUI(),
+		},
+	}
+}
+
+func mockGenerateSpecWithSpinner() {
+	mockey.Mock(generate.GenerateSpecWithSpinner).To(func(
+		project *apiv1.Project,
+		stack *apiv1.Stack,
+		workspace *apiv1.Workspace,
+		parameters map[string]string,
+		ui *terminal.UI,
+		noStyle bool,
+	) (*apiv1.Spec, error) {
+		return &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, nil
+	}).Build()
+}
+
+func mockPatchNewKubernetesRuntime() *mockey.Mocker {
+	return mockey.Mock(kubernetes.NewKubernetesRuntime).To(func() (runtime.Runtime, error) {
+		return &fakerRuntime{}, nil
+	}).Build()
+}
+
 func mockPatchOperationPreview() *mockey.Mocker {
 	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
 		*operation.PreviewOperation,
@@ -191,8 +157,33 @@ func mockPatchOperationPreview() *mockey.Mocker {
 	}).Build()
 }
 
-func mockStateStorage() {
+func mockWorkspaceStorage() {
 	mockey.Mock((*storages.LocalStorage).WorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+}
+
+func mockReleaseStorage() {
+	mockey.Mock((*storages.LocalStorage).ReleaseStorage).Return(&releasestorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*releasestorages.LocalStorage).Create).Return(nil).Build()
+	mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
+	mockey.Mock((*releasestorages.LocalStorage).GetLatestRevision).Return(0).Build()
+	mockey.Mock((*releasestorages.LocalStorage).Get).Return(&apiv1.Release{State: &apiv1.State{}, Phase: apiv1.ReleasePhaseSucceeded}, nil).Build()
+}
+
+func TestApplyOptions_Run(t *testing.T) {
+	mockey.PatchConvey("DryRun is true", t, func() {
+		mockGenerateSpecWithSpinner()
+		mockPatchNewKubernetesRuntime()
+		mockPatchOperationPreview()
+		mockWorkspaceStorage()
+		mockReleaseStorage()
+		mockOperationApply(models.Success)
+
+		o := newApplyOptions()
+		o.DryRun = true
+		mockPromptOutput("yes")
+		err := o.Run()
+		assert.Nil(t, err)
+	})
 }
 
 const (
@@ -223,9 +214,21 @@ func newSA(name string) apiv1.Resource {
 }
 
 func TestApply(t *testing.T) {
-	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
+	loc, _ := time.LoadLocation("Asia/Shanghai")
 	mockey.PatchConvey("dry run", t, func() {
-		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
+		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
+
+		rel := &apiv1.Release{
+			Project:      "fake-project",
+			Workspace:    "fake-workspace",
+			Revision:     1,
+			Stack:        "fake-stack",
+			Spec:         &apiv1.Spec{Resources: []apiv1.Resource{sa1}},
+			State:        &apiv1.State{},
+			Phase:        apiv1.ReleasePhaseApplying,
+			CreateTime:   time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+			ModifiedTime: time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+		}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -236,16 +239,29 @@ func TestApply(t *testing.T) {
 				},
 			},
 		}
+
 		changes := models.NewChanges(proj, stack, order)
-		o := NewApplyOptions()
+		o := newApplyOptions()
 		o.DryRun = true
-		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(models.Success)
-		o := NewApplyOptions()
-		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2}}
+		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
+
+		o := newApplyOptions()
+		rel := &apiv1.Release{
+			Project:      "fake-project",
+			Workspace:    "fake-workspace",
+			Revision:     1,
+			Stack:        "fake-stack",
+			Spec:         &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2}},
+			State:        &apiv1.State{},
+			Phase:        apiv1.ReleasePhaseApplying,
+			CreateTime:   time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+			ModifiedTime: time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+		}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -261,16 +277,27 @@ func TestApply(t *testing.T) {
 				},
 			},
 		}
-		changes := models.NewChanges(proj, stack, order)
 
-		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
+		changes := models.NewChanges(proj, stack, order)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
 		mockOperationApply(models.Failed)
+		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
 
-		o := NewApplyOptions()
-		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
+		o := newApplyOptions()
+		rel := &apiv1.Release{
+			Project:      "fake-project",
+			Workspace:    "fake-workspace",
+			Revision:     1,
+			Stack:        "fake-stack",
+			Spec:         &apiv1.Spec{Resources: []apiv1.Resource{sa1}},
+			State:        &apiv1.State{},
+			Phase:        apiv1.ReleasePhaseApplying,
+			CreateTime:   time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+			ModifiedTime: time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+		}
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -283,7 +310,7 @@ func TestApply(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		err := Apply(o, stateStorage, planResources, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }
@@ -295,7 +322,7 @@ func mockOperationApply(res models.OpResult) {
 			if res == models.Failed {
 				err = errors.New("mock error")
 			}
-			for _, r := range request.Intent.Resources {
+			for _, r := range request.Release.Spec.Resources {
 				// ing -> $res
 				o.MsgCh <- models.Message{
 					ResourceID: r.ResourceKey(),
@@ -316,6 +343,10 @@ func mockOperationApply(res models.OpResult) {
 		}).Build()
 }
 
+func mockPromptOutput(res string) {
+	mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return(res, nil).Build()
+}
+
 func TestPrompt(t *testing.T) {
 	mockey.PatchConvey("prompt error", t, func() {
 		mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return("", errors.New("mock error")).Build()
@@ -328,8 +359,4 @@ func TestPrompt(t *testing.T) {
 		_, err := prompt(terminal.DefaultUI())
 		assert.Nil(t, err)
 	})
-}
-
-func mockPromptOutput(res string) {
-	mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return(res, nil).Build()
 }

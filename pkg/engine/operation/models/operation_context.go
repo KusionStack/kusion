@@ -5,14 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jinzhu/copier"
-
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/util"
-	"kusionstack.io/kusion/pkg/util/json"
 )
 
 // Operation is the base model for all operations
@@ -20,17 +16,17 @@ type Operation struct {
 	// OperationType represents the OperationType of this operation
 	OperationType OperationType
 
-	// StateStorage represents the storage where state will be saved during this operation
-	StateStorage state.Storage
+	// ReleaseStorage represents the storage where state will be saved during this operation
+	ReleaseStorage release.Storage
 
 	// CtxResourceIndex represents resources updated by this operation
-	CtxResourceIndex map[string]*v1.Resource
+	CtxResourceIndex map[string]*apiv1.Resource
 
 	// PriorStateResourceIndex represents resource state saved during the last operation
-	PriorStateResourceIndex map[string]*v1.Resource
+	PriorStateResourceIndex map[string]*apiv1.Resource
 
 	// StateResourceIndex represents resources that will be saved in state.Storage
-	StateResourceIndex map[string]*v1.Resource
+	StateResourceIndex map[string]*apiv1.Resource
 
 	// IgnoreFields will be ignored in preview stage
 	IgnoreFields []string
@@ -39,10 +35,10 @@ type Operation struct {
 	ChangeOrder *ChangeOrder
 
 	// RuntimeMap contains all infrastructure runtimes involved this operation. The key of this map is the Runtime type
-	RuntimeMap map[v1.Type]runtime.Runtime
+	RuntimeMap map[apiv1.Type]runtime.Runtime
 
 	// Stack contains info about where this command is invoked
-	Stack *v1.Stack
+	Stack *apiv1.Stack
 
 	// MsgCh is used to send operation status like Success, Failed or Skip to Kusion CTl,
 	// and this message will be displayed in the terminal
@@ -51,8 +47,8 @@ type Operation struct {
 	// Lock is the operation-wide mutex
 	Lock *sync.Mutex
 
-	// ResultState is the final DeprecatedState build by this operation, and this DeprecatedState will be saved in the StateStorage
-	ResultState *v1.DeprecatedState
+	// Release is the release updated in this operation, and saved in the ReleaseStorage
+	Release *apiv1.Release
 }
 
 type Message struct {
@@ -62,10 +58,8 @@ type Message struct {
 }
 
 type Request struct {
-	Project  *v1.Project `json:"project"`
-	Stack    *v1.Stack   `json:"stack"`
-	Operator string      `json:"operator"`
-	Intent   *v1.Spec    `json:"intent"`
+	Project *apiv1.Project
+	Stack   *apiv1.Stack
 }
 
 type OpResult string
@@ -78,7 +72,7 @@ const (
 )
 
 // RefreshResourceIndex refresh resources in CtxResourceIndex & StateResourceIndex
-func (o *Operation) RefreshResourceIndex(resourceKey string, resource *v1.Resource, actionType ActionType) error {
+func (o *Operation) RefreshResourceIndex(resourceKey string, resource *apiv1.Resource, actionType ActionType) error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
@@ -95,52 +89,26 @@ func (o *Operation) RefreshResourceIndex(resourceKey string, resource *v1.Resour
 	return nil
 }
 
-func (o *Operation) InitStates(request *Request) (*v1.DeprecatedState, *v1.DeprecatedState) {
-	priorState, err := o.StateStorage.Get()
-	util.CheckNotError(err, fmt.Sprintf("get state failed with request: %v", json.Marshal2PrettyString(request)))
-	if priorState == nil {
-		log.Infof("can't find state with request: %v", json.Marshal2PrettyString(request))
-		priorState = v1.NewState()
-	}
-	resultState := v1.NewState()
-	resultState.Serial = priorState.Serial
-	err = copier.Copy(resultState, request)
-	util.CheckNotError(err, fmt.Sprintf("copy request to result DeprecatedState failed, request:%v", json.Marshal2PrettyString(request)))
-	resultState.Stack = request.Stack.Name
-	resultState.Project = request.Project.Name
-
-	resultState.Resources = nil
-
-	return priorState, resultState
-}
-
-func (o *Operation) UpdateState(resourceIndex map[string]*v1.Resource) error {
+func (o *Operation) UpdateReleaseState() error {
 	o.Lock.Lock()
 	defer o.Lock.Unlock()
 
-	resultState := o.ResultState
-	resultState.Serial += 1
-	resultState.Resources = nil
-
-	res := make([]v1.Resource, 0, len(resourceIndex))
-	for key := range resourceIndex {
+	res := make([]apiv1.Resource, 0, len(o.StateResourceIndex))
+	for key := range o.StateResourceIndex {
 		// {key -> nil} represents Deleted action
-		if resourceIndex[key] == nil {
+		if o.StateResourceIndex[key] == nil {
 			continue
 		}
-		res = append(res, *resourceIndex[key])
+		res = append(res, *o.StateResourceIndex[key])
 	}
 
-	resultState.Resources = res
-	now := time.Now()
-	if resultState.CreateTime.IsZero() {
-		resultState.CreateTime = now
-	}
-	resultState.ModifiedTime = now
-	err := o.StateStorage.Apply(resultState)
+	o.Release.State.Resources = res
+	o.Release.ModifiedTime = time.Now()
+
+	err := o.ReleaseStorage.Update(o.Release)
 	if err != nil {
-		return fmt.Errorf("apply DeprecatedState failed. %w", err)
+		return fmt.Errorf("udpate release failed, %w", err)
 	}
-	log.Infof("update DeprecatedState:%v success", resultState.ID)
+	log.Infof("update release succeeded, project %s, workspace %s, revision %d", o.Release.Project, o.Release.Workspace, o.Release.Revision)
 	return nil
 }

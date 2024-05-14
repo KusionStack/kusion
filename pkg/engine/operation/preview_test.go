@@ -2,7 +2,6 @@ package operation
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -12,35 +11,11 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
-	"kusionstack.io/kusion/pkg/engine/state"
-	"kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/util/json"
-)
-
-var (
-	FakeService = map[string]interface{}{
-		"apiVersion": "v1",
-		"kind":       "Service",
-		"metadata": map[string]interface{}{
-			"name":      "apple-service",
-			"namespace": "http-echo",
-		},
-		"models": map[string]interface{}{
-			"type": "NodePort",
-		},
-	}
-	FakeResourceState = apiv1.Resource{
-		ID:         "fake-id",
-		Type:       runtime.Kubernetes,
-		Attributes: FakeService,
-	}
-	FakeResourceState2 = apiv1.Resource{
-		ID:         "fake-id-2",
-		Type:       runtime.Kubernetes,
-		Attributes: FakeService,
-	}
 )
 
 var _ runtime.Runtime = (*fakePreviewRuntime)(nil)
@@ -83,61 +58,82 @@ func (f *fakePreviewRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *
 	return nil
 }
 
-func TestOperation_Preview(t *testing.T) {
-	defer func() {
-		_ = os.Remove("state.yaml")
-	}()
+func TestPreviewOperation_Preview(t *testing.T) {
 	type fields struct {
-		OperationType           models.OperationType
-		StateStorage            state.Storage
-		CtxResourceIndex        map[string]*apiv1.Resource
-		PriorStateResourceIndex map[string]*apiv1.Resource
-		StateResourceIndex      map[string]*apiv1.Resource
-		Order                   *models.ChangeOrder
-		RuntimeMap              map[apiv1.Type]runtime.Runtime
-		MsgCh                   chan models.Message
-		resultState             *apiv1.DeprecatedState
+		operationType           models.OperationType
+		releaseStorage          release.Storage
+		ctxResourceIndex        map[string]*apiv1.Resource
+		priorStateResourceIndex map[string]*apiv1.Resource
+		stateResourceIndex      map[string]*apiv1.Resource
+		order                   *models.ChangeOrder
+		runtimeMap              map[apiv1.Type]runtime.Runtime
+		msgCh                   chan models.Message
+		release                 *apiv1.Release
 		lock                    *sync.Mutex
 	}
 	type args struct {
-		request *PreviewRequest
+		req *PreviewRequest
 	}
-	s := &apiv1.Stack{
-		Name: "fake-name",
+
+	fakeStack := &apiv1.Stack{
+		Name: "fake-stack",
 		Path: "fake-path",
 	}
-	p := &apiv1.Project{
-		Name:   "fake-name",
+	fakeProject := &apiv1.Project{
+		Name:   "fake-project",
 		Path:   "fake-path",
-		Stacks: []*apiv1.Stack{s},
+		Stacks: []*apiv1.Stack{fakeStack},
 	}
-	tests := []struct {
+	fakeService := map[string]interface{}{
+		"apiVersion": "v1",
+		"kind":       "Service",
+		"metadata": map[string]interface{}{
+			"name":      "apple-service",
+			"namespace": "http-echo",
+		},
+		"models": map[string]interface{}{
+			"type": "NodePort",
+		},
+	}
+	fakeResource := apiv1.Resource{
+		ID:         "fake-id",
+		Type:       runtime.Kubernetes,
+		Attributes: fakeService,
+	}
+	fakeResource2 := apiv1.Resource{
+		ID:         "fake-id-2",
+		Type:       runtime.Kubernetes,
+		Attributes: fakeService,
+	}
+
+	testcases := []struct {
 		name    string
 		fields  fields
 		args    args
 		wantRsp *PreviewResponse
-		wantS   v1.Status
+		wantErr bool
 	}{
 		{
 			name: "success-when-apply",
 			fields: fields{
-				OperationType: models.ApplyPreview,
-				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  storages.NewLocalStorage("state.yaml"),
-				Order:         &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
+				operationType:  models.ApplyPreview,
+				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				releaseStorage: &storages.LocalStorage{},
+				order: &models.ChangeOrder{
+					StepKeys:    []string{},
+					ChangeSteps: map[string]*models.ChangeStep{},
+				},
 			},
 			args: args{
-				request: &PreviewRequest{
+				req: &PreviewRequest{
 					Request: models.Request{
-						Stack:    s,
-						Project:  p,
-						Operator: "fake-operator",
-						Intent: &apiv1.Spec{
-							Resources: []apiv1.Resource{
-								FakeResourceState,
-							},
-						},
+						Stack:   fakeStack,
+						Project: fakeProject,
 					},
+					Spec: &apiv1.Spec{
+						Resources: apiv1.Resources{fakeResource},
+					},
+					State: &apiv1.State{},
 				},
 			},
 			wantRsp: &PreviewResponse{
@@ -148,33 +144,31 @@ func TestOperation_Preview(t *testing.T) {
 							ID:     "fake-id",
 							Action: models.Create,
 							From:   (*apiv1.Resource)(nil),
-							To:     &FakeResourceState,
+							To:     &fakeResource,
 						},
 					},
 				},
 			},
-			wantS: nil,
+			wantErr: false,
 		},
 		{
 			name: "success-when-destroy",
 			fields: fields{
-				OperationType: models.DestroyPreview,
-				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  storages.NewLocalStorage("state.yaml"),
-				Order:         &models.ChangeOrder{},
+				operationType:  models.DestroyPreview,
+				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				releaseStorage: &storages.LocalStorage{},
+				order:          &models.ChangeOrder{},
 			},
 			args: args{
-				request: &PreviewRequest{
+				req: &PreviewRequest{
 					Request: models.Request{
-						Stack:    s,
-						Project:  p,
-						Operator: "fake-operator",
-						Intent: &apiv1.Spec{
-							Resources: []apiv1.Resource{
-								FakeResourceState2,
-							},
-						},
+						Stack:   fakeStack,
+						Project: fakeProject,
 					},
+					Spec: &apiv1.Spec{
+						Resources: apiv1.Resources{fakeResource2},
+					},
+					State: &apiv1.State{},
 				},
 			},
 			wantRsp: &PreviewResponse{
@@ -184,77 +178,77 @@ func TestOperation_Preview(t *testing.T) {
 						"fake-id-2": {
 							ID:     "fake-id-2",
 							Action: models.Delete,
-							From:   &FakeResourceState2,
+							From:   &fakeResource2,
 							To:     (*apiv1.Resource)(nil),
 						},
 					},
 				},
 			},
-			wantS: nil,
+			wantErr: false,
 		},
 		{
 			name: "fail-because-empty-models",
 			fields: fields{
-				OperationType: models.ApplyPreview,
-				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  storages.NewLocalStorage("state.yaml"),
-				Order:         &models.ChangeOrder{},
+				operationType:  models.ApplyPreview,
+				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				releaseStorage: &storages.LocalStorage{},
+				order:          &models.ChangeOrder{},
 			},
 			args: args{
-				request: &PreviewRequest{
-					Request: models.Request{
-						Intent: nil,
-					},
+				req: &PreviewRequest{
+					Spec:  nil,
+					State: &apiv1.State{},
 				},
 			},
 			wantRsp: nil,
-			wantS:   v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
+			wantErr: true,
 		},
 		{
 			name: "fail-because-nonexistent-id",
 			fields: fields{
-				OperationType: models.ApplyPreview,
-				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
-				StateStorage:  storages.NewLocalStorage("state.yaml"),
-				Order:         &models.ChangeOrder{},
+				operationType:  models.ApplyPreview,
+				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}},
+				releaseStorage: &storages.LocalStorage{},
+				order:          &models.ChangeOrder{},
 			},
 			args: args{
-				request: &PreviewRequest{
+				req: &PreviewRequest{
 					Request: models.Request{
-						Stack:    s,
-						Project:  p,
-						Operator: "fake-operator",
-						Intent: &apiv1.Spec{
-							Resources: []apiv1.Resource{
-								{
-									ID:         "fake-id",
-									Type:       runtime.Kubernetes,
-									Attributes: FakeService,
-									DependsOn:  []string{"nonexistent-id"},
-								},
+						Stack:   fakeStack,
+						Project: fakeProject,
+					},
+					Spec: &apiv1.Spec{
+						Resources: []apiv1.Resource{
+							{
+								ID:         "fake-id",
+								Type:       runtime.Kubernetes,
+								Attributes: fakeService,
+								DependsOn:  []string{"nonexistent-id"},
 							},
 						},
 					},
+					State: &apiv1.State{},
 				},
 			},
 			wantRsp: nil,
-			wantS:   v1.NewErrorStatusWithMsg(v1.IllegalManifest, "can't find resource by key:nonexistent-id in models or state."),
+			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
+
+	for _, tc := range testcases {
+		mockey.PatchConvey(tc.name, t, func() {
 			o := &PreviewOperation{
 				Operation: models.Operation{
-					OperationType:           tt.fields.OperationType,
-					StateStorage:            tt.fields.StateStorage,
-					CtxResourceIndex:        tt.fields.CtxResourceIndex,
-					PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
-					StateResourceIndex:      tt.fields.StateResourceIndex,
-					ChangeOrder:             tt.fields.Order,
-					RuntimeMap:              tt.fields.RuntimeMap,
-					MsgCh:                   tt.fields.MsgCh,
-					ResultState:             tt.fields.resultState,
-					Lock:                    tt.fields.lock,
+					OperationType:           tc.fields.operationType,
+					ReleaseStorage:          tc.fields.releaseStorage,
+					CtxResourceIndex:        tc.fields.ctxResourceIndex,
+					PriorStateResourceIndex: tc.fields.priorStateResourceIndex,
+					StateResourceIndex:      tc.fields.stateResourceIndex,
+					ChangeOrder:             tc.fields.order,
+					RuntimeMap:              tc.fields.runtimeMap,
+					MsgCh:                   tc.fields.msgCh,
+					Release:                 tc.fields.release,
+					Lock:                    tc.fields.lock,
 				},
 			}
 
@@ -263,12 +257,13 @@ func TestOperation_Preview(t *testing.T) {
 			) (map[apiv1.Type]runtime.Runtime, v1.Status) {
 				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &fakePreviewRuntime{}}, nil
 			}).Build()
-			gotRsp, gotS := o.Preview(tt.args.request)
-			if !reflect.DeepEqual(gotRsp, tt.wantRsp) {
-				t.Errorf("Operation.Preview() gotRsp = %v, want %v", json.Marshal2PrettyString(gotRsp), json.Marshal2PrettyString(tt.wantRsp))
+
+			gotRsp, gotS := o.Preview(tc.args.req)
+			if !reflect.DeepEqual(gotRsp, tc.wantRsp) {
+				t.Errorf("Operation.Preview() gotRsp = %v, want %v", json.Marshal2PrettyString(gotRsp), json.Marshal2PrettyString(tc.wantRsp))
 			}
-			if !reflect.DeepEqual(gotS, tt.wantS) {
-				t.Errorf("Operation.Preview() gotS = %v, want %v", gotS, tt.wantS)
+			if tc.wantErr && gotS == nil || !tc.wantErr && gotS != nil {
+				t.Errorf("Operation.Preview() gotS = %v, wantErr %v", gotS, tc.wantErr)
 			}
 		})
 	}

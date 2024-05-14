@@ -1,104 +1,58 @@
 package operation
 
 import (
-	"path/filepath"
-	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/bytedance/mockey"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/state"
-	"kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
-func Test_ValidateRequest(t *testing.T) {
-	type args struct {
-		request *models.Request
-	}
-	tests := []struct {
-		name string
-		args args
-		want v1.Status
-	}{
-		{
-			name: "t1",
-			args: args{
-				request: &models.Request{},
-			},
-			want: v1.NewErrorStatusWithMsg(v1.InvalidArgument,
-				"request.Intent is empty. If you want to delete all resources, please use command 'destroy'"),
-		},
-		{
-			name: "t2",
-			args: args{
-				request: &models.Request{
-					Intent: &apiv1.Spec{Resources: []apiv1.Resource{}},
-				},
-			},
-			want: nil,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := validateRequest(tt.args.request); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("validateRequest() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOperation_Apply(t *testing.T) {
+func TestApplyOperation_Apply(t *testing.T) {
 	type fields struct {
-		OperationType           models.OperationType
-		StateStorage            state.Storage
-		CtxResourceIndex        map[string]*apiv1.Resource
-		PriorStateResourceIndex map[string]*apiv1.Resource
-		StateResourceIndex      map[string]*apiv1.Resource
-		Order                   *models.ChangeOrder
-		RuntimeMap              map[apiv1.Type]runtime.Runtime
-		Stack                   *apiv1.Stack
-		MsgCh                   chan models.Message
-		resultState             *apiv1.DeprecatedState
+		operationType           models.OperationType
+		releaseStorage          release.Storage
+		ctxResourceIndex        map[string]*apiv1.Resource
+		priorStateResourceIndex map[string]*apiv1.Resource
+		stateResourceIndex      map[string]*apiv1.Resource
+		order                   *models.ChangeOrder
+		runtimeMap              map[apiv1.Type]runtime.Runtime
+		stack                   *apiv1.Stack
+		msgCh                   chan models.Message
+		release                 *apiv1.Release
 		lock                    *sync.Mutex
 	}
 	type args struct {
 		applyRequest *ApplyRequest
 	}
 
-	const Jack = "jack"
-	mf := &apiv1.Spec{Resources: []apiv1.Resource{
-		{
-			ID:   Jack,
-			Type: runtime.Kubernetes,
-			Attributes: map[string]interface{}{
-				"a": "b",
-			},
-			DependsOn: nil,
-		},
-	}}
-
-	rs := &apiv1.DeprecatedState{
-		ID:            0,
-		Stack:         "fake-stack",
-		Project:       "fake-project",
-		Workspace:     "fake-workspace",
-		Version:       0,
-		KusionVersion: "",
-		Serial:        1,
-		Operator:      "fake-operator",
+	fakeSpec := &apiv1.Spec{
 		Resources: []apiv1.Resource{
 			{
-				ID:   Jack,
+				ID:   "mock-id",
+				Type: runtime.Kubernetes,
+				Attributes: map[string]interface{}{
+					"a": "b",
+				},
+				DependsOn: nil,
+			},
+		},
+	}
+	fakeState := &apiv1.State{
+		Resources: []apiv1.Resource{
+			{
+				ID:   "mock-id",
 				Type: runtime.Kubernetes,
 				Attributes: map[string]interface{}{
 					"a": "b",
@@ -108,63 +62,89 @@ func TestOperation_Apply(t *testing.T) {
 		},
 	}
 
-	s := &apiv1.Stack{
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	fakeTime := time.Date(2024, 5, 10, 16, 48, 0, 0, loc)
+	fakeRelease := &apiv1.Release{
+		Project:      "fake-project",
+		Workspace:    "fake-workspace",
+		Revision:     1,
+		Stack:        "fake-stack",
+		Spec:         fakeSpec,
+		State:        &apiv1.State{},
+		Phase:        apiv1.ReleasePhaseApplying,
+		CreateTime:   fakeTime,
+		ModifiedTime: fakeTime,
+	}
+	fakeUpdateRelease := &apiv1.Release{
+		Project:      "fake-project",
+		Workspace:    "fake-workspace",
+		Revision:     1,
+		Stack:        "fake-stack",
+		Spec:         fakeSpec,
+		State:        fakeState,
+		Phase:        apiv1.ReleasePhaseApplying,
+		CreateTime:   fakeTime,
+		ModifiedTime: fakeTime,
+	}
+
+	fakeStack := &apiv1.Stack{
 		Name: "fake-stack",
 		Path: "fake-path",
 	}
-	p := &apiv1.Project{
+	fakeProject := &apiv1.Project{
 		Name:   "fake-project",
 		Path:   "fake-path",
-		Stacks: []*apiv1.Stack{s},
+		Stacks: []*apiv1.Stack{fakeStack},
 	}
 
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantRsp *ApplyResponse
-		wantSt  v1.Status
+	testcases := []struct {
+		name             string
+		fields           fields
+		args             args
+		expectedResponse *ApplyResponse
+		expectedStatus   v1.Status
 	}{
 		{
 			name: "apply test",
 			fields: fields{
-				OperationType: models.Apply,
-				StateStorage:  storages.NewLocalStorage(filepath.Join("testdata", "state.yaml")),
-				RuntimeMap:    map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
-				MsgCh:         make(chan models.Message, 5),
+				operationType:  models.Apply,
+				releaseStorage: &storages.LocalStorage{},
+				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				msgCh:          make(chan models.Message, 5),
 			},
-			args: args{applyRequest: &ApplyRequest{models.Request{
-				Stack:    s,
-				Project:  p,
-				Operator: "fake-operator",
-				Intent:   mf,
-			}}},
-			wantRsp: &ApplyResponse{rs},
-			wantSt:  nil,
+			args: args{applyRequest: &ApplyRequest{
+				Request: models.Request{
+					Stack:   fakeStack,
+					Project: fakeProject,
+				},
+				Release: fakeRelease,
+			}},
+			expectedResponse: &ApplyResponse{Release: fakeUpdateRelease},
+			expectedStatus:   nil,
 		},
 	}
 
-	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
+	for _, tc := range testcases {
+		mockey.PatchConvey(tc.name, t, func() {
 			o := &models.Operation{
-				OperationType:           tt.fields.OperationType,
-				StateStorage:            tt.fields.StateStorage,
-				CtxResourceIndex:        tt.fields.CtxResourceIndex,
-				PriorStateResourceIndex: tt.fields.PriorStateResourceIndex,
-				StateResourceIndex:      tt.fields.StateResourceIndex,
-				ChangeOrder:             tt.fields.Order,
-				RuntimeMap:              tt.fields.RuntimeMap,
-				Stack:                   tt.fields.Stack,
-				MsgCh:                   tt.fields.MsgCh,
-				ResultState:             tt.fields.resultState,
-				Lock:                    tt.fields.lock,
+				OperationType:           tc.fields.operationType,
+				ReleaseStorage:          tc.fields.releaseStorage,
+				CtxResourceIndex:        tc.fields.ctxResourceIndex,
+				PriorStateResourceIndex: tc.fields.priorStateResourceIndex,
+				StateResourceIndex:      tc.fields.stateResourceIndex,
+				ChangeOrder:             tc.fields.order,
+				RuntimeMap:              tc.fields.runtimeMap,
+				Stack:                   tc.fields.stack,
+				MsgCh:                   tc.fields.msgCh,
+				Release:                 tc.fields.release,
+				Lock:                    tc.fields.lock,
 			}
 			ao := &ApplyOperation{
 				Operation: *o,
 			}
 
 			mockey.Mock((*graph.ResourceNode).Execute).To(func(operation *models.Operation) v1.Status {
-				o.ResultState = rs
+				operation.Release = fakeUpdateRelease
 				return nil
 			}).Build()
 			mockey.Mock(runtimeinit.Runtimes).To(func(
@@ -173,9 +153,43 @@ func TestOperation_Apply(t *testing.T) {
 				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()
 
-			gotRsp, gotSt := ao.Apply(tt.args.applyRequest)
-			assert.Equalf(t, tt.wantRsp.State.Stack, gotRsp.State.Stack, "Apply(%v)", tt.args.applyRequest)
-			assert.Equalf(t, tt.wantSt, gotSt, "Apply(%v)", tt.args.applyRequest)
+			rsp, status := ao.Apply(tc.args.applyRequest)
+			assert.Equal(t, tc.expectedResponse, rsp)
+			assert.Equal(t, tc.expectedStatus, status)
+		})
+	}
+}
+
+func Test_ValidateApplyRequest(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		req     *ApplyRequest
+	}{
+		{
+			name:    "invalid request nil request",
+			success: false,
+			req:     nil,
+		},
+		{
+			name:    "invalid request invalid release phase",
+			success: false,
+			req: &ApplyRequest{
+				Release: &apiv1.Release{
+					Phase: "invalid_phase",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock valid release and spec", t, func() {
+				mockey.Mock(release.ValidateRelease).Return(nil).Build()
+				mockey.Mock(release.ValidateSpec).Return(nil).Build()
+				err := validateApplyRequest(tc.req)
+				assert.Equal(t, tc.success, err == nil)
+			})
 		})
 	}
 }

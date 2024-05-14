@@ -85,6 +85,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.15.1
 )
 
+require github.com/kisielk/godepgraph v0.0.0-20240411160502-0f324ca7e282 // indirect
+
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect

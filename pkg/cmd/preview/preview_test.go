@@ -30,105 +30,13 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/util/terminal"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
-
-var (
-	apiVersion = "v1"
-	kind       = "ServiceAccount"
-	namespace  = "test-ns"
-
-	proj = &apiv1.Project{
-		Name: "testdata",
-	}
-	stack = &apiv1.Stack{
-		Name: "dev",
-	}
-	workspace = &apiv1.Workspace{
-		Name: "default",
-	}
-
-	sa1 = newSA("sa1")
-	sa2 = newSA("sa2")
-	sa3 = newSA("sa3")
-)
-
-func NewPreviewOptions() *PreviewOptions {
-	storageBackend := storages.NewLocalStorage(&apiv1.BackendLocalConfig{
-		Path: filepath.Join("", "state.yaml"),
-	})
-	return &PreviewOptions{
-		MetaOptions: &meta.MetaOptions{
-			RefProject:     proj,
-			RefStack:       stack,
-			RefWorkspace:   workspace,
-			StorageBackend: storageBackend,
-		},
-	}
-}
-
-func TestPreview(t *testing.T) {
-	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
-	t.Run("preview success", func(t *testing.T) {
-		m := mockOperationPreview()
-		defer m.UnPatch()
-
-		o := &PreviewOptions{}
-		_, err := Preview(o, stateStorage, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
-		assert.Nil(t, err)
-	})
-}
-
-func TestPreviewOptionsRun(t *testing.T) {
-	t.Run("detail is true", func(t *testing.T) {
-		mockey.PatchConvey("mock engine operation", t, func() {
-			mockGenerateSpecWithSpinner()
-			mockNewKubernetesRuntime()
-			mockOperationPreview()
-			mockPromptDetail("")
-			mockStateStorage()
-
-			o := NewPreviewOptions()
-			o.Detail = true
-			err := o.Run()
-			assert.Nil(t, err)
-		})
-	})
-
-	t.Run("json output is true", func(t *testing.T) {
-		mockey.PatchConvey("mock engine operation", t, func() {
-			mockGenerateSpecWithSpinner()
-			mockNewKubernetesRuntime()
-			mockOperationPreview()
-			mockPromptDetail("")
-			mockStateStorage()
-
-			o := NewPreviewOptions()
-			o.Output = jsonOutput
-			err := o.Run()
-			assert.Nil(t, err)
-		})
-	})
-
-	t.Run("no style is true", func(t *testing.T) {
-		mockey.PatchConvey("mock engine operation", t, func() {
-			mockGenerateSpecWithSpinner()
-			mockNewKubernetesRuntime()
-			mockOperationPreview()
-			mockPromptDetail("")
-			mockStateStorage()
-
-			o := NewPreviewOptions()
-			o.NoStyle = true
-			err := o.Run()
-			assert.Nil(t, err)
-		})
-	})
-}
 
 type fooRuntime struct{}
 
@@ -164,34 +72,38 @@ func (f *fooRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtime.
 	return nil
 }
 
-func mockOperationPreview() *mockey.Mocker {
-	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
-		*operation.PreviewOperation,
-		*operation.PreviewRequest,
-	) (rsp *operation.PreviewResponse, s v1.Status) {
-		return &operation.PreviewResponse{
-			Order: &models.ChangeOrder{
-				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
-				ChangeSteps: map[string]*models.ChangeStep{
-					sa1.ID: {
-						ID:     sa1.ID,
-						Action: models.Create,
-						From:   &sa1,
-					},
-					sa2.ID: {
-						ID:     sa2.ID,
-						Action: models.UnChanged,
-						From:   &sa2,
-					},
-					sa3.ID: {
-						ID:     sa3.ID,
-						Action: models.Undefined,
-						From:   &sa1,
-					},
-				},
-			},
-		}, nil
-	}).Build()
+var (
+	apiVersion = "v1"
+	kind       = "ServiceAccount"
+	namespace  = "test-ns"
+
+	proj = &apiv1.Project{
+		Name: "testdata",
+	}
+	stack = &apiv1.Stack{
+		Name: "dev",
+	}
+	workspace = &apiv1.Workspace{
+		Name: "default",
+	}
+
+	sa1 = newSA("sa1")
+	sa2 = newSA("sa2")
+	sa3 = newSA("sa3")
+)
+
+func newPreviewOptions() *PreviewOptions {
+	storageBackend := storages.NewLocalStorage(&apiv1.BackendLocalConfig{
+		Path: filepath.Join("", "state.yaml"),
+	})
+	return &PreviewOptions{
+		MetaOptions: &meta.MetaOptions{
+			RefProject:   proj,
+			RefStack:     stack,
+			RefWorkspace: workspace,
+			Backend:      storageBackend,
+		},
+	}
 }
 
 func newSA(name string) apiv1.Resource {
@@ -234,6 +146,100 @@ func mockPromptDetail(input string) {
 	}).Build()
 }
 
-func mockStateStorage() {
+func mockWorkspaceStorage() {
 	mockey.Mock((*storages.LocalStorage).WorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
+}
+
+func mockReleaseStorageOperation() {
+	mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
+	mockey.Mock(release.GetLatestState).Return(nil, nil).Build()
+}
+
+func mockOperationPreview() *mockey.Mocker {
+	return mockey.Mock((*operation.PreviewOperation).Preview).To(func(
+		*operation.PreviewOperation,
+		*operation.PreviewRequest,
+	) (rsp *operation.PreviewResponse, s v1.Status) {
+		return &operation.PreviewResponse{
+			Order: &models.ChangeOrder{
+				StepKeys: []string{sa1.ID, sa2.ID, sa3.ID},
+				ChangeSteps: map[string]*models.ChangeStep{
+					sa1.ID: {
+						ID:     sa1.ID,
+						Action: models.Create,
+						From:   &sa1,
+					},
+					sa2.ID: {
+						ID:     sa2.ID,
+						Action: models.UnChanged,
+						From:   &sa2,
+					},
+					sa3.ID: {
+						ID:     sa3.ID,
+						Action: models.Undefined,
+						From:   &sa1,
+					},
+				},
+			},
+		}, nil
+	}).Build()
+}
+
+func TestPreview(t *testing.T) {
+	t.Run("preview success", func(t *testing.T) {
+		m := mockOperationPreview()
+		defer m.UnPatch()
+		mockReleaseStorageOperation()
+
+		o := &PreviewOptions{}
+		_, err := Preview(o, &releasestorages.LocalStorage{}, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, &apiv1.State{}, proj, stack)
+		assert.Nil(t, err)
+	})
+}
+
+func TestPreviewOptions_Run(t *testing.T) {
+	t.Run("detail is true", func(t *testing.T) {
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockGenerateSpecWithSpinner()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockWorkspaceStorage()
+
+			o := newPreviewOptions()
+			o.Detail = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("json output is true", func(t *testing.T) {
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockGenerateSpecWithSpinner()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockWorkspaceStorage()
+
+			o := newPreviewOptions()
+			o.Output = jsonOutput
+			err := o.Run()
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("no style is true", func(t *testing.T) {
+		mockey.PatchConvey("mock engine operation", t, func() {
+			mockGenerateSpecWithSpinner()
+			mockNewKubernetesRuntime()
+			mockOperationPreview()
+			mockPromptDetail("")
+			mockWorkspaceStorage()
+
+			o := newPreviewOptions()
+			o.NoStyle = true
+			err := o.Run()
+			assert.Nil(t, err)
+		})
+	})
 }

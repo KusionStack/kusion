@@ -9,11 +9,13 @@ import (
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/repository"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/engine/release"
 
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
@@ -96,13 +98,78 @@ func (m *StackManager) GenerateStack(ctx context.Context, id uint, workspaceName
 func (m *StackManager) PreviewStack(ctx context.Context, id uint, workspaceName string) (*models.Changes, error) {
 	logger := util.GetLogger(ctx)
 	logger.Info("Starting previewing stack in StackManager ...")
-	_, changes, _, err := m.previewHelper(ctx, id, workspaceName)
+	opts, stackBackend, project, stack, ws, err := m.metaHelper(ctx, id, workspaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate spec
+	sp, err := engineapi.GenerateSpecWithSpinner(project, stack, ws, true)
+	if err != nil {
+		return nil, err
+	}
+	// return immediately if no resource found in stack
+	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
+	if sp == nil || len(sp.Resources) == 0 {
+		logger.Info("No resource change found in this stack...")
+		return nil, nil
+	}
+
+	// Preview
+	releaseStorage, err := stackBackend.ReleaseStorage(project.Name, ws.Name)
+	if err != nil {
+		return nil, err
+	}
+	state, err := release.GetLatestState(releaseStorage)
+	if err != nil {
+		return nil, err
+	}
+	if state == nil {
+		state = &v1.State{}
+	}
+	changes, err := engineapi.Preview(opts, releaseStorage, sp, state, project, stack)
 	return changes, err
 }
 
-func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, format string, detail, dryrun bool, w http.ResponseWriter) error {
+func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, format string, detail, dryrun bool, w http.ResponseWriter) (err error) {
 	logger := util.GetLogger(ctx)
 	logger.Info("Starting applying stack in StackManager ...")
+
+	var storage release.Storage
+	var rel *v1.Release
+	releaseCreated := false
+	defer func() {
+		if !releaseCreated {
+			return
+		}
+		if err != nil {
+			rel.Phase = v1.ReleasePhaseFailed
+			_ = release.UpdateApplyRelease(storage, rel, dryrun)
+		} else {
+			rel.Phase = v1.ReleasePhaseSucceeded
+			err = release.UpdateApplyRelease(storage, rel, dryrun)
+		}
+	}()
+
+	// create release
+	opts, stackBackend, project, stack, ws, err := m.metaHelper(ctx, id, workspaceName)
+	if err != nil {
+		return err
+	}
+	storage, err = stackBackend.ReleaseStorage(project.Name, ws.Name)
+	if err != nil {
+		return
+	}
+	rel, err = release.NewApplyRelease(storage, project.Name, stack.Name, ws.Name)
+	if err != nil {
+		return
+	}
+	if !dryrun {
+		if err = storage.Create(rel); err != nil {
+			return
+		}
+		releaseCreated = true
+	}
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, id)
@@ -110,18 +177,35 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrGettingNonExistingStack
 		}
-		return err
+		return
 	}
 
-	// Preview a stack
-	sp, changes, stateStorage, err := m.previewHelper(ctx, id, workspaceName)
+	// generate spec
+	sp, err := engineapi.GenerateSpecWithSpinner(project, stack, ws, true)
 	if err != nil {
-		return err
+		return
+	}
+	// return immediately if no resource found in stack
+	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
+	if sp == nil || len(sp.Resources) == 0 {
+		logger.Info("No resource change found in this stack...")
+		return nil
 	}
 
+	// update release phase to previewing
+	rel.Spec = sp
+	rel.Phase = v1.ReleasePhasePreviewing
+	if err = release.UpdateApplyRelease(storage, rel, dryrun); err != nil {
+		return
+	}
+	// compute changes for preview
+	changes, err := engineapi.Preview(opts, storage, rel.Spec, rel.State, project, stack)
+	if err != nil {
+		return
+	}
 	_, err = ProcessChanges(ctx, w, changes, format, detail)
 	if err != nil {
-		return err
+		return
 	}
 
 	// if dry run, print the hint
@@ -130,11 +214,18 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 		return ErrDryrunDestroy
 	}
 
+	rel.Phase = v1.ReleasePhaseApplying
+	if err = release.UpdateApplyRelease(storage, rel, dryrun); err != nil {
+		return
+	}
 	logger.Info("Dryrun set to false. Start applying diffs ...")
 	executeOptions := BuildOptions(dryrun)
-	if err = engineapi.Apply(executeOptions, stateStorage, sp, changes, os.Stdout); err != nil {
-		return err
+	var upRel *v1.Release
+	upRel, err = engineapi.Apply(executeOptions, storage, rel, changes, os.Stdout)
+	if err != nil {
+		return
 	}
+	rel = upRel
 
 	// Update LastSyncTimestamp to current time and set stack syncState to synced
 	stackEntity.LastSyncTimestamp = time.Now()
@@ -143,79 +234,55 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 	// Update stack with repository
 	err = m.stackRepo.Update(ctx, stackEntity)
 	if err != nil {
-		return err
+		return
 	}
 
 	return nil
 }
 
-func (m *StackManager) DestroyStack(ctx context.Context, id uint, workspaceName string, detail, dryrun bool, w http.ResponseWriter) error {
+func (m *StackManager) DestroyStack(ctx context.Context, id uint, workspaceName string, detail, dryrun bool, w http.ResponseWriter) (err error) {
 	logger := util.GetLogger(ctx)
 	logger.Info("Starting applying stack in StackManager ...")
 
-	// Get the stack entity by id
-	stackEntity, err := m.stackRepo.Get(ctx, id)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrGettingNonExistingStack
+	// update release to succeeded or failed
+	var storage release.Storage
+	var rel *v1.Release
+	releaseCreated := false
+	defer func() {
+		if !releaseCreated {
+			return
 		}
-		return err
-	}
+		if err != nil {
+			rel.Phase = v1.ReleasePhaseFailed
+			_ = release.UpdateDestroyRelease(storage, rel)
+		} else {
+			rel.Phase = v1.ReleasePhaseSucceeded
+			err = release.UpdateDestroyRelease(storage, rel)
+		}
+	}()
 
-	// Get project by id
-	project, err := stackEntity.Project.ConvertToCore()
+	// create release
+	_, stackBackend, project, stack, ws, err := m.metaHelper(ctx, id, workspaceName)
 	if err != nil {
 		return err
 	}
-
-	// Get stack by id
-	stack, err := stackEntity.ConvertToCore()
+	storage, err = stackBackend.ReleaseStorage(project.Name, ws.Name)
 	if err != nil {
-		return err
+		return
 	}
-
-	stateBackend, err := m.getBackendFromWorkspaceName(ctx, workspaceName)
+	rel, err = release.CreateDestroyRelease(storage, project.Name, stack.Name, ws.Name)
 	if err != nil {
-		return err
+		return
 	}
-
-	// Build API inputs
-	// get project to get source and workdir
-	projectEntity, err := handler.GetProjectByID(ctx, m.projectRepo, stackEntity.Project.ID)
-	if err != nil {
-		return err
-	}
-
-	directory, workDir, err := GetWorkDirFromSource(ctx, stackEntity, projectEntity)
-	if err != nil {
-		return err
-	}
-	destroyOptions := BuildOptions(dryrun)
-	stack.Path = workDir
-
-	// Cleanup
-	defer sourceapi.Cleanup(ctx, directory)
-
-	// Compute state storage
-	stateStorage := stateBackend.StateStorage(project.Name, workspaceName)
-	logger.Info("Remote state storage found", "Remote", stateStorage)
-
-	priorState, err := stateStorage.Get()
-	if err != nil || priorState == nil {
-		logger.Info("can't find state", "project", project.Name, "stack", stack.Name, "workspace", workspaceName)
-		return ErrGettingNonExistingStateForStack
-	}
-	destroyResources := priorState.Resources
-
-	if destroyResources == nil || len(priorState.Resources) == 0 {
+	if len(rel.Spec.Resources) == 0 {
 		return ErrNoManagedResourceToDestroy
 	}
+	releaseCreated = true
 
 	// compute changes for preview
-	i := &v1.Spec{Resources: destroyResources}
-	changes, err := engineapi.DestroyPreview(destroyOptions, i, project, stack, stateStorage)
+	changes, err := engineapi.DestroyPreview(rel.Spec, rel.State, project, stack, storage)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Summary preview table
@@ -231,11 +298,19 @@ func (m *StackManager) DestroyStack(ctx context.Context, id uint, workspaceName 
 		return ErrDryrunDestroy
 	}
 
+	// update release phase to destroying
+	rel.Phase = v1.ReleasePhaseDestroying
+	if err = release.UpdateDestroyRelease(storage, rel); err != nil {
+		return
+	}
 	// Destroy
 	logger.Info("Start destroying resources......")
-	if err = engineapi.Destroy(destroyOptions, i, changes, stateStorage); err != nil {
-		return err
+	var upRel *v1.Release
+	upRel, err = engineapi.Destroy(rel, changes, storage)
+	if err != nil {
+		return
 	}
+	rel = upRel
 	return nil
 }
 

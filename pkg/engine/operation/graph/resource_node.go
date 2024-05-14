@@ -175,7 +175,7 @@ func (rn *ResourceNode) initThreeWayDiffData(operation *models.Operation) (*apiv
 		planedResource = nil
 	}
 
-	// 2. get prior resource which is stored in kusion_state.json
+	// 2. get prior resource from the latest release
 	key := rn.resource.ResourceKey()
 	priorResource := operation.PriorStateResourceIndex[key]
 
@@ -237,7 +237,7 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 		}
 	case models.UnChanged:
 		log.Infof("planed resource and live resource are equal")
-		// auto import resources exist in intent and live cluster but no recorded in kusion_state.json
+		// auto import resources exist in intent and live cluster but not recorded in release file
 		if prior == nil {
 			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planed})
 			s = response.Status
@@ -255,7 +255,7 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 	if e := operation.RefreshResourceIndex(key, res, rn.Action); e != nil {
 		return v1.NewErrorStatus(e)
 	}
-	if e := operation.UpdateState(operation.StateResourceIndex); e != nil {
+	if e := operation.UpdateReleaseState(); e != nil {
 		return v1.NewErrorStatus(e)
 	}
 

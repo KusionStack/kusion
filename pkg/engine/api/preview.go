@@ -7,8 +7,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -52,8 +52,9 @@ func NewAPIOptions() APIOptions {
 //	}
 func Preview(
 	o *APIOptions,
-	storage state.Storage,
+	storage release.Storage,
 	planResources *apiv1.Spec,
+	priorResources *apiv1.State,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
 ) (*opsmodels.Changes, error) {
@@ -71,11 +72,11 @@ func Preview(
 	// construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: opsmodels.Operation{
-			OperationType: opsmodels.ApplyPreview,
-			Stack:         stack,
-			StateStorage:  storage,
-			IgnoreFields:  o.IgnoreFields,
-			ChangeOrder:   &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+			OperationType:  opsmodels.ApplyPreview,
+			Stack:          stack,
+			ReleaseStorage: storage,
+			IgnoreFields:   o.IgnoreFields,
+			ChangeOrder:    &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
 		},
 	}
 
@@ -84,11 +85,11 @@ func Preview(
 	// parse cluster in arguments
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: opsmodels.Request{
-			Project:  proj,
-			Stack:    stack,
-			Operator: o.Operator,
-			Intent:   planResources,
+			Project: proj,
+			Stack:   stack,
 		},
+		Spec:  planResources,
+		State: priorResources,
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())

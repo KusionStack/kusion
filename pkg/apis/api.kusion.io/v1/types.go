@@ -858,22 +858,22 @@ type ReleasePhase string
 
 const (
 	// ReleasePhaseGenerating indicates the stage of generating Spec.
-	ReleasePhaseGenerating = "generating"
+	ReleasePhaseGenerating ReleasePhase = "generating"
 
 	// ReleasePhasePreviewing indicated the stage of previewing.
-	ReleasePhasePreviewing = "previewing"
+	ReleasePhasePreviewing ReleasePhase = "previewing"
 
 	// ReleasePhaseApplying indicates the stage of applying.
-	ReleasePhaseApplying = "applying"
+	ReleasePhaseApplying ReleasePhase = "applying"
 
 	// ReleasePhaseDestroying indicates the stage of destroying.
-	ReleasePhaseDestroying = "destroying"
+	ReleasePhaseDestroying ReleasePhase = "destroying"
 
 	// ReleasePhaseSucceeded is a final phase, indicates the Release is successful.
-	ReleasePhaseSucceeded = "succeeded"
+	ReleasePhaseSucceeded ReleasePhase = "succeeded"
 
 	// ReleasePhaseFailed is a final phase, indicates the Release is failed.
-	ReleasePhaseFailed = "failed"
+	ReleasePhaseFailed ReleasePhase = "failed"
 )
 
 // Release describes the generation, preview and deployment of a specified Stack. When the operation

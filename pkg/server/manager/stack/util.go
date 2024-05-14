@@ -18,7 +18,6 @@ import (
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/server/handler"
 	"kusionstack.io/kusion/pkg/server/util"
 )
@@ -139,65 +138,62 @@ func (m *StackManager) getBackendFromWorkspaceName(ctx context.Context, workspac
 	return remoteBackend, nil
 }
 
-func (m *StackManager) previewHelper(
+func (m *StackManager) metaHelper(
 	ctx context.Context,
 	id uint,
 	workspaceName string,
-) (*v1.Spec, *models.Changes, state.Storage, error) {
+) (*engineapi.APIOptions, backend.Backend, *v1.Project, *v1.Stack, *v1.Workspace, error) {
 	logger := util.GetLogger(ctx)
-	logger.Info("Starting previewing stack in StackManager ...")
+	logger.Info("Starting getting metadata of the stack in StackManager ...")
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, nil, ErrGettingNonExistingStack
+			return nil, nil, nil, nil, nil, ErrGettingNonExistingStack
 		}
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// Get project by id
 	project, err := stackEntity.Project.ConvertToCore()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// Get stack by id
 	stack, err := stackEntity.ConvertToCore()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// Get backend from workspace name
 	stackBackend, err := m.getBackendFromWorkspaceName(ctx, workspaceName)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	// Get workspace configurations from backend
 	// TODO: temporarily local for now, should be replaced by variable sets
 	wsStorage, err := stackBackend.WorkspaceStorage()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	ws, err := wsStorage.Get(workspaceName)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
-	// Compute state storage
-	stateStorage := stackBackend.StateStorage(project.Name, ws.Name)
-	logger.Info("Local state storage found", "Path", stateStorage)
 
 	// Build API inputs
 	// get project to get source and workdir
 	projectEntity, err := handler.GetProjectByID(ctx, m.projectRepo, stackEntity.Project.ID)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	directory, workDir, err := GetWorkDirFromSource(ctx, stackEntity, projectEntity)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	executeOptions := BuildOptions(false)
 	stack.Path = workDir
@@ -205,19 +201,5 @@ func (m *StackManager) previewHelper(
 	// Cleanup
 	defer sourceapi.Cleanup(ctx, directory)
 
-	// Generate spec
-	sp, err := engineapi.GenerateSpecWithSpinner(project, stack, ws, true)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// return immediately if no resource found in stack
-	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
-	if sp == nil || len(sp.Resources) == 0 {
-		logger.Info("No resource change found in this stack...")
-		return nil, nil, nil, nil
-	}
-
-	changes, err := engineapi.Preview(executeOptions, stateStorage, sp, project, stack)
-	return sp, changes, stateStorage, err
+	return executeOptions, stackBackend, project, stack, ws, err
 }
