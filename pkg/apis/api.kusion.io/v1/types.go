@@ -857,7 +857,7 @@ type Release struct {
 	Stack string `yaml:"stack" json:"stack"`
 
 	// Spec of the Release, which can be provided when creating release or generated during Release.
-	Spec *Spec `yaml:"spec" json:"spec"`
+	Spec *Spec `yaml:"spec,omitempty" json:"spec,omitempty"`
 
 	// State of the Release, which will be generated and updated during Release. When a Release is created,
 	// the State will be filled with the latest State, which indicates the current infra resources.
@@ -870,7 +870,7 @@ type Release struct {
 	CreateTime time.Time `yaml:"createTime" json:"createTime"`
 
 	// ModifiedTime is the time that the Release is modified.
-	ModifiedTime time.Time `yaml:"modifiedTime,omitempty" json:"modifiedTime,omitempty"`
+	ModifiedTime time.Time `yaml:"modifiedTime" json:"modifiedTime"`
 }
 
 // DeprecatedState is a record of an operation's result. It is a mapping between resources in KCL and the actual infra
