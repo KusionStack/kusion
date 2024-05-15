@@ -291,8 +291,10 @@ func Test_patchWorkload(t *testing.T) {
 
 	t.Run("Patch labels and annotations", func(t *testing.T) {
 		patcher := &v1.Patcher{
-			Labels:      map[string]string{"newLabel": "newValue"},
-			Annotations: map[string]string{"newAnnotation": "newValue"},
+			Labels:         map[string]string{"newLabel": "newValue"},
+			Annotations:    map[string]string{"newAnnotation": "newValue"},
+			PodLabels:      map[string]string{"newPodLabel": "newValue"},
+			PodAnnotations: map[string]string{"newPodAnnotation": "newValue"},
 		}
 
 		err := PatchWorkload(res, patcher)
@@ -305,7 +307,7 @@ func Test_patchWorkload(t *testing.T) {
 		assert.Equal(t, "newValue", workloadLabels["newLabel"])
 		assert.Equal(t, "oldValue", workloadLabels["oldLabel"])
 		// assert pod labels
-		assert.Equal(t, "newValue", podLabels["newLabel"])
+		assert.Equal(t, "newValue", podLabels["newPodLabel"])
 		assert.Equal(t, "oldValue", podLabels["oldLabel"])
 
 		annotations := res.Attributes["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
@@ -314,7 +316,7 @@ func Test_patchWorkload(t *testing.T) {
 		// assert deployment annotations
 		assert.Equal(t, "newValue", annotations["newAnnotation"])
 		// assert pod annotations
-		assert.Equal(t, "newValue", podAnnotations["newAnnotation"])
+		assert.Equal(t, "newValue", podAnnotations["newPodAnnotation"])
 		assert.Equal(t, "oldValue", podLabels["oldLabel"])
 	})
 

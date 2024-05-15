@@ -402,10 +402,14 @@ type AppConfiguration struct {
 type Patcher struct {
 	// Environments represent the environment variables patched to all containers in the workload.
 	Environments []v1.EnvVar `json:"environments" yaml:"environments"`
-	// Labels represent the labels patched to both the workload and pod.
+	// Labels represent the labels patched to the workload.
 	Labels map[string]string `json:"labels" yaml:"labels"`
-	// Annotations represent the annotations patched to both the workload and pod.
+	// PodLabels represent the labels patched to the pods.
+	PodLabels map[string]string `json:"podLabels" yaml:"podLabels"`
+	// Annotations represent the annotations patched to the workload.
 	Annotations map[string]string `json:"annotations" yaml:"annotations"`
+	// PodAnnotations represent the annotations patched to the pods.
+	PodAnnotations map[string]string `json:"podAnnotations" yaml:"podAnnotations"`
 }
 
 const ConfigBackends = "backends"

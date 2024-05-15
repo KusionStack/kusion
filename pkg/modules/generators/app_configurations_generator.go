@@ -163,6 +163,15 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		if objLabels == nil {
 			objLabels = make(map[string]string)
 		}
+		// merge labels
+		for k, v := range patcher.Labels {
+			objLabels[k] = v
+		}
+		un.SetLabels(objLabels)
+	}
+
+	// patch pod labels
+	if patcher.PodLabels != nil {
 		podLabels, b, err := unstructured.NestedStringMap(un.Object, "spec", "template", "metadata", "labels")
 		if err != nil {
 			return fmt.Errorf("failed to get pod labels from workload:%s. %w", workload.ID, err)
@@ -171,11 +180,9 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 			podLabels = make(map[string]string)
 		}
 		// merge labels
-		for k, v := range patcher.Labels {
-			objLabels[k] = v
+		for k, v := range patcher.PodLabels {
 			podLabels[k] = v
 		}
-		un.SetLabels(objLabels)
 		err = unstructured.SetNestedStringMap(un.Object, podLabels, "spec", "template", "metadata", "labels")
 		if err != nil {
 			return err
@@ -188,6 +195,15 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		if objAnnotations == nil {
 			objAnnotations = make(map[string]string)
 		}
+		// merge annotations
+		for k, v := range patcher.Annotations {
+			objAnnotations[k] = v
+		}
+		un.SetAnnotations(objAnnotations)
+	}
+
+	// patch pod annotations
+	if patcher.PodAnnotations != nil {
 		podAnnotations, b, err := unstructured.NestedStringMap(un.Object, "spec", "template", "metadata", "annotations")
 		if err != nil {
 			return fmt.Errorf("failed to get pod annotations from workload:%s. %w", workload.ID, err)
@@ -196,12 +212,9 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 			podAnnotations = make(map[string]string)
 		}
 		// merge annotations
-		for k, v := range patcher.Annotations {
-			objAnnotations[k] = v
+		for k, v := range patcher.PodAnnotations {
 			podAnnotations[k] = v
 		}
-
-		un.SetAnnotations(objAnnotations)
 		err = unstructured.SetNestedStringMap(un.Object, podAnnotations, "spec", "template", "metadata", "annotations")
 		if err != nil {
 			return err
