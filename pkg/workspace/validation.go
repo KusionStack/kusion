@@ -70,7 +70,6 @@ func ValidateModuleConfigs(configs v1.ModuleConfigs) error {
 
 // ValidateModuleConfig is used to validate the moduleConfig is valid or not.
 func ValidateModuleConfig(config *v1.ModuleConfig) error {
-	// todo validate path and version in the config when we have turned workload into a module
 	if err := ValidateModuleDefaultConfig(config.Configs.Default); err != nil {
 		return err
 	}
@@ -81,6 +80,7 @@ func ValidateModuleConfig(config *v1.ModuleConfig) error {
 }
 
 func ValidateModuleDefaultConfig(config v1.GenericConfig) error {
+	// todo@dayuan validate path and version in the config when we have turned workload into a module
 	if len(config) == 0 {
 		return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, v1.DefaultBlock)
 	}

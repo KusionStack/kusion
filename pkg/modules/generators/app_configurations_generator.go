@@ -29,8 +29,10 @@ type appConfigurationGenerator struct {
 	dependencies *pkg.Dependencies
 }
 
-var ignoreModules = map[string]bool{
+// IgnoreModules todo@dayuan delete this condition after workload is changed into a module
+var IgnoreModules = map[string]bool{
 	"service": true,
+	"job":     true,
 }
 
 func NewAppConfigurationGenerator(
@@ -290,8 +292,8 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 
 	// generate customized module resources
 	for t, config := range indexModuleConfig {
-		// ignore workload and namespace modules
-		if ignoreModules[t] {
+		// ignore workload modules
+		if IgnoreModules[t] {
 			continue
 		}
 
