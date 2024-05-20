@@ -15,7 +15,7 @@ message GeneratorRequest {
   bytes dev_config = 5;
   // PlatformModuleConfig is the platform engineer's inputs of this module
   bytes platform_config = 6;
- // context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
+  // context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
   bytes context = 7;
 }
 
@@ -24,7 +24,7 @@ message GeneratorResponse {
   // Resources is a v1.Resource array, which represents the generated resources by this module.
   repeated bytes resources = 1;
   // Patcher contains fields should be patched into the workload corresponding fields
-  repeated bytes patchers = 2;
+  bytes patcher = 2;
 }
 
 service Module {

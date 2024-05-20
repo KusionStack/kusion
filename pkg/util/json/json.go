@@ -6,7 +6,6 @@ import (
 	"kusionstack.io/kusion/pkg/util"
 )
 
-// https://github.com/ksonnet/ksonnet/blob/master/pkg/kubecfg/diff.go
 func removeFields(config, live interface{}) interface{} {
 	switch c := config.(type) {
 	case map[string]interface{}:

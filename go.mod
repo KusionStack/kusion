@@ -20,6 +20,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/djherbis/times v1.5.0
 	github.com/evanphx/json-patch v4.12.0+incompatible
+	github.com/evanphx/json-patch/v5 v5.9.0
 	github.com/fluxcd/pkg/sourceignore v0.5.0
 	github.com/fluxcd/pkg/tar v0.4.0
 	github.com/go-chi/chi/v5 v5.0.12

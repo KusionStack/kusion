@@ -357,16 +357,16 @@ type Accessory map[string]interface{}
 //		   # extend accessories module base
 //	       accessories: {
 //	           # Built-in module, key represents the module source
-//	           "kusionstack/mysql@v0.1" : d.MySQL {
+//	           "mysql" : d.MySQL {
 //	               type: "cloud"
 //	               version: "8.0"
 //	           }
 //	           # Built-in module, key represents the module source
-//	           "kusionstack/prometheus@v0.1" : m.Prometheus {
+//	           "prometheus" : m.Prometheus {
 //	               path: "/metrics"
 //	           }
 //	           # Customized module, key represents the module source
-//	           "foo/customize": customizedModule {
+//	           "customize": customizedModule {
 //	               ...
 //	           }
 //	       }
@@ -391,25 +391,57 @@ type AppConfiguration struct {
 	// Workload defines how to run your application code.
 	Workload *Workload `json:"workload" yaml:"workload"`
 	// Accessories defines a collection of accessories that will be attached to the workload.
-	// The key in this map represents the module source. e.g. kusionstack/mysql@v0.1
+	// The key in this map represents the module name
 	Accessories map[string]Accessory `json:"accessories,omitempty" yaml:"accessories,omitempty"`
 	// Labels and Annotations can be used to attach arbitrary metadata as key-value pairs to resources.
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
-// Patcher contains fields should be patched into the workload corresponding fields
+// Patcher primarily contains patches for fields associated with Workloads, and additionally offers the capability to patch other resources.
 type Patcher struct {
 	// Environments represent the environment variables patched to all containers in the workload.
-	Environments []v1.EnvVar `json:"environments" yaml:"environments"`
+	Environments []v1.EnvVar `json:"environments,omitempty" yaml:"environments,omitempty"`
 	// Labels represent the labels patched to the workload.
-	Labels map[string]string `json:"labels" yaml:"labels"`
+	Labels map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	// PodLabels represent the labels patched to the pods.
-	PodLabels map[string]string `json:"podLabels" yaml:"podLabels"`
+	PodLabels map[string]string `json:"podLabels,omitempty" yaml:"podLabels,omitempty"`
 	// Annotations represent the annotations patched to the workload.
-	Annotations map[string]string `json:"annotations" yaml:"annotations"`
+	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 	// PodAnnotations represent the annotations patched to the pods.
-	PodAnnotations map[string]string `json:"podAnnotations" yaml:"podAnnotations"`
+	PodAnnotations map[string]string `json:"podAnnotations,omitempty" yaml:"podAnnotations,omitempty"`
+	// JSONPatchers represents patchers that can be patched to an arbitrary resource.
+	// The key of this map represents the ResourceId of the resource to be patched.
+	JSONPatchers map[string]JSONPatcher `json:"jsonPatcher,omitempty" yaml:"jsonPatcher,omitempty"`
+}
+
+type PatchType string
+
+const (
+	MergePatch PatchType = "MergePatch"
+	JSONPatch  PatchType = "JSONPatch"
+)
+
+// JSONPatcher represents the patcher that can be patched to an arbitrary resource.
+// The patch algorithm follows the RFC6902 JSON patch and RFC7396 JSON merge patches.
+type JSONPatcher struct {
+	// PatchType
+	Type PatchType `json:"type" yaml:"type"`
+	// Payload is the patch content.
+	//
+	// JSONPatch Example:
+	// original := []byte(`{"name": "John", "age": 24, "height": 3.21}`)
+	// payload := []byte(`[
+	//		{"op": "replace", "path": "/name", "value": "Jane"},
+	//		{"op": "remove", "path": "/height"}
+	//	]`)
+	// result: {"age":24,"name":"Jane"}
+	//
+	// MergePatch Example:
+	// original := []byte(`{"name": "Tina", "age": 28, "height": 3.75}`)
+	// payload := []byte(`{"height":null,"name":"Jane"}`)
+	// result: {"age":28,"name":"Jane"}
+	Payload []byte `json:"payload" yaml:"payload"`
 }
 
 const ConfigBackends = "backends"
