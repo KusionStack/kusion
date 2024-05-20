@@ -417,3 +417,64 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestJsonPatch(t *testing.T) {
+	t.Run("ResourcesNil", func(t *testing.T) {
+		err := JSONPatch(nil, &v1.Patcher{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("PatcherNil", func(t *testing.T) {
+		err := JSONPatch([]v1.Resource{{ID: "test"}}, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("JsonPatchersNil", func(t *testing.T) {
+		err := JSONPatch([]v1.Resource{{ID: "test"}}, &v1.Patcher{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("ResourceNotFound", func(t *testing.T) {
+		err := JSONPatch([]v1.Resource{{ID: "test"}}, &v1.Patcher{
+			JSONPatchers: map[string]v1.JSONPatcher{
+				"notfound": {Type: v1.MergePatch, Payload: []byte(`{"key": "value"}`)},
+			},
+		})
+		assert.Error(t, err)
+	})
+
+	t.Run("MergePatch", func(t *testing.T) {
+		resources := []v1.Resource{
+			{ID: "test", Attributes: map[string]interface{}{"key": "old"}},
+		}
+		err := JSONPatch(resources, &v1.Patcher{
+			JSONPatchers: map[string]v1.JSONPatcher{
+				"test": {Type: v1.MergePatch, Payload: []byte(`{"key": "new"}`)},
+			},
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "new", resources[0].Attributes["key"])
+	})
+
+	t.Run("JSONPatch", func(t *testing.T) {
+		resources := []v1.Resource{
+			{ID: "test", Attributes: map[string]interface{}{"key": "old"}},
+		}
+		err := JSONPatch(resources, &v1.Patcher{
+			JSONPatchers: map[string]v1.JSONPatcher{
+				"test": {Type: v1.JSONPatch, Payload: []byte(`[{"op": "replace", "path": "/key", "value": "new"}]`)},
+			},
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "new", resources[0].Attributes["key"])
+	})
+
+	t.Run("UnsupportedPatchType", func(t *testing.T) {
+		err := JSONPatch([]v1.Resource{{ID: "test"}}, &v1.Patcher{
+			JSONPatchers: map[string]v1.JSONPatcher{
+				"test": {Type: "unsupported", Payload: []byte(`{"key": "value"}`)},
+			},
+		})
+		assert.Error(t, err)
+	})
+}

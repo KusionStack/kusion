@@ -2,10 +2,12 @@ package generators
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	yamlv2 "gopkg.in/yaml.v2"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -17,6 +19,7 @@ import (
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
 	"kusionstack.io/kusion/pkg/modules/proto"
+	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -126,26 +129,74 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	wl := spec.Resources[1]
 
 	// call modules to generate customized resources
-	resources, patchers, err := g.callModules(projectModuleConfigs)
+	resources, patcher, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
 
-	// patch workload with resource patchers
-	for _, p := range patchers {
-		if err = PatchWorkload(&wl, &p); err != nil {
+	// append the generated resources to the spec
+	spec.Resources = append(spec.Resources, resources...)
+
+	// patch workload with resource patcher
+	if patcher != nil {
+		if err = PatchWorkload(&wl, patcher); err != nil {
+			return err
+		}
+		if err = JSONPatch(spec.Resources, patcher); err != nil {
 			return err
 		}
 	}
-
-	// append the generated resources to the spec
-	spec.Resources = append(spec.Resources, resources...)
 
 	// The OrderedResourcesGenerator should be executed after all resources are generated.
 	if err = modules.CallGenerators(spec, NewOrderedResourcesGeneratorFunc()); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
+	if resources == nil || patcher == nil {
+		return nil
+	}
+
+	resIndex := resources.Index()
+
+	if patcher.JSONPatchers != nil {
+		for id, jsonPatcher := range patcher.JSONPatchers {
+			res, ok := resIndex[id]
+			if !ok {
+				return fmt.Errorf("target patch resource %s not found", id)
+			}
+
+			target := jsonutil.Marshal2String(res.Attributes)
+			switch jsonPatcher.Type {
+			case v1.MergePatch:
+				modified, err := jsonpatch.MergePatch([]byte(target), jsonPatcher.Payload)
+				if err != nil {
+					return fmt.Errorf("merge patch to:%s failed", id)
+				}
+				if err = json.Unmarshal(modified, &res.Attributes); err != nil {
+					return err
+				}
+			case v1.JSONPatch:
+				patch, err := jsonpatch.DecodePatch(jsonPatcher.Payload)
+				if err != nil {
+					return fmt.Errorf("decode json patch:%s failed", jsonPatcher.Payload)
+				}
+
+				modified, err := patch.Apply([]byte(target))
+				if err != nil {
+					return fmt.Errorf("apply json patch to:%s failed", id)
+				}
+				if err = json.Unmarshal(modified, &res.Attributes); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("unsupported patch type:%s", jsonPatcher.Type)
+			}
+		}
+	}
 	return nil
 }
 
@@ -268,7 +319,7 @@ type moduleConfig struct {
 	ctx            v1.GenericConfig
 }
 
-func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []v1.Patcher, err error) {
+func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patcher *v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		for _, plugin := range pluginMap {
@@ -335,17 +386,13 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		}
 
 		// parse patcher
-		for _, patcher := range response.Patchers {
-			temp := &v1.Patcher{}
-			err = yaml.Unmarshal(patcher, temp)
-			if err != nil {
-				return nil, nil, err
-			}
-			patchers = append(patchers, *temp)
+		err = yaml.Unmarshal(response.Patcher, patcher)
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
-	return resources, patchers, nil
+	return resources, patcher, nil
 }
 
 func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs map[string]v1.GenericConfig) (map[string]moduleConfig, error) {
