@@ -7,6 +7,7 @@ import (
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/modules"
 )
 
 var (
@@ -60,7 +61,7 @@ func ValidateModuleConfigs(configs v1.ModuleConfigs) error {
 		if cfg == nil {
 			return fmt.Errorf("%w, module name: %s", ErrEmptyModuleConfig, name)
 		}
-		if err := ValidateModuleConfig(cfg); err != nil {
+		if err := ValidateModuleConfig(name, cfg); err != nil {
 			return fmt.Errorf("%w, module name: %s", err, name)
 		}
 	}
@@ -69,7 +70,10 @@ func ValidateModuleConfigs(configs v1.ModuleConfigs) error {
 }
 
 // ValidateModuleConfig is used to validate the moduleConfig is valid or not.
-func ValidateModuleConfig(config *v1.ModuleConfig) error {
+func ValidateModuleConfig(name string, config *v1.ModuleConfig) error {
+	if err := ValidateModuleMetadata(name, config); err != nil {
+		return err
+	}
 	if err := ValidateModuleDefaultConfig(config.Configs.Default); err != nil {
 		return err
 	}
@@ -79,10 +83,22 @@ func ValidateModuleConfig(config *v1.ModuleConfig) error {
 	return nil
 }
 
+func ValidateModuleMetadata(name string, config *v1.ModuleConfig) error {
+	if modules.IgnoreModules[name] {
+		return nil
+	}
+	if config.Version == "" {
+		return fmt.Errorf("empty version of module:%s in the workspacek config", name)
+	}
+	if config.Path == "" {
+		return fmt.Errorf("empty path of module:%s in the workspacek config", name)
+	}
+	return nil
+}
+
 func ValidateModuleDefaultConfig(config v1.GenericConfig) error {
-	// todo@dayuan validate path and version in the config when we have turned workload into a module
-	if len(config) == 0 {
-		return fmt.Errorf("%w, block name: %s", ErrEmptyModuleConfigBlock, v1.DefaultBlock)
+	if config == nil {
+		return nil
 	}
 	if _, ok := config[v1.ProjectSelectorField]; ok {
 		return ErrNotEmptyModuleConfigProjectSelector

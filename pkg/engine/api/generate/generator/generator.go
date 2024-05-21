@@ -29,7 +29,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/api/builders"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
-	"kusionstack.io/kusion/pkg/modules/generators"
+	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/util/io"
 	"kusionstack.io/kusion/pkg/util/kfile"
 )
@@ -101,7 +101,7 @@ func CopyDependentModules(workDir string) error {
 	for _, dep := range modFile.Deps {
 		if dep.Source.Oci != nil {
 			// ignore workload modules
-			if generators.IgnoreModules[dep.Name] {
+			if modules.IgnoreModules[dep.Name] {
 				continue
 			}
 
