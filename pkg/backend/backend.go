@@ -6,6 +6,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -17,6 +18,9 @@ type Backend interface {
 
 	// StateStorage returns the state storage.
 	StateStorage(project, workspace string) state.Storage
+
+	// ReleaseStorage returns the release storage.
+	ReleaseStorage(project, workspace string) (release.Storage, error)
 }
 
 // NewBackend creates the Backend with the configuration set in the Kusion configuration file, where the input

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
-	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -65,10 +65,9 @@ func TestLocalStorage_StateStorage(t *testing.T) {
 
 func TestLocalStorage_WorkspaceStorage(t *testing.T) {
 	testcases := []struct {
-		name             string
-		success          bool
-		localStorage     *LocalStorage
-		workspaceStorage workspace.Storage
+		name         string
+		success      bool
+		localStorage *LocalStorage
 	}{
 		{
 			name:    "workspace storage from local backend",
@@ -84,6 +83,35 @@ func TestLocalStorage_WorkspaceStorage(t *testing.T) {
 			mockey.PatchConvey("mock new local workspace storage", t, func() {
 				mockey.Mock(workspacestorages.NewLocalStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
 				_, err := tc.localStorage.WorkspaceStorage()
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestLocalStorage_ReleaseStorage(t *testing.T) {
+	testcases := []struct {
+		name               string
+		success            bool
+		localStorage       *LocalStorage
+		project, workspace string
+	}{
+		{
+			name:    "release storage from local backend",
+			success: true,
+			localStorage: &LocalStorage{
+				path: "kusion",
+			},
+			project:   "wordpress",
+			workspace: "dev",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new local release storage", t, func() {
+				mockey.Mock(releasestorages.NewLocalStorage).Return(&releasestorages.LocalStorage{}, nil).Build()
+				_, err := tc.localStorage.ReleaseStorage(tc.project, tc.workspace)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

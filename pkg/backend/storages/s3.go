@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/engine/release"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/state"
 	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -50,4 +52,8 @@ func (s *S3Storage) StateStorage(project, workspace string) state.Storage {
 
 func (s *S3Storage) WorkspaceStorage() (workspace.Storage, error) {
 	return workspacestorages.NewS3Storage(s.s3, s.bucket, workspacestorages.GenGenericOssWorkspacePrefixKey(s.prefix))
+}
+
+func (s *S3Storage) ReleaseStorage(project, workspace string) (release.Storage, error) {
+	return releasestorages.NewS3Storage(s.s3, s.bucket, releasestorages.GenGenericOssReleasePrefixKey(s.prefix, project, workspace))
 }
