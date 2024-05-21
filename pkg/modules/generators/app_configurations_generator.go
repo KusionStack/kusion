@@ -324,11 +324,24 @@ type moduleConfig struct {
 func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patcher *v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf("call modules panic:%s", e)
+			case error:
+				err = x
+			default:
+				err = errors.New("call modules unknown panic")
+			}
+		}
 		for _, plugin := range pluginMap {
 			pluginErr := plugin.KillPluginClient()
 			if pluginErr != nil {
-				err = fmt.Errorf("call modules failed %w. %s", err, pluginErr)
+				err = fmt.Errorf("kill modules failed %w. %s", err, pluginErr)
 			}
+		}
+		if err != nil {
+			log.Errorf(err.Error())
 		}
 	}()
 
@@ -388,7 +401,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		}
 
 		// parse patcher
-		err = yaml.Unmarshal(response.Patcher, patcher)
+		err = yaml.Unmarshal(response.Patcher, &patcher)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -406,28 +419,20 @@ func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs
 			return nil, err
 		}
 		log.Info("build module index of accessory:%s module key: %s", accName, key)
+		moduleName := getModuleName(accessory)
 		indexModuleConfig[key] = moduleConfig{
 			devConfig:      accessory,
-			platformConfig: platformModuleConfigs[key],
+			platformConfig: platformModuleConfigs[moduleName],
 			ctx:            g.ws.Context,
-		}
-	}
-	// append module configs only exist in platform configs
-	for key, platformConfig := range platformModuleConfigs {
-		if _, ok := indexModuleConfig[key]; !ok {
-			indexModuleConfig[key] = moduleConfig{
-				devConfig:      nil,
-				platformConfig: platformConfig,
-				ctx:            g.ws.Context,
-			}
 		}
 	}
 	return indexModuleConfig, nil
 }
 
+// parseModuleKey returns the module key of the accessory in format of "org/module@version"
+// example: "kusionstack/mysql@v0.1.0"
 func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (string, error) {
-	split := strings.Split(accessory["_type"].(string), ".")
-	moduleName := split[0]
+	moduleName := getModuleName(accessory)
 	// find module namespace and version
 	d, ok := dependencies.Deps[moduleName]
 	if !ok {
@@ -445,6 +450,11 @@ func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (str
 		key = fmt.Sprintf("%s@%s", ns, d.Git.Tag)
 	}
 	return key, nil
+}
+
+func getModuleName(accessory v1.Accessory) string {
+	split := strings.Split(accessory["_type"].(string), ".")
+	return split[0]
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {
