@@ -16,32 +16,6 @@ import (
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 )
 
-func TestWatchOperation_Watch(t *testing.T) {
-	mockey.PatchConvey("test watch operation: watch", t, func() {
-		req := &WatchRequest{
-			Request: models.Request{
-				Intent: &apiv1.Spec{
-					Resources: apiv1.Resources{
-						{
-							ID:         "apps/v1:Deployment:foo:bar",
-							Type:       runtime.Kubernetes,
-							Attributes: barDeployment,
-						},
-					},
-				},
-			},
-		}
-		mockey.Mock(runtimeinit.Runtimes).To(func(
-			resources apiv1.Resources,
-		) (map[apiv1.Type]runtime.Runtime, v1.Status) {
-			return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
-		}).Build()
-		wo := &WatchOperation{models.Operation{RuntimeMap: map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
-		err := wo.Watch(req)
-		assert.Nil(t, err)
-	})
-}
-
 var barDeployment = map[string]interface{}{
 	"apiVersion": "apps/v1",
 	"kind":       "Deployment",
@@ -104,4 +78,28 @@ func (f *fooWatchRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *run
 		},
 		Status: nil,
 	}
+}
+
+func TestWatchOperation_Watch(t *testing.T) {
+	mockey.PatchConvey("test watch operation: watch", t, func() {
+		req := &WatchRequest{
+			Spec: &apiv1.Spec{
+				Resources: apiv1.Resources{
+					{
+						ID:         "apps/v1:Deployment:foo:bar",
+						Type:       runtime.Kubernetes,
+						Attributes: barDeployment,
+					},
+				},
+			},
+		}
+		mockey.Mock(runtimeinit.Runtimes).To(func(
+			resources apiv1.Resources,
+		) (map[apiv1.Type]runtime.Runtime, v1.Status) {
+			return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}, nil
+		}).Build()
+		wo := &WatchOperation{models.Operation{RuntimeMap: map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: fooRuntime}}}
+		err := wo.Watch(req)
+		assert.Nil(t, err)
+	})
 }

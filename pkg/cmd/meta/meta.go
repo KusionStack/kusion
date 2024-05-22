@@ -46,8 +46,8 @@ type MetaOptions struct {
 	// RefWorkspace referenced the workspace for this CLI invocation.
 	RefWorkspace *v1.Workspace
 
-	// StorageBackend referenced the target storage backend for this CLI invocation.
-	StorageBackend backend.Backend
+	// Backend referenced the target storage backend for this CLI invocation.
+	Backend backend.Backend
 }
 
 // NewMetaFlags provides default flags and values for use in other commands.
@@ -101,7 +101,7 @@ func (f *MetaFlags) ToOptions() (*MetaOptions, error) {
 	if err != nil {
 		return nil, err
 	}
-	opts.StorageBackend = storageBackend
+	opts.Backend = storageBackend
 
 	// Get current workspace from backend
 	workspace, err := f.ParseWorkspace(storageBackend)

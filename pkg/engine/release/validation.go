@@ -37,7 +37,10 @@ func ValidateRelease(r *v1.Release) error {
 	if r.Stack == "" {
 		return ErrEmptyStack
 	}
-	if err := ValidateState(r.State); err != nil {
+	if err := ValidateSpec(r.Spec); err != nil {
+		return err
+	}
+	if err := validateState(r.State); err != nil {
 		return err
 	}
 	if r.Phase == "" {
@@ -62,7 +65,7 @@ func ValidateSpec(spec *v1.Spec) error {
 	return nil
 }
 
-func ValidateState(state *v1.State) error {
+func validateState(state *v1.State) error {
 	if state == nil {
 		return ErrEmptyState
 	}

@@ -8,6 +8,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
+	"kusionstack.io/kusion/pkg/engine/release"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 	"kusionstack.io/kusion/third_party/terraform/tfdiags"
@@ -18,33 +19,26 @@ type DestroyOperation struct {
 }
 
 type DestroyRequest struct {
-	models.Request `json:",inline" yaml:",inline"`
+	models.Request
+	Release *apiv1.Release
 }
 
-func NewDestroyGraph(resource apiv1.Resources) (*dag.AcyclicGraph, v1.Status) {
-	ag := &dag.AcyclicGraph{}
-	ag.Add(&graph.RootNode{})
-	deleteResourceParser := parser.NewDeleteResourceParser(resource)
-	s := deleteResourceParser.Parse(ag)
-	if v1.IsErr(s) {
-		return nil, s
-	}
-
-	return ag, s
+type DestroyResponse struct {
+	Release *apiv1.Release
 }
 
 // Destroy will delete all resources in this request. The whole process is similar to the operation Apply,
 // but every node's execution is deleting the resource.
-func (do *DestroyOperation) Destroy(request *DestroyRequest) (st v1.Status) {
+func (do *DestroyOperation) Destroy(req *DestroyRequest) (rsp *DestroyResponse, s v1.Status) {
 	o := do.Operation
 	defer close(o.MsgCh)
 
-	if st = validateRequest(&request.Request); v1.IsErr(st) {
-		return st
+	if s = validateDestroyRequest(req); v1.IsErr(s) {
+		return nil, s
 	}
 
 	// 1. init & build Indexes
-	priorState, resultState := o.InitStates(&request.Request)
+	priorState := req.Release.State
 	priorStateResourceIndex := priorState.Resources.Index()
 	// copy priorStateResourceIndex into a new map
 	stateResourceIndex := map[string]*apiv1.Resource{}
@@ -56,44 +50,71 @@ func (do *DestroyOperation) Destroy(request *DestroyRequest) (st v1.Status) {
 	resources := priorState.Resources
 	runtimesMap, s := runtimeinit.Runtimes(resources)
 	if v1.IsErr(s) {
-		return s
+		return nil, s
 	}
 	o.RuntimeMap = runtimesMap
 
 	// 2. build & walk DAG
-	destroyGraph, s := NewDestroyGraph(resources)
+	destroyGraph, s := newDestroyGraph(resources)
 	if v1.IsErr(s) {
-		return s
+		return nil, s
 	}
 
-	newDo := &DestroyOperation{
+	rel, s := copyRelease(req.Release)
+	if v1.IsErr(s) {
+		return nil, s
+	}
+	destroyOperation := &DestroyOperation{
 		Operation: models.Operation{
 			OperationType:           models.Destroy,
-			StateStorage:            o.StateStorage,
+			ReleaseStorage:          o.ReleaseStorage,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			MsgCh:                   o.MsgCh,
-			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
+			Release:                 rel,
 		},
 	}
 
-	w := &dag.Walker{Callback: newDo.destroyWalkFun}
+	w := &dag.Walker{Callback: destroyOperation.walkFun}
 	w.Update(destroyGraph)
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
-		st = v1.NewErrorStatus(diags.Err())
-		return st
+		s = v1.NewErrorStatus(diags.Err())
+		return nil, s
+	}
+
+	return &DestroyResponse{Release: destroyOperation.Release}, nil
+}
+
+func (do *DestroyOperation) walkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
+	return applyWalkFun(&do.Operation, v)
+}
+
+func validateDestroyRequest(req *DestroyRequest) v1.Status {
+	if req == nil {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request is nil")
+	}
+	if err := release.ValidateRelease(req.Release); err != nil {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, err.Error())
+	}
+	if req.Release.Phase != apiv1.ReleasePhaseDestroying {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, "release phase is not destroying")
 	}
 	return nil
 }
 
-func (do *DestroyOperation) destroyWalkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
-	ao := &ApplyOperation{
-		Operation: do.Operation,
+func newDestroyGraph(resource apiv1.Resources) (*dag.AcyclicGraph, v1.Status) {
+	ag := &dag.AcyclicGraph{}
+	ag.Add(&graph.RootNode{})
+	deleteResourceParser := parser.NewDeleteResourceParser(resource)
+	status := deleteResourceParser.Parse(ag)
+	if v1.IsErr(status) {
+		return nil, status
 	}
-	return ao.applyWalkFun(v)
+
+	return ag, status
 }

@@ -16,9 +16,8 @@ package api
 
 import (
 	"context"
-	"errors"
-	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
@@ -27,19 +26,32 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 )
 
+func mockDestroyRelease(resources apiv1.Resources) *apiv1.Release {
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	return &apiv1.Release{
+		Project:      "fake-proj",
+		Workspace:    "fake-workspace",
+		Revision:     2,
+		Stack:        "fake-stack",
+		Spec:         &apiv1.Spec{Resources: resources},
+		State:        &apiv1.State{Resources: resources},
+		Phase:        apiv1.ReleasePhaseDestroying,
+		CreateTime:   time.Date(2024, 5, 21, 15, 43, 0, 0, loc),
+		ModifiedTime: time.Date(2024, 5, 21, 15, 43, 0, 0, loc),
+	}
+}
+
 func TestDestroyPreview(t *testing.T) {
-	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	mockey.PatchConvey("preview success", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
-		o := &APIOptions{}
-		_, err := DestroyPreview(o, &apiv1.Spec{Resources: []apiv1.Resource{sa1}}, proj, stack, stateStorage)
+		_, err := DestroyPreview(&apiv1.Spec{Resources: []apiv1.Resource{sa1}}, &apiv1.State{Resources: []apiv1.Resource{sa1}}, proj, stack, &releasestorages.LocalStorage{})
 		assert.Nil(t, err)
 	})
 }
@@ -87,13 +99,11 @@ func (f *fakerRuntime) Watch(_ context.Context, _ *runtime.WatchRequest) *runtim
 }
 
 func TestDestroy(t *testing.T) {
-	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	mockey.PatchConvey("destroy success", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(models.Success)
 
-		o := &APIOptions{}
-		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa2}}
+		rel := mockDestroyRelease([]apiv1.Resource{sa2})
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -111,15 +121,15 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		err := Destroy(o, planResources, changes, stateStorage)
+		_, err := Destroy(rel, changes, &releasestorages.LocalStorage{})
 		assert.Nil(t, err)
 	})
+
 	mockey.PatchConvey("destroy failed", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(models.Failed)
 
-		o := &APIOptions{}
-		planResources := &apiv1.Spec{Resources: []apiv1.Resource{sa1}}
+		rel := mockDestroyRelease([]apiv1.Resource{sa1})
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID},
 			ChangeSteps: map[string]*models.ChangeStep{
@@ -132,35 +142,18 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		err := Destroy(o, planResources, changes, stateStorage)
+		_, err := Destroy(rel, changes, &releasestorages.LocalStorage{})
 		assert.NotNil(t, err)
 	})
 }
 
 func mockOperationDestroy(res models.OpResult) {
 	mockey.Mock((*operation.DestroyOperation).Destroy).To(
-		func(o *operation.DestroyOperation, request *operation.DestroyRequest) v1.Status {
-			var err error
-			if res == models.Failed {
-				err = errors.New("mock error")
+		func(o *operation.DestroyOperation, request *operation.DestroyRequest) (*operation.DestroyResponse, v1.Status) {
+			st := mockOperation(res, o.MsgCh, request.Release)
+			if st != nil {
+				return nil, st
 			}
-			for _, r := range request.Intent.Resources {
-				// ing -> $res
-				o.MsgCh <- models.Message{
-					ResourceID: r.ResourceKey(),
-					OpResult:   "",
-					OpErr:      nil,
-				}
-				o.MsgCh <- models.Message{
-					ResourceID: r.ResourceKey(),
-					OpResult:   res,
-					OpErr:      err,
-				}
-			}
-			close(o.MsgCh)
-			if res == models.Failed {
-				return v1.NewErrorStatus(err)
-			}
-			return nil
+			return &operation.DestroyResponse{}, nil
 		}).Build()
 }

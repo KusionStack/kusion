@@ -9,6 +9,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	models "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -20,7 +21,9 @@ type PreviewOperation struct {
 }
 
 type PreviewRequest struct {
-	models.Request `json:",inline" yaml:",inline"`
+	models.Request
+	Spec  *apiv1.Spec
+	State *apiv1.State
 }
 
 type PreviewResponse struct {
@@ -29,7 +32,7 @@ type PreviewResponse struct {
 
 // Preview compute all changes between resources in request and the actual infrastructure.
 // The whole process is similar to the operation Apply, but the execution of each node is mocked and will not actually invoke the Runtime
-func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewResponse, s v1.Status) {
+func (po *PreviewOperation) Preview(req *PreviewRequest) (rsp *PreviewResponse, s v1.Status) {
 	o := po.Operation
 
 	defer func() {
@@ -47,21 +50,15 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 		}
 	}()
 
-	if s := validateRequest(&request.Request); v1.IsErr(s) {
+	if s = validatePreviewRequest(req); v1.IsErr(s) {
 		return nil, s
 	}
 
-	var (
-		priorState, resultState *apiv1.DeprecatedState
-		priorStateResourceIndex map[string]*apiv1.Resource
-		ag                      *dag.AcyclicGraph
-	)
-
 	// 1. init & build Indexes
-	priorState, resultState = po.InitStates(&request.Request)
+	priorState := req.State
 
 	// Kusion is a multi-runtime system. We initialize runtimes dynamically by resource types
-	resources := request.Intent.Resources
+	resources := req.Spec.Resources
 	resources = append(resources, priorState.Resources...)
 	runtimesMap, s := runtimeinit.Runtimes(resources)
 	if v1.IsErr(s) {
@@ -69,14 +66,18 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	}
 	o.RuntimeMap = runtimesMap
 
+	var (
+		priorStateResourceIndex map[string]*apiv1.Resource
+		ag                      *dag.AcyclicGraph
+	)
 	switch o.OperationType {
 	case models.ApplyPreview:
 		priorStateResourceIndex = priorState.Resources.Index()
-		ag, s = NewApplyGraph(request.Intent, priorState)
+		ag, s = newApplyGraph(req.Spec, priorState)
 	case models.DestroyPreview:
-		resources := request.Request.Intent.Resources
+		resources = req.Spec.Resources
 		priorStateResourceIndex = resources.Index()
-		ag, s = NewDestroyGraph(resources)
+		ag, s = newDestroyGraph(resources)
 	}
 	if v1.IsErr(s) {
 		return nil, s
@@ -93,7 +94,7 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 	previewOperation := &PreviewOperation{
 		Operation: models.Operation{
 			OperationType:           o.OperationType,
-			StateStorage:            o.StateStorage,
+			ReleaseStorage:          o.ReleaseStorage,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
@@ -101,7 +102,6 @@ func (po *PreviewOperation) Preview(request *PreviewRequest) (rsp *PreviewRespon
 			ChangeOrder:             o.ChangeOrder,
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
-			ResultState:             resultState,
 			Lock:                    &sync.Mutex{},
 		},
 	}
@@ -128,6 +128,16 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 			diags = diags.Append(fmt.Errorf("preview failed.\n%v", s))
 			return diags
 		}
+	}
+	return nil
+}
+
+func validatePreviewRequest(req *PreviewRequest) v1.Status {
+	if req == nil {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request is nil")
+	}
+	if err := release.ValidateSpec(req.Spec); err != nil {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, err.Error())
 	}
 	return nil
 }

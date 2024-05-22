@@ -11,17 +11,17 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 )
 
 func DestroyPreview(
-	o *APIOptions,
 	planResources *apiv1.Spec,
+	priorResources *apiv1.State,
 	proj *apiv1.Project,
 	stack *apiv1.Stack,
-	stateStorage state.Storage,
+	storage release.Storage,
 ) (*models.Changes, error) {
 	log.Info("Start compute preview changes ...")
 
@@ -36,10 +36,10 @@ func DestroyPreview(
 
 	pc := &operation.PreviewOperation{
 		Operation: models.Operation{
-			OperationType: models.DestroyPreview,
-			Stack:         stack,
-			StateStorage:  stateStorage,
-			ChangeOrder:   &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
+			OperationType:  models.DestroyPreview,
+			Stack:          stack,
+			ReleaseStorage: storage,
+			ChangeOrder:    &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
 		},
 	}
 
@@ -47,11 +47,11 @@ func DestroyPreview(
 
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: models.Request{
-			Project:  proj,
-			Stack:    stack,
-			Operator: o.Operator,
-			Intent:   planResources,
+			Project: proj,
+			Stack:   stack,
 		},
+		Spec:  planResources,
+		State: priorResources,
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed, status: %v", s)
@@ -61,16 +61,15 @@ func DestroyPreview(
 }
 
 func Destroy(
-	o *APIOptions,
-	planResources *apiv1.Spec,
+	rel *apiv1.Release,
 	changes *models.Changes,
-	stateStorage state.Storage,
-) error {
+	storage release.Storage,
+) (*apiv1.Release, error) {
 	do := &operation.DestroyOperation{
 		Operation: models.Operation{
-			Stack:        changes.Stack(),
-			StateStorage: stateStorage,
-			MsgCh:        make(chan models.Message),
+			Stack:          changes.Stack(),
+			ReleaseStorage: storage,
+			MsgCh:          make(chan models.Message),
 		},
 	}
 
@@ -83,7 +82,7 @@ func Destroy(
 		WithRemoveWhenDone().
 		Start()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// wait msgCh close
 	var wg sync.WaitGroup
@@ -144,22 +143,22 @@ func Destroy(
 		}
 	}()
 
-	st := do.Destroy(&operation.DestroyRequest{
+	rsp, st := do.Destroy(&operation.DestroyRequest{
 		Request: models.Request{
-			Project:  changes.Project(),
-			Stack:    changes.Stack(),
-			Operator: o.Operator,
-			Intent:   planResources,
+			Project: changes.Project(),
+			Stack:   changes.Stack(),
 		},
+		Release: rel,
 	})
 	if v1.IsErr(st) {
-		return fmt.Errorf("destroy failed, status: %v", st)
+		return nil, fmt.Errorf("destroy failed, status: %v", st)
 	}
+	upRel := rsp.Release
 
 	// wait for msgCh closed
 	wg.Wait()
 	// print summary
 	pterm.Println()
 	pterm.Printf("Destroy complete! Resources: %d deleted.\n", deleted)
-	return nil
+	return upRel, nil
 }

@@ -32,7 +32,7 @@ import (
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/state"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -168,10 +168,43 @@ func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 }
 
 // Run executes the `apply` command.
-func (o *ApplyOptions) Run() error {
+func (o *ApplyOptions) Run() (err error) {
+	// update release to succeeded or failed
+	var storage release.Storage
+	var rel *apiv1.Release
+	releaseCreated := false
+	defer func() {
+		if !releaseCreated {
+			return
+		}
+		if err != nil {
+			rel.Phase = apiv1.ReleasePhaseFailed
+			_ = release.UpdateApplyRelease(storage, rel, o.DryRun)
+		} else {
+			rel.Phase = apiv1.ReleasePhaseSucceeded
+			err = release.UpdateApplyRelease(storage, rel, o.DryRun)
+		}
+	}()
+
 	// set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
+	}
+
+	// create release
+	storage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return
+	}
+	rel, err = release.NewApplyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return
+	}
+	if !o.DryRun {
+		if err = storage.Create(rel); err != nil {
+			return
+		}
+		releaseCreated = true
 	}
 
 	// build parameters
@@ -181,10 +214,10 @@ func (o *ApplyOptions) Run() error {
 		parameters[parts[0]] = parts[1]
 	}
 
-	// Generate Spec
+	// generate Spec
 	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
 	if err != nil {
-		return err
+		return
 	}
 
 	// return immediately if no resource found in stack
@@ -193,11 +226,16 @@ func (o *ApplyOptions) Run() error {
 		return nil
 	}
 
+	// update release phase to previewing
+	rel.Spec = spec
+	rel.Phase = apiv1.ReleasePhasePreviewing
+	if err = release.UpdateApplyRelease(storage, rel, o.DryRun); err != nil {
+		return
+	}
 	// compute changes for preview
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
-	changes, err := preview.Preview(o.PreviewOptions, storage, spec, o.RefProject, o.RefStack)
+	changes, err := preview.Preview(o.PreviewOptions, storage, rel.Spec, rel.State, o.RefProject, o.RefStack)
 	if err != nil {
-		return err
+		return
 	}
 
 	if allUnChange(changes) {
@@ -219,14 +257,16 @@ func (o *ApplyOptions) Run() error {
 	// prompt
 	if !o.Yes {
 		for {
-			input, err := prompt(o.UI)
+			var input string
+			input, err = prompt(o.UI)
 			if err != nil {
 				return err
 			}
 			if input == "yes" {
 				break
 			} else if input == "details" {
-				target, err := changes.PromptDetails(o.UI)
+				var target string
+				target, err = changes.PromptDetails(o.UI)
 				if err != nil {
 					return err
 				}
@@ -238,70 +278,58 @@ func (o *ApplyOptions) Run() error {
 		}
 	}
 
-	fmt.Println("Start applying diffs ...")
-	if err = Apply(o, storage, spec, changes, o.IOStreams.Out); err != nil {
-		return err
+	// update release phase to applying
+	rel.Phase = apiv1.ReleasePhaseApplying
+	if err = release.UpdateApplyRelease(storage, rel, o.DryRun); err != nil {
+		return
 	}
-
+	// start applying
+	fmt.Println("Start applying diffs ...")
+	var updatedRel *apiv1.Release
+	updatedRel, err = Apply(o, storage, rel, changes, o.IOStreams.Out)
+	if err != nil {
+		return
+	}
 	// if dry run, print the hint
 	if o.DryRun {
 		fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
 		return nil
 	}
+	rel = updatedRel
 
 	if o.Watch {
 		fmt.Println("\nStart watching changes ...")
-		if err = Watch(o, spec, changes); err != nil {
-			return err
+		if err = Watch(o, rel.Spec, changes); err != nil {
+			return
 		}
 	}
 
 	if o.PortForward > 0 {
 		fmt.Printf("\nStart port-forwarding ...\n")
-		if err = PortForward(o, spec); err != nil {
-			return err
+		if err = PortForward(o, rel.Spec); err != nil {
+			return
 		}
 	}
 
 	return nil
 }
 
-// The Apply function will apply the resources changes
-// through the execution Kusion Engine, and will save
-// the state to specified storage.
-//
-// You can customize the runtime of engine and the state
-// storage through `runtime` and `storage` parameters.
-//
-// Example:
-//
-//	o := NewApplyOptions()
-//	stateStorage := &states.FileSystemState{
-//	    Path: filepath.Join(o.WorkDir, states.KusionState)
-//	}
-//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//	if err != nil {
-//	    return err
-//	}
-//
-//	err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
-//	if err != nil {
-//	    return err
-//	}
+// The Apply function will apply the resources changes through the execution kusion engine.
+// You can customize the runtime of engine and the release storage through `runtime` and `storage` parameters.
 func Apply(
 	o *ApplyOptions,
-	storage state.Storage,
-	planResources *apiv1.Spec,
+	storage release.Storage,
+	rel *apiv1.Release,
 	changes *models.Changes,
 	out io.Writer,
-) error {
+) (*apiv1.Release, error) {
 	// construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
-			Stack:        changes.Stack(),
-			StateStorage: storage,
-			MsgCh:        make(chan models.Message),
-			IgnoreFields: o.IgnoreFields,
+			Stack:          changes.Stack(),
+			ReleaseStorage: storage,
+			MsgCh:          make(chan models.Message),
+			IgnoreFields:   o.IgnoreFields,
 		},
 	}
 
@@ -316,7 +344,7 @@ func Apply(
 		WithRemoveWhenDone().
 		Start()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// wait msgCh close
 	var wg sync.WaitGroup
@@ -377,8 +405,9 @@ func Apply(
 		}
 	}()
 
+	var updatedRel *apiv1.Release
 	if o.DryRun {
-		for _, r := range planResources.Resources {
+		for _, r := range rel.Spec.Resources {
 			ac.MsgCh <- models.Message{
 				ResourceID: r.ResourceKey(),
 				OpResult:   models.Success,
@@ -388,17 +417,17 @@ func Apply(
 		close(ac.MsgCh)
 	} else {
 		// parse cluster in arguments
-		_, st := ac.Apply(&operation.ApplyRequest{
+		rsp, st := ac.Apply(&operation.ApplyRequest{
 			Request: models.Request{
-				Project:  changes.Project(),
-				Stack:    changes.Stack(),
-				Operator: o.Operator,
-				Intent:   planResources,
+				Project: changes.Project(),
+				Stack:   changes.Stack(),
 			},
+			Release: rel,
 		})
 		if v1.IsErr(st) {
-			return fmt.Errorf("apply failed, status:\n%v", st)
+			return nil, fmt.Errorf("apply failed, status:\n%v", st)
 		}
+		updatedRel = rsp.Release
 	}
 
 	// wait for msgCh closed
@@ -406,24 +435,10 @@ func Apply(
 	// print summary
 	pterm.Println()
 	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
-	return nil
+	return updatedRel, nil
 }
 
-// Watch function will observe the changes of each resource
-// by the execution engine.
-//
-// Example:
-//
-//	o := NewApplyOptions()
-//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//	if err != nil {
-//	    return err
-//	}
-//
-//	Watch(o, kubernetesRuntime, planResources, changes, os.Stdout)
-//	if err != nil {
-//	    return err
-//	}
+// Watch function will observe the changes of each resource by the execution engine.
 func Watch(
 	o *ApplyOptions,
 	planResources *apiv1.Spec,
@@ -442,14 +457,14 @@ func Watch(
 		}
 	}
 
-	// watch operation
+	// Watch operation
 	wo := &operation.WatchOperation{}
 	if err := wo.Watch(&operation.WatchRequest{
 		Request: models.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Intent:  &apiv1.Spec{Resources: toBeWatched},
 		},
+		Spec: &apiv1.Spec{Resources: toBeWatched},
 	}); err != nil {
 		return err
 	}
@@ -462,7 +477,7 @@ func Watch(
 //
 // Example:
 //
-// o := NewApplyOptions()
+// o := newApplyOptions()
 // spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.NoStyle)
 //
 //	if err != nil {
@@ -486,9 +501,7 @@ func PortForward(
 	// portforward operation
 	wo := &operation.PortForwardOperation{}
 	if err := wo.PortForward(&operation.PortForwardRequest{
-		Request: models.Request{
-			Intent: spec,
-		},
+		Spec: spec,
 		Port: o.PortForward,
 	}); err != nil {
 		return err

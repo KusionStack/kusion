@@ -12,10 +12,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/watch"
 
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
@@ -27,15 +29,20 @@ type WatchOperation struct {
 }
 
 type WatchRequest struct {
-	models.Request `json:",inline" yaml:",inline"`
+	models.Request
+	Spec *apiv1.Spec
 }
 
 func (wo *WatchOperation) Watch(req *WatchRequest) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	if err := validateWatchRequest(req); err != nil {
+		return err
+	}
+
 	// init runtimes
-	resources := req.Intent.Resources
+	resources := req.Spec.Resources
 	runtimes, s := runtimeinit.Runtimes(resources)
 	if v1.IsErr(s) {
 		return errors.New(s.Message())
@@ -193,6 +200,16 @@ func (wo *WatchOperation) printTables(w *uilive.Writer, ids []string, tables map
 	}
 
 	_ = w.Flush()
+}
+
+func validateWatchRequest(req *WatchRequest) error {
+	if req == nil {
+		return errors.New("request is nil")
+	}
+	if err := release.ValidateSpec(req.Spec); err != nil {
+		return err
+	}
+	return nil
 }
 
 func createSelectCases(chs []<-chan watch.Event) []reflect.SelectCase {

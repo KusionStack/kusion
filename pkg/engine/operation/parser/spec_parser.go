@@ -12,19 +12,19 @@ import (
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
-type IntentParser struct {
-	intent *apiv1.Spec
+type SpecParser struct {
+	spec *apiv1.Spec
 }
 
-func NewIntentParser(i *apiv1.Spec) *IntentParser {
-	return &IntentParser{intent: i}
+func NewIntentParser(i *apiv1.Spec) *SpecParser {
+	return &SpecParser{spec: i}
 }
 
-var _ Parser = (*IntentParser)(nil)
+var _ Parser = (*SpecParser)(nil)
 
-func (m *IntentParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
+func (m *SpecParser) Parse(g *dag.AcyclicGraph) (s v1.Status) {
 	util.CheckNotNil(g, "dag is nil")
-	i := m.intent
+	i := m.spec
 	util.CheckNotNil(i, "models is nil")
 	if i.Resources == nil {
 		sprintf := fmt.Sprintf("no resources in models:%s", json.Marshal2String(i))

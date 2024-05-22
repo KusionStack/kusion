@@ -15,7 +15,6 @@
 package api
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -26,7 +25,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
+	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 )
 
 var (
@@ -47,13 +46,12 @@ var (
 )
 
 func TestPreview(t *testing.T) {
-	stateStorage := statestorages.NewLocalStorage(filepath.Join("", "state.yaml"))
 	t.Run("preview success", func(t *testing.T) {
 		m := mockOperationPreview()
 		defer m.UnPatch()
 
 		o := &APIOptions{}
-		_, err := Preview(o, stateStorage, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, proj, stack)
+		_, err := Preview(o, &releasestorages.LocalStorage{}, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, &apiv1.State{}, proj, stack)
 		assert.Nil(t, err)
 	})
 }

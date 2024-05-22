@@ -12,7 +12,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
-	"kusionstack.io/kusion/pkg/engine/state"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -40,18 +40,18 @@ import (
 //	}
 func Apply(
 	o *APIOptions,
-	storage state.Storage,
-	planResources *apiv1.Spec,
+	storage release.Storage,
+	rel *apiv1.Release,
 	changes *models.Changes,
 	out io.Writer,
-) error {
+) (*apiv1.Release, error) {
 	// construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
-			Stack:        changes.Stack(),
-			StateStorage: storage,
-			MsgCh:        make(chan models.Message),
-			IgnoreFields: o.IgnoreFields,
+			Stack:          changes.Stack(),
+			ReleaseStorage: storage,
+			MsgCh:          make(chan models.Message),
+			IgnoreFields:   o.IgnoreFields,
 		},
 	}
 
@@ -66,7 +66,7 @@ func Apply(
 		WithRemoveWhenDone().
 		Start()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// wait msgCh close
 	var wg sync.WaitGroup
@@ -127,8 +127,9 @@ func Apply(
 		}
 	}()
 
+	var upRel *apiv1.Release
 	if o.DryRun {
-		for _, r := range planResources.Resources {
+		for _, r := range rel.Spec.Resources {
 			ac.MsgCh <- models.Message{
 				ResourceID: r.ResourceKey(),
 				OpResult:   models.Success,
@@ -138,24 +139,24 @@ func Apply(
 		close(ac.MsgCh)
 	} else {
 		// parse cluster in arguments
-		_, st := ac.Apply(&operation.ApplyRequest{
+		rsp, st := ac.Apply(&operation.ApplyRequest{
 			Request: models.Request{
-				Project:  changes.Project(),
-				Stack:    changes.Stack(),
-				Operator: o.Operator,
-				Intent:   planResources,
+				Project: changes.Project(),
+				Stack:   changes.Stack(),
 			},
+			Release: rel,
 		})
 		if v1.IsErr(st) {
-			return fmt.Errorf("apply failed, status:\n%v", st)
+			return nil, fmt.Errorf("apply failed, status:\n%v", st)
 		}
+		upRel = rsp.Release
 	}
 
 	// wait for msgCh closed
 	wg.Wait()
 	// print summary
 	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
-	return nil
+	return upRel, nil
 }
 
 // Watch function will observe the changes of each resource
@@ -197,8 +198,8 @@ func Watch(
 		Request: models.Request{
 			Project: changes.Project(),
 			Stack:   changes.Stack(),
-			Intent:  &apiv1.Spec{Resources: toBeWatched},
 		},
+		Spec: &apiv1.Spec{Resources: toBeWatched},
 	}); err != nil {
 		return err
 	}

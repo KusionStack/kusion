@@ -43,8 +43,8 @@ func TestSpecParser_Parse(t *testing.T) {
 	ag := &dag.AcyclicGraph{}
 	ag.Add(&graph.RootNode{})
 
-	i := &IntentParser{
-		intent: mf,
+	i := &SpecParser{
+		spec: mf,
 	}
 
 	_ = i.Parse(ag)

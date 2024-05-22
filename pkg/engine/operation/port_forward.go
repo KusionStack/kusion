@@ -18,9 +18,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
+
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers/convertor"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes/kubeops"
 )
 
@@ -35,21 +37,22 @@ type PortForwardOperation struct {
 }
 
 type PortForwardRequest struct {
-	models.Request `json:",inline" yaml:",inline"`
-	Port           int
+	models.Request
+	Spec *v1.Spec
+	Port int
 }
 
 func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if req.Intent == nil {
-		return ErrEmptySpec
+	if err := validatePortForwardRequest(req); err != nil {
+		return err
 	}
 
 	// Find Kubernetes Service in the resources of Spec.
 	services := make(map[*v1.Resource]*corev1.Service)
-	for _, res := range req.Intent.Resources {
+	for _, res := range req.Spec.Resources {
 		// Skip non-Kubernetes resources.
 		if res.Type != v1.Kubernetes {
 			continue
@@ -127,7 +130,7 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 		}
 
 		go func() {
-			err := ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort)
+			err = ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort)
 			failed <- err
 		}()
 	}
@@ -194,4 +197,17 @@ func ForwardPort(
 	}
 
 	return fw.ForwardPorts()
+}
+
+func validatePortForwardRequest(req *PortForwardRequest) error {
+	if req == nil {
+		return errors.New("request is nil")
+	}
+	if err := release.ValidateSpec(req.Spec); err != nil {
+		return err
+	}
+	if req.Port < 0 || req.Port > 65535 {
+		return fmt.Errorf("invalid port %d", req.Port)
+	}
+	return nil
 }

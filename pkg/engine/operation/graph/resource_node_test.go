@@ -13,7 +13,6 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
-	"kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -100,15 +99,14 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: models.Operation{
 				OperationType:           models.Apply,
-				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
 				IgnoreFields:            []string{"not_exist_field"},
 				MsgCh:                   make(chan models.Message),
-				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
+				Release:                 &apiv1.Release{},
 			}},
 			want: nil,
 		},
@@ -121,12 +119,10 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: models.Operation{
 				OperationType:           models.Apply,
-				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
 				MsgCh:                   make(chan models.Message),
-				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
@@ -141,12 +137,10 @@ func TestResourceNode_Execute(t *testing.T) {
 			},
 			args: args{operation: models.Operation{
 				OperationType:           models.Apply,
-				StateStorage:            storages.NewLocalStorage("/state.yaml"),
 				CtxResourceIndex:        priorStateResourceIndex,
 				PriorStateResourceIndex: priorStateResourceIndex,
 				StateResourceIndex:      priorStateResourceIndex,
 				MsgCh:                   make(chan models.Message),
-				ResultState:             apiv1.NewState(),
 				Lock:                    &sync.Mutex{},
 				RuntimeMap:              map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 			}},
@@ -176,10 +170,7 @@ func TestResourceNode_Execute(t *testing.T) {
 				func(k *kubernetes.KubernetesRuntime, ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 					return &runtime.ReadResponse{Resource: request.PriorResource}
 				}).Build()
-			mockey.Mock(mockey.GetMethod(tt.args.operation.StateStorage, "Apply")).To(
-				func(f *storages.LocalStorage, state *apiv1.DeprecatedState) error {
-					return nil
-				}).Build()
+			mockey.Mock((*models.Operation).UpdateReleaseState).Return(nil).Build()
 
 			assert.Equalf(t, tt.want, rn.Execute(&tt.args.operation), "Execute(%v)", tt.args.operation)
 		})

@@ -31,8 +31,8 @@ import (
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -72,7 +72,6 @@ const jsonOutput = "json"
 type PreviewFlags struct {
 	MetaFlags *meta.MetaFlags
 
-	Operator     string
 	Detail       bool
 	All          bool
 	NoStyle      bool
@@ -89,7 +88,6 @@ type PreviewFlags struct {
 type PreviewOptions struct {
 	*meta.MetaOptions
 
-	Operator     string
 	Detail       bool
 	All          bool
 	NoStyle      bool
@@ -140,7 +138,6 @@ func (f *PreviewFlags) AddFlags(cmd *cobra.Command) {
 	// bind flag structs
 	f.MetaFlags.AddFlags(cmd)
 
-	cmd.Flags().StringVarP(&f.Operator, "operator", "", f.Operator, i18n.T("Specify the operator"))
 	cmd.Flags().BoolVarP(&f.Detail, "detail", "d", true, i18n.T("Automatically show preview details with interactive options"))
 	cmd.Flags().BoolVarP(&f.All, "all", "a", false, i18n.T("Automatically show all preview details, combined use with flag `--detail`"))
 	cmd.Flags().BoolVarP(&f.NoStyle, "no-style", "", false, i18n.T("no-style sets to RawOutput mode and disables all of styling"))
@@ -159,7 +156,6 @@ func (f *PreviewFlags) ToOptions() (*PreviewOptions, error) {
 
 	o := &PreviewOptions{
 		MetaOptions:  metaOptions,
-		Operator:     f.Operator,
 		Detail:       f.Detail,
 		All:          f.All,
 		NoStyle:      f.NoStyle,
@@ -210,9 +206,21 @@ func (o *PreviewOptions) Run() error {
 		return nil
 	}
 
+	// compute state
+	storage, err := o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+	state, err := release.GetLatestState(storage)
+	if err != nil {
+		return err
+	}
+	if state == nil {
+		state = &apiv1.State{}
+	}
+
 	// compute changes for preview
-	storage := o.StorageBackend.StateStorage(o.RefProject.Name, o.RefWorkspace.Name)
-	changes, err := Preview(o, storage, spec, o.RefProject, o.RefStack)
+	changes, err := Preview(o, storage, spec, state, o.RefProject, o.RefStack)
 	if err != nil {
 		return err
 	}
@@ -259,7 +267,7 @@ func (o *PreviewOptions) Run() error {
 //
 // Example:
 //
-//	o := NewPreviewOptions()
+//	o := newPreviewOptions()
 //	stateStorage := &states.FileSystemState{
 //	    Path: filepath.Join(o.WorkDir, states.KusionState)
 //	}
@@ -275,8 +283,9 @@ func (o *PreviewOptions) Run() error {
 //	}
 func Preview(
 	opts *PreviewOptions,
-	storage state.Storage,
+	storage release.Storage,
 	planResources *apiv1.Spec,
+	priorResources *apiv1.State,
 	project *apiv1.Project,
 	stack *apiv1.Stack,
 ) (*models.Changes, error) {
@@ -294,11 +303,11 @@ func Preview(
 	// construct the preview operation
 	pc := &operation.PreviewOperation{
 		Operation: models.Operation{
-			OperationType: models.ApplyPreview,
-			Stack:         stack,
-			StateStorage:  storage,
-			IgnoreFields:  opts.IgnoreFields,
-			ChangeOrder:   &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
+			OperationType:  models.ApplyPreview,
+			Stack:          stack,
+			ReleaseStorage: storage,
+			IgnoreFields:   opts.IgnoreFields,
+			ChangeOrder:    &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
 		},
 	}
 
@@ -307,11 +316,11 @@ func Preview(
 	// parse cluster in arguments
 	rsp, s := pc.Preview(&operation.PreviewRequest{
 		Request: models.Request{
-			Project:  project,
-			Stack:    stack,
-			Operator: opts.Operator,
-			Intent:   planResources,
+			Project: project,
+			Stack:   stack,
 		},
+		Spec:  planResources,
+		State: priorResources,
 	})
 	if v1.IsErr(s) {
 		return nil, fmt.Errorf("preview failed.\n%s", s.String())
