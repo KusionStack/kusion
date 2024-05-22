@@ -10,6 +10,12 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
+// IgnoreModules todo@dayuan delete this condition after workload is changed into a module
+var IgnoreModules = map[string]bool{
+	"service": true,
+	"job":     true,
+}
+
 // CallGeneratorFuncs calls each NewGeneratorFunc in the given slice
 // and returns a slice of Generator instances.
 func CallGeneratorFuncs(newGenerators ...NewGeneratorFunc) ([]Generator, error) {

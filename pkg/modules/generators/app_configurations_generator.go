@@ -32,12 +32,6 @@ type appConfigurationGenerator struct {
 	dependencies *pkg.Dependencies
 }
 
-// IgnoreModules todo@dayuan delete this condition after workload is changed into a module
-var IgnoreModules = map[string]bool{
-	"service": true,
-	"job":     true,
-}
-
 func NewAppConfigurationGenerator(
 	project string,
 	stack string,
@@ -357,7 +351,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 	// generate customized module resources
 	for t, config := range indexModuleConfig {
 		// ignore workload modules
-		if IgnoreModules[t] {
+		if modules.IgnoreModules[t] {
 			continue
 		}
 
@@ -419,7 +413,10 @@ func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs
 			return nil, err
 		}
 		log.Info("build module index of accessory:%s module key: %s", accName, key)
-		moduleName := getModuleName(accessory)
+		moduleName, err := getModuleName(accessory)
+		if err != nil {
+			return nil, err
+		}
 		indexModuleConfig[key] = moduleConfig{
 			devConfig:      accessory,
 			platformConfig: platformModuleConfigs[moduleName],
@@ -432,7 +429,11 @@ func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs
 // parseModuleKey returns the module key of the accessory in format of "org/module@version"
 // example: "kusionstack/mysql@v0.1.0"
 func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (string, error) {
-	moduleName := getModuleName(accessory)
+	moduleName, err := getModuleName(accessory)
+	if err != nil {
+		return "", err
+	}
+
 	// find module namespace and version
 	d, ok := dependencies.Deps[moduleName]
 	if !ok {
@@ -452,9 +453,13 @@ func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (str
 	return key, nil
 }
 
-func getModuleName(accessory v1.Accessory) string {
-	split := strings.Split(accessory["_type"].(string), ".")
-	return split[0]
+func getModuleName(accessory v1.Accessory) (string, error) {
+	t, ok := accessory["_type"]
+	if !ok {
+		return "", errors.New("can not find '_type' in module config")
+	}
+	split := strings.Split(t.(string), ".")
+	return split[0], nil
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {

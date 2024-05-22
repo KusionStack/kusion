@@ -13,14 +13,11 @@ modules:
           - bar
         instanceType: db.t3.small
   network:
+    path: ghcr.io/kusionstack/mysql
+    version: 0.1.0
     configs:
       default:
         type: aws
-runtimes:
+context:
   kubernetes:
     kubeConfig: /etc/kubeconfig.yaml
-  terraform:
-    aws:
-      source: hashicorp/aws
-      version: 1.0.4
-      region: us-east-1

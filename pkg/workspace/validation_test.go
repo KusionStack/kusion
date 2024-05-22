@@ -42,6 +42,8 @@ func mockValidModuleConfigs() map[string]*v1.ModuleConfig {
 			},
 		},
 		"network": {
+			Path:    "ghcr.io/kusionstack/network",
+			Version: "0.1.0",
 			Configs: v1.Configs{
 				Default: v1.GenericConfig{
 					"type": "aws",
@@ -274,10 +276,32 @@ func TestValidateModuleConfig(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateModuleConfig(&tc.moduleConfig)
+			err := ValidateModuleConfig("mysql", &tc.moduleConfig)
 			assert.Equal(t, tc.success, err == nil)
 		})
 	}
+}
+
+func TestValidateModuleMetadata(t *testing.T) {
+	t.Run("ValidModuleMetadata", func(t *testing.T) {
+		err := ValidateModuleMetadata("testModule", &v1.ModuleConfig{Version: "1.0.0", Path: "/path/to/module"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("IgnoreModule", func(t *testing.T) {
+		err := ValidateModuleMetadata("service", &v1.ModuleConfig{Version: "1.0.0", Path: "/path/to/module"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("EmptyModuleVersion", func(t *testing.T) {
+		err := ValidateModuleMetadata("testModule", &v1.ModuleConfig{Version: "", Path: "/path/to/module"})
+		assert.Error(t, err)
+	})
+
+	t.Run("EmptyModulePath", func(t *testing.T) {
+		err := ValidateModuleMetadata("testModule", &v1.ModuleConfig{Version: "1.0.0", Path: ""})
+		assert.Error(t, err)
+	})
 }
 
 func TestValidateAWSSecretStore(t *testing.T) {

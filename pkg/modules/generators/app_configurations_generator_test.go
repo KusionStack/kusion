@@ -74,8 +74,9 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 	ws := buildMockWorkspace("fakeNs")
 	dep := &pkg.Dependencies{
 		Deps: map[string]pkg.Dependency{
-			"fake": {
-				Name: "fakeName",
+			"port": {
+				Name:    "port",
+				Version: "1.0.0",
 			},
 		},
 	}
@@ -176,6 +177,12 @@ func buildMockApp() (string, *v1.AppConfiguration) {
 				},
 			},
 		},
+		Accessories: map[string]v1.Accessory{
+			"port": map[string]interface{}{
+				"port":  "2333",
+				"_type": "port.Port",
+			},
+		},
 	}
 }
 
@@ -203,6 +210,8 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 				},
 			},
 			"port": &v1.ModuleConfig{
+				Path:    "kusionstack.io/port",
+				Version: "v1.0.0",
 				Configs: v1.Configs{
 					Default: v1.GenericConfig{
 						"type": "aws",
@@ -210,6 +219,8 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 				},
 			},
 			"namespace": &v1.ModuleConfig{
+				Path:    "kusionstack.io/namespace",
+				Version: "v1.0.0",
 				Configs: v1.Configs{
 					Default: v1.GenericConfig{
 						"name": namespace,
@@ -344,8 +355,8 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 	// Mock dependencies
 	dependencies := &pkg.Dependencies{
 		Deps: map[string]pkg.Dependency{
-			"module1": {
-				Version: "v1.0.0",
+			"port": {
+				Version: "1.0.0",
 				Source: pkg.Source{
 					Oci: &pkg.Oci{
 						Repo: "kusionstack/module1",
@@ -357,7 +368,7 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 
 	// Mock project module configs
 	projectModuleConfigs := map[string]v1.GenericConfig{
-		"module1": {
+		"port": {
 			"config1": "value1",
 		},
 	}
