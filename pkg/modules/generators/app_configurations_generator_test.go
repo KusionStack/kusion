@@ -71,7 +71,7 @@ func mockPlugin() (*mockey.Mocker, *mockey.Mocker) {
 
 func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 	appName, app := buildMockApp()
-	ws := buildMockWorkspace("fakeNs")
+	ws := buildMockWorkspace()
 	dep := &pkg.Dependencies{
 		Deps: map[string]pkg.Dependency{
 			"port": {
@@ -81,9 +81,17 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 		},
 	}
 
+	project, stack := buildMockProjectAndStack()
+	kubeNamespaceExt := &v1.Extension{
+		Kind: v1.KubernetesNamespace,
+		KubeNamespace: v1.KubeNamespaceExtension{
+			Namespace: "fakeNs",
+		},
+	}
+	project.Extensions = []*v1.Extension{kubeNamespaceExt}
 	g := &appConfigurationGenerator{
-		project:      "testproject",
-		stack:        "test",
+		project:      project,
+		stack:        stack,
 		appName:      appName,
 		app:          app,
 		ws:           ws,
@@ -127,34 +135,35 @@ func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 
 func TestNewAppConfigurationGeneratorFunc(t *testing.T) {
 	appName, app := buildMockApp()
-	ws := buildMockWorkspace("")
+	ws := buildMockWorkspace()
 
+	project, stack := buildMockProjectAndStack()
 	t.Run("Valid app configuration generator func", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, ws, nil)()
+		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, ws, nil)()
 		assert.NoError(t, err)
 		assert.NotNil(t, g)
 	})
 
 	t.Run("Empty app name", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", "", app, ws, nil)()
+		g, err := NewAppConfigurationGeneratorFunc(project, stack, "", app, ws, nil)()
 		assert.EqualError(t, err, "app name must not be empty")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Nil app", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, nil, ws, nil)()
+		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, nil, ws, nil)()
 		assert.EqualError(t, err, "can not find app configuration when generating the Spec")
 		assert.Nil(t, g)
 	})
 
-	t.Run("Empty project name", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("", "test", appName, app, ws, nil)()
-		assert.EqualError(t, err, "project name must not be empty")
+	t.Run("Nil project", func(t *testing.T) {
+		g, err := NewAppConfigurationGeneratorFunc(nil, stack, appName, app, ws, nil)()
+		assert.EqualError(t, err, "project must not be nil")
 		assert.Nil(t, g)
 	})
 
 	t.Run("Empty workspace", func(t *testing.T) {
-		g, err := NewAppConfigurationGeneratorFunc("tesstproject", "test", appName, app, nil, nil)()
+		g, err := NewAppConfigurationGeneratorFunc(project, stack, appName, app, nil, nil)()
 		assert.EqualError(t, err, "workspace must not be empty")
 		assert.Nil(t, g)
 	})
@@ -186,7 +195,7 @@ func buildMockApp() (string, *v1.AppConfiguration) {
 	}
 }
 
-func buildMockWorkspace(namespace string) *v1.Workspace {
+func buildMockWorkspace() *v1.Workspace {
 	return &v1.Workspace{
 		Name: "test",
 		Modules: v1.ModuleConfigs{
@@ -218,15 +227,6 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 					},
 				},
 			},
-			"namespace": &v1.ModuleConfig{
-				Path:    "kusionstack.io/namespace",
-				Version: "v1.0.0",
-				Configs: v1.Configs{
-					Default: v1.GenericConfig{
-						"name": namespace,
-					},
-				},
-			},
 		},
 		Context: map[string]any{
 			"Kubernetes": map[string]string{
@@ -234,6 +234,18 @@ func buildMockWorkspace(namespace string) *v1.Workspace {
 			},
 		},
 	}
+}
+
+func buildMockProjectAndStack() (*v1.Project, *v1.Stack) {
+	p := &v1.Project{
+		Name: "testproject",
+	}
+
+	s := &v1.Stack{
+		Name: "test",
+	}
+
+	return p, s
 }
 
 func mapToUnstructured(data map[string]interface{}) *unstructured.Unstructured {
@@ -375,12 +387,13 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 
 	// Mock app appConfig generator
 	_, appConfig := buildMockApp()
+	project, stack := buildMockProjectAndStack()
 	g := &appConfigurationGenerator{
-		project:      "testproject",
-		stack:        "teststack",
+		project:      project,
+		stack:        stack,
 		appName:      "testapp",
 		app:          appConfig,
-		ws:           buildMockWorkspace(""),
+		ws:           buildMockWorkspace(),
 		dependencies: dependencies,
 	}
 

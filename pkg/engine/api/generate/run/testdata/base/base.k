@@ -1,12 +1,10 @@
 import kam.v1.app_configuration as ac
-import kam.v1.workload as wl
-import kam.v1.workload.container as c
-import kam.v1.workload.container.probe as p
-import opsrule as t
+import service as svc
+import service.container as c
 
 # base.k declares reusable configurations for all stacks.
 helloworld: ac.AppConfiguration {
-    workload: wl.Service {
+    workload: svc.Service {
         containers: {
             "nginx": c.Container {
                 image: "nginx:v1"
@@ -23,22 +21,9 @@ helloworld: ac.AppConfiguration {
                 }
                 # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
                 workingDir: "/tmp"
-                # Configure a HTTP readiness probe
-                readinessProbe: p.Probe {
-                    probeHandler: p.Http {
-                        url: "http://localhost:80"
-                    }
-                    initialDelaySeconds: 10
-                }
             }
         }
         # Set the replicas
         replicas: 2
-    }
-
-    accessories: {
-        "kusionstack/opsrule@v0.0.9": t.OpsRule {
-            maxUnavailable: "30%"
-        }
     }
 }

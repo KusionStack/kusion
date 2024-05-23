@@ -1,3 +1,17 @@
+// Copyright 2024 KusionStack Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package generators
 
 import (
@@ -24,8 +38,8 @@ import (
 )
 
 type appConfigurationGenerator struct {
-	project      string
-	stack        string
+	project      *v1.Project
+	stack        *v1.Stack
 	appName      string
 	app          *v1.AppConfiguration
 	ws           *v1.Workspace
@@ -33,19 +47,19 @@ type appConfigurationGenerator struct {
 }
 
 func NewAppConfigurationGenerator(
-	project string,
-	stack string,
+	project *v1.Project,
+	stack *v1.Stack,
 	appName string,
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
 	dependencies *pkg.Dependencies,
 ) (modules.Generator, error) {
-	if len(project) == 0 {
-		return nil, fmt.Errorf("project name must not be empty")
+	if project == nil {
+		return nil, fmt.Errorf("project must not be nil")
 	}
 
-	if len(stack) == 0 {
-		return nil, fmt.Errorf("stack name must not be empty")
+	if stack == nil {
+		return nil, fmt.Errorf("stack must not be nil")
 	}
 
 	if len(appName) == 0 {
@@ -61,7 +75,7 @@ func NewAppConfigurationGenerator(
 	}
 
 	if err := workspace.ValidateWorkspace(ws); err != nil {
-		return nil, fmt.Errorf("invalid config of workspace %s, %w", stack, err)
+		return nil, fmt.Errorf("invalid config of workspace %s, %w", ws.Name, err)
 	}
 
 	return &appConfigurationGenerator{
@@ -75,8 +89,8 @@ func NewAppConfigurationGenerator(
 }
 
 func NewAppConfigurationGeneratorFunc(
-	project string,
-	stack string,
+	project *v1.Project,
+	stack *v1.Stack,
 	appName string,
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
@@ -94,20 +108,18 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	g.app.Name = g.appName
 
 	// retrieve the module configs of the specified project
-	projectModuleConfigs, err := workspace.GetProjectModuleConfigs(g.ws.Modules, g.project)
+	projectModuleConfigs, err := workspace.GetProjectModuleConfigs(g.ws.Modules, g.project.Name)
 	if err != nil {
 		return err
 	}
 
-	// todo: is namespace a module? how to retrieve it? Currently, it is configured in the workspace file.
-	namespace := g.getNamespaceName(projectModuleConfigs)
-
 	// generate built-in resources
+	namespace := g.getNamespaceName()
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(namespace),
 		workload.NewWorkloadGeneratorFunc(&workload.Generator{
-			Project:         g.project,
-			Stack:           g.stack,
+			Project:         g.project.Name,
+			Stack:           g.stack.Name,
 			App:             g.appName,
 			Namespace:       namespace,
 			Workload:        g.app.Workload,
@@ -489,8 +501,8 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 	}
 
 	protoRequest := &proto.GeneratorRequest{
-		Project:        g.project,
-		Stack:          g.stack,
+		Project:        g.project.Name,
+		Stack:          g.stack.Name,
 		App:            g.appName,
 		Workload:       workloadConfig,
 		DevConfig:      devConfig,
@@ -503,21 +515,38 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 // getNamespaceName obtains the final namespace name using the following precedence
 // (from lower to higher):
 // - Project name
-// - Namespace module config (specified in corresponding workspace file)
-func (g *appConfigurationGenerator) getNamespaceName(moduleConfigs map[string]v1.GenericConfig) string {
-	if moduleConfigs == nil {
-		return g.project
-	}
-
-	namespaceName := g.project
-	namespaceModuleConfigs, exist := moduleConfigs["namespace"]
-	if exist {
-		if name, ok := namespaceModuleConfigs["name"]; ok {
-			customNamespaceName, isString := name.(string)
-			if isString && len(customNamespaceName) > 0 {
-				namespaceName = customNamespaceName
+// - KubernetesNamespace extensions (specified in corresponding workspace file)
+func (g *appConfigurationGenerator) getNamespaceName() string {
+	extensions := mergeExtensions(g.project, g.stack)
+	if len(extensions) != 0 {
+		for _, extension := range extensions {
+			switch extension.Kind {
+			case v1.KubernetesNamespace:
+				return extension.KubeNamespace.Namespace
+			default:
+				// do nothing
 			}
 		}
 	}
-	return namespaceName
+
+	return g.project.Name
+}
+
+func mergeExtensions(project *v1.Project, stack *v1.Stack) []*v1.Extension {
+	var extensions []*v1.Extension
+	extensionKindMap := make(map[string]struct{})
+	if stack.Extensions != nil && len(stack.Extensions) != 0 {
+		for _, extension := range stack.Extensions {
+			extensions = append(extensions, extension)
+			extensionKindMap[string(extension.Kind)] = struct{}{}
+		}
+	}
+	if project.Extensions != nil && len(project.Extensions) != 0 {
+		for _, extension := range project.Extensions {
+			if _, exist := extensionKindMap[string(extension.Kind)]; !exist {
+				extensions = append(extensions, extension)
+			}
+		}
+	}
+	return extensions
 }

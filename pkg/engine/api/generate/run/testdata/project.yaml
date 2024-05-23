@@ -1,2 +1,6 @@
 # The project basic info
 name: testdata
+extensions:
+  - kind: "kubernetesNamespace"
+    kubernetesNamespace:
+      namespace: "dev"
