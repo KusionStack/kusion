@@ -4,8 +4,6 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
-	"kusionstack.io/kusion/pkg/engine/state"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
@@ -19,10 +17,6 @@ type LocalStorage struct {
 
 func NewLocalStorage(config *v1.BackendLocalConfig) *LocalStorage {
 	return &LocalStorage{path: config.Path}
-}
-
-func (s *LocalStorage) StateStorage(project, workspace string) state.Storage {
-	return statestorages.NewLocalStorage(statestorages.GenStateFilePath(s.path, project, workspace))
 }
 
 func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {

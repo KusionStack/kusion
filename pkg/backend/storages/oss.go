@@ -6,8 +6,6 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
-	"kusionstack.io/kusion/pkg/engine/state"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
@@ -31,10 +29,6 @@ func NewOssStorage(config *v1.BackendOssConfig) (*OssStorage, error) {
 	}
 
 	return &OssStorage{bucket: bucket, prefix: config.Prefix}, nil
-}
-
-func (s *OssStorage) StateStorage(project, workspace string) state.Storage {
-	return statestorages.NewOssStorage(s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, workspace))
 }
 
 func (s *OssStorage) WorkspaceStorage() (workspace.Storage, error) {

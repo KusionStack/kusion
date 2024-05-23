@@ -16,7 +16,6 @@ package preview
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -93,15 +92,12 @@ var (
 )
 
 func newPreviewOptions() *PreviewOptions {
-	storageBackend := storages.NewLocalStorage(&apiv1.BackendLocalConfig{
-		Path: filepath.Join("", "state.yaml"),
-	})
 	return &PreviewOptions{
 		MetaOptions: &meta.MetaOptions{
 			RefProject:   proj,
 			RefStack:     stack,
 			RefWorkspace: workspace,
-			Backend:      storageBackend,
+			Backend:      &storages.LocalStorage{},
 		},
 	}
 }

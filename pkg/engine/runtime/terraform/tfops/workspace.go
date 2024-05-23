@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/spf13/afero"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/io"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
@@ -294,7 +294,7 @@ func (w *WorkSpace) show(ctx context.Context, fileName string) ([]byte, error) {
 	return out, nil
 }
 
-// RefreshOnly refresh Terraform DeprecatedState
+// RefreshOnly refresh Terraform State
 func (w *WorkSpace) RefreshOnly(ctx context.Context) (*StateRepresentation, error) {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
 	err := w.CleanAndInitWorkspace(ctx)

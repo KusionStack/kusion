@@ -5,7 +5,7 @@ import (
 
 	"github.com/zclconf/go-cty/cty"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // StateRepresentation is the top-level representation of the json format of a terraform
@@ -107,7 +107,7 @@ type resource struct {
 // resource, whose structure depends on the resource type schema.
 type attributeValues map[string]interface{}
 
-// ConvertTFState convert Terraform DeprecatedState to kusion DeprecatedState
+// ConvertTFState convert Terraform State to kusion State
 func ConvertTFState(tfState *StateRepresentation, providerAddr string) v1.Resource {
 	if tfState == nil || tfState.Values == nil {
 		return v1.Resource{}

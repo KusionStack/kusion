@@ -22,22 +22,6 @@ import (
 //
 // You can customize the runtime of engine and the state
 // storage through `runtime` and `storage` parameters.
-//
-// Example:
-//
-//	o := NewApplyOptions()
-//	stateStorage := &states.FileSystemState{
-//	    Path: filepath.Join(o.WorkDir, states.KusionState)
-//	}
-//	kubernetesRuntime, err := runtime.NewKubernetesRuntime()
-//	if err != nil {
-//	    return err
-//	}
-//
-//	err = Apply(o, kubernetesRuntime, stateStorage, planResources, changes, os.Stdout)
-//	if err != nil {
-//	    return err
-//	}
 func Apply(
 	o *APIOptions,
 	storage release.Storage,

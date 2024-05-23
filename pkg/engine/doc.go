@@ -37,7 +37,7 @@
 //
 // 2. Walk this DAG:
 //  1. Get the latest `State` from the actual infra by the `Runtime`
-//  2. Get the last operation `State` from the `State` storage medium
+//  2. Get the last operation `State` from the `Release` storage medium
 //
 // 3. Merge/Diff three states: desired state described in Intent, live state from `Runtime` and prior state from `State` storage medium, and return the diff result to the console
 package engine

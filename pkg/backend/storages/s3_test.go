@@ -10,8 +10,6 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
-	"kusionstack.io/kusion/pkg/engine/state"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -43,38 +41,6 @@ func TestNewS3Storage(t *testing.T) {
 				_, err := NewS3Storage(tc.config)
 				assert.Equal(t, tc.success, err == nil)
 			})
-		})
-	}
-}
-
-func TestS3Storage_StateStorage(t *testing.T) {
-	testcases := []struct {
-		name               string
-		s3Storage          *S3Storage
-		project, workspace string
-		stateStorage       state.Storage
-	}{
-		{
-			name: "state storage from s3 backend",
-			s3Storage: &S3Storage{
-				s3:     &s3.S3{},
-				bucket: "infra",
-				prefix: "kusion",
-			},
-			project:   "wordpress",
-			workspace: "dev",
-			stateStorage: statestorages.NewS3Storage(
-				&s3.S3{},
-				"infra",
-				"kusion/states/wordpress/dev/state.yaml",
-			),
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.s3Storage.StateStorage(tc.project, tc.workspace)
-			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}
 }

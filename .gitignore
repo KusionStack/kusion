@@ -43,8 +43,6 @@ _python37_home_/
 /VERSION
 /kclopenapi
 .kclvm/
-kusion_state*.json
-kusion_state*.yaml
 
 # Vscode
 __debug_bin
