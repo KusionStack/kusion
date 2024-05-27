@@ -19,8 +19,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
-
-	"kusionstack.io/kusion/pkg/version"
 )
 
 // Project is a definition of Kusion project resource.
@@ -820,7 +818,7 @@ type Resources []Resource
 
 // Resource is the representation of a resource in the state.
 type Resource struct {
-	// ID is the unique key of this resource in the whole DeprecatedState.
+	// ID is the unique key of this resource.
 	// ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
 	// providerNamespace:providerName:resourceType:resourceName for Terraform resources
 	ID string `yaml:"id" json:"id"`
@@ -907,51 +905,4 @@ type Release struct {
 
 	// ModifiedTime is the time that the Release is modified.
 	ModifiedTime time.Time `yaml:"modifiedTime" json:"modifiedTime"`
-}
-
-// DeprecatedState is a record of an operation's result. It is a mapping between resources in KCL and the actual infra
-// resource and often used as a datasource for 3-way merge/diff in operations like Apply or Preview.
-// Deprecated: DeprecatedState will not in use in time
-type DeprecatedState struct {
-	// DeprecatedState ID
-	ID int64 `yaml:"id" json:"id"`
-
-	// Project name
-	Project string `yaml:"project" json:"project"`
-
-	// Stack name
-	Stack string `yaml:"stack" json:"stack"`
-
-	// Workspace name
-	Workspace string `yaml:"workspace" json:"workspace"`
-
-	// DeprecatedState version
-	Version int `yaml:"version" json:"version"`
-
-	// KusionVersion represents the Kusion version when this DeprecatedState is created
-	KusionVersion string `yaml:"kusionVersion" json:"kusionVersion"`
-
-	// Serial is an auto-increase number that represents how many times this DeprecatedState is modified
-	Serial uint64 `yaml:"serial" json:"serial"`
-
-	// Operator represents the person who triggered this operation
-	Operator string `yaml:"operator,omitempty" json:"operator,omitempty"`
-
-	// Resources records all resources in this operation
-	Resources Resources `yaml:"resources" json:"resources"`
-
-	// CreateTime is the time DeprecatedState is created
-	CreateTime time.Time `yaml:"createTime" json:"createTime"`
-
-	// ModifiedTime is the time DeprecatedState is modified each time
-	ModifiedTime time.Time `yaml:"modifiedTime,omitempty" json:"modifiedTime,omitempty"`
-}
-
-func NewState() *DeprecatedState {
-	s := &DeprecatedState{
-		KusionVersion: version.ReleaseVersion(),
-		Version:       1,
-		Resources:     []Resource{},
-	}
-	return s
 }

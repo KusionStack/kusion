@@ -7,7 +7,6 @@ import (
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
 	"kusionstack.io/kusion/pkg/engine/release"
-	"kusionstack.io/kusion/pkg/engine/state"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -15,9 +14,6 @@ import (
 type Backend interface {
 	// WorkspaceStorage returns the workspace storage and init default workspace.
 	WorkspaceStorage() (workspace.Storage, error)
-
-	// StateStorage returns the state storage.
-	StateStorage(project, workspace string) state.Storage
 
 	// ReleaseStorage returns the release storage.
 	ReleaseStorage(project, workspace string) (release.Storage, error)

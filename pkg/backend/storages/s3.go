@@ -9,8 +9,6 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
-	"kusionstack.io/kusion/pkg/engine/state"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
@@ -44,10 +42,6 @@ func NewS3Storage(config *v1.BackendS3Config) (*S3Storage, error) {
 		bucket: config.Bucket,
 		prefix: config.Prefix,
 	}, nil
-}
-
-func (s *S3Storage) StateStorage(project, workspace string) state.Storage {
-	return statestorages.NewS3Storage(s.s3, s.bucket, statestorages.GenGenericOssStateFileKey(s.prefix, project, workspace))
 }
 
 func (s *S3Storage) WorkspaceStorage() (workspace.Storage, error) {

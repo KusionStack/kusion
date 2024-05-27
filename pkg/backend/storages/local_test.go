@@ -1,7 +1,6 @@
 package storages
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -9,8 +8,6 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
-	"kusionstack.io/kusion/pkg/engine/state"
-	statestorages "kusionstack.io/kusion/pkg/engine/state/storages"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -31,34 +28,6 @@ func TestNewLocalStorage(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			storage := NewLocalStorage(tc.config)
 			assert.Equal(t, tc.storage, storage)
-		})
-	}
-}
-
-func TestLocalStorage_StateStorage(t *testing.T) {
-	testcases := []struct {
-		name               string
-		localStorage       *LocalStorage
-		project, workspace string
-		stateStorage       state.Storage
-	}{
-		{
-			name: "state storage from local backend",
-			localStorage: &LocalStorage{
-				path: "kusion",
-			},
-			project:   "wordpress",
-			workspace: "dev",
-			stateStorage: statestorages.NewLocalStorage(
-				filepath.Join("kusion", "states", "wordpress", "dev", "state.yaml"),
-			),
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			stateStorage := tc.localStorage.StateStorage(tc.project, tc.workspace)
-			assert.Equal(t, tc.stateStorage, stateStorage)
 		})
 	}
 }
