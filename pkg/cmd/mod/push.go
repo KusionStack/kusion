@@ -110,7 +110,7 @@ func NewCmdPush(ioStreams genericiooptions.IOStreams) *cobra.Command {
 	flags := NewPushModFlags(ioStreams)
 
 	cmd := &cobra.Command{
-		Use:                   "push [MODULE PATH] [OCI REPOSITORY URL]",
+		Use:                   "push MODULE_PATH OCI_REPOSITORY_URL [--creds CREDENTIALS]",
 		DisableFlagsInUseLine: true,
 		Short:                 "Push a module to OCI registry",
 		Long:                  templates.LongDesc(pushLong),

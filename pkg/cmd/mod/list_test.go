@@ -12,7 +12,7 @@ import (
 )
 
 func TestFlag_ToOption(t *testing.T) {
-	f := &Flag{
+	f := &ListFlag{
 		MetaFlags: *meta.NewMetaFlags(),
 	}
 
@@ -29,8 +29,8 @@ func TestFlag_ToOption(t *testing.T) {
 	})
 }
 
-func TestOptions_Run(t *testing.T) {
-	o := &Options{
+func TestListOptions_Run(t *testing.T) {
+	o := &ListOption{
 		Workspace: &v1.Workspace{
 			Modules: map[string]*v1.ModuleConfig{
 				"module1": {
