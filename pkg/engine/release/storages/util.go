@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 const (
@@ -44,16 +42,13 @@ type releasesMetaData struct {
 	ReleaseMetaDatas []*releaseMetaData `yaml:"releaseMetaDatas,omitempty" json:"releaseMetaDatas,omitempty"`
 }
 
-// releaseMetaData contains mata data of a specified release, which contains the Revision, Stack and Phase.
+// releaseMetaData contains mata data of a specified release, which contains the Revision and Stack.
 type releaseMetaData struct {
 	// Revision of the Release.
 	Revision uint64
 
 	// Stack of the Release.
 	Stack string
-
-	// Phase of the Release.
-	Phase v1.ReleasePhase
 }
 
 // checkRevisionExistence returns the workspace exists or not.
@@ -90,12 +85,11 @@ func getStackBoundRevisions(meta *releasesMetaData, stack string) []uint64 {
 
 // addLatestReleaseMetaData adds a release and updates the latest revision in the metadata, called
 // by the storage.Create.
-func addLatestReleaseMetaData(meta *releasesMetaData, revision uint64, stack string, phase v1.ReleasePhase) {
+func addLatestReleaseMetaData(meta *releasesMetaData, revision uint64, stack string) {
 	meta.LatestRevision = revision
 	metaData := &releaseMetaData{
 		Revision: revision,
 		Stack:    stack,
-		Phase:    phase,
 	}
 	meta.ReleaseMetaDatas = append(meta.ReleaseMetaDatas, metaData)
 }

@@ -2,10 +2,7 @@ latestRevision: 3
 releaseMetaDatas:
     - revision: 1
       stack: test_stack
-      phase: succeeded
     - revision: 2
       stack: test_stack
-      phase: succeeded
     - revision: 3
       stack: test_stack
-      phase: succeeded

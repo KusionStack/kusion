@@ -79,7 +79,7 @@ func (s *OssStorage) Create(r *v1.Release) error {
 		return err
 	}
 
-	addLatestReleaseMetaData(s.meta, r.Revision, r.Stack, r.Phase)
+	addLatestReleaseMetaData(s.meta, r.Revision, r.Stack)
 	return s.writeMeta()
 }
 

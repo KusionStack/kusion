@@ -15,17 +15,14 @@ func mockReleasesMetaData() *releasesMetaData {
 			{
 				Revision: 1,
 				Stack:    "dev",
-				Phase:    v1.ReleasePhaseSucceeded,
 			},
 			{
 				Revision: 2,
 				Stack:    "pre",
-				Phase:    v1.ReleasePhaseFailed,
 			},
 			{
 				Revision: 3,
 				Stack:    "pre",
-				Phase:    v1.ReleasePhaseSucceeded,
 			},
 		},
 	}
@@ -131,7 +128,6 @@ func TestAddLatestReleaseMetaData(t *testing.T) {
 					{
 						Revision: 1,
 						Stack:    "prod",
-						Phase:    v1.ReleasePhaseGenerating,
 					},
 				},
 			},
@@ -148,22 +144,18 @@ func TestAddLatestReleaseMetaData(t *testing.T) {
 					{
 						Revision: 1,
 						Stack:    "dev",
-						Phase:    v1.ReleasePhaseSucceeded,
 					},
 					{
 						Revision: 2,
 						Stack:    "pre",
-						Phase:    v1.ReleasePhaseFailed,
 					},
 					{
 						Revision: 3,
 						Stack:    "pre",
-						Phase:    v1.ReleasePhaseSucceeded,
 					},
 					{
 						Revision: 4,
 						Stack:    "prod",
-						Phase:    v1.ReleasePhasePreviewing,
 					},
 				},
 			},
@@ -172,7 +164,7 @@ func TestAddLatestReleaseMetaData(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			addLatestReleaseMetaData(tc.meta, tc.revision, tc.stack, tc.phase)
+			addLatestReleaseMetaData(tc.meta, tc.revision, tc.stack)
 			assert.Equal(t, tc.expectedMeta, tc.expectedMeta)
 		})
 	}

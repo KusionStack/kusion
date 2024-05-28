@@ -161,7 +161,6 @@ func mockReleaseMeta(revision uint64) *releaseMetaData {
 	return &releaseMetaData{
 		Revision: revision,
 		Stack:    "test_stack",
-		Phase:    v1.ReleasePhaseSucceeded,
 	}
 }
 
