@@ -15,6 +15,7 @@
 package apply
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -36,6 +37,7 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/signal"
 	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
@@ -168,15 +170,40 @@ func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 }
 
 // Run executes the `apply` command.
-func (o *ApplyOptions) Run() (err error) {
-	// update release to succeeded or failed
-	var storage release.Storage
-	var rel *apiv1.Release
-	releaseCreated := false
-	defer func() {
-		if !releaseCreated {
-			return
+func (o *ApplyOptions) Run() error {
+	// create release
+	storage, err := o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+	rel, err := release.NewApplyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+	if !o.DryRun {
+		if err = storage.Create(rel); err != nil {
+			return err
 		}
+	}
+
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	// wait for the SIGTERM or SIGINT
+	go func() {
+		stopCh := signal.SetupSignalHandler()
+		<-stopCh
+		errCh <- errors.New("receive SIGTERM or SIGINT, exit cmd")
+	}()
+
+	// run apply command
+	go func() {
+		errCh <- o.run(rel, storage)
+	}()
+
+	// update release phase to succeeded or failed
+	select {
+	case err = <-errCh:
 		if err != nil {
 			rel.Phase = apiv1.ReleasePhaseFailed
 			_ = release.UpdateApplyRelease(storage, rel, o.DryRun)
@@ -184,34 +211,22 @@ func (o *ApplyOptions) Run() (err error) {
 			rel.Phase = apiv1.ReleasePhaseSucceeded
 			err = release.UpdateApplyRelease(storage, rel, o.DryRun)
 		}
+		return err
+	}
+}
+
+// run executes `apply` command after the release is created.
+func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
+	// update release to succeeded or failed
+	defer func() {
+		if p := recover(); p != nil {
+			err = fmt.Errorf("goroutine panic: %v", p)
+		}
 	}()
 
 	// set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
-	}
-
-	// create release
-	storage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
-	if err != nil {
-		return
-	}
-	rel, err = release.NewApplyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
-	if err != nil {
-		return
-	}
-	if !o.DryRun {
-		if err = storage.Create(rel); err != nil {
-			return
-		}
-		releaseCreated = true
-	}
-
-	// build parameters
-	parameters := make(map[string]string)
-	for _, value := range o.PreviewOptions.Values {
-		parts := strings.SplitN(value, "=", 2)
-		parameters[parts[0]] = parts[1]
 	}
 
 	// generate Spec

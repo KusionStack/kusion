@@ -15,6 +15,7 @@
 package destroy
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -36,6 +37,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/signal"
 	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
@@ -155,15 +157,38 @@ func (o *DestroyOptions) Validate(cmd *cobra.Command, args []string) error {
 }
 
 // Run executes the `delete` command.
-func (o *DestroyOptions) Run() (err error) {
-	// update release to succeeded or failed
-	var storage release.Storage
-	var rel *apiv1.Release
-	releaseCreated := false
-	defer func() {
-		if !releaseCreated {
-			return
-		}
+func (o *DestroyOptions) Run() error {
+	storage, err := o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+	rel, err := release.CreateDestroyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+	if len(rel.Spec.Resources) == 0 {
+		pterm.Println(pterm.Green("No managed resources to destroy"))
+		return nil
+	}
+
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	// wait for the SIGTERM or SIGINT
+	go func() {
+		stopCh := signal.SetupSignalHandler()
+		<-stopCh
+		errCh <- errors.New("receive SIGTERM or SIGINT, exit cmd")
+	}()
+
+	// run destroy command
+	go func() {
+		errCh <- o.run(rel, storage)
+	}()
+
+	// update release phase to succeeded or failed
+	select {
+	case err = <-errCh:
 		if err != nil {
 			rel.Phase = apiv1.ReleasePhaseFailed
 			_ = release.UpdateDestroyRelease(storage, rel)
@@ -171,23 +196,12 @@ func (o *DestroyOptions) Run() (err error) {
 			rel.Phase = apiv1.ReleasePhaseSucceeded
 			err = release.UpdateDestroyRelease(storage, rel)
 		}
-	}()
+		return err
+	}
+}
 
-	// only destroy resources we managed
-	storage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
-	if err != nil {
-		return
-	}
-	rel, err = release.CreateDestroyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
-	if err != nil {
-		return
-	}
-	if len(rel.Spec.Resources) == 0 {
-		pterm.Println(pterm.Green("No managed resources to destroy"))
-		return
-	}
-	releaseCreated = true
-
+// run executes the delete command after release is created.
+func (o *DestroyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
 	// compute changes for preview
 	changes, err := o.preview(rel.Spec, rel.State, o.RefProject, o.RefStack, storage)
 	if err != nil {
