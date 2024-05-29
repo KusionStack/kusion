@@ -40,7 +40,7 @@ func NewCmdInit() *cobra.Command {
 	o := &InitOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "init [MODULE NAME] [PATH]",
+		Use:     "init MODULE_NAME PATH",
 		Short:   initShort,
 		Example: templates.Examples(initExample),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
