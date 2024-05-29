@@ -26,6 +26,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	k8sjson "k8s.io/apimachinery/pkg/util/json"
 	"kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -214,7 +215,17 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 	}
 
 	un := &unstructured.Unstructured{}
-	un.SetUnstructuredContent(workload.Attributes)
+	attributes := workload.Attributes
+
+	// normalize attributes with K8s json util. Especially numbers are converted to int64 or float64
+	out, err := k8sjson.Marshal(attributes)
+	if err != nil {
+		return err
+	}
+	if err = k8sjson.Unmarshal(out, &attributes); err != nil {
+		return err
+	}
+	un.SetUnstructuredContent(attributes)
 
 	// patch labels
 	if patcher.Labels != nil {

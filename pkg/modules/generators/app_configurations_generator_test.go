@@ -8,6 +8,7 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -292,6 +293,14 @@ func Test_patchWorkload(t *testing.T) {
 						{
 							Name:  "my-app",
 							Image: "my-app-image",
+							ReadinessProbe: &corev1.Probe{
+								ProbeHandler: corev1.ProbeHandler{
+									TCPSocket: &corev1.TCPSocketAction{
+										Host: "localhost:8080",
+									},
+								},
+								InitialDelaySeconds: 2,
+							},
 							Env: []corev1.EnvVar{
 								{
 									Name:  "MY_ENV",
@@ -304,8 +313,14 @@ func Test_patchWorkload(t *testing.T) {
 			},
 		},
 	}
-	// convert deploy to unstructured
+
+	// convert deploy to map with yamlv3 to simulate what we did in the module framework
 	deploymentUnstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(deployment)
+	assert.NoError(t, err)
+	out, err := yaml.Marshal(deploymentUnstructured)
+	assert.NoError(t, err)
+	err = yaml.Unmarshal(out, deploymentUnstructured)
+
 	res := &v1.Resource{
 		ID:         "apps/v1:Deployment:default:default-dev-foo",
 		Type:       "Kubernetes",
