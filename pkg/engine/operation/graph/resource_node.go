@@ -133,8 +133,10 @@ func (rn *ResourceNode) computeActionType(
 		} else if liveResource == nil {
 			rn.Action = models.Create
 		} else {
+			// Prepare the watch channel for runtime apply.
+			ctx := context.WithValue(context.Background(), v1.WatchChannel, operation.WatchCh)
 			// Dry run to fetch predictable resource
-			dryRunResp := operation.RuntimeMap[rn.resource.Type].Apply(context.Background(), &runtime.ApplyRequest{
+			dryRunResp := operation.RuntimeMap[rn.resource.Type].Apply(ctx, &runtime.ApplyRequest{
 				PriorResource: priorResource,
 				PlanResource:  planedResource,
 				Stack:         operation.Stack,
@@ -225,7 +227,9 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 	rt := operation.RuntimeMap[resourceType]
 	switch rn.Action {
 	case models.Create, models.Update:
-		response := rt.Apply(context.Background(), &runtime.ApplyRequest{PriorResource: prior, PlanResource: planed, Stack: operation.Stack})
+		// Prepare the watch channel for runtime apply.
+		ctx := context.WithValue(context.Background(), v1.WatchChannel, operation.WatchCh)
+		response := rt.Apply(ctx, &runtime.ApplyRequest{PriorResource: prior, PlanResource: planed, Stack: operation.Stack})
 		res = response.Resource
 		s = response.Status
 		log.Debugf("apply resource:%s, response: %v", planed.ID, json.Marshal2String(response))

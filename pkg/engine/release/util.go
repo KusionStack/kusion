@@ -46,9 +46,7 @@ func NewApplyRelease(storage Storage, project, stack, workspace string) (*v1.Rel
 		if lastRelease.Phase != v1.ReleasePhaseSucceeded && lastRelease.Phase != v1.ReleasePhaseFailed {
 			return nil, fmt.Errorf("cannot new release of project %s, workspace %s cause there is release in progress", project, workspace)
 		}
-		if err != nil {
-			return nil, err
-		}
+
 		rel = &v1.Release{
 			Project:      project,
 			Workspace:    workspace,

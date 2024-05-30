@@ -55,23 +55,17 @@ func (t *Table) AllCompleted() bool {
 func (t *Table) Print() [][]string {
 	data := [][]string{{"Type", "Kind", "Name", "Detail"}}
 	for _, id := range t.IDs {
+		var eventType k8swatch.EventType
 		row := t.Rows[id]
-		eventType := row.Type
+		if row != nil {
+			eventType = row.Type
+		} else {
+			// In case that the row of the table hasn't updated contents.
+			continue
+		}
 
 		// Colored type
-		eventTypeS := ""
-		switch eventType {
-		case k8swatch.Added:
-			eventTypeS = pretty.Cyan(string(eventType))
-		case k8swatch.Deleted:
-			eventTypeS = pretty.Red(string(eventType))
-		case k8swatch.Modified:
-			eventTypeS = pretty.Yellow(string(eventType))
-		case k8swatch.Error:
-			eventTypeS = pretty.Red(string(eventType))
-		default:
-			eventTypeS = pretty.Green(string(eventType))
-		}
+		eventTypeS := pretty.Normal(string(eventType))
 
 		data = append(data, []string{eventTypeS, row.Kind, row.Name, row.Detail})
 	}

@@ -21,7 +21,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/cli-runtime/pkg/genericiooptions"

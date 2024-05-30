@@ -14,6 +14,18 @@ const (
 	Terraform  apiv1.Type = "Terraform"
 )
 
+// TFEvent represents the status of the Terraform resource operation event.
+type TFEvent string
+
+const (
+	// TFApplying means the TF resource is still being applied.
+	TFApplying = TFEvent("Applying")
+	// TFSucceeded means the TF resource operation has succeeded.
+	TFSucceeded = TFEvent("Succeeded")
+	// TFFailed means the TF resource operation has failed.
+	TFFailed = TFEvent("Failed")
+)
+
 // Runtime represents an actual infrastructure runtime managed by Kusion and every runtime implements this interface can be orchestrated
 // by Kusion like normal K8s resources. All methods in this interface are designed for manipulating one Resource at a time and will be
 // invoked in operations like Apply, Preview, Destroy, etc.
@@ -126,6 +138,8 @@ type WatchResponse struct {
 type SequentialWatchers struct {
 	IDs      []string
 	Watchers []<-chan watch.Event
+	// TFWatcher is for watching the operation event of the Terraform resources.
+	TFWatcher <-chan TFEvent
 }
 
 func NewWatchers() *SequentialWatchers {

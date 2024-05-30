@@ -15,15 +15,18 @@
 package apply
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"os"
+	"io"
 	"testing"
 	"time"
 
 	"github.com/bytedance/mockey"
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/watch"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
@@ -34,6 +37,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/printers"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
@@ -243,7 +247,7 @@ func TestApply(t *testing.T) {
 		changes := models.NewChanges(proj, stack, order)
 		o := newApplyOptions()
 		o.DryRun = true
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
@@ -279,7 +283,7 @@ func TestApply(t *testing.T) {
 		}
 
 		changes := models.NewChanges(proj, stack, order)
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
@@ -310,7 +314,7 @@ func TestApply(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.NotNil(t, err)
 	})
 }
@@ -359,4 +363,151 @@ func TestPrompt(t *testing.T) {
 		_, err := prompt(terminal.DefaultUI())
 		assert.Nil(t, err)
 	})
+}
+
+func TestWatchK8sResources(t *testing.T) {
+	t.Run("watch timeout", func(t *testing.T) {
+		eventCh := make(chan watch.Event, 10)
+		errCh := make(chan error, 10)
+
+		objMap := make(map[string]interface{})
+		eventCh <- watch.Event{
+			Type: watch.Added,
+			Object: &unstructured.Unstructured{
+				Object: objMap,
+			},
+		}
+
+		watchK8sResources(
+			"fake-resource-id",
+			[]<-chan watch.Event{
+				eventCh,
+			},
+			&printers.Table{
+				IDs: []string{
+					"fake-resource-id-0",
+					"fake-resource-id-1",
+				},
+				Rows: map[string]*printers.Row{},
+			},
+			map[string]*printers.Table{
+				"fake-resource-id": {},
+			},
+			1, false, errCh)
+
+		err := <-errCh
+		assert.ErrorContains(t, err, "as timeout for")
+	})
+}
+
+func TestWatchTFResources(t *testing.T) {
+	t.Run("successfully apply TF resources", func(t *testing.T) {
+		eventCh := make(chan runtime.TFEvent, 10)
+		events := []runtime.TFEvent{
+			runtime.TFApplying,
+			runtime.TFApplying,
+			runtime.TFSucceeded,
+		}
+		for _, e := range events {
+			eventCh <- e
+		}
+
+		id := "hashicorp:random:random_password:example-dev-kawesome"
+		table := &printers.Table{
+			IDs: []string{id},
+			Rows: map[string]*printers.Row{
+				"hashicorp:random:random_password:example-dev-kawesome": {},
+			},
+		}
+
+		watchTFResources(id, eventCh, table, true)
+
+		assert.Equal(t, true, table.AllCompleted())
+	})
+}
+
+func TestPrintTable(t *testing.T) {
+	w := io.Writer(bytes.NewBufferString(""))
+	id := "fake-resource-id"
+	tables := map[string]*printers.Table{
+		"fake-resource-id": printers.NewTable([]string{
+			"fake-resource-id",
+		}),
+	}
+
+	t.Run("skip unsupported resources", func(t *testing.T) {
+		printTable(&w, "fake-fake-resource-id", tables)
+		assert.Contains(t, w.(*bytes.Buffer).String(), "Skip monitoring unsupported resources")
+	})
+
+	t.Run("update table", func(t *testing.T) {
+		printTable(&w, id, tables)
+		tableStr, err := pterm.DefaultTable.
+			WithStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHeaderStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHasHeader().WithSeparator("  ").WithData(tables[id].Print()).Srender()
+
+		assert.Nil(t, err)
+		assert.Contains(t, w.(*bytes.Buffer).String(), tableStr)
+	})
+}
+
+func TestRelHandler(t *testing.T) {
+	o := newApplyOptions()
+	o.DryRun = true
+	storage, _ = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	rel := &apiv1.Release{
+		Project:      "fake-project",
+		Workspace:    "fake-workspace",
+		Revision:     1,
+		Stack:        "fake-stack",
+		Spec:         &apiv1.Spec{Resources: []apiv1.Resource{sa1}},
+		State:        &apiv1.State{},
+		Phase:        apiv1.ReleasePhaseApplying,
+		CreateTime:   time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+		ModifiedTime: time.Date(2024, 5, 20, 19, 39, 0, 0, loc),
+	}
+
+	testcases := []struct {
+		name           string
+		rel            *apiv1.Release
+		releaseCreated bool
+		err            error
+		dryRun         bool
+		expectedPhase  apiv1.ReleasePhase
+	}{
+		{
+			name:           "release applying",
+			rel:            rel,
+			releaseCreated: false,
+			err:            nil,
+			dryRun:         true,
+			expectedPhase:  apiv1.ReleasePhaseApplying,
+		},
+		{
+			name:           "release failed",
+			rel:            rel,
+			releaseCreated: true,
+			err:            errors.New("fake error"),
+			dryRun:         true,
+			expectedPhase:  apiv1.ReleasePhaseFailed,
+		},
+		{
+			name:           "release succeeded",
+			rel:            rel,
+			releaseCreated: true,
+			err:            nil,
+			dryRun:         true,
+			expectedPhase:  apiv1.ReleasePhaseSucceeded,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			relHandler(tc.rel, tc.releaseCreated, tc.err, tc.dryRun)
+			assert.Equal(t, tc.expectedPhase, tc.rel.Phase)
+		})
+	}
 }

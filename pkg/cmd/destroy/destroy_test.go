@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/bytedance/mockey"
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/stretchr/testify/assert"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"

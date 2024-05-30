@@ -2,9 +2,11 @@ package terraform
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/spf13/afero"
 
@@ -16,6 +18,10 @@ import (
 )
 
 var _ runtime.Runtime = &TerraformRuntime{}
+
+// tfEvents is used to record the operation events of the Terraform
+// resources into the related channels for watching.
+var tfEvents = make(map[string]chan runtime.TFEvent)
 
 type TerraformRuntime struct {
 	tfops.WorkSpace
@@ -83,15 +89,60 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		}
 	}
 
-	tfstate, err := t.WorkSpace.Apply(ctx)
-	if err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
-	}
+	var tfstate *tfops.StateRepresentation
+	var providerAddr string
 
-	// get terraform provider version
-	providerAddr, err := t.WorkSpace.GetProvider()
-	if err != nil {
-		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+	// Extract the watch channel from the context.
+	watchCh, _ := ctx.Value(v1.WatchChannel).(chan string)
+	if watchCh != nil {
+		// Apply while watching the resource.
+		errCh := make(chan error)
+
+		// Start applying the resource.
+		go func() {
+			tfstate, err = t.WorkSpace.Apply(ctx)
+			if err != nil {
+				errCh <- err
+			}
+
+			providerAddr, err = t.WorkSpace.GetProvider()
+			errCh <- err
+		}()
+
+		// Prepare the event channel and send the resource ID to watch channel.
+		log.Infof("Started to watch %s with the type of %s", plan.ResourceKey(), plan.Type)
+		eventCh := make(chan runtime.TFEvent)
+		tfEvents[plan.ResourceKey()] = eventCh
+		watchCh <- plan.ResourceKey()
+
+		// Wait for the apply to be finished.
+		shouldBreak := false
+		for !shouldBreak {
+			select {
+			case err = <-errCh:
+				if err != nil {
+					eventCh <- runtime.TFFailed
+					return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+				}
+				eventCh <- runtime.TFSucceeded
+				shouldBreak = true
+			default:
+				eventCh <- runtime.TFApplying
+				time.Sleep(time.Second * 1)
+			}
+		}
+	} else {
+		// Apply without watching.
+		tfstate, err = t.WorkSpace.Apply(ctx)
+		if err != nil {
+			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+		}
+
+		// get terraform provider version
+		providerAddr, err = t.WorkSpace.GetProvider()
+		if err != nil {
+			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+		}
 	}
 
 	r := tfops.ConvertTFState(tfstate, providerAddr)
@@ -219,5 +270,17 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 
 // Watch terraform resource
 func (t *TerraformRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
-	return nil
+	// Get the event channel.
+	id := request.Resource.ResourceKey()
+	eventCh, ok := tfEvents[id]
+	if !ok {
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(fmt.Errorf("failed to get the event channel for %s", id))}
+	}
+
+	return &runtime.WatchResponse{
+		Watchers: &runtime.SequentialWatchers{
+			IDs:       []string{id},
+			TFWatcher: eventCh,
+		},
+	}
 }

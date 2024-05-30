@@ -44,6 +44,10 @@ type Operation struct {
 	// and this message will be displayed in the terminal
 	MsgCh chan Message
 
+	// WatchCh is used to send the resource IDs that are ready to be watched after sending or executing
+	// the apply request.
+	WatchCh chan string
+
 	// Lock is the operation-wide mutex
 	Lock *sync.Mutex
 

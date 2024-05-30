@@ -1,6 +1,6 @@
 package pretty
 
-import "github.com/pterm/pterm"
+import "github.com/liu-hm19/pterm"
 
 // Pretty style, contains the color and the style.
 //
