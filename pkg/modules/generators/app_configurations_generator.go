@@ -76,7 +76,7 @@ func NewAppConfigurationGenerator(
 	}
 
 	if err := workspace.ValidateWorkspace(ws); err != nil {
-		return nil, fmt.Errorf("invalid config of workspace %s, %w", ws.Name, err)
+		return nil, fmt.Errorf("invalid config of workspace: %s, %w", ws.Name, err)
 	}
 
 	return &appConfigurationGenerator{
