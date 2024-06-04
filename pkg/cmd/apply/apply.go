@@ -37,7 +37,6 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/cmd/preview"
-	"kusionstack.io/kusion/pkg/cmd/util"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
@@ -412,7 +411,7 @@ func Apply(
 	// Update the release before exit.
 	defer func() {
 		if p := recover(); p != nil {
-			util.RecoverErr(&err)
+			cmdutil.RecoverErr(&err)
 			log.Error(err)
 		}
 		if err != nil {
@@ -576,7 +575,7 @@ func PrintApplyDetails(
 ) {
 	defer func() {
 		if p := recover(); p != nil {
-			util.RecoverErr(err)
+			cmdutil.RecoverErr(err)
 			log.Error(*err)
 		}
 		if *err != nil {
@@ -657,7 +656,7 @@ func Watch(
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
-				util.RecoverErr(err)
+				cmdutil.RecoverErr(err)
 				log.Error(*err)
 			}
 			if *err != nil {
@@ -839,7 +838,7 @@ func watchK8sResources(
 	defer func() {
 		var err error
 		if p := recover(); p != nil {
-			util.RecoverErr(&err)
+			cmdutil.RecoverErr(&err)
 			log.Error(err)
 		}
 		if err != nil {
@@ -909,7 +908,7 @@ func watchTFResources(
 	defer func() {
 		var err error
 		if p := recover(); p != nil {
-			util.RecoverErr(&err)
+			cmdutil.RecoverErr(&err)
 			log.Error(err)
 		}
 		if err != nil {
