@@ -48,12 +48,13 @@ require (
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/howieyuen/uilive v0.0.6
 	github.com/jinzhu/copier v0.3.2
+	github.com/liu-hm19/pterm v0.12.79-fix.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/pterm/pterm v0.12.79
 	github.com/pulumi/pulumi/sdk/v3 v3.68.0
 	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/afero v1.6.0

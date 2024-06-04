@@ -3,7 +3,7 @@ package mod
 import (
 	"fmt"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/util/templates"

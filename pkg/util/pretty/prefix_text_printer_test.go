@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 )
 
 func TestPrefixTextPrinter(t *testing.T) {

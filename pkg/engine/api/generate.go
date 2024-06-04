@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	yamlv3 "gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"

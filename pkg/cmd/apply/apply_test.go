@@ -15,15 +15,19 @@
 package apply
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"os"
+	"io"
 	"testing"
 	"time"
 
 	"github.com/bytedance/mockey"
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/watch"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
@@ -34,6 +38,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/printers"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
@@ -243,7 +248,7 @@ func TestApply(t *testing.T) {
 		changes := models.NewChanges(proj, stack, order)
 		o := newApplyOptions()
 		o.DryRun = true
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
@@ -279,7 +284,7 @@ func TestApply(t *testing.T) {
 		}
 
 		changes := models.NewChanges(proj, stack, order)
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
@@ -310,7 +315,7 @@ func TestApply(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
 		assert.NotNil(t, err)
 	})
 }
@@ -358,5 +363,112 @@ func TestPrompt(t *testing.T) {
 		mockPromptOutput("yes")
 		_, err := prompt(terminal.DefaultUI())
 		assert.Nil(t, err)
+	})
+}
+
+func TestWatchK8sResources(t *testing.T) {
+	t.Run("successfully apply K8s resources", func(t *testing.T) {
+		id := "v1:Namespace:example"
+		chs := make([]<-chan watch.Event, 1)
+		events := []watch.Event{
+			{
+				Type: watch.Added,
+				Object: &unstructured.Unstructured{
+					Object: map[string]interface{}{
+						"apiVersion": "v1",
+						"kind":       "Namespace",
+						"metadata": map[string]interface{}{
+							"name": "example",
+						},
+						"spec": map[string]interface{}{},
+					},
+				},
+			},
+			{
+				Type: watch.Added,
+				Object: &unstructured.Unstructured{
+					Object: map[string]interface{}{
+						"apiVersion": "v1",
+						"kind":       "Namespace",
+						"metadata": map[string]interface{}{
+							"name": "example",
+						},
+						"spec": map[string]interface{}{},
+						"status": map[string]interface{}{
+							"phase": corev1.NamespaceActive,
+						},
+					},
+				},
+			},
+		}
+
+		out := make(chan watch.Event, 10)
+		for _, e := range events {
+			out <- e
+		}
+		chs[0] = out
+		table := &printers.Table{
+			IDs:  []string{id},
+			Rows: map[string]*printers.Row{},
+		}
+		tables := map[string]*printers.Table{
+			id: table,
+		}
+
+		watchK8sResources(id, chs, table, tables, true)
+
+		assert.Equal(t, true, table.AllCompleted())
+	})
+}
+
+func TestWatchTFResources(t *testing.T) {
+	t.Run("successfully apply TF resources", func(t *testing.T) {
+		eventCh := make(chan runtime.TFEvent, 10)
+		events := []runtime.TFEvent{
+			runtime.TFApplying,
+			runtime.TFApplying,
+			runtime.TFSucceeded,
+		}
+		for _, e := range events {
+			eventCh <- e
+		}
+
+		id := "hashicorp:random:random_password:example-dev-kawesome"
+		table := &printers.Table{
+			IDs: []string{id},
+			Rows: map[string]*printers.Row{
+				"hashicorp:random:random_password:example-dev-kawesome": {},
+			},
+		}
+
+		watchTFResources(id, eventCh, table, true)
+
+		assert.Equal(t, true, table.AllCompleted())
+	})
+}
+
+func TestPrintTable(t *testing.T) {
+	w := io.Writer(bytes.NewBufferString(""))
+	id := "fake-resource-id"
+	tables := map[string]*printers.Table{
+		"fake-resource-id": printers.NewTable([]string{
+			"fake-resource-id",
+		}),
+	}
+
+	t.Run("skip unsupported resources", func(t *testing.T) {
+		printTable(&w, "fake-fake-resource-id", tables)
+		assert.Contains(t, w.(*bytes.Buffer).String(), "Skip monitoring unsupported resources")
+	})
+
+	t.Run("update table", func(t *testing.T) {
+		printTable(&w, id, tables)
+		tableStr, err := pterm.DefaultTable.
+			WithStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHeaderStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHasHeader().WithSeparator("  ").WithData(tables[id].Print()).Srender()
+
+		assert.Nil(t, err)
+		assert.Contains(t, w.(*bytes.Buffer).String(), tableStr)
 	})
 }

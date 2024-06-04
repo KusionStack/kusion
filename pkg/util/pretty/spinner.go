@@ -3,7 +3,7 @@ package pretty
 import (
 	"time"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 )
 
 // Spinner style.

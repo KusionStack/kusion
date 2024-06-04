@@ -15,13 +15,21 @@
 package apply
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"io"
+	"os"
+	"reflect"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/util/templates"
 
@@ -30,12 +38,17 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/generate"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
+	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/printers"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/runtime"
+	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/signal"
 	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
@@ -60,9 +73,28 @@ var (
 		# Apply without output style and color
 		kusion apply --no-style=true
 		
+		# Apply without watching the resource changes and waiting for reconciliation
+		kusion apply --watch=false
+
+		# Apply with the specified timeout duration for kusion apply command, measured in second(s)
+		kusion apply --timeout=120
+
 		# Apply with localhost port forwarding
 		kusion apply --port-forward=8080`)
 )
+
+// To handle the release phase update when panic occurs.
+// Fixme: adopt a more centralized approach to manage the release update before exiting, instead of
+// scattering them across different go-routines.
+var (
+	rel            *apiv1.Release
+	relLock        = &sync.Mutex{}
+	releaseCreated = false
+	storage        release.Storage
+	portForwarded  = false
+)
+
+var errExit = errors.New("receive SIGTERM or SIGINT, exit cmd")
 
 // ApplyFlags directly reflect the information that CLI is gathering via flags. They will be converted to
 // ApplyOptions, which reflect the runtime requirements for the command.
@@ -74,6 +106,7 @@ type ApplyFlags struct {
 	Yes         bool
 	DryRun      bool
 	Watch       bool
+	Timeout     int
 	PortForward int
 
 	genericiooptions.IOStreams
@@ -86,6 +119,7 @@ type ApplyOptions struct {
 	Yes         bool
 	DryRun      bool
 	Watch       bool
+	Timeout     int
 	PortForward int
 
 	genericiooptions.IOStreams
@@ -130,7 +164,8 @@ func (f *ApplyFlags) AddFlags(cmd *cobra.Command) {
 
 	cmd.Flags().BoolVarP(&f.Yes, "yes", "y", false, i18n.T("Automatically approve and perform the update after previewing it"))
 	cmd.Flags().BoolVarP(&f.DryRun, "dry-run", "", false, i18n.T("Preview the execution effect (always successful) without actually applying the changes"))
-	cmd.Flags().BoolVarP(&f.Watch, "watch", "", false, i18n.T("After creating/updating/deleting the requested object, watch for changes"))
+	cmd.Flags().BoolVarP(&f.Watch, "watch", "", true, i18n.T("After creating/updating/deleting the requested object, watch for changes"))
+	cmd.Flags().IntVarP(&f.Timeout, "timeout", "", 0, i18n.T("The timeout duration for kusion apply command, measured in second(s)"))
 	cmd.Flags().IntVarP(&f.PortForward, "port-forward", "", 0, i18n.T("Forward the specified port from local to service"))
 }
 
@@ -147,6 +182,7 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 		Yes:            f.Yes,
 		DryRun:         f.DryRun,
 		Watch:          f.Watch,
+		Timeout:        f.Timeout,
 		PortForward:    f.PortForward,
 		IOStreams:      f.IOStreams,
 	}
@@ -170,19 +206,17 @@ func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 // Run executes the `apply` command.
 func (o *ApplyOptions) Run() (err error) {
 	// update release to succeeded or failed
-	var storage release.Storage
-	var rel *apiv1.Release
-	releaseCreated := false
 	defer func() {
 		if !releaseCreated {
 			return
 		}
 		if err != nil {
-			rel.Phase = apiv1.ReleasePhaseFailed
-			_ = release.UpdateApplyRelease(storage, rel, o.DryRun)
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			// Join the errors if update apply release failed.
+			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
 		} else {
-			rel.Phase = apiv1.ReleasePhaseSucceeded
-			err = release.UpdateApplyRelease(storage, rel, o.DryRun)
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseSucceeded, relLock)
+			err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)
 		}
 	}()
 
@@ -207,6 +241,64 @@ func (o *ApplyOptions) Run() (err error) {
 		releaseCreated = true
 	}
 
+	// Prepare for the timeout timer.
+	// Fixme: adopt a more centralized approach to manage the gracefully exit interrupted by
+	// the SIGINT or SIGTERM, instead of scattering them across different go-routines.
+	var timer <-chan time.Time
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	// Wait for the SIGTERM or SIGINT.
+	go func() {
+		stopCh := signal.SetupSignalHandler()
+		<-stopCh
+		errCh <- errExit
+	}()
+
+	go func() {
+		errCh <- o.run(rel, storage)
+	}()
+
+	// Check whether the kusion apply command has timed out.
+	if o.Timeout > 0 {
+		timer = time.After(time.Second * time.Duration(o.Timeout))
+		select {
+		case err = <-errCh:
+			if errors.Is(err, errExit) && portForwarded {
+				return nil
+			}
+			return err
+		case <-timer:
+			err = fmt.Errorf("failed to execute kusion apply as: timeout for %d seconds", o.Timeout)
+			if !releaseCreated {
+				return
+			}
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+			return err
+		}
+	} else {
+		err = <-errCh
+		if errors.Is(err, errExit) && portForwarded {
+			return nil
+		}
+	}
+
+	return err
+}
+
+// run executes the apply cmd after the release is created.
+func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
+	defer func() {
+		if !releaseCreated {
+			return
+		}
+		if err != nil {
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+		}
+	}()
+
 	// build parameters
 	parameters := make(map[string]string)
 	for _, value := range o.PreviewOptions.Values {
@@ -228,10 +320,11 @@ func (o *ApplyOptions) Run() (err error) {
 
 	// update release phase to previewing
 	rel.Spec = spec
-	rel.Phase = apiv1.ReleasePhasePreviewing
-	if err = release.UpdateApplyRelease(storage, rel, o.DryRun); err != nil {
+	release.UpdateReleasePhase(rel, apiv1.ReleasePhasePreviewing, relLock)
+	if err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock); err != nil {
 		return
 	}
+
 	// compute changes for preview
 	changes, err := preview.Preview(o.PreviewOptions, storage, rel.Spec, rel.State, o.RefProject, o.RefStack)
 	if err != nil {
@@ -279,39 +372,35 @@ func (o *ApplyOptions) Run() (err error) {
 	}
 
 	// update release phase to applying
-	rel.Phase = apiv1.ReleasePhaseApplying
-	if err = release.UpdateApplyRelease(storage, rel, o.DryRun); err != nil {
+	release.UpdateReleasePhase(rel, apiv1.ReleasePhaseApplying, relLock)
+	if err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock); err != nil {
 		return
 	}
+
 	// start applying
-	fmt.Println("Start applying diffs ...")
+	fmt.Printf("\nStart applying diffs ...\n")
 	var updatedRel *apiv1.Release
-	updatedRel, err = Apply(o, storage, rel, changes, o.IOStreams.Out)
+	updatedRel, err = Apply(o, storage, rel, changes)
 	if err != nil {
 		return
 	}
+
 	// if dry run, print the hint
 	if o.DryRun {
 		fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
 		return nil
 	}
-	rel = updatedRel
-
-	if o.Watch {
-		fmt.Println("\nStart watching changes ...")
-		if err = Watch(o, rel.Spec, changes); err != nil {
-			return
-		}
-	}
+	*rel = *updatedRel
 
 	if o.PortForward > 0 {
 		fmt.Printf("\nStart port-forwarding ...\n")
+		portForwarded = true
 		if err = PortForward(o, rel.Spec); err != nil {
 			return
 		}
 	}
 
-	return nil
+	return
 }
 
 // The Apply function will apply the resources changes through the execution kusion engine.
@@ -321,8 +410,23 @@ func Apply(
 	storage release.Storage,
 	rel *apiv1.Release,
 	changes *models.Changes,
-	out io.Writer,
 ) (*apiv1.Release, error) {
+	var err error
+	// Update the release before exit.
+	defer func() {
+		if p := recover(); p != nil {
+			cmdutil.RecoverErr(&err)
+			log.Error(err)
+		}
+		if err != nil {
+			if !releaseCreated {
+				return
+			}
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+		}
+	}()
+
 	// construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
@@ -333,77 +437,83 @@ func Apply(
 		},
 	}
 
+	// Init a watch channel with a sufficient buffer when it is necessary to perform watching.
+	if o.Watch {
+		ac.WatchCh = make(chan string, 100)
+	}
+
 	// line summary
 	var ls lineSummary
+	// Get the multi printer from UI option.
+	multi := o.UI.MultiPrinter
+	// Max length of resource ID for progressbar width.
+	maxLen := 0
 
+	// Prepare the writer to print the operation progress and results.
+	changesWriterMap := make(map[string]*pterm.SpinnerPrinter)
+	for _, key := range changes.Values() {
+		// Get the maximum length of the resource ID.
+		if len(key.ID) > maxLen {
+			maxLen = len(key.ID)
+		}
+		// Init a spinner printer for the resource to print the apply status.
+		changesWriterMap[key.ID], err = o.UI.SpinnerPrinter.
+			WithWriter(multi.NewWriter()).
+			Start(fmt.Sprintf("Waiting %s to apply ...", pterm.Bold.Sprint(key.ID)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to init change step spinner printer: %v", err)
+		}
+	}
+
+	// Init a writer for progressbar.
+	pbWriter := multi.NewWriter()
 	// progress bar, print dag walk detail
 	progressbar, err := o.UI.ProgressbarPrinter.
-		WithMaxWidth(0). // Set to 0, the terminal width will be used
 		WithTotal(len(changes.StepKeys)).
-		WithWriter(out).
+		WithWriter(pbWriter).
 		WithRemoveWhenDone().
+		WithShowCount(false).
+		WithMaxWidth(maxLen + 32).
 		Start()
 	if err != nil {
 		return nil, err
 	}
+
+	// The writer below is for operation error printing.
+	errWriter := multi.NewWriter()
+
+	multi.WithUpdateDelay(time.Millisecond * 50)
+	multi.Start()
+	defer multi.Stop()
+
 	// wait msgCh close
 	var wg sync.WaitGroup
 	// receive msg and print detail
-	go func() {
-		defer func() {
-			if p := recover(); p != nil {
-				log.Errorf("failed to receive msg and print detail as %v", p)
-			}
-		}()
-		wg.Add(1)
+	go PrintApplyDetails(
+		ac,
+		&err,
+		&errWriter,
+		&wg,
+		changes,
+		changesWriterMap,
+		progressbar,
+		&ls,
+		o.DryRun,
+	)
 
-		for {
-			select {
-			case msg, ok := <-ac.MsgCh:
-				if !ok {
-					wg.Done()
-					return
-				}
-				changeStep := changes.Get(msg.ResourceID)
-
-				switch msg.OpResult {
-				case models.Success, models.Skip:
-					var title string
-					if changeStep.Action == models.UnChanged {
-						title = fmt.Sprintf("%s %s, %s",
-							changeStep.Action.String(),
-							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(models.Skip)),
-						)
-					} else {
-						title = fmt.Sprintf("%s %s %s",
-							changeStep.Action.String(),
-							pterm.Bold.Sprint(changeStep.ID),
-							strings.ToLower(string(msg.OpResult)),
-						)
-					}
-					pretty.SuccessT.WithWriter(out).Printfln(title)
-					progressbar.UpdateTitle(title)
-					progressbar.Increment()
-					ls.Count(changeStep.Action)
-				case models.Failed:
-					title := fmt.Sprintf("%s %s %s",
-						changeStep.Action.String(),
-						pterm.Bold.Sprint(changeStep.ID),
-						strings.ToLower(string(msg.OpResult)),
-					)
-					pretty.ErrorT.WithWriter(out).Printf("%s\n", title)
-				default:
-					title := fmt.Sprintf("%s %s %s",
-						changeStep.Action.Ing(),
-						pterm.Bold.Sprint(changeStep.ID),
-						strings.ToLower(string(msg.OpResult)),
-					)
-					progressbar.UpdateTitle(title)
-				}
-			}
-		}
-	}()
+	watchErrCh := make(chan error)
+	// Apply while watching the resources.
+	if o.Watch {
+		Watch(
+			ac,
+			changes,
+			&err,
+			o.DryRun,
+			watchErrCh,
+			multi,
+			changesWriterMap,
+		)
+	}
 
 	var updatedRel *apiv1.Release
 	if o.DryRun {
@@ -425,52 +535,217 @@ func Apply(
 			Release: rel,
 		})
 		if v1.IsErr(st) {
-			return nil, fmt.Errorf("apply failed, status:\n%v", st)
+			errWriter.(*bytes.Buffer).Reset()
+			err = fmt.Errorf("apply failed, status:\n%v", st)
+			return nil, err
 		}
 		updatedRel = rsp.Release
 	}
 
 	// wait for msgCh closed
 	wg.Wait()
+	// Wait for watchWg closed if need to perform watching.
+	if o.Watch {
+		shouldBreak := false
+		for !shouldBreak {
+			select {
+			case watchErr := <-watchErrCh:
+				if watchErr != nil {
+					return nil, watchErr
+				}
+				shouldBreak = true
+			default:
+				continue
+			}
+		}
+	}
+
 	// print summary
-	pterm.Println()
-	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
+	pterm.Fprintln(pbWriter, fmt.Sprintf("\nApply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return updatedRel, nil
 }
 
-// Watch function will observe the changes of each resource by the execution engine.
-func Watch(
-	o *ApplyOptions,
-	planResources *apiv1.Spec,
+// PrintApplyDetails function will receive the messages of the apply operation and print the details.
+// Fixme: abstract the input variables into a struct.
+func PrintApplyDetails(
+	ac *operation.ApplyOperation,
+	err *error,
+	errWriter *io.Writer,
+	wg *sync.WaitGroup,
 	changes *models.Changes,
-) error {
-	if o.DryRun {
-		fmt.Println("NOTE: Watch doesn't work in DryRun mode")
-		return nil
-	}
+	changesWriterMap map[string]*pterm.SpinnerPrinter,
+	progressbar *pterm.ProgressbarPrinter,
+	ls *lineSummary,
+	dryRun bool,
+) {
+	defer func() {
+		if p := recover(); p != nil {
+			cmdutil.RecoverErr(err)
+			log.Error(*err)
+		}
+		if *err != nil {
+			if !releaseCreated {
+				return
+			}
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			*err = errors.Join([]error{*err, release.UpdateApplyRelease(storage, rel, dryRun, relLock)}...)
+		}
+		(*errWriter).(*bytes.Buffer).Reset()
+	}()
+	wg.Add(1)
 
-	// filter out unchanged resources
+	for {
+		select {
+		// Get operation results from the message channel.
+		case msg, ok := <-ac.MsgCh:
+			if !ok {
+				wg.Done()
+				return
+			}
+			changeStep := changes.Get(msg.ResourceID)
+
+			// Update the progressbar and spinner printer according to the operation result.
+			switch msg.OpResult {
+			case models.Success, models.Skip:
+				var title string
+				if changeStep.Action == models.UnChanged {
+					title = fmt.Sprintf("Skipped %s", pterm.Bold.Sprint(changeStep.ID))
+					changesWriterMap[msg.ResourceID].Success(title)
+				} else {
+					title = fmt.Sprintf("%s %s",
+						changeStep.Action.Ing(),
+						pterm.Bold.Sprint(changeStep.ID),
+					)
+					changesWriterMap[msg.ResourceID].UpdateText(title)
+				}
+				progressbar.Increment()
+				ls.Count(changeStep.Action)
+			case models.Failed:
+				title := fmt.Sprintf("Failed %s", pterm.Bold.Sprint(changeStep.ID))
+				changesWriterMap[msg.ResourceID].Fail(title)
+				errStr := pretty.ErrorT.Sprintf("apply %s failed as: %s\n", msg.ResourceID, msg.OpErr.Error())
+				pterm.Fprintln(*errWriter, errStr)
+			default:
+				title := fmt.Sprintf("%s %s",
+					changeStep.Action.Ing(),
+					pterm.Bold.Sprint(changeStep.ID),
+				)
+				changesWriterMap[msg.ResourceID].UpdateText(title)
+			}
+		}
+	}
+}
+
+// Watch function will watch the changed Kubernetes and Terraform resources.
+// Fixme: abstract the input variables into a struct.
+func Watch(
+	ac *operation.ApplyOperation,
+	changes *models.Changes,
+	err *error,
+	dryRun bool,
+	watchErrCh chan error,
+	multi *pterm.MultiPrinter,
+	changesWriterMap map[string]*pterm.SpinnerPrinter,
+) {
+	resourceMap := make(map[string]apiv1.Resource)
+	ioWriterMap := make(map[string]io.Writer)
 	toBeWatched := apiv1.Resources{}
-	for _, res := range planResources.Resources {
+
+	// Get the resources to be watched.
+	for _, res := range rel.Spec.Resources {
 		if changes.ChangeOrder.ChangeSteps[res.ResourceKey()].Action != models.UnChanged {
+			resourceMap[res.ResourceKey()] = res
 			toBeWatched = append(toBeWatched, res)
 		}
 	}
 
-	// Watch operation
-	wo := &operation.WatchOperation{}
-	if err := wo.Watch(&operation.WatchRequest{
-		Request: models.Request{
-			Project: changes.Project(),
-			Stack:   changes.Stack(),
-		},
-		Spec: &apiv1.Spec{Resources: toBeWatched},
-	}); err != nil {
-		return err
-	}
+	go func() {
+		defer func() {
+			if p := recover(); p != nil {
+				cmdutil.RecoverErr(err)
+				log.Error(*err)
+			}
+			if *err != nil {
+				if !releaseCreated {
+					return
+				}
+				release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+				_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+			}
 
-	fmt.Println("Watch Finish! All resources have been reconciled.")
-	return nil
+			watchErrCh <- *err
+		}()
+		// Init the runtimes according to the resource types.
+		runtimes, s := runtimeinit.Runtimes(toBeWatched)
+		if v1.IsErr(s) {
+			panic(fmt.Errorf("failed to init runtimes: %s", s.String()))
+		}
+
+		// Prepare the tables for printing the details of the resources.
+		tables := make(map[string]*printers.Table, len(toBeWatched))
+		ticker := time.NewTicker(time.Millisecond * 500)
+		defer ticker.Stop()
+
+		// Record the watched and finished resources.
+		watchedIDs := []string{}
+		finished := make(map[string]bool)
+
+		for !(len(finished) == len(toBeWatched)) {
+			select {
+			// Get the resource ID to be watched.
+			case id := <-ac.WatchCh:
+				res := resourceMap[id]
+				// Set the timeout duration for watch context, here we set an experiential value of 5 minutes.
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(5))
+				defer cancel()
+
+				// Get the event channel for watching the resource.
+				rsp := runtimes[res.Type].Watch(ctx, &runtime.WatchRequest{Resource: &res})
+				if rsp == nil {
+					log.Debug("unsupported resource type: %s", res.Type)
+					continue
+				}
+				if v1.IsErr(rsp.Status) {
+					panic(fmt.Errorf("failed to watch %s as %s", id, rsp.Status.String()))
+				}
+
+				w := rsp.Watchers
+				table := printers.NewTable(w.IDs)
+				tables[id] = table
+
+				// Setup a go-routine to concurrently watch K8s and TF resources.
+				if res.Type == apiv1.Kubernetes {
+					go watchK8sResources(id, w.Watchers, table, tables, dryRun)
+				} else if res.Type == apiv1.Terraform {
+					go watchTFResources(id, w.TFWatcher, table, dryRun)
+				} else {
+					log.Debug("unsupported resource type to watch: %s", string(res.Type))
+					continue
+				}
+
+				// Record the io writer related to the resource ID.
+				ioWriterMap[id] = multi.NewWriter()
+				watchedIDs = append(watchedIDs, id)
+
+			// Refresh the tables printing details of the resources to be watched.
+			default:
+				for _, id := range watchedIDs {
+					w, ok := ioWriterMap[id]
+					if !ok {
+						panic(fmt.Errorf("failed to get io writer while watching %s", id))
+					}
+					printTable(&w, id, tables)
+				}
+				for id, table := range tables {
+					if table.AllCompleted() {
+						finished[id] = true
+						changesWriterMap[id].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(id)))
+					}
+				}
+				<-ticker.C
+			}
+		}
+	}()
 }
 
 // PortForward function will forward the specified port from local to the project Kubernetes Service.
@@ -489,6 +764,8 @@ func Watch(
 //	if err != nil {
 //	  return err
 //	}
+//
+// Fixme: gracefully exit when interrupted by SIGINT or SIGTERM.
 func PortForward(
 	o *ApplyOptions,
 	spec *apiv1.Spec,
@@ -544,6 +821,12 @@ func prompt(ui *terminal.UI) (string, error) {
 		WithDefaultText(`Do you want to apply these diffs?`).
 		WithOptions(options).
 		WithDefaultOption("details").
+		// To gracefully exit if interrupted by SIGINT or SIGTERM.
+		WithOnInterruptFunc(func() {
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseSucceeded, relLock)
+			release.UpdateApplyRelease(storage, rel, false, relLock)
+			os.Exit(1)
+		}).
 		Show()
 	if err != nil {
 		fmt.Printf("Prompt failed: %v\n", err)
@@ -551,4 +834,161 @@ func prompt(ui *terminal.UI) (string, error) {
 	}
 
 	return input, nil
+}
+
+func watchK8sResources(
+	id string,
+	chs []<-chan watch.Event,
+	table *printers.Table,
+	tables map[string]*printers.Table,
+	dryRun bool,
+) {
+	defer func() {
+		var err error
+		if p := recover(); p != nil {
+			cmdutil.RecoverErr(&err)
+			log.Error(err)
+		}
+		if err != nil {
+			if !releaseCreated {
+				return
+			}
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+		}
+	}()
+
+	// Resources selects
+	cases := createSelectCases(chs)
+	// Default select
+	cases = append(cases, reflect.SelectCase{
+		Dir:  reflect.SelectDefault,
+		Chan: reflect.Value{},
+		Send: reflect.Value{},
+	})
+
+	for {
+		chosen, recv, recvOK := reflect.Select(cases)
+		if cases[chosen].Dir == reflect.SelectDefault {
+			continue
+		}
+		if recvOK {
+			e := recv.Interface().(watch.Event)
+			o := e.Object.(*unstructured.Unstructured)
+			var detail string
+			var ready bool
+			if e.Type == watch.Deleted {
+				detail = fmt.Sprintf("%s has beed deleted", o.GetName())
+				ready = true
+			} else {
+				// Restore to actual type
+				target := printers.Convert(o)
+				detail, ready = printers.Generate(target)
+			}
+
+			// Mark ready for breaking loop
+			if ready {
+				e.Type = printers.READY
+			}
+
+			// Save watched msg
+			table.Update(
+				engine.BuildIDForKubernetes(o),
+				printers.NewRow(e.Type, o.GetKind(), o.GetName(), detail))
+
+			// Write back
+			tables[id] = table
+		}
+
+		// Break when completed
+		if table.AllCompleted() {
+			break
+		}
+	}
+}
+
+func watchTFResources(
+	id string,
+	ch <-chan runtime.TFEvent,
+	table *printers.Table,
+	dryRun bool,
+) {
+	defer func() {
+		var err error
+		if p := recover(); p != nil {
+			cmdutil.RecoverErr(&err)
+			log.Error(err)
+		}
+		if err != nil {
+			if !releaseCreated {
+				return
+			}
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
+			_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+		}
+	}()
+
+	for {
+		parts := strings.Split(id, engine.Separator)
+		// A valid Terraform resource ID should consist of 4 parts, including the information of the provider type
+		// and resource name, for example: hashicorp:random:random_password:example-dev-kawesome.
+		if len(parts) != 4 {
+			panic(fmt.Errorf("invalid Terraform resource id: %s", id))
+		}
+
+		tfEvent := <-ch
+		if tfEvent == runtime.TFApplying {
+			table.Update(
+				id,
+				printers.NewRow(watch.EventType("Applying"),
+					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Applying..."))
+		} else if tfEvent == runtime.TFSucceeded {
+			table.Update(
+				id,
+				printers.NewRow(printers.READY,
+					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Apply succeeded"))
+		} else {
+			table.Update(
+				id,
+				printers.NewRow(watch.EventType("Failed"),
+					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Apply failed"))
+		}
+
+		// Break when all completed.
+		if table.AllCompleted() {
+			break
+		}
+	}
+}
+
+func createSelectCases(chs []<-chan watch.Event) []reflect.SelectCase {
+	cases := make([]reflect.SelectCase, 0, len(chs))
+	for _, ch := range chs {
+		cases = append(cases, reflect.SelectCase{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ch),
+		})
+	}
+	return cases
+}
+
+func printTable(w *io.Writer, id string, tables map[string]*printers.Table) {
+	// Reset the buffer for live flushing.
+	(*w).(*bytes.Buffer).Reset()
+
+	// Print resource Key as heading text
+	_, _ = fmt.Fprintln(*w, pretty.LightCyanBold("[%s]", id))
+
+	table, ok := tables[id]
+	if !ok {
+		// Unsupported resource, leave a hint
+		_, _ = fmt.Fprintln(*w, "Skip monitoring unsupported resources")
+	} else {
+		// Print table
+		data := table.Print()
+		_ = pterm.DefaultTable.
+			WithStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHeaderStyle(pterm.NewStyle(pterm.FgDefault)).
+			WithHasHeader().WithSeparator("  ").WithData(data).WithWriter(*w).Render()
+	}
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"

@@ -101,6 +101,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 			Stack:                   o.Stack,
 			IgnoreFields:            o.IgnoreFields,
 			MsgCh:                   o.MsgCh,
+			WatchCh:                 o.WatchCh,
 			Lock:                    &sync.Mutex{},
 			Release:                 rel,
 		},

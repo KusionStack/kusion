@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/howieyuen/uilive"
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/watch"
 

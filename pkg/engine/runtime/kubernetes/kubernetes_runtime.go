@@ -159,6 +159,13 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 	// more concise and clean resource object.
 	normalizeServerSideFields(res)
 
+	// Extract the watch channel from the context.
+	watchCh, _ := ctx.Value(engine.WatchChannel).(chan string)
+	if !request.DryRun && watchCh != nil {
+		log.Infof("Started to watch %s with the type of %s", planState.ResourceKey(), planState.Type)
+		watchCh <- planState.ResourceKey()
+	}
+
 	return &runtime.ApplyResponse{Resource: &apiv1.Resource{
 		ID:         planState.ResourceKey(),
 		Type:       planState.Type,
@@ -328,6 +335,11 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 	rootCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
 		return watched.GetName() == reqObj.GetName()
 	})
+
+	if rootCh == nil {
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(fmt.Errorf("failed to get the root channel for watching %s",
+			request.Resource.ResourceKey()))}
+	}
 
 	// Collect all
 	watchers := runtime.NewWatchers()
@@ -522,13 +534,20 @@ func (k *KubernetesRuntime) WatchByRelation(
 	}
 
 	var next *unstructured.Unstructured
-	return doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
+
+	eventCh := doWatch(ctx, w, func(watched *unstructured.Unstructured) bool {
 		ok := related(watched, cur)
 		if ok {
 			next = watched
 		}
 		return ok
-	}), next, nil
+	})
+	if eventCh == nil {
+		err = fmt.Errorf("failed to get the event channel for watching related resources of %s with kind of %s",
+			cur.GetName(), cur.GetKind())
+	}
+
+	return eventCh, next, err
 }
 
 // doWatch send watched object if check ok
@@ -562,9 +581,12 @@ func doWatch(ctx context.Context, watcher k8swatch.Interface, checker func(watch
 	}()
 
 	// Owner&Dependent check pass, return the dependent Obj
-	<-signal
-
-	return resultCh
+	select {
+	case <-signal:
+		return resultCh
+	case <-ctx.Done():
+		return nil
+	}
 }
 
 // Judge dependent is owned by owner

@@ -16,6 +16,14 @@
 
 package clipath
 
+import (
+	"os"
+	"testing"
+
+	"github.com/adrg/xdg"
+	"github.com/stretchr/testify/assert"
+)
+
 func TestKusionHome(t *testing.T) {
 	os.Setenv("XDG_CACHE_HOME", "c:\\")
 	os.Setenv("XDG_CONFIG_HOME", "d:\\")

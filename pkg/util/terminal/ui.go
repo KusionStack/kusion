@@ -1,7 +1,7 @@
 package terminal
 
 import (
-	"github.com/pterm/pterm"
+	"github.com/liu-hm19/pterm"
 	"kusionstack.io/kusion/pkg/util/pretty"
 )
 
@@ -9,6 +9,7 @@ type UI struct {
 	SpinnerPrinter           *pterm.SpinnerPrinter
 	ProgressbarPrinter       *pterm.ProgressbarPrinter
 	InteractiveSelectPrinter *pterm.InteractiveSelectPrinter
+	MultiPrinter             *pterm.MultiPrinter
 }
 
 // DefaultUI returns a UI for Kusion CLI display with default
@@ -18,5 +19,6 @@ func DefaultUI() *UI {
 		SpinnerPrinter:           &pretty.SpinnerT,
 		ProgressbarPrinter:       &pterm.DefaultProgressbar,
 		InteractiveSelectPrinter: &pterm.DefaultInteractiveSelect,
+		MultiPrinter:             &pterm.DefaultMultiPrinter,
 	}
 }
