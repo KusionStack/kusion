@@ -46,6 +46,7 @@ type Operation struct {
 
 	// WatchCh is used to send the resource IDs that are ready to be watched after sending or executing
 	// the apply request.
+	// Fixme: try to merge the WatchCh with the MsgCh.
 	WatchCh chan string
 
 	// Lock is the operation-wide mutex

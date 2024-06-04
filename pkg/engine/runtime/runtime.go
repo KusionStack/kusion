@@ -29,6 +29,7 @@ const (
 // Runtime represents an actual infrastructure runtime managed by Kusion and every runtime implements this interface can be orchestrated
 // by Kusion like normal K8s resources. All methods in this interface are designed for manipulating one Resource at a time and will be
 // invoked in operations like Apply, Preview, Destroy, etc.
+// Fixme: update the runtime interface definition of requests and responses.
 type Runtime interface {
 	// Apply means modify this Resource to the desired state described in the request,
 	// and it will turn into creating or updating a Resource in most scenarios.

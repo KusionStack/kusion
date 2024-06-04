@@ -23,7 +23,6 @@ var _ runtime.Runtime = &TerraformRuntime{}
 
 // tfEvents is used to record the operation events of the Terraform
 // resources into the related channels for watching.
-// var tfEvents = make(map[string]chan runtime.TFEvent)
 var tfEvents = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 type TerraformRuntime struct {

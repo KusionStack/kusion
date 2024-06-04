@@ -84,6 +84,8 @@ var (
 )
 
 // To handle the release phase update when panic occurs.
+// Fixme: adopt a more centralized approach to manage the release update before exiting, instead of
+// scattering them across different go-routines.
 var (
 	rel            *apiv1.Release
 	relLock        = &sync.Mutex{}
@@ -240,6 +242,8 @@ func (o *ApplyOptions) Run() (err error) {
 	}
 
 	// Prepare for the timeout timer.
+	// Fixme: adopt a more centralized approach to manage the gracefully exit interrupted by
+	// the SIGINT or SIGTERM, instead of scattering them across different go-routines.
 	var timer <-chan time.Time
 	errCh := make(chan error, 1)
 	defer close(errCh)
@@ -562,6 +566,7 @@ func Apply(
 }
 
 // PrintApplyDetails function will receive the messages of the apply operation and print the details.
+// Fixme: abstract the input variables into a struct.
 func PrintApplyDetails(
 	ac *operation.ApplyOperation,
 	err *error,
@@ -632,6 +637,7 @@ func PrintApplyDetails(
 }
 
 // Watch function will watch the changed Kubernetes and Terraform resources.
+// Fixme: abstract the input variables into a struct.
 func Watch(
 	ac *operation.ApplyOperation,
 	changes *models.Changes,
@@ -758,6 +764,8 @@ func Watch(
 //	if err != nil {
 //	  return err
 //	}
+//
+// Fixme: gracefully exit when interrupted by SIGINT or SIGTERM.
 func PortForward(
 	o *ApplyOptions,
 	spec *apiv1.Spec,
