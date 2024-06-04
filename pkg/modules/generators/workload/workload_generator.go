@@ -35,7 +35,7 @@ type Generator struct {
 	// PlatformConfigs represents the module platform configurations
 	PlatformConfigs map[string]v1.GenericConfig
 	// SecretStoreSpec contains configuration to describe target secret store.
-	SecretStoreSpec *v1.SecretStoreSpec
+	SecretStoreSpec *v1.SecretStore
 }
 
 func NewWorkloadGeneratorFunc(g *Generator) modules.NewGeneratorFunc {
@@ -67,17 +67,17 @@ func (g *Generator) Generate(spec *v1.Spec) error {
 		switch g.Workload.Header.Type {
 		case v1.TypeService:
 			gfs = append(gfs, NewWorkloadServiceGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
-				Project:         g.Project,
-				Namespace:       g.Namespace,
-				Workload:        g.Workload,
-				SecretStoreSpec: g.SecretStoreSpec,
+				Project:     g.Project,
+				Namespace:   g.Namespace,
+				Workload:    g.Workload,
+				SecretStore: g.SecretStoreSpec,
 			}))
 		case v1.TypeJob:
 			gfs = append(gfs, NewJobGeneratorFunc(g), secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
-				Project:         g.Project,
-				Namespace:       g.Namespace,
-				Workload:        g.Workload,
-				SecretStoreSpec: g.SecretStoreSpec,
+				Project:     g.Project,
+				Namespace:   g.Namespace,
+				Workload:    g.Workload,
+				SecretStore: g.SecretStoreSpec,
 			}))
 		}
 

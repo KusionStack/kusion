@@ -15,7 +15,7 @@ type SecretStore interface {
 // SecretStoreProvider is a factory type for secret store.
 type SecretStoreProvider interface {
 	// NewSecretStore constructs a usable secret store with specific provider spec.
-	NewSecretStore(spec v1.SecretStoreSpec) (SecretStore, error)
+	NewSecretStore(spec v1.SecretStore) (SecretStore, error)
 }
 
 var NoSecretErr = NoSecretError{}

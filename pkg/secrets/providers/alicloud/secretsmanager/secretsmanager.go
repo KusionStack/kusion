@@ -41,7 +41,7 @@ type smSecretStore struct {
 }
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStoreSpec) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)

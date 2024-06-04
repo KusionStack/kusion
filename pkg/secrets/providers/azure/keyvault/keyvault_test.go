@@ -100,22 +100,22 @@ func TestGetSecret(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        v1.SecretStoreSpec
+		spec        v1.SecretStore
 		initEnv     bool
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        v1.SecretStoreSpec{},
+			spec:        v1.SecretStore{},
 			expectedErr: errors.New(errMissingProviderSpec),
 		},
 		"InvalidProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errMissingAzureProvider),
 		},
 		"InvalidAzureKVProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,
@@ -125,7 +125,7 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: errors.New(errMissingTenant),
 		},
 		"NoClientIDSecretEnvFound": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,
@@ -136,7 +136,7 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: errors.New(errMissingClientIDSecret),
 		},
 		"ValidVaultProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Azure: &v1.AzureKVProvider{
 						VaultURL: &fakeVaultURL,

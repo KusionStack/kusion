@@ -262,21 +262,21 @@ func TestBuildPath(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        v1.SecretStoreSpec
+		spec        v1.SecretStore
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        v1.SecretStoreSpec{},
+			spec:        v1.SecretStore{},
 			expectedErr: errors.New(errInvalidVaultSecretStore),
 		},
 		"InvalidProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errInvalidVaultSecretStore),
 		},
 		"ValidVaultProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Vault: &v1.VaultProvider{
 						Server: "https://127.0.0.1:8200",
@@ -286,7 +286,7 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: nil,
 		},
 		"ValidVaultProviderSpec_WithToken": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Vault: &v1.VaultProvider{
 						Server: "https://127.0.0.1:8200",

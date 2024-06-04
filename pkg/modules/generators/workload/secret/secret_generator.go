@@ -18,10 +18,10 @@ import (
 )
 
 type secretGenerator struct {
-	project         string
-	namespace       string
-	secrets         map[string]v1.Secret
-	secretStoreSpec *v1.SecretStoreSpec
+	project     string
+	namespace   string
+	secrets     map[string]v1.Secret
+	secretStore *v1.SecretStore
 }
 
 type GeneratorRequest struct {
@@ -31,8 +31,8 @@ type GeneratorRequest struct {
 	Namespace string
 	// Workload represents the Workload configuration
 	Workload *v1.Workload
-	// SecretStoreSpec contains configuration to describe target secret store.
-	SecretStoreSpec *v1.SecretStoreSpec
+	// SecretStore contains configuration to describe target secret store.
+	SecretStore *v1.SecretStore
 }
 
 func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
@@ -48,10 +48,10 @@ func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
 	}
 
 	return &secretGenerator{
-		project:         request.Project,
-		secrets:         secretMap,
-		namespace:       request.Namespace,
-		secretStoreSpec: request.SecretStoreSpec,
+		project:     request.Project,
+		secrets:     secretMap,
+		namespace:   request.Namespace,
+		secretStore: request.SecretStore,
 	}, nil
 }
 
@@ -156,7 +156,7 @@ func (g *secretGenerator) generateCertificate(secretName string, secretRef v1.Se
 // generateSecretWithExternalProvider retrieves target sensitive information from external secret provider and
 // generates corresponding Kubernetes Secret object.
 func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, secretRef v1.Secret) (*corev1.Secret, error) {
-	if g.secretStoreSpec == nil {
+	if g.secretStore == nil {
 		return nil, errors.New("secret store is missing, please add valid secret store spec in workspace")
 	}
 
@@ -170,12 +170,12 @@ func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, 
 			allErrs = append(allErrs, err)
 			continue
 		}
-		provider, exist := secrets.GetProvider(g.secretStoreSpec.Provider)
+		provider, exist := secrets.GetProvider(g.secretStore.Provider)
 		if !exist {
 			allErrs = append(allErrs, errors.New("no matched secret store found, please check workspace yaml"))
 			continue
 		}
-		secretStore, err := provider.NewSecretStore(*g.secretStoreSpec)
+		secretStore, err := provider.NewSecretStore(*g.secretStore)
 		if err != nil {
 			allErrs = append(allErrs, err)
 			continue

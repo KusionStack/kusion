@@ -21,7 +21,7 @@ func (fss *FakeSecretStore) GetSecret(_ context.Context, _ v1.ExternalSecretRef)
 type FakeSecretStoreProvider struct{}
 
 // Fake implementation of SecretStoreProvider.NewSecretStore.
-func (fsf *FakeSecretStoreProvider) NewSecretStore(_ v1.SecretStoreSpec) (SecretStore, error) {
+func (fsf *FakeSecretStoreProvider) NewSecretStore(_ v1.SecretStore) (SecretStore, error) {
 	return &FakeSecretStore{}, nil
 }
 
