@@ -53,6 +53,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/pulumi/pulumi/sdk/v3 v3.68.0
 	github.com/sergi/go-diff v1.3.1

@@ -2,6 +2,7 @@ package release
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -64,7 +65,9 @@ func NewApplyRelease(storage Storage, project, stack, workspace string) (*v1.Rel
 
 // UpdateApplyRelease updates the release in the storage if dryRun is false. If release phase is failed,
 // only logging with no error return.
-func UpdateApplyRelease(storage Storage, rel *v1.Release, dryRun bool) error {
+func UpdateApplyRelease(storage Storage, rel *v1.Release, dryRun bool, relLock *sync.Mutex) error {
+	relLock.Lock()
+	defer relLock.Unlock()
 	if dryRun {
 		return nil
 	}
@@ -130,4 +133,11 @@ func UpdateDestroyRelease(storage Storage, rel *v1.Release) error {
 		return nil
 	}
 	return err
+}
+
+// UpdateReleasePhase updates the release with the specified phase.
+func UpdateReleasePhase(rel *v1.Release, phase v1.ReleasePhase, relLock *sync.Mutex) {
+	relLock.Lock()
+	defer relLock.Unlock()
+	rel.Phase = phase
 }

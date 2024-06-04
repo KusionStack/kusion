@@ -10,8 +10,10 @@ import (
 
 	"github.com/spf13/afero"
 
+	"github.com/patrickmn/go-cache"
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
@@ -21,7 +23,8 @@ var _ runtime.Runtime = &TerraformRuntime{}
 
 // tfEvents is used to record the operation events of the Terraform
 // resources into the related channels for watching.
-var tfEvents = make(map[string]chan runtime.TFEvent)
+// var tfEvents = make(map[string]chan runtime.TFEvent)
+var tfEvents = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 type TerraformRuntime struct {
 	tfops.WorkSpace
@@ -93,7 +96,7 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	var providerAddr string
 
 	// Extract the watch channel from the context.
-	watchCh, _ := ctx.Value(v1.WatchChannel).(chan string)
+	watchCh, _ := ctx.Value(engine.WatchChannel).(chan string)
 	if watchCh != nil {
 		// Apply while watching the resource.
 		errCh := make(chan error)
@@ -112,7 +115,14 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		// Prepare the event channel and send the resource ID to watch channel.
 		log.Infof("Started to watch %s with the type of %s", plan.ResourceKey(), plan.Type)
 		eventCh := make(chan runtime.TFEvent)
-		tfEvents[plan.ResourceKey()] = eventCh
+
+		// Prevent concurrent operations on resources with the same ID.
+		if _, ok := tfEvents.Get(plan.ResourceKey()); ok {
+			err = fmt.Errorf("failed to initiate the event channel for watching terraform resource %s as: conflict resource ID", plan.ResourceKey())
+			log.Error(err)
+			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+		}
+		tfEvents.Set(plan.ResourceKey(), eventCh, cache.NoExpiration)
 		watchCh <- plan.ResourceKey()
 
 		// Wait for the apply to be finished.
@@ -272,7 +282,7 @@ func (t *TerraformRuntime) Delete(ctx context.Context, request *runtime.DeleteRe
 func (t *TerraformRuntime) Watch(ctx context.Context, request *runtime.WatchRequest) *runtime.WatchResponse {
 	// Get the event channel.
 	id := request.Resource.ResourceKey()
-	eventCh, ok := tfEvents[id]
+	eventCh, ok := tfEvents.Get(id)
 	if !ok {
 		return &runtime.WatchResponse{Status: v1.NewErrorStatus(fmt.Errorf("failed to get the event channel for %s", id))}
 	}
@@ -280,7 +290,7 @@ func (t *TerraformRuntime) Watch(ctx context.Context, request *runtime.WatchRequ
 	return &runtime.WatchResponse{
 		Watchers: &runtime.SequentialWatchers{
 			IDs:       []string{id},
-			TFWatcher: eventCh,
+			TFWatcher: eventCh.(chan runtime.TFEvent),
 		},
 	}
 }

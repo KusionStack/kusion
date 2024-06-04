@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/jinzhu/copier"
@@ -137,17 +138,18 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 
 	var storage release.Storage
 	var rel *v1.Release
+	relLock := &sync.Mutex{}
 	releaseCreated := false
 	defer func() {
 		if !releaseCreated {
 			return
 		}
 		if err != nil {
-			rel.Phase = v1.ReleasePhaseFailed
-			_ = release.UpdateApplyRelease(storage, rel, dryrun)
+			release.UpdateReleasePhase(rel, v1.ReleasePhaseFailed, relLock)
+			_ = release.UpdateApplyRelease(storage, rel, dryrun, relLock)
 		} else {
-			rel.Phase = v1.ReleasePhaseSucceeded
-			err = release.UpdateApplyRelease(storage, rel, dryrun)
+			release.UpdateReleasePhase(rel, v1.ReleasePhaseSucceeded, relLock)
+			err = release.UpdateApplyRelease(storage, rel, dryrun, relLock)
 		}
 	}()
 
@@ -194,8 +196,8 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 
 	// update release phase to previewing
 	rel.Spec = sp
-	rel.Phase = v1.ReleasePhasePreviewing
-	if err = release.UpdateApplyRelease(storage, rel, dryrun); err != nil {
+	release.UpdateReleasePhase(rel, v1.ReleasePhasePreviewing, relLock)
+	if err = release.UpdateApplyRelease(storage, rel, dryrun, relLock); err != nil {
 		return
 	}
 	// compute changes for preview
@@ -214,8 +216,8 @@ func (m *StackManager) ApplyStack(ctx context.Context, id uint, workspaceName, f
 		return ErrDryrunDestroy
 	}
 
-	rel.Phase = v1.ReleasePhaseApplying
-	if err = release.UpdateApplyRelease(storage, rel, dryrun); err != nil {
+	release.UpdateReleasePhase(rel, v1.ReleasePhaseApplying, relLock)
+	if err = release.UpdateApplyRelease(storage, rel, dryrun, relLock); err != nil {
 		return
 	}
 	logger.Info("Dryrun set to false. Start applying diffs ...")

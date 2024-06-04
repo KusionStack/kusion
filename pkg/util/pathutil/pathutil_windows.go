@@ -16,6 +16,11 @@
 
 package pathutil
 
+import (
+	"os"
+	"path/filepath"
+)
+
 // Exists returns true if the specified path exists.
 func Exists(path string) bool {
 	fi, err := os.Lstat(path)

@@ -160,7 +160,7 @@ func (k *KubernetesRuntime) Apply(ctx context.Context, request *runtime.ApplyReq
 	normalizeServerSideFields(res)
 
 	// Extract the watch channel from the context.
-	watchCh, _ := ctx.Value(v1.WatchChannel).(chan string)
+	watchCh, _ := ctx.Value(engine.WatchChannel).(chan string)
 	if !request.DryRun && watchCh != nil {
 		log.Infof("Started to watch %s with the type of %s", planState.ResourceKey(), planState.Type)
 		watchCh <- planState.ResourceKey()
@@ -337,7 +337,8 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 	})
 
 	if rootCh == nil {
-		return &runtime.WatchResponse{Status: v1.NewErrorStatus(fmt.Errorf("failed to get root channel for watch"))}
+		return &runtime.WatchResponse{Status: v1.NewErrorStatus(fmt.Errorf("failed to get the root channel for watching %s",
+			request.Resource.ResourceKey()))}
 	}
 
 	// Collect all
@@ -542,7 +543,8 @@ func (k *KubernetesRuntime) WatchByRelation(
 		return ok
 	})
 	if eventCh == nil {
-		err = fmt.Errorf("failed to get event channel for watching by relation")
+		err = fmt.Errorf("failed to get the event channel for watching related resources of %s with kind of %s",
+			cur.GetName(), cur.GetKind())
 	}
 
 	return eventCh, next, err
