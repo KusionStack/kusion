@@ -158,6 +158,54 @@ spec:
                   name: default-dev-foo-nginx-0
 status: {}
 `
+	deployWithProbe := `apiVersion: apps/v1
+kind: Deployment
+metadata:
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/name: foo
+        app.kubernetes.io/part-of: default
+        service-workload-type: Deployment
+    name: default-dev-foo
+    namespace: default
+spec:
+    replicas: 4
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: foo
+            app.kubernetes.io/part-of: default
+    strategy: {}
+    template:
+        metadata:
+            creationTimestamp: null
+            labels:
+                app.kubernetes.io/name: foo
+                app.kubernetes.io/part-of: default
+                service-workload-type: Deployment
+        spec:
+            containers:
+                - image: nginx:v1
+                  lifecycle:
+                    postStart:
+                        exec:
+                            command:
+                                - /bin/true
+                  name: nginx
+                  readinessProbe:
+                    tcpSocket:
+                        host: localhost
+                        port: 8888
+                  resources: {}
+                  volumeMounts:
+                    - mountPath: /tmp
+                      name: default-dev-foo-nginx-0
+            volumes:
+                - configMap:
+                    defaultMode: 511
+                    name: default-dev-foo-nginx-0
+                  name: default-dev-foo-nginx-0
+status: {}
+`
 	r2 := new(int32)
 	*r2 = 2
 
@@ -262,6 +310,61 @@ status: {}
 			},
 			wantErr: false,
 			want:    []string{cm, deploy, deploySvc},
+		},
+		{
+			name: "DeploymentWithProbe",
+			fields: fields{
+				project: "default",
+				stack:   "dev",
+				appName: "foo",
+				service: &v1.Service{
+					Base: v1.Base{
+						Containers: map[string]v1.Container{
+							"nginx": {
+								Image: "nginx:v1",
+								Files: map[string]v1.FileSpec{
+									"/tmp/example.txt": {
+										Content: "some file contents",
+										Mode:    "0777",
+									},
+								},
+								ReadinessProbe: &v1.Probe{ProbeHandler: &v1.ProbeHandler{
+									TypeWrapper:     v1.TypeWrapper{Type: v1.TypeTCP},
+									ExecAction:      nil,
+									HTTPGetAction:   nil,
+									TCPSocketAction: &v1.TCPSocketAction{URL: "localhost:8888"},
+								}},
+								Lifecycle: &v1.Lifecycle{
+									PostStart: &v1.LifecycleHandler{
+										TypeWrapper: v1.TypeWrapper{Type: v1.TypeExec},
+										ExecAction: &v1.ExecAction{Command: []string{
+											"/bin/true",
+										}},
+										HTTPGetAction: nil,
+									},
+								},
+							},
+						},
+					},
+					Ports: []v1.Port{
+						{
+							Port:     80,
+							Protocol: "TCP",
+						},
+					},
+				},
+				serviceConfig: v1.GenericConfig{
+					"replicas": 4,
+					"labels": v1.GenericConfig{
+						"service-workload-type": "Deployment",
+					},
+				},
+			},
+			args: args{
+				spec: &v1.Spec{},
+			},
+			wantErr: false,
+			want:    []string{cm, deployWithProbe, deploySvc},
 		},
 	}
 	for _, tt := range tests {
