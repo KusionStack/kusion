@@ -275,7 +275,7 @@ func TestToOrderedContainers(t *testing.T) {
 				LivenessProbe: &v1.Probe{
 					ProbeHandler: &v1.ProbeHandler{
 						TypeWrapper: v1.TypeWrapper{
-							Type: "Exec",
+							Type: v1.TypeExec,
 						},
 						ExecAction: &v1.ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo live"},
@@ -285,7 +285,7 @@ func TestToOrderedContainers(t *testing.T) {
 				ReadinessProbe: &v1.Probe{
 					ProbeHandler: &v1.ProbeHandler{
 						TypeWrapper: v1.TypeWrapper{
-							Type: "Http",
+							Type: v1.TypeHTTP,
 						},
 						HTTPGetAction: &v1.HTTPGetAction{
 							URL: "http://localhost:8080/readiness",
@@ -299,7 +299,7 @@ func TestToOrderedContainers(t *testing.T) {
 				StartupProbe: &v1.Probe{
 					ProbeHandler: &v1.ProbeHandler{
 						TypeWrapper: v1.TypeWrapper{
-							Type: "Tcp",
+							Type: v1.TypeTCP,
 						},
 						TCPSocketAction: &v1.TCPSocketAction{
 							URL: "10.0.0.1:8888",
@@ -354,7 +354,7 @@ func TestToOrderedContainers(t *testing.T) {
 				Lifecycle: &v1.Lifecycle{
 					PreStop: &v1.LifecycleHandler{
 						TypeWrapper: v1.TypeWrapper{
-							Type: "Exec",
+							Type: v1.TypeExec,
 						},
 						ExecAction: &v1.ExecAction{
 							Command: []string{"/bin/sh", "-c", "echo live"},
@@ -362,7 +362,7 @@ func TestToOrderedContainers(t *testing.T) {
 					},
 					PostStart: &v1.LifecycleHandler{
 						TypeWrapper: v1.TypeWrapper{
-							Type: "Http",
+							Type: v1.TypeHTTP,
 						},
 						HTTPGetAction: &v1.HTTPGetAction{
 							URL: "http://localhost:8080/readiness",
