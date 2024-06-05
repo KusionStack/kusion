@@ -153,8 +153,8 @@ func ValidateModulePatcherConfigs(config v1.ModulePatcherConfigs) error {
 	return nil
 }
 
-// ValidateSecretStoreConfig tests that the specified SecretStoreSpec has valid data.
-func ValidateSecretStoreConfig(spec *v1.SecretStoreSpec) []error {
+// ValidateSecretStoreConfig tests that the specified SecretStore has valid data.
+func ValidateSecretStoreConfig(spec *v1.SecretStore) []error {
 	if spec.Provider == nil {
 		return []error{ErrMissingProvider}
 	}

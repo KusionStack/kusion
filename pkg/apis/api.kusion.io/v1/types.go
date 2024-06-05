@@ -90,7 +90,7 @@ type Workspace struct {
 	Modules ModuleConfigs `yaml:"modules,omitempty" json:"modules,omitempty"`
 
 	// SecretStore represents a secure external location for storing secrets.
-	SecretStore *SecretStoreSpec `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
+	SecretStore *SecretStore `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
 
 	// Context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
 	Context GenericConfig `yaml:"context,omitempty" json:"context,omitempty"`
@@ -700,8 +700,8 @@ type ExternalSecretRef struct {
 	Property string `yaml:"property,omitempty" json:"property,omitempty"`
 }
 
-// SecretStoreSpec contains configuration to describe target secret store.
-type SecretStoreSpec struct {
+// SecretStore contains configuration to describe target secret store.
+type SecretStore struct {
 	Provider *ProviderSpec `yaml:"provider" json:"provider"`
 }
 

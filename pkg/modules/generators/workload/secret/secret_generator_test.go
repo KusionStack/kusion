@@ -16,7 +16,7 @@ var testProject = "helloworld"
 func initGeneratorRequest(
 	project string,
 	secrets map[string]v1.Secret,
-	secretStoreSpec *v1.SecretStoreSpec,
+	secretStoreSpec *v1.SecretStore,
 ) *GeneratorRequest {
 	return &GeneratorRequest{
 		Project: project,
@@ -27,13 +27,13 @@ func initGeneratorRequest(
 				},
 			},
 		},
-		Namespace:       project,
-		SecretStoreSpec: secretStoreSpec,
+		Namespace:   project,
+		SecretStore: secretStoreSpec,
 	}
 }
 
-func initSecretStoreSpec(data []v1.FakeProviderData) *v1.SecretStoreSpec {
-	return &v1.SecretStoreSpec{
+func initSecretStoreSpec(data []v1.FakeProviderData) *v1.SecretStore {
+	return &v1.SecretStore{
 		Provider: &v1.ProviderSpec{
 			Fake: &v1.FakeProvider{
 				Data: data,

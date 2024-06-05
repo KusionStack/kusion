@@ -76,7 +76,7 @@ func TestGetSecret(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			ss, _ := p.NewSecretStore(v1.SecretStoreSpec{
+			ss, _ := p.NewSecretStore(v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Fake: &v1.FakeProvider{
 						Data: tt.input,
@@ -98,21 +98,21 @@ func TestGetSecret(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        v1.SecretStoreSpec
+		spec        v1.SecretStore
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        v1.SecretStoreSpec{},
+			spec:        v1.SecretStore{},
 			expectedErr: errors.New(errMissingProviderSpec),
 		},
 		"InvalidProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errMissingFakeProvider),
 		},
 		"ValidFakeProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Fake: &v1.FakeProvider{},
 				},
@@ -120,7 +120,7 @@ func TestNewSecretStore(t *testing.T) {
 			expectedErr: nil,
 		},
 		"ValidFakeProviderSpec_WithData": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Fake: &v1.FakeProvider{
 						Data: []v1.FakeProviderData{

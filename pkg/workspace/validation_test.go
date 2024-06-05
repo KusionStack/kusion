@@ -441,7 +441,7 @@ func TestValidateAlicloudSecretStore(t *testing.T) {
 
 func TestValidateSecretStoreConfig(t *testing.T) {
 	type args struct {
-		spec *v1.SecretStoreSpec
+		spec *v1.SecretStore
 	}
 	tests := []struct {
 		name string
@@ -451,14 +451,14 @@ func TestValidateSecretStoreConfig(t *testing.T) {
 		{
 			name: "missing provider spec",
 			args: args{
-				spec: &v1.SecretStoreSpec{},
+				spec: &v1.SecretStore{},
 			},
 			want: []error{ErrMissingProvider},
 		},
 		{
 			name: "missing provider type",
 			args: args{
-				spec: &v1.SecretStoreSpec{
+				spec: &v1.SecretStore{
 					Provider: &v1.ProviderSpec{},
 				},
 			},
@@ -467,7 +467,7 @@ func TestValidateSecretStoreConfig(t *testing.T) {
 		{
 			name: "multi secret store providers",
 			args: args{
-				spec: &v1.SecretStoreSpec{
+				spec: &v1.SecretStore{
 					Provider: &v1.ProviderSpec{
 						AWS: &v1.AWSProvider{
 							Region: "us-east-1",
@@ -483,7 +483,7 @@ func TestValidateSecretStoreConfig(t *testing.T) {
 		{
 			name: "valid secret store spec",
 			args: args{
-				spec: &v1.SecretStoreSpec{
+				spec: &v1.SecretStore{
 					Provider: &v1.ProviderSpec{
 						AWS: &v1.AWSProvider{
 							Region: "us-east-1",

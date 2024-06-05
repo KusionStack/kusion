@@ -134,21 +134,21 @@ func TestGetSecret(t *testing.T) {
 
 func TestNewSecretStore(t *testing.T) {
 	testCases := map[string]struct {
-		spec        v1.SecretStoreSpec
+		spec        v1.SecretStore
 		expectedErr error
 	}{
 		"InvalidSecretStoreSpec": {
-			spec:        v1.SecretStoreSpec{},
+			spec:        v1.SecretStore{},
 			expectedErr: errors.New(errMissingProviderSpec),
 		},
 		"InvalidProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{},
 			},
 			expectedErr: errors.New(errMissingAWSProvider),
 		},
 		"ValidVaultProviderSpec": {
-			spec: v1.SecretStoreSpec{
+			spec: v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					AWS: &v1.AWSProvider{
 						Region: "us-east-1",

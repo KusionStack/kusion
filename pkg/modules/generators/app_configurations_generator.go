@@ -34,6 +34,8 @@ import (
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
 	"kusionstack.io/kusion/pkg/modules/proto"
+	// import the secrets register pkg to register supported secret providers
+	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -125,6 +127,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 			Namespace:       namespace,
 			Workload:        g.app.Workload,
 			PlatformConfigs: projectModuleConfigs,
+			SecretStoreSpec: g.ws.SecretStore,
 		}),
 	}
 	if err = modules.CallGenerators(spec, gfs...); err != nil {
