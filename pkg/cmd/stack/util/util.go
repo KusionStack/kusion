@@ -19,18 +19,19 @@ name: %s`
 	KCLModFile         = "kcl.mod"
 	KCLModFileTemplate = `# Please add the modules you need in 'dependencies'. 
 [dependencies]
-kam = { git = "https://github.com/KusionStack/kam.git", tag = "0.1.0" }`
+kam = { git = "https://github.com/KusionStack/kam.git", tag = "0.2.0" }
+service = {oci = "oci://ghcr.io/kusionstack/service", tag = "0.1.0" }`
 
 	MainKCLFile         = "main.k"
 	MainKCLFileTemplate = `# The configuration codes in perspective of developers.
 import kam.v1.app_configuration as ac
-import service as wl
+import service
 import service.container as c
 
 # Please replace the ${APPLICATION_NAME} with the name of your application, and complete the 
 # 'AppConfiguration' instance with your own workload and accessories.
 ${APPLICATION_NAME}: ac.AppConfiguration {
-	workload: wl.Service {
+	workload: service.Service {
 		containers: {
 
 		}
