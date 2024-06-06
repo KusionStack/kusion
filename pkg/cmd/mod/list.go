@@ -73,8 +73,6 @@ func (o *ListOption) Run() error {
 		WithData(tableData).
 		WithWriter(o.IO.Out).
 		Render()
-	pterm.Println()
-
 	return nil
 }
 
