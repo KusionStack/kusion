@@ -16,8 +16,10 @@ var (
 )
 
 const (
+	// SourceProviderTypeGit represents git source provider type.
+	SourceProviderTypeGit SourceProviderType = "git"
+
 	// SourceProviderTypeGithub represents github source provider type.
-	SourceProviderTypeGit    SourceProviderType = "git"
 	SourceProviderTypeGithub SourceProviderType = "github"
 
 	// SourceProviderTypeOCI represents oci source provider type.
