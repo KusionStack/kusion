@@ -823,7 +823,7 @@ func prompt(ui *terminal.UI) (string, error) {
 		WithDefaultOption("details").
 		// To gracefully exit if interrupted by SIGINT or SIGTERM.
 		WithOnInterruptFunc(func() {
-			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseSucceeded, relLock)
+			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
 			release.UpdateApplyRelease(storage, rel, false, relLock)
 			os.Exit(1)
 		}).
