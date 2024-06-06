@@ -126,8 +126,6 @@ func (s *smSecretStore) convertSecretToGjson(secretValueOutput *secretsmanager.G
 }
 
 func init() {
-	fmt.Printf("init aws secret")
-
 	secrets.Register(&DefaultSecretStoreProvider{}, &v1.ProviderSpec{
 		AWS: &v1.AWSProvider{},
 	})
