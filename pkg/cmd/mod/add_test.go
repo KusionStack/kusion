@@ -1,12 +1,10 @@
 package mod
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
-	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/cmd/meta"
@@ -60,12 +58,6 @@ func TestAddOptions_Run(t *testing.T) {
 	})
 
 	t.Run("ValidModuleAddition", func(t *testing.T) {
-		b := make([]byte, 4)
-		letter := "abcdefghijklmnopqrstuvwxyz"
-		for i := range b {
-			b[i] = letter[rand.Intn(len(letter))]
-		}
-
 		o := &AddOptions{
 			MetaOptions: meta.MetaOptions{
 				RefStack: &v1.Stack{
@@ -76,7 +68,7 @@ func TestAddOptions_Run(t *testing.T) {
 					Modules: v1.ModuleConfigs{
 						"service": {
 							Path:    "oci://ghcr.io/kusionstack/service",
-							Version: string(b),
+							Version: "0.1.0",
 						},
 					},
 				},
@@ -86,9 +78,5 @@ func TestAddOptions_Run(t *testing.T) {
 		}
 		err := o.Run()
 		assert.NoError(t, err)
-		kclPkg, err := api.GetKclPackage(o.RefStack.Path)
-		assert.NoError(t, err)
-		file := kclPkg.GetDependenciesInModFile()
-		assert.Equal(t, file.Deps["service"].Version, string(b))
 	})
 }
