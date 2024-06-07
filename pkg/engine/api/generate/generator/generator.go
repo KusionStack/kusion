@@ -115,6 +115,7 @@ func CopyDependentModules(workDir string) error {
 				dest = fmt.Sprintf("%s.exe", dest)
 			}
 			// copy the module binary to the $KUSION_HOME modules directory
+			// todo: replace with symlink
 			err = io.CopyFile(source, dest)
 			if err == nil {
 				// mark the dest file as executable

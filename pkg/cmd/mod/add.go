@@ -3,12 +3,14 @@ package mod
 import (
 	"fmt"
 	"net/url"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/util/templates"
-	"kcl-lang.io/kpm/pkg/api"
+	"kcl-lang.io/kpm/pkg/client"
+	"kcl-lang.io/kpm/pkg/downloader"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
 	"kusionstack.io/kusion/pkg/cmd/meta"
@@ -64,13 +66,20 @@ func (o *AddOptions) Run() error {
 	if stack == nil {
 		return fmt.Errorf("cannot find stack with empty name")
 	}
-	kclPkg, err := api.GetKclPackage(stack.Path)
+
+	cli, err := client.NewKpmClient()
 	if err != nil {
 		return err
 	}
-	dependencies := kclPkg.GetDependenciesInModFile()
+	cli.DepDownloader = downloader.NewOciDownloader(runtime.GOOS + "/" + runtime.GOARCH)
+
+	kclPkg, err := cli.LoadPkgFromPath(stack.Path)
+	if err != nil {
+		return err
+	}
+	dependencies := kclPkg.ModFile.Dependencies.Deps
 	if dependencies == nil {
-		dependencies = &pkg.Dependencies{Deps: make(map[string]pkg.Dependency)}
+		dependencies = make(map[string]pkg.Dependency)
 	}
 
 	// path example: oci://ghcr.io/kusionstack/service
@@ -83,7 +92,7 @@ func (o *AddOptions) Run() error {
 		return fmt.Errorf("invalid module path: %s", m.Path)
 	}
 
-	dependencies.Deps[o.ModuleName] = pkg.Dependency{
+	dependencies[o.ModuleName] = pkg.Dependency{
 		Name:     o.ModuleName,
 		FullName: o.ModuleName + "_" + m.Version,
 		Version:  m.Version,
@@ -96,11 +105,12 @@ func (o *AddOptions) Run() error {
 		},
 	}
 
-	// Save the dependencies to the kcl.mod file
-	err = kclPkg.StoreModFile()
+	// update kcl.mod and download dependencies
+	err = cli.UpdateDeps(kclPkg)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
