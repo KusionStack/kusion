@@ -93,8 +93,6 @@ scoop install KusionStack/kusion
 
 To deploy an application, you can run the `kusion apply` command.
 
-Visit [Quick Start](https://www.kusionstack.io/docs/getting-started/deliver-quickstart) to deliver an App with one Kusion command
-
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
 
 > To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/deliver-quickstart).
