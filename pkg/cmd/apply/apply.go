@@ -459,7 +459,7 @@ func Apply(
 		// Init a spinner printer for the resource to print the apply status.
 		changesWriterMap[key.ID], err = o.UI.SpinnerPrinter.
 			WithWriter(multi.NewWriter()).
-			Start(fmt.Sprintf("Waiting %s to apply ...", pterm.Bold.Sprint(key.ID)))
+			Start(fmt.Sprintf("Pending %s", pterm.Bold.Sprint(key.ID)))
 		if err != nil {
 			return nil, fmt.Errorf("failed to init change step spinner printer: %v", err)
 		}
@@ -695,8 +695,8 @@ func Watch(
 			// Get the resource ID to be watched.
 			case id := <-ac.WatchCh:
 				res := resourceMap[id]
-				// Set the timeout duration for watch context, here we set an experiential value of 5 minutes.
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(5))
+				// Set the timeout duration for watch context, here we set an experiential value of 60 minutes.
+				ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(60))
 				defer cancel()
 
 				// Get the event channel for watching the resource.
