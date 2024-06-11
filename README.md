@@ -102,7 +102,7 @@ To deploy an application, you can run the `kusion apply` command.
 
 If you have any questions, feel free to reach out to us in the following ways:
 
-- [Slack](kusionstack.slack.com) | [Join](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
+- [Slack](https://kusionstack.slack.com) | [Join](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
 - [DingTalk Group](https://page.dingtalk.com/wow/dingtalk/act/en-home): `42753001`  (Chinese)
 - Wechat Group (Chinese): Broker wechat to add you into the user group.
 
