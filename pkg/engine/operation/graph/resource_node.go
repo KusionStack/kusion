@@ -342,6 +342,9 @@ var implicitReplaceFun = func(
 					msg := fmt.Sprintf("can't find specified value in resource:%s by ref:%s", key, refPath)
 					return reflect.Value{}, v1.NewErrorStatusWithMsg(v1.IllegalManifest, msg)
 				} else {
+					log.Infof("can't find specified value in resource:%s by ref:%s with force equals false", key, refPath)
+					// reset to the original ref value
+					valueMap = ImplicitRefPrefix + refPath
 					break
 				}
 			}
