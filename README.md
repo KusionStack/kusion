@@ -110,8 +110,8 @@ If you have any questions, feel free to reach out to us in the following ways:
 
 ## Contributing
 
-If you're interested in contributing, please refer to the [Contributing Guide](docs/contributing.md) **before submitting a pull request**.
+If you're interested in contributing, please refer to the [Contributing Guide](CONTRIBUTING.md) **before submitting a pull request**.
 
 ## License
 
-Kusion is under the Apache 2.0 license. See the [LICENSE](docs/LICENSE) file for details.
+Kusion is under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
