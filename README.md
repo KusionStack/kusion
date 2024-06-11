@@ -3,77 +3,117 @@
 <p>
     <img  src="docs/logo.png">
 </p>
-<h1>Build your Internal Developer Platform more effectively and safely</h1>
 
-[简体中文](https://github.com/KusionStack/kusion/blob/main/README-zh.md)
-| [English](https://github.com/KusionStack/kusion/blob/main/README.md)
+<h1 style="font-size: 1.5em;">
+    Intent-Driven Platform Orchestrator
+</h1>
 
-[kusionstack.io](https://kusionstack.io/) | [Konfig](https://github.com/KusionStack/konfig) | [Catalog](https://github.com/KusionStack/catalog) | [CNCF Landscape](https://landscape.cncf.io/?selected=kusion-stack)
+<p align="center">
+  <a href="https://www.kusionstack.io/docs/" target="_blank"><b>🌐 Website</b></a> •
+  <a href="https://www.kusionstack.io/docs/getting-started/deliver-quickstart" target="_blank"><b>⚡️ Quick Start</b></a> •
+  <a href="https://www.kusionstack.io/docs/" target="_blank"><b>📚 Docs</b></a> •
+  <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 Discussions</b></a><br>
+  [English] 
+  <a href="https://github.com/KusionStack/kusion/blob/main/README-zh.md" target="_blank">[中文]</a>
+</p>
 
 [![Kusion](https://github.com/KusionStack/kusion/actions/workflows/release.yaml/badge.svg)](https://github.com/KusionStack/kusion/actions/workflows/release.yaml)
 [![GitHub release](https://img.shields.io/github/release/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
-<!-- [![Coverage Status](https://coveralls.io/repos/github/KusionStack/kusion/badge.svg)](https://coveralls.io/github/KusionStack/kusion) -->
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
+
 </div>
 
-# Kusion
+## What is Kusion?
 
-Kusion is a cloud-native platform engineering engine from [KusionStack](https://github.com/KusionStack), designed to help you build an efficient and secure Internal Developer Platform (IDP). It enables application developers to complete all operational tasks in the DevOps lifecycle in one place, in a unified manner, without worrying about the complexity of the underlying infrastructure (Kubernetes, cloud platforms, and self-hosted services). It also offers a flexible Module extension mechanism for platform engineers, facilitating the abstraction, reuse, and standardization of foundational capabilities, thereby enabling self-service for application development.
+Kusion is an intent-driven [Platform Orchestrator](https://internaldeveloperplatform.org/platform-orchestrators/), which sits at the core of an [Internal Developer Platform (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/). With Kusion you can enable app-centric development, your developers only need to write a single application specification - [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration). [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration) defines the workload and all resource dependencies without needing to supply environment-specific values, Kusion ensures it provides everything needed for the application to run.
 
-## Key Features
-
-- **Platform as Code**: Managing all application operations in one place, in a unified, easy way.
-- **Dynamic Configuration Management**: Developers deploy to any environment using one environment-agnostic configuration, while Kusion handles the underlying complexity.
-- **Enable Self-Service**: Developers fulfill their own needs by choosing the capabilities provided by the platform engineers in [Kusion Modules](https://www.kusionstack.io/docs/concepts/kusion-module/overview).
-- **Built-in Security and Compliance**: Platform engineers standardize application deliveries with security, compliance, and best practices by flexible platform configurations.
-- **Open Module Ecosystem**: A growing open module ecosystem covers all stages of the DevOps lifecycle, with extensive connections to various cloud-native infrastructures.
-- **Lightweight and Kubernetes-friendly**: As a pure client-side solution with rich APIs, Kusion offers excellent portability and ease of integration. Meanwhile, user-friendly observability and troubleshooting capabilities make Kubernetes operations easier.
+Kusion helps app developers who are responsible for creating applications and the platform engineers responsible for maintaining the infrastructure the applications run on. These roles may overlap or align differently in your organization, but Kusion is intended to ease the workload for any practitioner responsible for either set of tasks.
 
 <div align="center">
 
-![workflow](docs/workflow.png)
+![workflow](docs/overview.jpg)
 </div>
+
+## How does Kusion work?
+
+As a Platform Orchestrator, Kusion enables you to address challenges often associated with Day 0 and Day 1. Both platform engineers and application engineers can benefit from Kusion.
+
+There are two key workflows for Kusion:
+
+1. **Day 0 - Set up the modules and workspaces:** Platform engineers create shared modules for deploying applications and their underlying infrastructure, and workspace definitions for target landing zone. These standardized, shared modules codify the requirements from stakeholders across the organization including security, compliance, and finance.
+
+	Kusion modules abstract the complexity of underlying infrastructure tooling, enabling app developers to deploy their applications using a self-service model.
+	
+	<div align="center">
+
+	![workflow](docs/platform_workflow.jpg)
+	</div>
+	
+2. **Day 1 - Set up the application:** Application developers leverage the workspaces and modules created by the platform engineers to deploy applications and their supporting infrastructure. The platform team maintains the workspaces and modules, which allows application developers to focus on building applications using a repeatable process on standardized infrastructure.
+
+	<div align="center">
+
+	![workflow](docs/app_workflow.jpg)
+	</div>
 
 ## Quick Start
 
-### Deploy your first App
+This guide will cover:
 
-Visit [Quick Start](https://www.kusionstack.io/docs/getting-started/deliver-quickstart) to deliver an
-App with one Kusion command
+1. Install Kusion CLI using package manager.
+2. Deploy an application to Kubernetes with Kusion.
 
-![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
+### Install
 
-## Installation
-
-### Homebrew (macOS & Linux)
+#### Homebrew (macOS & Linux)
 
 ```shell
+# tap formula repository Kusionstack/tap
+brew tap KusionStack/tap
+
+# install Kusion 
 brew install KusionStack/tap/kusion
 ```
 
-### Docker
+#### Scoop
 
 ```
-docker pull kusionstack/kusion:latest
+# add scoop bucket KusionStack
+scoop bucket add KusionStack https://github.com/KusionStack/scoop-bucket.git
+
+# install kusion
+scoop install KusionStack/kusion
 ```
 
-> For more information about installation, please check the [Installation Guide](https://www.kusionstack.io/docs/getting-started/install-kusion) on KusionStack official website
+> For more information about installation, please refer to the [Installation Guide](https://www.kusionstack.io/docs/getting-started/install-kusion) for more options.
+
+### Deploy
+
+To deploy an application, you can run the `kusion apply` command.
+
+Visit [Quick Start](https://www.kusionstack.io/docs/getting-started/deliver-quickstart) to deliver an App with one Kusion command
+
+![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
+
+> To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/deliver-quickstart).
 
 
-# Contact Us
+## Contact
 
-- Twitter: [KusionStack](https://twitter.com/KusionStack)
-- Slack: [Kusionstack](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
-- DingTalk (Chinese): 42753001
-- Wechat Group (Chinese)
+If you have any questions, feel free to reach out to us in the following ways:
+
+- [Slack](kusionstack.slack.com) | [Join](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
+- [DingTalk Group](https://page.dingtalk.com/wow/dingtalk/act/en-home): `42753001`  (Chinese)
+- Wechat Group (Chinese): Broker wechat to add you into the user group.
 
   <img src="docs/wx_spark.jpg" width="200" height="200"/>
 
+## Contributing
 
-# 🎖︎ Contribution Guide
+If you're interested in contributing, please refer to the [Contributing Guide](docs/contributing.md) **before submitting a pull request**.
 
-Kusion is still in the rapid development stage with many capabilities to be enhanced. We welcome everyone to join us and contribute to the collaborative growth.
+## License
 
-Visit the [Contribution Guide](docs/contributing.md) to understand how to participate in the contribution KusionStack project. If you have any questions, please [Submit the Issue](https://github.com/KusionStack/kusion/issues).
+Kusion is under the Apache 2.0 license. See the [LICENSE](docs/LICENSE) file for details.
