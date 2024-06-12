@@ -141,7 +141,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	wl := spec.Resources[1]
 
 	// call modules to generate customized resources
-	resources, patcher, err := g.callModules(projectModuleConfigs)
+	resources, patchers, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
@@ -149,12 +149,12 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	// append the generated resources to the spec
 	spec.Resources = append(spec.Resources, resources...)
 
-	// patch workload with resource patcher
-	if patcher != nil {
-		if err = PatchWorkload(&wl, patcher); err != nil {
+	// patch workload with resource patchers
+	for _, patcher := range patchers {
+		if err = PatchWorkload(&wl, &patcher); err != nil {
 			return err
 		}
-		if err = JSONPatch(spec.Resources, patcher); err != nil {
+		if err = JSONPatch(spec.Resources, &patcher); err != nil {
 			return err
 		}
 	}
@@ -341,7 +341,7 @@ type moduleConfig struct {
 	ctx            v1.GenericConfig
 }
 
-func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patcher *v1.Patcher, err error) {
+func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		if e := recover(); e != nil {
@@ -421,13 +421,17 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		}
 
 		// parse patcher
-		err = yaml.Unmarshal(response.Patcher, &patcher)
-		if err != nil {
-			return nil, nil, err
+		temp := &v1.Patcher{}
+		if response.Patcher != nil {
+			err = yaml.Unmarshal(response.Patcher, temp)
+			if err != nil {
+				return nil, nil, err
+			}
+			patchers = append(patchers, *temp)
 		}
 	}
 
-	return resources, patcher, nil
+	return resources, patchers, nil
 }
 
 func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs map[string]v1.GenericConfig) (map[string]moduleConfig, error) {
