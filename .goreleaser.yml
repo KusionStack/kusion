@@ -79,7 +79,7 @@ dockers:
       - "--platform=linux/amd64"
 
 brews:
-  - tap:
+  - repository:
       owner: KusionStack
       name: homebrew-tap
     url_template: "https://github.com/KusionStack/kusion/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
@@ -89,7 +89,7 @@ brews:
     commit_author:
       name: GoReleaser Bot
       email: goreleaser@carlosbecker.com
-    folder: HomebrewFormula
+    directory: HomebrewFormula
     homepage: "https://github.com/KusionStack/kusion"
     description: "Codify and deliver intentions to Kubernetes and Clouds"
     license: "Apache License"
@@ -104,7 +104,7 @@ scoops:
       name: scoop-bucket
       branch: main
       token: "{{ .Env.GITHUB_TOKEN }}"
-    folder: Scoops
+    directory: Scoops
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
