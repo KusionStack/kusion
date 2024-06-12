@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/spf13/afero"
 
 	"github.com/patrickmn/go-cache"
+
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine"
@@ -47,7 +49,8 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 
 	plan := request.PlanResource
 	stackPath := request.Stack.Path
-	tfCacheDir := filepath.Join(stackPath, "."+plan.ResourceKey())
+	key := plan.ResourceKey()
+	tfCacheDir := buildTFCacheDir(stackPath, key)
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(plan)
@@ -112,17 +115,17 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 		}()
 
 		// Prepare the event channel and send the resource ID to watch channel.
-		log.Infof("Started to watch %s with the type of %s", plan.ResourceKey(), plan.Type)
+		log.Infof("Started to watch %s with the type of %s", key, plan.Type)
 		eventCh := make(chan runtime.TFEvent)
 
 		// Prevent concurrent operations on resources with the same ID.
-		if _, ok := tfEvents.Get(plan.ResourceKey()); ok {
-			err = fmt.Errorf("failed to initiate the event channel for watching terraform resource %s as: conflict resource ID", plan.ResourceKey())
+		if _, ok := tfEvents.Get(key); ok {
+			err = fmt.Errorf("failed to initiate the event channel for watching terraform resource %s as: conflict resource ID", key)
 			log.Error(err)
 			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 		}
-		tfEvents.Set(plan.ResourceKey(), eventCh, cache.NoExpiration)
-		watchCh <- plan.ResourceKey()
+		tfEvents.Set(key, eventCh, cache.NoExpiration)
+		watchCh <- key
 
 		// Wait for the apply to be finished.
 		shouldBreak := false
@@ -168,19 +171,23 @@ func (t *TerraformRuntime) Apply(ctx context.Context, request *runtime.ApplyRequ
 	}
 }
 
+func buildTFCacheDir(stackPath string, key string) string {
+	// replace ':' with '_' to comply with Windows directory naming conventions.
+	return filepath.Join(stackPath, "."+strings.ReplaceAll(key, ":", "_"))
+}
+
 // Read terraform show state
 func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadRequest) *runtime.ReadResponse {
 	priorResource := request.PriorResource
 	planResource := request.PlanResource
 
-	// When the operation is create or update, the planResource is set to planResource,
 	// when the operation is delete, planResource is nil, the planResource is set to priorResource,
 	// tf runtime uses planResource to rebuild tfcache resources.
 	if planResource == nil && priorResource != nil {
 		// planResource is nil representing that this is a Delete action.
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
-		// Most fields in attributes in resources aren't necessary for the command `terraform apply -refresh-only` and will make errors
-		// if fields copied from kusion_state.json but read-only in main.tf.json
+		// Most fields in the `attributes` field of resource aren't necessary for the command `terraform apply -refresh-only`.
+		// These fields will cause errors if they are copied from kusion_state.json but read-only in main.tf.json
 		planResource = &apiv1.Resource{
 			ID:         priorResource.ID,
 			Type:       priorResource.Type,
@@ -197,7 +204,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	stackPath := request.Stack.Path
-	tfCacheDir := filepath.Join(stackPath, "."+planResource.ResourceKey())
+	tfCacheDir := buildTFCacheDir(stackPath, planResource.ResourceKey())
 	t.WorkSpace.SetStackDir(stackPath)
 	t.WorkSpace.SetCacheDir(tfCacheDir)
 	t.WorkSpace.SetResource(planResource)
