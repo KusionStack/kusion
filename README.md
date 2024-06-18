@@ -27,7 +27,7 @@
 
 ## What is Kusion?
 
-Kusion is an intent-driven [Platform Orchestrator](https://internaldeveloperplatform.org/platform-orchestrators/), which sits at the core of an [Internal Developer Platform (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/). With Kusion you can enable app-centric development, your developers only need to write a single application specification - [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration). [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration) defines the workload and all resource dependencies without needing to supply environment-specific values, Kusion ensures it provides everything needed for the application to run.
+Kusion is an intent-driven [Platform Orchestrator](https://internaldeveloperplatform.org/platform-orchestrators/), which sits at the core of an [Internal Developer Platform (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/). With Kusion you can enable app-centric development, your developers only need to write a single application specification - [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration). AppConfiguration defines the workload and all resource dependencies without needing to supply environment-specific values, Kusion ensures it provides everything needed for the application to run.
 
 Kusion helps app developers who are responsible for creating applications and the platform engineers responsible for maintaining the infrastructure the applications run on. These roles may overlap or align differently in your organization, but Kusion is intended to ease the workload for any practitioner responsible for either set of tasks.
 
@@ -42,7 +42,7 @@ As a Platform Orchestrator, Kusion enables you to address challenges often assoc
 
 There are two key workflows for Kusion:
 
-1. **Day 0 - Set up the modules and workspaces:** Platform engineers create shared modules for deploying applications and their underlying infrastructure, and workspace definitions for target landing zone. These standardized, shared modules codify the requirements from stakeholders across the organization including security, compliance, and finance.
+1. **Day 0 - Set up the modules and workspaces:** Platform engineers create shared modules for deploying applications and their underlying infrastructure, and workspace definitions for the target landing zone. These standardized, shared modules codify the requirements of stakeholders across the organization including security, compliance, and finance.
 
 	Kusion modules abstract the complexity of underlying infrastructure tooling, enabling app developers to deploy their applications using a self-service model.
 	
@@ -62,7 +62,7 @@ There are two key workflows for Kusion:
 
 This guide will cover:
 
-1. Install Kusion CLI using package manager.
+1. Install Kusion CLI.
 2. Deploy an application to Kubernetes with Kusion.
 
 ### Install
@@ -77,14 +77,11 @@ brew tap KusionStack/tap
 brew install KusionStack/tap/kusion
 ```
 
-#### Scoop
+#### Powershell
 
 ```
-# add scoop bucket KusionStack
-scoop bucket add KusionStack https://github.com/KusionStack/scoop-bucket.git
-
-# install kusion
-scoop install KusionStack/kusion
+# install Kusion latest version
+powershell -Command "iwr -useb https://www.kusionstack.io/scripts/install.ps1 | iex"
 ```
 
 > For more information about installation, please refer to the [Installation Guide](https://www.kusionstack.io/docs/getting-started/install-kusion) for more options.
@@ -93,10 +90,9 @@ scoop install KusionStack/kusion
 
 To deploy an application, you can run the `kusion apply` command.
 
-![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
-
 > To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/deliver-quickstart).
 
+![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
 
 ## Contact
 
@@ -104,7 +100,7 @@ If you have any questions, feel free to reach out to us in the following ways:
 
 - [Slack](https://kusionstack.slack.com) | [Join](https://join.slack.com/t/kusionstack/shared_invite/zt-2drafxksz-VzCZZwlraHP4xpPeh_g8lg)
 - [DingTalk Group](https://page.dingtalk.com/wow/dingtalk/act/en-home): `42753001`  (Chinese)
-- Wechat Group (Chinese): Broker wechat to add you into the user group.
+- WeChat Group (Chinese): Add the WeChat assistant to bring you into the user group.
 
   <img src="docs/wx_spark.jpg" width="200" height="200"/>
 
