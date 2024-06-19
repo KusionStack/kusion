@@ -30,7 +30,7 @@ var _ secrets.SecretStore = &fakeSecretStore{}
 type DefaultSecretStoreProvider struct{}
 
 // NewSecretStore constructs a fake secret store instance.
-func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStore) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
 		return nil, fmt.Errorf(errMissingProviderSpec)

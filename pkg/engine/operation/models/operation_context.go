@@ -19,6 +19,9 @@ type Operation struct {
 	// ReleaseStorage represents the storage where state will be saved during this operation
 	ReleaseStorage release.Storage
 
+	// SecretStore represents the storage where secrets were saved
+	SecretStore *apiv1.SecretStore
+
 	// CtxResourceIndex represents resources updated by this operation
 	CtxResourceIndex map[string]*apiv1.Resource
 

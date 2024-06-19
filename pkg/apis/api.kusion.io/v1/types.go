@@ -842,6 +842,8 @@ type Resource struct {
 type Spec struct {
 	// Resources is the list of Resource this Spec contains.
 	Resources Resources `yaml:"resources" json:"resources"`
+	// SecretSore represents a external secret store location for storing secrets.
+	SecretStore *SecretStore `yaml:"secretStore" json:"secretStore"`
 }
 
 // State is a record of an operation's result. It is a mapping between resources in KCL and the actual

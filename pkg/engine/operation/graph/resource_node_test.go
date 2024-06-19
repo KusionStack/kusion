@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"reflect"
 	"sync"
 	"testing"
 
@@ -247,4 +248,69 @@ func Test_removeNestedField(t *testing.T) {
 		removeNestedField(obj, "spec", "ports", "targetPort")
 		assert.Len(t, ports[0], 2)
 	})
+}
+
+func TestParseExternalSecretDataRef(t *testing.T) {
+	tests := []struct {
+		name       string
+		dataRefStr string
+		want       *apiv1.ExternalSecretRef
+		wantErr    bool
+	}{
+		{
+			name:       "invalid data ref string",
+			dataRefStr: "$%#//invalid",
+			want:       nil,
+			wantErr:    true,
+		},
+		{
+			name:       "only secret name",
+			dataRefStr: "ref://secret-name",
+			want: &apiv1.ExternalSecretRef{
+				Name: "secret-name",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "secret name with version",
+			dataRefStr: "ref://secret-name?version=1",
+			want: &apiv1.ExternalSecretRef{
+				Name:    "secret-name",
+				Version: "1",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "secret name with property and version",
+			dataRefStr: "ref://secret-name/property?version=1",
+			want: &apiv1.ExternalSecretRef{
+				Name:     "secret-name",
+				Property: "property",
+				Version:  "1",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "nested secret name with property and version",
+			dataRefStr: "ref://customer/acme/customer_name?version=1",
+			want: &apiv1.ExternalSecretRef{
+				Name:     "customer/acme",
+				Property: "customer_name",
+				Version:  "1",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseExternalSecretDataRef(tt.dataRefStr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseExternalSecretDataRef() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseExternalSecretDataRef() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -4,8 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
@@ -13,6 +18,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/secrets"
 	"kusionstack.io/kusion/pkg/util"
 	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/json"
@@ -32,30 +38,78 @@ const (
 
 func (rn *ResourceNode) PreExecute(o *models.Operation) v1.Status {
 	value := reflect.ValueOf(rn.resource.Attributes)
-	var replaced reflect.Value
-	var s v1.Status
 
 	switch o.OperationType {
 	case models.ApplyPreview:
-		// first time apply. Do not replace implicit dependency ref
-		if len(o.PriorStateResourceIndex) == 0 {
-			_, replaced, s = ReplaceSecretRef(value)
-		} else {
-			_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, OptionalImplicitReplaceFun)
+		// don't replace implicit dependency ref in the first time apply
+		if len(o.PriorStateResourceIndex) != 0 {
+			_, replaced, s := ReplaceRef(value, o.CtxResourceIndex, OptionalImplicitReplaceFun)
+			if v1.IsErr(s) {
+				return s
+			}
+			rn.resource.Attributes = replaced.Interface().(map[string]interface{})
 		}
 	case models.Apply:
-		// replace secret ref and implicit ref
-		_, replaced, s = ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun)
+		// replace implicit refs
+		_, replaced, s := ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun)
+		if v1.IsErr(s) {
+			return s
+		}
+		rn.resource.Attributes = replaced.Interface().(map[string]interface{})
+
+		// replace k8s secret refs
+		if rn.resource.Type == apiv1.Kubernetes {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(rn.resource.Attributes)
+			if un.GetKind() == "Secret" {
+				att, s := replaceSecretRef(o, un.Object)
+				if v1.IsErr(s) {
+					return s
+				}
+				if att != nil {
+					rn.resource.Attributes = att
+				}
+			}
+		}
 	default:
 		return nil
 	}
-	if v1.IsErr(s) {
-		return s
-	}
-	if !replaced.IsZero() {
-		rn.resource.Attributes = replaced.Interface().(map[string]interface{})
-	}
+
 	return nil
+}
+
+func replaceSecretRef(o *models.Operation, obj map[string]interface{}) (map[string]interface{}, v1.Status) {
+	secret := &corev1.Secret{}
+	converter := k8sruntime.DefaultUnstructuredConverter
+	err := converter.FromUnstructured(obj, secret)
+	if err != nil {
+		return nil, v1.NewErrorStatus(err)
+	}
+	for k, data := range secret.Data {
+		ref := string(data)
+		externalSecretRef, err := parseExternalSecretDataRef(ref)
+		if err != nil {
+			return nil, v1.NewErrorStatus(err)
+		}
+		provider, exist := secrets.GetProvider(o.SecretStore.Provider)
+		if !exist {
+			return nil, v1.NewErrorStatus(errors.New("no matched secret store found, please check workspace yaml"))
+		}
+		secretStore, err := provider.NewSecretStore(o.SecretStore)
+		if err != nil {
+			return nil, v1.NewErrorStatus(err)
+		}
+		secretData, err := secretStore.GetSecret(context.Background(), *externalSecretRef)
+		if err != nil {
+			return nil, v1.NewErrorStatus(err)
+		}
+		secret.Data[k] = secretData
+	}
+	un, err := converter.ToUnstructured(secret)
+	if err != nil {
+		return nil, v1.NewErrorStatus(err)
+	}
+	return un, nil
 }
 
 func (rn *ResourceNode) Execute(operation *models.Operation) (s v1.Status) {
@@ -251,6 +305,8 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 		} else {
 			res = prior
 		}
+	default:
+		return v1.NewErrorStatus(fmt.Errorf("unknown action type: %v", rn.Action))
 	}
 	if v1.IsErr(s) {
 		return s
@@ -298,10 +354,6 @@ func updateChangeOrder(ops *models.Operation, rn *ResourceNode, plan, live inter
 	}
 	order.StepKeys = append(order.StepKeys, rn.ID)
 	order.ChangeSteps[rn.ID] = models.NewChangeStep(rn.ID, rn.Action, plan, live)
-}
-
-func ReplaceSecretRef(v reflect.Value) ([]string, reflect.Value, v1.Status) {
-	return ReplaceRef(v, nil, nil)
 }
 
 var MustImplicitReplaceFun = func(resourceIndex map[string]*apiv1.Resource, refPath string) (reflect.Value, v1.Status) {
@@ -434,4 +486,43 @@ func ReplaceRef(
 		v = makeMap
 	}
 	return result, v, nil
+}
+
+// parseExternalSecretDataRef knows how to parse the remote data ref string, returns the corresponding ExternalSecretRef object.
+func parseExternalSecretDataRef(dataRefStr string) (*apiv1.ExternalSecretRef, error) {
+	uri, err := url.Parse(dataRefStr)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := &apiv1.ExternalSecretRef{}
+	if len(uri.Path) > 0 {
+		partialName, property := parsePath(uri.Path)
+		if len(partialName) > 0 {
+			ref.Name = uri.Host + "/" + partialName
+		} else {
+			ref.Name = uri.Host
+		}
+		ref.Property = property
+	} else {
+		ref.Name = uri.Host
+	}
+
+	query := uri.Query()
+	if len(query) > 0 && len(query.Get("version")) > 0 {
+		ref.Version = query.Get("version")
+	}
+
+	return ref, nil
+}
+
+func parsePath(path string) (partialName string, property string) {
+	pathParts := strings.Split(path, "/")
+	if len(pathParts) > 1 {
+		partialName = strings.Join(pathParts[1:len(pathParts)-1], "/")
+		property = pathParts[len(pathParts)-1]
+	} else {
+		property = pathParts[0]
+	}
+	return partialName, property
 }

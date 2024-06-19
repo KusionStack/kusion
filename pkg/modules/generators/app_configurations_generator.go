@@ -164,6 +164,11 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 		return err
 	}
 
+	// append secretStore in the Spec
+	if g.ws.SecretStore != nil {
+		spec.SecretStore = g.ws.SecretStore
+	}
+
 	return nil
 }
 
