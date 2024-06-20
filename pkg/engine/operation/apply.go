@@ -10,7 +10,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	models "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	"kusionstack.io/kusion/pkg/engine/release"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
@@ -94,6 +94,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 		Operation: models.Operation{
 			OperationType:           models.Apply,
 			ReleaseStorage:          o.ReleaseStorage,
+			SecretStore:             req.Release.Spec.SecretStore,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,

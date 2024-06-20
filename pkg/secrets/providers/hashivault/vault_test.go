@@ -299,7 +299,7 @@ func TestNewSecretStore(t *testing.T) {
 
 	factory := DefaultSecretStoreProvider{}
 	for name, tc := range testCases {
-		_, err := factory.NewSecretStore(tc.spec)
+		_, err := factory.NewSecretStore(&tc.spec)
 		if diff := cmp.Diff(err, tc.expectedErr, EquateErrors()); diff != "" {
 			t.Errorf("\n%s\ngot unexpected error:\n%s", name, diff)
 		}

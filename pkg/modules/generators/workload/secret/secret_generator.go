@@ -1,20 +1,15 @@
 package secret
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"strings"
 
 	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/secrets"
 )
 
 type secretGenerator struct {
@@ -101,6 +96,7 @@ func (g *secretGenerator) generateSecret(secretName string, secretRef v1.Secret)
 	case "certificate":
 		return g.generateCertificate(secretName, secretRef)
 	case "external":
+		// todo retrieve actual secrets in the `apply` step
 		return g.generateSecretWithExternalProvider(secretName, secretRef)
 	default:
 		return nil, fmt.Errorf("unrecognized secret type %s", secretRef.Type)
@@ -163,33 +159,8 @@ func (g *secretGenerator) generateSecretWithExternalProvider(secretName string, 
 	secret := initBasicSecret(g.namespace, secretName, corev1.SecretTypeOpaque, secretRef.Immutable)
 	secret.Data = make(map[string][]byte)
 
-	var allErrs []error
 	for key, ref := range secretRef.Data {
-		externalSecretRef, err := parseExternalSecretDataRef(ref)
-		if err != nil {
-			allErrs = append(allErrs, err)
-			continue
-		}
-		provider, exist := secrets.GetProvider(g.secretStore.Provider)
-		if !exist {
-			allErrs = append(allErrs, errors.New("no matched secret store found, please check workspace yaml"))
-			continue
-		}
-		secretStore, err := provider.NewSecretStore(*g.secretStore)
-		if err != nil {
-			allErrs = append(allErrs, err)
-			continue
-		}
-		secretData, err := secretStore.GetSecret(context.Background(), *externalSecretRef)
-		if err != nil {
-			allErrs = append(allErrs, err)
-			continue
-		}
-		secret.Data[key] = secretData
-	}
-
-	if allErrs != nil {
-		return nil, utilerrors.NewAggregate(allErrs)
+		secret.Data[key] = []byte(ref)
 	}
 
 	return secret, nil
@@ -207,46 +178,6 @@ func grabData(from map[string]string, keys ...string) map[string][]byte {
 		}
 	}
 	return to
-}
-
-// parseExternalSecretDataRef knows how to parse the remote data ref string, returns the
-// corresponding ExternalSecretRef object.
-func parseExternalSecretDataRef(dataRefStr string) (*v1.ExternalSecretRef, error) {
-	uri, err := url.Parse(dataRefStr)
-	if err != nil {
-		return nil, err
-	}
-
-	ref := &v1.ExternalSecretRef{}
-	if len(uri.Path) > 0 {
-		partialName, property := parsePath(uri.Path)
-		if len(partialName) > 0 {
-			ref.Name = uri.Host + "/" + partialName
-		} else {
-			ref.Name = uri.Host
-		}
-		ref.Property = property
-	} else {
-		ref.Name = uri.Host
-	}
-
-	query := uri.Query()
-	if len(query) > 0 && len(query.Get("version")) > 0 {
-		ref.Version = query.Get("version")
-	}
-
-	return ref, nil
-}
-
-func parsePath(path string) (partialName string, property string) {
-	pathParts := strings.Split(path, "/")
-	if len(pathParts) > 1 {
-		partialName = strings.Join(pathParts[1:len(pathParts)-1], "/")
-		property = pathParts[len(pathParts)-1]
-	} else {
-		property = pathParts[0]
-	}
-	return partialName, property
 }
 
 func initBasicSecret(namespace, name string, secretType corev1.SecretType, immutable bool) *corev1.Secret {

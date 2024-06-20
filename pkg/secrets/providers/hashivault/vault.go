@@ -37,7 +37,7 @@ var _ secrets.SecretStore = &vaultSecretStore{}
 type DefaultSecretStoreProvider struct{}
 
 // NewSecretStore constructs a Vault based secret store with specific secret store spec.
-func (p *DefaultSecretStoreProvider) NewSecretStore(spec v1.SecretStore) (secrets.SecretStore, error) {
+func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil || providerSpec.Vault == nil {
 		return nil, errors.New(errInvalidVaultSecretStore)

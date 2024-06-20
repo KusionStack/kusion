@@ -1,7 +1,6 @@
 package secret
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -149,21 +148,6 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 				},
 			},
 		},
-		"create_external_secret_not_found": {
-			secretName: "access-token",
-			secretType: "external",
-			secretData: map[string]string{
-				"accessToken": "ref://token?version=1",
-			},
-			providerData: []v1.FakeProviderData{
-				{
-					Key:     "token-info",
-					Value:   "some sensitive info",
-					Version: "1",
-				},
-			},
-			expectErr: "Secret does not exist",
-		},
 	}
 
 	// run all the tests
@@ -184,71 +168,6 @@ func TestGenerateSecretWithExternalRef(t *testing.T) {
 			} else {
 				require.Error(t, err)
 				require.EqualError(t, err, test.expectErr)
-			}
-		})
-	}
-}
-
-func TestParseExternalSecretDataRef(t *testing.T) {
-	tests := []struct {
-		name       string
-		dataRefStr string
-		want       *v1.ExternalSecretRef
-		wantErr    bool
-	}{
-		{
-			name:       "invalid data ref string",
-			dataRefStr: "$%#//invalid",
-			want:       nil,
-			wantErr:    true,
-		},
-		{
-			name:       "only secret name",
-			dataRefStr: "ref://secret-name",
-			want: &v1.ExternalSecretRef{
-				Name: "secret-name",
-			},
-			wantErr: false,
-		},
-		{
-			name:       "secret name with version",
-			dataRefStr: "ref://secret-name?version=1",
-			want: &v1.ExternalSecretRef{
-				Name:    "secret-name",
-				Version: "1",
-			},
-			wantErr: false,
-		},
-		{
-			name:       "secret name with property and version",
-			dataRefStr: "ref://secret-name/property?version=1",
-			want: &v1.ExternalSecretRef{
-				Name:     "secret-name",
-				Property: "property",
-				Version:  "1",
-			},
-			wantErr: false,
-		},
-		{
-			name:       "nested secret name with property and version",
-			dataRefStr: "ref://customer/acme/customer_name?version=1",
-			want: &v1.ExternalSecretRef{
-				Name:     "customer/acme",
-				Property: "customer_name",
-				Version:  "1",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := parseExternalSecretDataRef(tt.dataRefStr)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("parseExternalSecretDataRef() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseExternalSecretDataRef() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

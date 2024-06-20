@@ -76,7 +76,7 @@ func TestGetSecret(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			ss, _ := p.NewSecretStore(v1.SecretStore{
+			ss, _ := p.NewSecretStore(&v1.SecretStore{
 				Provider: &v1.ProviderSpec{
 					Fake: &v1.FakeProvider{
 						Data: tt.input,
@@ -139,7 +139,7 @@ func TestNewSecretStore(t *testing.T) {
 
 	provider := DefaultSecretStoreProvider{}
 	for name, tc := range testCases {
-		_, err := provider.NewSecretStore(tc.spec)
+		_, err := provider.NewSecretStore(&tc.spec)
 		if diff := cmp.Diff(err, tc.expectedErr, EquateErrors()); diff != "" {
 			t.Errorf("\n%s\ngot unexpected error:\n%s", name, diff)
 		}
