@@ -36,6 +36,10 @@ const (
 	ImplicitRefPrefix = "$kusion_path."
 )
 
+const (
+	SecretRefPrefix = "ref://"
+)
+
 func (rn *ResourceNode) PreExecute(o *models.Operation) v1.Status {
 	value := reflect.ValueOf(rn.resource.Attributes)
 
@@ -87,6 +91,12 @@ func replaceSecretRef(o *models.Operation, obj map[string]interface{}) (map[stri
 	}
 	for k, data := range secret.Data {
 		ref := string(data)
+
+		// Skip the secret data which is not with the secret ref prefix.
+		if !strings.HasPrefix(ref, SecretRefPrefix) {
+			continue
+		}
+
 		externalSecretRef, err := parseExternalSecretDataRef(ref)
 		if err != nil {
 			return nil, v1.NewErrorStatus(err)
