@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -85,6 +86,12 @@ func (ps *Providers) getProviderByName(providerName string) (SecretStoreProvider
 }
 
 func getProviderName(spec *v1.ProviderSpec) (string, error) {
+	if spec.OnPremises != nil {
+		if spec.OnPremises.Name == "" {
+			return "", errors.New("on-premises secret stores must have name, found null")
+		}
+		return spec.OnPremises.Name, nil
+	}
 	specBytes, err := json.Marshal(spec)
 	if err != nil || specBytes == nil {
 		return "", fmt.Errorf("failed to marshal secret store provider spec: %w", err)
