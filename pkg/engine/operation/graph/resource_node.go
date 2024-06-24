@@ -53,6 +53,12 @@ func (rn *ResourceNode) PreExecute(o *models.Operation) v1.Status {
 			}
 			rn.resource.Attributes = replaced.Interface().(map[string]interface{})
 		}
+
+		// replace k8s secret refs
+		status := rn.replaceK8sSecretRefs(o)
+		if v1.IsErr(status) {
+			return status
+		}
 	case models.Apply:
 		// replace implicit refs
 		_, replaced, s := ReplaceRef(value, o.CtxResourceIndex, MustImplicitReplaceFun)
@@ -62,18 +68,9 @@ func (rn *ResourceNode) PreExecute(o *models.Operation) v1.Status {
 		rn.resource.Attributes = replaced.Interface().(map[string]interface{})
 
 		// replace k8s secret refs
-		if rn.resource.Type == apiv1.Kubernetes {
-			un := &unstructured.Unstructured{}
-			un.SetUnstructuredContent(rn.resource.Attributes)
-			if un.GetKind() == "Secret" {
-				att, s := replaceSecretRef(o, un.Object)
-				if v1.IsErr(s) {
-					return s
-				}
-				if att != nil {
-					rn.resource.Attributes = att
-				}
-			}
+		status := rn.replaceK8sSecretRefs(o)
+		if v1.IsErr(status) {
+			return s
 		}
 	default:
 		return nil
@@ -82,44 +79,59 @@ func (rn *ResourceNode) PreExecute(o *models.Operation) v1.Status {
 	return nil
 }
 
-func replaceSecretRef(o *models.Operation, obj map[string]interface{}) (map[string]interface{}, v1.Status) {
+func (rn *ResourceNode) replaceK8sSecretRefs(o *models.Operation) v1.Status {
+	// validate
+	if rn.resource.Type != apiv1.Kubernetes {
+		return nil
+	}
+	un := &unstructured.Unstructured{}
+	un.SetUnstructuredContent(rn.resource.Attributes)
+	if un.GetKind() != "Secret" {
+		return nil
+	}
+
 	secret := &corev1.Secret{}
 	converter := k8sruntime.DefaultUnstructuredConverter
-	err := converter.FromUnstructured(obj, secret)
+	err := converter.FromUnstructured(un.Object, secret)
 	if err != nil {
-		return nil, v1.NewErrorStatus(err)
+		return v1.NewErrorStatus(err)
 	}
+
+	// replace refs in secret data
 	for k, data := range secret.Data {
 		ref := string(data)
 
-		// Skip the secret data which is not with the secret ref prefix.
+		// Skip the secret data which doesn't have the secret ref prefix.
 		if !strings.HasPrefix(ref, SecretRefPrefix) {
 			continue
 		}
 
 		externalSecretRef, err := parseExternalSecretDataRef(ref)
 		if err != nil {
-			return nil, v1.NewErrorStatus(err)
+			return v1.NewErrorStatus(err)
 		}
 		provider, exist := secrets.GetProvider(o.SecretStore.Provider)
 		if !exist {
-			return nil, v1.NewErrorStatus(errors.New("no matched secret store found, please check workspace yaml"))
+			return v1.NewErrorStatus(errors.New("no matched secret store found, please check workspace yaml"))
 		}
 		secretStore, err := provider.NewSecretStore(o.SecretStore)
 		if err != nil {
-			return nil, v1.NewErrorStatus(err)
+			return v1.NewErrorStatus(err)
 		}
 		secretData, err := secretStore.GetSecret(context.Background(), *externalSecretRef)
 		if err != nil {
-			return nil, v1.NewErrorStatus(err)
+			return v1.NewErrorStatus(err)
 		}
 		secret.Data[k] = secretData
 	}
-	un, err := converter.ToUnstructured(secret)
+	att, err := converter.ToUnstructured(secret)
 	if err != nil {
-		return nil, v1.NewErrorStatus(err)
+		return v1.NewErrorStatus(err)
 	}
-	return un, nil
+	if att != nil {
+		rn.resource.Attributes = att
+	}
+	return nil
 }
 
 func (rn *ResourceNode) Execute(operation *models.Operation) (s v1.Status) {

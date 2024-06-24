@@ -8,7 +8,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
-	models "kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/release"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
@@ -95,6 +95,7 @@ func (po *PreviewOperation) Preview(req *PreviewRequest) (rsp *PreviewResponse, 
 		Operation: models.Operation{
 			OperationType:           o.OperationType,
 			ReleaseStorage:          o.ReleaseStorage,
+			SecretStore:             req.Spec.SecretStore,
 			CtxResourceIndex:        map[string]*apiv1.Resource{},
 			PriorStateResourceIndex: priorStateResourceIndex,
 			StateResourceIndex:      stateResourceIndex,
