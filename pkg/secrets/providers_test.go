@@ -47,6 +47,17 @@ func TestRegister(t *testing.T) {
 				AWS: &v1.AWSProvider{},
 			},
 		},
+		{
+			name:         "should register a valid provider",
+			providerName: "customplaform",
+			shouldPanic:  false,
+			expExists:    true,
+			spec: &v1.ProviderSpec{
+				OnPremises: &v1.OnPremisesProvider{
+					Name: "customplaform",
+				},
+			},
+		},
 	}
 
 	fsp := &FakeSecretStoreProvider{}

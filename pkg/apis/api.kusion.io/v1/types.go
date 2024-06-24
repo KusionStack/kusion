@@ -721,6 +721,9 @@ type ProviderSpec struct {
 
 	// Fake configures a store with static key/value pairs
 	Fake *FakeProvider `yaml:"fake,omitempty" json:"fake,omitempty"`
+
+	// Onprem configures a store in on-premises environments
+	OnPremises *OnPremisesProvider `yaml:"onpremises,omitempty" json:"onpremises,omitempty"`
 }
 
 // AlicloudProvider configures a store to retrieve secrets from Alicloud Secrets Manager.
@@ -796,6 +799,14 @@ type FakeProviderData struct {
 	Value    string            `json:"value,omitempty"`
 	ValueMap map[string]string `json:"valueMap,omitempty"`
 	Version  string            `json:"version,omitempty"`
+}
+
+// OnPremisesProvider configures a secret provider in on-premises environments
+type OnPremisesProvider struct {
+	// platform name of the provider
+	Name string `json:"name"`
+	// attributes of the provider
+	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
 type Type string
