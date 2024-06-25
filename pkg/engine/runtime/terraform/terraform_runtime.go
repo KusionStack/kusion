@@ -181,9 +181,13 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	priorResource := request.PriorResource
 	planResource := request.PlanResource
 
+	if priorResource == nil && planResource == nil {
+		return &runtime.ReadResponse{Resource: nil, Status: nil}
+	}
+
 	// when the operation is delete, planResource is nil, the planResource is set to priorResource,
 	// tf runtime uses planResource to rebuild tfcache resources.
-	if planResource == nil && priorResource != nil {
+	if planResource == nil {
 		// planResource is nil representing that this is a Delete action.
 		// We only need to refresh the tf.state files and return the latest resources state in this method.
 		// Most fields in the `attributes` field of resource aren't necessary for the command `terraform apply -refresh-only`.
@@ -195,10 +199,13 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 			DependsOn:  priorResource.DependsOn,
 			Extensions: priorResource.Extensions,
 		}
+
+		// For the resource to be deleted, the 'import_id' attribute in 'Extensions' field should be removed.
+		if _, ok := planResource.Extensions["import_id"].(string); ok {
+			delete(planResource.Extensions, "import_id")
+		}
 	}
-	if priorResource == nil {
-		return &runtime.ReadResponse{Resource: nil, Status: nil}
-	}
+
 	var tfstate *tfops.StateRepresentation
 
 	t.mu.Lock()
@@ -223,8 +230,19 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		}
 	}
 
-	// priorResource overwrite tfstate in workspace
-	if err = t.WorkSpace.WriteTFState(priorResource); err != nil {
+	if priorResource == nil {
+		// For resources declared with 'import_id' in the 'Extensions' field,
+		// use 'terraform import' to import the latest state.
+		importID, ok := planResource.Extensions["import_id"].(string)
+		if ok && importID != "" {
+			if err = t.WorkSpace.ImportResource(ctx, importID); err != nil {
+				return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+			}
+		} else {
+			return &runtime.ReadResponse{Resource: nil, Status: nil}
+		}
+	} else if err = t.WorkSpace.WriteTFState(priorResource); err != nil {
+		// priorResource overwrite tfstate in workspace
 		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
 
@@ -257,9 +275,22 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 }
 
 func (t *TerraformRuntime) Import(ctx context.Context, request *runtime.ImportRequest) *runtime.ImportResponse {
-	// TODO change to terraform cli import
-	log.Info("skip import TF resource:%s", request.PlanResource.ID)
-	return nil
+	response := t.Read(ctx, &runtime.ReadRequest{
+		PlanResource: request.PlanResource,
+		Stack:        request.Stack,
+	})
+
+	if v1.IsErr(response.Status) {
+		return &runtime.ImportResponse{
+			Resource: nil,
+			Status:   response.Status,
+		}
+	}
+
+	return &runtime.ImportResponse{
+		Resource: response.Resource,
+		Status:   nil,
+	}
 }
 
 // Delete terraform resource and remove workspace

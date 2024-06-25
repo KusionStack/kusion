@@ -320,7 +320,10 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 		log.Infof("planed resource and live resource are equal")
 		// auto import resources exist in intent and live cluster but not recorded in release file
 		if prior == nil {
-			response := rt.Import(context.Background(), &runtime.ImportRequest{PlanResource: planed})
+			response := rt.Import(context.Background(), &runtime.ImportRequest{
+				PlanResource: planed,
+				Stack:        operation.Stack,
+			})
 			s = response.Status
 			log.Debugf("import resource:%s, resource:%v", planed.ID, json.Marshal2String(s))
 			res = response.Resource
