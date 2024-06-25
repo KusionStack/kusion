@@ -17,6 +17,8 @@ package preview
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/liu-hm19/pterm"
@@ -53,6 +55,9 @@ var (
 		# Preview with specified arguments
 		kusion preview -D name=test -D age=18
 
+		# Preview with specifying spec file
+		kusion preview --spec-file spec.yaml
+
 		# Preview with ignored fields
 		kusion preview --ignore-fields="metadata.generation,metadata.managedFields"
 		
@@ -76,6 +81,7 @@ type PreviewFlags struct {
 	All          bool
 	NoStyle      bool
 	Output       string
+	SpecFile     string
 	IgnoreFields []string
 	Values       []string
 
@@ -92,6 +98,7 @@ type PreviewOptions struct {
 	All          bool
 	NoStyle      bool
 	Output       string
+	SpecFile     string
 	IgnoreFields []string
 	Values       []string
 
@@ -144,6 +151,7 @@ func (f *PreviewFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVarP(&f.IgnoreFields, "ignore-fields", "", f.IgnoreFields, i18n.T("Ignore differences of target fields"))
 	cmd.Flags().StringVarP(&f.Output, "output", "o", f.Output, i18n.T("Specify the output format"))
 	cmd.Flags().StringArrayVarP(&f.Values, "argument", "D", []string{}, i18n.T("Specify arguments on the command line"))
+	cmd.Flags().StringVarP(&f.SpecFile, "spec-file", "", "", i18n.T("Specify the spec file path as input, and the spec file must be located in the working directory or its subdirectories"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -160,6 +168,7 @@ func (f *PreviewFlags) ToOptions() (*PreviewOptions, error) {
 		All:          f.All,
 		NoStyle:      f.NoStyle,
 		Output:       f.Output,
+		SpecFile:     f.SpecFile,
 		IgnoreFields: f.IgnoreFields,
 		UI:           f.UI,
 		IOStreams:    f.IOStreams,
@@ -173,6 +182,32 @@ func (f *PreviewFlags) ToOptions() (*PreviewOptions, error) {
 func (o *PreviewOptions) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) != 0 {
 		return cmdutil.UsageErrorf(cmd, "Unexpected args: %v", args)
+	}
+
+	if o.SpecFile != "" {
+		absSF, _ := filepath.Abs(o.SpecFile)
+		fi, err := os.Stat(absSF)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("spec file not exist: %s", absSF)
+			}
+		}
+
+		if fi.IsDir() || !fi.Mode().IsRegular() {
+			return fmt.Errorf("spec file must be a regular file: %s", absSF)
+		}
+		absWD, _ := filepath.Abs(o.RefStack.Path)
+
+		// calculate the relative path between absWD and absSF,
+		// if absSF is not located in the directory or subdirectory specified by absWD,
+		// an error will be returned.
+		rel, err := filepath.Rel(absWD, absSF)
+		if err != nil {
+			return err
+		}
+		if rel[:3] == ".."+string(filepath.Separator) {
+			return fmt.Errorf("the spec file must be located in the working directory or its subdirectories of the stack")
+		}
 	}
 
 	return nil
@@ -193,7 +228,13 @@ func (o *PreviewOptions) Run() error {
 	}
 
 	// Generate spec
-	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, o.UI, o.NoStyle)
+	var spec *apiv1.Spec
+	var err error
+	if o.SpecFile != "" {
+		spec, err = generate.SpecFromFile(o.SpecFile)
+	} else {
+		spec, err = generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, o.UI, o.NoStyle)
+	}
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -67,6 +68,9 @@ var (
 		# Apply with specified arguments
 		kusion apply -D name=test -D age=18
 	
+		# Apply with specifying spec file
+		kusion apply --spec-file spec.yaml
+
 		# Skip interactive approval of preview details before applying
 		kusion apply --yes
 		
@@ -116,6 +120,7 @@ type ApplyFlags struct {
 type ApplyOptions struct {
 	*preview.PreviewOptions
 
+	SpecFile    string
 	Yes         bool
 	DryRun      bool
 	Watch       bool
@@ -179,6 +184,7 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 
 	o := &ApplyOptions{
 		PreviewOptions: previewOptions,
+		SpecFile:       f.SpecFile,
 		Yes:            f.Yes,
 		DryRun:         f.DryRun,
 		Watch:          f.Watch,
@@ -198,6 +204,32 @@ func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 
 	if o.PortForward < 0 || o.PortForward > 65535 {
 		return cmdutil.UsageErrorf(cmd, "Invalid port number to forward: %d, must be between 1 and 65535", o.PortForward)
+	}
+
+	if o.SpecFile != "" {
+		absSF, _ := filepath.Abs(o.SpecFile)
+		fi, err := os.Stat(absSF)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("spec file not exist: %s", absSF)
+			}
+		}
+
+		if fi.IsDir() || !fi.Mode().IsRegular() {
+			return fmt.Errorf("spec file must be a regular file: %s", absSF)
+		}
+		absWD, _ := filepath.Abs(o.RefStack.Path)
+
+		// calculate the relative path between absWD and absSF,
+		// if absSF is not located in the directory or subdirectory specified by absWD,
+		// an error will be returned.
+		rel, err := filepath.Rel(absWD, absSF)
+		if err != nil {
+			return err
+		}
+		if rel[:3] == ".."+string(filepath.Separator) {
+			return fmt.Errorf("the spec file must be located in the working directory or its subdirectories of the stack")
+		}
 	}
 
 	return nil
@@ -307,7 +339,12 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 	}
 
 	// generate Spec
-	spec, err := generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, nil, o.UI, o.NoStyle)
+	var spec *apiv1.Spec
+	if o.SpecFile != "" {
+		spec, err = generate.SpecFromFile(o.SpecFile)
+	} else {
+		spec, err = generate.GenerateSpecWithSpinner(o.RefProject, o.RefStack, o.RefWorkspace, parameters, o.UI, o.NoStyle)
+	}
 	if err != nil {
 		return
 	}
