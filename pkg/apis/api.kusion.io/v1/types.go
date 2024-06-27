@@ -35,7 +35,7 @@ type Project struct {
 	// Labels is the list of labels that are assigned to this project.
 	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
 
-	// Path is a directory path within the Git repository.
+	// Path is the working directory path of the project.
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 
 	// Stacks that belong to this project.
@@ -65,7 +65,7 @@ type Stack struct {
 	// Labels is the list of labels that are assigned to this stack.
 	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
 
-	// Path is a directory path within the Git repository.
+	// Path is the working directory path of the stack.
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 
 	// Extensions allow you to customize how resources are generated of this project.
