@@ -17,6 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/mod"
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/project"
+	rel "kusionstack.io/kusion/pkg/cmd/release"
 	"kusionstack.io/kusion/pkg/cmd/stack"
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
@@ -126,6 +127,12 @@ Find more information at: https://www.kusionstack.io`),
 			Message: "Module Management Commands:",
 			Commands: []*cobra.Command{
 				mod.NewCmdMod(o.IOStreams),
+			},
+		},
+		{
+			Message: "Release Management Commands:",
+			Commands: []*cobra.Command{
+				rel.NewCmdRel(o.IOStreams),
 			},
 		},
 	}
