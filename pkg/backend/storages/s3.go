@@ -27,7 +27,7 @@ func NewS3Storage(config *v1.BackendS3Config) (*S3Storage, error) {
 		Credentials:      credentials.NewStaticCredentials(config.AccessKeyID, config.AccessKeySecret, ""),
 		Region:           aws.String(config.Region),
 		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(false),
+		S3ForcePathStyle: aws.Bool(config.ForcePathStyle),
 	}
 	if config.Endpoint != "" {
 		c.Endpoint = aws.String(config.Endpoint)

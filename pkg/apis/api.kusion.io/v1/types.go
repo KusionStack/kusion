@@ -463,6 +463,7 @@ const (
 	BackendGenericOssBucket   = "bucket"
 	BackendGenericOssPrefix   = "prefix"
 	BackendS3Region           = "region"
+	BackendS3ForcePathStyle   = "forcePathStyle"
 
 	BackendTypeLocal = "local"
 	BackendTypeOss   = "oss"
@@ -533,6 +534,9 @@ type GenericBackendObjectStorageConfig struct {
 
 	// Prefix of the key to store the files.
 	Prefix string `yaml:"prefix,omitempty" json:"prefix,omitempty"`
+
+	// ForcePathStyle indicates whether to use path-style access for all operations.
+	ForcePathStyle bool `yaml:"forcePathStyle,omitempty" json:"forcePathStyle,omitempty"`
 }
 
 // ToLocalBackend converts BackendConfig to structured BackendLocalConfig, works only when the Type
@@ -581,6 +585,7 @@ func (b *BackendConfig) ToS3Backend() *BackendS3Config {
 	bucket, _ := b.Configs[BackendGenericOssBucket].(string)
 	prefix, _ := b.Configs[BackendGenericOssPrefix].(string)
 	region, _ := b.Configs[BackendS3Region].(string)
+	forcePathStyle, _ := b.Configs[BackendS3ForcePathStyle].(bool)
 	return &BackendS3Config{
 		GenericBackendObjectStorageConfig: &GenericBackendObjectStorageConfig{
 			Endpoint:        endpoint,
@@ -588,6 +593,7 @@ func (b *BackendConfig) ToS3Backend() *BackendS3Config {
 			AccessKeySecret: accessKeySecret,
 			Bucket:          bucket,
 			Prefix:          prefix,
+			ForcePathStyle:  forcePathStyle,
 		},
 		Region: region,
 	}

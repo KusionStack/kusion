@@ -199,6 +199,7 @@ func checkBasalBackendConfig(config *v1.BackendConfig) error {
 			v1.BackendGenericOssBucket:   checkString,
 			v1.BackendGenericOssPrefix:   checkString,
 			v1.BackendS3Region:           checkString,
+			v1.BackendS3ForcePathStyle:   checkBool,
 		}
 		if err := checkBasalBackendConfigItems(config, items); err != nil {
 			return err
@@ -282,6 +283,13 @@ var (
 func checkString(val any) error {
 	if _, ok := val.(string); !ok {
 		return ErrNotString
+	}
+	return nil
+}
+
+func checkBool(val any) error {
+	if _, ok := val.(bool); !ok {
+		return ErrNotBool
 	}
 	return nil
 }
