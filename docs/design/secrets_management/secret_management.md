@@ -62,7 +62,9 @@ type AWSProvider struct {
 
 #### The Workflow
 
-Based on the [collaboration paradigm](https://github.com/KusionStack/kusion/blob/main/docs/design/collaboration/Building%20the%20collaboration%20paradigm%20between%20App%20Developers%20and%20Platform%20Developers%20with%20Kusion.md) defined by Kusion as well as the fundanmental [workspace management](https://github.com/KusionStack/kusion/blob/main/docs/design/workspace_management/workspace_management.md) capability, the overall workflow of Kusion secrets management includes following steps: 
+Based on the [collaboration paradigm](../collaboration/collaboration_paradigm.md) defined by Kusion as 
+well as the fundamental [workspace management](../workspace_management/workspace_management.md) capability, the 
+overall workflow of Kusion secrets management includes following steps:
 
 1. During the workspace initialization phase, platform team setup the target secret store, including necessary credentials info to interact with secret store.
 

@@ -124,15 +124,15 @@ Based on our extensive practical experiences and in-depth conversations with oth
 
 We aim to minimize application developers' cognitive load and enable self-service so we do not let application developers care about low-level infrastructure details. They only need to declare what feature they want in a developer-friendly way, such as declaring one application needs a MySQL database and public Internet access with Kusion modules provided by platform engineers. Then Kusion will provision a MySQL database and a LoadBalancer that complies with platform standardization.
 
-We introduce a set of Kusion modules to standardize deployment and the root module is AppConfiguration. AppConfiguration is a declarative application configuration model maintained by application developers to configure all operation intentions during SDLC and more details can be found on our [website](https://kusionstack.io/docs/user_docs/concepts/appconfiguration). Each Kusion module in the AppConfiguration represents a building block built by platform engineers to standardize the application's behavior and hide infrastructure complexity, such as database, networking, and monitoring.
+We introduce a set of Kusion modules to standardize deployment and the root module is AppConfiguration. AppConfiguration is a declarative application configuration model maintained by application developers to configure all operation intentions during SDLC and more details can be found on our [website](https://www.kusionstack.io/docs/concepts/app-configuration). Each Kusion module in the AppConfiguration represents a building block built by platform engineers to standardize the application's behavior and hide infrastructure complexity, such as database, networking, and monitoring.
 
 ## Terms
 
 Before we dive into details, it is necessary to clarify certain terms.
 
 - Workspace: A workspace is a logical concept representing a target that an application will be deployed to. We just recommend they be grouped by SDLC phases or cloud vendors. For example, it could be named as `dev`, `staging`, and `prod` or cloud vendors such as `AWS`, `Azure`, and `Aliyun` or a even combination of the two.
-- [Project](https://kusionstack.io/docs/user_docs/concepts/glossary#project): A project is a logical concept to bundle application configurations.
-- [Stack](https://kusionstack.io/docs/user_docs/concepts/glossary#stack): A stack is a logical concept that provides a mechanism to isolate multiple deploys of the same application. It is the smallest operational unit that can be configured and deployed independently. The name of each stack must be the same as one specific workspace.
+- [Project](https://www.kusionstack.io/docs/concepts/project/overview): A project is a logical concept to bundle application configurations.
+- [Stack](https://www.kusionstack.io/docs/concepts/stack/overview): A stack is a logical concept that provides a mechanism to isolate multiple deploys of the same application. It is the smallest operational unit that can be configured and deployed independently. The name of each stack must be the same as one specific workspace.
 
 <p align="center">
 <img src="../workspace-project-stack.png" width="50%"/>

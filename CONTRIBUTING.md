@@ -27,7 +27,7 @@ If you have any questions or need further information, please don't hesitate to 
 
 ## Code of Conduct
 
-Please make sure to read our [Code of Conduct](/CODE_OF_CONDUCT.md).
+Please make sure to read our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Community Expectations
 
