@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/bytedance/mockey"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 
 	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -44,10 +42,7 @@ func TestTerraformRuntime(t *testing.T) {
 		Path: filepath.Join(cwd, "fakePath"),
 	}
 	defer os.RemoveAll(stack.Path)
-	tfRuntime := TerraformRuntime{
-		WorkSpace: *tfops.NewWorkSpace(afero.Afero{Fs: afero.NewOsFs()}),
-		mu:        &sync.Mutex{},
-	}
+	tfRuntime := Runtime{}
 
 	mockey.PatchConvey("ApplyDryRun", t, func() {
 		mockApplySetup()
