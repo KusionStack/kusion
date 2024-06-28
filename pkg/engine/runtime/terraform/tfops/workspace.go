@@ -24,6 +24,10 @@ import (
 )
 
 const (
+	ImportIDKey = "kusionstack.io/import-id"
+)
+
+const (
 	envLog            = "TF_LOG"
 	envPluginCacheDir = "TF_PLUGIN_CACHE_DIR"
 	tfDebugLOG        = "DEBUG"
@@ -102,7 +106,7 @@ func (w *WorkSpace) WriteHCL() error {
 		},
 	}
 
-	if importID, ok := w.resource.Extensions["import_id"].(string); ok && importID != "" {
+	if importID, ok := w.resource.Extensions[ImportIDKey].(string); ok && importID != "" {
 		m["import"] = map[string]interface{}{
 			"to": strings.Join([]string{resourceType, resourceNames[len(resourceNames)-1]}, "."),
 			"id": importID,

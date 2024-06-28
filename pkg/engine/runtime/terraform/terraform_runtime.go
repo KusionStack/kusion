@@ -201,8 +201,8 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 		}
 
 		// For the resource to be deleted, the 'import_id' attribute in 'Extensions' field should be removed.
-		if _, ok := planResource.Extensions["import_id"].(string); ok {
-			delete(planResource.Extensions, "import_id")
+		if _, ok := planResource.Extensions[tfops.ImportIDKey].(string); ok {
+			delete(planResource.Extensions, tfops.ImportIDKey)
 		}
 	}
 
@@ -233,7 +233,7 @@ func (t *TerraformRuntime) Read(ctx context.Context, request *runtime.ReadReques
 	if priorResource == nil {
 		// For resources declared with 'import_id' in the 'Extensions' field,
 		// use 'terraform import' to import the latest state.
-		importID, ok := planResource.Extensions["import_id"].(string)
+		importID, ok := planResource.Extensions[tfops.ImportIDKey].(string)
 		if ok && importID != "" {
 			if err = t.WorkSpace.ImportResource(ctx, importID); err != nil {
 				return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
