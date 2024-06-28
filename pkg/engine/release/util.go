@@ -9,6 +9,21 @@ import (
 	"kusionstack.io/kusion/pkg/log"
 )
 
+// GetLatestRelease returns the latest release. If no release exists, return nil.
+func GetLatestRelease(storage Storage) (*v1.Release, error) {
+	revision := storage.GetLatestRevision()
+	if revision == 0 {
+		return nil, nil
+	}
+
+	r, err := storage.Get(revision)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, err
+}
+
 // GetLatestState returns the latest state. If no release exists, return nil.
 func GetLatestState(storage Storage) (*v1.State, error) {
 	revision := storage.GetLatestRevision()
