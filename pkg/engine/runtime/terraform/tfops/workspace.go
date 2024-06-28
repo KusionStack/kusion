@@ -24,6 +24,10 @@ import (
 )
 
 const (
+	ImportIDKey = "kusionstack.io/import-id"
+)
+
+const (
 	envLog            = "TF_LOG"
 	envPluginCacheDir = "TF_PLUGIN_CACHE_DIR"
 	tfDebugLOG        = "DEBUG"
@@ -101,6 +105,14 @@ func (w *WorkSpace) WriteHCL() error {
 			},
 		},
 	}
+
+	if importID, ok := w.resource.Extensions[ImportIDKey].(string); ok && importID != "" {
+		m["import"] = map[string]interface{}{
+			"to": strings.Join([]string{resourceType, resourceNames[len(resourceNames)-1]}, "."),
+			"id": importID,
+		}
+	}
+
 	hclMain := jsonutil.Marshal2PrettyString(m)
 
 	_, err := w.fs.Stat(w.tfCacheDir)
@@ -119,6 +131,25 @@ func (w *WorkSpace) WriteHCL() error {
 	}
 
 	return nil
+}
+
+// ImportResource imports the resource state into the temporary terraform cache directory under the stack.
+func (w *WorkSpace) ImportResource(ctx context.Context, id string) error {
+	resourceType := w.resource.Extensions["resourceType"].(string)
+	resourceNames := strings.Split(w.resource.ResourceKey(), ":")
+	if len(resourceNames) < 4 {
+		return fmt.Errorf("illegial resource id:%s in Intent. "+
+			"Resource id format: providerNamespace:providerName:resourceType:resourceName", w.resource.ResourceKey())
+	}
+
+	to := strings.Join([]string{resourceType, resourceNames[len(resourceNames)-1]}, ".")
+
+	// Clear the old state file before importing the latest state.
+	if err := w.ClearTFState(); err != nil {
+		return fmt.Errorf("failed to clear the old state file before importing the latest state: %v", err)
+	}
+
+	return w.Import(ctx, to, id)
 }
 
 // WriteTFState writes StateRepresentation to the file, this function is for terraform apply refresh only
@@ -151,6 +182,22 @@ func (w *WorkSpace) WriteTFState(priorState *v1.Resource) error {
 	if err != nil {
 		return fmt.Errorf("write hcl error: %v", err)
 	}
+	return nil
+}
+
+// ClearTFState clears the StateRepresentation to the file, this function is for terraform import only.
+func (w *WorkSpace) ClearTFState() error {
+	m := map[string]interface{}{
+		"version":   4,
+		"resources": []map[string]interface{}{},
+	}
+	hclState := jsonutil.Marshal2PrettyString(m)
+
+	err := w.fs.WriteFile(filepath.Join(w.tfCacheDir, tfStateFile), []byte(hclState), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("write hcl error: %v", err)
+	}
+
 	return nil
 }
 
@@ -239,6 +286,30 @@ func (w *WorkSpace) Plan(ctx context.Context) (*PlanRepresentation, error) {
 	}
 
 	return pr, err
+}
+
+// Import with the terraform cli import command.
+func (w *WorkSpace) Import(ctx context.Context, to, id string) error {
+	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
+	err := w.CleanAndInitWorkspace(ctx)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "import", "-lock=false", to, id)
+	cmd.Dir = w.stackDir
+	envs, err := w.initEnvs()
+	if err != nil {
+		return err
+	}
+	cmd.Env = envs
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return TFError(out)
+	}
+
+	return nil
 }
 
 // ShowState shows local tfstate with the terraform cli show command
