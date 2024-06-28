@@ -106,7 +106,8 @@ If you have any questions, feel free to reach out to us in the following ways:
 
 ## Contributing
 
-If you're interested in contributing, please refer to the [Contributing Guide](CONTRIBUTING.md) **before submitting a pull request**.
+If you're interested in contributing, please refer to the [Contributing Guide](./CONTRIBUTING.md) **before submitting 
+a pull request**.
 
 ## License
 

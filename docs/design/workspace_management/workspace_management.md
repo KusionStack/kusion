@@ -2,7 +2,7 @@
 
 ## Context
 
-Towards the version 0.10.0, Kusion is about to make a huge upgrade: the unambiguous definition of responsibility and collaboration paradigm between platform engineers and application developers through the application delivery process. The platform engineers firstly define modules and corresponding application-oriented schemas, where the latter constitute the application schema [AppConfiguration](https://www.kusionstack.io/docs/user_docs/config-walkthrough/overview#appconfiguration-model), and secondly initialize workspaces and corresponding configurations. The application developers select workspace and fill in the fields of AppConfiguration. Then, executing the delivery action in a trusted workspace, e.g. a CD pipeline, to apply the application intent from both the platform engineers and application developers.
+Towards the version 0.10.0, Kusion is about to make a huge upgrade: the unambiguous definition of responsibility and collaboration paradigm between platform engineers and application developers through the application delivery process. The platform engineers firstly define modules and corresponding application-oriented schemas, where the latter constitute the application schema [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration), and secondly initialize workspaces and corresponding configurations. The application developers select workspace and fill in the fields of AppConfiguration. Then, executing the delivery action in a trusted workspace, e.g. a CD pipeline, to apply the application intent from both the platform engineers and application developers.
 
 The upgrade defines the role of platform engineers and the concepts of **Module** and **workspace**. The Module is a building block enabling the building the intent of a set of resources from **Schema Configuration** and **Workspace Configuration**. While the workspace is a collection of application-independent configurations, and a workspace configuration is composed of a set of module inputs, which forms the entire module inputs combined with schema configuration.
 
@@ -34,7 +34,7 @@ For clarity, the workspace data is seperated into two types: configuration and s
 
 For the set of data items that serves the same target, if one or more than one of them is sensitive data, then the whole set of data items should be kept by environment variables. Ding so is to provide a continuous, smooth experience.
 
-According to [Building the collaboration paradigm between App Developers and Platform Developers with Kusion.md](https://github.com/KusionStack/kusion/blob/main/docs/design/collaboration/Building%20the%20collaboration%20paradigm%20between%20App%20Developers%20and%20Platform%20Developers%20with%20Kusion.md), *a stack must be linked with one workspace*. The stack name must be the same as the workspace name it will deploy to.
+According to [Building the collaboration paradigm between App Developers and Platform Developers with Kusion.md](https://www.kusionstack.io/docs/concepts/app-configuration), *a stack must be linked with one workspace*. The stack name must be the same as the workspace name it will deploy to.
 
 <br />![workspace-project-stack](../workspace-project-stack.png)
 

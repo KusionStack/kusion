@@ -2,7 +2,7 @@
 
 ## Motivation
 
-Workflow is a sequence of steps involved in moving from the beginning to the end of a working process. [Kusion](https://kusionstack.io/docs/user_docs/intro/overview/) is a modern application delivery and management toolchain. We'd like to define a clear and stable core workflow, to describe how Kusion addresses the difficulty in application delivery. We hope the core workflow to be the user's first step into Kusion. By following the steps defined in the core workflow, user can use Kusion positively and breezily.
+Workflow is a sequence of steps involved in moving from the beginning to the end of a working process. [Kusion](https://www.kusionstack.io/docs/) is a modern application delivery and management toolchain. We'd like to define a clear and stable core workflow, to describe how Kusion addresses the difficulty in application delivery. We hope the core workflow to be the user's first step into Kusion. By following the steps defined in the core workflow, user can use Kusion positively and breezily.
 
 The core workflow also guides the R&D iteration of Kusion. Kusion may provide more features (e.g. support more config modules, apply runtimes), or present different product forms (e.g. CLI, SaaS), the core workflow should always be consistent.
 
@@ -35,7 +35,7 @@ Kusion is application-centric. Next, we start from the perspective of applicatio
 
 ### Step 1: Write
  
-In order to reduce the complexity of configuration writing, Kusion uses code to describe the configuration, and provides a concise and universal application configuration model. The model's name is [`AppConfiguration`](https://kusionstack.io/docs/user_docs/config-walkthrough/overview#appconfiguration-model). AppConfiguration simplifies and abstracts underlying resources, shielding configuration items that application developers don't need to pay attention to. Besides, application developers can leverage advantages of code, to avoid repeated and error-prone traditional configuration writing work.
+In order to reduce the complexity of configuration writing, Kusion uses code to describe the configuration, and provides a concise and universal application configuration model. The model's name is [`AppConfiguration`](https://www.kusionstack.io/docs/concepts/app-configuration). AppConfiguration simplifies and abstracts underlying resources, shielding configuration items that application developers don't need to pay attention to. Besides, application developers can leverage advantages of code, to avoid repeated and error-prone traditional configuration writing work.
 
 The output of the step *Write* is a piece of application configuration code. The code can fully indicate the application delivery result that the developer focuses on.
 
