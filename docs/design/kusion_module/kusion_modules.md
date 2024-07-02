@@ -9,7 +9,7 @@ Kusion module is a reusable building block of KusionStack designed by platform e
 3. Modules should not have dependencies or be nested within each other.
 4. AppConfig is not a Module.
 
-For more details, please visit our [official website](https://www.kusionstack.io/docs/concepts/kusion-module/overview).
+For more details, please visit our [official website](https://www.kusionstack.io/docs/concepts/module/overview).
 
 ![module](../collaboration/kusion-module.png)
 
