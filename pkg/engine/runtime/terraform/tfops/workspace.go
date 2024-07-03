@@ -10,11 +10,11 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclparse"
-	"github.com/spf13/afero"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
@@ -45,19 +45,19 @@ var envTFLog = fmt.Sprintf("%s=%s", envLog, tfDebugLOG)
 
 type WorkSpace struct {
 	resource   *v1.Resource
-	fs         afero.Afero
 	stackDir   string
 	tfCacheDir string
+	// mutex passed from TF runtime
+	mutex *sync.Mutex
+}
+
+func NewWorkSpace(resource *v1.Resource, stackDir string, tfCacheDir string, mutex *sync.Mutex) *WorkSpace {
+	return &WorkSpace{resource: resource, stackDir: stackDir, tfCacheDir: tfCacheDir, mutex: mutex}
 }
 
 // SetResource set workspace resource
 func (w *WorkSpace) SetResource(resource *v1.Resource) {
 	w.resource = resource
-}
-
-// SetFS set filesystem
-func (w *WorkSpace) SetFS(fs afero.Afero) {
-	w.fs = fs
 }
 
 // SetStackDir set workspace work directory.
@@ -68,12 +68,6 @@ func (w *WorkSpace) SetStackDir(stackDir string) {
 // SetCacheDir set tf cache work directory.
 func (w *WorkSpace) SetCacheDir(cacheDir string) {
 	w.tfCacheDir = cacheDir
-}
-
-func NewWorkSpace(fs afero.Afero) *WorkSpace {
-	return &WorkSpace{
-		fs: fs,
-	}
 }
 
 // WriteHCL convert kusion Resource to HCL json
@@ -115,17 +109,17 @@ func (w *WorkSpace) WriteHCL() error {
 
 	hclMain := jsonutil.Marshal2PrettyString(m)
 
-	_, err := w.fs.Stat(w.tfCacheDir)
+	_, err := os.Stat(w.tfCacheDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if err := w.fs.MkdirAll(w.tfCacheDir, os.ModePerm); err != nil {
+			if err := os.MkdirAll(w.tfCacheDir, os.ModePerm); err != nil {
 				return fmt.Errorf("create workspace error: %v", err)
 			}
 		} else {
 			return err
 		}
 	}
-	err = w.fs.WriteFile(filepath.Join(w.tfCacheDir, mainTFFile), []byte(hclMain), 0o600)
+	err = os.WriteFile(filepath.Join(w.tfCacheDir, mainTFFile), []byte(hclMain), 0o600)
 	if err != nil {
 		return fmt.Errorf("write hcl main.tf.json error: %v", err)
 	}
@@ -178,7 +172,7 @@ func (w *WorkSpace) WriteTFState(priorState *v1.Resource) error {
 	}
 	hclState := jsonutil.Marshal2PrettyString(m)
 
-	err := w.fs.WriteFile(filepath.Join(w.tfCacheDir, tfStateFile), []byte(hclState), os.ModePerm)
+	err := os.WriteFile(filepath.Join(w.tfCacheDir, tfStateFile), []byte(hclState), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("write hcl error: %v", err)
 	}
@@ -193,7 +187,7 @@ func (w *WorkSpace) ClearTFState() error {
 	}
 	hclState := jsonutil.Marshal2PrettyString(m)
 
-	err := w.fs.WriteFile(filepath.Join(w.tfCacheDir, tfStateFile), []byte(hclState), os.ModePerm)
+	err := os.WriteFile(filepath.Join(w.tfCacheDir, tfStateFile), []byte(hclState), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("write hcl error: %v", err)
 	}
@@ -204,6 +198,14 @@ func (w *WorkSpace) ClearTFState() error {
 // InitWorkSpace init terraform runtime workspace
 func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 	chdir := fmt.Sprintf("-chdir=%s", w.tfCacheDir)
+
+	// We use TF_PLUGIN_CACHE_DIR to enable caching or to override an existing cache directory within a particular shell session
+	// but the plugin cache directory is not guaranteed to be concurrency safe.
+	// The provider installer's behavior in environments with multiple terraform init calls is undefined.
+	// So we need to lock the `terraform init` command to ensure that only one terraform init call can access the provider cache directory
+	// at a time.
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
 	cmd := exec.CommandContext(ctx, "terraform", chdir, "init")
 	cmd.Dir = w.stackDir
 	envs, err := w.initEnvs()
@@ -212,7 +214,8 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 	}
 	cmd.Env = envs
 	_, err = cmd.Output()
-	if e, ok := err.(*exec.ExitError); ok {
+	var e *exec.ExitError
+	if errors.As(err, &e) {
 		return errors.New(string(e.Stderr))
 	}
 	return nil
@@ -239,7 +242,7 @@ func (w *WorkSpace) Apply(ctx context.Context) (*StateRepresentation, error) {
 		return nil, err
 	}
 
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json", "-lock=false")
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json")
 	cmd.Dir = w.stackDir
 	envs, err := w.initEnvs()
 	if err != nil {
@@ -296,7 +299,7 @@ func (w *WorkSpace) Import(ctx context.Context, to, id string) error {
 		return err
 	}
 
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "import", "-lock=false", to, id)
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "import", to, id)
 	cmd.Dir = w.stackDir
 	envs, err := w.initEnvs()
 	if err != nil {
@@ -314,7 +317,7 @@ func (w *WorkSpace) Import(ctx context.Context, to, id string) error {
 
 // ShowState shows local tfstate with the terraform cli show command
 func (w *WorkSpace) ShowState(ctx context.Context) (*StateRepresentation, error) {
-	fi, err := w.fs.Stat(filepath.Join(w.tfCacheDir, tfStateFile))
+	fi, err := os.Stat(filepath.Join(w.tfCacheDir, tfStateFile))
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -335,7 +338,7 @@ func (w *WorkSpace) ShowState(ctx context.Context) (*StateRepresentation, error)
 
 // ShowPlan shows local plan file with the terraform cli show command
 func (w *WorkSpace) ShowPlan(ctx context.Context) (*PlanRepresentation, error) {
-	fi, err := w.fs.Stat(filepath.Join(w.tfCacheDir, tfPlanFile))
+	fi, err := os.Stat(filepath.Join(w.tfCacheDir, tfPlanFile))
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -372,7 +375,7 @@ func (w *WorkSpace) RefreshOnly(ctx context.Context) (*StateRepresentation, erro
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json", "--refresh-only", "-lock=false")
+	cmd := exec.CommandContext(ctx, "terraform", chdir, "apply", "-auto-approve", "-json", "--refresh-only")
 	cmd.Dir = w.stackDir
 
 	envs, err := w.initEnvs()

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"sync"
 	"testing"
 
 	"github.com/bytedance/mockey"
@@ -56,7 +57,9 @@ func TestWriteHCL(t *testing.T) {
 	}{
 		"writeSuccess": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 			want: want{
 				mainTF: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
@@ -95,7 +98,9 @@ func TestWriteTFState(t *testing.T) {
 	}{
 		"writeSuccess": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 			want: want{
 				tfstate: "{\n  \"resources\": [\n    {\n      \"instances\": [\n        {\n          \"attributes\": {\n            \"content\": \"kusion\",\n            \"filename\": \"test.txt\"\n          }\n        }\n      ],\n      \"mode\": \"managed\",\n      \"name\": \"kusion_example\",\n      \"provider\": \"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\n      \"type\": \"local_file\"\n    }\n  ],\n  \"version\": 4\n}",
@@ -134,7 +139,9 @@ func TestInitWorkspace(t *testing.T) {
 	}{
 		"initws": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 		},
 	}
@@ -160,7 +167,9 @@ func TestApply(t *testing.T) {
 	}{
 		"applySuccess": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 		},
 	}
@@ -192,7 +201,9 @@ func TestRead(t *testing.T) {
 	}{
 		"readSuccess": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 		},
 	}
@@ -217,7 +228,9 @@ func TestRefreshOnly(t *testing.T) {
 	}{
 		"readSuccess": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 		},
 	}
@@ -249,7 +262,9 @@ func TestGerProvider(t *testing.T) {
 	}{
 		"Success": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 			want: want{
 				addr: "registry.terraform.io/hashicorp/local/2.2.3",
@@ -302,7 +317,6 @@ func mockProviderAddr() {
 func TestWorkSpace_Plan(t *testing.T) {
 	type fields struct {
 		resource   *apiv1.Resource
-		fs         afero.Afero
 		stackDir   string
 		tfCacheDir string
 	}
@@ -320,11 +334,10 @@ func TestWorkSpace_Plan(t *testing.T) {
 			name: "plan",
 			fields: struct {
 				resource   *apiv1.Resource
-				fs         afero.Afero
 				stackDir   string
 				tfCacheDir string
 			}{
-				resource: &resourceTest, fs: fs, stackDir: stackDir, tfCacheDir: cacheDir,
+				resource: &resourceTest, stackDir: stackDir, tfCacheDir: cacheDir,
 			},
 			args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false,
 		},
@@ -333,7 +346,6 @@ func TestWorkSpace_Plan(t *testing.T) {
 		mockey.PatchConvey(tt.name, t, func() {
 			w := &WorkSpace{
 				resource:   tt.fields.resource,
-				fs:         tt.fields.fs,
 				stackDir:   tt.fields.stackDir,
 				tfCacheDir: tt.fields.tfCacheDir,
 			}
@@ -379,7 +391,6 @@ func TestWorkSpace_ShowPlan(t *testing.T) {
 		mockey.PatchConvey(tt.name, t, func() {
 			w := &WorkSpace{
 				resource:   tt.fields.resource,
-				fs:         tt.fields.fs,
 				stackDir:   tt.fields.stackDir,
 				tfCacheDir: tt.fields.tfCacheDir,
 			}
@@ -424,7 +435,9 @@ func TestDestroy(t *testing.T) {
 	}{
 		"success": {
 			args: args{
-				w: NewWorkSpace(fs),
+				w: &WorkSpace{
+					mutex: &sync.Mutex{},
+				},
 			},
 			want: want{
 				err: nil,
