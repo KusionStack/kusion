@@ -7,8 +7,8 @@ on:
     branches:
       - main
 jobs:
-  e2e:
-    name: e2e test
+  e2e-linux:
+    name: e2e test on linux
     runs-on: ubuntu-20.04
     steps:
       - name: checkout code
@@ -22,4 +22,35 @@ jobs:
       - name: Setup K3d
         uses: nolar/setup-k3d-k3s@v1.0.8
       - name: run e2e
-        run: make e2e-test
+        run: make e2e-test OSTYPE=linux
+
+  e2e-windows: 
+    name: e2e test on windows
+    runs-on: windows-latest
+    steps: 
+      - name: checkout code
+        uses: actions/checkout@v2
+        with: 
+          fetch-depth: 0
+      - name: install Go
+        uses: actions/setup-go@v2
+        with: 
+          go-version: 1.22
+      - name: install K3d
+        shell: powershell
+        run: |
+          # Install scoop. 
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+          Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+          # Install K3d. 
+          scoop install k3d
+      - name: setup K3s
+        uses: knicknic/temp-kubernetes-ci@v1
+      - name: run e2e
+        run: |
+          # Add kusion binary path into the user executable path. 
+          $PATH = [Environment]::GetEnvironmentVariable("PATH")
+          $kusion_path="D:\a\kusion\kusion\bin"
+          [Environment]::SetEnvironmentVariable("PATH", "$PATH;$kusion_path")
+          make e2e-test OSTYPE=windows

@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -34,23 +33,41 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	})
 
-	ginkgo.It("kusion apply", func() {
+	ginkgo.It("apply and destroy", func() {
 		ginkgo.By("kusion apply", func() {
 			path := filepath.Join(GetWorkDir(), "konfig", "example", "service-multi-stack", "dev")
-			_, err := ExecKusionWithWorkDir("kusion apply -y=true", path)
+			_, err := ExecKusionWithWorkDir("kusion apply --watch=false -y=true", path)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+		})
+
+		ginkgo.By("kusion apply", func() {
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "quickstart", "default")
+			_, err := ExecKusionWithWorkDir("kusion apply --watch=false -y=true", path)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 
 		ginkgo.By("wait service-multi-stack deploy", func() {
 			homedir := os.Getenv("HOME")
-			configPath := fmt.Sprintf("%s/.kube/config", homedir)
+			configPath := filepath.Join(homedir, ".kube", "config")
 			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
 				_, err := clusterClient.AppsV1().Deployments("service-multi-stack").Get(context.TODO(), "service-multi-stack-dev-echoserver", metav1.GetOptions{})
 				return err == nil
-			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
+			}, 900*time.Second, 5*time.Second).Should(gomega.Equal(true))
+		})
+
+		ginkgo.By("wait quickstart deploy", func() {
+			homedir := os.Getenv("HOME")
+			configPath := filepath.Join(homedir, ".kube", "config")
+			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
+			gomega.Eventually(func() bool {
+				_, err := clusterClient.AppsV1().Deployments("quickstart").Get(context.TODO(), "quickstart-default-quickstart", metav1.GetOptions{})
+				return err == nil
+			}, 900*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
 
 		ginkgo.By("kusion destroy", func() {
@@ -59,16 +76,34 @@ var _ = ginkgo.Describe("kusion Runtime Commands", func() {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 
+		ginkgo.By("kusion destroy", func() {
+			path := filepath.Join(GetWorkDir(), "konfig", "example", "quickstart", "default")
+			_, err := ExecKusionWithWorkDir("kusion destroy -y=true", path)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+		})
+
 		ginkgo.By("wait service-multi-stack destroy", func() {
 			homedir := os.Getenv("HOME")
-			configPath := fmt.Sprintf("%s/.kube/config", homedir)
+			configPath := filepath.Join(homedir, ".kube", "config")
 			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
 			gomega.Eventually(func() bool {
 				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "service-multi-stack", metav1.GetOptions{})
 				return errors.IsNotFound(err)
-			}, 300*time.Second, 5*time.Second).Should(gomega.Equal(true))
+			}, 900*time.Second, 5*time.Second).Should(gomega.Equal(true))
+		})
+
+		ginkgo.By("wait service-multi-stack destroy", func() {
+			homedir := os.Getenv("HOME")
+			configPath := filepath.Join(homedir, ".kube", "config")
+			clusterConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			clusterClient := kubernetes.NewForConfigOrDie(clusterConfig)
+			gomega.Eventually(func() bool {
+				_, err := clusterClient.CoreV1().Namespaces().Get(context.TODO(), "quickstart", metav1.GetOptions{})
+				return errors.IsNotFound(err)
+			}, 900*time.Second, 5*time.Second).Should(gomega.Equal(true))
 		})
 	})
 })
