@@ -2,7 +2,9 @@ package e2e
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/onsi/ginkgo/v2"
@@ -16,12 +18,14 @@ func TestE2e(t *testing.T) {
 
 // BeforeSuite Create kubernetes
 var _ = ginkgo.BeforeSuite(func() {
-	ginkgo.By("create k3s cluster", func() {
-		cli := "k3d cluster create kusion-e2e"
-		output, err := Exec(cli)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-		gomega.Expect(output).To(gomega.ContainSubstring("successfully"))
-	})
+	if runtime.GOOS != "windows" {
+		ginkgo.By("create k3s cluster", func() {
+			cli := "k3d cluster create kusion-e2e"
+			output, err := Exec(cli)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			gomega.Expect(output).To(gomega.ContainSubstring("successfully"))
+		})
+	}
 
 	ginkgo.By("git clone konfig", func() {
 		output, err := ExecWithWorkDir("git clone https://github.com/KusionStack/konfig.git", GetWorkDir())
@@ -30,20 +34,23 @@ var _ = ginkgo.BeforeSuite(func() {
 	})
 
 	ginkgo.By("kusion init", func() {
-		path := filepath.Join(GetWorkDir(), "konfig")
-		_, err := ExecKusionWithStdin("kusion init --online=true --yes=true", path, "\n")
+		path := filepath.Join(GetWorkDir(), "konfig", "quickstart-e2e")
+		_ = os.MkdirAll(path, 0o755)
+		_, err := ExecKusionWithStdin("kusion init", path, "\n")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	})
 })
 
 // AfterSuite clean kubernetes
 var _ = ginkgo.AfterSuite(func() {
-	ginkgo.By("clean up k3s cluster", func() {
-		cli := "k3d cluster delete kusion-e2e"
-		output, err := Exec(cli)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-		gomega.Expect(output).To(gomega.ContainSubstring("Successfully"))
-	})
+	if runtime.GOOS != "windows" {
+		ginkgo.By("clean up k3s cluster", func() {
+			cli := "k3d cluster delete kusion-e2e"
+			output, err := Exec(cli)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			gomega.Expect(output).To(gomega.ContainSubstring("Successfully"))
+		})
+	}
 
 	ginkgo.By("clean up konfig", func() {
 		path := filepath.Join(GetWorkDir(), "konfig")
