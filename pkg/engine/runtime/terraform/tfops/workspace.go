@@ -28,20 +28,27 @@ const (
 )
 
 const (
-	envLog            = "TF_LOG"
-	envPluginCacheDir = "TF_PLUGIN_CACHE_DIR"
-	tfDebugLOG        = "DEBUG"
-	envLogPath        = "TF_LOG_PATH"
-	LockHCLFile       = ".terraform.lock.hcl"
-	mainTFFile        = "main.tf.json"
-	tfPlanFile        = "plan.out"
-	tfStateFile       = "terraform.tfstate"
-	tfProviderPrefix  = "terraform-provider"
-	terraformD        = ".terraform.d"
-	pluginCache       = "plugin-cache"
+	envLog = "TF_LOG"
+	// According to this issue(https://github.com/hashicorp/terraform/issues/35345),
+	// the description of `TF_PLUGIN_CACHE_DIR` is out of date and won't work as we expected.
+	// we have to set TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE to ignore the dependency lock file to reuse the plugin cache.
+	envBreakDependencyLockFile = "TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE"
+	envPluginCacheDir          = "TF_PLUGIN_CACHE_DIR"
+	tfDebugLOG                 = "DEBUG"
+	envLogPath                 = "TF_LOG_PATH"
+	LockHCLFile                = ".terraform.lock.hcl"
+	mainTFFile                 = "main.tf.json"
+	tfPlanFile                 = "plan.out"
+	tfStateFile                = "terraform.tfstate"
+	tfProviderPrefix           = "terraform-provider"
+	terraformD                 = ".terraform.d"
+	pluginCache                = "plugin-cache"
 )
 
-var envTFLog = fmt.Sprintf("%s=%s", envLog, tfDebugLOG)
+var (
+	envTFLog                              = fmt.Sprintf("%s=%s", envLog, tfDebugLOG)
+	envPluginCacheBreakDependencyLockFile = fmt.Sprintf("%s=%s", envBreakDependencyLockFile, "true")
+)
 
 type WorkSpace struct {
 	resource   *v1.Resource
@@ -230,7 +237,7 @@ func (w *WorkSpace) initEnvs() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := append(os.Environ(), envTFLog, providerCachePath, logPath)
+	result := append(os.Environ(), envTFLog, envPluginCacheBreakDependencyLockFile, providerCachePath, logPath)
 	return result, nil
 }
 
