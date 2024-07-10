@@ -865,7 +865,7 @@ type Spec struct {
 	// SecretSore represents a external secret store location for storing secrets.
 	SecretStore *SecretStore `yaml:"secretStore" json:"secretStore"`
 	// Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.
-	Context GenericConfig `yaml:"context,omitempty" json:"context,omitempty"`
+	Context GenericConfig `yaml:"context" json:"context"`
 }
 
 // State is a record of an operation's result. It is a mapping between resources in KCL and the actual
