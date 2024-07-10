@@ -400,7 +400,7 @@ func getKubernetesClient(spec apiv1.Spec) (dynamic.Interface, meta.RESTMapper, e
 	var err error
 	var cfg *rest.Config
 
-	if spec.Context != nil {
+	if len(spec.Context) != 0 {
 		kubeConfigPath, err := workspace.GetStringFromGenericConfig(spec.Context, kubeops.KubeConfigPathKey)
 		if err != nil {
 			return nil, nil, err
@@ -419,7 +419,7 @@ func getKubernetesClient(spec apiv1.Spec) (dynamic.Interface, meta.RESTMapper, e
 			if err != nil {
 				return nil, nil, err
 			}
-		} else {
+		} else if kubeConfigPath != "" {
 			cfg, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 			if err != nil {
 				return nil, nil, err
