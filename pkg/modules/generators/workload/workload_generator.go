@@ -98,7 +98,6 @@ func toOrderedContainers(
 
 	// Create a slice of volumes and configMaps based on the containers' files to be created.
 	var volumes []corev1.Volume
-	var volumeMounts []corev1.VolumeMount
 	var configMaps []corev1.ConfigMap
 
 	if err := modules.ForeachOrdered(appContainers, func(containerName string, c v1.Container) error {
@@ -128,10 +127,12 @@ func toOrderedContainers(
 		}
 
 		// Append the configMap, volume and volumeMount objects into the corresponding slices.
-		volumes, volumeMounts, configMaps, err = handleFileCreation(c, uniqueAppName, containerName)
+		volumesContainer, volumeMounts, configMapsContainer, err := handleFileCreation(c, uniqueAppName, containerName)
 		if err != nil {
 			return err
 		}
+		volumes = append(volumes, volumesContainer...)
+		configMaps = append(configMaps, configMapsContainer...)
 		ctn.VolumeMounts = append(ctn.VolumeMounts, volumeMounts...)
 
 		// Append more volumes and volumeMounts
