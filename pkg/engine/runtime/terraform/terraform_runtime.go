@@ -26,12 +26,14 @@ var _ runtime.Runtime = &Runtime{}
 var tfEvents = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 type Runtime struct {
-	mutex *sync.Mutex
+	mutex   *sync.Mutex
+	context apiv1.GenericConfig
 }
 
-func NewTerraformRuntime(_ *apiv1.Resource) (runtime.Runtime, error) {
+func NewTerraformRuntime(spec apiv1.Spec) (runtime.Runtime, error) {
 	TFRuntime := &Runtime{
-		mutex: &sync.Mutex{},
+		mutex:   &sync.Mutex{},
+		context: spec.Context,
 	}
 	return TFRuntime, nil
 }
@@ -42,7 +44,7 @@ func (t *Runtime) Apply(ctx context.Context, request *runtime.ApplyRequest) *run
 	stackPath := request.Stack.Path
 	key := plan.ResourceKey()
 	tfCacheDir := buildTFCacheDir(stackPath, key)
-	ws := tfops.NewWorkSpace(plan, stackPath, tfCacheDir, t.mutex)
+	ws := tfops.NewWorkSpace(plan, stackPath, tfCacheDir, t.mutex, t.context)
 
 	if err := ws.WriteHCL(); err != nil {
 		return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
@@ -199,7 +201,7 @@ func (t *Runtime) Read(ctx context.Context, request *runtime.ReadRequest) *runti
 	stackPath := request.Stack.Path
 	tfCacheDir := buildTFCacheDir(stackPath, planResource.ResourceKey())
 
-	ws := tfops.NewWorkSpace(planResource, stackPath, tfCacheDir, t.mutex)
+	ws := tfops.NewWorkSpace(planResource, stackPath, tfCacheDir, t.mutex, t.context)
 	if err := ws.WriteHCL(); err != nil {
 		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 	}
@@ -282,7 +284,7 @@ func (t *Runtime) Delete(ctx context.Context, request *runtime.DeleteRequest) (r
 	stackPath := request.Stack.Path
 	tfCacheDir := buildTFCacheDir(stackPath, request.Resource.ResourceKey())
 
-	ws := tfops.NewWorkSpace(request.Resource, stackPath, tfCacheDir, t.mutex)
+	ws := tfops.NewWorkSpace(request.Resource, stackPath, tfCacheDir, t.mutex, t.context)
 	if err := ws.Destroy(ctx); err != nil {
 		return &runtime.DeleteResponse{Status: v1.NewErrorStatus(err)}
 	}

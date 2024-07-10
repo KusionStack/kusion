@@ -92,7 +92,7 @@ type Workspace struct {
 	// SecretStore represents a secure external location for storing secrets.
 	SecretStore *SecretStore `yaml:"secretStore,omitempty" json:"secretStore,omitempty"`
 
-	// Context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
+	// Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.
 	Context GenericConfig `yaml:"context,omitempty" json:"context,omitempty"`
 }
 
@@ -475,6 +475,9 @@ const (
 	EnvAwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
 	EnvAwsDefaultRegion   = "AWS_DEFAULT_REGION"
 	EnvAwsRegion          = "AWS_REGION"
+	EnvAlicloudAccessKey  = "ALICLOUD_ACCESS_KEY"
+	EnvAlicloudSecretKey  = "ALICLOUD_SECRET_KEY"
+	EnvAlicloudRegion     = "ALICLOUD_REGION"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.
@@ -861,6 +864,8 @@ type Spec struct {
 	Resources Resources `yaml:"resources" json:"resources"`
 	// SecretSore represents a external secret store location for storing secrets.
 	SecretStore *SecretStore `yaml:"secretStore" json:"secretStore"`
+	// Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.
+	Context GenericConfig `yaml:"context" json:"context"`
 }
 
 // State is a record of an operation's result. It is a mapping between resources in KCL and the actual

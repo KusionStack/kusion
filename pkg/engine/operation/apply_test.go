@@ -148,7 +148,7 @@ func TestApplyOperation_Apply(t *testing.T) {
 				return nil
 			}).Build()
 			mockey.Mock(runtimeinit.Runtimes).To(func(
-				resources apiv1.Resources,
+				spec apiv1.Spec,
 			) (map[apiv1.Type]runtime.Runtime, v1.Status) {
 				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()

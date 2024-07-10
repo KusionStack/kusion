@@ -27,13 +27,14 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sjson "k8s.io/apimachinery/pkg/util/json"
-	"kcl-lang.io/kpm/pkg/package"
+	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
 	"kusionstack.io/kusion/pkg/modules/proto"
+
 	// import the secrets register pkg to register supported secret providers
 	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
@@ -167,6 +168,11 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	// append secretStore in the Spec
 	if g.ws.SecretStore != nil {
 		spec.SecretStore = g.ws.SecretStore
+	}
+
+	// append context in the Spec
+	if g.ws.Context != nil {
+		spec.Context = g.ws.Context
 	}
 
 	return nil

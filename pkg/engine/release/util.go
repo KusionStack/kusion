@@ -113,7 +113,19 @@ func CreateDestroyRelease(storage Storage, project, stack, workspace string) (*v
 
 	resources := make([]v1.Resource, len(lastRelease.State.Resources))
 	copy(resources, lastRelease.State.Resources)
-	spec := &v1.Spec{Resources: resources}
+
+	secretStore := &v1.SecretStore{}
+	if lastRelease.Spec != nil && lastRelease.Spec.SecretStore != nil {
+		secretStore = lastRelease.Spec.SecretStore
+	}
+
+	specContext := v1.GenericConfig{}
+	if lastRelease.Spec != nil && lastRelease.Spec.Context != nil {
+		specContext = lastRelease.Spec.Context
+	}
+
+	spec := &v1.Spec{Resources: resources, SecretStore: secretStore, Context: specContext}
+
 	// if no resource managed, set phase to Succeeded directly.
 	phase := v1.ReleasePhasePreviewing
 	if len(resources) == 0 {

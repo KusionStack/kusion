@@ -35,6 +35,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes/kubeops"
 	"kusionstack.io/kusion/pkg/log"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 var _ runtime.Runtime = (*KubernetesRuntime)(nil)
@@ -45,8 +46,8 @@ type KubernetesRuntime struct {
 }
 
 // NewKubernetesRuntime create a new KubernetesRuntime
-func NewKubernetesRuntime(resource *apiv1.Resource) (runtime.Runtime, error) {
-	client, mapper, err := getKubernetesClient(resource)
+func NewKubernetesRuntime(spec apiv1.Spec) (runtime.Runtime, error) {
+	client, mapper, err := getKubernetesClient(spec)
 	if err != nil {
 		return nil, err
 	}
@@ -394,11 +395,50 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 }
 
 // getKubernetesClient get kubernetes client
-func getKubernetesClient(resource *apiv1.Resource) (dynamic.Interface, meta.RESTMapper, error) {
+func getKubernetesClient(spec apiv1.Spec) (dynamic.Interface, meta.RESTMapper, error) {
 	// build config
-	cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(resource))
-	if err != nil {
-		return nil, nil, err
+	var err error
+	var cfg *rest.Config
+
+	if len(spec.Context) != 0 {
+		kubeConfigPath, err := workspace.GetStringFromGenericConfig(spec.Context, kubeops.KubeConfigPathKey)
+		if err != nil {
+			return nil, nil, err
+		}
+		kubeConfigContent, err := workspace.GetStringFromGenericConfig(spec.Context, kubeops.KubeConfigContentKey)
+		if err != nil {
+			return nil, nil, err
+		}
+		if kubeConfigContent != "" {
+			clientCfg, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfigContent))
+			if err != nil {
+				return nil, nil, err
+			}
+
+			cfg, err = clientCfg.ClientConfig()
+			if err != nil {
+				return nil, nil, err
+			}
+		} else if kubeConfigPath != "" {
+			cfg, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+	} else {
+		var kubeConfigFromRes string
+		for _, res := range spec.Resources {
+			if res.Type == apiv1.Kubernetes {
+				kubeConfigFromRes = kubeops.GetKubeConfig(&res)
+			}
+			if kubeConfigFromRes != "" {
+				break
+			}
+		}
+		cfg, err = clientcmd.BuildConfigFromFlags("", kubeConfigFromRes)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// DynamicRESTMapper can discover resource types at runtime dynamically
