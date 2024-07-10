@@ -48,7 +48,7 @@ func (do *DestroyOperation) Destroy(req *DestroyRequest) (rsp *DestroyResponse, 
 
 	// only destroy resources we have recorded
 	resources := priorState.Resources
-	runtimesMap, s := runtimeinit.Runtimes(resources)
+	runtimesMap, s := runtimeinit.Runtimes(*req.Release.Spec)
 	if v1.IsErr(s) {
 		return nil, s
 	}

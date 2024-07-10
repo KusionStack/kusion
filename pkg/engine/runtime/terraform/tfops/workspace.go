@@ -21,6 +21,7 @@ import (
 	"kusionstack.io/kusion/pkg/util/io"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/util/kfile"
+	"kusionstack.io/kusion/pkg/workspace"
 )
 
 const (
@@ -56,10 +57,12 @@ type WorkSpace struct {
 	tfCacheDir string
 	// mutex passed from TF runtime
 	mutex *sync.Mutex
+	// context passed from TF runtime.
+	context v1.GenericConfig
 }
 
-func NewWorkSpace(resource *v1.Resource, stackDir string, tfCacheDir string, mutex *sync.Mutex) *WorkSpace {
-	return &WorkSpace{resource: resource, stackDir: stackDir, tfCacheDir: tfCacheDir, mutex: mutex}
+func NewWorkSpace(resource *v1.Resource, stackDir string, tfCacheDir string, mutex *sync.Mutex, context v1.GenericConfig) *WorkSpace {
+	return &WorkSpace{resource: resource, stackDir: stackDir, tfCacheDir: tfCacheDir, mutex: mutex, context: context}
 }
 
 // SetResource set workspace resource
@@ -229,6 +232,10 @@ func (w *WorkSpace) InitWorkSpace(ctx context.Context) error {
 }
 
 func (w *WorkSpace) initEnvs() ([]string, error) {
+	providerInfoEnvs, err := w.getEnvProviderInfo()
+	if err != nil {
+		return nil, err
+	}
 	providerCachePath, err := getProviderCachePath()
 	if err != nil {
 		return nil, err
@@ -237,7 +244,7 @@ func (w *WorkSpace) initEnvs() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := append(os.Environ(), envTFLog, envPluginCacheBreakDependencyLockFile, providerCachePath, logPath)
+	result := append(append(os.Environ(), providerInfoEnvs...), envTFLog, envPluginCacheBreakDependencyLockFile, providerCachePath, logPath)
 	return result, nil
 }
 
@@ -511,6 +518,65 @@ func (w *WorkSpace) getEnvProviderLogPath() (string, error) {
 	providerLogPath := filepath.Join(kusionDataDir, "logs", fmt.Sprintf("%s-%s.log", tfProviderPrefix, provider[len(provider)-2]))
 	envTFLogPath := fmt.Sprintf("%s=%s", envLogPath, providerLogPath)
 	return envTFLogPath, nil
+}
+
+// getEnvProviderInfo returns the provider credential and region environment
+// variables, the environment variables are parsed from context.
+func (w *WorkSpace) getEnvProviderInfo() ([]string, error) {
+	var envs []string
+	context := w.context
+
+	// Get AWS provider AK/SK and region.
+	awsAccessKeyID, err := workspace.GetStringFromGenericConfig(context, v1.EnvAwsAccessKeyID)
+	if err != nil {
+		return nil, err
+	}
+	if awsAccessKeyID != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAwsAccessKeyID, awsAccessKeyID))
+	}
+
+	awsSecretAccessKey, err := workspace.GetStringFromGenericConfig(context, v1.EnvAwsSecretAccessKey)
+	if err != nil {
+		return nil, err
+	}
+	if awsSecretAccessKey != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAwsSecretAccessKey, awsSecretAccessKey))
+	}
+
+	awsRegion, err := workspace.GetStringFromGenericConfig(context, v1.EnvAwsRegion)
+	if err != nil {
+		return nil, err
+	}
+	if awsRegion != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAwsRegion, awsRegion))
+	}
+
+	// Get Alicloud provider AK/SK and region.
+	alicloudAccessKey, err := workspace.GetStringFromGenericConfig(context, v1.EnvAlicloudAccessKey)
+	if err != nil {
+		return nil, err
+	}
+	if alicloudAccessKey != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAlicloudAccessKey, alicloudAccessKey))
+	}
+
+	alicloudSecretKey, err := workspace.GetStringFromGenericConfig(context, v1.EnvAlicloudSecretKey)
+	if err != nil {
+		return nil, err
+	}
+	if alicloudSecretKey != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAlicloudSecretKey, alicloudSecretKey))
+	}
+
+	alicloudRegion, err := workspace.GetStringFromGenericConfig(context, v1.EnvAlicloudRegion)
+	if err != nil {
+		return nil, err
+	}
+	if alicloudRegion != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAlicloudRegion, alicloudRegion))
+	}
+
+	return envs, nil
 }
 
 func getProviderCachePath() (string, error) {

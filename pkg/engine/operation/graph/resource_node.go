@@ -106,7 +106,7 @@ func (rn *ResourceNode) replaceK8sSecretRefs(o *models.Operation) v1.Status {
 			continue
 		}
 
-		externalSecretRef, err := parseExternalSecretDataRef(ref)
+		externalSecretRef, err := ParseExternalSecretDataRef(ref)
 		if err != nil {
 			return v1.NewErrorStatus(err)
 		}
@@ -513,8 +513,8 @@ func ReplaceRef(
 	return result, v, nil
 }
 
-// parseExternalSecretDataRef knows how to parse the remote data ref string, returns the corresponding ExternalSecretRef object.
-func parseExternalSecretDataRef(dataRefStr string) (*apiv1.ExternalSecretRef, error) {
+// ParseExternalSecretDataRef knows how to parse the remote data ref string, returns the corresponding ExternalSecretRef object.
+func ParseExternalSecretDataRef(dataRefStr string) (*apiv1.ExternalSecretRef, error) {
 	uri, err := url.Parse(dataRefStr)
 	if err != nil {
 		return nil, err
