@@ -292,14 +292,13 @@ func deepCopyResource(from, to *v1.Resource) error {
 		if len(to.DependsOn) == 0 {
 			to.DependsOn = make([]string, len(from.DependsOn))
 		}
-		for i, v := range from.DependsOn {
-			to.DependsOn[i] = v
-		}
+		copy(to.DependsOn, from.DependsOn)
 	}
 
 	return nil
 }
 
+// deepCopyMap deeply copies the map[string]interface{}.
 func deepCopyMap(src map[string]interface{}) (map[string]interface{}, error) {
 	jsonBytes, err := json.Marshal(src)
 	if err != nil {
