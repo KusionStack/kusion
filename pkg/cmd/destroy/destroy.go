@@ -218,6 +218,17 @@ func (o *DestroyOptions) Run() (err error) {
 
 // run executes the delete command after release is created.
 func (o *DestroyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
+	// update release to succeeded or failed
+	defer func() {
+		if err != nil {
+			rel.Phase = apiv1.ReleasePhaseFailed
+			release.UpdateDestroyRelease(storage, rel)
+		} else {
+			rel.Phase = apiv1.ReleasePhaseSucceeded
+			err = release.UpdateDestroyRelease(storage, rel)
+		}
+	}()
+
 	// set no style
 	if o.NoStyle {
 		pterm.DisableStyling()
