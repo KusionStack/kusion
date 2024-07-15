@@ -324,13 +324,13 @@ func mockOperationDestroy(res models.OpResult) {
 func TestPrompt(t *testing.T) {
 	mockey.PatchConvey("prompt error", t, func() {
 		mockey.Mock((*pterm.InteractiveSelectPrinter).Show).Return("", errors.New("mock error")).Build()
-		_, err := prompt(terminal.DefaultUI())
+		_, err := prompt(terminal.DefaultUI(), &apiv1.Release{}, &releasestorages.LocalStorage{})
 		assert.NotNil(t, err)
 	})
 
 	mockey.PatchConvey("prompt yes", t, func() {
 		mockPromptOutput("yes")
-		_, err := prompt(terminal.DefaultUI())
+		_, err := prompt(terminal.DefaultUI(), &apiv1.Release{}, &releasestorages.LocalStorage{})
 		assert.Nil(t, err)
 	})
 }
