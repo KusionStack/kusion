@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/liu-hm19/pterm"
@@ -262,6 +263,13 @@ func (o *ChangeOrder) PromptDetails(ui *terminal.UI) (string, error) {
 		WithDefaultText(`Which diff detail do you want to see?`).
 		WithOptions(options).
 		WithDefaultOption("all").
+		// Fixme: interruption during 'apply' or 'destroy' may result in a locked release file.
+		WithOnInterruptFunc(func() {
+			hint := `Interruption during 'apply' or 'destroy' may result in a locked release file.
+Please use 'kusion release unlock' before executing the next operation.`
+			fmt.Printf("\n" + hint + "\n")
+			os.Exit(1)
+		}).
 		Show()
 	if err != nil {
 		fmt.Printf("Prompt failed: %v\n", err)

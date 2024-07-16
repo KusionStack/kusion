@@ -15,6 +15,7 @@
 package destroy
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -36,6 +37,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/pretty"
+	"kusionstack.io/kusion/pkg/util/signal"
 	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
@@ -188,10 +190,64 @@ func (o *DestroyOptions) Run() (err error) {
 	}
 	releaseCreated = true
 
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	// wait for the SIGTERM or SIGINT
+	go func() {
+		stopCh := signal.SetupSignalHandler()
+		<-stopCh
+		errCh <- errors.New("receive SIGTERM or SIGINT, exit cmd")
+	}()
+
+	// run destroy command
+	go func() {
+		errCh <- o.run(rel, storage)
+	}()
+
+	if err = <-errCh; err != nil {
+		rel.Phase = apiv1.ReleasePhaseFailed
+		release.UpdateDestroyRelease(storage, rel)
+	} else {
+		rel.Phase = apiv1.ReleasePhaseSucceeded
+		release.UpdateDestroyRelease(storage, rel)
+	}
+
+	return err
+}
+
+// run executes the delete command after release is created.
+func (o *DestroyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
+	// update release to succeeded or failed
+	defer func() {
+		if err != nil {
+			rel.Phase = apiv1.ReleasePhaseFailed
+			release.UpdateDestroyRelease(storage, rel)
+		} else {
+			rel.Phase = apiv1.ReleasePhaseSucceeded
+			err = release.UpdateDestroyRelease(storage, rel)
+		}
+	}()
+
+	// set no style
+	if o.NoStyle {
+		pterm.DisableStyling()
+	}
+
+	sp := o.UI.SpinnerPrinter
+	sp, _ = sp.Start(fmt.Sprintf("Computing destroy changes in the Stack %s...", o.RefStack.Name))
+
 	// compute changes for preview
 	changes, err := o.preview(rel.Spec, rel.State, o.RefProject, o.RefStack, storage)
 	if err != nil {
+		if sp != nil {
+			sp.Fail()
+		}
 		return
+	}
+
+	if sp != nil {
+		sp.Success()
 	}
 
 	// preview
@@ -203,16 +259,11 @@ func (o *DestroyOptions) Run() (err error) {
 		return nil
 	}
 
-	// set no style
-	if o.NoStyle {
-		pterm.DisableStyling()
-	}
-
 	// prompt
 	if !o.Yes {
 		for {
 			var input string
-			input, err = prompt(o.UI)
+			input, err = prompt(o.UI, rel, storage)
 			if err != nil {
 				return
 			}
@@ -395,13 +446,19 @@ func (o *DestroyOptions) destroy(rel *apiv1.Release, changes *models.Changes, st
 	return updatedRel, nil
 }
 
-func prompt(ui *terminal.UI) (string, error) {
+func prompt(ui *terminal.UI, rel *apiv1.Release, storage release.Storage) (string, error) {
 	options := []string{"yes", "details", "no"}
 	input, err := ui.InteractiveSelectPrinter.
 		WithFilter(false).
 		WithDefaultText(`Do you want to destroy these diffs?`).
 		WithOptions(options).
 		WithDefaultOption("details").
+		// To gracefully exit if interrupted by SIGINT or SIGTERM.
+		WithOnInterruptFunc(func() {
+			rel.Phase = apiv1.ReleasePhaseFailed
+			release.UpdateDestroyRelease(storage, rel)
+			os.Exit(1)
+		}).
 		Show()
 	if err != nil {
 		fmt.Printf("Prompt failed: %v\n", err)
