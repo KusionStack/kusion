@@ -38,8 +38,10 @@ type PortForwardOperation struct {
 
 type PortForwardRequest struct {
 	models.Request
-	Spec *v1.Spec
-	Port int
+	Spec      *v1.Spec
+	Port      int
+	LocalPort int
+	K8sPort   int
 }
 
 func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
@@ -50,7 +52,9 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 		return err
 	}
 
-	// Find Kubernetes Service in the resources of Spec.
+	// Find Kubernetes Namespace and Service in the resources of Spec.
+	var nsSpec *v1.Resource
+	var namespace *corev1.Namespace
 	services := make(map[*v1.Resource]*corev1.Service)
 	for _, res := range req.Spec.Resources {
 		// Skip non-Kubernetes resources.
@@ -73,6 +77,12 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 			return fmt.Errorf("failed to decode yaml manifest into unstructured object: %v", err)
 		}
 
+		if obj.GetKind() == convertor.Namespace {
+			nsSpec = &res
+			convertedObj := convertor.ToK8s(obj)
+			namespace = convertedObj.(*corev1.Namespace)
+		}
+
 		if obj.GetKind() != convertor.Service {
 			continue
 		}
@@ -81,45 +91,12 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 		services[&res] = convertedObj.(*corev1.Service)
 	}
 
-	if len(services) == 0 {
-		return ErrEmptyService
-	}
-
-	filteredServices := make(map[*v1.Resource]*corev1.Service)
-	for res, svc := range services {
-		targetPortFound := false
-		for _, port := range svc.Spec.Ports {
-			if port.Port == int32(req.Port) {
-				targetPortFound = true
-				continue
-			}
-		}
-
-		if targetPortFound {
-			filteredServices[res] = svc
-		}
-	}
-	services = filteredServices
-
-	if len(services) != 1 {
-		return ErrNotOneSvcWithTargetPort
-	}
-
-	// Port-forward the Service with client-go.
+	// Port-forward the K8s Pod or Service with client-go.
 	failed := make(chan error)
-	for res, svc := range services {
-		namespace := svc.GetNamespace()
-		serviceName := svc.GetName()
-
-		var servicePort int
-		if req.Port == 0 {
-			// We will use the first port in Service if not specified.
-			servicePort = int(svc.Spec.Ports[0].Port)
-		} else {
-			servicePort = req.Port
-		}
-
-		cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(res))
+	if len(services) == 0 {
+		// Port-forward directly to K8s Pod, if there is only one Pod in the Application Resources.
+		// Fixme: only one Pod with the target port?
+		cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(nsSpec))
 		if err != nil {
 			return err
 		}
@@ -129,17 +106,66 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 			return err
 		}
 
+		pods, err := clientset.CoreV1().Pods(namespace.Name).List(ctx, metav1.ListOptions{})
+
+		if len(pods.Items) != 1 {
+			return errors.New("only support one pod to port forward when no k8s service in application resources")
+		}
+		pod := pods.Items[0]
+
+		fmt.Printf("Forwarding localhost port to targetPort of pod '%s' (%d:%d)\n", pod.Name, req.LocalPort, req.K8sPort)
+
 		go func() {
-			err = ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort)
-			failed <- err
+			failed <- forwardPodPort(cfg, clientset, pod.Namespace, pod.Name, req.K8sPort, req.LocalPort)
 		}()
+	} else {
+		// Port-forward to K8s Service, if there is only one Service with the targeted port.
+		filteredServices := make(map[*v1.Resource]*corev1.Service)
+		for res, svc := range services {
+			targetPortFound := false
+			for _, port := range svc.Spec.Ports {
+				if port.Port == int32(req.K8sPort) {
+					targetPortFound = true
+					continue
+				}
+			}
+
+			if targetPortFound {
+				filteredServices[res] = svc
+			}
+		}
+		services = filteredServices
+
+		if len(services) != 1 {
+			return ErrNotOneSvcWithTargetPort
+		}
+
+		for res, svc := range services {
+			serviceName := svc.GetName()
+
+			cfg, err := clientcmd.BuildConfigFromFlags("", kubeops.GetKubeConfig(res))
+			if err != nil {
+				return err
+			}
+
+			clientset, err := kubernetes.NewForConfig(cfg)
+			if err != nil {
+				return err
+			}
+
+			go func() {
+				err = forwardSvcPort(ctx, cfg, clientset, namespace.Name, serviceName, req.K8sPort, req.LocalPort)
+				failed <- err
+			}()
+		}
 	}
 
 	err := <-failed
 	return err
 }
 
-func ForwardPort(
+// forwardSvcPort forwards the localhost port to K8s Service.
+func forwardSvcPort(
 	ctx context.Context,
 	restConfig *rest.Config,
 	clientset *kubernetes.Clientset,
@@ -175,9 +201,19 @@ func ForwardPort(
 	fmt.Printf("Forwarding localhost port to targetPort of pod '%s' selected by the service '%s' (%d:%d)\n",
 		pod.Name, serviceName, localPort, servicePort)
 
+	return forwardPodPort(restConfig, clientset, pod.Namespace, pod.Name, servicePort, localPort)
+}
+
+// forwardPodPort forwards the localhost port to K8s Pod.
+func forwardPodPort(
+	restConfig *rest.Config,
+	clientset *kubernetes.Clientset,
+	namespace, podName string,
+	podPort, localPort int,
+) error {
 	// Build a URL for SPDY connection for port-forwarding.
 	url := clientset.CoreV1().RESTClient().Post().
-		Resource("pods").Namespace(pod.Namespace).Name(pod.Name).
+		Resource("pods").Namespace(namespace).Name(podName).
 		SubResource("portforward").URL()
 
 	transport, upgrader, err := spdy.RoundTripperFor(restConfig)
@@ -185,7 +221,7 @@ func ForwardPort(
 		return err
 	}
 
-	ports := []string{fmt.Sprintf("%d:%d", localPort, servicePort)}
+	ports := []string{fmt.Sprintf("%d:%d", localPort, podPort)}
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, "POST", url)
 
 	stop, ready := make(chan struct{}, 1), make(chan struct{})
@@ -206,8 +242,11 @@ func validatePortForwardRequest(req *PortForwardRequest) error {
 	if err := release.ValidateSpec(req.Spec); err != nil {
 		return err
 	}
-	if req.Port < 0 || req.Port > 65535 {
-		return fmt.Errorf("invalid port %d", req.Port)
+	if req.LocalPort < 0 || req.LocalPort > 65535 {
+		return fmt.Errorf("invalid local port number: %d", req.LocalPort)
+	}
+	if req.K8sPort < 0 || req.K8sPort > 65535 {
+		return fmt.Errorf("invalid k8s pod or service port number: %d", req.K8sPort)
 	}
 	return nil
 }
