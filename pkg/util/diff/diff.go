@@ -2,6 +2,7 @@ package diff
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/gonvenience/wrap"
@@ -141,7 +142,7 @@ func maskSensitiveData(oldData, newData interface{}) (interface{}, interface{}) 
 			if from.Type == v1.Kubernetes && ok && fromKind == "Secret" {
 				// Set masking old data to true.
 				maskOld = true
-				*maskedOldData = *from
+				deepCopyResource(from, maskedOldData)
 
 				// Append 'data' and 'stringData' attributes of the old secret resource.
 				if _, ok := from.Attributes["data"]; ok {
@@ -173,7 +174,7 @@ func maskSensitiveData(oldData, newData interface{}) (interface{}, interface{}) 
 			if to.Type == v1.Kubernetes && ok && toKind == "Secret" {
 				// Set masking new data to true.
 				maskNew = true
-				*maskedNewData = *to
+				deepCopyResource(to, maskedNewData)
 
 				// Append 'data' and 'stringData' attributes of the new secret resource.
 				if _, ok := to.Attributes["data"]; ok {
@@ -267,4 +268,47 @@ func maskSensitiveData(oldData, newData interface{}) (interface{}, interface{}) 
 	}
 
 	return maskedOldData, maskedNewData
+}
+
+// deepCopyResource deeply copies the old Resource into a new one.
+func deepCopyResource(from, to *v1.Resource) error {
+	to.ID = from.ID
+	to.Type = from.Type
+
+	var err error
+	if len(from.Attributes) != 0 {
+		if to.Attributes, err = deepCopyMap(from.Attributes); err != nil {
+			return err
+		}
+	}
+
+	if len(from.Extensions) != 0 {
+		if to.Extensions, err = deepCopyMap(from.Extensions); err != nil {
+			return err
+		}
+	}
+
+	if len(from.DependsOn) != 0 {
+		if len(to.DependsOn) == 0 {
+			to.DependsOn = make([]string, len(from.DependsOn))
+		}
+		copy(to.DependsOn, from.DependsOn)
+	}
+
+	return nil
+}
+
+// deepCopyMap deeply copies the map[string]interface{}.
+func deepCopyMap(src map[string]interface{}) (map[string]interface{}, error) {
+	jsonBytes, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
+
+	var dest map[string]interface{}
+	if err = json.Unmarshal(jsonBytes, &dest); err != nil {
+		return nil, err
+	}
+
+	return dest, nil
 }
