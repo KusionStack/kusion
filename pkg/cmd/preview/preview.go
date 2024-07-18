@@ -36,6 +36,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/util/diff"
 	"kusionstack.io/kusion/pkg/util/i18n"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/util/terminal"
@@ -268,6 +269,14 @@ func (o *PreviewOptions) Run() error {
 
 	if o.Output == jsonOutput {
 		var previewChanges []byte
+
+		// Mask sensitive data before printing the preview changes.
+		for _, v := range changes.ChangeSteps {
+			maskedFrom, maskedTo := diff.MaskSensitiveData(v.From, v.To)
+			v.From = maskedFrom
+			v.To = maskedTo
+		}
+
 		previewChanges, err = json.Marshal(changes)
 		if err != nil {
 			return fmt.Errorf("json marshal preview changes failed as %w", err)
