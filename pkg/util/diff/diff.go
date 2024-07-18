@@ -76,7 +76,7 @@ func ToRawString(humanReport *dyff.HumanReport) (string, error) {
 func ToReport(oldData, newData interface{}) (*dyff.Report, error) {
 	// Mask the sensitive data in Kubernetes Secret before generating the
 	// diff report.
-	maskedOldData, maskedNewData := maskSensitiveData(oldData, newData)
+	maskedOldData, maskedNewData := MaskSensitiveData(oldData, newData)
 
 	from, err := LoadFile(yaml.MergeToOneYAML(maskedOldData), "Old item")
 	if err != nil {
@@ -115,9 +115,9 @@ func LoadFile(input, location string) (ytbx.InputFile, error) {
 	}, nil
 }
 
-// maskSensitiveData masks the sensitive data with placeholders before generating
+// MaskSensitiveData masks the sensitive data with placeholders before generating
 // the diff report.
-func maskSensitiveData(oldData, newData interface{}) (interface{}, interface{}) {
+func MaskSensitiveData(oldData, newData interface{}) (interface{}, interface{}) {
 	from, ok1 := oldData.(*v1.Resource)
 	to, ok2 := newData.(*v1.Resource)
 

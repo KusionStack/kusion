@@ -293,7 +293,7 @@ func TestMaskSensitiveData(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			actualMaskedOldData, actualMaskedNewData := maskSensitiveData(
+			actualMaskedOldData, actualMaskedNewData := MaskSensitiveData(
 				tc.oldData, tc.newData,
 			)
 
