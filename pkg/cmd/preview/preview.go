@@ -295,16 +295,20 @@ func (o *PreviewOptions) Run() error {
 
 	// detail detection
 	if o.Detail {
-		for {
-			var target string
-			target, err = changes.PromptDetails(o.UI)
-			if err != nil {
-				return err
+		if o.All {
+			changes.OutputDiff("all")
+		} else {
+			for {
+				var target string
+				target, err = changes.PromptDetails(o.UI)
+				if err != nil {
+					return err
+				}
+				if target == "" { // Cancel option
+					break
+				}
+				changes.OutputDiff(target)
 			}
-			if target == "" { // Cancel option
-				break
-			}
-			changes.OutputDiff(target)
 		}
 	}
 	return nil
