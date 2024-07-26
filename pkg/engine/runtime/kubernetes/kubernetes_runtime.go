@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
@@ -400,6 +401,7 @@ func getKubernetesClient(spec apiv1.Spec) (dynamic.Interface, meta.RESTMapper, e
 	var err error
 	var cfg *rest.Config
 
+	// Get KubeConfig from Spec context.
 	if len(spec.Context) != 0 {
 		kubeConfigPath, err := workspace.GetStringFromGenericConfig(spec.Context, kubeops.KubeConfigPathKey)
 		if err != nil {
@@ -420,12 +422,18 @@ func getKubernetesClient(spec apiv1.Spec) (dynamic.Interface, meta.RESTMapper, e
 				return nil, nil, err
 			}
 		} else if kubeConfigPath != "" {
+			// Manually parsing the $HOME environment variable.
+			kubeConfigPath = strings.ReplaceAll(kubeConfigPath, "$HOME", os.Getenv("HOME"))
 			cfg, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 			if err != nil {
 				return nil, nil, err
 			}
 		}
-	} else {
+	}
+
+	// Fallback to get KubeConfig from environment variable and resource
+	// extensions if didn't get successfully from Spec context.
+	if cfg == nil {
 		var kubeConfigFromRes string
 		for _, res := range spec.Resources {
 			if res.Type == apiv1.Kubernetes {

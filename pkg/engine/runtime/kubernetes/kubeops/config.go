@@ -16,8 +16,8 @@ const (
 )
 
 const (
-	KubeConfigPathKey    = "kubeconfig_path"
-	KubeConfigContentKey = "kubeconfig_content"
+	KubeConfigPathKey    = "KUBECONFIG_PATH"
+	KubeConfigContentKey = "KUBECONFIG_CONTENT"
 )
 
 var (
