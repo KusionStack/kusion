@@ -576,6 +576,30 @@ func (w *WorkSpace) getEnvProviderInfo() ([]string, error) {
 		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAlicloudRegion, alicloudRegion))
 	}
 
+	viettelCloudCmpUrl, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudCmpUrl)
+	if err != nil {
+		return nil, err
+	}
+	if viettelCloudCmpUrl != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudCmpUrl, viettelCloudCmpUrl))
+	}
+
+	viettelCloudUserToken, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudUserToken)
+	if err != nil {
+		return nil, err
+	}
+	if viettelCloudUserToken != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudUserToken, viettelCloudUserToken))
+	}
+
+	viettelCloudProjectId, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudProjectId)
+	if err != nil {
+		return nil, err
+	}
+	if viettelCloudProjectId != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudProjectId, viettelCloudProjectId))
+	}
+
 	return envs, nil
 }
 
