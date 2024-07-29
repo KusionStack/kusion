@@ -30,6 +30,7 @@ import (
 	pkg "kcl-lang.io/kpm/pkg/package"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/generators/workload"
@@ -117,6 +118,23 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 		return err
 	}
 
+	// retrieve the imported resources of the specified project
+	projectImportedResources := make(map[string]string)
+	for _, cfg := range projectModuleConfigs {
+		importedResources, err := workspace.GetStringMapFromGenericConfig(cfg, v1.FieldImportedResources)
+		if err != nil {
+			return err
+		}
+
+		for kusionID, importedID := range importedResources {
+			if id, ok := projectImportedResources[kusionID]; ok && id != importedID {
+				return fmt.Errorf("duplicate kusion id '%s' for importing different resources: '%s' and '%s'",
+					kusionID, id, importedID)
+			}
+			projectImportedResources[kusionID] = importedID
+		}
+	}
+
 	// generate built-in resources
 	namespace := g.getNamespaceName()
 	gfs := []modules.NewGeneratorFunc{
@@ -158,6 +176,11 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 		if err = JSONPatch(spec.Resources, &patcher); err != nil {
 			return err
 		}
+	}
+
+	// Patch the imported resource IDs to the resource `extensions` in Spec.
+	if err = patchImportedResources(spec.Resources, projectImportedResources); err != nil {
+		return err
 	}
 
 	// The OrderedResourcesGenerator should be executed after all resources are generated.
@@ -578,4 +601,22 @@ func mergeExtensions(project *v1.Project, stack *v1.Stack) []*v1.Extension {
 		}
 	}
 	return extensions
+}
+
+// patchImportedResources patch the imported resource IDs to the `extensions` field
+// of the resources in Spec.
+func patchImportedResources(resources v1.Resources, projectImportedResources map[string]string) error {
+	// Get the map of Kusion ID and Kusion Resource.
+	resIndex := resources.Index()
+
+	// Set the `extensions` field of each Kusion Resource.
+	for kusionID, importedID := range projectImportedResources {
+		if res, ok := resIndex[kusionID]; ok {
+			res.Extensions[tfops.ImportIDKey] = importedID
+		} else {
+			return fmt.Errorf("empty kusion id: %s", kusionID)
+		}
+	}
+
+	return nil
 }
