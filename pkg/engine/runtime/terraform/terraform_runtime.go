@@ -190,11 +190,10 @@ func (t *Runtime) Read(ctx context.Context, request *runtime.ReadRequest) *runti
 			DependsOn:  priorResource.DependsOn,
 			Extensions: priorResource.Extensions,
 		}
+	}
 
-		// For the resource to be deleted, the 'import_id' attribute in 'Extensions' field should be removed.
-		if _, ok := planResource.Extensions[tfops.ImportIDKey].(string); ok {
-			delete(planResource.Extensions, tfops.ImportIDKey)
-		}
+	if priorResource == nil {
+		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	}
 
 	var tfState *tfops.StateRepresentation
@@ -216,16 +215,31 @@ func (t *Runtime) Read(ctx context.Context, request *runtime.ReadRequest) *runti
 		}
 	}
 
-	if priorResource == nil {
-		// For resources declared with 'import_id' in the 'Extensions' field,
-		// use 'terraform import' to import the latest state.
-		importID, ok := planResource.Extensions[tfops.ImportIDKey].(string)
-		if ok && importID != "" {
-			if err = ws.ImportResource(ctx, importID); err != nil {
+	importID, ok := planResource.Extensions[tfops.ImportIDKey].(string)
+	if ok && importID != "" {
+		if err = ws.ImportResource(ctx, importID); err != nil {
+			return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+		} else {
+			// read resource from tfstate
+			tfState, err = ws.ShowState(ctx)
+			if err != nil {
 				return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
 			}
-		} else {
-			return &runtime.ReadResponse{Resource: nil, Status: nil}
+			// get terraform provider version
+			providerAddr, err := ws.GetProvider()
+			if err != nil {
+				return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
+			}
+			r := tfops.ConvertTFState(tfState, providerAddr)
+			return &runtime.ReadResponse{
+				Resource: &apiv1.Resource{
+					ID:         planResource.ID,
+					Type:       planResource.Type,
+					Attributes: r.Attributes,
+					DependsOn:  planResource.DependsOn,
+					Extensions: planResource.Extensions,
+				}, Status: nil,
+			}
 		}
 	} else if err = ws.WriteTFState(priorResource); err != nil {
 		// priorResource overwrite tfState in workspace

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"net/url"
 	"reflect"
 	"strings"
@@ -204,6 +205,12 @@ func (rn *ResourceNode) computeActionType(
 	switch operation.OperationType {
 	case models.Destroy, models.DestroyPreview:
 		rn.Action = models.Delete
+		if planedResource != nil {
+			importID, ok := planedResource.Extensions[tfops.ImportIDKey].(string)
+			if ok && importID != "" {
+				rn.Action = models.UnChanged
+			}
+		}
 	case models.Apply, models.ApplyPreview:
 		if planedResource == nil {
 			rn.Action = models.Delete
@@ -251,7 +258,9 @@ func (rn *ResourceNode) initThreeWayDiffData(operation *models.Operation) (*apiv
 	// When a resource is deleted in Intent but exists in PriorState,
 	// this node should be regarded as a deleted node, and rn.resource stores the PriorState
 	if rn.Action == models.Delete {
-		planedResource = nil
+		if _, ok := planedResource.Extensions[tfops.ImportIDKey].(string); !ok {
+			planedResource = nil
+		}
 	}
 
 	// 2. get prior resource from the latest release
