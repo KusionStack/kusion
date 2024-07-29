@@ -478,9 +478,9 @@ const (
 	EnvAlicloudAccessKey     = "ALICLOUD_ACCESS_KEY"
 	EnvAlicloudSecretKey     = "ALICLOUD_SECRET_KEY"
 	EnvAlicloudRegion        = "ALICLOUD_REGION"
-	EnvViettelCloudCmpUrl    = "VIETTEL_CLOUD_CMP_URL"
+	EnvViettelCloudCmpURL    = "VIETTEL_CLOUD_CMP_URL"
 	EnvViettelCloudUserToken = "VIETTEL_CLOUD_USER_TOKEN"
-	EnvViettelCloudProjectId = "VIETTEL_CLOUD_PROJECT_ID"
+	EnvViettelCloudProjectID = "VIETTEL_CLOUD_PROJECT_ID"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.

@@ -576,12 +576,12 @@ func (w *WorkSpace) getEnvProviderInfo() ([]string, error) {
 		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvAlicloudRegion, alicloudRegion))
 	}
 
-	viettelCloudCmpUrl, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudCmpUrl)
+	viettelCloudCmpURL, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudCmpURL)
 	if err != nil {
 		return nil, err
 	}
-	if viettelCloudCmpUrl != "" {
-		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudCmpUrl, viettelCloudCmpUrl))
+	if viettelCloudCmpURL != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudCmpURL, viettelCloudCmpURL))
 	}
 
 	viettelCloudUserToken, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudUserToken)
@@ -592,12 +592,12 @@ func (w *WorkSpace) getEnvProviderInfo() ([]string, error) {
 		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudUserToken, viettelCloudUserToken))
 	}
 
-	viettelCloudProjectId, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudProjectId)
+	viettelCloudProjectID, err := workspace.GetStringFromGenericConfig(context, v1.EnvViettelCloudProjectID)
 	if err != nil {
 		return nil, err
 	}
-	if viettelCloudProjectId != "" {
-		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudProjectId, viettelCloudProjectId))
+	if viettelCloudProjectID != "" {
+		envs = append(envs, fmt.Sprintf("%s=%s", v1.EnvViettelCloudProjectID, viettelCloudProjectID))
 	}
 
 	return envs, nil
