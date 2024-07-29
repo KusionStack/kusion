@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"kusionstack.io/kusion/pkg/cmd/project/util"
-	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 )
 
 func TestValidateStackName(t *testing.T) {
@@ -55,8 +55,8 @@ func TestValidateStackName(t *testing.T) {
 
 func TestValidateProjectDir(t *testing.T) {
 	// Create a temporary project directory for unit test.
-	randomSuffix := secret.GenerateRandomString(16)
-	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+randomSuffix)
+	suffix := "option-test-suffix"
+	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+suffix)
 	if err != nil {
 		t.Fatalf("failed to create temporary test root directory: %v", err)
 	}
@@ -116,8 +116,8 @@ func TestValidateProjectDir(t *testing.T) {
 
 func TestValidateStackDir(t *testing.T) {
 	// Create a temporary project and stack directory for unit tests.
-	randomSuffix := secret.GenerateRandomString(16)
-	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+randomSuffix)
+	suffix := "util-test-suffix"
+	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+suffix)
 	if err != nil {
 		t.Fatalf("failed to create temporary test root directory: %v", err)
 	}
@@ -176,8 +176,8 @@ func TestValidateStackDir(t *testing.T) {
 
 func TestValidateRefStackDir(t *testing.T) {
 	// Create a temporary project and stack directory for unit tests.
-	randomSuffix := secret.GenerateRandomString(16)
-	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+randomSuffix)
+	suffix := "util-test-suffix"
+	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+suffix)
 	if err != nil {
 		t.Fatalf("failed to create temporary test root directory: %v", err)
 	}
@@ -246,8 +246,9 @@ func TestValidateRefStackDir(t *testing.T) {
 
 func TestCreateWithRefStack(t *testing.T) {
 	// Create a temporary project and stack directory for unit tests.
-	randomSuffix := secret.GenerateRandomString(16)
-	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+randomSuffix)
+	suffix := "util-test-suffix"
+
+	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+suffix)
 	if err != nil {
 		t.Fatalf("failed to create temporary test root directory: %v", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"golang.org/x/exp/maps"
+	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -25,7 +26,7 @@ type GeneratorRequest struct {
 	// Namespace represents the K8s Namespace
 	Namespace string
 	// Workload represents the Workload configuration
-	Workload *v1.Workload
+	Workload v1.Accessory
 	// SecretStore contains configuration to describe target secret store.
 	SecretStore *v1.SecretStore
 }
@@ -35,11 +36,17 @@ func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
 
-	var secretMap map[string]v1.Secret
-	if request.Workload.Service != nil {
-		secretMap = request.Workload.Service.Secrets
-	} else {
-		secretMap = request.Workload.Job.Secrets
+	secretMap := make(map[string]v1.Secret)
+	secrets := request.Workload["secrets"]
+	if secrets != nil {
+		out, err := yaml.Marshal(secrets)
+		if err != nil {
+			return nil, err
+		}
+		err = yaml.Unmarshal(out, &secretMap)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &secretGenerator{
@@ -96,7 +103,6 @@ func (g *secretGenerator) generateSecret(secretName string, secretRef v1.Secret)
 	case "certificate":
 		return g.generateCertificate(secretName, secretRef)
 	case "external":
-		// todo retrieve actual secrets in the `apply` step
 		return g.generateSecretWithExternalProvider(secretName, secretRef)
 	default:
 		return nil, fmt.Errorf("unrecognized secret type %s", secretRef.Type)

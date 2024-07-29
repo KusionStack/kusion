@@ -33,7 +33,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators/workload"
+	"kusionstack.io/kusion/pkg/modules/generators/secret"
 	"kusionstack.io/kusion/pkg/modules/proto"
 
 	// import the secrets register pkg to register supported secret providers
@@ -41,6 +41,8 @@ import (
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/workspace"
 )
+
+const isWorkload = "kusion.io/is-workload"
 
 type appConfigurationGenerator struct {
 	project      *v1.Project
@@ -139,38 +141,31 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	namespace := g.getNamespaceName()
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(namespace),
-		workload.NewWorkloadGeneratorFunc(&workload.Generator{
-			Project:         g.project.Name,
-			Stack:           g.stack.Name,
-			App:             g.appName,
-			Namespace:       namespace,
-			Workload:        g.app.Workload,
-			PlatformConfigs: projectModuleConfigs,
-			SecretStoreSpec: g.ws.SecretStore,
+		// todo: refactor secret into a module
+		secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
+			Project:     g.project.Name,
+			Namespace:   namespace,
+			Workload:    g.app.Workload,
+			SecretStore: g.ws.SecretStore,
 		}),
 	}
 	if err = modules.CallGenerators(spec, gfs...); err != nil {
 		return err
 	}
 
-	// workload is the second generated resource. Check if it is generated.
-	if spec.Resources == nil || len(spec.Resources) < 2 {
-		return fmt.Errorf("workload is not generated")
-	}
-	wl := spec.Resources[1]
-
 	// call modules to generate customized resources
-	resources, patchers, err := g.callModules(projectModuleConfigs)
+	wl, resources, patchers, err := g.callModules(projectModuleConfigs)
 	if err != nil {
 		return err
 	}
 
 	// append the generated resources to the spec
+	spec.Resources = append(spec.Resources, *wl)
 	spec.Resources = append(spec.Resources, resources...)
 
 	// patch workload with resource patchers
 	for _, patcher := range patchers {
-		if err = PatchWorkload(&wl, &patcher); err != nil {
+		if err = PatchWorkload(wl, &patcher); err != nil {
 			return err
 		}
 		if err = JSONPatch(spec.Resources, &patcher); err != nil {
@@ -353,7 +348,8 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 				// prepend patch env to existing env slices so developers can reference them later on
 				// ref: https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/
 				envs = append([]interface{}{us}, envs...)
-				log.Info("we're gonna patch env:%s,value:%s to workload:%s, container:%s", env.Name, env.Value, workload.ID, container["name"])
+				log.Infof("we're gonna patch env:%s,value:%s to workload:%s, container:%s", env.Name, env.Value, workload.ID,
+					container["name"])
 			}
 
 			container["env"] = envs
@@ -375,7 +371,7 @@ type moduleConfig struct {
 	ctx            v1.GenericConfig
 }
 
-func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (resources []v1.Resource, patchers []v1.Patcher, err error) {
+func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (workload *v1.Resource, resources []v1.Resource, patchers []v1.Patcher, err error) {
 	pluginMap := make(map[string]*modules.Plugin)
 	defer func() {
 		if e := recover(); e != nil {
@@ -399,59 +395,51 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		}
 	}()
 
-	// build module config index
 	if g.dependencies == nil {
-		return nil, nil, errors.New("dependencies should not be nil")
+		return nil, nil, nil, errors.New("dependencies should not be nil")
 	}
+
+	// build module config index
 	indexModuleConfig, err := g.buildModuleConfigIndex(projectModuleConfigs)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
+	}
+
+	workloadKey, err := parseModuleKey(g.app.Workload, g.dependencies)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	// generate customized module resources
 	for t, config := range indexModuleConfig {
-		// ignore workload modules
-		if modules.IgnoreModules[t] {
-			continue
-		}
-
-		// init the plugin
-		if pluginMap[t] == nil {
-			plugin, err := modules.NewPlugin(t)
-			if err != nil {
-				return nil, nil, err
-			}
-			if plugin == nil {
-				return nil, nil, fmt.Errorf("init plugin for module %s failed", t)
-			}
-			pluginMap[t] = plugin
-		}
-		plugin := pluginMap[t]
-
-		// prepare the request
-		protoRequest, err := g.initModuleRequest(config)
+		response, err := g.invokeModule(pluginMap, t, config)
 		if err != nil {
-			return nil, nil, err
-		}
-
-		// invoke the plugin
-		log.Infof("invoke module:%s with request:%s", t, protoRequest.String())
-		response, err := plugin.Module.Generate(context.Background(), protoRequest)
-		if err != nil {
-			return nil, nil, fmt.Errorf("invoke kusion module: %s failed. %w", t, err)
-		}
-		if response == nil {
-			return nil, nil, fmt.Errorf("empty response from module %s", t)
+			return nil, nil, nil, err
 		}
 
 		// parse module result
-		for _, res := range response.Resources {
-			temp := &v1.Resource{}
-			err = yaml.Unmarshal(res, temp)
+		// if only one resource exists in the workload module, it is the workload
+		if workloadKey == t && len(response.Resources) == 1 {
+			workload = &v1.Resource{}
+			err = yaml.Unmarshal(response.Resources[0], workload)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
-			resources = append(resources, *temp)
+		} else {
+			for _, res := range response.Resources {
+				temp := &v1.Resource{}
+				err = yaml.Unmarshal(res, temp)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+
+				// filter out workload
+				if workloadKey == t && temp.Extensions[isWorkload] == "true" {
+					workload = temp
+				} else {
+					resources = append(resources, *temp)
+				}
+			}
 		}
 
 		// parse patcher
@@ -459,18 +447,62 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		if response.Patcher != nil {
 			err = yaml.Unmarshal(response.Patcher, temp)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 			patchers = append(patchers, *temp)
 		}
 	}
 
-	return resources, patchers, nil
+	return workload, resources, patchers, nil
+}
+
+func (g *appConfigurationGenerator) invokeModule(
+	pluginMap map[string]*modules.Plugin,
+	key string,
+	config moduleConfig,
+) (*proto.GeneratorResponse, error) {
+	// init the plugin
+	if pluginMap[key] == nil {
+		plugin, err := modules.NewPlugin(key)
+		if err != nil {
+			return nil, err
+		}
+		if plugin == nil {
+			return nil, fmt.Errorf("init plugin for module %s failed", key)
+		}
+		pluginMap[key] = plugin
+	}
+	plugin := pluginMap[key]
+
+	// prepare the request
+	protoRequest, err := g.initModuleRequest(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// invoke the plugin
+	log.Infof("invoke module:%s with request:%s", key, protoRequest.String())
+	response, err := plugin.Module.Generate(context.Background(), protoRequest)
+	if err != nil {
+		return nil, fmt.Errorf("invoke kusion module: %s failed. %w", key, err)
+	}
+	if response == nil {
+		return nil, fmt.Errorf("empty response from module %s", key)
+	}
+	return response, nil
 }
 
 func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs map[string]v1.GenericConfig) (map[string]moduleConfig, error) {
 	indexModuleConfig := map[string]moduleConfig{}
-	for accName, accessory := range g.app.Accessories {
+
+	// add workload to the accessory map
+	tempMap := make(map[string]v1.Accessory)
+	for k, v := range g.app.Accessories {
+		tempMap[k] = v
+	}
+	tempMap["workload"] = g.app.Workload
+
+	for accName, accessory := range tempMap {
 		// parse accessory module key
 		key, err := parseModuleKey(accessory, g.dependencies)
 		if err != nil {
