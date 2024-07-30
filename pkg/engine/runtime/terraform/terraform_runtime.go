@@ -192,10 +192,6 @@ func (t *Runtime) Read(ctx context.Context, request *runtime.ReadRequest) *runti
 		}
 	}
 
-	if priorResource == nil {
-		return &runtime.ReadResponse{Resource: nil, Status: nil}
-	}
-
 	var tfState *tfops.StateRepresentation
 	stackPath := request.Stack.Path
 	tfCacheDir := buildTFCacheDir(stackPath, planResource.ResourceKey())
@@ -241,6 +237,8 @@ func (t *Runtime) Read(ctx context.Context, request *runtime.ReadRequest) *runti
 				}, Status: nil,
 			}
 		}
+	} else if priorResource == nil {
+		return &runtime.ReadResponse{Resource: nil, Status: nil}
 	} else if err = ws.WriteTFState(priorResource); err != nil {
 		// priorResource overwrite tfState in workspace
 		return &runtime.ReadResponse{Resource: nil, Status: v1.NewErrorStatus(err)}

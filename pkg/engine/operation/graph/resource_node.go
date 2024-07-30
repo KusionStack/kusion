@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"net/url"
 	"reflect"
 	"strings"
+
+	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
