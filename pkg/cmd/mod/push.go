@@ -40,7 +40,7 @@ var (
 		kusion mod push /path/to/my-module oci://ghcr.io/org --creds <YOUR_TOKEN>
 
 		# Push a module of specific OS arch to an OCI Registry using a token
-		kusion mod push /path/to/my-module oci://ghcr.io/org --os-arch==darwin/arm64 --creds <YOUR_TOKEN>
+		kusion mod push /path/to/my-module oci://ghcr.io/org --os-arch=darwin/arm64 --creds <YOUR_TOKEN>
 		
 		# Push a module to an OCI Registry using a credentials in <YOUR_USERNAME>:<YOUR_TOKEN> format. 
 		kusion mod push /path/to/my-module oci://ghcr.io/org --creds <YOUR_USERNAME>:<YOUR_TOKEN>
