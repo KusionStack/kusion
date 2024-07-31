@@ -7,14 +7,13 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 )
 
 func TestNewCmd(t *testing.T) {
 	t.Run("successfully create project", func(t *testing.T) {
 		// Create a temporary project directory for unit test.
-		randomSuffix := secret.GenerateRandomString(16)
-		tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-project-create-"+randomSuffix)
+		suffix := "cmd-test"
+		tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-project-create-"+suffix)
 		if err != nil {
 			t.Fatalf("failed to create temporary test root directory: %v", err)
 		}

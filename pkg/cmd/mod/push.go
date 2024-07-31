@@ -229,7 +229,6 @@ func (flags *PushModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 		IOStreams:  ioStreams,
 		OSArch:     flags.OSArch,
 	}
-
 	return opt, nil
 }
 

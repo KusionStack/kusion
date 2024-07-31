@@ -19,12 +19,8 @@ func initGeneratorRequest(
 ) *GeneratorRequest {
 	return &GeneratorRequest{
 		Project: project,
-		Workload: &v1.Workload{
-			Service: &v1.Service{
-				Base: v1.Base{
-					Secrets: secrets,
-				},
-			},
+		Workload: map[string]any{
+			"secrets": secrets,
 		},
 		Namespace:   project,
 		SecretStore: secretStoreSpec,

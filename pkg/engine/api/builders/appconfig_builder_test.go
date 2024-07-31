@@ -54,18 +54,12 @@ func TestBuild(t *testing.T) {
 
 func buildMockApp() (string, *v1.AppConfiguration) {
 	return "app1", &v1.AppConfiguration{
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{
-				Base: v1.Base{},
-				Type: "Deployment",
-				Ports: []v1.Port{
-					{
-						Port:     80,
-						Protocol: "TCP",
-					},
+		Workload: map[string]interface{}{
+			"type": "Deployment",
+			"ports": []map[string]any{
+				{
+					"port":     80,
+					"protocol": "TCP",
 				},
 			},
 		},
