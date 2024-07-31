@@ -255,9 +255,10 @@ type Secret struct {
 }
 
 const (
-	FieldLabels      = "labels"
-	FieldAnnotations = "annotations"
-	FieldReplicas    = "replicas"
+	FieldLabels            = "labels"
+	FieldAnnotations       = "annotations"
+	FieldReplicas          = "replicas"
+	FieldImportedResources = "importedResources"
 )
 
 // Base defines set of attributes shared by different workload profile, e.g. Service and Job.
