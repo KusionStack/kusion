@@ -141,14 +141,18 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	namespace := g.getNamespaceName()
 	gfs := []modules.NewGeneratorFunc{
 		NewNamespaceGeneratorFunc(namespace),
+	}
+
+	if g.app.Workload != nil {
 		// todo: refactor secret into a module
-		secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
+		gfs = append(gfs, secret.NewSecretGeneratorFunc(&secret.GeneratorRequest{
 			Project:     g.project.Name,
 			Namespace:   namespace,
 			Workload:    g.app.Workload,
 			SecretStore: g.ws.SecretStore,
-		}),
+		}))
 	}
+
 	if err = modules.CallGenerators(spec, gfs...); err != nil {
 		return err
 	}
@@ -160,7 +164,9 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	}
 
 	// append the generated resources to the spec
-	spec.Resources = append(spec.Resources, *wl)
+	if wl != nil {
+		spec.Resources = append(spec.Resources, *wl)
+	}
 	spec.Resources = append(spec.Resources, resources...)
 
 	// patch workload with resource patchers
@@ -243,6 +249,11 @@ func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
 
 func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 	if patcher == nil {
+		return nil
+	}
+
+	if workload == nil {
+		log.Info("workload is nil, return")
 		return nil
 	}
 
@@ -500,7 +511,9 @@ func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs
 	for k, v := range g.app.Accessories {
 		tempMap[k] = v
 	}
-	tempMap["workload"] = g.app.Workload
+	if g.app.Workload != nil {
+		tempMap["workload"] = g.app.Workload
+	}
 
 	for accName, accessory := range tempMap {
 		// parse accessory module key
@@ -525,6 +538,11 @@ func (g *appConfigurationGenerator) buildModuleConfigIndex(platformModuleConfigs
 // parseModuleKey returns the module key of the accessory in format of "org/module@version"
 // example: "kusionstack/mysql@v0.1.0"
 func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (string, error) {
+	if accessory == nil {
+		log.Info("accessory is nil, return empty module key")
+		return "", nil
+	}
+
 	moduleName, err := getModuleName(accessory)
 	if err != nil {
 		return "", err
