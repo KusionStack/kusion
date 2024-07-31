@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -37,6 +38,11 @@ func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
 	}
 
 	secretMap := make(map[string]v1.Secret)
+
+	if request.Workload == nil {
+		log.Infof("workload is missing, no secret will be generated")
+		return &secretGenerator{}, nil
+	}
 	secrets := request.Workload["secrets"]
 	if secrets != nil {
 		out, err := yaml.Marshal(secrets)
