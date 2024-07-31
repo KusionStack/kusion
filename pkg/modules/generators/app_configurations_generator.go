@@ -197,7 +197,7 @@ func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
 			case v1.MergePatch:
 				modified, err := jsonpatch.MergePatch([]byte(target), jsonPatcher.Payload)
 				if err != nil {
-					return fmt.Errorf("merge patch to:%s failed", id)
+					return fmt.Errorf("merge patch to:%s failed with error %w", id, err)
 				}
 				if err = json.Unmarshal(modified, &res.Attributes); err != nil {
 					return err
@@ -205,12 +205,12 @@ func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
 			case v1.JSONPatch:
 				patch, err := jsonpatch.DecodePatch(jsonPatcher.Payload)
 				if err != nil {
-					return fmt.Errorf("decode json patch:%s failed", jsonPatcher.Payload)
+					return fmt.Errorf("decode json patch:%s failed with error %w", jsonPatcher.Payload, err)
 				}
 
 				modified, err := patch.Apply([]byte(target))
 				if err != nil {
-					return fmt.Errorf("apply json patch to:%s failed", id)
+					return fmt.Errorf("apply json patch to:%s failed with error %w", id, err)
 				}
 				if err = json.Unmarshal(modified, &res.Attributes); err != nil {
 					return err
