@@ -474,7 +474,7 @@ func (g *appConfigurationGenerator) invokeModule(
 ) (*proto.GeneratorResponse, error) {
 	// init the plugin
 	if pluginMap[key] == nil {
-		plugin, err := modules.NewPlugin(key)
+		plugin, err := modules.NewPlugin(key, g.stack.Path)
 		if err != nil {
 			return nil, err
 		}
