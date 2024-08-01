@@ -19,6 +19,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/secrets"
 	"kusionstack.io/kusion/pkg/util"
@@ -158,13 +159,13 @@ func (rn *ResourceNode) Execute(operation *models.Operation) (s v1.Status) {
 		}
 	}()
 
-	if s = rn.PreExecute(operation); v1.IsErr(s) {
-		return s
-	}
-
 	// init 3-way diff data
 	planedResource, priorResource, liveResource, s := rn.initThreeWayDiffData(operation)
 	if v1.IsErr(s) {
+		return s
+	}
+
+	if s = rn.PreExecute(operation); v1.IsErr(s) {
 		return s
 	}
 
@@ -281,6 +282,16 @@ func (rn *ResourceNode) initThreeWayDiffData(operation *models.Operation) (*apiv
 	if v1.IsErr(s) {
 		return nil, nil, nil, s
 	}
+
+	// Set the priorResource as the liveResource if the planedResource is an imported resource.
+	// In this way, the implicit dependencies can be correctly replaced.
+	if planedResource != nil {
+		if _, ok := planedResource.Extensions[tfops.ImportIDKey]; ok && priorResource == nil {
+			priorResource = liveResource
+			operation.PriorStateResourceIndex[key] = priorResource
+		}
+	}
+
 	return planedResource, priorResource, liveResource, nil
 }
 

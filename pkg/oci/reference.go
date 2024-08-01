@@ -14,7 +14,7 @@ const OCIRepositoryPrefix = "oci://"
 // If the string is not a valid representation of an OCI repository URL, ParseArtifactRef returns an error.
 func ParseArtifactRef(ociURL string) (name.Reference, error) {
 	if !strings.HasPrefix(ociURL, OCIRepositoryPrefix) {
-		return nil, fmt.Errorf("URL must be in format 'oci://<domain>/<org>/<repo>'")
+		return nil, fmt.Errorf("URL must be in format 'oci://<domain>/<org>'")
 	}
 
 	url := strings.TrimPrefix(ociURL, OCIRepositoryPrefix)

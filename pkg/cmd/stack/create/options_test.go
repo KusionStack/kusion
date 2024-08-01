@@ -9,9 +9,9 @@ import (
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
+
 	projutil "kusionstack.io/kusion/pkg/cmd/project/util"
 	"kusionstack.io/kusion/pkg/cmd/stack/util"
-	"kusionstack.io/kusion/pkg/modules/generators/workload/secret"
 )
 
 func TestOptions_Complete(t *testing.T) {
@@ -144,8 +144,8 @@ func TestOptions_Validate(t *testing.T) {
 
 func TestOptions_Run(t *testing.T) {
 	// Create a temporary project and stack directory for unit tests.
-	randomSuffix := secret.GenerateRandomString(16)
-	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+randomSuffix)
+	suffix := "options-test"
+	tmpTestRootDir, err := os.MkdirTemp("", "kusion-test-stack-util-"+suffix)
 	if err != nil {
 		t.Fatalf("failed to create temporary test root directory: %v", err)
 	}

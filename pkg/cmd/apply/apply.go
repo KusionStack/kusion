@@ -519,7 +519,7 @@ func Apply(
 	// The writer below is for operation error printing.
 	errWriter := multi.NewWriter()
 
-	multi.WithUpdateDelay(time.Millisecond * 50)
+	multi.WithUpdateDelay(time.Millisecond * 100)
 	multi.Start()
 	defer multi.Stop()
 
@@ -536,6 +536,7 @@ func Apply(
 		progressbar,
 		&ls,
 		o.DryRun,
+		o.Watch,
 	)
 
 	watchErrCh := make(chan error)
@@ -614,6 +615,7 @@ func PrintApplyDetails(
 	progressbar *pterm.ProgressbarPrinter,
 	ls *lineSummary,
 	dryRun bool,
+	watch bool,
 ) {
 	defer func() {
 		if p := recover(); p != nil {
@@ -649,11 +651,15 @@ func PrintApplyDetails(
 					title = fmt.Sprintf("Skipped %s", pterm.Bold.Sprint(changeStep.ID))
 					changesWriterMap[msg.ResourceID].Success(title)
 				} else {
-					title = fmt.Sprintf("%s %s",
-						changeStep.Action.Ing(),
-						pterm.Bold.Sprint(changeStep.ID),
-					)
-					changesWriterMap[msg.ResourceID].UpdateText(title)
+					if watch {
+						title = fmt.Sprintf("%s %s",
+							changeStep.Action.Ing(),
+							pterm.Bold.Sprint(changeStep.ID),
+						)
+						changesWriterMap[msg.ResourceID].UpdateText(title)
+					} else {
+						changesWriterMap[msg.ResourceID].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(msg.ResourceID)))
+					}
 				}
 				progressbar.Increment()
 				ls.Count(changeStep.Action)
@@ -720,7 +726,7 @@ func Watch(
 
 		// Prepare the tables for printing the details of the resources.
 		tables := make(map[string]*printers.Table, len(toBeWatched))
-		ticker := time.NewTicker(time.Millisecond * 500)
+		ticker := time.NewTicker(time.Millisecond * 100)
 		defer ticker.Stop()
 
 		// Record the watched and finished resources.
@@ -774,6 +780,10 @@ func Watch(
 					printTable(&w, id, tables)
 				}
 				for id, table := range tables {
+					if finished[id] {
+						continue
+					}
+
 					if table.AllCompleted() {
 						finished[id] = true
 						changesWriterMap[id].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(id)))
