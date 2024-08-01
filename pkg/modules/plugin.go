@@ -124,7 +124,7 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	return p, nil
 }
 
-func NewPluginClient(modulePluginPath, moduleName, dir string) (*plugin.Client, error) {
+func NewPluginClient(modulePluginPath, moduleName, workingDir string) (*plugin.Client, error) {
 	// create the plugin log file
 	var logFilePath string
 	dir, err := kfile.KusionDataFolder()
@@ -151,7 +151,7 @@ func NewPluginClient(modulePluginPath, moduleName, dir string) (*plugin.Client, 
 	})
 
 	cmd := exec.Command(modulePluginPath)
-	cmd.Dir = dir
+	cmd.Dir = workingDir
 
 	// We're a host! Start by launching the plugin process.Need to defer kill
 	client := plugin.NewClient(&plugin.ClientConfig{
