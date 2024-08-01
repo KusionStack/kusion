@@ -263,8 +263,8 @@ const (
 	EnvViettelCloudCmpURL    = "VIETTEL_CLOUD_CMP_URL"
 	EnvViettelCloudUserToken = "VIETTEL_CLOUD_USER_TOKEN"
 	EnvViettelCloudProjectID = "VIETTEL_CLOUD_PROJECT_ID"
-  
-  FieldImportedResources = "importedResources"
+
+	FieldImportedResources = "importedResources"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.

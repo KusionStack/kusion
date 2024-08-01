@@ -8,8 +8,6 @@ import (
 	"reflect"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
