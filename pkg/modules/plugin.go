@@ -42,13 +42,15 @@ type Plugin struct {
 	client *plugin.Client
 	// Module represents the real module impl
 	Module Module
+	// dir represents the working directory of the plugin binary, which will be typically set as the stack path.
+	dir string
 }
 
-func NewPlugin(key string) (*Plugin, error) {
+func NewPlugin(key, dir string) (*Plugin, error) {
 	if key == "" {
 		return nil, fmt.Errorf("module key can not be empty")
 	}
-	p := &Plugin{key: key}
+	p := &Plugin{key: key, dir: dir}
 	err := p.initModule()
 	if err != nil {
 		return nil, err
@@ -75,7 +77,7 @@ func (p *Plugin) initModule() error {
 		return err
 	}
 	pluginName := prefix[0] + "-" + prefix[1]
-	client, err := NewPluginClient(pluginPath, pluginName)
+	client, err := NewPluginClient(pluginPath, pluginName, p.dir)
 	if err != nil {
 		return err
 	}
@@ -122,7 +124,7 @@ func buildPluginPath(namespace, resourceType, version string) (string, error) {
 	return p, nil
 }
 
-func NewPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error) {
+func NewPluginClient(modulePluginPath, moduleName, workingDir string) (*plugin.Client, error) {
 	// create the plugin log file
 	var logFilePath string
 	dir, err := kfile.KusionDataFolder()
@@ -148,11 +150,14 @@ func NewPluginClient(modulePluginPath, moduleName string) (*plugin.Client, error
 		Level:  hclog.Debug,
 	})
 
+	cmd := exec.Command(modulePluginPath)
+	cmd.Dir = workingDir
+
 	// We're a host! Start by launching the plugin process.Need to defer kill
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: HandshakeConfig,
 		Plugins:         PluginMap,
-		Cmd:             exec.Command(modulePluginPath),
+		Cmd:             cmd,
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolGRPC,
 		},
