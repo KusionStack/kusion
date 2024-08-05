@@ -21,6 +21,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jinzhu/copier"
 	"github.com/liu-hm19/pterm"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
@@ -295,7 +296,10 @@ func (o *DestroyOptions) run(rel *apiv1.Release, storage release.Storage) (err e
 	if err != nil {
 		return err
 	}
-	rel = updatedRel
+
+	if err = copier.Copy(rel, updatedRel); err != nil {
+		return err
+	}
 
 	return nil
 }
