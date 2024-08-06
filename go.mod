@@ -30,7 +30,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-test/deep v1.0.8
-	github.com/goccy/go-yaml v1.11.3
+	github.com/goccy/go-yaml v1.12.0
 	github.com/gonvenience/bunt v1.1.1
 	github.com/gonvenience/neat v1.3.0
 	github.com/gonvenience/term v1.0.0
@@ -80,7 +80,7 @@ require (
 	k8s.io/component-base v0.30.3
 	k8s.io/kubectl v0.30.3
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	kcl-lang.io/kcl-go v0.9.2
+	kcl-lang.io/kcl-go v0.10.0-alpha.3
 	kcl-lang.io/kcl-plugin v0.5.0
 	kcl-lang.io/kpm v0.9.5
 	kusionstack.io/kube-api v0.3.1
@@ -192,7 +192,7 @@ require (
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
-	github.com/gofrs/flock v0.12.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -325,7 +325,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/klog/v2 v2.120.1
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	kcl-lang.io/lib v0.9.2 // indirect
+	kcl-lang.io/lib v0.10.0-alpha.3 // indirect
 	oras.land/oras-go v1.2.5 // indirect
 	oras.land/oras-go/v2 v2.5.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
