@@ -663,8 +663,8 @@ func patchImportedResources(resources v1.Resources, projectImportedResources map
 	for kusionID, importedID := range projectImportedResources {
 		if res, ok := resIndex[kusionID]; ok {
 			res.Extensions[tfops.ImportIDKey] = importedID
-		} else {
-			return fmt.Errorf("empty kusion id: %s", kusionID)
+			// remove the resource attribute to avoid update conflict when using terraform import
+			res.Attributes = make(map[string]interface{})
 		}
 	}
 

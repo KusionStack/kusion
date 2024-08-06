@@ -63,6 +63,27 @@ func (t *Runtime) Apply(ctx context.Context, request *runtime.ApplyRequest) *run
 
 	// dry run by terraform plan
 	if request.DryRun {
+		// the import resource should be import and return the resource from tfstate
+		if _, ok := plan.Extensions[tfops.ImportIDKey].(string); ok {
+			readResponse := t.Read(ctx, &runtime.ReadRequest{
+				PriorResource: request.PriorResource,
+				PlanResource:  request.PlanResource,
+				Stack:         request.Stack,
+			})
+			if readResponse.Status != nil {
+				return &runtime.ApplyResponse{Resource: &apiv1.Resource{}, Status: readResponse.Status}
+			}
+			return &runtime.ApplyResponse{
+				Resource: &apiv1.Resource{
+					ID:         plan.ID,
+					Type:       plan.Type,
+					Attributes: readResponse.Resource.Attributes,
+					DependsOn:  plan.DependsOn,
+					Extensions: plan.Extensions,
+				},
+				Status: nil,
+			}
+		}
 		pr, err := ws.Plan(ctx)
 		if err != nil {
 			return &runtime.ApplyResponse{Resource: nil, Status: v1.NewErrorStatus(err)}
