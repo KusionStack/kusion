@@ -75,7 +75,7 @@ build-local-darwin:  ## Build kusion tool chain for macOS
 	# Build kusion
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin/bin/kusion \
-		-ldflags="-s -w" .
+		-ldflags="-s -w" -tags rpc .
 
 build-local-darwin-all: build-local-darwin ## Build kusion for macOS
 	# Copy docs
@@ -100,7 +100,7 @@ build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
 	# Build kusion
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-darwin-arm64/bin/kusion \
-		-ldflags="-s -w" .
+		-ldflags="-s -w" -tags rpc .
 
 build-local-darwin-arm64-all: build-local-darwin-arm64 ## Build kusion for macOS arm64
 	# Copy docs
@@ -130,7 +130,7 @@ build-local-linux:  ## Build kusion tool chain for linux
 	# Build kusion
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-linux/bin/kusion \
-		-ldflags="-s -w" .
+		-ldflags="-s -w" -tags rpc .
 
 build-local-linux-all: build-local-linux  ## Build kusion for linux
 	# Copy docs
@@ -156,7 +156,7 @@ build-local-windows:  ## Build kusion tool chain for windows
 	# Build kusion
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -o ./_build/bundles/kusion-windows/bin/kusion.exe \
-		-ldflags="-s -w" .
+		-ldflags="-s -w" -tags rpc .
 
 build-local-windows-all: build-local-windows  ## Build kusion for windows
 	# Copy docs
