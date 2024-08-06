@@ -14,8 +14,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"kcl-lang.io/kpm/pkg/downloader"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
+	orderedmap "github.com/elliotchance/orderedmap/v2"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/modules/proto"
@@ -73,17 +75,18 @@ func mockPlugin() (*mockey.Mocker, *mockey.Mocker) {
 func TestAppConfigurationGenerator_Generate_CustomNamespace(t *testing.T) {
 	appName, app := buildMockApp()
 	ws := buildMockWorkspace()
+
+	deps := orderedmap.NewOrderedMap[string, pkg.Dependency]()
+	deps.Set("port", pkg.Dependency{
+		Name:    "port",
+		Version: "1.0.0",
+	})
+	deps.Set("service", pkg.Dependency{
+		Name:    "service",
+		Version: "1.0.0",
+	})
 	dep := &pkg.Dependencies{
-		Deps: map[string]pkg.Dependency{
-			"port": {
-				Name:    "port",
-				Version: "1.0.0",
-			},
-			"service": {
-				Name:    "service",
-				Version: "1.0.0",
-			},
-		},
+		Deps: deps,
 	}
 
 	project, stack := buildMockProjectAndStack()
@@ -388,21 +391,21 @@ func Test_patchWorkload(t *testing.T) {
 
 func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 	// Mock dependencies
-	dependencies := &pkg.Dependencies{
-		Deps: map[string]pkg.Dependency{
-			"port": {
-				Version: "1.0.0",
-				Source: pkg.Source{
-					Oci: &pkg.Oci{
-						Repo: "kusionstack/module1",
-					},
-				},
-			},
-			"service": {
-				Name:    "service",
-				Version: "1.0.0",
+	deps := orderedmap.NewOrderedMap[string, pkg.Dependency]()
+	deps.Set("port", pkg.Dependency{
+		Version: "1.0.0",
+		Source: downloader.Source{
+			Oci: &downloader.Oci{
+				Repo: "kusionstack/module1",
 			},
 		},
+	})
+	deps.Set("service", pkg.Dependency{
+		Version: "1.0.0",
+		Name:    "service",
+	})
+	dependencies := &pkg.Dependencies{
+		Deps: deps,
 	}
 
 	// Mock project module configs

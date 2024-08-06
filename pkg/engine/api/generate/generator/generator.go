@@ -97,7 +97,8 @@ func CopyDependentModules(workDir string) error {
 	kusionHomePath, _ := kfile.KusionDataFolder()
 
 	var allErrs []error
-	for _, dep := range modFile.Deps {
+	for _, name := range modFile.Deps.Keys() {
+		dep, _ := modFile.Deps.Get(name)
 		if dep.Source.Oci != nil {
 			info := dep.Source.Oci
 			pkgDir := filepath.Join(absPkgPath, dep.FullName)
