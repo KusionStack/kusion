@@ -13,6 +13,7 @@ import (
 	"kcl-lang.io/kpm/pkg/downloader"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
+	orderedmap "github.com/elliotchance/orderedmap/v2"
 	"kusionstack.io/kusion/pkg/cmd/meta"
 	"kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/util/i18n"
@@ -79,7 +80,7 @@ func (o *AddOptions) Run() error {
 	}
 	dependencies := kclPkg.ModFile.Dependencies.Deps
 	if dependencies == nil {
-		dependencies = make(map[string]pkg.Dependency)
+		dependencies = orderedmap.NewOrderedMap[string, pkg.Dependency]()
 	}
 
 	// path example: oci://ghcr.io/kusionstack/service
@@ -92,18 +93,19 @@ func (o *AddOptions) Run() error {
 		return fmt.Errorf("invalid module path: %s", m.Path)
 	}
 
-	dependencies[o.ModuleName] = pkg.Dependency{
+	dep := pkg.Dependency{
 		Name:     o.ModuleName,
 		FullName: o.ModuleName + "_" + m.Version,
 		Version:  m.Version,
-		Source: pkg.Source{
-			Oci: &pkg.Oci{
+		Source: downloader.Source{
+			Oci: &downloader.Oci{
 				Reg:  u.Host,
 				Repo: strings.TrimPrefix(u.Path, "/"),
 				Tag:  m.Version,
 			},
 		},
 	}
+	dependencies.Set(o.ModuleName, dep)
 
 	// update kcl.mod and download dependencies
 	err = cli.UpdateDeps(kclPkg)

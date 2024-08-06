@@ -549,7 +549,7 @@ func parseModuleKey(accessory v1.Accessory, dependencies *pkg.Dependencies) (str
 	}
 
 	// find module namespace and version
-	d, ok := dependencies.Deps[moduleName]
+	d, ok := dependencies.Deps.Get(moduleName)
 	if !ok {
 		return "", fmt.Errorf("can not find module %s in dependencies", moduleName)
 	}
