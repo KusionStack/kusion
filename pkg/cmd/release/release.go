@@ -23,7 +23,7 @@ func NewCmdRel(streams genericiooptions.IOStreams) *cobra.Command {
 		Run:                   cmdutil.DefaultSubCommandRun(streams.ErrOut),
 	}
 
-	cmd.AddCommand(NewCmdUnlock(streams), NewCmdList(streams))
+	cmd.AddCommand(NewCmdUnlock(streams), NewCmdList(streams), NewCmdShow(streams))
 
 	return cmd
 }
