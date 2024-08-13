@@ -32,6 +32,53 @@ func TestGetSecret(t *testing.T) {
 			expected:  []byte(`p455w0rd`),
 			expectErr: nil,
 		},
+		"GetSecrets_With_Property": {
+			client: &fake.SecretsManagerClient{
+				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
+					map[string]interface{}{
+						"user":     "admin",
+						"password": "p455w0rd",
+					}, "key-value", nil),
+			},
+			name:      "beep",
+			property:  "user",
+			expected:  []byte(`admin`),
+			expectErr: nil,
+		},
+		"GetSecret_With_NestedProperty": {
+			client: &fake.SecretsManagerClient{
+				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
+					map[string]interface{}{
+						"foo": map[string]interface{}{
+							"bar": "baz",
+						},
+					}, "key-value", nil),
+			},
+			name:      "beep",
+			property:  "foo.bar",
+			expected:  []byte(`baz`),
+			expectErr: nil,
+		},
+		"GetSecret_NotFound": {
+			client: &fake.SecretsManagerClient{
+				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
+					nil, "key-value", nil),
+			},
+			name:      "beep",
+			expected:  nil,
+			expectErr: errors.New("secret beep not found"),
+		},
+		"GetSecret_With_Error": {
+			client: &fake.SecretsManagerClient{
+				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
+					map[string]interface{}{
+						"password": "p455w0rd",
+					}, "key-value", errors.New("internal error")),
+			},
+			name:      "beep",
+			expected:  nil,
+			expectErr: errors.New("internal error"),
+		},
 		"GetSecret_Property_NotFound": {
 			client: &fake.SecretsManagerClient{
 				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
@@ -43,6 +90,20 @@ func TestGetSecret(t *testing.T) {
 			property:  "notfound",
 			expected:  []byte(``),
 			expectErr: fmt.Errorf("key notfound does not exist in secret beep"),
+		},
+		"GetSecret_With_NestedProperty_Error": {
+			client: &fake.SecretsManagerClient{
+				SecretManagerSecretsRetrieveWithResponseFn: fake.NewSecretManagerSecretsRetrieveWithResponseFn(
+					map[string]interface{}{
+						"foo": map[string]interface{}{
+							"bar": "baz",
+						},
+					}, "key-value", nil),
+			},
+			name:      "beep",
+			property:  "foo.baz",
+			expected:  []byte(``),
+			expectErr: fmt.Errorf("key foobar.baz does not exist in secret beep"),
 		},
 	}
 
