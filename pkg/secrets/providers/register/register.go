@@ -8,4 +8,5 @@ import (
 	_ "kusionstack.io/kusion/pkg/secrets/providers/azure/keyvault"
 	_ "kusionstack.io/kusion/pkg/secrets/providers/fake"
 	_ "kusionstack.io/kusion/pkg/secrets/providers/hashivault"
+	_ "kusionstack.io/kusion/pkg/secrets/providers/viettelcloud/secretsmanager"
 )

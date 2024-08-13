@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -32,6 +34,7 @@ var (
 	ErrEmptyTenantID                        = errors.New("azure tenant id must be provided when using Azure KeyVault")
 	ErrEmptyAlicloudRegion                  = errors.New("region must be provided when using Alicloud Secrets Manager")
 	ErrMissingProviderType                  = errors.New("must specify a provider type")
+	ErrInvalidViettelCloudProjectID         = errors.New("invalid format project id for ViettelCloud Secrets Manager")
 )
 
 // ValidateWorkspace is used to validate the workspace get or set in the storage.
@@ -190,6 +193,15 @@ func ValidateSecretStoreConfig(spec *v1.SecretStore) []error {
 		}
 	}
 
+	if spec.Provider.ViettelCloud != nil {
+		if numProviders > 0 {
+			allErrs = append(allErrs, ErrMultiSecretStoreProviders)
+		} else {
+			numProviders++
+			allErrs = append(allErrs, validateViettelCloudSecretStore(spec.Provider.ViettelCloud)...)
+		}
+	}
+
 	if numProviders == 0 {
 		allErrs = append(allErrs, ErrMissingProviderType)
 	}
@@ -228,6 +240,16 @@ func validateAlicloudSecretStore(ac *v1.AlicloudProvider) []error {
 	var allErrs []error
 	if len(ac.Region) == 0 {
 		allErrs = append(allErrs, ErrEmptyAlicloudRegion)
+	}
+	return allErrs
+}
+
+func validateViettelCloudSecretStore(vc *v1.ViettelCloudProvider) []error {
+	var allErrs []error
+	if vc.ProjectID != "" {
+		if _, err := uuid.Parse(vc.ProjectID); err != nil {
+			allErrs = append(allErrs, ErrInvalidViettelCloudProjectID)
+		}
 	}
 	return allErrs
 }

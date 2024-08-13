@@ -515,6 +515,9 @@ type ProviderSpec struct {
 	// Azure configures a store to retrieve secrets from Azure KeyVault.
 	Azure *AzureKVProvider `yaml:"azure,omitempty" json:"azure,omitempty"`
 
+	// ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.
+	ViettelCloud *ViettelCloudProvider `yaml:"viettelcloud,omitempty" json:"viettelcloud,omitempty"`
+
 	// Fake configures a store with static key/value pairs
 	Fake *FakeProvider `yaml:"fake,omitempty" json:"fake,omitempty"`
 
@@ -583,6 +586,16 @@ type AzureKVProvider struct {
 	// PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
 	// Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
 	EnvironmentType AzureEnvironmentType `yaml:"environmentType,omitempty" json:"environmentType,omitempty"`
+}
+
+// ViettelCloudProvider configures a store to retrieve secrets from ViettelCloud Secrets Manager.
+type ViettelCloudProvider struct {
+	// ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.
+	// Examples are https://console.viettelcloud.vn/api/
+	CmpURL string `yaml:"cmpURL" json:"cmpURL"`
+
+	// ProjectID to be used to interact with ViettelCloud Secrets Manager.
+	ProjectID string `yaml:"projectID" json:"projectID"`
 }
 
 // FakeProvider configures a fake provider that returns static values.

@@ -52,6 +52,7 @@ require (
 	github.com/liu-hm19/pterm v0.12.79-fix.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/oapi-codegen/runtime v1.1.1
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -88,6 +89,7 @@ require (
 )
 
 require (
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containers/image/v5 v5.31.1 // indirect
@@ -207,7 +209,7 @@ require (
 	github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.6.0 // indirect
+	github.com/google/uuid v1.6.0
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.2 // indirect
 	github.com/gookit/color v1.5.4 // indirect
@@ -302,7 +304,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/arch v0.1.0 // indirect
+	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/crypto v0.25.0
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
@@ -321,7 +323,7 @@ require (
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/ini.v1 v1.66.2 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/klog/v2 v2.120.1
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
