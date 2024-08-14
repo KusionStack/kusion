@@ -265,6 +265,10 @@ const (
 	EnvViettelCloudProjectID = "VIETTEL_CLOUD_PROJECT_ID"
 
 	FieldImportedResources = "importedResources"
+	FieldHealthPolicy      = "healthPolicy"
+	FieldKCLHealthCheckKCL = "health.kcl"
+	// kind field in kubernetes resource Attributes
+	FieldKind = "kind"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.

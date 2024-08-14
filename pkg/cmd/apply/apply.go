@@ -34,6 +34,8 @@ import (
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/util/templates"
 
+	"gopkg.in/yaml.v3"
+
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/cmd/generate"
@@ -48,6 +50,7 @@ import (
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/util/i18n"
+	"kusionstack.io/kusion/pkg/util/kcl"
 	"kusionstack.io/kusion/pkg/util/pretty"
 	"kusionstack.io/kusion/pkg/util/signal"
 	"kusionstack.io/kusion/pkg/util/terminal"
@@ -758,7 +761,8 @@ func Watch(
 
 				// Setup a go-routine to concurrently watch K8s and TF resources.
 				if res.Type == apiv1.Kubernetes {
-					go watchK8sResources(id, w.Watchers, table, tables, dryRun)
+					healthPolicy, kind := getResourceInfo(&res)
+					go watchK8sResources(id, kind, w.Watchers, table, tables, dryRun, healthPolicy)
 				} else if res.Type == apiv1.Terraform {
 					go watchTFResources(id, w.TFWatcher, table, dryRun)
 				} else {
@@ -884,11 +888,12 @@ func prompt(ui *terminal.UI) (string, error) {
 }
 
 func watchK8sResources(
-	id string,
+	id, kind string,
 	chs []<-chan watch.Event,
 	table *printers.Table,
 	tables map[string]*printers.Table,
 	dryRun bool,
+	healthPolicy interface{},
 ) {
 	defer func() {
 		var err error
@@ -930,7 +935,22 @@ func watchK8sResources(
 			} else {
 				// Restore to actual type
 				target := printers.Convert(o)
-				detail, ready = printers.Generate(target)
+				// Check reconcile status with customized health policy for specific resource
+				if healthPolicy != nil && kind == o.GetObjectKind().GroupVersionKind().Kind {
+					if code, ok := kcl.ConvertKCLCode(healthPolicy); ok {
+						resByte, err := yaml.Marshal(o.Object)
+						if err != nil {
+							log.Error(err)
+							return
+						}
+						detail, ready = printers.PrintCustomizedHealthCheck(code, resByte)
+					} else {
+						detail, ready = printers.Generate(target)
+					}
+				} else {
+					// Check reconcile status with default setup
+					detail, ready = printers.Generate(target)
+				}
 			}
 
 			// Mark ready for breaking loop
@@ -1038,4 +1058,19 @@ func printTable(w *io.Writer, id string, tables map[string]*printers.Table) {
 			WithHeaderStyle(pterm.NewStyle(pterm.FgDefault)).
 			WithHasHeader().WithSeparator("  ").WithData(data).WithWriter(*w).Render()
 	}
+}
+
+// getResourceInfo get health policy and kind from resource for customized health check purpose
+func getResourceInfo(res *apiv1.Resource) (healthPolicy interface{}, kind string) {
+	var ok bool
+	if res.Extensions != nil {
+		healthPolicy = res.Extensions[apiv1.FieldHealthPolicy]
+	}
+	if res.Attributes == nil {
+		panic(fmt.Errorf("resource has no Attributes field in the Spec: %s", res))
+	}
+	if kind, ok = res.Attributes[apiv1.FieldKind].(string); !ok {
+		panic(fmt.Errorf("failed to get kind from resource attributes: %s", res.Attributes))
+	}
+	return healthPolicy, kind
 }
