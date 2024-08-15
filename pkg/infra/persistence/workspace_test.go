@@ -140,7 +140,7 @@ func TestWorkspaceRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedNameFirst, 1).
 					AddRow(expectedIDSecond, expectedNameSecond, 2))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.WorkspaceFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})

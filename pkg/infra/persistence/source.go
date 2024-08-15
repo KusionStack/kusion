@@ -88,7 +88,7 @@ func (r *sourceRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 

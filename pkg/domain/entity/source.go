@@ -40,9 +40,9 @@ func (s *Source) Validate() error {
 		return fmt.Errorf("source must have a source provider")
 	}
 
-	// if e.Remote == nil {
-	// 	return fmt.Errorf("source must have a remote")
-	// }
+	if s.Remote == nil {
+		return fmt.Errorf("source must have a remote")
+	}
 
 	return nil
 }

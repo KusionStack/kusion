@@ -11,6 +11,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+
+	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
 // MultiString is a custom type for handling arrays of strings with GORM.
@@ -85,4 +87,116 @@ func CloseDB(t *testing.T, gdb *gorm.DB) {
 	db, err := gdb.DB()
 	require.NoError(t, err)
 	require.NoError(t, db.Close())
+}
+
+func GetProjectQuery(filter *entity.ProjectFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.OrgID != 0 {
+		pattern = append(pattern, "organization_id = ?")
+		args = append(args, fmt.Sprint(filter.OrgID))
+	}
+	if filter.Name != "" {
+		pattern = append(pattern, "name = ?")
+		args = append(args, filter.Name)
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func GetStackQuery(filter *entity.StackFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.OrgID != 0 {
+		pattern = append(pattern, "Project.organization_id = ?")
+		args = append(args, fmt.Sprint(filter.OrgID))
+	}
+	if filter.ProjectID != 0 {
+		pattern = append(pattern, "project_id = ?")
+		args = append(args, fmt.Sprint(filter.ProjectID))
+	}
+	if filter.Path != "" {
+		pattern = append(pattern, "Stack.path = ?")
+		args = append(args, filter.Path)
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func GetWorkspaceQuery(filter *entity.WorkspaceFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.BackendID != 0 {
+		pattern = append(pattern, "backend_id = ?")
+		args = append(args, fmt.Sprint(filter.BackendID))
+	}
+	if filter.Name != "" {
+		pattern = append(pattern, "name = ?")
+		args = append(args, filter.Name)
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func GetResourceQuery(filter *entity.ResourceFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.OrgID != 0 {
+		pattern = append(pattern, "organization_id = ?")
+		args = append(args, fmt.Sprint(filter.OrgID))
+	}
+	if filter.ProjectID != 0 {
+		pattern = append(pattern, "project_id = ?")
+		args = append(args, fmt.Sprint(filter.ProjectID))
+	}
+	if filter.StackID != 0 {
+		pattern = append(pattern, "stack_id = ?")
+		args = append(args, fmt.Sprint(filter.StackID))
+	}
+	if filter.AppConfigID != 0 {
+		pattern = append(pattern, "app_config_id = ?")
+		args = append(args, fmt.Sprint(filter.AppConfigID))
+	}
+	if filter.ResourcePlane != "" {
+		pattern = append(pattern, "resource_plane = ?")
+		args = append(args, filter.ResourcePlane)
+	}
+	if filter.ResourceType != "" {
+		pattern = append(pattern, "resource_type = ?")
+		args = append(args, filter.ResourceType)
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func CombineQueryParts(queryParts []string) string {
+	queryString := ""
+	if len(queryParts) > 0 {
+		queryString = queryParts[0]
+		for _, part := range queryParts[1:] {
+			queryString += fmt.Sprintf(" AND %s", part)
+		}
+	}
+	return queryString
+}
+
+func AutoMigrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&BackendModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&SourceModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&OrganizationModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&ProjectModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&StackModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&ResourceModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&WorkspaceModel{}); err != nil {
+		return err
+	}
+	return nil
 }

@@ -32,6 +32,15 @@ func GenGenericOssReleasePrefixKey(prefix, project, workspace string) string {
 	return fmt.Sprintf("%s%s/%s/%s", prefix, releasesPrefix, project, workspace)
 }
 
+// GenReleasePrefixKeyWithPath generates oss state file key with cloud and env instead of workspace, which is use for OssStorage and S3Storage.
+func GenReleasePrefixKeyWithPath(prefix, path string) string {
+	prefix = strings.TrimPrefix(prefix, "/")
+	if prefix != "" {
+		prefix += "/"
+	}
+	return fmt.Sprintf("%s%s/%s", prefix, releasesPrefix, path)
+}
+
 // releasesMetaData contains mata data of the releases of a specified project and workspace. The mata data
 // includes the latest revision, and synopsis of the releases.
 type releasesMetaData struct {

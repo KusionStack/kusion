@@ -42,12 +42,12 @@ func TestStackRepository(t *testing.T) {
 						ID: 1,
 					},
 				},
-				Path:              "/path/to/stack",
-				DesiredVersion:    "master",
-				Labels:            []string{"testLabel"},
-				Owners:            []string{"hua.li", "xiaoming.li"},
-				SyncState:         constant.StackStateUnSynced,
-				LastSyncTimestamp: time.Now(),
+				Path:                 "/path/to/stack",
+				DesiredVersion:       "master",
+				Labels:               []string{"testLabel"},
+				Owners:               []string{"hua.li", "xiaoming.li"},
+				SyncState:            constant.StackStateUnSynced,
+				LastAppliedTimestamp: time.Now(),
 			}
 		)
 		sqlMock.ExpectBegin()
@@ -169,7 +169,7 @@ func TestStackRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedNameFirst, expectedPathFirst, expectedSyncStateFirst, 1, "mockedProject", "path/to/project").
 					AddRow(expectedIDSecond, expectedNameSecond, expectedPathSecond, expectedSyncStateSecond, 2, "mockedProject2", "path/to/project2"))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.StackFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})

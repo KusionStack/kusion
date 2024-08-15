@@ -2,29 +2,43 @@ package stack
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"github.com/go-logr/logr"
+
 	yamlv2 "gopkg.in/yaml.v2"
+
+	"kusionstack.io/kusion/pkg/domain/constant"
+	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
-	"kusionstack.io/kusion/pkg/server/util"
+	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
+	authutil "kusionstack.io/kusion/pkg/server/util/auth"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-// @Summary      Preview stack
-// @Description  Preview stack information by stack ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack/{stackID}/preview [post]
+// @Id				previewStack
+// @Summary		Preview stack
+// @Description	Preview stack information by stack ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int				true	"Stack ID"
+// @Param			output		query		string			false	"Output format. Choices are: json, default. Default to default output format in Kusion."
+// @Param			detail		query		bool			false	"Show detailed output"
+// @Param			specID		query		string			false	"The Spec ID to use for the preview. Default to the last one generated."
+// @Param			force		query		bool			false	"Force the preview even when the stack is locked"
+// @Success		200			{object}	models.Changes	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id}/preview [post]
 func (h *Handler) PreviewStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -35,14 +49,27 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 		}
 		logger.Info("Previewing stack...", "stackID", params.StackID)
 
+		var requestPayload request.StackImportRequest
+		if params.ExecuteParams.ImportResources {
+			if err := requestPayload.Decode(r); err != nil {
+				if err == io.EOF {
+					render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+					return
+				} else {
+					render.Render(w, r, handler.FailureResponse(ctx, err))
+					return
+				}
+			}
+		}
+
 		// Call preview stack
-		changes, err := h.stackManager.PreviewStack(ctx, params.StackID, params.Workspace)
+		changes, err := h.stackManager.PreviewStack(ctx, params, requestPayload)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
-		previewChanges, err := stackmanager.ProcessChanges(ctx, w, changes, params.Format, params.Detail)
+		previewChanges, err := stackmanager.ProcessChanges(ctx, w, changes, params.Format, params.ExecuteParams.Detail)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -51,17 +78,21 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      Generate stack
-// @Description  Generate stack information by stack ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack/{stackID}/generate [post]
+// @Id				generateStack
+// @Summary		Generate stack
+// @Description	Generate stack information by stack ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int		true	"Stack ID"
+// @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
+// @Param			force		query		bool	false	"Force the generate even when the stack is locked"
+// @Success		200			{object}	v1.Spec	"Success"
+// @Failure		400			{object}	error	"Bad Request"
+// @Failure		401			{object}	error	"Unauthorized"
+// @Failure		429			{object}	error	"Too Many Requests"
+// @Failure		404			{object}	error	"Not Found"
+// @Failure		500			{object}	error	"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id}/generate [post]
 func (h *Handler) GenerateStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -73,7 +104,7 @@ func (h *Handler) GenerateStack() http.HandlerFunc {
 		logger.Info("Generating stack...", "stackID", params.StackID)
 
 		// Call generate stack
-		sp, err := h.stackManager.GenerateStack(ctx, params.StackID, params.Workspace)
+		_, sp, err := h.stackManager.GenerateSpec(ctx, params)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -84,17 +115,22 @@ func (h *Handler) GenerateStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      Apply stack
-// @Description  Apply stack information by stack ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack/{stackID}/apply [post]
+// @Id				applyStack
+// @Summary		Apply stack
+// @Description	Apply stack information by stack ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int		true	"Stack ID"
+// @Param			specID		query		string	false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
+// @Param			force		query		bool	false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun		query		bool	false	"Apply in dry-run mode"
+// @Success		200			{object}	string	"Success"
+// @Failure		400			{object}	error	"Bad Request"
+// @Failure		401			{object}	error	"Unauthorized"
+// @Failure		429			{object}	error	"Too Many Requests"
+// @Failure		404			{object}	error	"Not Found"
+// @Failure		500			{object}	error	"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id}/apply [post]
 func (h *Handler) ApplyStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -105,10 +141,23 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		}
 		logger.Info("Applying stack...", "stackID", params.StackID)
 
-		err = h.stackManager.ApplyStack(ctx, params.StackID, params.Workspace, params.Format, params.Detail, params.Dryrun, w)
+		var requestPayload request.StackImportRequest
+		if params.ExecuteParams.ImportResources {
+			if err := requestPayload.Decode(r); err != nil {
+				if err == io.EOF {
+					render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+					return
+				} else {
+					render.Render(w, r, handler.FailureResponse(ctx, err))
+					return
+				}
+			}
+		}
+
+		err = h.stackManager.ApplyStack(ctx, params, requestPayload)
 		if err != nil {
 			if err == stackmanager.ErrDryrunDestroy {
-				render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false"))
+				render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be applied if dryrun is set to false"))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
@@ -130,17 +179,21 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      Destroy stack
-// @Description  Destroy stack information by stack ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack/{stackID}/destroy [post]
+// @Id				destroyStack
+// @Summary		Destroy stack
+// @Description	Destroy stack information by stack ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int		true	"Stack ID"
+// @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
+// @Success		200			{object}	string	"Success"
+// @Failure		400			{object}	error	"Bad Request"
+// @Failure		401			{object}	error	"Unauthorized"
+// @Failure		429			{object}	error	"Too Many Requests"
+// @Failure		404			{object}	error	"Not Found"
+// @Failure		500			{object}	error	"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id}/destroy [post]
 func (h *Handler) DestroyStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -151,7 +204,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		}
 		logger.Info("Destroying stack...", "stackID", params.StackID)
 
-		err = h.stackManager.DestroyStack(ctx, params.StackID, params.Workspace, params.Detail, params.Dryrun, w)
+		err = h.stackManager.DestroyStack(ctx, params, w)
 		if err != nil {
 			if err == stackmanager.ErrDryrunDestroy {
 				render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false"))
@@ -168,7 +221,7 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 	}
 }
 
-func requestHelper(r *http.Request) (context.Context, *logr.Logger, *StackRequestParams, error) {
+func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackmanager.StackRequestParams, error) {
 	ctx := r.Context()
 	stackID := chi.URLParam(r, "stackID")
 	// Get stack with repository
@@ -176,19 +229,40 @@ func requestHelper(r *http.Request) (context.Context, *logr.Logger, *StackReques
 	if err != nil {
 		return nil, nil, nil, stackmanager.ErrInvalidStackID
 	}
-	logger := util.GetLogger(ctx)
+	logger := logutil.GetLogger(ctx)
 	// Get Params
+	outputParam := r.URL.Query().Get("output")
 	detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
 	dryrunParam, _ := strconv.ParseBool(r.URL.Query().Get("dryrun"))
-	outputParam := r.URL.Query().Get("output")
+	forceParam, _ := strconv.ParseBool(r.URL.Query().Get("force"))
+	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
+	specIdParam := r.URL.Query().Get("specID")
 	// TODO: Should match automatically eventually???
 	workspaceParam := r.URL.Query().Get("workspace")
-	params := StackRequestParams{
-		StackID:   uint(id),
-		Workspace: workspaceParam,
-		Detail:    detailParam,
-		Dryrun:    dryrunParam,
-		Format:    outputParam,
+	operatorParam, err := authutil.GetSubjectFromUnverifiedJWTToken(ctx, r)
+	// fall back to x-kusion-user if operator is not parsed from cookie
+	if operatorParam == "" || err != nil {
+		operatorParam = appmiddleware.GetUserID(ctx)
+		if operatorParam == "" {
+			operatorParam = constant.DefaultUser
+		}
 	}
-	return ctx, &logger, &params, nil
+	if workspaceParam == "" {
+		workspaceParam = constant.DefaultWorkspace
+	}
+	executeParams := stackmanager.StackExecuteParams{
+		Detail:          detailParam,
+		Dryrun:          dryrunParam,
+		Force:           forceParam,
+		SpecID:          specIdParam,
+		ImportResources: importResourcesParam,
+	}
+	params := stackmanager.StackRequestParams{
+		StackID:       uint(id),
+		Workspace:     workspaceParam,
+		Format:        outputParam,
+		Operator:      operatorParam,
+		ExecuteParams: executeParams,
+	}
+	return ctx, logger, &params, nil
 }

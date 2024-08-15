@@ -25,6 +25,8 @@ spec:
             status: {}
           extensions:
             GVK: apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule
+    secretStore: null
+    context: {}
 state:
     resources:
         - id: apps.kusionstack.io/v1alpha1:PodTransitionRule:fakeNs:default-dev-foo

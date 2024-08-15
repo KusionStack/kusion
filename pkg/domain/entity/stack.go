@@ -13,14 +13,12 @@ type Stack struct {
 	ID uint `yaml:"id" json:"id"`
 	// Name is the name of the stack.
 	Name string `yaml:"name" json:"name"`
+	// Type is the type of the stack.
+	Type string `yaml:"type" json:"type"`
 	// DisplayName is the human-readable display nams.
 	DisplayName string `yaml:"displayName,omitempty" json:"displayName,omitempty"`
-	// Source is the configuration source associated with the stack.
-	// Source *Source `yaml:"source" json:"source"`
 	// Project is the project associated with the stack.
 	Project *Project `yaml:"project" json:"project"`
-	// Org is the org associated with the stack.
-	// Organization *Organization `yaml:"organization" json:"organization"`
 	// Desired is the desired version of stack.
 	DesiredVersion string `yaml:"desiredVersion" json:"desiredVersion"`
 	// Description is a human-readable description of the stack.
@@ -33,12 +31,24 @@ type Stack struct {
 	Owners []string `yaml:"owners,omitempty" json:"owners,omitempty"`
 	// SyncState is the current state of the stack.
 	SyncState constant.StackState `yaml:"syncState" json:"syncState"`
-	// LastSyncTimestamp is the timestamp of the last sync operation for the stack.
-	LastSyncTimestamp time.Time `yaml:"lastSyncTimestamp,omitempty" json:"lastSyncTimestamp,omitempty"`
+	// LastGeneratedRevision is the spec ID of the last generate operation for the stack.
+	LastGeneratedRevision string `yaml:"lastGeneratedRevision" json:"lastGeneratedRevision"`
+	// LastPreviewedRevision is the spec ID of the last preview operation for the stack.
+	LastPreviewedRevision string `yaml:"lastPreviewedRevision" json:"lastPreviewedRevision"`
+	// LastAppliedRevision is the spec ID of the last apply operation for the stack.
+	LastAppliedRevision string `yaml:"lastAppliedRevision" json:"lastAppliedRevision"`
+	// LastAppliedTimestamp is the timestamp of the last apply operation for the stack.
+	LastAppliedTimestamp time.Time `yaml:"lastAppliedTimestamp,omitempty" json:"lastAppliedTimestamp,omitempty"`
 	// CreationTimestamp is the timestamp of the created for the stack.
 	CreationTimestamp time.Time `yaml:"creationTimestamp,omitempty" json:"creationTimestamp,omitempty"`
 	// UpdateTimestamp is the timestamp of the updated for the stack.
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
+}
+
+type StackFilter struct {
+	OrgID     uint
+	ProjectID uint
+	Path      string
 }
 
 // Validate checks if the stack is valid.
@@ -68,27 +78,25 @@ func (s *Stack) Validate() error {
 		return constant.ErrStackSyncState
 	}
 
-	// if s.Source == nil {
-	// 	return constant.ErrStackSource
-	// }
-
-	// if err := s.Source.Validate(); err != nil {
-	// 	return err
-	// }
-
-	if len(s.DesiredVersion) == 0 {
-		return constant.ErrStackDesiredVersion
-	}
-
 	return nil
 }
 
 // Convert stack to core stack
-func (s *Stack) ConvertToCore() (*v1.Stack, error) {
+func (s *Stack) ConvertToCore() *v1.Stack {
 	return &v1.Stack{
 		Name:        s.Name,
 		Description: &s.Description,
 		Path:        s.Path,
 		Labels:      map[string]string{},
-	}, nil
+	}
+}
+
+func (s *Stack) StackInOperation() bool {
+	if s.SyncState == constant.StackStateGenerating ||
+		s.SyncState == constant.StackStatePreviewing ||
+		s.SyncState == constant.StackStateApplying ||
+		s.SyncState == constant.StackStateDestroying {
+		return true
+	}
+	return false
 }

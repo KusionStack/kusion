@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"kusionstack.io/kusion/pkg/domain/constant"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -164,10 +165,12 @@ func TestStackHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateStackRequest{
 			// Set your request payload fields here
-			ID:        1,
-			Name:      stackNameUpdated,
-			Path:      stackPathUpdated,
-			ProjectID: 1,
+			ID: 1,
+			CreateStackRequest: request.CreateStackRequest{
+				Name:      stackNameUpdated,
+				Path:      stackPathUpdated,
+				ProjectID: 1,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -283,9 +286,11 @@ func TestStackHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateStackRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: "test-stack-updated",
-			Path: stackPathUpdated,
+			ID: 1,
+			CreateStackRequest: request.CreateStackRequest{
+				Name: "test-stack-updated",
+				Path: stackPathUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -322,8 +327,9 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	stackRepo := persistence.NewStackRepository(fakeGDB)
 	projectRepo := persistence.NewProjectRepository(fakeGDB)
 	workspaceRepo := persistence.NewWorkspaceRepository(fakeGDB)
+	resourceRepo := persistence.NewResourceRepository(fakeGDB)
 	stackHandler := &Handler{
-		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo),
+		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, entity.Backend{}, constant.MaxConcurrent),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, stackHandler

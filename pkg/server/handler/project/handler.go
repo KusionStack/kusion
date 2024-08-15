@@ -6,31 +6,35 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"github.com/go-logr/logr"
+
+	"kusionstack.io/kusion/pkg/domain/constant"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
-	projectmanager "kusionstack.io/kusion/pkg/server/manager/project"
-	"kusionstack.io/kusion/pkg/server/util"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-// @Summary      Create project
-// @Description  Create a new project
-// @Accept       json
-// @Produce      json
-// @Param        project  body      CreateProjectRequest  true  "Created project"
-// @Success      200        {object}  entity.Project        "Success"
-// @Failure      400        {object}  errors.DetailError      "Bad Request"
-// @Failure      401        {object}  errors.DetailError      "Unauthorized"
-// @Failure      429        {object}  errors.DetailError      "Too Many Requests"
-// @Failure      404        {object}  errors.DetailError      "Not Found"
-// @Failure      500        {object}  errors.DetailError      "Internal Server Error"
-// @Router       /api/v1/project/{projectName} [post]
+// @Id				createProject
+// @Summary		Create project
+// @Description	Create a new project
+// @Tags			project
+// @Accept			json
+// @Produce		json
+// @Param			project	body		request.CreateProjectRequest	true	"Created project"
+// @Success		200		{object}	entity.Project					"Success"
+// @Failure		400		{object}	error							"Bad Request"
+// @Failure		401		{object}	error							"Unauthorized"
+// @Failure		429		{object}	error							"Too Many Requests"
+// @Failure		404		{object}	error							"Not Found"
+// @Failure		500		{object}	error							"Internal Server Error"
+// @Router			/api/v1/projects [post]
 func (h *Handler) CreateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Creating project...")
 
 		// Decode the request body into the payload.
@@ -40,23 +44,40 @@ func (h *Handler) CreateProject() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		createdEntity, err := h.projectManager.CreateProject(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
+
+		defer func() {
+			if err != nil {
+				// Rollback
+				err = h.projectManager.DeleteProjectByID(ctx, createdEntity.ID)
+				if err != nil {
+					logger.Info("Failed to rollback project creation", "projectID", createdEntity.ID, "error", err)
+				}
+			}
+		}()
 	}
 }
 
-// @Summary      Delete project
-// @Description  Delete specified project by ID
-// @Produce      json
-// @Param        id   path      int                 true  "Project ID"
-// @Success      200  {object}  entity.Project       "Success"
-// @Failure      400             {object}  errors.DetailError   "Bad Request"
-// @Failure      401             {object}  errors.DetailError   "Unauthorized"
-// @Failure      429             {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404             {object}  errors.DetailError   "Not Found"
-// @Failure      500             {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/project/{projectName}  [delete]
-// @Router       /api/v1/project/{projectID} [delete]
+// @Id				deleteProject
+// @Summary		Delete project
+// @Description	Delete specified project by ID
+// @Tags			project
+// @Produce		json
+// @Param			project_id	path		int		true	"Project ID"
+// @Success		200			{object}	string	"Success"
+// @Failure		400			{object}	error	"Bad Request"
+// @Failure		401			{object}	error	"Unauthorized"
+// @Failure		429			{object}	error	"Too Many Requests"
+// @Failure		404			{object}	error	"Not Found"
+// @Failure		500			{object}	error	"Internal Server Error"
+// @Router			/api/v1/projects/{project_id} [delete]
 func (h *Handler) DeleteProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -72,18 +93,21 @@ func (h *Handler) DeleteProject() http.HandlerFunc {
 	}
 }
 
-// @Summary      Update project
-// @Description  Update the specified project
-// @Accept       json
-// @Produce      json
-// @Param        project  body      UpdateProjectRequest  true  "Updated project"
-// @Success      200     {object}  entity.Project        "Success"
-// @Failure      400     {object}  errors.DetailError   "Bad Request"
-// @Failure      401     {object}  errors.DetailError   "Unauthorized"
-// @Failure      429     {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404     {object}  errors.DetailError   "Not Found"
-// @Failure      500     {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/project/{projectID} [put]
+// @Id				updateProject
+// @Summary		Update project
+// @Description	Update the specified project
+// @Tags			project
+// @Accept			json
+// @Produce		json
+// @Param			project_id	path		uint							true	"Project ID"
+// @Param			project		body		request.UpdateProjectRequest	true	"Updated project"
+// @Success		200			{object}	entity.Project					"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
+// @Router			/api/v1/projects/{project_id} [put]
 func (h *Handler) UpdateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -101,22 +125,30 @@ func (h *Handler) UpdateProject() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		updatedEntity, err := h.projectManager.UpdateProjectByID(ctx, params.ProjectID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
 }
 
-// @Summary      Get project
-// @Description  Get project information by project ID
-// @Produce      json
-// @Param        id   path      int                 true  "Project ID"
-// @Success      200  {object}  entity.Project       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/project/{projectID} [get]
+// @Id				getProject
+// @Summary		Get project
+// @Description	Get project information by project ID
+// @Tags			project
+// @Produce		json
+// @Param			project_id	path		uint			true	"Project ID"
+// @Success		200			{object}	entity.Project	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
+// @Router			/api/v1/projects/{project_id} [get]
 func (h *Handler) GetProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -132,39 +164,59 @@ func (h *Handler) GetProject() http.HandlerFunc {
 	}
 }
 
-// @Summary      List projects
-// @Description  List all projects
-// @Produce      json
-// @Success      200  {object}  entity.Project       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/project [get]
+// @Id				listProject
+// @Summary		List projects
+// @Description	List all or a subset of the projects
+// @Tags			project
+// @Produce		json
+// @Param			orgID	query		uint				false	"OrganizationID to filter project list by. Default to all projects."
+// @Param			name	query		string				false	"Project name to filter project list by. This should only return one result if set."
+// @Success		200		{object}	[]entity.Project	"Success"
+// @Failure		400		{object}	error				"Bad Request"
+// @Failure		401		{object}	error				"Unauthorized"
+// @Failure		429		{object}	error				"Too Many Requests"
+// @Failure		404		{object}	error				"Not Found"
+// @Failure		500		{object}	error				"Internal Server Error"
+// @Router			/api/v1/projects [get]
 func (h *Handler) ListProjects() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing project...")
 
-		projectEntities, err := h.projectManager.ListProjects(ctx)
+		filter := entity.ProjectFilter{}
+		orgIDParam := r.URL.Query().Get("orgID")
+		if orgIDParam != "" {
+			orgID, err := strconv.Atoi(orgIDParam)
+			if err != nil {
+				render.Render(w, r, handler.FailureResponse(ctx, constant.ErrInvalidOrganizationID))
+				return
+			}
+			filter.OrgID = uint(orgID)
+		}
+
+		name := r.URL.Query().Get("name")
+		if name != "" {
+			filter.Name = name
+		}
+
+		projectEntities, err := h.projectManager.ListProjects(ctx, &filter)
 		handler.HandleResult(w, r, ctx, err, projectEntities)
 	}
 }
 
-func requestHelper(r *http.Request) (context.Context, *logr.Logger, *ProjectRequestParams, error) {
+func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *ProjectRequestParams, error) {
 	ctx := r.Context()
 	projectID := chi.URLParam(r, "projectID")
-	// Get stack with repository
+	// Get project with repository
 	id, err := strconv.Atoi(projectID)
 	if err != nil {
-		return nil, nil, nil, projectmanager.ErrInvalidProjectID
+		return nil, nil, nil, constant.ErrInvalidProjectID
 	}
-	logger := util.GetLogger(ctx)
+	logger := logutil.GetLogger(ctx)
 	params := ProjectRequestParams{
 		ProjectID: uint(id),
 	}
-	return ctx, &logger, &params, nil
+	return ctx, logger, &params, nil
 }

@@ -24,6 +24,7 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
@@ -51,7 +52,11 @@ func TestDestroyPreview(t *testing.T) {
 		mockNewKubernetesRuntime()
 		mockOperationPreview()
 
-		_, err := DestroyPreview(&apiv1.Spec{Resources: []apiv1.Resource{sa1}}, &apiv1.State{Resources: []apiv1.Resource{sa1}}, proj, stack, &releasestorages.LocalStorage{})
+		o := &APIOptions{
+			MaxConcurrent: constant.MaxConcurrent,
+		}
+
+		_, err := DestroyPreview(o, &apiv1.Spec{Resources: []apiv1.Resource{sa1}}, &apiv1.State{Resources: []apiv1.Resource{sa1}}, proj, stack, &releasestorages.LocalStorage{})
 		assert.Nil(t, err)
 	})
 }
@@ -103,6 +108,10 @@ func TestDestroy(t *testing.T) {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(models.Success)
 
+		o := &APIOptions{
+			MaxConcurrent: constant.MaxConcurrent,
+		}
+
 		rel := mockDestroyRelease([]apiv1.Resource{sa2})
 		order := &models.ChangeOrder{
 			StepKeys: []string{sa1.ID, sa2.ID},
@@ -121,13 +130,17 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		_, err := Destroy(rel, changes, &releasestorages.LocalStorage{})
+		_, err := Destroy(o, rel, changes, &releasestorages.LocalStorage{})
 		assert.Nil(t, err)
 	})
 
 	mockey.PatchConvey("destroy failed", t, func() {
 		mockNewKubernetesRuntime()
 		mockOperationDestroy(models.Failed)
+
+		o := &APIOptions{
+			MaxConcurrent: constant.MaxConcurrent,
+		}
 
 		rel := mockDestroyRelease([]apiv1.Resource{sa1})
 		order := &models.ChangeOrder{
@@ -142,7 +155,7 @@ func TestDestroy(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		_, err := Destroy(rel, changes, &releasestorages.LocalStorage{})
+		_, err := Destroy(o, rel, changes, &releasestorages.LocalStorage{})
 		assert.NotNil(t, err)
 	})
 }

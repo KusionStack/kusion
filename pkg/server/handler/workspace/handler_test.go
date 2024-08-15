@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -300,7 +301,7 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	workspaceRepo := persistence.NewWorkspaceRepository(fakeGDB)
 	backendRepo := persistence.NewBackendRepository(fakeGDB)
 	workspaceHandler := &Handler{
-		workspaceManager: workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo),
+		workspaceManager: workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, entity.Backend{}),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, workspaceHandler

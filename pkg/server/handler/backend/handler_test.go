@@ -145,8 +145,10 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: backendNameUpdated,
+			ID: 1,
+			CreateBackendRequest: request.CreateBackendRequest{
+				Name: backendNameUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -258,8 +260,10 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: "test-backend-updated",
+			ID: 1,
+			CreateBackendRequest: request.CreateBackendRequest{
+				Name: "test-backend-updated",
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

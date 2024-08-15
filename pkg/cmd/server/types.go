@@ -5,8 +5,16 @@ import (
 )
 
 type ServerOptions struct {
-	Mode     string
-	Database DatabaseOptions
+	Mode           string
+	Port           int
+	AuthEnabled    bool
+	AuthWhitelist  []string
+	AuthKeyType    string
+	Database       DatabaseOptions
+	DefaultBackend DefaultBackendOptions
+	DefaultSource  DefaultSourceOptions
+	MaxConcurrent  int
+	LogFilePath    string
 }
 
 type Options interface {
@@ -17,6 +25,8 @@ type Options interface {
 }
 
 const (
-	ProjectName = "kcp"
-	MaskString  = "******"
+	MaskString         = "******"
+	DefaultPort        = 80
+	DefaultAuthKeyType = "RSA"
+	DefaultMode        = "KCP"
 )

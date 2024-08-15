@@ -62,7 +62,7 @@ func (r *organizationRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 
@@ -94,15 +94,15 @@ func (r *organizationRepository) Get(ctx context.Context, id uint) (*entity.Orga
 	return dataModel.ToEntity()
 }
 
-// // GetByRemote retrieves a organization by its remote.
-// func (r *organizationRepository) GetByRemote(ctx context.Context, remote string) (*entity.Organization, error) {
-// 	var dataModel OrganizationModel
-// 	err := r.db.WithContext(ctx).Where("remote = ?", remote).First(&dataModel).Error
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return dataModel.ToEntity()
-// }
+// GetByName retrieves a organization by its name.
+func (r *organizationRepository) GetByName(ctx context.Context, name string) (*entity.Organization, error) {
+	var dataModel OrganizationModel
+	err := r.db.WithContext(ctx).Where("name = ?", name).First(&dataModel).Error
+	if err != nil {
+		return nil, err
+	}
+	return dataModel.ToEntity()
+}
 
 // List retrieves all organizations.
 func (r *organizationRepository) List(ctx context.Context) ([]*entity.Organization, error) {

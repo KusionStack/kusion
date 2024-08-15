@@ -62,7 +62,7 @@ func (r *workspaceRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 
@@ -109,11 +109,13 @@ func (r *workspaceRepository) GetByName(ctx context.Context, name string) (*enti
 }
 
 // List retrieves all workspaces.
-func (r *workspaceRepository) List(ctx context.Context) ([]*entity.Workspace, error) {
+func (r *workspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
 	var dataModel []WorkspaceModel
 	workspaceEntityList := make([]*entity.Workspace, 0)
+	pattern, args := GetWorkspaceQuery(filter)
 	result := r.db.WithContext(ctx).
 		Preload("Backend").
+		Where(pattern, args...).
 		Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error

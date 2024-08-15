@@ -26,3 +26,7 @@ func (s *LocalStorage) WorkspaceStorage() (workspace.Storage, error) {
 func (s *LocalStorage) ReleaseStorage(project, workspace string) (release.Storage, error) {
 	return releasestorages.NewLocalStorage(releasestorages.GenReleaseDirPath(s.path, project, workspace))
 }
+
+func (s *LocalStorage) StateStorageWithPath(path string) (release.Storage, error) {
+	return releasestorages.NewLocalStorage(releasestorages.GenReleasePrefixKeyWithPath(s.path, path))
+}

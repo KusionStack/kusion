@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 )
@@ -27,8 +26,8 @@ func GenerateResponse(ctx context.Context, data any, err error) render.Renderer 
 	}
 
 	// Include the request trace ID if available.
-	if requestID := middleware.GetReqID(ctx); len(requestID) > 0 {
-		resp.TraceID = requestID
+	if traceID := appmiddleware.GetTraceID(ctx); len(traceID) > 0 {
+		resp.TraceID = traceID
 	}
 
 	// Calculate and include timing details if a start time is set.

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"kusionstack.io/kusion/pkg/domain/constant"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -160,11 +161,13 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID:             1,
-			Name:           projectNameUpdated,
-			Path:           projectPathUpdated,
-			OrganizationID: 1,
-			SourceID:       1,
+			ID: 1,
+			CreateProjectRequest: request.CreateProjectRequest{
+				Name:           projectNameUpdated,
+				Path:           projectPathUpdated,
+				OrganizationID: 1,
+				SourceID:       1,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -283,9 +286,11 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: "test-project-updated",
-			Path: projectPathUpdated,
+			ID: 1,
+			CreateProjectRequest: request.CreateProjectRequest{
+				Name: "test-project-updated",
+				Path: projectPathUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -326,7 +331,7 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	sourceRepo := persistence.NewSourceRepository(fakeGDB)
 	organizationRepo := persistence.NewOrganizationRepository(fakeGDB)
 	projectHandler := &Handler{
-		projectManager: projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo),
+		projectManager: projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, entity.Source{}),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, projectHandler

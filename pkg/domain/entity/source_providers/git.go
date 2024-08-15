@@ -13,7 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/server/util"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
 var _ entity.SourceProvider = &GitSourceProvider{}
@@ -94,7 +94,7 @@ func (g *GitSourceProvider) Get(ctx context.Context, opts ...entity.GetOption) (
 
 // Cleanup cleans up the resources of the provider
 func (g *GitSourceProvider) Cleanup(ctx context.Context) {
-	logger := util.GetLogger(ctx)
+	logger := logutil.GetLogger(ctx)
 	logger.Info("Cleaning up temp kcp-kusion directory...")
 
 	// Remove the directory

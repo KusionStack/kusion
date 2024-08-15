@@ -62,7 +62,7 @@ func (r *projectRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 
@@ -97,21 +97,28 @@ func (r *projectRepository) Get(ctx context.Context, id uint) (*entity.Project, 
 	return dataModel.ToEntity()
 }
 
-// // GetByRemote retrieves a project by its remote.
-// func (r *projectRepository) GetByRemote(ctx context.Context, remote string) (*entity.Project, error) {
-// 	var dataModel ProjectModel
-// 	err := r.db.WithContext(ctx).Where("remote = ?", remote).First(&dataModel).Error
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return dataModel.ToEntity()
-// }
+// GetByName retrieves a project by its name.
+func (r *projectRepository) GetByName(ctx context.Context, name string) (*entity.Project, error) {
+	var dataModel ProjectModel
+	err := r.db.WithContext(ctx).
+		Where("name = ?", name).
+		First(&dataModel).Error
+	if err != nil {
+		return nil, err
+	}
+	return dataModel.ToEntity()
+}
 
 // List retrieves all projects.
-func (r *projectRepository) List(ctx context.Context) ([]*entity.Project, error) {
+func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
 	var dataModel []ProjectModel
 	projectEntityList := make([]*entity.Project, 0)
-	result := r.db.WithContext(ctx).Preload("Source").Preload("Organization").Find(&dataModel)
+	pattern, args := GetProjectQuery(filter)
+	result := r.db.WithContext(ctx).
+		Preload("Source").
+		Preload("Organization").
+		Where(pattern, args...).
+		Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}

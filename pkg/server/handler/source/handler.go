@@ -6,31 +6,33 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"github.com/go-logr/logr"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
-	"kusionstack.io/kusion/pkg/server/util"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-// @Summary      Create source
-// @Description  Create a new source
-// @Accept       json
-// @Produce      json
-// @Param        source  body      CreateSourceRequest  true  "Created source"
-// @Success      200     {object}  entity.Source        "Success"
-// @Failure      400     {object}  errors.DetailError   "Bad Request"
-// @Failure      401     {object}  errors.DetailError   "Unauthorized"
-// @Failure      429     {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404     {object}  errors.DetailError   "Not Found"
-// @Failure      500     {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/sourceID [post]
+// @Id				createSource
+// @Summary		Create source
+// @Description	Create a new source
+// @Tags			source
+// @Accept			json
+// @Produce		json
+// @Param			source	body		request.CreateSourceRequest	true	"Created source"
+// @Success		200		{object}	entity.Source				"Success"
+// @Failure		400		{object}	error						"Bad Request"
+// @Failure		401		{object}	error						"Unauthorized"
+// @Failure		429		{object}	error						"Too Many Requests"
+// @Failure		404		{object}	error						"Not Found"
+// @Failure		500		{object}	error						"Internal Server Error"
+// @Router			/api/v1/sources [post]
 func (h *Handler) CreateSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Creating source...")
 
 		// Decode the request body into the payload.
@@ -46,17 +48,19 @@ func (h *Handler) CreateSource() http.HandlerFunc {
 	}
 }
 
-// @Summary      Delete source
-// @Description  Delete specified source by ID
-// @Produce      json
-// @Param        id   path      int                 true  "Source ID"
-// @Success      200  {object}  entity.Source       "Success"
-// @Failure      400             {object}  errors.DetailError   "Bad Request"
-// @Failure      401             {object}  errors.DetailError   "Unauthorized"
-// @Failure      429             {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404             {object}  errors.DetailError   "Not Found"
-// @Failure      500             {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/source/{id} [delete]
+// @Id				deleteSource
+// @Summary		Delete source
+// @Description	Delete specified source by ID
+// @Tags			source
+// @Produce		json
+// @Param			id	path		int				true	"Source ID"
+// @Success		200	{object}	entity.Source	"Success"
+// @Failure		400	{object}	error			"Bad Request"
+// @Failure		401	{object}	error			"Unauthorized"
+// @Failure		429	{object}	error			"Too Many Requests"
+// @Failure		404	{object}	error			"Not Found"
+// @Failure		500	{object}	error			"Internal Server Error"
+// @Router			/api/v1/sources/{id} [delete]
 func (h *Handler) DeleteSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -72,18 +76,21 @@ func (h *Handler) DeleteSource() http.HandlerFunc {
 	}
 }
 
-// @Summary      Update source
-// @Description  Update the specified source
-// @Accept       json
-// @Produce      json
-// @Param        source  body      UpdateSourceRequest  true  "Updated source"
-// @Success      200     {object}  entity.Source        "Success"
-// @Failure      400     {object}  errors.DetailError   "Bad Request"
-// @Failure      401     {object}  errors.DetailError   "Unauthorized"
-// @Failure      429     {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404     {object}  errors.DetailError   "Not Found"
-// @Failure      500     {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/source/{id} [put]
+// @Id				updateSource
+// @Summary		Update source
+// @Description	Update the specified source
+// @Tags			source
+// @Accept			json
+// @Produce		json
+// @Param			id		path		int							true	"Source ID"
+// @Param			source	body		request.UpdateSourceRequest	true	"Updated source"
+// @Success		200		{object}	entity.Source				"Success"
+// @Failure		400		{object}	error						"Bad Request"
+// @Failure		401		{object}	error						"Unauthorized"
+// @Failure		429		{object}	error						"Too Many Requests"
+// @Failure		404		{object}	error						"Not Found"
+// @Failure		500		{object}	error						"Internal Server Error"
+// @Router			/api/v1/sources/{id} [put]
 func (h *Handler) UpdateSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -107,17 +114,19 @@ func (h *Handler) UpdateSource() http.HandlerFunc {
 	}
 }
 
-// @Summary      Get source
-// @Description  Get source information by source ID
-// @Produce      json
-// @Param        id   path      int                 true  "Source ID"
-// @Success      200  {object}  entity.Source       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/source/{sourceID} [get]
+// @Id				getSource
+// @Summary		Get source
+// @Description	Get source information by source ID
+// @Tags			source
+// @Produce		json
+// @Param			id	path		int				true	"Source ID"
+// @Success		200	{object}	entity.Source	"Success"
+// @Failure		400	{object}	error			"Bad Request"
+// @Failure		401	{object}	error			"Unauthorized"
+// @Failure		429	{object}	error			"Too Many Requests"
+// @Failure		404	{object}	error			"Not Found"
+// @Failure		500	{object}	error			"Internal Server Error"
+// @Router			/api/v1/sources/{id} [get]
 func (h *Handler) GetSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -133,21 +142,23 @@ func (h *Handler) GetSource() http.HandlerFunc {
 	}
 }
 
-// @Summary      List source
-// @Description  List source information by source ID
-// @Produce      json
-// @Success      200  {object}  entity.Source       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/source [get]
+// @Id				listSource
+// @Summary		List source
+// @Description	List source information by source ID
+// @Tags			source
+// @Produce		json
+// @Success		200	{object}	entity.Source	"Success"
+// @Failure		400	{object}	error			"Bad Request"
+// @Failure		401	{object}	error			"Unauthorized"
+// @Failure		429	{object}	error			"Too Many Requests"
+// @Failure		404	{object}	error			"Not Found"
+// @Failure		500	{object}	error			"Internal Server Error"
+// @Router			/api/v1/sources [get]
 func (h *Handler) ListSources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing source...")
 
 		// List sources
@@ -156,7 +167,7 @@ func (h *Handler) ListSources() http.HandlerFunc {
 	}
 }
 
-func requestHelper(r *http.Request) (context.Context, *logr.Logger, *SourceRequestParams, error) {
+func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *SourceRequestParams, error) {
 	ctx := r.Context()
 	sourceID := chi.URLParam(r, "sourceID")
 	// Get stack with repository
@@ -164,9 +175,9 @@ func requestHelper(r *http.Request) (context.Context, *logr.Logger, *SourceReque
 	if err != nil {
 		return nil, nil, nil, sourcemanager.ErrInvalidSourceID
 	}
-	logger := util.GetLogger(ctx)
+	logger := logutil.GetLogger(ctx)
 	params := SourceRequestParams{
 		SourceID: uint(id),
 	}
-	return ctx, &logger, &params, nil
+	return ctx, logger, &params, nil
 }

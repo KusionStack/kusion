@@ -160,7 +160,7 @@ func TestProjectRepository(t *testing.T) {
 					AddRow(expectedID, expectedName, expectedPath, 1, "mockedOrg", expectedOrgOwners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub).
 					AddRow(expectedIDSecond, expectedNameSecond, expectedPathSecond, 1, "mockedOrg", expectedOrgOwners, 2, "https://github.com/test/repo2", constant.SourceProviderTypeGithub))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.ProjectFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})

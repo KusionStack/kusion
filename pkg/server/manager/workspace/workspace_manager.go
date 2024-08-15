@@ -10,8 +10,8 @@ import (
 	"kusionstack.io/kusion/pkg/domain/request"
 )
 
-func (m *WorkspaceManager) ListWorkspaces(ctx context.Context) ([]*entity.Workspace, error) {
-	workspaceEntities, err := m.workspaceRepo.List(ctx)
+func (m *WorkspaceManager) ListWorkspaces(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+	workspaceEntities, err := m.workspaceRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingWorkspace

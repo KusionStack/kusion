@@ -8,6 +8,7 @@ import (
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime"
+	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
 )
 
@@ -54,6 +55,9 @@ type Operation struct {
 
 	// Lock is the operation-wide mutex
 	Lock *sync.Mutex
+
+	// Sem is the operation-wide semaphore
+	Sem *semaphore.Semaphore
 
 	// Release is the release updated in this operation, and saved in the ReleaseStorage
 	Release *apiv1.Release
