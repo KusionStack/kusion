@@ -30,7 +30,7 @@ func TestStackHandler(t *testing.T) {
 		projectPath      = "/path/to/project"
 		stackPath        = "/path/to/stack"
 		stackNameUpdated = "test-stack-updated"
-		stackPathUpdated = "/path/to/stack/updated"
+		stackPathUpdated = "/path/to/stacks/updated"
 		owners           = persistence.MultiString{"hua.li", "xiaoming.li"}
 	)
 	t.Run("ListStacks", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestStackHandler(t *testing.T) {
 				AddRow(1, stackName, stackPath, constant.StackStateUnSynced, 1, projectName, projectPath))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("GET", "/stacks/{stackID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -103,11 +103,10 @@ func TestStackHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("POST", "/stacks", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("stackID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
@@ -155,7 +154,7 @@ func TestStackHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("PUT", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("PUT", "/stacks/{stackID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -209,7 +208,7 @@ func TestStackHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("DELETE", "/stacks/{stackID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -221,8 +220,7 @@ func TestStackHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteStack handler function
@@ -245,7 +243,7 @@ func TestStackHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("DELETE", "/stacks/{stackID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -276,7 +274,7 @@ func TestStackHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/stack/{stackID}", nil)
+		req, err := http.NewRequest("POST", "/stacks/{stackID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()

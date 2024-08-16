@@ -29,11 +29,11 @@ func decode(r *http.Request, payload interface{}) error {
 func validPath(path string) bool {
 	// Validate project and stack path contains one or more capturing group
 	// that contains a backslash with alphanumeric and underscore characters
-	return !regexp.MustCompile(`^([\/a-zA-Z0-9_])+$`).MatchString(path)
+	return !regexp.MustCompile(`^([\/a-zA-Z0-9_-])+$`).MatchString(path)
 }
 
 func validName(name string) bool {
 	// Validate project, stack and appconfig name contains only alphanumeric
 	// and underscore characters
-	return !regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString(name)
+	return !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(name)
 }

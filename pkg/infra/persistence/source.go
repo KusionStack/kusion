@@ -116,7 +116,6 @@ func (r *sourceRepository) Get(ctx context.Context, id uint) (*entity.Source, er
 	if err != nil {
 		return nil, err
 	}
-
 	return dataModel.ToEntity()
 }
 

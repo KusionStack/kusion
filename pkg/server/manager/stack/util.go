@@ -192,7 +192,7 @@ func buildValidStackPath(requestPayload request.CreateStackRequest, projectEntit
 func validStackPath(path string) bool {
 	// Validate stack path contains one or more capturing group
 	// that contains a backslash with alphanumeric and underscore characters
-	return regexp.MustCompile(`^([\/a-zA-Z0-9_])+$`).MatchString(path)
+	return regexp.MustCompile(`^([\/a-zA-Z0-9_-])+$`).MatchString(path)
 }
 
 func tempPath(path string) string {
