@@ -42,7 +42,7 @@ type Workspace struct {
 
 type SecretValue struct {
 	SecretStore *SecretStore `json:"secretStore"`
-	//Value to store in the secret store.
+	// Value to store in the secret store.
 	Value string `json:"value"`
 	// Ref will only return with the update secret variable
 	Ref string `json:"ref"`

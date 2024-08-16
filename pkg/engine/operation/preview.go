@@ -122,8 +122,10 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 		return nil
 	}
 
-	po.Sem.Acquire()
-	defer po.Sem.Release()
+	if po.Sem != nil {
+		po.Sem.Acquire()
+		defer po.Sem.Release()
+	}
 
 	if node, ok := v.(graph.ExecutableNode); ok {
 		s = node.Execute(&po.Operation)

@@ -22,7 +22,8 @@ type WorkspaceManager struct {
 
 func NewWorkspaceManager(workspaceRepo repository.WorkspaceRepository,
 	backendRepo repository.BackendRepository,
-	defaultBackend entity.Backend) *WorkspaceManager {
+	defaultBackend entity.Backend,
+) *WorkspaceManager {
 	return &WorkspaceManager{
 		workspaceRepo:  workspaceRepo,
 		backendRepo:    backendRepo,

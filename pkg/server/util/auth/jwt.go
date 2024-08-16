@@ -39,6 +39,7 @@ func GetJWKSMapFromIAM(ctx context.Context, keyType string) (map[string]any, err
 	}
 
 	resp, body, err := httputil.ProcessResponse(ctx, req)
+	defer func() { _ = resp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func GetJWKSMapFromIAM(ctx context.Context, keyType string) (map[string]any, err
 	return keyMap, nil
 }
 
-func VerifyJWTToken(ctx context.Context, token_string string) (string, error) {
+func VerifyJWTToken(ctx context.Context, tokenString string) (string, error) {
 	logger := logutil.GetLogger(ctx)
 	ErrKID := errors.New("the JWT has an invalid kid")
 	keyMap, err := GetJWKSMapFromIAM(ctx, "RSA")
@@ -85,7 +86,7 @@ func VerifyJWTToken(ctx context.Context, token_string string) (string, error) {
 	}
 
 	// Use the proper key to verify the token
-	token, err := jwt.Parse(token_string, func(tok *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(tok *jwt.Token) (interface{}, error) {
 		// Get the kid from the token header.
 		kidInter, ok := tok.Header["kid"]
 		if !ok {
@@ -135,6 +136,7 @@ func GenerateIAMToken(ctx context.Context) (string, error) {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, body, err := httputil.ProcessResponse(ctx, req)
+	defer func() { _ = resp.Body.Close() }()
 	if err != nil {
 		return "", err
 	}

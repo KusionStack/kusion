@@ -167,8 +167,10 @@ func applyWalkFun(o *models.Operation, v dag.Vertex) (diags tfdiags.Diagnostics)
 		return nil
 	}
 
-	o.Sem.Acquire()
-	defer o.Sem.Release()
+	if o.Sem != nil {
+		o.Sem.Acquire()
+		defer o.Sem.Release()
+	}
 
 	if node, ok := v.(graph.ExecutableNode); ok {
 		if rn, ok2 := v.(*graph.ResourceNode); ok2 {

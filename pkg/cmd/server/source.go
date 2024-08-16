@@ -11,9 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var (
-	ErrDefaultSourceRemoteNotSpecified = errors.New("--default-source-remote must be specified")
-)
+var ErrDefaultSourceRemoteNotSpecified = errors.New("--default-source-remote must be specified")
 
 // DefaultSourceOptions holds the default backend access layer configurations.
 type DefaultSourceOptions struct {

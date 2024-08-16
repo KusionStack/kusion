@@ -24,7 +24,8 @@ type ProjectManager struct {
 func NewProjectManager(projectRepo repository.ProjectRepository,
 	organizationRepo repository.OrganizationRepository,
 	sourceRepo repository.SourceRepository,
-	defaultSource entity.Source) *ProjectManager {
+	defaultSource entity.Source,
+) *ProjectManager {
 	return &ProjectManager{
 		projectRepo:      projectRepo,
 		organizationRepo: organizationRepo,

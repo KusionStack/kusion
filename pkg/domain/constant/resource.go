@@ -15,6 +15,4 @@ const (
 	TmpDirPrefix            = "/tmp"
 )
 
-var (
-	ErrResourceHasNilStack = errors.New("resource has nil stack")
-)
+var ErrResourceHasNilStack = errors.New("resource has nil stack")

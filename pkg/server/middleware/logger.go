@@ -15,7 +15,7 @@ import (
 var APILoggerKey = &contextKey{"logger"}
 
 func InitLogger(logFilePath string, name string) *httplog.Logger {
-	logWriter, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logWriter, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 	if err != nil {
 		klog.Fatalf("Failed to open log file: %v", err)
 	}

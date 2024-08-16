@@ -223,7 +223,7 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 		if err != nil {
 			return nil, err
 		}
-		filter.ProjectID = uint(projectEntity.ID)
+		filter.ProjectID = projectEntity.ID
 		if envParam != "" {
 			if cloudParam != "" {
 				// if cloud is present, use project name, cloud and environment to derive the deployable stack under clouds path
@@ -277,7 +277,6 @@ func convertV1ResourceToEntity(resource *v1.Resource) (*entity.Resource, error) 
 	// Determine resource plane and resource type based on meta type
 	switch resourceTypeMeta {
 	case v1.Kubernetes:
-		resourceTypeMeta = v1.Kubernetes
 		resourcePlane = string(v1.Kubernetes)
 		// if this is Kubernetes resource, resource type is apiVersion/kind, resource name is namespace/name
 		resourceType = fmt.Sprintf("%s/%s", idParts[0], idParts[1])
@@ -287,7 +286,6 @@ func convertV1ResourceToEntity(resource *v1.Resource) (*entity.Resource, error) 
 			resourceName = fmt.Sprintf("%s/%s", idParts[2], idParts[3])
 		}
 	case v1.Terraform:
-		resourceTypeMeta = v1.Terraform
 		// Get provider info for terraform resources
 		if providerInfo, ok := resource.Extensions["provider"].(string); ok {
 			resourceProvider = providerInfo

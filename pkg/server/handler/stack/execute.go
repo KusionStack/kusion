@@ -236,7 +236,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 	dryrunParam, _ := strconv.ParseBool(r.URL.Query().Get("dryrun"))
 	forceParam, _ := strconv.ParseBool(r.URL.Query().Get("force"))
 	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
-	specIdParam := r.URL.Query().Get("specID")
+	specIDParam := r.URL.Query().Get("specID")
 	// TODO: Should match automatically eventually???
 	workspaceParam := r.URL.Query().Get("workspace")
 	operatorParam, err := authutil.GetSubjectFromUnverifiedJWTToken(ctx, r)
@@ -254,7 +254,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 		Detail:          detailParam,
 		Dryrun:          dryrunParam,
 		Force:           forceParam,
-		SpecID:          specIdParam,
+		SpecID:          specIDParam,
 		ImportResources: importResourcesParam,
 	}
 	params := stackmanager.StackRequestParams{

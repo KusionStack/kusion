@@ -18,21 +18,29 @@ import (
 )
 
 // Key to use when setting the trace ID and user ID.
-type ctxKeyTraceID int
-type ctxKeyUserID string
+type (
+	ctxKeyTraceID int
+	ctxKeyUserID  string
+)
 
 // TraceIDKey and UserIDKey are the keys that hold the unique
 // trace ID and user ID in a request context.
-const TraceIDKey ctxKeyTraceID = 0
-const UserIDKey ctxKeyUserID = "user_id"
+const (
+	TraceIDKey ctxKeyTraceID = 0
+	UserIDKey  ctxKeyUserID  = "user_id"
+)
 
 // TraceIDHeader and UserIDHeader is the name of the HTTP Header
 // which contains the trace id and user id.
-var TraceIDHeader = "x-kusion-trace"
-var UserIDHeader = "x-kusion-user"
+var (
+	TraceIDHeader = "x-kusion-trace"
+	UserIDHeader  = "x-kusion-user"
+)
 
-var prefix string
-var reqid uint64
+var (
+	prefix string
+	reqid  uint64
+)
 
 // A quick note on the statistics here: we're trying to calculate the chance that
 // two randomly generated base62 prefixes will collide. We use the formula from

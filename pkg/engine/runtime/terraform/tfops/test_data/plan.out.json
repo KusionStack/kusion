@@ -1,42 +1,17 @@
 {
-    "format_version": "1.0",
-    "terraform_version": "1.1.0",
-    "planned_values": {
-      "root_module": {
-        "resources": [
-          {
-            "address": "local_file.kusion_example",
-            "mode": "managed",
-            "type": "local_file",
-            "name": "kusion_example",
-            "provider_name": "registry.terraform.io/hashicorp/local",
-            "schema_version": 0,
-            "values": {
-              "content": "kusion",
-              "content_base64": null,
-              "directory_permission": "0777",
-              "file_permission": "0777",
-              "filename": "test.txt",
-              "sensitive_content": null,
-              "source": null
-            }
-          }
-        ]
-      }
-    },
-    "resource_changes": [
-      {
-        "address": "local_file.kusion_example",
-        "mode": "managed",
-        "type": "local_file",
-        "name": "kusion_example",
-        "provider_name": "registry.terraform.io/hashicorp/local",
-        "change": {
-          "actions": [
-            "create"
-          ],
-          "before": null,
-          "after": {
+  "format_version": "1.0",
+  "terraform_version": "1.1.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "local_file.kusion_example",
+          "mode": "managed",
+          "type": "local_file",
+          "name": "kusion_example",
+          "provider_name": "registry.terraform.io/hashicorp/local",
+          "schema_version": 0,
+          "values": {
             "content": "kusion",
             "content_base64": null,
             "directory_permission": "0777",
@@ -44,43 +19,68 @@
             "filename": "test.txt",
             "sensitive_content": null,
             "source": null
-          },
-          "after_unknown": {
-            "id": true
-          },
-          "before_sensitive": false,
-          "after_sensitive": {
-            "sensitive_content": true
           }
         }
-      }
-    ],
-    "configuration": {
-      "provider_config": {
-        "local": {
-          "name": "local",
-          "version_constraint": "2.2.3"
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "local_file.kusion_example",
+      "mode": "managed",
+      "type": "local_file",
+      "name": "kusion_example",
+      "provider_name": "registry.terraform.io/hashicorp/local",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "content": "kusion",
+          "content_base64": null,
+          "directory_permission": "0777",
+          "file_permission": "0777",
+          "filename": "test.txt",
+          "sensitive_content": null,
+          "source": null
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {
+          "sensitive_content": true
         }
-      },
-      "root_module": {
-        "resources": [
-          {
-            "address": "local_file.kusion_example",
-            "mode": "managed",
-            "type": "local_file",
-            "name": "kusion_example",
-            "provider_config_key": "local",
-            "expressions": {
-              "content": {
-                "constant_value": "kusion"
-              },
-              "filename": {
-                "constant_value": "test.txt"
-              }
-            },
-            "schema_version": 0
-          }
-        ]
       }
     }
+  ],
+  "configuration": {
+    "provider_config": {
+      "local": {
+        "name": "local",
+        "version_constraint": "2.2.3"
+      }
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "local_file.kusion_example",
+          "mode": "managed",
+          "type": "local_file",
+          "name": "kusion_example",
+          "provider_config_key": "local",
+          "expressions": {
+            "content": {
+              "constant_value": "kusion"
+            },
+            "filename": {
+              "constant_value": "test.txt"
+            }
+          },
+          "schema_version": 0
+        }
+      ]
+    }
+  }
 }

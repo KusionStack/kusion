@@ -17,8 +17,8 @@ func TokenAuthMiddleware(keyMap map[string]any, whitelist []string, logFilePath 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Use the proper key to verify the token
 			logger := GetMiddlewareLogger(r.Context(), logFilePath)
-			token_string := jwtauth.TokenFromHeader(r)
-			t, err := jwt.Parse(token_string, func(tok *jwt.Token) (interface{}, error) {
+			tokenString := jwtauth.TokenFromHeader(r)
+			t, err := jwt.Parse(tokenString, func(tok *jwt.Token) (interface{}, error) {
 				// Get the kid from the token header
 				kid, ok := tok.Header["kid"].(string)
 				if !ok {
@@ -71,10 +71,10 @@ func TokenAuthMiddleware(keyMap map[string]any, whitelist []string, logFilePath 
 	}
 }
 
-func SubjectWhitelisted(subject, org_type, org_name string, whitelist []string) bool {
+func SubjectWhitelisted(subject, orgType, orgName string, whitelist []string) bool {
 	// iterate through whitelist and return true of any matches with subject
 	for _, whitelistedItem := range whitelist {
-		if subject == whitelistedItem || (org_type == "application" && org_name == whitelistedItem) {
+		if subject == whitelistedItem || (orgType == "application" && orgName == whitelistedItem) {
 			return true
 		}
 	}
