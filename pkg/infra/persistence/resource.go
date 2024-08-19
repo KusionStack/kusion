@@ -88,34 +88,6 @@ func (r *resourceRepository) BatchDelete(ctx context.Context, dataEntityList []*
 	})
 }
 
-func (r *resourceRepository) BatchUpdate(ctx context.Context, dataEntityList []*entity.Resource) error {
-	for _, dataEntity := range dataEntityList {
-		err := dataEntity.Validate()
-		if err != nil {
-			return err
-		}
-	}
-
-	// Map the data from Entity to DO
-	// var dataModel []ResourceModel
-	dataModelList, err := FromEntityList(dataEntityList)
-	if err != nil {
-		return err
-	}
-
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		// Create new record in the store
-		err = tx.WithContext(ctx).Clauses(clause.OnConflict{
-			UpdateAll: true,
-		}).Updates(&dataModelList).Error
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
 // Update updates an existing resource in the repository.
 func (r *resourceRepository) Update(ctx context.Context, dataEntity *entity.Resource) error {
 	// Map the data from Entity to DO

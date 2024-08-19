@@ -165,45 +165,4 @@ func TestProjectRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})
-
-	// t.Run("Get stack entity by source id and path", func(t *testing.T) {
-	// 	fakeGDB, sqlMock, err := GetMockDB()
-	// 	require.NoError(t, err)
-	// 	repo := NewProjectRepository(fakeGDB)
-	// 	defer CloseDB(t, fakeGDB)
-	// 	defer sqlMock.ExpectClose()
-
-	// 	var (
-	// 		expectedID        uint = 1
-	// 		expectedState          = constant.ProjectStateUnSynced
-	// 	)
-	// 	sqlMock.ExpectQuery("SELECT.*FROM "stack"").
-	// 		WillReturnRows(sqlmock.NewRows([]string{"id", "source_id", "path", "sync_state", "Source__source_provider"}).
-	// 			AddRow(expectedID, 2, "/path/to/ws", string(expectedState), string(constant.SourceProviderTypeGithub)))
-	// 	actual, err := repo.GetBy(context.Background(), 2, "/path/to/ws")
-	// 	require.NoError(t, err)
-	// 	require.Equal(t, expectedID, actual.ID)
-	// 	require.Equal(t, expectedState, actual.State)
-	// })
-
-	// t.Run("Find", func(t *testing.T) {
-	// 	fakeGDB, sqlMock, err := GetMockDB()
-	// 	require.NoError(t, err)
-	// 	repo := NewProjectRepository(fakeGDB)
-	// 	defer CloseDB(t, fakeGDB)
-	// 	defer sqlMock.ExpectClose()
-
-	// 	sqlMock.ExpectQuery("SELECT").
-	// 		WillReturnRows(sqlmock.NewRows([]string{"id", "state", "framework", "Source__source_provider"}).
-	// 			AddRow(1, string(constant.ProjectStateUnSynced), string(constant.FrameworkTypeKusion), string(constant.SourceProviderTypeRepoServer)).
-	// 			AddRow(2, string(constant.ProjectStateUnSynced), string(constant.FrameworkTypeTerraform), string(constant.SourceProviderTypeRepoServer)))
-	// 	actuals, err := repo.Find(context.Background(), repository.ProjectQuery{
-	// 		Bound: repository.Bound{
-	// 			Offset: 1,
-	// 			Limit:  10,
-	// 		},
-	// 	})
-	// 	require.NoError(t, err)
-	// 	require.Equal(t, 2, len(actuals))
-	// })
 }

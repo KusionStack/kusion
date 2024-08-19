@@ -57,28 +57,6 @@ func (r *sourceRepository) Create(ctx context.Context, dataEntity *entity.Source
 	})
 }
 
-// Create saves a source to the repository.
-func (r *sourceRepository) CreateOrUpdate(ctx context.Context, dataEntity *entity.Source) error {
-	err := dataEntity.Validate()
-	if err != nil {
-		return err
-	}
-
-	// Map the data from Entity to DO
-	var dataModel SourceModel
-	err = dataModel.FromEntity(dataEntity)
-	if err != nil {
-		return err
-	}
-
-	// Check if the source exists and update it if it does
-	if existingSource, err := r.GetByRemote(ctx, dataModel.Remote); err == nil && existingSource != nil {
-		return r.Update(ctx, dataEntity)
-	} else {
-		return r.Create(ctx, dataEntity)
-	}
-}
-
 // Delete removes a source from the repository.
 func (r *sourceRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {

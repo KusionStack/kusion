@@ -181,11 +181,7 @@ func (m *StackManager) getDefaultBackend() (backend.Backend, error) {
 }
 
 func buildValidStackPath(requestPayload request.CreateStackRequest, projectEntity *entity.Project) (string, bool) {
-	if requestPayload.Cloud == "" {
-		stackPath := fmt.Sprintf("%s/%s", projectEntity.Path, requestPayload.Name)
-		return stackPath, validStackPath(stackPath)
-	}
-	stackPath := fmt.Sprintf("%s/clouds/%s/%s", projectEntity.Path, requestPayload.Cloud, requestPayload.Name)
+	stackPath := fmt.Sprintf("%s/%s", projectEntity.Path, requestPayload.Name)
 	return stackPath, validStackPath(stackPath)
 }
 
@@ -199,7 +195,7 @@ func tempPath(path string) string {
 	return fmt.Sprintf("%s/%s", constant.TmpDirPrefix, path)
 }
 
-func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, projectIDParam, projectName, cloudParam, envParam string) (*entity.StackFilter, error) {
+func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, projectIDParam, projectName, envParam string) (*entity.StackFilter, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building stack filter...")
 	filter := entity.StackFilter{}
@@ -225,15 +221,8 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 		}
 		filter.ProjectID = projectEntity.ID
 		if envParam != "" {
-			if cloudParam != "" {
-				// if cloud is present, use project name, cloud and environment to derive the deployable stack under clouds path
-				filter.Path = fmt.Sprintf("%s/clouds/%s/%s", projectEntity.Path, cloudParam, envParam)
-				logger.Info("Showing path filter with cloud", "filter.Path: ", filter.Path)
-			} else {
-				// if only environment is present, use project name and environment to derive the non-deployable stack
-				filter.Path = fmt.Sprintf("%s/%s", projectEntity.Path, envParam)
-				logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
-			}
+			filter.Path = fmt.Sprintf("%s/%s", projectEntity.Path, envParam)
+			logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
 		}
 	}
 	return &filter, nil

@@ -26,11 +26,14 @@ require (
 	github.com/fluxcd/pkg/tar v0.4.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/cors v1.2.1
+	github.com/go-chi/httplog/v2 v2.1.1
+	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/go-chi/render v1.0.3
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-test/deep v1.0.8
 	github.com/goccy/go-yaml v1.12.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gonvenience/bunt v1.1.1
 	github.com/gonvenience/neat v1.3.0
 	github.com/gonvenience/term v1.0.0
@@ -49,6 +52,7 @@ require (
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/howieyuen/uilive v0.0.6
 	github.com/jinzhu/copier v0.3.2
+	github.com/lestrrat-go/jwx v1.2.30
 	github.com/liu-hm19/pterm v0.12.79-fix.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/mitchellh/hashstructure v1.0.0
@@ -98,24 +102,21 @@ require (
 	github.com/containers/storage v1.54.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/go-chi/httplog/v2 v2.1.1 // indirect
-	github.com/go-chi/jwtauth/v5 v5.3.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/kubescape/go-git-url v0.0.30 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
-	github.com/lestrrat-go/jwx v1.2.30 // indirect
 	github.com/lestrrat-go/jwx/v2 v2.0.20 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/moby/sys/mountinfo v0.7.1 // indirect
 	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/opencontainers/runtime-spec v1.2.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
 )
 
@@ -202,7 +203,7 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
-	github.com/go-logr/logr v1.4.1
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
@@ -323,7 +324,7 @@ require (
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sync v0.7.0
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect

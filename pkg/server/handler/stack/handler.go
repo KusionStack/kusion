@@ -187,10 +187,9 @@ func (h *Handler) ListStacks() http.HandlerFunc {
 		orgIDParam := r.URL.Query().Get("orgID")
 		projectIDParam := r.URL.Query().Get("projectID")
 		projectNameParam := r.URL.Query().Get("projectName")
-		cloudParam := r.URL.Query().Get("cloud")
 		envParam := r.URL.Query().Get("env")
 
-		filter, err := h.stackManager.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectNameParam, cloudParam, envParam)
+		filter, err := h.stackManager.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectNameParam, envParam)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

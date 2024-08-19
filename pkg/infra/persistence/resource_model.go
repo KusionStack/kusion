@@ -44,7 +44,7 @@ func (m *ResourceModel) ToEntity() (*entity.Resource, error) {
 	if m.Stack != nil {
 		stackEntity, err = m.Stack.ToEntity()
 		if err != nil {
-			return nil, ErrFailedToConvertStackToEntity
+			return nil, err
 		}
 	}
 

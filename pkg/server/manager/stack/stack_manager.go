@@ -123,7 +123,7 @@ func (m *StackManager) CreateStack(ctx context.Context, requestPayload request.C
 
 	// If explicit path is missing, build the stack path from project, stack name and optional cloud information
 	if requestPayload.Path == "" {
-		logger.Info("Path not explicitly provided, building stack path from project, stack name and cloud...")
+		logger.Info("Path not explicitly provided, building stack path from project and stack name")
 		stackPath, ok := buildValidStackPath(requestPayload, projectEntity)
 		if !ok {
 			return nil, constant.ErrInvalidStackPath

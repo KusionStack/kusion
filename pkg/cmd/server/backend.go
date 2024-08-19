@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"kusionstack.io/kusion/pkg/cmd/server/util"
 	"kusionstack.io/kusion/pkg/server"
 
 	"github.com/spf13/pflag"
@@ -37,28 +36,6 @@ func (o *DefaultBackendOptions) ApplyTo(config *server.Config) error {
 	backendAccessSecret := os.Getenv("BACKEND_ACCESS_KEY_SECRET")
 	config.DefaultBackend.BackendConfig.Configs["accessKeyID"] = backendAccessKey
 	config.DefaultBackend.BackendConfig.Configs["accessKeySecret"] = backendAccessSecret
-	return nil
-}
-
-// Validate checks validation of DefaultBackendOptions
-func (o *DefaultBackendOptions) Validate() error {
-	var errs []error
-	if len(o.BackendEndpoint) == 0 {
-		errs = append(errs, ErrBackendEndpointNotSpecified)
-	}
-	if len(o.BackendName) == 0 {
-		errs = append(errs, ErrBackendNameNotSpecified)
-	}
-	if len(o.BackendType) == 0 {
-		errs = append(errs, ErrBackendTypeNotSpecified)
-	}
-	if os.Getenv("BACKEND_ACCESS_KEY_ID") == "" || os.Getenv("BACKEND_ACCESS_KEY_SECRET") == "" {
-		errs = append(errs, ErrBackendAKSKNotSpecified)
-	}
-	if errs != nil {
-		err := util.AggregateError(errs)
-		return errors.Wrap(err, "invalid backend options")
-	}
 	return nil
 }
 

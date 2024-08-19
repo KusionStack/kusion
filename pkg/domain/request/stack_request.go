@@ -18,8 +18,6 @@ type CreateStackRequest struct {
 	ProjectName string `json:"projectName"`
 	// Type is the type of the stack.
 	Type string `json:"type"`
-	// Cloud is the target cloud of the stack.
-	Cloud string `json:"cloud"`
 	// Path is the relative path of the stack within the source.
 	Path string `json:"path"`
 	// DesiredVersion is the desired revision of stack.

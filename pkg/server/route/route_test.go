@@ -1,16 +1,12 @@
 package route
 
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"testing"
 
-// 	"github.com/stretchr/testify/require"
-// 	"kusionstack.io/kusion/pkg/infra/persistence"
-// 	"kusionstack.io/kusion/pkg/server"
-// )
+	"github.com/go-chi/chi/v5"
+	"kusionstack.io/kusion/pkg/domain/entity"
+	"kusionstack.io/kusion/pkg/server"
+)
 
 // TestNewCoreRoute will test the NewCoreRoute function with different
 // configurations.
@@ -29,7 +25,15 @@ package route
 // 		{
 // 			name: "route test",
 // 			config: server.Config{
-// 				DB: fakeGDB,
+// 				DB:             fakeGDB,
+// 				LogFilePath:    "test.log",
+// 				AuthEnabled:    false,
+// 				AuthWhitelist:  []string{"kusion"},
+// 				AuthKeyType:    "RS256",
+// 				AutoMigrate:    false,
+// 				DefaultBackend: entity.Backend{},
+// 				DefaultSource:  entity.Source{},
+// 				MaxConcurrent:  10,
 // 			},
 // 			expectError: false,
 // 			expectRoutes: []string{
@@ -49,12 +53,8 @@ package route
 // 				require.NoError(t, err)
 // 				for _, route := range tt.expectRoutes {
 // 					req := httptest.NewRequest(http.MethodGet, route, nil)
-// 					request, _ := json.Marshal(req.URL)
-// 					fmt.Println(string(request))
 // 					rr := httptest.NewRecorder()
 // 					router.ServeHTTP(rr, req)
-// 					fmt.Println(rr.Code)
-// 					fmt.Println(rr.Header())
 
 // 					// Assert status code is not 404 to ensure the route exists.
 // 					require.Equal(t, http.StatusOK, rr.Code)
@@ -64,3 +64,21 @@ package route
 // 		})
 // 	}
 // }
+
+func TestSetupRestAPIV1(t *testing.T) {
+	config := &server.Config{
+		AuthEnabled:    false,
+		AuthWhitelist:  []string{"example.com"},
+		AuthKeyType:    "RS256",
+		DB:             nil, // Replace with your mock DB
+		AutoMigrate:    false,
+		DefaultBackend: entity.Backend{},
+		DefaultSource:  entity.Source{},
+		MaxConcurrent:  10,
+	}
+
+	r := chi.NewRouter()
+	setupRestAPIV1(r, config)
+
+	// Add your assertions here
+}

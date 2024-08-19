@@ -66,8 +66,6 @@ type SourceRepository interface {
 	List(ctx context.Context) ([]*entity.Source, error)
 	// Create creates a new source.
 	Create(ctx context.Context, source *entity.Source) error
-	// CreateOrUpdate creates a new stack.
-	CreateOrUpdate(ctx context.Context, stack *entity.Source) error
 	// Delete deletes a stack by its ID.
 	Delete(ctx context.Context, id uint) error
 	// Update updates an existing stack.
@@ -117,8 +115,6 @@ type ResourceRepository interface {
 	BatchDelete(ctx context.Context, resource []*entity.Resource) error
 	// Update updates an existing resource.
 	Update(ctx context.Context, resource *entity.Resource) error
-	// BatchUpdate updates the resources in batch.
-	BatchUpdate(ctx context.Context, resource []*entity.Resource) error
 	// Get retrieves a resource by its ID.
 	Get(ctx context.Context, id uint) (*entity.Resource, error)
 	// GetByKusionResourceID retrieves a resource by its KusionID.

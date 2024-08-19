@@ -50,7 +50,6 @@ type ResourceFilter struct {
 	OrgID            uint
 	ProjectID        uint
 	StackID          uint
-	AppConfigID      uint
 	ResourcePlane    string
 	ResourceType     string
 	KusionResourceID string

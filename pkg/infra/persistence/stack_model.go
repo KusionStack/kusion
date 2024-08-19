@@ -43,7 +43,7 @@ func (m *StackModel) ToEntity() (*entity.Stack, error) {
 
 	projectEntity, err := m.Project.ToEntity()
 	if err != nil {
-		return nil, ErrFailedToConvertProjectToEntity
+		return nil, err
 	}
 
 	return &entity.Stack{

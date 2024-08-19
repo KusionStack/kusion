@@ -145,6 +145,57 @@ func TestProjectHandler(t *testing.T) {
 		assert.Equal(t, projectName, resp.Data.(map[string]any)["name"])
 	})
 
+	t.Run("CreateProjectWithOrgName", func(t *testing.T) {
+		sqlMock, fakeGDB, recorder, projectHandler := setupTest(t)
+		defer persistence.CloseDB(t, fakeGDB)
+		defer sqlMock.ExpectClose()
+
+		// Create a new HTTP request
+		req, err := http.NewRequest("POST", "/projects", nil)
+		assert.NoError(t, err)
+
+		rctx := chi.NewRouteContext()
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		// Set request body
+		requestPayload := request.CreateProjectRequest{
+			Name:     projectName,
+			Path:     projectPath,
+			Domain:   "test-org",
+			SourceID: 1,
+		}
+		reqBody, err := json.Marshal(requestPayload)
+		assert.NoError(t, err)
+		req.Body = io.NopCloser(bytes.NewReader(reqBody))
+		req.Header.Add("Content-Type", "application/json")
+
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
+				AddRow(1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
+				AddRow(1, "test-org", owners))
+		sqlMock.ExpectBegin()
+		sqlMock.ExpectExec("INSERT").
+			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
+		sqlMock.ExpectCommit()
+
+		// Call the CreateProject handler function
+		projectHandler.CreateProject()(recorder, req)
+		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		// Unmarshal the response body
+		var resp handler.Response
+		err = json.Unmarshal(recorder.Body.Bytes(), &resp)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal response: %v", err)
+		}
+
+		// Assertion
+		assert.Equal(t, float64(1), resp.Data.(map[string]any)["id"])
+		assert.Equal(t, projectName, resp.Data.(map[string]any)["name"])
+	})
+
 	t.Run("UpdateExistingProject", func(t *testing.T) {
 		sqlMock, fakeGDB, recorder, projectHandler := setupTest(t)
 		defer persistence.CloseDB(t, fakeGDB)

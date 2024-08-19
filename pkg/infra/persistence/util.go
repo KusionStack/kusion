@@ -150,10 +150,6 @@ func GetResourceQuery(filter *entity.ResourceFilter) (string, []interface{}) {
 		pattern = append(pattern, "stack_id = ?")
 		args = append(args, fmt.Sprint(filter.StackID))
 	}
-	if filter.AppConfigID != 0 {
-		pattern = append(pattern, "app_config_id = ?")
-		args = append(args, fmt.Sprint(filter.AppConfigID))
-	}
 	if filter.ResourcePlane != "" {
 		pattern = append(pattern, "resource_plane = ?")
 		args = append(args, filter.ResourcePlane)
