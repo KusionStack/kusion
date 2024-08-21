@@ -232,7 +232,13 @@ func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
 					return fmt.Errorf("decode json patch:%s failed with error %w", jsonPatcher.Payload, err)
 				}
 
-				modified, err := patch.Apply([]byte(target))
+				// Apply JSON Patch with options to allow missing path on `remove`,
+				// and ensure path exists on `add`.
+				applyOpts := jsonpatch.NewApplyOptions()
+				applyOpts.AllowMissingPathOnRemove = true
+				applyOpts.EnsurePathExistsOnAdd = true
+
+				modified, err := patch.ApplyWithOptions([]byte(target), applyOpts)
 				if err != nil {
 					return fmt.Errorf("apply json patch to:%s failed with error %w", id, err)
 				}
