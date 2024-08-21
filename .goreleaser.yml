@@ -16,6 +16,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    flags: 
+      - -tags=rpc
     # ldflags="-s -w" removes the symbol table and debugging information to reduce the size of the release package
     ldflags:
       - -s
