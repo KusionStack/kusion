@@ -367,7 +367,7 @@ func TestPrompt(t *testing.T) {
 }
 
 func TestWatchK8sResources(t *testing.T) {
-	t.Run("successfully apply K8s resources", func(t *testing.T) {
+	t.Run("successfully apply default K8s resources", func(t *testing.T) {
 		id := "v1:Namespace:example"
 		chs := make([]<-chan watch.Event, 1)
 		events := []watch.Event{
@@ -415,7 +415,48 @@ func TestWatchK8sResources(t *testing.T) {
 			id: table,
 		}
 
-		watchK8sResources(id, chs, table, tables, true)
+		watchK8sResources(id, "", chs, table, tables, true, nil)
+
+		assert.Equal(t, true, table.AllCompleted())
+	})
+	t.Run("successfully apply customized K8s resources", func(t *testing.T) {
+		id := "v1:Deployment:example"
+		chs := make([]<-chan watch.Event, 1)
+		events := []watch.Event{
+			{
+				Type: watch.Added,
+				Object: &unstructured.Unstructured{
+					Object: map[string]interface{}{
+						"apiVersion": "v1",
+						"kind":       "Deployment",
+						"metadata": map[string]interface{}{
+							"name":       "example",
+							"generation": 1,
+						},
+						"spec": map[string]interface{}{},
+					},
+				},
+			},
+		}
+
+		out := make(chan watch.Event, 10)
+		for _, e := range events {
+			out <- e
+		}
+		chs[0] = out
+		table := &printers.Table{
+			IDs:  []string{id},
+			Rows: map[string]*printers.Row{},
+		}
+		tables := map[string]*printers.Table{
+			id: table,
+		}
+		var policyInterface interface{}
+		healthPolicy := map[string]interface{}{
+			"health.kcl": "assert res.metadata.generation == 1",
+		}
+		policyInterface = healthPolicy
+		watchK8sResources(id, "Deployment", chs, table, tables, false, policyInterface)
 
 		assert.Equal(t, true, table.AllCompleted())
 	})
@@ -471,4 +512,71 @@ func TestPrintTable(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Contains(t, w.(*bytes.Buffer).String(), tableStr)
 	})
+}
+
+func TestGetResourceInfo(t *testing.T) {
+	tests := []struct {
+		name         string
+		resource     *apiv1.Resource
+		expectedKind string
+		expectPanic  bool
+	}{
+		{
+			name: "with valid resource",
+			resource: &apiv1.Resource{
+				Attributes: map[string]interface{}{
+					apiv1.FieldKind: "Service",
+				},
+				Extensions: map[string]interface{}{
+					apiv1.FieldHealthPolicy: "policyValue",
+				},
+			},
+			expectedKind: "Service",
+			expectPanic:  false,
+		},
+		{
+			name: "with nil Attributes",
+			resource: &apiv1.Resource{
+				Attributes: nil,
+				Extensions: map[string]interface{}{
+					apiv1.FieldHealthPolicy: "policyValue",
+				},
+			},
+			expectPanic: true,
+		},
+		{
+			name: "with non-string kind",
+			resource: &apiv1.Resource{
+				Attributes: map[string]interface{}{
+					apiv1.FieldKind: 123,
+				},
+				Extensions: map[string]interface{}{
+					apiv1.FieldHealthPolicy: "policyValue",
+				},
+			},
+			expectPanic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.expectPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("expected panic for test case '%s', but got none", tt.name)
+					}
+				}()
+			}
+
+			healthPolicy, kind := getResourceInfo(tt.resource)
+			if !tt.expectPanic {
+				if kind != tt.expectedKind {
+					t.Errorf("expected kind '%s', but got '%s'", tt.expectedKind, kind)
+				}
+				if healthPolicy != "policyValue" && !tt.expectPanic {
+					t.Errorf("expected healthPolicy to be 'policyValue', but got '%v'", healthPolicy)
+				}
+			}
+		})
+	}
 }

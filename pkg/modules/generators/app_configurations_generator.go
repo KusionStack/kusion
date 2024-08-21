@@ -427,7 +427,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		if err != nil {
 			return nil, nil, nil, err
 		}
-
+		healthPolicy := config.platformConfig[v1.FieldHealthPolicy]
 		// parse module result
 		// if only one resource exists in the workload module, it is the workload
 		if workloadKey == t && len(response.Resources) == 1 {
@@ -443,7 +443,6 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 				if err != nil {
 					return nil, nil, nil, err
 				}
-
 				// filter out workload
 				if workloadKey == t && temp.Extensions[isWorkload] == "true" {
 					workload = temp
@@ -452,7 +451,10 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 				}
 			}
 		}
-
+		// Add healthPolicy to workload extensions
+		if healthPolicy != nil && workload != nil {
+			patchHealthPolicy(workload, healthPolicy)
+		}
 		// parse patcher
 		temp := &v1.Patcher{}
 		if response.Patcher != nil {
@@ -669,4 +671,15 @@ func patchImportedResources(resources v1.Resources, projectImportedResources map
 	}
 
 	return nil
+}
+
+// patchHealthPolicy patch the health policy to the `extensions` field of the resource in the Spec.
+func patchHealthPolicy(resource *v1.Resource, healthPolicy any) {
+	healthPolicyMap := make(map[string]any)
+	if hp, ok := healthPolicy.(v1.GenericConfig); ok {
+		for k, v := range hp {
+			healthPolicyMap[k] = v
+		}
+		resource.Extensions[v1.FieldHealthPolicy] = healthPolicyMap
+	}
 }
