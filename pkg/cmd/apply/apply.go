@@ -419,8 +419,10 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 
 	// start applying
 	fmt.Printf("\nStart applying diffs ...\n")
-	var updatedRel *apiv1.Release
-	updatedRel, err = Apply(o, storage, rel, changes)
+
+	// NOTE: release should be updated in the process of apply, so as to avoid the problem
+	// of being unable to update after being terminated by SIGINT or SIGTERM.
+	_, err = Apply(o, storage, rel, changes)
 	if err != nil {
 		return
 	}
@@ -430,7 +432,6 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 		fmt.Printf("\nNOTE: Currently running in the --dry-run mode, the above configuration does not really take effect\n")
 		return nil
 	}
-	*rel = *updatedRel
 
 	if o.PortForward > 0 {
 		fmt.Printf("\nStart port-forwarding ...\n")
@@ -478,7 +479,7 @@ func Apply(
 	}
 
 	// Init a watch channel with a sufficient buffer when it is necessary to perform watching.
-	if o.Watch {
+	if o.Watch && !o.DryRun {
 		ac.WatchCh = make(chan string, 100)
 	}
 
@@ -544,7 +545,7 @@ func Apply(
 
 	watchErrCh := make(chan error)
 	// Apply while watching the resources.
-	if o.Watch {
+	if o.Watch && !o.DryRun {
 		Watch(
 			ac,
 			changes,
@@ -580,13 +581,15 @@ func Apply(
 			err = fmt.Errorf("apply failed, status:\n%v", st)
 			return nil, err
 		}
+		// Update the release with that in the apply response if not dryrun.
 		updatedRel = rsp.Release
+		*rel = *updatedRel
 	}
 
 	// wait for msgCh closed
 	wg.Wait()
 	// Wait for watchWg closed if need to perform watching.
-	if o.Watch {
+	if o.Watch && !o.DryRun {
 		shouldBreak := false
 		for !shouldBreak {
 			select {
@@ -654,7 +657,7 @@ func PrintApplyDetails(
 					title = fmt.Sprintf("Skipped %s", pterm.Bold.Sprint(changeStep.ID))
 					changesWriterMap[msg.ResourceID].Success(title)
 				} else {
-					if watch {
+					if watch && !dryRun {
 						title = fmt.Sprintf("%s %s",
 							changeStep.Action.Ing(),
 							pterm.Bold.Sprint(changeStep.ID),
