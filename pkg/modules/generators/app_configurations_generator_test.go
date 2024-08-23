@@ -373,6 +373,10 @@ func Test_patchWorkload(t *testing.T) {
 		patcher := &v1.Patcher{
 			Environments: []corev1.EnvVar{
 				{
+					Name:  "MY_ENV",
+					Value: "ops://kusionstack.io/remove",
+				},
+				{
 					Name:  "NEW_ENV",
 					Value: "my-new-value",
 				},
@@ -385,7 +389,7 @@ func Test_patchWorkload(t *testing.T) {
 		containers := res.Attributes["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]interface{})
 		env := containers[0].(map[string]interface{})["env"].([]interface{})
 		assert.Contains(t, env, map[string]interface{}{"name": "NEW_ENV", "value": "my-new-value"})
-		assert.Contains(t, env, map[string]interface{}{"name": "MY_ENV", "value": "my-env-value"})
+		assert.NotContains(t, env, map[string]interface{}{"name": "MY_ENV", "value": "my-env-value"})
 	})
 }
 
