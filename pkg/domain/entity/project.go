@@ -21,7 +21,7 @@ type Project struct {
 	Organization *Organization `yaml:"organization" json:"organization"`
 	// Description is a human-readable description of the project.
 	Description string `yaml:"description,omitempty" json:"description,omitempty"`
-	// Path is the relative path of the project within the sourcs.
+	// Path is the relative path of the project within the sources.
 	Path string `yaml:"path,omitempty" json:"path,omitempty"`
 	// Labels are custom labels associated with the project.
 	Labels []string `yaml:"labels,omitempty" json:"labels,omitempty"`
@@ -31,6 +31,11 @@ type Project struct {
 	CreationTimestamp time.Time `yaml:"creationTimestamp,omitempty" json:"creationTimestamp,omitempty"`
 	// UpdateTimestamp is the timestamp of the updated for the project.
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
+}
+
+type ProjectFilter struct {
+	OrgID uint
+	Name  string
 }
 
 // Validate checks if the project is valid.
@@ -48,23 +53,27 @@ func (p *Project) Validate() error {
 		return constant.ErrProjectPath
 	}
 
-	if p.Source == nil {
-		return constant.ErrProjectSource
+	if p.Source != nil {
+		if err := p.Source.Validate(); err != nil {
+			return err
+		}
 	}
 
-	if err := p.Source.Validate(); err != nil {
-		return constant.ErrProjectSource
+	if p.Organization != nil {
+		if err := p.Organization.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 // Convert Project to core Project
-func (p *Project) ConvertToCore() (*v1.Project, error) {
+func (p *Project) ConvertToCore() *v1.Project {
 	return &v1.Project{
 		Name:        p.Name,
 		Description: &p.Description,
 		Path:        p.Path,
 		Labels:      map[string]string{},
-	}, nil
+	}
 }

@@ -3,6 +3,7 @@ package request
 import (
 	"errors"
 	"net/http"
+	"regexp"
 
 	"github.com/go-chi/render"
 )
@@ -25,50 +26,14 @@ func decode(r *http.Request, payload interface{}) error {
 	return nil
 }
 
-func (payload *CreateProjectRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
+func validPath(path string) bool {
+	// Validate project and stack path contains one or more capturing group
+	// that contains a backslash with alphanumeric and underscore characters
+	return !regexp.MustCompile(`^([\/a-zA-Z0-9_-])+$`).MatchString(path)
 }
 
-func (payload *UpdateProjectRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *CreateStackRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateStackRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *CreateSourceRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateSourceRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *CreateOrganizationRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateOrganizationRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *CreateWorkspaceRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateWorkspaceRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *CreateBackendRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateBackendRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
+func validName(name string) bool {
+	// Validate project, stack and appconfig name contains only alphanumeric
+	// and underscore characters
+	return !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(name)
 }

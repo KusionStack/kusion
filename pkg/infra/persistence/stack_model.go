@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"context"
 	"time"
 
 	"kusionstack.io/kusion/pkg/domain/constant"
@@ -13,20 +12,20 @@ import (
 // StackModel is a DO used to map the entity to the database.
 type StackModel struct {
 	gorm.Model
-	Name string `gorm:"index:unique_project,unique"`
-	// SourceID          uint
-	// Source            *SourceModel
-	ProjectID uint
-	Project   *ProjectModel
-	// OrganizationID    uint
-	// Organization      *OrganizationModel
-	Description       string
-	Path              string `gorm:"index:unique_project,unique"`
-	DesiredVersion    string
-	Labels            MultiString
-	Owners            MultiString
-	SyncState         string
-	LastSyncTimestamp time.Time
+	Name                  string `gorm:"index:unique_project,unique"`
+	ProjectID             uint
+	Project               *ProjectModel
+	Description           string
+	Type                  string
+	Path                  string `gorm:"index:unique_project,unique"`
+	DesiredVersion        string
+	Labels                MultiString
+	Owners                MultiString
+	SyncState             string
+	LastGeneratedRevision string
+	LastPreviewedRevision string
+	LastAppliedRevision   string
+	LastAppliedTimestamp  time.Time
 }
 
 // The TableName method returns the name of the database table that the struct is mapped to.
@@ -35,47 +34,35 @@ func (m *StackModel) TableName() string {
 }
 
 // ToEntity converts the DO to an entity.
-func (m *StackModel) ToEntity(ctx context.Context) (*entity.Stack, error) {
+func (m *StackModel) ToEntity() (*entity.Stack, error) {
 	if m == nil {
 		return nil, ErrStackModelNil
 	}
 
-	stackState, err := constant.ParseStackState(m.SyncState)
+	stackState := constant.StackState(m.SyncState)
+
+	projectEntity, err := m.Project.ToEntity()
 	if err != nil {
-		return nil, ErrFailedToGetStackState
-	}
-
-	// sourceEntity, err := m.Source.ToEntity()
-	// if err != nil {
-	// 	return nil, ErrFailedToConvertSourceToEntity
-	// }
-
-	// organizationEntity, err := m.Organization.ToEntity()
-	// if err != nil {
-	// 	return nil, ErrFailedToConvertSourceToEntity
-	// }
-
-	// projectEntity, err := m.Project.ToEntityWithSourceAndOrg(sourceEntity, organizationEntity)
-	projectEntity, err := m.Project.ToEntityWithSourceAndOrg(nil, nil)
-	if err != nil {
-		return nil, ErrFailedToConvertProjectToEntity
+		return nil, err
 	}
 
 	return &entity.Stack{
-		ID:   m.ID,
-		Name: m.Name,
-		// Source:            sourceEntity,
-		Project: projectEntity,
-		// Organization:      organizationEntity,
-		Description:       m.Description,
-		Path:              m.Path,
-		DesiredVersion:    m.DesiredVersion,
-		Labels:            []string(m.Labels),
-		Owners:            []string(m.Owners),
-		SyncState:         stackState,
-		LastSyncTimestamp: m.LastSyncTimestamp,
-		CreationTimestamp: m.CreatedAt,
-		UpdateTimestamp:   m.UpdatedAt,
+		ID:                    m.ID,
+		Name:                  m.Name,
+		Project:               projectEntity,
+		Description:           m.Description,
+		Type:                  m.Type,
+		Path:                  m.Path,
+		DesiredVersion:        m.DesiredVersion,
+		Labels:                []string(m.Labels),
+		Owners:                []string(m.Owners),
+		SyncState:             stackState,
+		LastGeneratedRevision: m.LastGeneratedRevision,
+		LastPreviewedRevision: m.LastPreviewedRevision,
+		LastAppliedRevision:   m.LastAppliedRevision,
+		LastAppliedTimestamp:  m.LastAppliedTimestamp,
+		CreationTimestamp:     m.CreatedAt,
+		UpdateTimestamp:       m.UpdatedAt,
 	}, nil
 }
 
@@ -89,28 +76,22 @@ func (m *StackModel) FromEntity(e *entity.Stack) error {
 	m.Name = e.Name
 	m.Description = e.Description
 	m.Path = e.Path
+	m.Type = e.Type
 	m.DesiredVersion = e.DesiredVersion
 	m.Labels = MultiString(e.Labels)
 	m.Owners = MultiString(e.Owners)
 	m.SyncState = string(e.SyncState)
-	m.LastSyncTimestamp = e.LastSyncTimestamp
+	m.LastGeneratedRevision = e.LastGeneratedRevision
+	m.LastPreviewedRevision = e.LastPreviewedRevision
+	m.LastAppliedRevision = e.LastAppliedRevision
+	m.LastAppliedTimestamp = e.LastAppliedTimestamp
 	m.CreatedAt = e.CreationTimestamp
 	m.UpdatedAt = e.UpdateTimestamp
-	// Convert the source to a DO
-	// if e.Source != nil {
-	// 	m.SourceID = e.Source.ID
-	// 	m.Source.FromEntity(e.Source)
-	// }
 	// Convert the project to a DO
 	if e.Project != nil {
 		m.ProjectID = e.Project.ID
 		m.Project.FromEntity(e.Project)
 	}
-	// Convert the org to a DO
-	// if e.Organization != nil {
-	// 	m.OrganizationID = e.Organization.ID
-	// 	m.Organization.FromEntity(e.Organization)
-	// }
 
 	return nil
 }

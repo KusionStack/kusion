@@ -18,6 +18,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/project"
 	rel "kusionstack.io/kusion/pkg/cmd/release"
+	"kusionstack.io/kusion/pkg/cmd/server"
 	"kusionstack.io/kusion/pkg/cmd/stack"
 	"kusionstack.io/kusion/pkg/cmd/version"
 	"kusionstack.io/kusion/pkg/cmd/workspace"
@@ -103,6 +104,12 @@ Find more information at: https://www.kusionstack.io`),
 			Message: "Initialization Commands:",
 			Commands: []*cobra.Command{
 				cmdinit.NewCmd(),
+			},
+		},
+		{
+			Message: "Server Commands:",
+			Commands: []*cobra.Command{
+				server.NewCmdServer(),
 			},
 		},
 		{

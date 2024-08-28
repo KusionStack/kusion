@@ -6,26 +6,30 @@ import (
 	"github.com/go-chi/render"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
-	"kusionstack.io/kusion/pkg/server/util"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-// @Summary      Create stack
-// @Description  Create a new stack
-// @Accept       json
-// @Produce      json
-// @Param        stack  body      CreateStackRequest  true  "Created stack"
-// @Success      200        {object}  entity.Stack        "Success"
-// @Failure      400        {object}  errors.DetailError      "Bad Request"
-// @Failure      401        {object}  errors.DetailError      "Unauthorized"
-// @Failure      429        {object}  errors.DetailError      "Too Many Requests"
-// @Failure      404        {object}  errors.DetailError      "Not Found"
-// @Failure      500        {object}  errors.DetailError      "Internal Server Error"
-// @Router       /api/v1/project/{projectName}/stack/{stackName} [post]
+// @Id				createStack
+// @Summary		Create stack
+// @Description	Create a new stack
+// @Tags			stack
+// @Accept			json
+// @Produce		json
+// @Param			stack			body		request.CreateStackRequest	true	"Created stack"
+// @Param			fromTemplate	query		bool						false	"Whether to create an AppConfig from template when creating the stack"
+// @Param			initTopology	query		bool						false	"Whether to initialize an AppTopology from template when creating the stack"
+// @Success		200				{object}	entity.Stack				"Success"
+// @Failure		400				{object}	error						"Bad Request"
+// @Failure		401				{object}	error						"Unauthorized"
+// @Failure		429				{object}	error						"Too Many Requests"
+// @Failure		404				{object}	error						"Not Found"
+// @Failure		500				{object}	error						"Internal Server Error"
+// @Router			/api/v1/stacks [post]
 func (h *Handler) CreateStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Creating stack...")
 
 		// Decode the request body into the payload.
@@ -35,23 +39,46 @@ func (h *Handler) CreateStack() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// Create entity
 		createdEntity, err := h.stackManager.CreateStack(ctx, requestPayload)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		defer func() {
+			if err != nil {
+				// Rollback
+				err = h.stackManager.DeleteStackByID(ctx, createdEntity.ID)
+				if err != nil {
+					logger.Info("Failed to rollback stack creation", "stackID", createdEntity.ID, "error", err)
+				}
+			}
+		}()
+
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
 }
 
-// @Summary      Delete stack
-// @Description  Delete specified stack by ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400             {object}  errors.DetailError   "Bad Request"
-// @Failure      401             {object}  errors.DetailError   "Unauthorized"
-// @Failure      429             {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404             {object}  errors.DetailError   "Not Found"
-// @Failure      500             {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/project/{projectName}/stack/{stackName}  [delete]
-// @Router       /api/v1/stack/{stackID} [delete]
+// @Id				deleteStack
+// @Summary		Delete stack
+// @Description	Delete specified stack by ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int		true	"Stack ID"
+// @Success		200			{object}	string	"Success"
+// @Failure		400			{object}	error	"Bad Request"
+// @Failure		401			{object}	error	"Unauthorized"
+// @Failure		429			{object}	error	"Too Many Requests"
+// @Failure		404			{object}	error	"Not Found"
+// @Failure		500			{object}	error	"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id} [delete]
 func (h *Handler) DeleteStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -67,18 +94,21 @@ func (h *Handler) DeleteStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      Update stack
-// @Description  Update the specified stack
-// @Accept       json
-// @Produce      json
-// @Param        stack  body      UpdateStackRequest  true  "Updated stack"
-// @Success      200     {object}  entity.Stack        "Success"
-// @Failure      400     {object}  errors.DetailError   "Bad Request"
-// @Failure      401     {object}  errors.DetailError   "Unauthorized"
-// @Failure      429     {object}  errors.DetailError   "Too Many Requests"
-// @Failure      404     {object}  errors.DetailError   "Not Found"
-// @Failure      500     {object}  errors.DetailError   "Internal Server Error"
-// @Router       /api/v1/stack/{stackID} [put]
+// @Id				updateStack
+// @Summary		Update stack
+// @Description	Update the specified stack
+// @Tags			stack
+// @Accept			json
+// @Produce		json
+// @Param			stack_id	path		int							true	"Stack ID"
+// @Param			stack		body		request.UpdateStackRequest	true	"Updated stack"
+// @Success		200			{object}	entity.Stack				"Success"
+// @Failure		400			{object}	error						"Bad Request"
+// @Failure		401			{object}	error						"Unauthorized"
+// @Failure		429			{object}	error						"Too Many Requests"
+// @Failure		404			{object}	error						"Not Found"
+// @Failure		500			{object}	error						"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id} [put]
 func (h *Handler) UpdateStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -101,17 +131,19 @@ func (h *Handler) UpdateStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      Get stack
-// @Description  Get stack information by stack ID
-// @Produce      json
-// @Param        id   path      int                 true  "Stack ID"
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack/{stackID} [get]
+// @Id				getStack
+// @Summary		Get stack
+// @Description	Get stack information by stack ID
+// @Tags			stack
+// @Produce		json
+// @Param			stack_id	path		int				true	"Stack ID"
+// @Success		200			{object}	entity.Stack	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
+// @Router			/api/v1/stacks/{stack_id} [get]
 func (h *Handler) GetStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -127,24 +159,43 @@ func (h *Handler) GetStack() http.HandlerFunc {
 	}
 }
 
-// @Summary      List stacks
-// @Description  List all stacks
-// @Produce      json
-// @Success      200  {object}  entity.Stack       "Success"
-// @Failure      400  {object}  errors.DetailError  "Bad Request"
-// @Failure      401  {object}  errors.DetailError  "Unauthorized"
-// @Failure      429  {object}  errors.DetailError  "Too Many Requests"
-// @Failure      404  {object}  errors.DetailError  "Not Found"
-// @Failure      500  {object}  errors.DetailError  "Internal Server Error"
-// @Router       /api/v1/stack [get]
+// @Id				listStack
+// @Summary		List stacks
+// @Description	List all stacks
+// @Tags			stack
+// @Produce		json
+// @Param			projectID	query		uint			false	"ProjectID to filter stacks by. Default to all"
+// @Param			orgID		query		uint			false	"OrgID to filter stacks by. Default to all"
+// @Param			projectName	query		string			false	"ProjectName to filter stacks by. Default to all"
+// @Param			cloud		query		string			false	"Cloud to filter stacks by. Default to all"
+// @Param			env			query		string			false	"Environment to filter stacks by. Default to all"
+// @Param			getLastSyncedBase			query		bool			false	"Whether to get last synced base revision. Default to false"
+// @Success		200			{object}	[]entity.Stack	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
+// @Router			/api/v1/stacks [get]
 func (h *Handler) ListStacks() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
 		ctx := r.Context()
-		logger := util.GetLogger(ctx)
+		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing stack...")
 
-		stackEntities, err := h.stackManager.ListStacks(ctx)
+		orgIDParam := r.URL.Query().Get("orgID")
+		projectIDParam := r.URL.Query().Get("projectID")
+		projectNameParam := r.URL.Query().Get("projectName")
+		envParam := r.URL.Query().Get("env")
+
+		filter, err := h.stackManager.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectNameParam, envParam)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		stackEntities, err := h.stackManager.ListStacks(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, stackEntities)
 	}
 }

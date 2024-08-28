@@ -1,5 +1,7 @@
 package request
 
+import "net/http"
+
 // CreateWorkspaceRequest represents the create request structure for
 // workspace.
 type CreateWorkspaceRequest struct {
@@ -12,7 +14,7 @@ type CreateWorkspaceRequest struct {
 	// Owners is a list of owners for the workspace.
 	Owners []string `json:"owners" binding:"required"`
 	// BackendID is the configuration backend id associated with the workspace.
-	BackendID uint `json:"backendID,string" binding:"required"`
+	BackendID uint `json:"backendID" binding:"required"`
 }
 
 // UpdateWorkspaceRequest represents the update request structure for
@@ -29,5 +31,28 @@ type UpdateWorkspaceRequest struct {
 	// Owners is a list of owners for the workspace.
 	Owners []string `json:"owners" binding:"required"`
 	// BackendID is the configuration backend id associated with the workspace.
-	BackendID uint `json:"backendID,string" binding:"required"`
+	BackendID uint `json:"backendID" binding:"required"`
+}
+
+type WorkspaceCredentials struct {
+	KubeConfigContent string `json:"kubeConfigContent,omitempty"`
+	KubeConfigPath    string `json:"kubeConfigPath,omitempty"`
+	AliCloudAccessKey string `json:"alicloudAccessKey,omitempty"`
+	AliCloudSecretKey string `json:"alicloudSecretKey,omitempty"`
+	AliCloudRegion    string `json:"alicloudRegion,omitempty"`
+	AwsAccessKey      string `json:"awsAccessKey,omitempty"`
+	AwsSecretKey      string `json:"awsSecretKey,omitempty"`
+	AwsRegion         string `json:"awsRegion,omitempty"`
+}
+
+func (payload *CreateWorkspaceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *UpdateWorkspaceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *WorkspaceCredentials) Decode(r *http.Request) error {
+	return decode(r, payload)
 }

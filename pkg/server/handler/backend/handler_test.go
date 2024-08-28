@@ -63,7 +63,7 @@ func TestBackendHandler(t *testing.T) {
 				AddRow(1, backendName))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("GET", "/backends/{backendID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -92,11 +92,10 @@ func TestBackendHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("POST", "/backends", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("backendID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
@@ -135,7 +134,7 @@ func TestBackendHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("POST", "/backends/{backendID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -145,8 +144,10 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: backendNameUpdated,
+			ID: 1,
+			CreateBackendRequest: request.CreateBackendRequest{
+				Name: backendNameUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -181,7 +182,7 @@ func TestBackendHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("DELETE", "/backends/{backendID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -193,8 +194,7 @@ func TestBackendHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteBackend handler function
@@ -217,7 +217,7 @@ func TestBackendHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("DELETE", "/backends/{backendID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -248,7 +248,7 @@ func TestBackendHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/backend/{backendID}", nil)
+		req, err := http.NewRequest("POST", "/backends/{backendID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -258,8 +258,10 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: "test-backend-updated",
+			ID: 1,
+			CreateBackendRequest: request.CreateBackendRequest{
+				Name: "test-backend-updated",
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

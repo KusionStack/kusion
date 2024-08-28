@@ -5,18 +5,21 @@ import (
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/engine/operation"
 	opsmodels "kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
+	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
 )
 
 type APIOptions struct {
-	Operator     string
-	Cluster      string
-	IgnoreFields []string
-	DryRun       bool
+	Operator      string
+	Cluster       string
+	IgnoreFields  []string
+	DryRun        bool
+	MaxConcurrent int
 }
 
 func NewAPIOptions() APIOptions {
@@ -24,7 +27,8 @@ func NewAPIOptions() APIOptions {
 		// Operator:     "operator",
 		// Cluster:      "cluster",
 		// IgnoreFields: []string{},
-		DryRun: false,
+		DryRun:        false,
+		MaxConcurrent: constant.MaxConcurrent,
 	}
 	return apiOptions
 }
@@ -77,6 +81,7 @@ func Preview(
 			ReleaseStorage: storage,
 			IgnoreFields:   o.IgnoreFields,
 			ChangeOrder:    &opsmodels.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*opsmodels.ChangeStep{}},
+			Sem:            semaphore.New(int64(o.MaxConcurrent)),
 		},
 	}
 

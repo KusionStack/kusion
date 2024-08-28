@@ -49,13 +49,12 @@ func TestBackendRepository(t *testing.T) {
 		defer CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		var expectedID, expectedRows uint = 1, 1
+		var expectedID uint = 1
 		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(int64(expectedID), int64(expectedRows)))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(int64(expectedID), int64(0)))
 		sqlMock.ExpectCommit()
 		err = repo.Delete(context.Background(), expectedID)
 		require.NoError(t, err)

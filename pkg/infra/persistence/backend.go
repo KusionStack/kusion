@@ -62,7 +62,7 @@ func (r *backendRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 
@@ -91,16 +91,6 @@ func (r *backendRepository) Get(ctx context.Context, id uint) (*entity.Backend, 
 		return nil, err
 	}
 
-	return dataModel.ToEntity()
-}
-
-// GetByName retrieves a backend by its name.
-func (r *backendRepository) GetByName(ctx context.Context, name string) (*entity.Backend, error) {
-	var dataModel BackendModel
-	err := r.db.WithContext(ctx).Where("name = ?", name).First(&dataModel).Error
-	if err != nil {
-		return nil, err
-	}
 	return dataModel.ToEntity()
 }
 

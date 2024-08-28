@@ -38,3 +38,7 @@ func (s *OssStorage) WorkspaceStorage() (workspace.Storage, error) {
 func (s *OssStorage) ReleaseStorage(project, workspace string) (release.Storage, error) {
 	return releasestorages.NewOssStorage(s.bucket, releasestorages.GenGenericOssReleasePrefixKey(s.prefix, project, workspace))
 }
+
+func (s *OssStorage) StateStorageWithPath(path string) (release.Storage, error) {
+	return releasestorages.NewOssStorage(s.bucket, releasestorages.GenReleasePrefixKeyWithPath(s.prefix, path))
+}

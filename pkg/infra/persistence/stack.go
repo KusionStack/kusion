@@ -33,11 +33,6 @@ func (r *stackRepository) Create(ctx context.Context, dataEntity *entity.Stack) 
 		return err
 	}
 
-	err = dataEntity.Validate()
-	if err != nil {
-		return err
-	}
-
 	// Map the data from Entity to DO
 	var dataModel StackModel
 	err = dataModel.FromEntity(dataEntity)
@@ -67,7 +62,7 @@ func (r *stackRepository) Delete(ctx context.Context, id uint) error {
 			return err
 		}
 
-		return tx.WithContext(ctx).Delete(&dataModel).Error
+		return tx.WithContext(ctx).Unscoped().Delete(&dataModel).Error
 	})
 }
 
@@ -92,27 +87,31 @@ func (r *stackRepository) Update(ctx context.Context, dataEntity *entity.Stack) 
 func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, error) {
 	var dataModel StackModel
 	err := r.db.WithContext(ctx).
-		Preload("Project").
+		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
+		Joins("JOIN Project ON Project.id = Stack.project_id").
 		First(&dataModel, id).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return dataModel.ToEntity(ctx)
+	return dataModel.ToEntity()
 }
 
 // List retrieves all stacks.
-func (r *stackRepository) List(ctx context.Context) ([]*entity.Stack, error) {
+func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error) {
 	var dataModel []StackModel
 	stackEntityList := make([]*entity.Stack, 0)
+	pattern, args := GetStackQuery(filter)
 	result := r.db.WithContext(ctx).
-		Preload("Project").
+		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
+		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Where(pattern, args...).
 		Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	for _, stack := range dataModel {
-		stackEntity, err := stack.ToEntity(ctx)
+		stackEntity, err := stack.ToEntity()
 		if err != nil {
 			return nil, err
 		}

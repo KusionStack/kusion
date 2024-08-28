@@ -412,7 +412,7 @@ func TestWorkSpace_ShowPlan(t *testing.T) {
 			}
 			r := jsonutil.Marshal2PrettyString(got)
 			if !reflect.DeepEqual(r, string(data)) {
-				t.Errorf("ShowPlan() got = %v, want %v", got, data)
+				t.Errorf("ShowPlan() got = %v, want %v", r, string(data))
 			}
 		})
 	}

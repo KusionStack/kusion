@@ -76,6 +76,7 @@ func (do *DestroyOperation) Destroy(req *DestroyRequest) (rsp *DestroyResponse, 
 			MsgCh:                   o.MsgCh,
 			Lock:                    &sync.Mutex{},
 			Release:                 rel,
+			Sem:                     o.Sem,
 		},
 	}
 

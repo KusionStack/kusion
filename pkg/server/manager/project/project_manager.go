@@ -6,13 +6,14 @@ import (
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
-	"kusionstack.io/kusion/pkg/server/handler"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *ProjectManager) ListProjects(ctx context.Context) ([]*entity.Project, error) {
-	projectEntities, err := m.projectRepo.List(ctx)
+func (m *ProjectManager) ListProjects(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+	projectEntities, err := m.projectRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingProject
@@ -51,20 +52,6 @@ func (m *ProjectManager) UpdateProjectByID(ctx context.Context, id uint, request
 		return nil, err
 	}
 
-	// Get source by id
-	sourceEntity, err := handler.GetSourceByID(ctx, m.sourceRepo, requestPayload.SourceID)
-	if err != nil {
-		return nil, err
-	}
-	requestEntity.Source = sourceEntity
-
-	// Get organization by id
-	organizationEntity, err := handler.GetOrganizationByID(ctx, m.organizationRepo, requestPayload.OrganizationID)
-	if err != nil {
-		return nil, err
-	}
-	requestEntity.Organization = organizationEntity
-
 	// Get the existing project by id
 	updatedEntity, err := m.projectRepo.Get(ctx, id)
 	if err != nil {
@@ -74,9 +61,32 @@ func (m *ProjectManager) UpdateProjectByID(ctx context.Context, id uint, request
 		return nil, err
 	}
 
+	// Get source by id
+	if requestPayload.SourceID == 0 {
+		requestEntity.Source = updatedEntity.Source
+	} else {
+		// If sourceID is passed in, get source by id and update the project source
+		sourceEntity, err := m.sourceRepo.Get(ctx, requestPayload.SourceID)
+		if err != nil {
+			return nil, err
+		}
+		requestEntity.Source = sourceEntity
+	}
+
+	// Get organization by id
+	if requestPayload.OrganizationID == 0 {
+		requestEntity.Organization = updatedEntity.Organization
+	} else {
+		// If orgID is passed in, get org by id and update the project organization
+		organizationEntity, err := m.organizationRepo.Get(ctx, requestPayload.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		requestEntity.Organization = organizationEntity
+	}
+
 	// Overwrite non-zero values in request entity to existing entity
 	copier.CopyWithOption(updatedEntity, requestEntity, copier.Option{IgnoreEmpty: true})
-	// fmt.Printf("updatedEntity.Source: %v; updatedEntity.Organization: %v", updatedEntity.Source, updatedEntity.Organization)
 
 	// Update project with repository
 	err = m.projectRepo.Update(ctx, updatedEntity)
@@ -87,32 +97,72 @@ func (m *ProjectManager) UpdateProjectByID(ctx context.Context, id uint, request
 }
 
 func (m *ProjectManager) CreateProject(ctx context.Context, requestPayload request.CreateProjectRequest) (*entity.Project, error) {
+	logger := logutil.GetLogger(ctx)
 	// Convert request payload to domain model
 	var createdEntity entity.Project
 	if err := copier.Copy(&createdEntity, &requestPayload); err != nil {
 		return nil, err
 	}
 
-	// Get source by id
-	sourceEntity, err := m.sourceRepo.Get(ctx, requestPayload.SourceID)
-	if err != nil && err == gorm.ErrRecordNotFound {
-		return nil, ErrSourceNotFound
-	} else if err != nil {
-		return nil, err
+	// If sourceID is passed in, get source by id
+	if requestPayload.SourceID != 0 {
+		logger.Info("Source ID found in the request. Using the source ID...", "sourceID", requestPayload.SourceID)
+		sourceEntity, err := m.sourceRepo.Get(ctx, requestPayload.SourceID)
+		if err != nil {
+			return nil, err
+		}
+		createdEntity.Source = sourceEntity
+	} else {
+		// if sourceID is not passed in, get source by default source remote
+		sourceEntity, err := m.sourceRepo.GetByRemote(ctx, m.defaultSource.Remote.String())
+		if err != nil && err == gorm.ErrRecordNotFound {
+			// if a source with the default remote does not exist, create a new source
+			logger.Info("Source not found, creating new source with default remote...", "remote", m.defaultSource.Remote)
+			sourceEntity = &m.defaultSource
+			err = m.sourceRepo.Create(ctx, sourceEntity)
+			if err != nil {
+				return nil, err
+			}
+		} else if err != nil {
+			return nil, err
+		} else {
+			logger.Info("Source found with default remote. Using the source...", "source", sourceEntity.Remote.String())
+		}
+		createdEntity.Source = sourceEntity
 	}
-	createdEntity.Source = sourceEntity
 
-	// Get org by id
-	organizationEntity, err := m.organizationRepo.Get(ctx, requestPayload.OrganizationID)
-	if err != nil && err == gorm.ErrRecordNotFound {
-		return nil, ErrOrgNotFound
-	} else if err != nil {
-		return nil, err
+	// If orgID is passed in, get org by id
+	if requestPayload.OrganizationID != 0 {
+		logger.Info("Organization ID found in the request. Using the organization ID...", "organizationID", requestPayload.OrganizationID)
+		organizationEntity, err := m.organizationRepo.Get(ctx, requestPayload.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		createdEntity.Organization = organizationEntity
+	} else {
+		// if orgID is not passed in, get org by domain name
+		organizationEntity, err := m.organizationRepo.GetByName(ctx, requestPayload.Domain)
+		if err != nil && err == gorm.ErrRecordNotFound {
+			// if an organization with the domain name does not exist, create a new organization
+			logger.Info("Organization not found, creating new organization with domain name...", "domain", requestPayload.Domain)
+			organizationEntity = &entity.Organization{
+				Name:   requestPayload.Domain,
+				Owners: []string{constant.DefaultOrgOwner},
+			}
+			err = m.organizationRepo.Create(ctx, organizationEntity)
+			if err != nil {
+				return nil, err
+			}
+		} else if err != nil {
+			return nil, err
+		} else {
+			logger.Info("Organization found with domain name. Using the organization...", "organization", organizationEntity.Name)
+		}
+		createdEntity.Organization = organizationEntity
 	}
-	createdEntity.Organization = organizationEntity
 
 	// Create project with repository
-	err = m.projectRepo.Create(ctx, &createdEntity)
+	err := m.projectRepo.Create(ctx, &createdEntity)
 	if err != nil {
 		return nil, err
 	}

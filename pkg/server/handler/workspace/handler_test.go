@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -64,7 +65,7 @@ func TestWorkspaceHandler(t *testing.T) {
 				AddRow(1, wsName, 1))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("GET", "/workspaces/{workspaceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -93,7 +94,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("POST", "/workspaces", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -141,7 +142,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("POST", "/workspaces/{workspaceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -187,7 +188,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("DELETE", "/workspaces/{workspaceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -199,8 +200,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteWorkspace handler function
@@ -223,7 +223,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("DELETE", "/workspaces/{workspaceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -254,7 +254,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/workspace/{workspaceID}", nil)
+		req, err := http.NewRequest("POST", "/workspaces/{workspaceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -300,7 +300,7 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	workspaceRepo := persistence.NewWorkspaceRepository(fakeGDB)
 	backendRepo := persistence.NewBackendRepository(fakeGDB)
 	workspaceHandler := &Handler{
-		workspaceManager: workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo),
+		workspaceManager: workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, entity.Backend{}),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, workspaceHandler

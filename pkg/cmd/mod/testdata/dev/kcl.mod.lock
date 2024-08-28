@@ -1,0 +1,14 @@
+[dependencies]
+  [dependencies.kam]
+    name = "kam"
+    full_name = "kam_0.1.0"
+    version = "0.1.0"
+    url = "https://github.com/KusionStack/kam.git"
+    git_tag = "0.2.0"
+  [dependencies.service]
+    name = "service"
+    full_name = "service_0.1.0"
+    version = "0.1.0"
+    reg = "ghcr.io"
+    repo = "kusionstack/service"
+    oci_tag = "0.1.0"

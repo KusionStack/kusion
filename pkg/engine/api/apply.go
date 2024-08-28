@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -13,7 +14,9 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
 // The Apply function will apply the resources changes
@@ -23,12 +26,14 @@ import (
 // You can customize the runtime of engine and the state
 // storage through `runtime` and `storage` parameters.
 func Apply(
+	ctx context.Context,
 	o *APIOptions,
 	storage release.Storage,
 	rel *apiv1.Release,
 	changes *models.Changes,
 	out io.Writer,
 ) (*apiv1.Release, error) {
+	logger := logutil.GetLogger(ctx)
 	// construct the apply operation
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
@@ -36,6 +41,7 @@ func Apply(
 			ReleaseStorage: storage,
 			MsgCh:          make(chan models.Message),
 			IgnoreFields:   o.IgnoreFields,
+			Sem:            semaphore.New(int64(o.MaxConcurrent)),
 		},
 	}
 
@@ -139,7 +145,7 @@ func Apply(
 	// wait for msgCh closed
 	wg.Wait()
 	// print summary
-	pterm.Fprintln(out, fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
+	logger.Info(fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return upRel, nil
 }
 

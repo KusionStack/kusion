@@ -65,7 +65,7 @@ func TestOrganizationHandler(t *testing.T) {
 				AddRow(1, orgName))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("GET", "/organizations/{organizationID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -94,11 +94,10 @@ func TestOrganizationHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("POST", "/organizations", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("organizationID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
@@ -138,7 +137,7 @@ func TestOrganizationHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("POST", "/organizations/{organizationID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -148,8 +147,10 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: orgNameUpdated,
+			ID: 1,
+			CreateOrganizationRequest: request.CreateOrganizationRequest{
+				Name: orgNameUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -184,7 +185,7 @@ func TestOrganizationHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("DELETE", "/organizations/{organizationID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -196,8 +197,7 @@ func TestOrganizationHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteOrganization handler function
@@ -220,7 +220,7 @@ func TestOrganizationHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("DELETE", "/organizations/{organizationID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -251,7 +251,7 @@ func TestOrganizationHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/organization/{organizationID}", nil)
+		req, err := http.NewRequest("POST", "/organizations/{organizationID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -261,8 +261,10 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: orgNameUpdated,
+			ID: 1,
+			CreateOrganizationRequest: request.CreateOrganizationRequest{
+				Name: orgNameUpdated,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

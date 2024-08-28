@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"kusionstack.io/kusion/pkg/domain/constant"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -27,7 +29,7 @@ func TestProjectHandler(t *testing.T) {
 		projectNameSecond  = "test-project-2"
 		projectPath        = "/path/to/project"
 		projectNameUpdated = "test-project-updated"
-		projectPathUpdated = "/path/to/project/updated"
+		projectPathUpdated = "/path/to/projects/updated"
 		owners             = persistence.MultiString{"hua.li", "xiaoming.li"}
 	)
 	t.Run("ListProjects", func(t *testing.T) {
@@ -69,7 +71,7 @@ func TestProjectHandler(t *testing.T) {
 				AddRow(1, projectName, projectPath, 1, "test-org", owners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/project/{projectID}", nil)
+		req, err := http.NewRequest("GET", "/projects/{projectID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -98,11 +100,10 @@ func TestProjectHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/project/{projectID}", nil)
+		req, err := http.NewRequest("POST", "/projects", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("projectID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
@@ -144,27 +145,24 @@ func TestProjectHandler(t *testing.T) {
 		assert.Equal(t, projectName, resp.Data.(map[string]any)["name"])
 	})
 
-	t.Run("UpdateExistingProject", func(t *testing.T) {
+	t.Run("CreateProjectWithOrgName", func(t *testing.T) {
 		sqlMock, fakeGDB, recorder, projectHandler := setupTest(t)
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		// Update a new HTTP request
-		req, err := http.NewRequest("PUT", "/project/{projectID}", nil)
+		// Create a new HTTP request
+		req, err := http.NewRequest("POST", "/projects", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("projectID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
-		requestPayload := request.UpdateProjectRequest{
-			// Set your request payload fields here
-			ID:             1,
-			Name:           projectNameUpdated,
-			Path:           projectPathUpdated,
-			OrganizationID: 1,
-			SourceID:       1,
+		requestPayload := request.CreateProjectRequest{
+			Name:     projectName,
+			Path:     projectPath,
+			Domain:   "test-org",
+			SourceID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -177,6 +175,58 @@ func TestProjectHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
 				AddRow(1, "test-org", owners))
+		sqlMock.ExpectBegin()
+		sqlMock.ExpectExec("INSERT").
+			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
+		sqlMock.ExpectCommit()
+
+		// Call the CreateProject handler function
+		projectHandler.CreateProject()(recorder, req)
+		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		// Unmarshal the response body
+		var resp handler.Response
+		err = json.Unmarshal(recorder.Body.Bytes(), &resp)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal response: %v", err)
+		}
+
+		// Assertion
+		assert.Equal(t, float64(1), resp.Data.(map[string]any)["id"])
+		assert.Equal(t, projectName, resp.Data.(map[string]any)["name"])
+	})
+
+	t.Run("UpdateExistingProject", func(t *testing.T) {
+		sqlMock, fakeGDB, recorder, projectHandler := setupTest(t)
+		defer persistence.CloseDB(t, fakeGDB)
+		defer sqlMock.ExpectClose()
+
+		// Update a new HTTP request
+		req, err := http.NewRequest("PUT", "/projects/{projectID}", nil)
+		assert.NoError(t, err)
+
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("projectID", "1")
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		// Set request body
+		requestPayload := request.UpdateProjectRequest{
+			// Set your request payload fields here
+			ID: 1,
+			CreateProjectRequest: request.CreateProjectRequest{
+				Name:           projectNameUpdated,
+				Path:           projectPathUpdated,
+				OrganizationID: 1,
+			},
+		}
+		reqBody, err := json.Marshal(requestPayload)
+		assert.NoError(t, err)
+		req.Body = io.NopCloser(bytes.NewReader(reqBody))
+		req.Header.Add("Content-Type", "application/json")
+
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
+				AddRow(1, "test-org", owners))
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__remote", "Source__source_provider"}).
 				AddRow(1, projectName, projectPath, 1, "test-org", owners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
@@ -186,6 +236,8 @@ func TestProjectHandler(t *testing.T) {
 		// Call the ListProjects handler function
 		projectHandler.UpdateProject()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		fmt.Println(recorder.Body.String())
 
 		// Unmarshall the response body
 		var resp handler.Response
@@ -206,7 +258,7 @@ func TestProjectHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/project/{projectID}", nil)
+		req, err := http.NewRequest("DELETE", "/projects/{projectID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -218,8 +270,7 @@ func TestProjectHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteProject handler function
@@ -242,7 +293,7 @@ func TestProjectHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/project/{projectID}", nil)
+		req, err := http.NewRequest("DELETE", "/projects/{projectID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -273,31 +324,28 @@ func TestProjectHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/project/{projectID}", nil)
+		req, err := http.NewRequest("POST", "/projects/{projectID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
-		rctx.URLParams.Add("projectID", "1")
+		rctx.URLParams.Add("projectID", "2")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID:   1,
-			Name: "test-project-updated",
-			Path: projectPathUpdated,
+			ID: 2,
+			CreateProjectRequest: request.CreateProjectRequest{
+				Name:           "test-project-updated",
+				Path:           projectPathUpdated,
+				OrganizationID: 1,
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
 		req.Body = io.NopCloser(bytes.NewReader(reqBody))
 		req.Header.Add("Content-Type", "application/json")
 
-		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
-				AddRow(1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
-		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
-				AddRow(1, "test-org", owners))
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
@@ -326,7 +374,7 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	sourceRepo := persistence.NewSourceRepository(fakeGDB)
 	organizationRepo := persistence.NewOrganizationRepository(fakeGDB)
 	projectHandler := &Handler{
-		projectManager: projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo),
+		projectManager: projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, entity.Source{}),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, projectHandler

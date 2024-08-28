@@ -31,34 +31,20 @@ func (m *ProjectModel) ToEntity() (*entity.Project, error) {
 		return nil, ErrProjectModelNil
 	}
 
-	sourceEntity, err := m.Source.ToEntity()
-	if err != nil {
-		return nil, ErrFailedToConvertSourceToEntity
+	var err error
+	var sourceEntity *entity.Source
+	var organizationEntity *entity.Organization
+	if m.Source != nil {
+		sourceEntity, err = m.Source.ToEntity()
+		if err != nil {
+			return nil, ErrFailedToConvertSourceToEntity
+		}
 	}
-
-	organizationEntity, err := m.Organization.ToEntity()
-	if err != nil {
-		return nil, ErrFailedToConvertOrgToEntity
-	}
-
-	return &entity.Project{
-		ID:                m.ID,
-		Name:              m.Name,
-		Source:            sourceEntity,
-		Organization:      organizationEntity,
-		Path:              m.Path,
-		Description:       m.Description,
-		Labels:            []string(m.Labels),
-		Owners:            []string(m.Owners),
-		CreationTimestamp: m.CreatedAt,
-		UpdateTimestamp:   m.UpdatedAt,
-	}, nil
-}
-
-// ToEntity converts the DO to an entity.
-func (m *ProjectModel) ToEntityWithSourceAndOrg(sourceEntity *entity.Source, organizationEntity *entity.Organization) (*entity.Project, error) {
-	if m == nil {
-		return nil, ErrProjectModelNil
+	if m.Organization != nil {
+		organizationEntity, err = m.Organization.ToEntity()
+		if err != nil {
+			return nil, ErrFailedToConvertOrgToEntity
+		}
 	}
 
 	return &entity.Project{

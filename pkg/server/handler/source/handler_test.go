@@ -63,7 +63,7 @@ func TestSourceHandler(t *testing.T) {
 				AddRow(1, string(constant.SourceProviderTypeGithub)))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("GET", "/sources/{sourceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -92,7 +92,7 @@ func TestSourceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("POST", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("POST", "/sources", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -137,7 +137,7 @@ func TestSourceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("POST", "/sources/{sourceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -185,7 +185,7 @@ func TestSourceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("DELETE", "/sources/{sourceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -197,8 +197,7 @@ func TestSourceHandler(t *testing.T) {
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(1, 1))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
 		// Call the DeleteSource handler function
@@ -221,7 +220,7 @@ func TestSourceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("DELETE", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("DELETE", "/sources/{sourceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
@@ -252,7 +251,7 @@ func TestSourceHandler(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		// Update a new HTTP request
-		req, err := http.NewRequest("POST", "/source/{sourceID}", nil)
+		req, err := http.NewRequest("POST", "/sources/{sourceID}", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()

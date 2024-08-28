@@ -36,9 +36,9 @@ func (o *DatabaseOptions) Validate() error {
 		return errors.Errorf("options is nil")
 	}
 
-	if o.AutoMigrate && len(o.MigrateFile) == 0 {
-		return errors.Errorf("when --auto-migrate is true, --migrate-file must be specified")
-	}
+	// if o.AutoMigrate && len(o.MigrateFile) == 0 {
+	// 	return errors.Errorf("when --auto-migrate is true, --migrate-file must be specified")
+	// }
 
 	return o.DatabaseAccessOptions.Validate()
 }
@@ -49,8 +49,10 @@ func (o *DatabaseOptions) ApplyTo(config *server.Config) {
 		logrus.Fatalf("Failed to apply database options to server.Config as: %+v", err)
 	}
 
+	config.AutoMigrate = o.AutoMigrate
+
 	// AutoMigrate will attempt to automatically migrate all tables
-	if o.AutoMigrate {
+	if o.AutoMigrate && len(o.MigrateFile) > 0 {
 		logrus.Debugf("AutoMigrate will attempt to automatically migrate all tables from [%s]", o.MigrateFile)
 		// Read all content by migrate file
 		migrateSQL, err := os.ReadFile(o.MigrateFile)

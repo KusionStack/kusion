@@ -17,6 +17,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
+	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 )
 
 func TestApplyOperation_Apply(t *testing.T) {
@@ -32,6 +33,7 @@ func TestApplyOperation_Apply(t *testing.T) {
 		msgCh                   chan models.Message
 		release                 *apiv1.Release
 		lock                    *sync.Mutex
+		sem                     *semaphore.Semaphore
 	}
 	type args struct {
 		applyRequest *ApplyRequest
@@ -111,6 +113,7 @@ func TestApplyOperation_Apply(t *testing.T) {
 				releaseStorage: &storages.LocalStorage{},
 				runtimeMap:     map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}},
 				msgCh:          make(chan models.Message, 5),
+				sem:            semaphore.New(10),
 			},
 			args: args{applyRequest: &ApplyRequest{
 				Request: models.Request{
@@ -138,6 +141,7 @@ func TestApplyOperation_Apply(t *testing.T) {
 				MsgCh:                   tc.fields.msgCh,
 				Release:                 tc.fields.release,
 				Lock:                    tc.fields.lock,
+				Sem:                     tc.fields.sem,
 			}
 			ao := &ApplyOperation{
 				Operation: *o,

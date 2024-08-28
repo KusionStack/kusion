@@ -3,6 +3,7 @@ package workspace
 import (
 	"errors"
 
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/repository"
 )
 
@@ -14,13 +15,18 @@ var (
 )
 
 type WorkspaceManager struct {
-	workspaceRepo repository.WorkspaceRepository
-	backendRepo   repository.BackendRepository
+	workspaceRepo  repository.WorkspaceRepository
+	backendRepo    repository.BackendRepository
+	defaultBackend entity.Backend
 }
 
-func NewWorkspaceManager(workspaceRepo repository.WorkspaceRepository, backendRepo repository.BackendRepository) *WorkspaceManager {
+func NewWorkspaceManager(workspaceRepo repository.WorkspaceRepository,
+	backendRepo repository.BackendRepository,
+	defaultBackend entity.Backend,
+) *WorkspaceManager {
 	return &WorkspaceManager{
-		workspaceRepo: workspaceRepo,
-		backendRepo:   backendRepo,
+		workspaceRepo:  workspaceRepo,
+		backendRepo:    backendRepo,
+		defaultBackend: defaultBackend,
 	}
 }

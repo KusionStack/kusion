@@ -29,14 +29,6 @@ type DatabaseAccessOptions struct {
 	DBPort     int    `json:"dbPort,omitempty" yaml:"dbPort,omitempty"`
 }
 
-// NewDatabaseAccessOptions returns a DatabaseAccessOptions struct with the default values
-func NewDatabaseAccessOptions() *DatabaseAccessOptions {
-	return &DatabaseAccessOptions{
-		DBHost: "127.0.0.1",
-		DBPort: 3306,
-	}
-}
-
 // InstallDB uses the run options to generate and open a db session.
 func (o *DatabaseAccessOptions) InstallDB() (*gorm.DB, error) {
 	// Generate go-sql-driver.mysql config to format DSN

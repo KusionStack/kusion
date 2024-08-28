@@ -39,15 +39,17 @@ func TestStackRepository(t *testing.T) {
 						Remote:         mockRemoteURL,
 					},
 					Organization: &entity.Organization{
-						ID: 1,
+						Name:   "mockedOrg",
+						ID:     1,
+						Owners: []string{"hua.li", "xiaoming.li"},
 					},
 				},
-				Path:              "/path/to/stack",
-				DesiredVersion:    "master",
-				Labels:            []string{"testLabel"},
-				Owners:            []string{"hua.li", "xiaoming.li"},
-				SyncState:         constant.StackStateUnSynced,
-				LastSyncTimestamp: time.Now(),
+				Path:                 "/path/to/stack",
+				DesiredVersion:       "master",
+				Labels:               []string{"testLabel"},
+				Owners:               []string{"hua.li", "xiaoming.li"},
+				SyncState:            constant.StackStateUnSynced,
+				LastAppliedTimestamp: time.Now(),
 			}
 		)
 		sqlMock.ExpectBegin()
@@ -66,13 +68,12 @@ func TestStackRepository(t *testing.T) {
 		defer CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		var expectedID, expectedRows uint = 1, 1
+		var expectedID uint = 1
 		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).
 				AddRow(1))
-		sqlMock.ExpectExec("UPDATE").
-			WillReturnResult(sqlmock.NewResult(int64(expectedID), int64(expectedRows)))
+		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(int64(expectedID), int64(0)))
 		sqlMock.ExpectCommit()
 		err = repo.Delete(context.Background(), expectedID)
 		require.NoError(t, err)
@@ -169,7 +170,7 @@ func TestStackRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedNameFirst, expectedPathFirst, expectedSyncStateFirst, 1, "mockedProject", "path/to/project").
 					AddRow(expectedIDSecond, expectedNameSecond, expectedPathSecond, expectedSyncStateSecond, 2, "mockedProject2", "path/to/project2"))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.StackFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})

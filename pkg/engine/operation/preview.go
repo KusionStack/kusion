@@ -102,6 +102,7 @@ func (po *PreviewOperation) Preview(req *PreviewRequest) (rsp *PreviewResponse, 
 			RuntimeMap:              o.RuntimeMap,
 			Stack:                   o.Stack,
 			Lock:                    &sync.Mutex{},
+			Sem:                     o.Sem,
 		},
 	}
 
@@ -119,6 +120,11 @@ func (po *PreviewOperation) previewWalkFun(v dag.Vertex) (diags tfdiags.Diagnost
 	var s v1.Status
 	if v == nil {
 		return nil
+	}
+
+	if po.Sem != nil {
+		po.Sem.Acquire()
+		defer po.Sem.Release()
 	}
 
 	if node, ok := v.(graph.ExecutableNode); ok {

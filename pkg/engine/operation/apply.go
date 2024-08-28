@@ -103,6 +103,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 			WatchCh:                 o.WatchCh,
 			Lock:                    &sync.Mutex{},
 			Release:                 rel,
+			Sem:                     o.Sem,
 		},
 	}
 
@@ -164,6 +165,11 @@ func applyWalkFun(o *models.Operation, v dag.Vertex) (diags tfdiags.Diagnostics)
 	var s v1.Status
 	if v == nil {
 		return nil
+	}
+
+	if o.Sem != nil {
+		o.Sem.Acquire()
+		defer o.Sem.Release()
 	}
 
 	if node, ok := v.(graph.ExecutableNode); ok {

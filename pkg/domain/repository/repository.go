@@ -17,6 +17,8 @@ type OrganizationRepository interface {
 	Update(ctx context.Context, organization *entity.Organization) error
 	// Get retrieves a organization by its ID.
 	Get(ctx context.Context, id uint) (*entity.Organization, error)
+	// GetByName retrieves a organization by its name.
+	GetByName(ctx context.Context, name string) (*entity.Organization, error)
 	// List retrieves all existing organizations.
 	List(ctx context.Context) ([]*entity.Organization, error)
 }
@@ -32,8 +34,10 @@ type ProjectRepository interface {
 	Update(ctx context.Context, project *entity.Project) error
 	// Get retrieves a project by its ID.
 	Get(ctx context.Context, id uint) (*entity.Project, error)
+	// GetByName retrieves a project by its name.
+	GetByName(ctx context.Context, name string) (*entity.Project, error)
 	// List retrieves all existing projects.
-	List(ctx context.Context) ([]*entity.Project, error)
+	List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error)
 }
 
 // StackRepository is an interface that defines the repository operations
@@ -48,13 +52,7 @@ type StackRepository interface {
 	// Get retrieves a stack by its ID.
 	Get(ctx context.Context, id uint) (*entity.Stack, error)
 	// List retrieves all existing stacks.
-	List(ctx context.Context) ([]*entity.Stack, error)
-	// // GetBy retrieves a stack by project and stack name.
-	// GetBy(ctx context.Context, project string, stack string) (*entity.Stack, error)
-	// // Find returns a list of specified stacks.
-	// Find(ctx context.Context, query StackQuery) ([]*entity.Stack, error)
-	// // Count returns the total of stacks.
-	// Count(ctx context.Context, condition StackCondition) (int, error)
+	List(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error)
 }
 
 // SourceRepository is an interface that defines the repository operations
@@ -68,8 +66,6 @@ type SourceRepository interface {
 	List(ctx context.Context) ([]*entity.Source, error)
 	// Create creates a new source.
 	Create(ctx context.Context, source *entity.Source) error
-	// CreateOrUpdate creates a new stack.
-	CreateOrUpdate(ctx context.Context, stack *entity.Source) error
 	// Delete deletes a stack by its ID.
 	Delete(ctx context.Context, id uint) error
 	// Update updates an existing stack.
@@ -90,7 +86,7 @@ type WorkspaceRepository interface {
 	// GetByName retrieves a workspace by its name.
 	GetByName(ctx context.Context, name string) (*entity.Workspace, error)
 	// List retrieves all existing workspace.
-	List(ctx context.Context) ([]*entity.Workspace, error)
+	List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error)
 }
 
 // BackendRepository is an interface that defines the repository operations
@@ -106,4 +102,23 @@ type BackendRepository interface {
 	Get(ctx context.Context, id uint) (*entity.Backend, error)
 	// List retrieves all existing backend.
 	List(ctx context.Context) ([]*entity.Backend, error)
+}
+
+// ResourceRepository is an interface that defines the repository operations
+// for resources. It follows the principles of domain-driven design (DDD).
+type ResourceRepository interface {
+	// Create creates a new resource.
+	Create(ctx context.Context, resource []*entity.Resource) error
+	// Delete deletes a resource by its ID.
+	Delete(ctx context.Context, id uint) error
+	// Batch deletes a list of resources
+	BatchDelete(ctx context.Context, resource []*entity.Resource) error
+	// Update updates an existing resource.
+	Update(ctx context.Context, resource *entity.Resource) error
+	// Get retrieves a resource by its ID.
+	Get(ctx context.Context, id uint) (*entity.Resource, error)
+	// GetByKusionResourceID retrieves a resource by its KusionID.
+	GetByKusionResourceID(ctx context.Context, kusionID string) (*entity.Resource, error)
+	// List retrieves all existing resource.
+	List(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error)
 }

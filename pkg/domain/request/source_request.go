@@ -1,5 +1,7 @@
 package request
 
+import "net/http"
+
 // CreateSourceRequest represents the create request structure for
 // source.
 type CreateSourceRequest struct {
@@ -30,4 +32,12 @@ type UpdateSourceRequest struct {
 	Labels []string `json:"labels"`
 	// Owners is a list of owners for the source.
 	Owners []string `json:"owners"`
+}
+
+func (payload *CreateSourceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *UpdateSourceRequest) Decode(r *http.Request) error {
+	return decode(r, payload)
 }

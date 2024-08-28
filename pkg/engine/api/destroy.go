@@ -13,10 +13,12 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
+	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
 )
 
 func DestroyPreview(
+	o *APIOptions,
 	planResources *apiv1.Spec,
 	priorResources *apiv1.State,
 	proj *apiv1.Project,
@@ -40,6 +42,7 @@ func DestroyPreview(
 			Stack:          stack,
 			ReleaseStorage: storage,
 			ChangeOrder:    &models.ChangeOrder{StepKeys: []string{}, ChangeSteps: map[string]*models.ChangeStep{}},
+			Sem:            semaphore.New(int64(o.MaxConcurrent)),
 		},
 	}
 
@@ -61,6 +64,7 @@ func DestroyPreview(
 }
 
 func Destroy(
+	o *APIOptions,
 	rel *apiv1.Release,
 	changes *models.Changes,
 	storage release.Storage,
@@ -70,6 +74,7 @@ func Destroy(
 			Stack:          changes.Stack(),
 			ReleaseStorage: storage,
 			MsgCh:          make(chan models.Message),
+			Sem:            semaphore.New(int64(o.MaxConcurrent)),
 		},
 	}
 
