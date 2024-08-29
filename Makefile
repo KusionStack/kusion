@@ -179,4 +179,15 @@ e2e-test:
 	# Run e2e test
 	hack/run-e2e.sh $(OSTYPE)
 
-.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all e2e-test
+gen-api-spec: ## Generate API Specification with OpenAPI format
+	@which swag > /dev/null || (echo "Installing swag@v1.16.3 ..."; go install github.com/swaggo/swag/cmd/swag@v1.16.3 && echo "Installation complete!\n")
+	# Generate API documentation with OpenAPI format
+	-swag init --parseDependency --parseInternal --parseDepth 1 -g ./kusion.go -o api/openapispec/ && echo "🎉 Done!" || (echo "💥 Fail!"; exit 1)
+	# Format swagger comments
+	-swag fmt -g pkg/**/*.go && echo "🎉 Done!" || (echo "💥 Failed!"; exit 1)
+
+gen-api-doc: ## Generate API Documentation by API Specification
+	@which swagger > /dev/null || (echo "Installing swagger@v0.30.5 ..."; go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.5 && echo "Installation complete!\n")
+	-swagger generate markdown -f ./api/openapispec/swagger.json --output=docs/api.md && echo "🎉 Done!" || (echo "💥 Fail!"; exit 1)
+
+.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all e2e-test gen-api-spec gen-api-doc
