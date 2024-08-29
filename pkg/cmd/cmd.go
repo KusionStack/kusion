@@ -18,6 +18,7 @@ import (
 	"kusionstack.io/kusion/pkg/cmd/preview"
 	"kusionstack.io/kusion/pkg/cmd/project"
 	rel "kusionstack.io/kusion/pkg/cmd/release"
+	"kusionstack.io/kusion/pkg/cmd/resource"
 	"kusionstack.io/kusion/pkg/cmd/server"
 	"kusionstack.io/kusion/pkg/cmd/stack"
 	"kusionstack.io/kusion/pkg/cmd/version"
@@ -128,6 +129,12 @@ Find more information at: https://www.kusionstack.io`),
 				preview.NewCmdPreview(o.UI, o.IOStreams),
 				apply.NewCmdApply(o.UI, o.IOStreams),
 				destroy.NewCmdDestroy(o.UI, o.IOStreams),
+			},
+		},
+		{
+			Message: "Observational Commands:",
+			Commands: []*cobra.Command{
+				resource.NewCmdRes(o.IOStreams),
 			},
 		},
 		{
