@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	httpswagger "github.com/swaggo/http-swagger"
-	"github.com/swaggo/swag/example/basic/docs"
+	docs "kusionstack.io/kusion/api/openapispec"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server"
 	"kusionstack.io/kusion/pkg/server/handler/backend"

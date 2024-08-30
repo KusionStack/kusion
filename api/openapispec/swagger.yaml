@@ -1,0 +1,2369 @@
+definitions:
+  constant.SourceProviderType:
+    enum:
+    - git
+    - git
+    - github
+    - oci
+    - local
+    type: string
+    x-enum-varnames:
+    - DefaultSourceType
+    - SourceProviderTypeGit
+    - SourceProviderTypeGithub
+    - SourceProviderTypeOCI
+    - SourceProviderTypeLocal
+  constant.StackState:
+    enum:
+    - UnSynced
+    - Synced
+    - OutOfSync
+    - Creating
+    - Generating
+    - GenerateFailed
+    - Generated
+    - Previewing
+    - PreviewFailed
+    - Previewed
+    - Applying
+    - ApplyFailed
+    - ApplySucceeded
+    - Destroying
+    - DestroyFailed
+    - DestroySucceeded
+    type: string
+    x-enum-varnames:
+    - StackStateUnSynced
+    - StackStateSynced
+    - StackStateOutOfSync
+    - StackStateCreating
+    - StackStateGenerating
+    - StackStateGenerateFailed
+    - StackStateGenerated
+    - StackStatePreviewing
+    - StackStatePreviewFailed
+    - StackStatePreviewed
+    - StackStateApplying
+    - StackStateApplyFailed
+    - StackStateApplySucceeded
+    - StackStateDestroying
+    - StackStateDestroyFailed
+    - StackStateDestroySucceeded
+  entity.Backend:
+    properties:
+      backendConfig:
+        allOf:
+        - $ref: '#/definitions/v1.BackendConfig'
+        description: |-
+          // Type is the type of the backend.
+          Type string `yaml:"type" json:"type"`
+          Backend is the configuration of the backend.
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the backend.
+        type: string
+      description:
+        description: Description is a human-readable description of the backend.
+        type: string
+      id:
+        description: ID is the id of the backend.
+        type: integer
+      name:
+        description: Name is the name of the backend.
+        type: string
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the backend.
+        type: string
+    type: object
+  entity.Organization:
+    properties:
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the organization.
+        type: string
+      description:
+        description: Description is a human-readable description of the organization.
+        type: string
+      displayName:
+        description: DisplayName is the human-readable display name.
+        type: string
+      id:
+        description: ID is the id of the organization.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the organization.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the organization.
+        type: string
+      owners:
+        description: Owners is a list of owners for the organization.
+        items:
+          type: string
+        type: array
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the organization.
+        type: string
+    type: object
+  entity.Project:
+    properties:
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the project.
+        type: string
+      description:
+        description: Description is a human-readable description of the project.
+        type: string
+      displayName:
+        description: DisplayName is the human-readable display name.
+        type: string
+      id:
+        description: ID is the id of the project.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the project.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the project.
+        type: string
+      organization:
+        allOf:
+        - $ref: '#/definitions/entity.Organization'
+        description: Organization is the configuration source associated with the
+          project.
+      owners:
+        description: Owners is a list of owners for the project.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the project within the sources.
+        type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/entity.Source'
+        description: Source is the configuration source associated with the project.
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the project.
+        type: string
+    type: object
+  entity.Resource:
+    properties:
+      LastAppliedRevision:
+        description: LastAppliedRevision is the revision of the last sync.
+        type: string
+      LastAppliedTimestamp:
+        description: LastAppliedTimestamp is the timestamp of the last sync.
+        type: string
+      attributes:
+        additionalProperties: true
+        description: Attributes is the attributes of the resource.
+        type: object
+      cloudResourceID:
+        description: CloudResourceID is the id of the resource in the cloud.
+        type: string
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the resource.
+        type: string
+      iamResourceID:
+        description: IAMResourceID is the id of the resource in IAM.
+        type: string
+      id:
+        description: ID is the id of the resource.
+        type: integer
+      kusionResourceID:
+        description: KusionResourceID is the id of the resource in Kusion.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the resource.
+        items:
+          type: string
+        type: array
+      owners:
+        description: Owners is a list of owners for the resource.
+        items:
+          type: string
+        type: array
+      provider:
+        description: Provider is the provider of the resource.
+        type: string
+      resourceName:
+        description: ResourceName is the name of the resource.
+        type: string
+      resourcePlane:
+        description: ResourcePlane is the plane of the resource.
+        type: string
+      resourceType:
+        description: ResourceType is the type of the resource.
+        type: string
+      stack:
+        allOf:
+        - $ref: '#/definitions/entity.Stack'
+        description: Stack is the stack associated with the resource.
+      status:
+        description: Status is the status of the resource.
+        type: string
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the resource.
+        type: string
+    type: object
+  entity.Source:
+    properties:
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the source.
+        type: string
+      description:
+        description: Description is a human-readable description of the source.
+        type: string
+      id:
+        description: ID is the id of the source.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the source.
+        items:
+          type: string
+        type: array
+      owners:
+        description: Owners is a list of owners for the source.
+        items:
+          type: string
+        type: array
+      remote:
+        allOf:
+        - $ref: '#/definitions/url.URL'
+        description: Remote is the source URL, including scheme.
+      sourceProvider:
+        allOf:
+        - $ref: '#/definitions/constant.SourceProviderType'
+        description: SourceProvider is the type of the source provider.
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the source.
+        type: string
+    type: object
+  entity.Stack:
+    properties:
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the stack.
+        type: string
+      description:
+        description: Description is a human-readable description of the stack.
+        type: string
+      desiredVersion:
+        description: Desired is the desired version of stack.
+        type: string
+      displayName:
+        description: DisplayName is the human-readable display nams.
+        type: string
+      id:
+        description: ID is the id of the stack.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the stack.
+        items:
+          type: string
+        type: array
+      lastAppliedRevision:
+        description: LastAppliedRevision is the spec ID of the last apply operation
+          for the stack.
+        type: string
+      lastAppliedTimestamp:
+        description: LastAppliedTimestamp is the timestamp of the last apply operation
+          for the stack.
+        type: string
+      lastGeneratedRevision:
+        description: LastGeneratedRevision is the spec ID of the last generate operation
+          for the stack.
+        type: string
+      lastPreviewedRevision:
+        description: LastPreviewedRevision is the spec ID of the last preview operation
+          for the stack.
+        type: string
+      name:
+        description: Name is the name of the stack.
+        type: string
+      owners:
+        description: Owners is a list of owners for the stack.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the stack within the sourcs.
+        type: string
+      project:
+        allOf:
+        - $ref: '#/definitions/entity.Project'
+        description: Project is the project associated with the stack.
+      syncState:
+        allOf:
+        - $ref: '#/definitions/constant.StackState'
+        description: SyncState is the current state of the stack.
+      type:
+        description: Type is the type of the stack.
+        type: string
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the stack.
+        type: string
+    type: object
+  entity.Workspace:
+    properties:
+      backend:
+        allOf:
+        - $ref: '#/definitions/entity.Backend'
+        description: Backend is the corresponding backend for this workspace.
+      creationTimestamp:
+        description: CreationTimestamp is the timestamp of the created for the workspace.
+        type: string
+      description:
+        description: Description is a human-readable description of the workspace.
+        type: string
+      displayName:
+        description: DisplayName is the human-readable display name.
+        type: string
+      id:
+        description: ID is the id of the workspace.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the workspace.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the workspace.
+        type: string
+      owners:
+        description: Owners is a list of owners for the workspace.
+        items:
+          type: string
+        type: array
+      updateTimestamp:
+        description: UpdateTimestamp is the timestamp of the updated for the workspace.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type:
+    enum:
+    - Kubernetes
+    - Terraform
+    type: string
+    x-enum-varnames:
+    - Kubernetes
+    - Terraform
+  models.ActionType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    type: integer
+    x-enum-comments:
+      Create: creating a new resource.
+      Delete: deleting an existing resource.
+      UnChanged: nothing to do.
+      Undefined: invalidate value
+      Update: updating an existing resource.
+    x-enum-varnames:
+    - Undefined
+    - UnChanged
+    - Create
+    - Update
+    - Delete
+  models.ChangeStep:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/models.ActionType'
+        description: the operation performed by this step
+      from:
+        description: old data
+      id:
+        description: the resource id
+        type: string
+      to:
+        description: new data
+    type: object
+  models.Changes:
+    properties:
+      changeSteps:
+        additionalProperties:
+          $ref: '#/definitions/models.ChangeStep'
+        type: object
+      stepKeys:
+        items:
+          type: string
+        type: array
+    type: object
+  request.CreateBackendRequest:
+    properties:
+      backendConfig:
+        allOf:
+        - $ref: '#/definitions/v1.BackendConfig'
+        description: BackendConfig is the configuration of the backend.
+      description:
+        description: Description is a human-readable description of the backend.
+        type: string
+      name:
+        description: Name is the name of the backend.
+        type: string
+    required:
+    - name
+    type: object
+  request.CreateOrganizationRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the organization.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the organization.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the organization.
+        type: string
+      owners:
+        description: Owners is a list of owners for the organization.
+        items:
+          type: string
+        type: array
+    required:
+    - owners
+    type: object
+  request.CreateProjectRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the project.
+        type: string
+      domain:
+        description: Domain is the domain of the project, typically serving as the
+          parent folder name for the project.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the project.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the project.
+        type: string
+      organizationID:
+        description: OrganizationID is the organization id associated with the project.
+        type: integer
+      owners:
+        description: Owners is a list of owners for the project.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the project within the sources.
+        type: string
+      sourceID:
+        description: SourceID is the configuration source id associated with the project.
+        type: integer
+    required:
+    - domain
+    type: object
+  request.CreateSourceRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the source.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the source.
+        items:
+          type: string
+        type: array
+      owners:
+        description: Owners is a list of owners for the source.
+        items:
+          type: string
+        type: array
+      remote:
+        description: Remote is the source URL, including scheme.
+        type: string
+      sourceProvider:
+        description: SourceProvider is the type of the source provider.
+        type: string
+    required:
+    - remote
+    - sourceProvider
+    type: object
+  request.CreateStackRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the stack.
+        type: string
+      desiredVersion:
+        description: DesiredVersion is the desired revision of stack.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the stack.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the stack.
+        type: string
+      owners:
+        description: Owners is a list of owners for the stack.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the stack within the source.
+        type: string
+      projectID:
+        description: ProjectID is the project id of the stack within the source.
+        type: integer
+      projectName:
+        description: ProjectName is the project name of the stack within the source.
+        type: string
+      type:
+        description: Type is the type of the stack.
+        type: string
+    required:
+    - name
+    type: object
+  request.CreateWorkspaceRequest:
+    properties:
+      backendID:
+        description: BackendID is the configuration backend id associated with the
+          workspace.
+        type: integer
+      description:
+        description: Description is a human-readable description of the workspace.
+        type: string
+      labels:
+        description: Labels are custom labels associated with the workspace.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the workspace.
+        type: string
+      owners:
+        description: Owners is a list of owners for the workspace.
+        items:
+          type: string
+        type: array
+    required:
+    - backendID
+    - name
+    - owners
+    type: object
+  request.UpdateBackendRequest:
+    properties:
+      backendConfig:
+        allOf:
+        - $ref: '#/definitions/v1.BackendConfig'
+        description: BackendConfig is the configuration of the backend.
+      description:
+        description: Description is a human-readable description of the backend.
+        type: string
+      id:
+        description: ID is the id of the backend.
+        type: integer
+      name:
+        description: Name is the name of the backend.
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  request.UpdateOrganizationRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the organization.
+        type: string
+      id:
+        description: ID is the id of the organization.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the organization.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the organization.
+        type: string
+      owners:
+        description: Owners is a list of owners for the organization.
+        items:
+          type: string
+        type: array
+    required:
+    - id
+    - owners
+    type: object
+  request.UpdateProjectRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the project.
+        type: string
+      domain:
+        description: Domain is the domain of the project, typically serving as the
+          parent folder name for the project.
+        type: string
+      id:
+        description: ID is the id of the project.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the project.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the project.
+        type: string
+      organizationID:
+        description: OrganizationID is the organization id associated with the project.
+        type: integer
+      owners:
+        description: Owners is a list of owners for the project.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the project within the sources.
+        type: string
+      sourceID:
+        description: SourceID is the configuration source id associated with the project.
+        type: integer
+    required:
+    - domain
+    - id
+    type: object
+  request.UpdateSourceRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the source.
+        type: string
+      id:
+        description: ID is the id of the source.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the source.
+        items:
+          type: string
+        type: array
+      owners:
+        description: Owners is a list of owners for the source.
+        items:
+          type: string
+        type: array
+      remote:
+        description: Remote is the source URL, including scheme.
+        type: string
+      sourceProvider:
+        description: SourceProvider is the type of the source provider.
+        type: string
+    required:
+    - id
+    type: object
+  request.UpdateStackRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the stack.
+        type: string
+      desiredVersion:
+        description: DesiredVersion is the desired revision of stack.
+        type: string
+      id:
+        description: ID is the id of the stack.
+        type: integer
+      labels:
+        description: Labels are custom labels associated with the stack.
+        items:
+          type: string
+        type: array
+      name:
+        description: Name is the name of the stack.
+        type: string
+      owners:
+        description: Owners is a list of owners for the stack.
+        items:
+          type: string
+        type: array
+      path:
+        description: Path is the relative path of the stack within the source.
+        type: string
+      projectID:
+        description: ProjectID is the project id of the stack within the source.
+        type: integer
+      projectName:
+        description: ProjectName is the project name of the stack within the source.
+        type: string
+      type:
+        description: Type is the type of the stack.
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  request.UpdateWorkspaceRequest:
+    properties:
+      backendID:
+        description: BackendID is the configuration backend id associated with the
+          workspace.
+        type: integer
+      description:
+        description: Description is a human-readable description of the workspace.
+        type: string
+      id:
+        description: ID is the id of the workspace.
+        type: integer
+      labels:
+        additionalProperties:
+          type: string
+        description: Labels are custom labels associated with the workspace.
+        type: object
+      name:
+        description: Name is the name of the workspace.
+        type: string
+      owners:
+        description: Owners is a list of owners for the workspace.
+        items:
+          type: string
+        type: array
+    required:
+    - backendID
+    - id
+    - owners
+    type: object
+  url.URL:
+    properties:
+      forceQuery:
+        description: append a query ('?') even if RawQuery is empty
+        type: boolean
+      fragment:
+        description: fragment for references, without '#'
+        type: string
+      host:
+        description: host or host:port (see Hostname and Port methods)
+        type: string
+      omitHost:
+        description: do not emit empty host (authority)
+        type: boolean
+      opaque:
+        description: encoded opaque data
+        type: string
+      path:
+        description: path (relative paths may omit leading slash)
+        type: string
+      rawFragment:
+        description: encoded fragment hint (see EscapedFragment method)
+        type: string
+      rawPath:
+        description: encoded path hint (see EscapedPath method)
+        type: string
+      rawQuery:
+        description: encoded query values, without '?'
+        type: string
+      scheme:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/url.Userinfo'
+        description: username and password information
+    type: object
+  url.Userinfo:
+    type: object
+  v1.AWSProvider:
+    properties:
+      profile:
+        description: |-
+          The profile to be used to interact with AWS Secrets Manager.
+          If not set, the default profile created with `aws configure` will be used.
+        type: string
+      region:
+        description: |-
+          AWS Region to be used to interact with AWS Secrets Manager.
+          Examples are us-east-1, us-west-2, etc.
+        type: string
+    type: object
+  v1.AlicloudProvider:
+    properties:
+      region:
+        description: |-
+          Alicloud Region to be used to interact with Alicloud Secrets Manager.
+          Examples are cn-beijing, cn-shanghai, etc.
+        type: string
+    type: object
+  v1.AzureEnvironmentType:
+    enum:
+    - PublicCloud
+    - USGovernmentCloud
+    - ChinaCloud
+    - GermanCloud
+    type: string
+    x-enum-varnames:
+    - AzureEnvironmentPublicCloud
+    - AzureEnvironmentUSGovernmentCloud
+    - AzureEnvironmentChinaCloud
+    - AzureEnvironmentGermanCloud
+  v1.AzureKVProvider:
+    properties:
+      environmentType:
+        allOf:
+        - $ref: '#/definitions/v1.AzureEnvironmentType'
+        description: |-
+          EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.
+          By-default it points to the public cloud AAD endpoint, and the following endpoints are available:
+          PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
+          Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
+      tenantId:
+        description: TenantID configures the Azure Tenant to send requests to.
+        type: string
+      vaultUrl:
+        description: Vault Url from which the secrets to be fetched from.
+        type: string
+    type: object
+  v1.BackendConfig:
+    properties:
+      configs:
+        additionalProperties: {}
+        description: Configs contains config items of the backend, whose keys differ
+          from different backend types.
+        type: object
+      type:
+        description: Type is the backend type, supports BackendTypeLocal, BackendTypeOss,
+          BackendTypeS3.
+        type: string
+    type: object
+  v1.FakeProvider:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/v1.FakeProviderData'
+        type: array
+    type: object
+  v1.FakeProviderData:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+      valueMap:
+        additionalProperties:
+          type: string
+        type: object
+      version:
+        type: string
+    type: object
+  v1.GenericConfig:
+    additionalProperties: {}
+    type: object
+  v1.OnPremisesProvider:
+    properties:
+      attributes:
+        additionalProperties:
+          type: string
+        description: attributes of the provider
+        type: object
+      name:
+        description: platform name of the provider
+        type: string
+    type: object
+  v1.ProviderSpec:
+    properties:
+      alicloud:
+        allOf:
+        - $ref: '#/definitions/v1.AlicloudProvider'
+        description: Alicloud configures a store to retrieve secrets from Alicloud
+          Secrets Manager.
+      aws:
+        allOf:
+        - $ref: '#/definitions/v1.AWSProvider'
+        description: AWS configures a store to retrieve secrets from AWS Secrets Manager.
+      azure:
+        allOf:
+        - $ref: '#/definitions/v1.AzureKVProvider'
+        description: Azure configures a store to retrieve secrets from Azure KeyVault.
+      fake:
+        allOf:
+        - $ref: '#/definitions/v1.FakeProvider'
+        description: Fake configures a store with static key/value pairs
+      onpremises:
+        allOf:
+        - $ref: '#/definitions/v1.OnPremisesProvider'
+        description: Onprem configures a store in on-premises environments
+      vault:
+        allOf:
+        - $ref: '#/definitions/v1.VaultProvider'
+        description: Vault configures a store to retrieve secrets from HashiCorp Vault.
+      viettelcloud:
+        allOf:
+        - $ref: '#/definitions/v1.ViettelCloudProvider'
+        description: ViettelCloud configures a store to retrieve secrets from ViettelCloud
+          Secrets Manager.
+    type: object
+  v1.Resource:
+    properties:
+      attributes:
+        additionalProperties: true
+        description: Attributes represents all specified attributes of this resource
+        type: object
+      dependsOn:
+        description: DependsOn contains all resources this resource depends on
+        items:
+          type: string
+        type: array
+      extensions:
+        additionalProperties: true
+        description: Extensions specifies arbitrary metadata of this resource
+        type: object
+      id:
+        description: |-
+          ID is the unique key of this resource.
+          ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
+          providerNamespace:providerName:resourceType:resourceName for Terraform resources
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type'
+        description: Type represents all Context we supported like Kubernetes and
+          Terraform
+    type: object
+  v1.SecretStore:
+    properties:
+      provider:
+        $ref: '#/definitions/v1.ProviderSpec'
+    type: object
+  v1.Spec:
+    properties:
+      context:
+        allOf:
+        - $ref: '#/definitions/v1.GenericConfig'
+        description: Context contains workspace-level configurations, such as runtimes,
+          topologies, and metadata, etc.
+      resources:
+        description: Resources is the list of Resource this Spec contains.
+        items:
+          $ref: '#/definitions/v1.Resource'
+        type: array
+      secretStore:
+        allOf:
+        - $ref: '#/definitions/v1.SecretStore'
+        description: SecretSore represents a external secret store location for storing
+          secrets.
+    type: object
+  v1.VaultKVStoreVersion:
+    enum:
+    - v1
+    - v2
+    type: string
+    x-enum-varnames:
+    - VaultKVStoreV1
+    - VaultKVStoreV2
+  v1.VaultProvider:
+    properties:
+      path:
+        description: 'Path is the mount path of the Vault KV backend endpoint, e.g:
+          "secret".'
+        type: string
+      server:
+        description: 'Server is the target Vault server address to connect, e.g: "https://vault.example.com:8200".'
+        type: string
+      version:
+        allOf:
+        - $ref: '#/definitions/v1.VaultKVStoreVersion'
+        description: |-
+          Version is the Vault KV secret engine version. Version can be either "v1" or
+          "v2", defaults to "v2".
+    type: object
+  v1.ViettelCloudProvider:
+    properties:
+      cmpURL:
+        description: |-
+          ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.
+          Examples are https://console.viettelcloud.vn/api/
+        type: string
+      projectID:
+        description: ProjectID to be used to interact with ViettelCloud Secrets Manager.
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/backends:
+    get:
+      description: List all backends
+      operationId: listBackend
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Backend'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List backends
+      tags:
+      - backend
+    post:
+      consumes:
+      - application/json
+      description: Create a new backend
+      operationId: createBackend
+      parameters:
+      - description: Created backend
+        in: body
+        name: backend
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateBackendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Backend'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create backend
+      tags:
+      - backend
+  /api/v1/backends/{id}:
+    delete:
+      description: Delete specified backend by ID
+      operationId: deleteBackend
+      parameters:
+      - description: Backend ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete backend
+      tags:
+      - backend
+    get:
+      description: Get backend information by backend ID
+      operationId: getBackend
+      parameters:
+      - description: Backend ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Backend'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get backend
+      tags:
+      - backend
+    put:
+      consumes:
+      - application/json
+      description: Update the specified backend
+      operationId: updateBackend
+      parameters:
+      - description: Backend ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated backend
+        in: body
+        name: backend
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateBackendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Backend'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update backend
+      tags:
+      - backend
+  /api/v1/orgs:
+    get:
+      description: List all organizations
+      operationId: listOrganization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/entity.Organization'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List organizations
+      tags:
+      - organization
+    post:
+      consumes:
+      - application/json
+      description: Create a new organization
+      operationId: createOrganization
+      parameters:
+      - description: Created organization
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Organization'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create organization
+      tags:
+      - organization
+  /api/v1/orgs/{id}:
+    delete:
+      description: Delete specified organization by ID
+      operationId: deleteOrganization
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete organization
+      tags:
+      - organization
+    get:
+      description: Get organization information by organization ID
+      operationId: getOrganization
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Organization'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get organization
+      tags:
+      - organization
+    put:
+      consumes:
+      - application/json
+      description: Update the specified organization
+      operationId: updateOrganization
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated organization
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Organization'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update organization
+      tags:
+      - organization
+  /api/v1/projects:
+    get:
+      description: List all or a subset of the projects
+      operationId: listProject
+      parameters:
+      - description: OrganizationID to filter project list by. Default to all projects.
+        in: query
+        name: orgID
+        type: integer
+      - description: Project name to filter project list by. This should only return
+          one result if set.
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/entity.Project'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List projects
+      tags:
+      - project
+    post:
+      consumes:
+      - application/json
+      description: Create a new project
+      operationId: createProject
+      parameters:
+      - description: Created project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create project
+      tags:
+      - project
+  /api/v1/projects/{project_id}:
+    delete:
+      description: Delete specified project by ID
+      operationId: deleteProject
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete project
+      tags:
+      - project
+    get:
+      description: Get project information by project ID
+      operationId: getProject
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get project
+      tags:
+      - project
+    put:
+      consumes:
+      - application/json
+      description: Update the specified project
+      operationId: updateProject
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: integer
+      - description: Updated project
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update project
+      tags:
+      - project
+  /api/v1/resources:
+    get:
+      description: List resource information
+      operationId: listResource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Resource'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List resource
+      tags:
+      - resource
+  /api/v1/resources/{id}:
+    get:
+      description: Get resource information by resource ID
+      operationId: getResource
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Resource'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get resource
+      tags:
+      - resource
+  /api/v1/sources:
+    get:
+      description: List source information by source ID
+      operationId: listSource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Source'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List source
+      tags:
+      - source
+    post:
+      consumes:
+      - application/json
+      description: Create a new source
+      operationId: createSource
+      parameters:
+      - description: Created source
+        in: body
+        name: source
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateSourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Source'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create source
+      tags:
+      - source
+  /api/v1/sources/{id}:
+    delete:
+      description: Delete specified source by ID
+      operationId: deleteSource
+      parameters:
+      - description: Source ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Source'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete source
+      tags:
+      - source
+    get:
+      description: Get source information by source ID
+      operationId: getSource
+      parameters:
+      - description: Source ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Source'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get source
+      tags:
+      - source
+    put:
+      consumes:
+      - application/json
+      description: Update the specified source
+      operationId: updateSource
+      parameters:
+      - description: Source ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated source
+        in: body
+        name: source
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateSourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Source'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update source
+      tags:
+      - source
+  /api/v1/stacks:
+    get:
+      description: List all stacks
+      operationId: listStack
+      parameters:
+      - description: ProjectID to filter stacks by. Default to all
+        in: query
+        name: projectID
+        type: integer
+      - description: OrgID to filter stacks by. Default to all
+        in: query
+        name: orgID
+        type: integer
+      - description: ProjectName to filter stacks by. Default to all
+        in: query
+        name: projectName
+        type: string
+      - description: Cloud to filter stacks by. Default to all
+        in: query
+        name: cloud
+        type: string
+      - description: Environment to filter stacks by. Default to all
+        in: query
+        name: env
+        type: string
+      - description: Whether to get last synced base revision. Default to false
+        in: query
+        name: getLastSyncedBase
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/entity.Stack'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List stacks
+      tags:
+      - stack
+    post:
+      consumes:
+      - application/json
+      description: Create a new stack
+      operationId: createStack
+      parameters:
+      - description: Created stack
+        in: body
+        name: stack
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateStackRequest'
+      - description: Whether to create an AppConfig from template when creating the
+          stack
+        in: query
+        name: fromTemplate
+        type: boolean
+      - description: Whether to initialize an AppTopology from template when creating
+          the stack
+        in: query
+        name: initTopology
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Stack'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create stack
+      tags:
+      - stack
+  /api/v1/stacks/{stack_id}:
+    delete:
+      description: Delete specified stack by ID
+      operationId: deleteStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete stack
+      tags:
+      - stack
+    get:
+      description: Get stack information by stack ID
+      operationId: getStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Stack'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get stack
+      tags:
+      - stack
+    put:
+      consumes:
+      - application/json
+      description: Update the specified stack
+      operationId: updateStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      - description: Updated stack
+        in: body
+        name: stack
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Stack'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update stack
+      tags:
+      - stack
+  /api/v1/stacks/{stack_id}/apply:
+    post:
+      description: Apply stack information by stack ID
+      operationId: applyStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      - description: The Spec ID to use for the apply. Will generate a new spec if
+          omitted.
+        in: query
+        name: specID
+        type: string
+      - description: Force the apply even when the stack is locked. May cause concurrency
+          issues!!!
+        in: query
+        name: force
+        type: boolean
+      - description: Apply in dry-run mode
+        in: query
+        name: dryrun
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Apply stack
+      tags:
+      - stack
+  /api/v1/stacks/{stack_id}/destroy:
+    post:
+      description: Destroy stack information by stack ID
+      operationId: destroyStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      - description: Force the destroy even when the stack is locked. May cause concurrency
+          issues!!!
+        in: query
+        name: force
+        type: boolean
+      - description: Destroy in dry-run mode
+        in: query
+        name: dryrun
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Destroy stack
+      tags:
+      - stack
+  /api/v1/stacks/{stack_id}/generate:
+    post:
+      description: Generate stack information by stack ID
+      operationId: generateStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      - description: 'The format to generate the spec in. Choices are: spec. Default
+          to spec.'
+        in: query
+        name: format
+        type: string
+      - description: Force the generate even when the stack is locked
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/v1.Spec'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Generate stack
+      tags:
+      - stack
+  /api/v1/stacks/{stack_id}/preview:
+    post:
+      description: Preview stack information by stack ID
+      operationId: previewStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stack_id
+        required: true
+        type: integer
+      - description: 'Output format. Choices are: json, default. Default to default
+          output format in Kusion.'
+        in: query
+        name: output
+        type: string
+      - description: Show detailed output
+        in: query
+        name: detail
+        type: boolean
+      - description: The Spec ID to use for the preview. Default to the last one generated.
+        in: query
+        name: specID
+        type: string
+      - description: Force the preview even when the stack is locked
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/models.Changes'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Preview stack
+      tags:
+      - stack
+  /api/v1/workspaces:
+    get:
+      description: List all workspaces
+      operationId: listWorkspace
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Workspace'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List workspaces
+      tags:
+      - workspace
+    post:
+      consumes:
+      - application/json
+      description: Create a new workspace
+      operationId: createWorkspace
+      parameters:
+      - description: Created workspace
+        in: body
+        name: workspace
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Workspace'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create workspace
+      tags:
+      - workspace
+  /api/v1/workspaces/{id}:
+    delete:
+      description: Delete specified workspace by ID
+      operationId: deleteWorkspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete workspace
+      tags:
+      - workspace
+    get:
+      description: Get workspace information by workspace ID
+      operationId: getWorkspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Workspace'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get workspace
+      tags:
+      - workspace
+    put:
+      consumes:
+      - application/json
+      description: Update the specified workspace
+      operationId: updateWorkspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated workspace
+        in: body
+        name: workspace
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Workspace'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update workspace
+      tags:
+      - workspace
+  /endpoints:
+    get:
+      consumes:
+      - text/plain
+      description: List all registered endpoints in the router
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Endpoints listed successfully
+          schema:
+            type: string
+      summary: List all available endpoints
+      tags:
+      - debug
+swagger: "2.0"
