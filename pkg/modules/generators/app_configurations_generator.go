@@ -585,13 +585,18 @@ func getModuleName(accessory v1.Accessory) (string, error) {
 }
 
 func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*proto.GeneratorRequest, error) {
-	var workloadConfig, devConfig, platformConfig, ctx []byte
+	var workloadConfig, secretStoreConfig, devConfig, platformConfig, ctx []byte
 	var err error
 	// Attention: we MUST yaml.v2 to serialize the object,
 	// because we have introduced MapSlice in the Workload which is supported only in the yaml.v2
 	if g.app.Workload != nil {
 		if workloadConfig, err = yamlv2.Marshal(g.app.Workload); err != nil {
 			return nil, fmt.Errorf("marshal workload config failed. %w", err)
+		}
+	}
+	if g.ws.SecretStore != nil {
+		if secretStoreConfig, err = yamlv2.Marshal(g.ws.SecretStore); err != nil {
+			return nil, fmt.Errorf("marshal secret store config failed. %w", err)
 		}
 	}
 	if config.devConfig != nil {
@@ -618,6 +623,7 @@ func (g *appConfigurationGenerator) initModuleRequest(config moduleConfig) (*pro
 		DevConfig:      devConfig,
 		PlatformConfig: platformConfig,
 		Context:        ctx,
+		SecretStore:    secretStoreConfig,
 	}
 	return protoRequest, nil
 }

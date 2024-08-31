@@ -17,6 +17,8 @@ message GeneratorRequest {
   bytes platform_config = 6;
   // context contains workspace-level configurations, such as topologies, server endpoints, metadata, etc.
   bytes context = 7;
+  // SecretStore represents a secure external location for storing secrets.
+  bytes secret_store = 8;
 }
 
 // GeneratorResponse represents the generate result of the generator.
