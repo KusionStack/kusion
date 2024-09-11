@@ -24,6 +24,7 @@ import (
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	yamlv2 "gopkg.in/yaml.v2"
 	"gopkg.in/yaml.v3"
+	k8sv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sjson "k8s.io/apimachinery/pkg/util/json"
@@ -42,7 +43,10 @@ import (
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
-const isWorkload = "kusion.io/is-workload"
+const (
+	isWorkload = "kusion.io/is-workload"
+	removalVal = "ops://kusionstack.io/remove"
+)
 
 type appConfigurationGenerator struct {
 	project      *v1.Project
@@ -346,7 +350,19 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		if err != nil || !b {
 			return fmt.Errorf("failed to get containers from workload:%s. %w", workload.ID, err)
 		}
-		// merge env
+
+		// Split the environment variables to be removed and the ones to be merged.
+		// NOTE: we implement value-based array removal by agreeing on a specific value
+		// `ops://kusionstack.io/remove` as the `remove` operation index for env patcher.
+		var envsToRemove, envsToMerge []k8sv1.EnvVar
+		for _, env := range patcher.Environments {
+			if env.Value == removalVal {
+				envsToRemove = append(envsToRemove, env)
+			} else {
+				envsToMerge = append(envsToMerge, env)
+			}
+		}
+
 		for i, c := range containers {
 			container := c.(map[string]interface{})
 			envs, b, err := unstructured.NestedSlice(container, "env")
@@ -357,7 +373,26 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 				envs = make([]interface{}, 0)
 			}
 
-			for _, env := range patcher.Environments {
+			// remove env
+			for _, env := range envsToRemove {
+				for i := 0; i < len(envs); i++ {
+					if e, ok := envs[i].(map[string]interface{}); !ok {
+						log.Errorf("failed to assert the unstructured env type: %v", envs[i])
+						continue
+					} else {
+						name := e["name"].(string)
+						if name == env.Name {
+							envs = append(envs[:i], envs[i+1:])
+							i--
+							log.Infof("we're gonna remove env:%s from workload:%s, container:%s", env.Name, workload.ID,
+								container["name"])
+						}
+					}
+				}
+			}
+
+			// merge env
+			for _, env := range envsToMerge {
 				us, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&env)
 				if err != nil {
 					return err
