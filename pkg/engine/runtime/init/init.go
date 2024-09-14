@@ -34,12 +34,12 @@ var contextKeys = []string{
 // InitFn runtime init func
 type InitFn func(spec apiv1.Spec) (runtime.Runtime, error)
 
-func Runtimes(spec apiv1.Spec) (map[apiv1.Type]runtime.Runtime, v1.Status) {
+func Runtimes(spec apiv1.Spec, state apiv1.State) (map[apiv1.Type]runtime.Runtime, v1.Status) {
 	// Parse the secret ref in the Context of Spec.
 	if err := parseContextSecretRef(&spec); err != nil {
 		return nil, v1.NewErrorStatus(err)
 	}
-	resources := spec.Resources
+	resources := append(spec.Resources, state.Resources...)
 	runtimesMap := map[apiv1.Type]runtime.Runtime{}
 	if resources == nil {
 		return runtimesMap, nil
