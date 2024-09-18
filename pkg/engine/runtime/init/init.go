@@ -39,7 +39,8 @@ func Runtimes(spec apiv1.Spec, state apiv1.State) (map[apiv1.Type]runtime.Runtim
 	if err := parseContextSecretRef(&spec); err != nil {
 		return nil, v1.NewErrorStatus(err)
 	}
-	resources := append(spec.Resources, state.Resources...)
+	resources := spec.Resources
+	resources = append(resources, state.Resources...)
 	runtimesMap := map[apiv1.Type]runtime.Runtime{}
 	if resources == nil {
 		return runtimesMap, nil
