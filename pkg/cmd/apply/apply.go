@@ -725,7 +725,7 @@ func Watch(
 			watchErrCh <- *err
 		}()
 		// Init the runtimes according to the resource types.
-		runtimes, s := runtimeinit.Runtimes(*rel.Spec)
+		runtimes, s := runtimeinit.Runtimes(*rel.Spec, *rel.State)
 		if v1.IsErr(s) {
 			panic(fmt.Errorf("failed to init runtimes: %s", s.String()))
 		}

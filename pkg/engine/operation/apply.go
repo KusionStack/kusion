@@ -71,7 +71,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 		stateResourceIndex[k] = v
 	}
 
-	runtimesMap, s := runtimeinit.Runtimes(*req.Release.Spec)
+	runtimesMap, s := runtimeinit.Runtimes(*req.Release.Spec, *req.Release.State)
 	if v1.IsErr(s) {
 		return nil, s
 	}

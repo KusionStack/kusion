@@ -58,7 +58,7 @@ func (po *PreviewOperation) Preview(req *PreviewRequest) (rsp *PreviewResponse, 
 	priorState := req.State
 
 	// Kusion is a multi-runtime system. We initialize runtimes dynamically by resource types
-	runtimesMap, s := runtimeinit.Runtimes(*req.Spec)
+	runtimesMap, s := runtimeinit.Runtimes(*req.Spec, *req.State)
 	if v1.IsErr(s) {
 		return nil, s
 	}
