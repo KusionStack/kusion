@@ -734,3 +734,13 @@ type Release struct {
 	// ModifiedTime is the time that the Release is modified.
 	ModifiedTime time.Time `yaml:"modifiedTime" json:"modifiedTime"`
 }
+
+const (
+	// Environment variable for maximum number of concurrent resource executions,
+	// including preview, apply and destroy.
+	// Note that the maximum number should be between 1 to 100.
+	MaxConcurrentEnvVar = "KUSION_EXEC_MAX_CONCURRENT"
+
+	// The default maximum number of concurrent resource executions for Kusion is 10.
+	DefaultMaxConcurrent = 10
+)

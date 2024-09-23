@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -122,5 +124,24 @@ func (o *Operation) UpdateReleaseState() error {
 		return fmt.Errorf("udpate release failed, %w", err)
 	}
 	log.Infof("update release succeeded, project %s, workspace %s, revision %d", o.Release.Project, o.Release.Workspace, o.Release.Revision)
+	return nil
+}
+
+// Update the operation semaphore with the maximum number of concurrent resource executions.
+func (o *Operation) UpdateSemaphore() error {
+	v := os.Getenv(apiv1.MaxConcurrentEnvVar)
+	if v != "" {
+		maxConcurrent, err := strconv.Atoi(v)
+		if err != nil {
+			return err
+		}
+		if maxConcurrent < 1 || maxConcurrent > 100 {
+			return fmt.Errorf("invalid value for maximum number of concurrent resource executions: %d", maxConcurrent)
+		}
+		o.Sem = semaphore.New(int64(maxConcurrent))
+	} else {
+		o.Sem = semaphore.New(int64(apiv1.DefaultMaxConcurrent))
+	}
+
 	return nil
 }

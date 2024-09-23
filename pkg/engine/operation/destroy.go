@@ -37,6 +37,11 @@ func (do *DestroyOperation) Destroy(req *DestroyRequest) (rsp *DestroyResponse, 
 		return nil, s
 	}
 
+	// Update the operation semaphore.
+	if err := o.UpdateSemaphore(); err != nil {
+		return nil, v1.NewErrorStatus(err)
+	}
+
 	// 1. init & build Indexes
 	priorState := req.Release.State
 	priorStateResourceIndex := priorState.Resources.Index()
