@@ -54,6 +54,11 @@ func (po *PreviewOperation) Preview(req *PreviewRequest) (rsp *PreviewResponse, 
 		return nil, s
 	}
 
+	// Update the operation semaphore.
+	if err := o.UpdateReleaseState(); err != nil {
+		return nil, v1.NewErrorStatus(err)
+	}
+
 	// 1. init & build Indexes
 	priorState := req.State
 

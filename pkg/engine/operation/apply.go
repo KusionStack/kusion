@@ -62,6 +62,11 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 		return nil, s
 	}
 
+	// Update the operation semaphore.
+	if err := o.UpdateReleaseState(); err != nil {
+		return nil, v1.NewErrorStatus(err)
+	}
+
 	// 1. init & build Indexes
 	priorState := req.Release.State
 	priorStateResourceIndex := priorState.Resources.Index()
