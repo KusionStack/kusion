@@ -217,7 +217,8 @@ func JSONPatch(resources v1.Resources, patcher *v1.Patcher) error {
 		for id, jsonPatcher := range patcher.JSONPatchers {
 			res, ok := resIndex[id]
 			if !ok {
-				return fmt.Errorf("target patch resource %s not found", id)
+				log.Warnf("target patch resource %s not found, skipped", id)
+				continue
 			}
 
 			target := jsonutil.Marshal2String(res.Attributes)
