@@ -20,6 +20,9 @@ type Backend interface {
 
 	// StateStorageWithPath returns the state storage with the specified path.
 	StateStorageWithPath(path string) (release.Storage, error)
+
+	// ProjectStorage returns the project directory under release folder.
+	ProjectStorage() (map[string][]string, error)
 }
 
 // NewBackend creates the Backend with the configuration set in the Kusion configuration file, where the input

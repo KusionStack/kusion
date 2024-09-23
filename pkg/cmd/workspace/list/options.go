@@ -3,8 +3,6 @@ package list
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v3"
-
 	"kusionstack.io/kusion/pkg/backend"
 )
 
@@ -33,10 +31,17 @@ func (o *Options) Run() error {
 	if err != nil {
 		return err
 	}
-	content, err := yaml.Marshal(names)
+	current, err := storage.GetCurrent()
 	if err != nil {
-		return fmt.Errorf("yaml marshal workspace names failed: %w", err)
+		return err
 	}
-	fmt.Print(string(content))
+
+	for _, name := range names {
+		if name == current {
+			fmt.Println("* " + name)
+		} else {
+			fmt.Println("- " + name)
+		}
+	}
 	return nil
 }

@@ -59,6 +59,10 @@ func (f *fakeBackendForList) StateStorageWithPath(path string) (release.Storage,
 	return &fakeStorageForList{}, nil
 }
 
+func (f *fakeBackendForList) ProjectStorage() (map[string][]string, error) {
+	return nil, nil
+}
+
 type fakeWorkspaceStorage struct{}
 
 func (f *fakeWorkspaceStorage) Get(name string) (*v1.Workspace, error) {

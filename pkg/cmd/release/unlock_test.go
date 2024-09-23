@@ -167,6 +167,10 @@ func (f *fakeBackend) StateStorageWithPath(path string) (release.Storage, error)
 	return nil, nil
 }
 
+func (f *fakeBackend) ProjectStorage() (map[string][]string, error) {
+	return nil, nil
+}
+
 var _ release.Storage = (*fakeStorage)(nil)
 
 type fakeStorage struct{}
