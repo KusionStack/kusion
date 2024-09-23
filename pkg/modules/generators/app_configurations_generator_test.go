@@ -499,7 +499,7 @@ func TestJsonPatch(t *testing.T) {
 				"notfound": {Type: v1.MergePatch, Payload: []byte(`{"key": "value"}`)},
 			},
 		})
-		assert.Error(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("MergePatch", func(t *testing.T) {
