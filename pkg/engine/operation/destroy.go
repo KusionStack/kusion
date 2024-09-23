@@ -38,7 +38,7 @@ func (do *DestroyOperation) Destroy(req *DestroyRequest) (rsp *DestroyResponse, 
 	}
 
 	// Update the operation semaphore.
-	if err := o.UpdateReleaseState(); err != nil {
+	if err := o.UpdateSemaphore(); err != nil {
 		return nil, v1.NewErrorStatus(err)
 	}
 
