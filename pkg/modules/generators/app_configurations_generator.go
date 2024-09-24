@@ -478,6 +478,8 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 			if err != nil {
 				return nil, nil, nil, err
 			}
+			// add isWorkload extension to workload to mark workload
+			workload.Extensions[isWorkload] = true
 		} else {
 			for _, res := range response.Resources {
 				temp := &v1.Resource{}

@@ -46,6 +46,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
@@ -95,9 +96,10 @@ var (
 // scattering them across different go-routines.
 var (
 	rel            *apiv1.Release
+	gph            *apiv1.Graph
 	relLock        = &sync.Mutex{}
 	releaseCreated = false
-	storage        release.Storage
+	releaseStorage release.Storage
 	portForwarded  = false
 )
 
@@ -248,10 +250,10 @@ func (o *ApplyOptions) Run() (err error) {
 		if err != nil {
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
 			// Join the errors if update apply release failed.
-			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock)}...)
 		} else {
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseSucceeded, relLock)
-			err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)
+			err = release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock)
 		}
 	}()
 
@@ -261,16 +263,16 @@ func (o *ApplyOptions) Run() (err error) {
 	}
 
 	// create release
-	storage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	releaseStorage, err = o.Backend.ReleaseStorage(o.RefProject.Name, o.RefWorkspace.Name)
 	if err != nil {
 		return
 	}
-	rel, err = release.NewApplyRelease(storage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
+	rel, err = release.NewApplyRelease(releaseStorage, o.RefProject.Name, o.RefStack.Name, o.RefWorkspace.Name)
 	if err != nil {
 		return
 	}
 	if !o.DryRun {
-		if err = storage.Create(rel); err != nil {
+		if err = releaseStorage.Create(rel); err != nil {
 			return
 		}
 		releaseCreated = true
@@ -291,7 +293,7 @@ func (o *ApplyOptions) Run() (err error) {
 	}()
 
 	go func() {
-		errCh <- o.run(rel, storage)
+		errCh <- o.run(rel, releaseStorage)
 	}()
 
 	// Check whether the kusion apply command has timed out.
@@ -309,7 +311,7 @@ func (o *ApplyOptions) Run() (err error) {
 				return
 			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock)}...)
 			return err
 		}
 	} else {
@@ -323,14 +325,14 @@ func (o *ApplyOptions) Run() (err error) {
 }
 
 // run executes the apply cmd after the release is created.
-func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err error) {
+func (o *ApplyOptions) run(rel *apiv1.Release, releaseStorage release.Storage) (err error) {
 	defer func() {
 		if !releaseCreated {
 			return
 		}
 		if err != nil {
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock)}...)
 		}
 	}()
 
@@ -361,12 +363,12 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 	// update release phase to previewing
 	rel.Spec = spec
 	release.UpdateReleasePhase(rel, apiv1.ReleasePhasePreviewing, relLock)
-	if err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock); err != nil {
+	if err = release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock); err != nil {
 		return
 	}
 
 	// compute changes for preview
-	changes, err := preview.Preview(o.PreviewOptions, storage, rel.Spec, rel.State, o.RefProject, o.RefStack)
+	changes, err := preview.Preview(o.PreviewOptions, releaseStorage, rel.Spec, rel.State, o.RefProject, o.RefStack)
 	if err != nil {
 		return
 	}
@@ -413,8 +415,38 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 
 	// update release phase to applying
 	release.UpdateReleasePhase(rel, apiv1.ReleasePhaseApplying, relLock)
-	if err = release.UpdateApplyRelease(storage, rel, o.DryRun, relLock); err != nil {
+	if err = release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock); err != nil {
 		return
+	}
+
+	// Get graph storage directory, create if not exist
+	graphStorage, err := o.Backend.GraphStorage(o.RefProject.Name, o.RefWorkspace.Name)
+	if err != nil {
+		return err
+	}
+
+	// Try to get existing graph, use the graph if exists
+	if graphStorage.CheckGraphStorageExistence() {
+		gph, err = graphStorage.Get()
+		if err != nil {
+			return err
+		}
+		err = graph.ValidateGraph(gph)
+		if err != nil {
+			return err
+		}
+		// Put new resources from the generated spec to graph
+		gph, err = graph.GenerateGraph(spec.Resources, gph)
+	} else {
+		// Create a new graph to be used globally if no graph is stored in the storage
+		gph = &apiv1.Graph{
+			Project:   o.RefProject.Name,
+			Workspace: o.RefWorkspace.Name,
+		}
+		gph, err = graph.GenerateGraph(spec.Resources, gph)
+	}
+	if err != nil {
+		return err
 	}
 
 	// start applying
@@ -422,7 +454,7 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 
 	// NOTE: release should be updated in the process of apply, so as to avoid the problem
 	// of being unable to update after being terminated by SIGINT or SIGTERM.
-	_, err = Apply(o, storage, rel, changes)
+	_, err = Apply(o, releaseStorage, rel, gph, changes)
 	if err != nil {
 		return
 	}
@@ -445,11 +477,12 @@ func (o *ApplyOptions) run(rel *apiv1.Release, storage release.Storage) (err err
 }
 
 // The Apply function will apply the resources changes through the execution kusion engine.
-// You can customize the runtime of engine and the release storage through `runtime` and `storage` parameters.
+// You can customize the runtime of engine and the release releaseStorage through `runtime` and `releaseStorage` parameters.
 func Apply(
 	o *ApplyOptions,
-	storage release.Storage,
+	releaseStorage release.Storage,
 	rel *apiv1.Release,
+	gph *apiv1.Graph,
 	changes *models.Changes,
 ) (*apiv1.Release, error) {
 	var err error
@@ -464,7 +497,47 @@ func Apply(
 				return
 			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			err = errors.Join([]error{err, release.UpdateApplyRelease(storage, rel, o.DryRun, relLock)}...)
+			err = errors.Join([]error{err, release.UpdateApplyRelease(releaseStorage, rel, o.DryRun, relLock)}...)
+		}
+
+		// Update graph and write to storage if not dry run.
+		if !o.DryRun {
+			// Use resources in the state to get resource Cloud ID.
+			for _, resource := range rel.State.Resources {
+				// Get information of each of the resources
+				info, err := graph.GetResourceInfo(&resource)
+				if err != nil {
+					return
+				}
+				// Update information of each of the resources.
+				graphResource := graph.FindGraphResourceByID(gph.Resources, resource.ID)
+				if graphResource != nil {
+					graphResource.CloudResourceID = info.CloudResourceID
+					graphResource.Type = info.ResourceType
+					graphResource.Name = info.ResourceName
+				}
+			}
+			// Get the directory to store the graph.
+			graphStorage, err := o.Backend.GraphStorage(o.RefProject.Name, o.RefWorkspace.Name)
+			if err != nil {
+				return
+			}
+
+			// Update graph if exists, otherwise create a new graph file.
+			if graphStorage.CheckGraphStorageExistence() {
+				// No need to store resource index
+				graph.RemoveResourceIndex(gph)
+				err := graphStorage.Update(gph)
+				if err != nil {
+					return
+				}
+			} else {
+				graph.RemoveResourceIndex(gph)
+				err := graphStorage.Create(gph)
+				if err != nil {
+					return
+				}
+			}
 		}
 	}()
 
@@ -472,7 +545,7 @@ func Apply(
 	ac := &operation.ApplyOperation{
 		Operation: models.Operation{
 			Stack:          changes.Stack(),
-			ReleaseStorage: storage,
+			ReleaseStorage: releaseStorage,
 			MsgCh:          make(chan models.Message),
 			IgnoreFields:   o.IgnoreFields,
 		},
@@ -541,6 +614,7 @@ func Apply(
 		&ls,
 		o.DryRun,
 		o.Watch,
+		gph.Resources,
 	)
 
 	watchErrCh := make(chan error)
@@ -554,6 +628,7 @@ func Apply(
 			watchErrCh,
 			multi,
 			changesWriterMap,
+			gph,
 		)
 	}
 
@@ -575,6 +650,7 @@ func Apply(
 				Stack:   changes.Stack(),
 			},
 			Release: rel,
+			Graph:   gph,
 		})
 		if v1.IsErr(st) {
 			errWriter.(*bytes.Buffer).Reset()
@@ -584,6 +660,7 @@ func Apply(
 		// Update the release with that in the apply response if not dryrun.
 		updatedRel = rsp.Release
 		*rel = *updatedRel
+		gph = rsp.Graph
 	}
 
 	// wait for msgCh closed
@@ -622,6 +699,7 @@ func PrintApplyDetails(
 	ls *lineSummary,
 	dryRun bool,
 	watch bool,
+	gphResources *apiv1.GraphResources,
 ) {
 	defer func() {
 		if p := recover(); p != nil {
@@ -633,7 +711,7 @@ func PrintApplyDetails(
 				return
 			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			*err = errors.Join([]error{*err, release.UpdateApplyRelease(storage, rel, dryRun, relLock)}...)
+			*err = errors.Join([]error{*err, release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)}...)
 		}
 		(*errWriter).(*bytes.Buffer).Reset()
 	}()
@@ -667,6 +745,20 @@ func PrintApplyDetails(
 						changesWriterMap[msg.ResourceID].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(msg.ResourceID)))
 					}
 				}
+
+				// Update resource status
+				if !dryRun && changeStep.Action != models.UnChanged {
+					gphResource := graph.FindGraphResourceByID(gphResources, msg.ResourceID)
+					if gphResource != nil {
+						// Delete resource from the graph if it's deleted during apply
+						if changeStep.Action == models.Delete {
+							graph.RemoveResource(gph, gphResource)
+						} else {
+							gphResource.Status = apiv1.ApplySucceed
+						}
+					}
+				}
+
 				progressbar.Increment()
 				ls.Count(changeStep.Action)
 			case models.Failed:
@@ -674,6 +766,13 @@ func PrintApplyDetails(
 				changesWriterMap[msg.ResourceID].Fail(title)
 				errStr := pretty.ErrorT.Sprintf("apply %s failed as: %s\n", msg.ResourceID, msg.OpErr.Error())
 				pterm.Fprintln(*errWriter, errStr)
+				if !dryRun {
+					// Update resource status, in case anything like update fail happened
+					gphResource := graph.FindGraphResourceByID(gphResources, msg.ResourceID)
+					if gphResource != nil {
+						gphResource.Status = apiv1.ApplyFail
+					}
+				}
 			default:
 				title := fmt.Sprintf("%s %s",
 					changeStep.Action.Ing(),
@@ -695,6 +794,7 @@ func Watch(
 	watchErrCh chan error,
 	multi *pterm.MultiPrinter,
 	changesWriterMap map[string]*pterm.SpinnerPrinter,
+	gph *apiv1.Graph,
 ) {
 	resourceMap := make(map[string]apiv1.Resource)
 	ioWriterMap := make(map[string]io.Writer)
@@ -719,7 +819,7 @@ func Watch(
 					return
 				}
 				release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-				_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+				_ = release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)
 			}
 
 			watchErrCh <- *err
@@ -765,7 +865,7 @@ func Watch(
 				// Setup a go-routine to concurrently watch K8s and TF resources.
 				if res.Type == apiv1.Kubernetes {
 					healthPolicy, kind := getResourceInfo(&res)
-					go watchK8sResources(id, kind, w.Watchers, table, tables, dryRun, healthPolicy)
+					go watchK8sResources(id, kind, w.Watchers, table, tables, gph, dryRun, healthPolicy)
 				} else if res.Type == apiv1.Terraform {
 					go watchTFResources(id, w.TFWatcher, table, dryRun)
 				} else {
@@ -794,6 +894,12 @@ func Watch(
 					if table.AllCompleted() {
 						finished[id] = true
 						changesWriterMap[id].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(id)))
+
+						// Update resource status to reconciled.
+						resource := graph.FindGraphResourceByID(gph.Resources, id)
+						if resource != nil {
+							resource.Status = apiv1.Reconciled
+						}
 					}
 				}
 				<-ticker.C
@@ -878,7 +984,7 @@ func prompt(ui *terminal.UI) (string, error) {
 		// To gracefully exit if interrupted by SIGINT or SIGTERM.
 		WithOnInterruptFunc(func() {
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			release.UpdateApplyRelease(storage, rel, false, relLock)
+			release.UpdateApplyRelease(releaseStorage, rel, false, relLock)
 			os.Exit(1)
 		}).
 		Show()
@@ -895,6 +1001,7 @@ func watchK8sResources(
 	chs []<-chan watch.Event,
 	table *printers.Table,
 	tables map[string]*printers.Table,
+	gph *apiv1.Graph,
 	dryRun bool,
 	healthPolicy interface{},
 ) {
@@ -909,9 +1016,15 @@ func watchK8sResources(
 				return
 			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+			_ = release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)
 		}
 	}()
+
+	// Set resource status to `reconcile failed` before reconcile successfully.
+	resource := graph.FindGraphResourceByID(gph.Resources, id)
+	if resource != nil {
+		resource.Status = apiv1.ReconcileFail
+	}
 
 	// Resources selects
 	cases := createSelectCases(chs)
@@ -994,7 +1107,7 @@ func watchTFResources(
 				return
 			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
-			_ = release.UpdateApplyRelease(storage, rel, dryRun, relLock)
+			_ = release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)
 		}
 	}()
 

@@ -212,6 +212,12 @@ func (o *DestroyOptions) Run() (err error) {
 	} else {
 		rel.Phase = apiv1.ReleasePhaseSucceeded
 		release.UpdateDestroyRelease(storage, rel)
+		graphStorage, _ := o.Backend.GraphStorage(o.RefProject.Name, o.RefWorkspace.Name)
+		// Remove resource graph if resources are destroyed
+		err := graphStorage.Delete()
+		if err != nil {
+			return err
+		}
 	}
 
 	return err

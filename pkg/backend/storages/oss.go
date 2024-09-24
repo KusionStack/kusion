@@ -6,6 +6,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
+	graphstorages "kusionstack.io/kusion/pkg/engine/resource/graph/storages"
 	projectstorages "kusionstack.io/kusion/pkg/project/storages"
 	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
@@ -42,6 +44,10 @@ func (s *OssStorage) ReleaseStorage(project, workspace string) (release.Storage,
 
 func (s *OssStorage) StateStorageWithPath(path string) (release.Storage, error) {
 	return releasestorages.NewOssStorage(s.bucket, releasestorages.GenReleasePrefixKeyWithPath(s.prefix, path))
+}
+
+func (s *OssStorage) GraphStorage(project, workspace string) (graph.Storage, error) {
+	return graphstorages.NewOssStorage(s.bucket, graphstorages.GenGenericOssResourcePrefixKey(s.prefix, project, workspace))
 }
 
 func (s *OssStorage) ProjectStorage() (map[string][]string, error) {

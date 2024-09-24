@@ -10,6 +10,8 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
+	graphstorages "kusionstack.io/kusion/pkg/engine/resource/graph/storages"
+	projectstorages "kusionstack.io/kusion/pkg/project/storages"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -98,6 +100,66 @@ func TestS3Storage_ReleaseStorage(t *testing.T) {
 			mockey.PatchConvey("mock new s3 release storage", t, func() {
 				mockey.Mock(releasestorages.NewS3Storage).Return(&releasestorages.S3Storage{}, nil).Build()
 				_, err := tc.s3Storage.ReleaseStorage(tc.project, tc.workspace)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestS3Storage_GraphStorage(t *testing.T) {
+	testcases := []struct {
+		name               string
+		success            bool
+		s3Storage          *S3Storage
+		project, workspace string
+	}{
+		{
+			name:    "graph storage from s3 backend",
+			success: true,
+			s3Storage: &S3Storage{
+				s3:     &s3.S3{},
+				bucket: "infra",
+				prefix: "kusion",
+			},
+			project:   "wordpress",
+			workspace: "dev",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new s3 graph storage", t, func() {
+				mockey.Mock(graphstorages.NewS3Storage).Return(&graphstorages.S3Storage{}, nil).Build()
+				_, err := tc.s3Storage.GraphStorage(tc.project, tc.workspace)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestS3Storage_ProjectStorage(t *testing.T) {
+	testcases := []struct {
+		name      string
+		success   bool
+		s3Storage *S3Storage
+	}{
+		{
+			name:    "project storage from s3 backend",
+			success: true,
+			s3Storage: &S3Storage{
+				s3:     &s3.S3{},
+				bucket: "infra",
+				prefix: "kusion",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new s3 project storage", t, func() {
+				mockey.Mock((*projectstorages.S3Storage).Get).Return(map[string][]string{}, nil).Build()
+				_, err := tc.s3Storage.ProjectStorage()
+
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

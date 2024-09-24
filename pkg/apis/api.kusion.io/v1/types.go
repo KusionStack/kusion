@@ -268,7 +268,8 @@ const (
 	FieldHealthPolicy      = "healthPolicy"
 	FieldKCLHealthCheckKCL = "health.kcl"
 	// kind field in kubernetes resource Attributes
-	FieldKind = "kind"
+	FieldKind       = "kind"
+	FieldIsWorkload = "kusion.io/is-workload"
 )
 
 // BackendConfigs contains the configuration of multiple backends and the current backend.
@@ -744,3 +745,59 @@ const (
 	// The default maximum number of concurrent resource executions for Kusion is 10.
 	DefaultMaxConcurrent = 10
 )
+
+type Status string
+
+// Status is to represent resource status displayed by resource graph after apply succeed
+const (
+	ApplySucceed  Status = "Apply succeeded"
+	ApplyFail     Status = "Apply failed"
+	Reconciled    Status = "Apply succeeded | Reconciled"
+	ReconcileFail Status = "Apply succeeded | Reconcile failed"
+)
+
+// Graph represents the structure of a project's resources within a workspace, used by `resource graph` command.
+type Graph struct {
+	// Name of the project
+	Project string `yaml:"Project" json:"Project"`
+	// Name of the workspace where the app is deployed
+	Workspace string `yaml:"Workspace" json:"Workspace"`
+	// All the resources related to the app
+	Resources *GraphResources `yaml:"Resources" json:"Resources"`
+}
+
+// GraphResources defines the categorized resources related to the application.
+type GraphResources struct {
+	// WorkloadResources contains the resources that are directly related to the workload.
+	WorkloadResources map[string]*GraphResource `yaml:"WorkloadResources" json:"WorkloadResources"`
+	// DependencyResources stores resources that are required dependencies for the workload.
+	DependencyResources map[string]*GraphResource `yaml:"DependencyResources" json:"DependencyResources"`
+	// OtherResources holds independent resources that are not directly tied to workloads or dependencies.
+	OtherResources map[string]*GraphResource `yaml:"OtherResources" json:"OtherResources"`
+	// ResourceIndex is a global mapping of resource IDs to their corresponding resource entries.
+	ResourceIndex map[string]*ResourceEntry `yaml:"ResourceIndex,omitempty" json:"ResourceIndex,omitempty"`
+}
+
+// GraphResource represents an individual resource in the cluster.
+type GraphResource struct {
+	// ID refers to Resource ID.
+	ID string `yaml:"ID" json:"ID"`
+	// Type refers to Resource Type in the cluster.
+	Type string `yaml:"Type" json:"Type"`
+	// Name refers to Resource name in the cluster.
+	Name string `yaml:"Name" json:"Name"`
+	// CloudResourceID refers to Resource ID in the cloud provider.
+	CloudResourceID string `yaml:"CloudResourceID" json:"CloudResourceID"`
+	// Resource status after apply.
+	Status Status `yaml:"Status" json:"Status"`
+	// Dependents lists the resources that depend on this resource.
+	Dependents []string `yaml:"Dependents" json:"Dependents"`
+	// Dependencies lists the resources that this resource relies upon.
+	Dependencies []string `yaml:"Dependencies" json:"Dependencies"`
+}
+
+// ResourceEntry stores a GraphResource and its associated Resource mapping.
+type ResourceEntry struct {
+	Resource *GraphResource
+	Category map[string]*GraphResource
+}
