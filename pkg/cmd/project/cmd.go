@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 	"kusionstack.io/kusion/pkg/cmd/project/create"
+	"kusionstack.io/kusion/pkg/cmd/project/list"
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
 
@@ -28,7 +29,8 @@ func NewCmd() *cobra.Command {
 	}
 
 	createCmd := create.NewCmd()
-	cmd.AddCommand(createCmd)
+	listCmd := list.NewCmd()
+	cmd.AddCommand(createCmd, listCmd)
 
 	return cmd
 }

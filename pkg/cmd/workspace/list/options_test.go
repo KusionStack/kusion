@@ -53,6 +53,7 @@ func TestOptions_Run(t *testing.T) {
 			mockey.PatchConvey("mock get workspace names", t, func() {
 				mockey.Mock(backend.NewWorkspaceStorage).Return(&workspacestorages.LocalStorage{}, nil).Build()
 				mockey.Mock((*workspacestorages.LocalStorage).GetNames).Return([]string{"dev"}, nil).Build()
+				mockey.Mock((*workspacestorages.LocalStorage).GetCurrent).Return("dev", nil).Build()
 
 				opts := NewOptions()
 				err := opts.Run()
