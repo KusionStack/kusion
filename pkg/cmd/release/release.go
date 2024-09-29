@@ -9,16 +9,16 @@ import (
 )
 
 var relLong = i18n.T(`
-		Commands for managing Kusion release files. 
+		Commands for observing and operating Kusion release files. 
 		
-		These commands help you manage the lifecycle of Kusion release files. `)
+		These commands help you observe and operate the Kusion release files of a Project in a Workspace. `)
 
 // NewCmdRel returns an initialized Command instance for 'release' sub command.
 func NewCmdRel(streams genericiooptions.IOStreams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "release",
 		DisableFlagsInUseLine: true,
-		Short:                 "Manage Kusion release files",
+		Short:                 "Observe and operate Kusion release files",
 		Long:                  templates.LongDesc(relLong),
 		Run:                   cmdutil.DefaultSubCommandRun(streams.ErrOut),
 	}
