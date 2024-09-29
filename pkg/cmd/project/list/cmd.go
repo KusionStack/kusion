@@ -26,6 +26,7 @@ func NewCmd() *cobra.Command {
 		
 		# List the applied project in a specified backend and specified workspaces
 		kusion project list --backend default --workspace dev,default
+		
 		# List the applied project in a specified backend and all the workspaces
 		kusion project list --backend default --all`)
 	)
