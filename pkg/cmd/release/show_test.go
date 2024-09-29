@@ -10,6 +10,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
 	"kusionstack.io/kusion/pkg/project"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -104,6 +105,10 @@ func (f *fakeBackendShow) ReleaseStorage(_, _ string) (release.Storage, error) {
 }
 
 func (f *fakeBackendShow) StateStorageWithPath(_ string) (release.Storage, error) {
+	return nil, nil
+}
+
+func (f *fakeBackendShow) GraphStorage(project, workspace string) (graph.Storage, error) {
 	return nil, nil
 }
 

@@ -4,6 +4,8 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/release"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
+	graphstorages "kusionstack.io/kusion/pkg/engine/resource/graph/storages"
 	projectstorages "kusionstack.io/kusion/pkg/project/storages"
 	"kusionstack.io/kusion/pkg/workspace"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
@@ -30,6 +32,10 @@ func (s *LocalStorage) ReleaseStorage(project, workspace string) (release.Storag
 
 func (s *LocalStorage) StateStorageWithPath(path string) (release.Storage, error) {
 	return releasestorages.NewLocalStorage(releasestorages.GenReleasePrefixKeyWithPath(s.path, path))
+}
+
+func (s *LocalStorage) GraphStorage(project, workspace string) (graph.Storage, error) {
+	return graphstorages.NewLocalStorage(graphstorages.GenGraphDirPath(s.path, project, workspace))
 }
 
 func (s *LocalStorage) ProjectStorage() (map[string][]string, error) {

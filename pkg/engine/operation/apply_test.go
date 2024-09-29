@@ -1,22 +1,24 @@
 package operation
 
 import (
+	"reflect"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/release/storages"
+	resourcegraph "kusionstack.io/kusion/pkg/engine/resource/graph"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
+	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
 func TestApplyOperation_Apply(t *testing.T) {
@@ -96,7 +98,8 @@ func TestApplyOperation_Apply(t *testing.T) {
 		Path:   "fake-path",
 		Stacks: []*apiv1.Stack{fakeStack},
 	}
-
+	fakeGraph := &apiv1.Graph{Project: fakeRelease.Project, Workspace: fakeRelease.Workspace}
+	resourcegraph.GenerateGraph(fakeSpec.Resources, fakeGraph)
 	testcases := []struct {
 		name             string
 		fields           fields
@@ -118,8 +121,9 @@ func TestApplyOperation_Apply(t *testing.T) {
 					Project: fakeProject,
 				},
 				Release: fakeRelease,
+				Graph:   fakeGraph,
 			}},
-			expectedResponse: &ApplyResponse{Release: fakeUpdateRelease},
+			expectedResponse: &ApplyResponse{Release: fakeUpdateRelease, Graph: fakeGraph},
 			expectedStatus:   nil,
 		},
 	}
@@ -152,7 +156,7 @@ func TestApplyOperation_Apply(t *testing.T) {
 			) (map[apiv1.Type]runtime.Runtime, v1.Status) {
 				return map[apiv1.Type]runtime.Runtime{runtime.Kubernetes: &kubernetes.KubernetesRuntime{}}, nil
 			}).Build()
-
+			mockey.Mock(populateResourceGraph).Return(fakeGraph).Build()
 			rsp, status := ao.Apply(tc.args.applyRequest)
 			assert.Equal(t, tc.expectedResponse, rsp)
 			assert.Equal(t, tc.expectedStatus, status)
@@ -187,9 +191,87 @@ func Test_ValidateApplyRequest(t *testing.T) {
 			mockey.PatchConvey("mock valid release and spec", t, func() {
 				mockey.Mock(release.ValidateRelease).Return(nil).Build()
 				mockey.Mock(release.ValidateSpec).Return(nil).Build()
+				mockey.Mock(resourcegraph.ValidateGraph).Return(nil).Build()
 				err := validateApplyRequest(tc.req)
 				assert.Equal(t, tc.success, err == nil)
 			})
+		})
+	}
+}
+
+func Test_populateResourceGraph(t *testing.T) {
+	graph := &dag.AcyclicGraph{
+		Graph: dag.Graph{},
+	}
+	graph.Add("mock-ID1")
+	graph.Add("mock-ID2")
+	graph.Add("mock-ID")
+	graph.Connect(dag.BasicEdge("mock-ID", "mock-ID1"))
+	graph.Connect(dag.BasicEdge("mock-ID2", "mock-ID"))
+	testResource := &apiv1.GraphResource{
+		ID:              "mock-ID",
+		Type:            "mock-type",
+		Name:            "mock-name",
+		CloudResourceID: "",
+		Status:          "",
+		Dependents:      []string{},
+		Dependencies:    []string{},
+	}
+	mockResource := &apiv1.GraphResource{
+		ID:              "mock-ID",
+		Type:            "mock-type",
+		Name:            "mock-name",
+		CloudResourceID: "",
+		Status:          "",
+		Dependents:      []string{"mock-ID1"},
+		Dependencies:    []string{"mock-ID2"},
+	}
+	type args struct {
+		applyGraph    *dag.AcyclicGraph
+		resourceGraph *apiv1.Graph
+	}
+	tests := []struct {
+		name string
+		args args
+		want *apiv1.Graph
+	}{
+		{
+			name: "poplute resource dependents and dependencies",
+			args: args{
+				applyGraph: graph,
+				resourceGraph: &apiv1.Graph{
+					Project:   "project name",
+					Workspace: "workspace name",
+					Resources: &apiv1.GraphResources{
+						WorkloadResources:   map[string]*apiv1.GraphResource{"mock-ID": testResource},
+						DependencyResources: map[string]*apiv1.GraphResource{},
+						OtherResources:      map[string]*apiv1.GraphResource{},
+						ResourceIndex:       map[string]*apiv1.ResourceEntry{},
+					},
+				},
+			},
+			want: &apiv1.Graph{
+				Project:   "project name",
+				Workspace: "workspace name",
+				Resources: &apiv1.GraphResources{
+					WorkloadResources:   map[string]*apiv1.GraphResource{"mock-ID": mockResource},
+					DependencyResources: map[string]*apiv1.GraphResource{},
+					OtherResources:      map[string]*apiv1.GraphResource{},
+					ResourceIndex:       map[string]*apiv1.ResourceEntry{},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resourcegraph.UpdateResourceIndex(tt.args.resourceGraph.Resources)
+			got := populateResourceGraph(tt.args.applyGraph, tt.args.resourceGraph)
+			if !reflect.DeepEqual(got.Resources.WorkloadResources["mock-ID"].Dependents, tt.want.Resources.WorkloadResources["mock-ID"].Dependents) {
+				t.Errorf("populateResourceGraph() = %v, want %v", got.Resources.WorkloadResources["mock-ID"], tt.want.Resources.WorkloadResources["mock-ID"])
+			}
+			if !reflect.DeepEqual(got.Resources.WorkloadResources["mock-ID"].Dependencies, tt.want.Resources.WorkloadResources["mock-ID"].Dependencies) {
+				t.Errorf("populateResourceGraph() = %v, want %v", got.Resources.WorkloadResources["mock-ID"], tt.want.Resources.WorkloadResources["mock-ID"])
+			}
 		})
 	}
 }

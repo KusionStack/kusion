@@ -7,6 +7,7 @@ import (
 	"kusionstack.io/kusion/pkg/backend/storages"
 	"kusionstack.io/kusion/pkg/config"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -20,6 +21,9 @@ type Backend interface {
 
 	// StateStorageWithPath returns the state storage with the specified path.
 	StateStorageWithPath(path string) (release.Storage, error)
+
+	// GraphStorage returns the graph storage.
+	GraphStorage(project, workspace string) (graph.Storage, error)
 
 	// ProjectStorage returns the project directory under release folder.
 	ProjectStorage() (map[string][]string, error)

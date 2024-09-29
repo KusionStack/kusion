@@ -40,6 +40,8 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/printers"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
+	graphstorages "kusionstack.io/kusion/pkg/engine/resource/graph/storages"
 	"kusionstack.io/kusion/pkg/engine/runtime"
 	"kusionstack.io/kusion/pkg/engine/runtime/kubernetes"
 	"kusionstack.io/kusion/pkg/util/terminal"
@@ -174,6 +176,23 @@ func mockReleaseStorage() {
 	mockey.Mock((*releasestorages.LocalStorage).Get).Return(&apiv1.Release{State: &apiv1.State{}, Phase: apiv1.ReleasePhaseSucceeded}, nil).Build()
 }
 
+func mockGraphStorage() {
+	mockey.Mock((*storages.LocalStorage).GraphStorage).Return(&graphstorages.LocalStorage{}, nil).Build()
+	mockey.Mock((*graphstorages.LocalStorage).Create).Return(nil).Build()
+	mockey.Mock((*graphstorages.LocalStorage).Delete).Return(nil).Build()
+	mockey.Mock((*graphstorages.LocalStorage).Update).Return(nil).Build()
+	mockey.Mock((*graphstorages.LocalStorage).Get).Return(&apiv1.Graph{
+		Project:   "",
+		Workspace: "",
+		Resources: &apiv1.GraphResources{
+			WorkloadResources:   map[string]*apiv1.GraphResource{},
+			DependencyResources: map[string]*apiv1.GraphResource{},
+			OtherResources:      map[string]*apiv1.GraphResource{},
+			ResourceIndex:       map[string]*apiv1.ResourceEntry{},
+		},
+	}, nil).Build()
+}
+
 func TestApplyOptions_Run(t *testing.T) {
 	mockey.PatchConvey("DryRun is true", t, func() {
 		mockGenerateSpecWithSpinner()
@@ -222,7 +241,6 @@ func TestApply(t *testing.T) {
 	loc, _ := time.LoadLocation("Asia/Shanghai")
 	mockey.PatchConvey("dry run", t, func() {
 		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
-
 		rel := &apiv1.Release{
 			Project:      "fake-project",
 			Workspace:    "fake-workspace",
@@ -246,15 +264,18 @@ func TestApply(t *testing.T) {
 		}
 
 		changes := models.NewChanges(proj, stack, order)
+		graph := &apiv1.Graph{}
 		o := newApplyOptions()
 		o.DryRun = true
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, graph, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
 		mockOperationApply(models.Success)
 		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
-
+		mockey.Mock((*storages.LocalStorage).GraphStorage).Return(&graphstorages.LocalStorage{}, nil).Build()
+		mockey.Mock((*graphstorages.LocalStorage).Create).Return(nil).Build()
+		// mockGraphStorage()
 		o := newApplyOptions()
 		rel := &apiv1.Release{
 			Project:      "fake-project",
@@ -284,13 +305,18 @@ func TestApply(t *testing.T) {
 		}
 
 		changes := models.NewChanges(proj, stack, order)
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
+		gph := &apiv1.Graph{
+			Project:   rel.Project,
+			Workspace: rel.Workspace,
+		}
+		graph.GenerateGraph(rel.Spec.Resources, gph)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, gph, changes)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
 		mockOperationApply(models.Failed)
 		mockey.Mock((*releasestorages.LocalStorage).Update).Return(nil).Build()
-
+		mockGraphStorage()
 		o := newApplyOptions()
 		rel := &apiv1.Release{
 			Project:      "fake-project",
@@ -314,8 +340,9 @@ func TestApply(t *testing.T) {
 			},
 		}
 		changes := models.NewChanges(proj, stack, order)
-
-		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, changes)
+		gph := &apiv1.Graph{}
+		graph.GenerateGraph(rel.Spec.Resources, gph)
+		_, err := Apply(o, &releasestorages.LocalStorage{}, rel, gph, changes)
 		assert.NotNil(t, err)
 	})
 }
@@ -414,8 +441,27 @@ func TestWatchK8sResources(t *testing.T) {
 		tables := map[string]*printers.Table{
 			id: table,
 		}
-
-		watchK8sResources(id, "", chs, table, tables, true, nil)
+		resource := &apiv1.GraphResource{
+			ID:              id,
+			Type:            "",
+			Name:            "",
+			CloudResourceID: "",
+			Status:          "",
+			Dependents:      []string{},
+			Dependencies:    []string{},
+		}
+		gph := &apiv1.Graph{
+			Project:   "example project",
+			Workspace: "example workspace",
+			Resources: &apiv1.GraphResources{
+				WorkloadResources:   map[string]*apiv1.GraphResource{"id": resource},
+				DependencyResources: map[string]*apiv1.GraphResource{},
+				OtherResources:      map[string]*apiv1.GraphResource{},
+				ResourceIndex:       map[string]*apiv1.ResourceEntry{},
+			},
+		}
+		graph.UpdateResourceIndex(gph.Resources)
+		watchK8sResources(id, "", chs, table, tables, gph, true, nil)
 
 		assert.Equal(t, true, table.AllCompleted())
 	})
@@ -456,7 +502,27 @@ func TestWatchK8sResources(t *testing.T) {
 			"health.kcl": "assert res.metadata.generation == 1",
 		}
 		policyInterface = healthPolicy
-		watchK8sResources(id, "Deployment", chs, table, tables, false, policyInterface)
+		resource := &apiv1.GraphResource{
+			ID:              id,
+			Type:            "",
+			Name:            "",
+			CloudResourceID: "",
+			Status:          "",
+			Dependents:      []string{},
+			Dependencies:    []string{},
+		}
+		gph := &apiv1.Graph{
+			Project:   "example project",
+			Workspace: "example workspace",
+			Resources: &apiv1.GraphResources{
+				WorkloadResources:   map[string]*apiv1.GraphResource{"id": resource},
+				DependencyResources: map[string]*apiv1.GraphResource{},
+				OtherResources:      map[string]*apiv1.GraphResource{},
+				ResourceIndex:       map[string]*apiv1.ResourceEntry{},
+			},
+		}
+		graph.UpdateResourceIndex(gph.Resources)
+		watchK8sResources(id, "Deployment", chs, table, tables, gph, false, policyInterface)
 
 		assert.Equal(t, true, table.AllCompleted())
 	})

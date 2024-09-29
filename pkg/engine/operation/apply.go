@@ -13,6 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 	"kusionstack.io/kusion/pkg/engine/operation/parser"
 	"kusionstack.io/kusion/pkg/engine/release"
+	resourcegraph "kusionstack.io/kusion/pkg/engine/resource/graph"
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/dag"
@@ -26,10 +27,12 @@ type ApplyOperation struct {
 type ApplyRequest struct {
 	models.Request
 	Release *apiv1.Release
+	Graph   *apiv1.Graph
 }
 
 type ApplyResponse struct {
 	Release *apiv1.Release
+	Graph   *apiv1.Graph
 }
 
 // Apply means turn all actual infra resources into the desired state described in the request by invoking a specified Runtime.
@@ -88,6 +91,8 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 		return nil, s
 	}
 	log.Infof("Apply Graph:\n%s", applyGraph.String())
+	// Get dependencies and dependents of each node to be populated into resource graph.
+	resourceGraph := populateResourceGraph(applyGraph, req.Graph)
 
 	rel, s := copyRelease(req.Release)
 	if v1.IsErr(s) {
@@ -120,7 +125,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 		return nil, s
 	}
 
-	return &ApplyResponse{Release: applyOperation.Release}, nil
+	return &ApplyResponse{Release: applyOperation.Release, Graph: resourceGraph}, nil
 }
 
 func (ao *ApplyOperation) walkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
@@ -132,6 +137,9 @@ func validateApplyRequest(req *ApplyRequest) v1.Status {
 		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, "request is nil")
 	}
 	if err := release.ValidateRelease(req.Release); err != nil {
+		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, err.Error())
+	}
+	if err := resourcegraph.ValidateGraph(req.Graph); err != nil {
 		return v1.NewErrorStatusWithMsg(v1.InvalidArgument, err.Error())
 	}
 	if req.Release.Phase != apiv1.ReleasePhaseApplying {
@@ -198,4 +206,30 @@ func applyWalkFun(o *models.Operation, v dag.Vertex) (diags tfdiags.Diagnostics)
 		diags = diags.Append(fmt.Errorf("apply failed, status:\n%v", s))
 	}
 	return diags
+}
+
+// populateResourceGraph populate dependents and dependencies of each resource in resource graph with acyclicGraph
+func populateResourceGraph(applyGraph *dag.AcyclicGraph, resourceGraph *apiv1.Graph) *apiv1.Graph {
+	for _, vertex := range applyGraph.Vertices() {
+		// Get resource ID from vertex.
+		resourceName := dag.VertexName(vertex)
+		resource := resourcegraph.FindGraphResourceByID(resourceGraph.Resources, resourceName)
+		// Populate it's dependents and dependencies
+		if resource != nil {
+			dependents := applyGraph.DownEdges(vertex)
+			dependencies := applyGraph.UpEdges(vertex)
+
+			for _, dependent := range dependents {
+				dependentName := dag.VertexName(dependent)
+				resource.Dependents = append(resource.Dependents, dependentName)
+			}
+
+			for _, dependency := range dependencies {
+				dependencyName := dag.VertexName(dependency)
+				resource.Dependencies = append(resource.Dependencies, dependencyName)
+			}
+		}
+	}
+
+	return resourceGraph
 }

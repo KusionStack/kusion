@@ -23,5 +23,6 @@ func NewCmdRes(streams genericiooptions.IOStreams) *cobra.Command {
 		Run:                   cmdutil.DefaultSubCommandRun(streams.ErrOut),
 	}
 
+	cmd.AddCommand(NewCmdGraph(streams))
 	return cmd
 }

@@ -9,6 +9,8 @@ import (
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	releasestorages "kusionstack.io/kusion/pkg/engine/release/storages"
+	graphstorages "kusionstack.io/kusion/pkg/engine/resource/graph/storages"
+	projectstorages "kusionstack.io/kusion/pkg/project/storages"
 	workspacestorages "kusionstack.io/kusion/pkg/workspace/storages"
 )
 
@@ -78,7 +80,7 @@ func TestOssStorage_ReleaseStorage(t *testing.T) {
 		project, workspace string
 	}{
 		{
-			name:    "release storage from s3 backend",
+			name:    "release storage from oss backend",
 			success: true,
 			ossStorage: &OssStorage{
 				bucket: &oss.Bucket{},
@@ -94,6 +96,64 @@ func TestOssStorage_ReleaseStorage(t *testing.T) {
 			mockey.PatchConvey("mock new oss release storage", t, func() {
 				mockey.Mock(releasestorages.NewOssStorage).Return(&releasestorages.OssStorage{}, nil).Build()
 				_, err := tc.ossStorage.ReleaseStorage(tc.project, tc.workspace)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestOssStorage_GraphStorage(t *testing.T) {
+	testcases := []struct {
+		name               string
+		success            bool
+		ossStorage         *OssStorage
+		project, workspace string
+	}{
+		{
+			name:    "graph storage from oss backend",
+			success: true,
+			ossStorage: &OssStorage{
+				bucket: &oss.Bucket{},
+				prefix: "kusion",
+			},
+			project:   "wordpress",
+			workspace: "dev",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new oss graph storage", t, func() {
+				mockey.Mock(graphstorages.NewOssStorage).Return(&graphstorages.OssStorage{}, nil).Build()
+				_, err := tc.ossStorage.GraphStorage(tc.project, tc.workspace)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestOssStorage_ProjectStorage(t *testing.T) {
+	testcases := []struct {
+		name       string
+		success    bool
+		ossStorage *OssStorage
+	}{
+		{
+			name:    "project storage from oss backend",
+			success: true,
+			ossStorage: &OssStorage{
+				bucket: &oss.Bucket{},
+				prefix: "kusion",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock new oss project storage", t, func() {
+				mockey.Mock((*projectstorages.OssStorage).Get).Return(map[string][]string{}, nil).Build()
+				_, err := tc.ossStorage.ProjectStorage()
+
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

@@ -9,6 +9,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/cmd/meta"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -57,6 +58,10 @@ func (f *fakeBackendForList) WorkspaceStorage() (workspace.Storage, error) {
 
 func (f *fakeBackendForList) StateStorageWithPath(path string) (release.Storage, error) {
 	return &fakeStorageForList{}, nil
+}
+
+func (f *fakeBackendForList) GraphStorage(project, workspace string) (graph.Storage, error) {
+	return nil, nil
 }
 
 func (f *fakeBackendForList) ProjectStorage() (map[string][]string, error) {
