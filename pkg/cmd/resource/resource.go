@@ -24,5 +24,6 @@ func NewCmdRes(streams genericiooptions.IOStreams) *cobra.Command {
 	}
 
 	cmd.AddCommand(NewCmdGraph(streams))
+	cmd.AddCommand(NewCmdShow(streams))
 	return cmd
 }
