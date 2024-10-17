@@ -112,3 +112,6 @@ a pull request**.
 ## License
 
 Kusion is under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
+
+## OpenSSF Best Practice Badge
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9586/badge)](https://www.bestpractices.dev/projects/9586)
