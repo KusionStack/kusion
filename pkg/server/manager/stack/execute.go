@@ -165,15 +165,37 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return nil, err
 	}
-	// Checkout workdir
-	directory, workDir, err := GetWorkDirFromSource(ctx, stackEntity, stackEntity.Project)
-	if err != nil {
-		return nil, err
+
+	var directory, workDir string
+	// TODO: remove this. This is only for testing purposes
+	m.repoCache.Set(18, &StackCache{LocalDirOnDisk: "/tmp/kcp-kusion-3803080093", StackPath: "/tmp/kcp-kusion-3803080093/simpleservice4/dev"})
+	if stackCache, exists := m.repoCache.Get(stackEntity.ID); exists {
+		// If found in repoCache, use the cached workDir and directory
+		logger.Info("Stack found in cache. Using cache...")
+		workDir = stackCache.StackPath
+		stack.Path = workDir
+		// This is temporarily commented out to speed up development
+		// directory = stackCache.LocalDirOnDisk
+	} else {
+		// If not found in repoCache, checkout workdir
+		logger.Info("Stack not found in cache. Pulling repo and set cache...")
+		directory, workDir, err = GetWorkDirFromSource(ctx, stackEntity, stackEntity.Project)
+		if err != nil {
+			return nil, err
+		}
+		stack.Path = workDir
+		sc := &StackCache{
+			LocalDirOnDisk: directory,
+			StackPath:      workDir,
+		}
+		m.repoCache.Set(stackEntity.ID, sc)
 	}
-	stack.Path = workDir
 
 	// Cleanup
-	defer sourceapi.Cleanup(ctx, directory)
+	defer func() {
+		// This is temporarily commented out to speed up development
+		// sourceapi.Cleanup(ctx, directory)
+	}()
 
 	// Generate spec using default generator
 	sp, err = engineapi.GenerateSpecWithSpinner(project, stack, ws, true)

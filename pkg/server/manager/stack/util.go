@@ -228,6 +228,29 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 	return &filter, nil
 }
 
+func (m *StackManager) BuildRunFilter(ctx context.Context, projectIDParam, stackIDParam string) (*entity.RunFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building run filter...")
+	filter := entity.RunFilter{}
+	if projectIDParam != "" {
+		// if project id is present, use project id
+		projectID, err := strconv.Atoi(projectIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidProjectID
+		}
+		filter.ProjectID = uint(projectID)
+	}
+	if stackIDParam != "" {
+		// if project id is present, use project id
+		stackID, err := strconv.Atoi(stackIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidStackID
+		}
+		filter.StackID = uint(stackID)
+	}
+	return &filter, nil
+}
+
 func (m *StackManager) ImportTerraformResourceID(ctx context.Context, sp *v1.Spec, importedResources map[string]string) {
 	for k, res := range sp.Resources {
 		// only for terraform resources

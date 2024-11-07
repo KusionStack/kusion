@@ -78,6 +78,16 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 	}
 }
 
+func CopyToNewContext(ctx context.Context) context.Context {
+	newCtx := context.Background()
+	newCtx = context.WithValue(newCtx, appmiddleware.TraceIDKey, appmiddleware.GetTraceID(ctx))
+	newCtx = context.WithValue(newCtx, appmiddleware.UserIDKey, appmiddleware.GetUserID(ctx))
+	if logger, ok := ctx.Value(appmiddleware.APILoggerKey).(*httplog.Logger); ok {
+		newCtx = context.WithValue(newCtx, appmiddleware.APILoggerKey, logger)
+	}
+	return newCtx
+}
+
 // @Id				generateStack
 // @Summary		Generate stack
 // @Description	Generate stack information by stack ID

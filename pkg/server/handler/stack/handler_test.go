@@ -326,8 +326,9 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	projectRepo := persistence.NewProjectRepository(fakeGDB)
 	workspaceRepo := persistence.NewWorkspaceRepository(fakeGDB)
 	resourceRepo := persistence.NewResourceRepository(fakeGDB)
+	runRepo := persistence.NewRunRepository(fakeGDB)
 	stackHandler := &Handler{
-		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, entity.Backend{}, constant.MaxConcurrent),
+		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, entity.Backend{}, constant.MaxConcurrent),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, stackHandler

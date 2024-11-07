@@ -137,3 +137,18 @@ type ModuleRepository interface {
 	// List retrives all the existing modules.
 	List(ctx context.Context) ([]*entity.Module, error)
 }
+
+// RunRepository is an interface that defines the repository operations
+// for runs. It follows the principles of domain-driven design (DDD).
+type RunRepository interface {
+	// Create creates a new run.
+	Create(ctx context.Context, run *entity.Run) error
+	// Delete deletes a run by its ID.
+	Delete(ctx context.Context, id uint) error
+	// Update updates an existing run.
+	Update(ctx context.Context, run *entity.Run) error
+	// Get retrieves a run by its ID.
+	Get(ctx context.Context, id uint) (*entity.Run, error)
+	// List retrieves all existing run.
+	List(ctx context.Context, filter *entity.RunFilter) ([]*entity.Run, error)
+}

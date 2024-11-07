@@ -15,11 +15,3 @@ func NewHandler(
 type Handler struct {
 	stackManager *stackmanager.StackManager
 }
-
-type StackRequestParams struct {
-	StackID   uint
-	Workspace string
-	Format    string
-	Detail    bool
-	Dryrun    bool
-}
