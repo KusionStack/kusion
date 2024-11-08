@@ -122,3 +122,18 @@ type ResourceRepository interface {
 	// List retrieves all existing resource.
 	List(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error)
 }
+
+// ModuleRepository is an interface that defines the repository operations
+// for Kusion Modules. It follows the principles of domain-driven design (DDD).
+type ModuleRepository interface {
+	// Create creates a new module.
+	Create(ctx context.Context, module *entity.Module) error
+	// Delete deletes a module by its name.
+	Delete(ctx context.Context, name string) error
+	// Update updates an existing module.
+	Update(ctx context.Context, module *entity.Module) error
+	// Get retrieves a module by its name.
+	Get(ctx context.Context, name string) (*entity.Module, error)
+	// List retrives all the existing modules.
+	List(ctx context.Context) ([]*entity.Module, error)
+}
