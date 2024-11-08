@@ -2,17 +2,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
-    - git
     - github
     - oci
     - local
+    - git
     type: string
     x-enum-varnames:
-    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
+    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -73,6 +73,28 @@ definitions:
       updateTimestamp:
         description: UpdateTimestamp is the timestamp of the updated for the backend.
         type: string
+    type: object
+  entity.Module:
+    properties:
+      description:
+        description: Description is a human-readable description of the module.
+        type: string
+      doc:
+        allOf:
+        - $ref: '#/definitions/url.URL'
+        description: Doc is the documentation URL of the module.
+      name:
+        description: Name is the module name.
+        type: string
+      owners:
+        description: Owners is a list of owners for the module.
+        items:
+          type: string
+        type: array
+      url:
+        allOf:
+        - $ref: '#/definitions/url.URL'
+        description: URL is the module oci artifact registry URL.
     type: object
   entity.Organization:
     properties:
@@ -408,6 +430,29 @@ definitions:
     required:
     - name
     type: object
+  request.CreateModuleRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the module.
+        type: string
+      doc:
+        description: Doc is the documentation URL of the module.
+        type: string
+      name:
+        description: Name is the module name.
+        type: string
+      owners:
+        description: Owners is a list of owners for the module.
+        items:
+          type: string
+        type: array
+      url:
+        description: URL is the module oci artifact registry URL.
+        type: string
+    required:
+    - name
+    - url
+    type: object
   request.CreateOrganizationRequest:
     properties:
       description:
@@ -568,6 +613,28 @@ definitions:
         type: string
     required:
     - id
+    - name
+    type: object
+  request.UpdateModuleRequest:
+    properties:
+      description:
+        description: Description is a human-readable description of the module.
+        type: string
+      doc:
+        description: Doc is the documentation URL of the module.
+        type: string
+      name:
+        description: Name is the module name.
+        type: string
+      owners:
+        description: Owners is a list of owners for the module.
+        items:
+          type: string
+        type: array
+      url:
+        description: URL is the module oci artifact registry URL.
+        type: string
+    required:
     - name
     type: object
   request.UpdateOrganizationRequest:
@@ -1162,6 +1229,185 @@ paths:
       summary: Update backend
       tags:
       - backend
+  /api/v1/modules:
+    get:
+      description: List module information
+      operationId: listModule
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/entity.Module'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List module
+      tags:
+      - module
+    post:
+      consumes:
+      - application/json
+      description: Create a new Kusion module
+      operationId: createModule
+      parameters:
+      - description: Created module
+        in: body
+        name: module
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateModuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Module'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create module
+      tags:
+      - module
+  /api/v1/modules/{name}:
+    delete:
+      description: Delete the specified module by name
+      operationId: deleteModule
+      parameters:
+      - description: Module Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete module
+      tags:
+      - module
+    get:
+      description: Get module information by module name
+      operationId: getModule
+      parameters:
+      - description: Module Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Module'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get module
+      tags:
+      - module
+    put:
+      consumes:
+      - application/json
+      description: Update the specified module
+      operationId: updateModule
+      parameters:
+      - description: Module Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated module
+        in: body
+        name: module
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateModuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/entity.Module'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update module
+      tags:
+      - module
   /api/v1/orgs:
     get:
       description: List all organizations

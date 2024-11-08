@@ -194,5 +194,8 @@ func AutoMigrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(&WorkspaceModel{}); err != nil {
 		return err
 	}
+	if err := db.AutoMigrate(&ModuleModel{}); err != nil {
+		return err
+	}
 	return nil
 }
