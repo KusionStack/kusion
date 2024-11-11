@@ -15,6 +15,7 @@ import (
 	"kusionstack.io/kusion/pkg/server"
 	"kusionstack.io/kusion/pkg/server/handler/backend"
 	"kusionstack.io/kusion/pkg/server/handler/endpoint"
+	"kusionstack.io/kusion/pkg/server/handler/module"
 	"kusionstack.io/kusion/pkg/server/handler/organization"
 	"kusionstack.io/kusion/pkg/server/handler/project"
 	"kusionstack.io/kusion/pkg/server/handler/resource"
@@ -22,6 +23,7 @@ import (
 	"kusionstack.io/kusion/pkg/server/handler/stack"
 	"kusionstack.io/kusion/pkg/server/handler/workspace"
 	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
+	modulemanager "kusionstack.io/kusion/pkg/server/manager/module"
 	organizationmanager "kusionstack.io/kusion/pkg/server/manager/organization"
 	projectmanager "kusionstack.io/kusion/pkg/server/manager/project"
 	resourcemanager "kusionstack.io/kusion/pkg/server/manager/resource"
@@ -129,6 +131,7 @@ func setupRestAPIV1(
 	workspaceRepo := persistence.NewWorkspaceRepository(config.DB)
 	backendRepo := persistence.NewBackendRepository(config.DB)
 	resourceRepo := persistence.NewResourceRepository(config.DB)
+	moduleRepo := persistence.NewModuleRepository(config.DB)
 
 	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, config.DefaultBackend, config.MaxConcurrent)
 	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
@@ -137,6 +140,7 @@ func setupRestAPIV1(
 	workspaceManager := workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, config.DefaultBackend)
 	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, config.DefaultSource)
 	resourceManager := resourcemanager.NewResourceManager(resourceRepo)
+	moduleManager := modulemanager.NewModuleManager(moduleRepo)
 
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceManager)
@@ -172,6 +176,11 @@ func setupRestAPIV1(
 	resourceHandler, err := resource.NewHandler(resourceManager)
 	if err != nil {
 		logger.Error(err.Error(), "Error creating resource handler...", "error", err)
+		return
+	}
+	moduleHandler, err := module.NewHandler(moduleManager)
+	if err != nil {
+		logger.Error(err.Error(), "Error creating module handler", "error", err)
 		return
 	}
 
@@ -246,5 +255,14 @@ func setupRestAPIV1(
 			r.Get("/", resourceHandler.GetResource())
 		})
 		r.Get("/", resourceHandler.ListResources())
+	})
+	r.Route("/modules", func(r chi.Router) {
+		r.Post("/", moduleHandler.CreateModule())
+		r.Get("/", moduleHandler.ListModules())
+		r.Route("/{moduleName}", func(r chi.Router) {
+			r.Delete("/", moduleHandler.DeleteModule())
+			r.Put("/", moduleHandler.UpdateModule())
+			r.Get("/", moduleHandler.GetModule())
+		})
 	})
 }

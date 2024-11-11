@@ -267,6 +267,261 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/modules": {
+            "get": {
+                "description": "List module information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "List module",
+                "operationId": "listModule",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Module"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new Kusion module",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "Create module",
+                "operationId": "createModule",
+                "parameters": [
+                    {
+                        "description": "Created module",
+                        "name": "module",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateModuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Module"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/modules/{name}": {
+            "get": {
+                "description": "Get module information by module name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "Get module",
+                "operationId": "getModule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Module Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Module"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the specified module",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "Update module",
+                "operationId": "updateModule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Module Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated module",
+                        "name": "module",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateModuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Module"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete the specified module by name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "module"
+                ],
+                "summary": "Delete module",
+                "operationId": "deleteModule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Module Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/v1/orgs": {
             "get": {
                 "description": "List all organizations",
@@ -1986,17 +2241,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {
@@ -2068,6 +2323,42 @@ const docTemplate = `{
                 "updateTimestamp": {
                     "description": "UpdateTimestamp is the timestamp of the updated for the backend.",
                     "type": "string"
+                }
+            }
+        },
+        "entity.Module": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description is a human-readable description of the module.",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "Doc is the documentation URL of the module.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/url.URL"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "Name is the module name.",
+                    "type": "string"
+                },
+                "owners": {
+                    "description": "Owners is a list of owners for the module.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "URL is the module oci artifact registry URL.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/url.URL"
+                        }
+                    ]
                 }
             }
         },
@@ -2549,6 +2840,38 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateModuleRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "description": {
+                    "description": "Description is a human-readable description of the module.",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "Doc is the documentation URL of the module.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the module name.",
+                    "type": "string"
+                },
+                "owners": {
+                    "description": "Owners is a list of owners for the module.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "URL is the module oci artifact registry URL.",
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateOrganizationRequest": {
             "type": "object",
             "required": [
@@ -2771,6 +3094,37 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "Name is the name of the backend.",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateModuleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "description": "Description is a human-readable description of the module.",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "Doc is the documentation URL of the module.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the module name.",
+                    "type": "string"
+                },
+                "owners": {
+                    "description": "Owners is a list of owners for the module.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "URL is the module oci artifact registry URL.",
                     "type": "string"
                 }
             }
