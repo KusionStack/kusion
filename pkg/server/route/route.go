@@ -180,7 +180,7 @@ func setupRestAPIV1(
 	}
 	moduleHandler, err := module.NewHandler(moduleManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating module handler")
+		logger.Error(err.Error(), "Error creating module handler", "error", err)
 		return
 	}
 
