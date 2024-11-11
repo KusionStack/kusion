@@ -13,7 +13,7 @@ type ModuleModel struct {
 	// Name is the module name.
 	Name string `gorm:"index:unique_module,unique"`
 	// URL is the module oci artifact registry URL.
-	URL string `gorm:"index:unique_module,unique"`
+	URL string
 	// Description is a human-readable description of the module.
 	Description string
 	// Owners is a list of owners for the module.
