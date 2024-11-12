@@ -58,6 +58,7 @@ type StackExecuteParams struct {
 	SpecID          string
 	Force           bool
 	ImportResources bool
+	NoCache         bool
 }
 
 type RunRequestParams struct {

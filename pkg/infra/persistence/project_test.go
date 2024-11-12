@@ -30,6 +30,7 @@ func TestProjectRepository(t *testing.T) {
 				Name: "mockedProject",
 				Source: &entity.Source{
 					ID:             1,
+					Name:           "mockedSource",
 					SourceProvider: constant.SourceProviderTypeGithub,
 					Remote:         mockRemoteURL,
 				},

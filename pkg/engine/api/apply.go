@@ -30,6 +30,7 @@ func Apply(
 	o *APIOptions,
 	storage release.Storage,
 	rel *apiv1.Release,
+	gph *apiv1.Graph,
 	changes *models.Changes,
 	out io.Writer,
 ) (*apiv1.Release, error) {
@@ -135,6 +136,7 @@ func Apply(
 				Stack:   changes.Stack(),
 			},
 			Release: rel,
+			Graph:   gph,
 		})
 		if v1.IsErr(st) {
 			return nil, fmt.Errorf("apply failed, status:\n%v", st)

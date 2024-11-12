@@ -8,16 +8,18 @@ import (
 
 func NewServerOptions() *ServerOptions {
 	return &ServerOptions{
-		Mode:           DefaultMode,
-		Port:           DefaultPort,
-		AuthEnabled:    false,
-		AuthWhitelist:  []string{},
-		AuthKeyType:    DefaultAuthKeyType,
-		Database:       DatabaseOptions{},
-		DefaultBackend: DefaultBackendOptions{},
-		DefaultSource:  DefaultSourceOptions{},
-		MaxConcurrent:  constant.MaxConcurrent,
-		LogFilePath:    constant.DefaultLogFilePath,
+		Mode:               DefaultMode,
+		Port:               DefaultPort,
+		AuthEnabled:        false,
+		AuthWhitelist:      []string{},
+		AuthKeyType:        DefaultAuthKeyType,
+		Database:           DatabaseOptions{},
+		DefaultBackend:     DefaultBackendOptions{},
+		DefaultSource:      DefaultSourceOptions{},
+		MaxConcurrent:      constant.MaxConcurrent,
+		MaxAsyncConcurrent: constant.MaxAsyncConcurrent,
+		MaxAsyncBuffer:     constant.MaxAsyncBuffer,
+		LogFilePath:        constant.DefaultLogFilePath,
 	}
 }
 
@@ -37,6 +39,8 @@ func (o *ServerOptions) Config() (*server.Config, error) {
 	cfg.AuthWhitelist = o.AuthWhitelist
 	cfg.AuthKeyType = o.AuthKeyType
 	cfg.MaxConcurrent = o.MaxConcurrent
+	cfg.MaxAsyncConcurrent = o.MaxAsyncConcurrent
+	cfg.MaxAsyncBuffer = o.MaxAsyncBuffer
 	cfg.LogFilePath = o.LogFilePath
 	return cfg, nil
 }

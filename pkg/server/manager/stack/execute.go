@@ -14,11 +14,12 @@ import (
 	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/engine/release"
+	"kusionstack.io/kusion/pkg/engine/resource/graph"
 
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
+	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
 
-	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -72,29 +73,24 @@ func (m *StackManager) GenerateSpec(ctx context.Context, params *StackRequestPar
 		return "", nil, err
 	}
 
-	// Build API inputs
-	// get project to get source and workdir
-	projectEntity, err := m.projectRepo.Get(ctx, stackEntity.Project.ID)
+	directory, workDir, err := m.GetWorkdirAndDirectory(ctx, params, stackEntity)
 	if err != nil {
 		return "", nil, err
 	}
-
-	directory, workDir, err := GetWorkDirFromSource(ctx, stackEntity, projectEntity)
-	logger.Info("workDir derived", "workDir", workDir)
-	logger.Info("directory derived", "directory", directory)
-
 	stack.Path = workDir
-	if err != nil {
-		return "", nil, err
-	}
+
+	// Cleanup
+	defer func() {
+		if params.ExecuteParams.NoCache {
+			sourceapi.Cleanup(ctx, directory)
+		}
+	}()
 
 	stackEntity.SyncState = constant.StackStateGenerated
 	err = m.stackRepo.Update(ctx, stackEntity)
 	if err != nil {
 		return "", nil, err
 	}
-	// Cleanup
-	defer sourceapi.Cleanup(ctx, directory)
 
 	// Generate spec
 	sp, err := engineapi.GenerateSpecWithSpinner(project, stack, ws, true)
@@ -116,6 +112,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 
 	defer func() {
 		if err != nil {
+			logger.Info("Error occurred during previewing stack. Setting stack sync state to preview failed")
 			stackEntity.SyncState = constant.StackStatePreviewFailed
 			m.stackRepo.Update(ctx, stackEntity)
 		} else {
@@ -149,13 +146,6 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return nil, err
 	}
-	releasePath := getReleasePath(stackEntity.Path, "default")
-	releaseStorage, err := stateBackend.StateStorageWithPath(releasePath)
-	if err != nil {
-		return nil, err
-	}
-	logger.Info("State storage found with path", "releasePath", releasePath)
-
 	// Get workspace configurations from backend
 	wsStorage, err := stateBackend.WorkspaceStorage()
 	if err != nil {
@@ -166,35 +156,24 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 		return nil, err
 	}
 
-	var directory, workDir string
-	// TODO: remove this. This is only for testing purposes
-	m.repoCache.Set(18, &StackCache{LocalDirOnDisk: "/tmp/kcp-kusion-3803080093", StackPath: "/tmp/kcp-kusion-3803080093/simpleservice4/dev"})
-	if stackCache, exists := m.repoCache.Get(stackEntity.ID); exists {
-		// If found in repoCache, use the cached workDir and directory
-		logger.Info("Stack found in cache. Using cache...")
-		workDir = stackCache.StackPath
-		stack.Path = workDir
-		// This is temporarily commented out to speed up development
-		// directory = stackCache.LocalDirOnDisk
-	} else {
-		// If not found in repoCache, checkout workdir
-		logger.Info("Stack not found in cache. Pulling repo and set cache...")
-		directory, workDir, err = GetWorkDirFromSource(ctx, stackEntity, stackEntity.Project)
-		if err != nil {
-			return nil, err
-		}
-		stack.Path = workDir
-		sc := &StackCache{
-			LocalDirOnDisk: directory,
-			StackPath:      workDir,
-		}
-		m.repoCache.Set(stackEntity.ID, sc)
+	releasePath := getReleasePath(constant.DefaultReleaseNamespace, stackEntity.Project.Source.Name, stackEntity.Project.Path, ws.Name)
+	releaseStorage, err := stateBackend.StateStorageWithPath(releasePath)
+	if err != nil {
+		return nil, err
 	}
+	logger.Info("State storage found with path", "releasePath", releasePath)
+
+	directory, workDir, err := m.GetWorkdirAndDirectory(ctx, params, stackEntity)
+	if err != nil {
+		return nil, err
+	}
+	stack.Path = workDir
 
 	// Cleanup
 	defer func() {
-		// This is temporarily commented out to speed up development
-		// sourceapi.Cleanup(ctx, directory)
+		if params.ExecuteParams.NoCache {
+			sourceapi.Cleanup(ctx, directory)
+		}
 	}()
 
 	// Generate spec using default generator
@@ -310,7 +289,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	}
 
 	// create release
-	releasePath := getReleasePath(stackEntity.Path, "default")
+	releasePath := getReleasePath(constant.DefaultReleaseNamespace, stackEntity.Project.Source.Name, stackEntity.Project.Path, ws.Name)
 	storage, err = stackBackend.StateStorageWithPath(releasePath)
 	if err != nil {
 		return err
@@ -344,15 +323,19 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	executeOptions := BuildOptions(params.ExecuteParams.Dryrun, m.maxConcurrent)
 
 	logger.Info("Previewing using the default generator ...")
-	// Checkout workdir
-	directory, workDir, err := GetWorkDirFromSource(ctx, stackEntity, stackEntity.Project)
+
+	directory, workDir, err := m.GetWorkdirAndDirectory(ctx, params, stackEntity)
 	if err != nil {
 		return err
 	}
 	stack.Path = workDir
 
 	// Cleanup
-	defer sourceapi.Cleanup(ctx, directory)
+	defer func() {
+		if params.ExecuteParams.NoCache {
+			sourceapi.Cleanup(ctx, directory)
+		}
+	}()
 
 	// Generate spec using default generator
 	sp, err = engineapi.GenerateSpecWithSpinner(project, stack, ws, true)
@@ -410,8 +393,40 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	}
 
 	executeOptions = BuildOptions(params.ExecuteParams.Dryrun, m.maxConcurrent)
+
+	// Get graph storage directory, create if not exist
+	graphStorage, err := stackBackend.GraphStorage(project.Name, ws.Name)
+	if err != nil {
+		return err
+	}
+
+	// Try to get existing graph, use the graph if exists
+	var gph *apiv1.Graph
+	if graphStorage.CheckGraphStorageExistence() {
+		gph, err = graphStorage.Get()
+		if err != nil {
+			return err
+		}
+		err = graph.ValidateGraph(gph)
+		if err != nil {
+			return err
+		}
+		// Put new resources from the generated spec to graph
+		gph, err = graph.GenerateGraph(sp.Resources, gph)
+	} else {
+		// Create a new graph to be used globally if no graph is stored in the storage
+		gph = &apiv1.Graph{
+			Project:   project.Name,
+			Workspace: ws.Name,
+		}
+		gph, err = graph.GenerateGraph(sp.Resources, gph)
+	}
+	if err != nil {
+		return err
+	}
+
 	var upRel *apiv1.Release
-	if upRel, err = engineapi.Apply(ctx, executeOptions, storage, rel, changes, os.Stdout); err != nil {
+	if upRel, err = engineapi.Apply(ctx, executeOptions, storage, rel, gph, changes, os.Stdout); err != nil {
 		return err
 	}
 	rel = upRel
@@ -483,7 +498,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return err
 	}
-	releasePath := getReleasePath(stackEntity.Path, "default")
+	releasePath := getReleasePath(constant.DefaultReleaseNamespace, stackEntity.Project.Source.Name, stackEntity.Project.Path, ws.Name)
 	storage, err = stackBackend.StateStorageWithPath(releasePath)
 	if err != nil {
 		return err

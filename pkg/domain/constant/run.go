@@ -4,8 +4,10 @@ import (
 	"fmt"
 )
 
-type RunType string
-type RunStatus string
+type (
+	RunType   string
+	RunStatus string
+)
 
 const (
 	RunTypeGenerate     RunType   = "Generate"
@@ -17,6 +19,7 @@ const (
 	RunStatusFailed     RunStatus = "Failed"
 	RunStatusSucceeded  RunStatus = "Succeeded"
 	RunStatusCancelled  RunStatus = "Cancelled"
+	RunStatusQueued     RunStatus = "Queued"
 )
 
 // ParseRunType parses a string into a RunType.
@@ -50,6 +53,8 @@ func ParseRunStatus(s string) (RunStatus, error) {
 		return RunStatusSucceeded, nil
 	case string(RunStatusCancelled):
 		return RunStatusCancelled, nil
+	case string(RunStatusQueued):
+		return RunStatusQueued, nil
 	default:
 		return RunStatus(""), fmt.Errorf("invalid RunType: %q", s)
 	}

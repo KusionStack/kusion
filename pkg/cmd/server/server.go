@@ -51,6 +51,10 @@ func (o *ServerOptions) AddServerFlags(cmd *cobra.Command) {
 		i18n.T("Specify the auth key type. Default to RSA"))
 	cmd.Flags().IntVarP(&o.MaxConcurrent, "max-concurrent", "", 10,
 		i18n.T("Maximum number of concurrent executions including preview, apply and destroy. Default to 10."))
+	cmd.Flags().IntVarP(&o.MaxAsyncBuffer, "max-async-buffer", "", 100,
+		i18n.T("Maximum number of buffer zones during concurrent async executions including generate, preview, apply and destroy. Default to 100."))
+	cmd.Flags().IntVarP(&o.MaxAsyncConcurrent, "max-async-concurrent", "", 10,
+		i18n.T("Maximum number of concurrent async executions including generate, preview, apply and destroy. Default to 10."))
 	cmd.Flags().StringVarP(&o.LogFilePath, "log-file-path", "", constant.DefaultLogFilePath,
 		i18n.T("File path to write logs to. Default to /home/admin/logs/kusion.log"))
 	o.Database.AddFlags(cmd.Flags())

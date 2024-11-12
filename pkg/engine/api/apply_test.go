@@ -62,7 +62,7 @@ func TestApply(t *testing.T) {
 		changes := models.NewChanges(proj, stack, order)
 		o := &APIOptions{}
 		o.DryRun = true
-		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, &apiv1.Graph{}, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply success", t, func() {
@@ -86,7 +86,7 @@ func TestApply(t *testing.T) {
 		}
 		changes := models.NewChanges(proj, stack, order)
 
-		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, &apiv1.Graph{}, changes, os.Stdout)
 		assert.Nil(t, err)
 	})
 	mockey.PatchConvey("apply failed", t, func() {
@@ -105,8 +105,7 @@ func TestApply(t *testing.T) {
 			},
 		}
 		changes := models.NewChanges(proj, stack, order)
-
-		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, changes, os.Stdout)
+		_, err := Apply(context.TODO(), o, &releasestorages.LocalStorage{}, rel, &apiv1.Graph{}, changes, os.Stdout)
 		assert.NotNil(t, err)
 	})
 }

@@ -12,7 +12,7 @@ import (
 type Run struct {
 	// ID is the id of the run.
 	ID uint `yaml:"id" json:"id"`
-	// RunProvider is the type of the run provider.
+	// RunType is the type of the run provider.
 	Type constant.RunType `yaml:"type" json:"type"`
 	// Stack is the stack of the run.
 	Stack *Stack `yaml:"stack" json:"stack"`
@@ -67,6 +67,6 @@ func (r *Run) Validate() error {
 	return nil
 }
 
-func (s *Run) Summary() string {
-	return fmt.Sprintf("[%s][%s]", string(s.Type), string(s.Status))
+func (r *Run) Summary() string {
+	return fmt.Sprintf("[%s][%s]", string(r.Type), string(r.Status))
 }

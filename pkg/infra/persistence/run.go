@@ -85,7 +85,7 @@ func (r *runRepository) Update(ctx context.Context, dataEntity *entity.Run) erro
 func (r *runRepository) Get(ctx context.Context, id uint) (*entity.Run, error) {
 	var dataModel RunModel
 	err := r.db.WithContext(ctx).
-		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
+		Preload("Stack").Preload("Stack.Project").
 		Joins("JOIN Stack ON Stack.id = Run.stack_id").
 		Joins("JOIN Project ON Project.id = Stack.project_id").
 		First(&dataModel, id).Error
@@ -99,7 +99,14 @@ func (r *runRepository) Get(ctx context.Context, id uint) (*entity.Run, error) {
 func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter) ([]*entity.Run, error) {
 	var dataModel []RunModel
 	runEntityList := make([]*entity.Run, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+	pattern, args := GetRunQuery(filter)
+	result := r.db.WithContext(ctx).
+		Preload("Stack").Preload("Stack.Project").
+		Joins("JOIN Stack ON Stack.id = Run.stack_id").
+		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN Workspace ON Workspace.name = Run.workspace").
+		Where(pattern, args...).
+		Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -6,16 +6,18 @@ import (
 )
 
 type Config struct {
-	DB             *gorm.DB
-	DefaultBackend entity.Backend
-	DefaultSource  entity.Source
-	Port           int
-	AuthEnabled    bool
-	AuthWhitelist  []string
-	AuthKeyType    string
-	MaxConcurrent  int
-	LogFilePath    string
-	AutoMigrate    bool
+	DB                 *gorm.DB
+	DefaultBackend     entity.Backend
+	DefaultSource      entity.Source
+	Port               int
+	AuthEnabled        bool
+	AuthWhitelist      []string
+	AuthKeyType        string
+	MaxConcurrent      int
+	MaxAsyncConcurrent int
+	MaxAsyncBuffer     int
+	LogFilePath        string
+	AutoMigrate        bool
 }
 
 func NewConfig() *Config {

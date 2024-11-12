@@ -1,15 +1,11 @@
 package stack
 
 import (
-	"context"
+	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
 	"kusionstack.io/kusion/pkg/server/handler"
-	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
@@ -18,13 +14,13 @@ import (
 // @Description	Get run information by run ID
 // @Tags			run
 // @Produce		json
-// @Param			run	path		int				true	"Run ID"
-// @Success		200			{object}	entity.Run	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			run	path		int			true	"Run ID"
+// @Success		200	{object}	entity.Run	"Success"
+// @Failure		400	{object}	error		"Bad Request"
+// @Failure		401	{object}	error		"Unauthorized"
+// @Failure		429	{object}	error		"Too Many Requests"
+// @Failure		404	{object}	error		"Not Found"
+// @Failure		500	{object}	error		"Internal Server Error"
 // @Router			/api/v1/runs/{run_id} [get]
 func (h *Handler) GetRun() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +37,41 @@ func (h *Handler) GetRun() http.HandlerFunc {
 	}
 }
 
-// @Id				listStack
+// @Id				getRunResult
+// @Summary		Get run result
+// @Description	Get run result by run ID
+// @Tags			run
+// @Produce		json
+// @Param			run	path		int			true	"Run ID"
+// @Success		200	{object}	entity.Run	"Success"
+// @Failure		400	{object}	error		"Bad Request"
+// @Failure		401	{object}	error		"Unauthorized"
+// @Failure		429	{object}	error		"Too Many Requests"
+// @Failure		404	{object}	error		"Not Found"
+// @Failure		500	{object}	error		"Internal Server Error"
+// @Router			/api/v1/runs/{run_id}/result [get]
+func (h *Handler) GetRunResult() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Getting stuff from context
+		ctx, logger, params, err := runRequestHelper(r)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		logger.Info("Getting run...", "runID", params.RunID)
+
+		existingEntity, err := h.stackManager.GetRunByID(ctx, params.RunID)
+		if err != nil {
+			handler.HandleResult(w, r, ctx, err, existingEntity)
+			return
+		}
+		var resultJSON any
+		err = json.Unmarshal([]byte(existingEntity.Result), &resultJSON)
+		handler.HandleResult(w, r, ctx, err, resultJSON)
+	}
+}
+
+// @Id				listRun
 // @Summary		List runs
 // @Description	List all runs
 // @Tags			stack
@@ -51,7 +81,6 @@ func (h *Handler) GetRun() http.HandlerFunc {
 // @Param			projectName			query		string			false	"ProjectName to filter runs by. Default to all"
 // @Param			cloud				query		string			false	"Cloud to filter runs by. Default to all"
 // @Param			env					query		string			false	"Environment to filter runs by. Default to all"
-// @Param			getLastSyncedBase	query		bool			false	"Whether to get last synced base revision. Default to false"
 // @Success		200					{object}	[]entity.Stack	"Success"
 // @Failure		400					{object}	error			"Bad Request"
 // @Failure		401					{object}	error			"Unauthorized"
@@ -68,8 +97,9 @@ func (h *Handler) ListRuns() http.HandlerFunc {
 
 		projectIDParam := r.URL.Query().Get("projectID")
 		stackIDParam := r.URL.Query().Get("stackID")
+		workspaceParam := r.URL.Query().Get("workspace")
 
-		filter, err := h.stackManager.BuildRunFilter(ctx, projectIDParam, stackIDParam)
+		filter, err := h.stackManager.BuildRunFilter(ctx, projectIDParam, stackIDParam, workspaceParam)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -101,18 +131,3 @@ func (h *Handler) ListRuns() http.HandlerFunc {
 // 		time.Sleep(1 * time.Second)
 // 	}
 // }
-
-func runRequestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackmanager.RunRequestParams, error) {
-	ctx := r.Context()
-	runID := chi.URLParam(r, "runID")
-	// Get stack with repository
-	id, err := strconv.Atoi(runID)
-	if err != nil {
-		return nil, nil, nil, stackmanager.ErrInvalidRunID
-	}
-	logger := logutil.GetLogger(ctx)
-	params := stackmanager.RunRequestParams{
-		RunID: uint(id),
-	}
-	return ctx, logger, &params, nil
-}

@@ -5,16 +5,18 @@ import (
 )
 
 type ServerOptions struct {
-	Mode           string
-	Port           int
-	AuthEnabled    bool
-	AuthWhitelist  []string
-	AuthKeyType    string
-	Database       DatabaseOptions
-	DefaultBackend DefaultBackendOptions
-	DefaultSource  DefaultSourceOptions
-	MaxConcurrent  int
-	LogFilePath    string
+	Mode               string
+	Port               int
+	AuthEnabled        bool
+	AuthWhitelist      []string
+	AuthKeyType        string
+	Database           DatabaseOptions
+	DefaultBackend     DefaultBackendOptions
+	DefaultSource      DefaultSourceOptions
+	MaxConcurrent      int
+	MaxAsyncConcurrent int
+	MaxAsyncBuffer     int
+	LogFilePath        string
 }
 
 type Options interface {

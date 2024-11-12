@@ -119,8 +119,8 @@ func TestProjectHandler(t *testing.T) {
 		req.Header.Add("Content-Type", "application/json")
 
 		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
-				AddRow(1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "remote", "source_provider"}).
+				AddRow(1, "test-source", "https://github.com/test/repo", constant.SourceProviderTypeGithub))
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
 				AddRow(1, "test-org", owners))
@@ -170,8 +170,8 @@ func TestProjectHandler(t *testing.T) {
 		req.Header.Add("Content-Type", "application/json")
 
 		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
-				AddRow(1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "remote", "source_provider"}).
+				AddRow(1, "test-source", "https://github.com/test/repo", constant.SourceProviderTypeGithub))
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "owners"}).
 				AddRow(1, "test-org", owners))

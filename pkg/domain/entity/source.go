@@ -13,6 +13,8 @@ import (
 type Source struct {
 	// ID is the id of the source.
 	ID uint `yaml:"id" json:"id"`
+	// Name is the name of the source.
+	Name string `yaml:"name" json:"name"`
 	// SourceProvider is the type of the source provider.
 	SourceProvider constant.SourceProviderType `yaml:"sourceProvider" json:"sourceProvider"`
 	// Remote is the source URL, including scheme.
@@ -34,6 +36,10 @@ type Source struct {
 func (s *Source) Validate() error {
 	if s == nil {
 		return fmt.Errorf("source is nil")
+	}
+
+	if s.Name == "" {
+		return fmt.Errorf("source must have a name")
 	}
 
 	if s.SourceProvider == "" {
