@@ -107,7 +107,7 @@ func GetStackQuery(filter *entity.StackFilter) (string, []interface{}) {
 	pattern := make([]string, 0)
 	args := make([]interface{}, 0)
 	if filter.OrgID != 0 {
-		pattern = append(pattern, "Project.organization_id = ?")
+		pattern = append(pattern, "project.organization_id = ?")
 		args = append(args, fmt.Sprint(filter.OrgID))
 	}
 	if filter.ProjectID != 0 {
@@ -115,7 +115,7 @@ func GetStackQuery(filter *entity.StackFilter) (string, []interface{}) {
 		args = append(args, fmt.Sprint(filter.ProjectID))
 	}
 	if filter.Path != "" {
-		pattern = append(pattern, "Stack.path = ?")
+		pattern = append(pattern, "stack.path = ?")
 		args = append(args, filter.Path)
 	}
 	return CombineQueryParts(pattern), args
@@ -165,7 +165,7 @@ func GetRunQuery(filter *entity.RunFilter) (string, []interface{}) {
 	pattern := make([]string, 0)
 	args := make([]interface{}, 0)
 	if filter.ProjectID != 0 {
-		pattern = append(pattern, "Project.ID = ?")
+		pattern = append(pattern, "project.ID = ?")
 		args = append(args, fmt.Sprint(filter.ProjectID))
 	}
 	if filter.StackID != 0 {
@@ -173,7 +173,7 @@ func GetRunQuery(filter *entity.RunFilter) (string, []interface{}) {
 		args = append(args, filter.StackID)
 	}
 	if filter.Workspace != "" {
-		pattern = append(pattern, "Workspace.name = ?")
+		pattern = append(pattern, "workspace.name = ?")
 		args = append(args, filter.Workspace)
 	}
 	return CombineQueryParts(pattern), args
