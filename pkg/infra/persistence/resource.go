@@ -110,8 +110,8 @@ func (r *resourceRepository) Get(ctx context.Context, id uint) (*entity.Resource
 	var dataModel ResourceModel
 	err := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
-		Joins("JOIN Stack ON Stack.id = Resource.stack_id").
-		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN stack ON stack.id = resource.stack_id").
+		Joins("JOIN project ON project.id = stack.project_id").
 		First(&dataModel, id).Error
 	if err != nil {
 		return nil, err
@@ -125,8 +125,8 @@ func (r *resourceRepository) GetByKusionResourceID(ctx context.Context, id strin
 	var dataModel ResourceModel
 	err := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
-		Joins("JOIN Stack ON Stack.id = Resource.stack_id").
-		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN stack ON stack.id = resource.stack_id").
+		Joins("JOIN project ON project.id = stack.project_id").
 		Where("kusion_resource_id = ?", id).
 		First(&dataModel).Error
 	if err != nil {
@@ -142,8 +142,8 @@ func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFi
 	pattern, args := GetResourceQuery(filter)
 	result := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
-		Joins("JOIN Stack ON Stack.id = Resource.stack_id").
-		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN stack ON stack.id = resource.stack_id").
+		Joins("JOIN project ON project.id = stack.project_id").
 		Where(pattern, args...).
 		Find(&dataModel)
 	if result.Error != nil {

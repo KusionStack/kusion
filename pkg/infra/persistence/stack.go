@@ -88,7 +88,7 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 	var dataModel StackModel
 	err := r.db.WithContext(ctx).
 		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
-		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN project ON project.id = stack.project_id").
 		First(&dataModel, id).Error
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) 
 	pattern, args := GetStackQuery(filter)
 	result := r.db.WithContext(ctx).
 		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
-		Joins("JOIN Project ON Project.id = Stack.project_id").
+		Joins("JOIN project ON project.id = stack.project_id").
 		Where(pattern, args...).
 		Find(&dataModel)
 	if result.Error != nil {
