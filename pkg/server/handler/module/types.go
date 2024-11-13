@@ -17,5 +17,6 @@ func NewHandler(
 }
 
 type ModuleRequestParams struct {
-	ModuleName string
+	ModuleName  string
+	WorkspaceID uint
 }

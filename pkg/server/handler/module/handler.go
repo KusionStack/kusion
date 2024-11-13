@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
@@ -89,7 +90,7 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Failure		429						{object}	error						"Too Many Requests"
 // @Failure		404						{object}	error						"Not Found"
 // @Failure		500						{object}	error						"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																			[put]
+// @Router			/api/v1/modules/{name} 																																																											[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -125,7 +126,7 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Failure		429						{object}	error			"Too Many Requests"
 // @Failure		404						{object}	error			"Not Found"
 // @Failure		500						{object}	error			"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																							[get]
+// @Router			/api/v1/modules/{name} 																																						[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -146,12 +147,13 @@ func (h *Handler) GetModule() http.HandlerFunc {
 // @Description	List module information
 // @Tags			module
 // @Produce		json
-// @Success		200	{object}	[]entity.Module	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			workspaceID	query		uint			false	"Workspace ID to filter module list by. Default to all workspaces."
+// @Success		200			{object}	[]entity.Module	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
 // @Router			/api/v1/modules [get]
 func (h *Handler) ListModules() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +161,20 @@ func (h *Handler) ListModules() http.HandlerFunc {
 		ctx := r.Context()
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing module...")
+
+		wsIDParam := r.URL.Query().Get("workspaceID")
+		if wsIDParam != "" {
+			wsID, err := strconv.Atoi(wsIDParam)
+			if err != nil {
+				render.Render(w, r, handler.FailureResponse(ctx, modulemanager.ErrInvalidWorkspaceID))
+				return
+			}
+
+			// List modules in the specified workspace.
+			moduleEntities, err := h.moduleManager.ListModulesByWorkspaceID(ctx, uint(wsID))
+			handler.HandleResult(w, r, ctx, err, moduleEntities)
+			return
+		}
 
 		// List modules.
 		moduleEntities, err := h.moduleManager.ListModules(ctx)

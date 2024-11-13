@@ -278,6 +278,14 @@ const docTemplate = `{
                 ],
                 "summary": "List module",
                 "operationId": "listModule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID to filter module list by. Default to all workspaces.",
+                        "name": "workspaceID",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",

@@ -141,7 +141,7 @@ func setupRestAPIV1(
 	workspaceManager := workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, config.DefaultBackend)
 	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, config.DefaultSource)
 	resourceManager := resourcemanager.NewResourceManager(resourceRepo)
-	moduleManager := modulemanager.NewModuleManager(moduleRepo)
+	moduleManager := modulemanager.NewModuleManager(moduleRepo, workspaceRepo, backendRepo)
 
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceManager)
