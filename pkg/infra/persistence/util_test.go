@@ -110,7 +110,7 @@ func TestGetStackQuery(t *testing.T) {
 			filter: &entity.StackFilter{
 				OrgID: 42,
 			},
-			expectedQuery: "Project.organization_id = ?",
+			expectedQuery: "project.organization_id = ?",
 			expectedArgs:  []interface{}{"42"},
 		},
 		{
@@ -126,7 +126,7 @@ func TestGetStackQuery(t *testing.T) {
 			filter: &entity.StackFilter{
 				Path: "example",
 			},
-			expectedQuery: "Stack.path = ?",
+			expectedQuery: "stack.path = ?",
 			expectedArgs:  []interface{}{"example"},
 		},
 		{
@@ -136,7 +136,7 @@ func TestGetStackQuery(t *testing.T) {
 				ProjectID: 1,
 				Path:      "example",
 			},
-			expectedQuery: "Project.organization_id = ? AND project_id = ? AND Stack.path = ?",
+			expectedQuery: "project.organization_id = ? AND project_id = ? AND stack.path = ?",
 			expectedArgs:  []interface{}{"42", "1", "example"},
 		},
 	}
