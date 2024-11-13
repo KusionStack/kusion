@@ -132,8 +132,9 @@ func setupRestAPIV1(
 	backendRepo := persistence.NewBackendRepository(config.DB)
 	resourceRepo := persistence.NewResourceRepository(config.DB)
 	moduleRepo := persistence.NewModuleRepository(config.DB)
+	runRepo := persistence.NewRunRepository(config.DB)
 
-	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, config.DefaultBackend, config.MaxConcurrent)
+	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, config.DefaultBackend, config.MaxConcurrent)
 	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
 	organizationManager := organizationmanager.NewOrganizationManager(organizationRepo)
 	backendManager := backendmanager.NewBackendManager(backendRepo)
@@ -158,7 +159,7 @@ func setupRestAPIV1(
 		logger.Error(err.Error(), "Error creating project handler...", "error", err)
 		return
 	}
-	stackHandler, err := stack.NewHandler(stackManager)
+	stackHandler, err := stack.NewHandler(stackManager, config.MaxAsyncConcurrent, config.MaxAsyncBuffer)
 	if err != nil {
 		logger.Error(err.Error(), "Error creating stack handler...", "error", err)
 		return
@@ -194,12 +195,24 @@ func setupRestAPIV1(
 		r.Post("/", sourceHandler.CreateSource())
 		r.Get("/", sourceHandler.ListSources())
 	})
+	r.Route("/runs", func(r chi.Router) {
+		r.Route("/{runID}", func(r chi.Router) {
+			r.Get("/", stackHandler.GetRun())
+			r.Get("/result", stackHandler.GetRunResult())
+		})
+		// r.Post("/", backendHandler.CreateRun())
+		r.Get("/", stackHandler.ListRuns())
+	})
 	r.Route("/stacks", func(r chi.Router) {
 		r.Route("/{stackID}", func(r chi.Router) {
 			r.Post("/generate", stackHandler.GenerateStack())
+			r.Post("/generate/async", stackHandler.GenerateStackAsync())
 			r.Post("/preview", stackHandler.PreviewStack())
+			r.Post("/preview/async", stackHandler.PreviewStackAsync())
 			r.Post("/apply", stackHandler.ApplyStack())
+			r.Post("/apply/async", stackHandler.ApplyStackAsync())
 			r.Post("/destroy", stackHandler.DestroyStack())
+			r.Post("/destroy/async", stackHandler.DestroyStackAsync())
 			// r.Route("/variable", func(r chi.Router) {
 			// 	r.Post("/", stackHandler.UpdateStackVariable())
 			// })

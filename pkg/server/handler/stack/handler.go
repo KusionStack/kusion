@@ -169,7 +169,6 @@ func (h *Handler) GetStack() http.HandlerFunc {
 // @Param			projectName			query		string			false	"ProjectName to filter stacks by. Default to all"
 // @Param			cloud				query		string			false	"Cloud to filter stacks by. Default to all"
 // @Param			env					query		string			false	"Environment to filter stacks by. Default to all"
-// @Param			getLastSyncedBase	query		bool			false	"Whether to get last synced base revision. Default to false"
 // @Success		200					{object}	[]entity.Stack	"Success"
 // @Failure		400					{object}	error			"Bad Request"
 // @Failure		401					{object}	error			"Unauthorized"

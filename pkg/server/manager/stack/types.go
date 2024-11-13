@@ -3,8 +3,10 @@ package stack
 import (
 	"errors"
 
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/repository"
+	cache "kusionstack.io/kusion/pkg/server/util/cache"
 )
 
 const (
@@ -23,6 +25,7 @@ var (
 	ErrDryrunDestroy                             = errors.New("dryrun-mode is enabled, no resources will be destroyed")
 	ErrStackInOperation                          = errors.New("the stack is being operated by another request. Please wait until it is completed")
 	ErrStackNotPreviewedYet                      = errors.New("the stack has not been previewed yet. Please generate and preview the stack first")
+	ErrInvalidRunID                              = errors.New("the run ID should be a uuid")
 )
 
 type StackManager struct {
@@ -30,8 +33,15 @@ type StackManager struct {
 	projectRepo    repository.ProjectRepository
 	workspaceRepo  repository.WorkspaceRepository
 	resourceRepo   repository.ResourceRepository
+	runRepo        repository.RunRepository
 	defaultBackend entity.Backend
 	maxConcurrent  int
+	repoCache      *cache.Cache[uint, *StackCache]
+}
+
+type StackCache struct {
+	LocalDirOnDisk string
+	StackPath      string
 }
 
 type StackRequestParams struct {
@@ -48,12 +58,18 @@ type StackExecuteParams struct {
 	SpecID          string
 	Force           bool
 	ImportResources bool
+	NoCache         bool
+}
+
+type RunRequestParams struct {
+	RunID uint
 }
 
 func NewStackManager(stackRepo repository.StackRepository,
 	projectRepo repository.ProjectRepository,
 	workspaceRepo repository.WorkspaceRepository,
 	resourceRepo repository.ResourceRepository,
+	runRepo repository.RunRepository,
 	defaultBackend entity.Backend,
 	maxConcurrent int,
 ) *StackManager {
@@ -62,7 +78,9 @@ func NewStackManager(stackRepo repository.StackRepository,
 		projectRepo:    projectRepo,
 		workspaceRepo:  workspaceRepo,
 		resourceRepo:   resourceRepo,
+		runRepo:        runRepo,
 		defaultBackend: defaultBackend,
 		maxConcurrent:  maxConcurrent,
+		repoCache:      cache.NewCache[uint, *StackCache](constant.RepoCacheTTL),
 	}
 }

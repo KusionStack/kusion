@@ -122,8 +122,8 @@ func TestStackHandler(t *testing.T) {
 		req.Header.Add("Content-Type", "application/json")
 
 		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__remote", "Source__source_provider"}).
-				AddRow(1, projectName, projectPath, 1, "test-org", owners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__name", "Source__remote", "Source__source_provider"}).
+				AddRow(1, projectName, projectPath, 1, "test-org", owners, 1, "test-source", "https://github.com/test/repo", constant.SourceProviderTypeGithub))
 		sqlMock.ExpectBegin()
 		sqlMock.ExpectExec("INSERT").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
@@ -326,8 +326,9 @@ func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecor
 	projectRepo := persistence.NewProjectRepository(fakeGDB)
 	workspaceRepo := persistence.NewWorkspaceRepository(fakeGDB)
 	resourceRepo := persistence.NewResourceRepository(fakeGDB)
+	runRepo := persistence.NewRunRepository(fakeGDB)
 	stackHandler := &Handler{
-		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, entity.Backend{}, constant.MaxConcurrent),
+		stackManager: stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, entity.Backend{}, constant.MaxConcurrent),
 	}
 	recorder := httptest.NewRecorder()
 	return sqlMock, fakeGDB, recorder, stackHandler

@@ -12,7 +12,10 @@ import (
 // SourceModel is a DO used to map the entity to the database.
 type SourceModel struct {
 	gorm.Model
+	// Name is the name of the source.
+	Name string `gorm:"index:unique_source,unique"`
 	// SourceProvider is the type of the source provider.
+	// TODO: remove uk here
 	SourceProvider string `gorm:"index:unique_source,unique"`
 	// Remote is the source URL, including scheme.
 	Remote string `gorm:"index:unique_source,unique"`
@@ -53,6 +56,7 @@ func (m *SourceModel) ToEntity() (*entity.Source, error) {
 
 	return &entity.Source{
 		ID:                m.ID,
+		Name:              m.Name,
 		SourceProvider:    sourceProvider,
 		Remote:            remote,
 		Description:       m.Description,
@@ -76,6 +80,7 @@ func (m *SourceModel) FromEntity(e *entity.Source) error {
 	}
 
 	m.ID = e.ID
+	m.Name = e.Name
 	m.SourceProvider = string(e.SourceProvider)
 	m.Description = e.Description
 	m.Labels = MultiString(e.Labels)

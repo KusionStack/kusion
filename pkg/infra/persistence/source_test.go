@@ -27,6 +27,7 @@ func TestSourceRepository(t *testing.T) {
 		var (
 			expectedID, expectedRows uint = 1, 1
 			actual                        = entity.Source{
+				Name:           "mockedSource",
 				SourceProvider: constant.SourceProviderTypeOCI,
 				Remote:         mockRemoteURL,
 				Description:    "i am a description",

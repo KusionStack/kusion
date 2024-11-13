@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -56,6 +57,44 @@ func GetWorkDirFromSource(ctx context.Context, stack *entity.Stack, project *ent
 		}
 		logger.Info("config pulled from source successfully", "directory", directory)
 		workDir = filepath.Join(directory, stack.Path)
+	}
+	return directory, workDir, nil
+}
+
+// GetWorkdirAndDirectory is a helper function to get the workdir and directory for a stack
+func (m *StackManager) GetWorkdirAndDirectory(ctx context.Context, params *StackRequestParams, stackEntity *entity.Stack) (directory string, workDir string, err error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Getting workdir and directory...")
+	if params.ExecuteParams.NoCache {
+		// If noCache is set, checkout workdir
+		logger.Info("Stack not found in cache. Pulling repo and set cache...")
+		directory, workDir, err = GetWorkDirFromSource(ctx, stackEntity, stackEntity.Project)
+		if err != nil {
+			return "", "", err
+		}
+		sc := &StackCache{
+			LocalDirOnDisk: directory,
+			StackPath:      workDir,
+		}
+		m.repoCache.Set(stackEntity.ID, sc)
+	} else {
+		// If repoCacheEnv is set, use the cached directory. This takes precedence over the in-memory cache
+		repoCacheEnv := os.Getenv("KUSION_SERVER_REPO_CACHE")
+		if repoCacheEnv != "" {
+			logger.Info("Repo cache found in env var. Using cached directory...")
+			directory = repoCacheEnv
+			workDir = fmt.Sprintf("%s/%s", directory, stackEntity.Path)
+		} else {
+			// No env var found, check if stack is in cache
+			logger.Info("No repo cache found in env var. Checking cache...")
+			stackCache, cacheExists := m.repoCache.Get(stackEntity.ID)
+			if cacheExists {
+				// if found in repoCache, use the cached workDir and directory
+				logger.Info("Stack found in cache. Using cache...")
+				workDir = stackCache.StackPath
+				directory = stackCache.LocalDirOnDisk
+			}
+		}
 	}
 	return directory, workDir, nil
 }
@@ -144,7 +183,7 @@ func (m *StackManager) metaHelper(
 	}
 
 	// Get workspace configurations from backend
-	// TODO: temporarily local for now, should be replaced by variable sets
+	// TODO: should be replaced by variable sets
 	wsStorage, err := stackBackend.WorkspaceStorage()
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -224,6 +263,33 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 			filter.Path = fmt.Sprintf("%s/%s", projectEntity.Path, envParam)
 			logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
 		}
+	}
+	return &filter, nil
+}
+
+func (m *StackManager) BuildRunFilter(ctx context.Context, projectIDParam, stackIDParam, workspaceParam string) (*entity.RunFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building run filter...")
+	filter := entity.RunFilter{}
+	if projectIDParam != "" {
+		// if project id is present, use project id
+		projectID, err := strconv.Atoi(projectIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidProjectID
+		}
+		filter.ProjectID = uint(projectID)
+	}
+	if stackIDParam != "" {
+		// if project id is present, use project id
+		stackID, err := strconv.Atoi(stackIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidStackID
+		}
+		filter.StackID = uint(stackID)
+	}
+	if workspaceParam != "" {
+		// if workspace is present, use workspace
+		filter.Workspace = workspaceParam
 	}
 	return &filter, nil
 }
@@ -333,8 +399,8 @@ func isKubernetesResource(resource *v1.Resource) bool {
 	return resource.Type == v1.Kubernetes
 }
 
-func getReleasePath(stackPath, namespace string) string {
-	return fmt.Sprintf("%s/%s", namespace, stackPath)
+func getReleasePath(namespace, source, projectPath, workspace string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", namespace, source, projectPath, workspace)
 }
 
 func isInRelease(release *v1.Release, id string) bool {

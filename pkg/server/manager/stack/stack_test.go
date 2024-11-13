@@ -524,10 +524,11 @@ func TestNewStackManager(t *testing.T) {
 	projectRepo := &mockProjectRepository{}
 	workspaceRepo := &mockWorkspaceRepository{}
 	resourceRepo := persistence.NewResourceRepository(fakeGDB)
+	runRepo := persistence.NewRunRepository(fakeGDB)
 	defaultBackend := entity.Backend{}
 	maxConcurrent := 10
 
-	manager := NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, defaultBackend, maxConcurrent)
+	manager := NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, defaultBackend, maxConcurrent)
 
 	assert.NotNil(t, manager)
 	assert.Equal(t, stackRepo, manager.stackRepo)

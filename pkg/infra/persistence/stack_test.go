@@ -35,6 +35,7 @@ func TestStackRepository(t *testing.T) {
 					Path: "/path/to/project",
 					Source: &entity.Source{
 						ID:             1,
+						Name:           "mockedSource",
 						SourceProvider: constant.SourceProviderTypeGithub,
 						Remote:         mockRemoteURL,
 					},

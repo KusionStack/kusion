@@ -25,4 +25,7 @@ var (
 	ErrFailedToGetModuleRemote        = errors.New("failed to parse module remote")
 	ErrResourceModelNil               = errors.New("resource model can't be nil")
 	ErrFailedToGetModuleDocRemote     = errors.New("failed to parse module doc remote")
+	ErrRunModelNil                    = errors.New("run model can't be nil")
+	ErrFailedToGetRunType             = errors.New("failed to parse run type")
+	ErrFailedToGetRunStatus           = errors.New("failed to parse run status")
 )

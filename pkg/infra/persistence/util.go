@@ -161,6 +161,24 @@ func GetResourceQuery(filter *entity.ResourceFilter) (string, []interface{}) {
 	return CombineQueryParts(pattern), args
 }
 
+func GetRunQuery(filter *entity.RunFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.ProjectID != 0 {
+		pattern = append(pattern, "Project.ID = ?")
+		args = append(args, fmt.Sprint(filter.ProjectID))
+	}
+	if filter.StackID != 0 {
+		pattern = append(pattern, "stack_id = ?")
+		args = append(args, filter.StackID)
+	}
+	if filter.Workspace != "" {
+		pattern = append(pattern, "Workspace.name = ?")
+		args = append(args, filter.Workspace)
+	}
+	return CombineQueryParts(pattern), args
+}
+
 func CombineQueryParts(queryParts []string) string {
 	queryString := ""
 	if len(queryParts) > 0 {
@@ -195,6 +213,9 @@ func AutoMigrate(db *gorm.DB) error {
 		return err
 	}
 	if err := db.AutoMigrate(&ModuleModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&RunModel{}); err != nil {
 		return err
 	}
 	return nil

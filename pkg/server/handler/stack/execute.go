@@ -1,25 +1,17 @@
 package stack
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
 
 	yamlv2 "gopkg.in/yaml.v2"
 
-	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
-	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
-	authutil "kusionstack.io/kusion/pkg/server/util/auth"
-	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
 // @Id				previewStack
@@ -27,17 +19,20 @@ import (
 // @Description	Preview stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int				true	"Stack ID"
-// @Param			output		query		string			false	"Output format. Choices are: json, default. Default to default output format in Kusion."
-// @Param			detail		query		bool			false	"Show detailed output"
-// @Param			specID		query		string			false	"The Spec ID to use for the preview. Default to the last one generated."
-// @Param			force		query		bool			false	"Force the preview even when the stack is locked"
-// @Success		200			{object}	models.Changes	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			stack_id			path		int							true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
+// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
+// @Param			output				query		string						false	"Output format. Choices are: json, default. Default to default output format in Kusion."
+// @Param			detail				query		bool						false	"Show detailed output"
+// @Param			specID				query		string						false	"The Spec ID to use for the preview. Default to the last one generated."
+// @Param			force				query		bool						false	"Force the preview even when the stack is locked"
+// @Success		200					{object}	models.Changes				"Success"
+// @Failure		400					{object}	error						"Bad Request"
+// @Failure		401					{object}	error						"Unauthorized"
+// @Failure		429					{object}	error						"Too Many Requests"
+// @Failure		404					{object}	error						"Not Found"
+// @Failure		500					{object}	error						"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/preview [post]
 func (h *Handler) PreviewStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +79,7 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			stack_id	path		int		true	"Stack ID"
+// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
 // @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
 // @Param			force		query		bool	false	"Force the generate even when the stack is locked"
 // @Success		200			{object}	v1.Spec	"Success"
@@ -120,16 +116,19 @@ func (h *Handler) GenerateStack() http.HandlerFunc {
 // @Description	Apply stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int		true	"Stack ID"
-// @Param			specID		query		string	false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
-// @Param			force		query		bool	false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
-// @Param			dryrun		query		bool	false	"Apply in dry-run mode"
-// @Success		200			{object}	string	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
+// @Param			stack_id			path		int							true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
+// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
+// @Param			specID				query		string						false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
+// @Param			force				query		bool						false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun				query		bool						false	"Apply in dry-run mode"
+// @Success		200					{object}	string						"Success"
+// @Failure		400					{object}	error						"Bad Request"
+// @Failure		401					{object}	error						"Unauthorized"
+// @Failure		429					{object}	error						"Too Many Requests"
+// @Failure		404					{object}	error						"Not Found"
+// @Failure		500					{object}	error						"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/apply [post]
 func (h *Handler) ApplyStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -185,6 +184,7 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			stack_id	path		int		true	"Stack ID"
+// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
 // @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
 // @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
 // @Success		200			{object}	string	"Success"
@@ -219,50 +219,4 @@ func (h *Handler) DestroyStack() http.HandlerFunc {
 		logger.Info("destroy completed")
 		render.Render(w, r, handler.SuccessResponse(ctx, "destroy completed"))
 	}
-}
-
-func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackmanager.StackRequestParams, error) {
-	ctx := r.Context()
-	stackID := chi.URLParam(r, "stackID")
-	// Get stack with repository
-	id, err := strconv.Atoi(stackID)
-	if err != nil {
-		return nil, nil, nil, stackmanager.ErrInvalidStackID
-	}
-	logger := logutil.GetLogger(ctx)
-	// Get Params
-	outputParam := r.URL.Query().Get("output")
-	detailParam, _ := strconv.ParseBool(r.URL.Query().Get("detail"))
-	dryrunParam, _ := strconv.ParseBool(r.URL.Query().Get("dryrun"))
-	forceParam, _ := strconv.ParseBool(r.URL.Query().Get("force"))
-	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
-	specIDParam := r.URL.Query().Get("specID")
-	// TODO: Should match automatically eventually???
-	workspaceParam := r.URL.Query().Get("workspace")
-	operatorParam, err := authutil.GetSubjectFromUnverifiedJWTToken(ctx, r)
-	// fall back to x-kusion-user if operator is not parsed from cookie
-	if operatorParam == "" || err != nil {
-		operatorParam = appmiddleware.GetUserID(ctx)
-		if operatorParam == "" {
-			operatorParam = constant.DefaultUser
-		}
-	}
-	if workspaceParam == "" {
-		workspaceParam = constant.DefaultWorkspace
-	}
-	executeParams := stackmanager.StackExecuteParams{
-		Detail:          detailParam,
-		Dryrun:          dryrunParam,
-		Force:           forceParam,
-		SpecID:          specIDParam,
-		ImportResources: importResourcesParam,
-	}
-	params := stackmanager.StackRequestParams{
-		StackID:       uint(id),
-		Workspace:     workspaceParam,
-		Format:        outputParam,
-		Operator:      operatorParam,
-		ExecuteParams: executeParams,
-	}
-	return ctx, logger, &params, nil
 }
