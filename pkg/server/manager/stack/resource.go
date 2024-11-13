@@ -25,6 +25,8 @@ func (m *StackManager) WriteResources(ctx context.Context, release *v1.Release, 
 			resourceEntity.LastAppliedTimestamp = release.ModifiedTime
 			resourceEntity.Attributes = resource.Attributes
 			resourceEntity.Status = constant.StatusResourceApplied
+			resourceEntity.Extensions = resource.Extensions
+			resourceEntity.DependsOn = resource.DependsOn
 			resourceEntitiesToInsert = append(resourceEntitiesToInsert, resourceEntity)
 		}
 		if err := m.resourceRepo.Create(ctx, resourceEntitiesToInsert); err != nil {

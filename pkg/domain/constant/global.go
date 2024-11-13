@@ -18,4 +18,5 @@ const (
 	DefaultLogFilePath      = "/home/admin/logs/kusion.log"
 	RepoCacheTTL            = 60 * time.Minute
 	RunTimeOut              = 60 * time.Minute
+	DefaultWorkloadSig      = "kusion.io/is-workload"
 )

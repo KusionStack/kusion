@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/server/handler"
 	resourcemanager "kusionstack.io/kusion/pkg/server/manager/resource"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -74,6 +75,47 @@ func (h *Handler) GetResource() http.HandlerFunc {
 
 		existingEntity, err := h.resourceManager.GetResourceByID(ctx, params.ResourceID)
 		handler.HandleResult(w, r, ctx, err, existingEntity)
+	}
+}
+
+// @Id				getResourceGraph
+// @Summary		Get resource graph
+// @Description	Get resource graph by stack ID
+// @Tags			resource
+// @Produce		json
+// @Param			stack_id	query		uint				true	"Stack ID"
+// @Success		200	{object}	entity.ResourceGraph	"Success"
+// @Failure		400	{object}	error			"Bad Request"
+// @Failure		401	{object}	error			"Unauthorized"
+// @Failure		429	{object}	error			"Too Many Requests"
+// @Failure		404	{object}	error			"Not Found"
+// @Failure		500	{object}	error			"Internal Server Error"
+// @Router			/api/v1/resources/graph [get]
+func (h *Handler) GetResourceGraph() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Getting stuff from context
+		ctx := r.Context()
+		logger := logutil.GetLogger(ctx)
+		logger.Info("Getting resource graph...")
+		stackIDParam := r.URL.Query().Get("stackID")
+		filter, err := h.resourceManager.BuildResourceFilter(ctx, "", "", stackIDParam, "", "")
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// List resources
+		resourceEntities, err := h.resourceManager.ListResources(ctx, filter)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		resourceGraph := entity.NewResourceGraph()
+		if err := resourceGraph.ConstructResourceGraph(resourceEntities); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		handler.HandleResult(w, r, ctx, nil, resourceGraph)
 	}
 }
 

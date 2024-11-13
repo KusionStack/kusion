@@ -87,6 +87,49 @@ func TestResourceHandler(t *testing.T) {
 		assert.Equal(t, "Kubernetes", resp.Data.(map[string]any)["resourceType"])
 		assert.Equal(t, "Kubernetes", resp.Data.(map[string]any)["resourcePlane"])
 	})
+
+	t.Run("GetResourceGraph", func(t *testing.T) {
+		sqlMock, fakeGDB, recorder, resourceHandler := setupTest(t)
+		defer persistence.CloseDB(t, fakeGDB)
+		defer sqlMock.ExpectClose()
+
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "resource_plane", "resource_name", "kusion_resource_id", "stack_id", "depends_on", "extensions"}).
+				AddRow(1, "Kubernetes", "Kubernetes", resourceName, "a:b:c:d", "1", "e:f:g:h", `{"kusion.io/is-workload":true}`).
+				AddRow(2, "Terraform", "AWS", resourceNameSecond, "e:f:g:h", "1", nil, `{}`).
+				AddRow(3, "Terraform", "AWS", resourceNameSecond, "z:x:y:w", "1", "e:f:g:h", `{}`))
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "project_id"}).
+				AddRow(1, "test-stack", "1"))
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
+				AddRow(1, "test-project"))
+
+		// Create a new HTTP request
+		req, err := http.NewRequest("GET", "/resources", nil)
+		assert.NoError(t, err)
+
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("stack_id", "1")
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		// Call the GetResourceGraph handler function
+		resourceHandler.GetResourceGraph()(recorder, req)
+		fmt.Println(recorder.Body.String())
+		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		// Unmarshal the response body
+		var resp handler.Response
+		err = json.Unmarshal(recorder.Body.Bytes(), &resp)
+		if err != nil {
+			t.Fatalf("Failed to unmarshal response: %v", err)
+		}
+
+		// Assertion
+		assert.Equal(t, "a:b:c:d", resp.Data.(map[string]any)["workload"])
+		assert.Equal(t, 2, len(resp.Data.(map[string]any)["relations"].([]any)))
+		assert.Equal(t, 3, len(resp.Data.(map[string]any)["resources"].(map[string]any)))
+	})
 }
 
 func setupTest(t *testing.T) (sqlmock.Sqlmock, *gorm.DB, *httptest.ResponseRecorder, *Handler) {
