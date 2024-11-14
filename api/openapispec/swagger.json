@@ -2554,6 +2554,61 @@
                 }
             }
         },
+        "/api/v1/workspaces/configs/validate": {
+            "post": {
+                "description": "Validate the configurations in the specified workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Validate workspace configurations",
+                "operationId": "validateWorkspaceConfigs",
+                "parameters": [
+                    {
+                        "description": "Workspace configurations to be validated",
+                        "name": "workspace",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.WorkspaceConfigs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/request.WorkspaceConfigs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/v1/workspaces/{id}": {
             "get": {
                 "description": "Get workspace information by workspace ID",
@@ -2673,6 +2728,172 @@
                 ],
                 "summary": "Delete workspace",
                 "operationId": "deleteWorkspace",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/workspaces/{id}/configs": {
+            "get": {
+                "description": "Get configurations in the specified workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "get workspace configurations",
+                "operationId": "getWorkspaceConfigs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/request.WorkspaceConfigs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the configurations in the specified workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Update workspace configurations",
+                "operationId": "updateWorkspaceConfigs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated workspace configurations",
+                        "name": "workspace",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.WorkspaceConfigs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/request.WorkspaceConfigs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/workspaces/{id}/configs/mod-deps": {
+            "post": {
+                "description": "Create the module dependencies in kcl.mod of the specified workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Create the module dependencies of the workspace",
+                "operationId": "createWorkspaceModDeps",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4034,6 +4255,35 @@
                 }
             }
         },
+        "request.WorkspaceConfigs": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.GenericConfig"
+                        }
+                    ]
+                },
+                "modules": {
+                    "description": "Modules are the configs of a set of modules.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ModuleConfigs"
+                        }
+                    ]
+                },
+                "secretStore": {
+                    "description": "SecretStore represents a secure external location for storing secrets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.SecretStore"
+                        }
+                    ]
+                }
+            }
+        },
         "url.URL": {
             "type": "object",
             "properties": {
@@ -4161,6 +4411,19 @@
                 }
             }
         },
+        "v1.Configs": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "description": "Default is default block of the module config.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.GenericConfig"
+                        }
+                    ]
+                }
+            }
+        },
         "v1.FakeProvider": {
             "type": "object",
             "properties": {
@@ -4195,6 +4458,45 @@
         "v1.GenericConfig": {
             "type": "object",
             "additionalProperties": {}
+        },
+        "v1.ModuleConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains all levels of module configs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.Configs"
+                        }
+                    ]
+                },
+                "path": {
+                    "description": "Path is the path of the module. It can be a local path or a remote URL",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the version of the module.",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.ModuleConfigs": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/v1.ModuleConfig"
+            }
+        },
+        "v1.ModulePatcherConfig": {
+            "type": "object",
+            "properties": {
+                "projectSelector": {
+                    "description": "ProjectSelector contains the selected projects.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
         },
         "v1.OnPremisesProvider": {
             "type": "object",
