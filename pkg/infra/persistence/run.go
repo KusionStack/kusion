@@ -96,17 +96,24 @@ func (r *runRepository) Get(ctx context.Context, id uint) (*entity.Run, error) {
 }
 
 // List retrieves all runs.
-func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter) ([]*entity.Run, error) {
+func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error) {
 	var dataModel []RunModel
 	runEntityList := make([]*entity.Run, 0)
 	pattern, args := GetRunQuery(filter)
-	result := r.db.WithContext(ctx).
+	searchResult := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").
 		Joins("JOIN stack ON stack.id = run.stack_id").
 		Joins("JOIN project ON project.id = stack.project_id").
 		Joins("JOIN workspace ON workspace.name = run.workspace").
-		Where(pattern, args...).
-		Find(&dataModel)
+		Where(pattern, args...)
+
+		// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -117,5 +124,8 @@ func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter) ([]*
 		}
 		runEntityList = append(runEntityList, runEntity)
 	}
-	return runEntityList, nil
+	return &entity.RunListResult{
+		Runs:  runEntityList,
+		Total: int(totalRows),
+	}, nil
 }

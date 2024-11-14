@@ -22,6 +22,7 @@ var (
 	ErrBackendNil              = errors.New("backend is nil")
 	ErrBackendNameEmpty        = errors.New("backend must have a name")
 	ErrBackendTypeEmpty        = errors.New("backend must have a type")
+	ErrDefaultBackendNotSet    = errors.New("default backend not set properly")
 	ErrAppConfigHasNilStack    = errors.New("appConfig has nil stack")
 	ErrInvalidOrganizationName = errors.New("organization name can only have alphanumeric characters and underscores with [a-zA-Z0-9_]")
 	ErrInvalidOrganizationID   = errors.New("the organization ID should be a uuid")

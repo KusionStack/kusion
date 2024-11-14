@@ -22,7 +22,8 @@ type Run struct {
 	Status constant.RunStatus `yaml:"status" json:"status"`
 	// Result is the result of the run.
 	Result string `yaml:"result" json:"result"`
-	// Result RunResult `yaml:"result" json:"result"`
+	// Trace is the trace of the run.
+	Trace string `yaml:"trace" json:"trace"`
 	// Logs is the logs of the run.
 	Logs string `yaml:"logs" json:"logs"`
 	// CreationTimestamp is the timestamp of the created for the run.
@@ -44,9 +45,15 @@ type RunResult struct {
 }
 
 type RunFilter struct {
-	ProjectID uint
-	StackID   uint
-	Workspace string
+	ProjectID  uint
+	StackID    uint
+	Workspace  string
+	Pagination *Pagination
+}
+
+type RunListResult struct {
+	Runs  []*Run
+	Total int
 }
 
 // Validate checks if the run is valid.

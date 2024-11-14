@@ -24,6 +24,8 @@ type RunModel struct {
 	Result string
 	// Logs is the logs of the run.
 	Logs string
+	// Trace is the trace of the run.
+	Trace string
 }
 
 // The TableName method returns the name of the database table that the struct is mapped to.
@@ -53,13 +55,13 @@ func (m *RunModel) ToEntity() (*entity.Run, error) {
 	}
 
 	return &entity.Run{
-		ID:        m.ID,
-		Type:      runType,
-		Stack:     stackEntity,
-		Workspace: m.Workspace,
-		Status:    runStatus,
-		Result:    m.Result,
-		// Result:            entity.RunResult{},
+		ID:                m.ID,
+		Type:              runType,
+		Stack:             stackEntity,
+		Workspace:         m.Workspace,
+		Status:            runStatus,
+		Result:            m.Result,
+		Trace:             m.Trace,
 		Logs:              m.Logs,
 		CreationTimestamp: m.CreatedAt,
 		UpdateTimestamp:   m.UpdatedAt,
@@ -83,6 +85,7 @@ func (m *RunModel) FromEntity(e *entity.Run) error {
 	m.Status = string(e.Status)
 	m.Result = e.Result
 	m.Logs = e.Logs
+	m.Trace = e.Trace
 	m.CreatedAt = e.CreationTimestamp
 	m.UpdatedAt = e.UpdateTimestamp
 

@@ -76,7 +76,8 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			logger.Info("Async preview in progress")
 			var previewChanges any
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
@@ -103,14 +104,12 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			// Call preview stack
 			changes, err := h.stackManager.PreviewStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
-				// render.Render(w, r, handler.FailureResponse(ctx, err))
 				logger.Error("Error previewing stack", "error", err)
 				return
 			}
 
 			previewChanges, err = stackmanager.ProcessChanges(newCtx, w, changes, params.Format, params.ExecuteParams.Detail)
 			if err != nil {
-				// render.Render(w, r, handler.FailureResponse(ctx, err))
 				logger.Error("Error processing preview changes", "error", err)
 				return
 			}
@@ -180,7 +179,8 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async apply in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
@@ -206,7 +206,6 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 					render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be applied if dryrun is set to false"))
 					return
 				} else {
-					// render.Render(w, r, handler.FailureResponse(ctx, err))
 					logger.Error("Error applying stack", "error", err)
 					return
 				}
@@ -282,9 +281,10 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async generate in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			var sp *apiv1.Spec
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
+			var sp *apiv1.Spec
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
@@ -308,9 +308,8 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			}()
 
 			// Call generate stack
-			_, sp, err := h.stackManager.GenerateSpec(newCtx, params)
+			_, sp, err = h.stackManager.GenerateSpec(newCtx, params)
 			if err != nil {
-				// render.Render(w, r, handler.FailureResponse(ctx, err))
 				logger.Error("Error generating stack", "error", err)
 				return
 			}
@@ -375,10 +374,10 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 
 		// Starts a safe goroutine using given recover handler
 		inBufferZone := h.workerPool.Do(func() {
-			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async destroy in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
@@ -400,11 +399,9 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 			err = h.stackManager.DestroyStack(newCtx, params, w)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {
-					// render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false"))
 					logger.Info("Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false")
 					return
 				} else {
-					// render.Render(w, r, handler.FailureResponse(ctx, err))
 					logger.Error("Error destroying stack", "error", err)
 					return
 				}

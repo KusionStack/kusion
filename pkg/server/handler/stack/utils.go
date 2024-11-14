@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -168,4 +169,21 @@ func CopyToNewContextWithTimeout(ctx context.Context, timeout time.Duration) (co
 	newCtx := CopyToNewContext(ctx)
 	newCtxWithTimeout, cancel := context.WithTimeout(newCtx, timeout)
 	return newCtxWithTimeout, cancel
+}
+
+func logStackTrace(runLogger *httplog.Logger) {
+	buf := make([]byte, 1<<16) // 64KB
+	stackSize := runtime.Stack(buf, true)
+	runLogger.Error("Stack trace:")
+	runLogger.Error(string(buf[:stackSize]))
+}
+
+func handleCrash(ctx context.Context) {
+	if r := recover(); r != nil {
+		logger := logutil.GetLogger(ctx)
+		runLogger := logutil.GetRunLogger(ctx)
+		logger.Error("Recovered from panic during async execution:", "error", r)
+		runLogger.Error("Panic recovered", "error", r)
+		logStackTrace(runLogger)
+	}
 }
