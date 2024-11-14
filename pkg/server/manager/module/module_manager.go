@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/server/manager/workspace"
 )
 
 func (m *ModuleManager) CreateModule(ctx context.Context, requestPayload request.CreateModuleRequest) (*entity.Module, error) {
@@ -112,6 +113,63 @@ func (m *ModuleManager) ListModules(ctx context.Context) ([]*entity.Module, erro
 		}
 
 		return nil, err
+	}
+
+	return moduleEntities, nil
+}
+
+func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint) ([]*entity.ModuleWithVersion, error) {
+	// Get workspace entity by ID.
+	existingEntity, err := m.workspaceRepo.Get(ctx, workspaceID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, workspace.ErrGettingNonExistingWorkspace
+		}
+		return nil, err
+	}
+
+	// Get backend by backend ID.
+	backendEntity, err := m.backendRepo.Get(ctx, existingEntity.Backend.ID)
+	if err != nil && err == gorm.ErrRecordNotFound {
+		return nil, workspace.ErrBackendNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	// Generate backend from the backend entity.
+	remoteBackend, err := workspace.NewBackendFromEntity(*backendEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get workspace storage from backend.
+	wsStorage, err := remoteBackend.WorkspaceStorage()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get workspace config from storage.
+	ws, err := wsStorage.Get(existingEntity.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the modules in the workspace.
+	moduleEntities := make([]*entity.ModuleWithVersion, 0, len(ws.Modules))
+	for moduleName, moduleConfigs := range ws.Modules {
+		moduleEntity, err := m.moduleRepo.Get(ctx, moduleName)
+		if err != nil {
+			return nil, err
+		}
+
+		moduleEntities = append(moduleEntities, &entity.ModuleWithVersion{
+			Name:        moduleEntity.Name,
+			URL:         moduleEntity.URL,
+			Version:     moduleConfigs.Version,
+			Description: moduleEntity.Description,
+			Owners:      moduleEntity.Owners,
+			Doc:         moduleEntity.Doc,
+		})
 	}
 
 	return moduleEntities, nil

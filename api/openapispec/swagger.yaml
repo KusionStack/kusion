@@ -1366,6 +1366,11 @@ paths:
     get:
       description: List module information
       operationId: listModule
+      parameters:
+      - description: Workspace ID to filter module list by. Default to all workspaces.
+        in: query
+        name: workspaceID
+        type: integer
       produces:
       - application/json
       responses:
