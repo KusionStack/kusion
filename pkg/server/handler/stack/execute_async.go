@@ -76,7 +76,8 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			logger.Info("Async preview in progress")
 			var previewChanges any
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
@@ -178,7 +179,8 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async apply in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
@@ -279,9 +281,10 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async generate in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			var sp *apiv1.Spec
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
+			var sp *apiv1.Spec
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
@@ -371,10 +374,10 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 
 		// Starts a safe goroutine using given recover handler
 		inBufferZone := h.workerPool.Do(func() {
-			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async destroy in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel() // make sure the context is canceled to free resources
+			defer cancel()            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
