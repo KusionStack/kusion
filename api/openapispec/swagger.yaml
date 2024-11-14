@@ -930,6 +930,23 @@ definitions:
     - id
     - owners
     type: object
+  request.WorkspaceConfigs:
+    properties:
+      context:
+        allOf:
+        - $ref: '#/definitions/v1.GenericConfig'
+        description: Context contains workspace-level configurations, such as runtimes,
+          topologies, and metadata, etc.
+      modules:
+        allOf:
+        - $ref: '#/definitions/v1.ModuleConfigs'
+        description: Modules are the configs of a set of modules.
+      secretStore:
+        allOf:
+        - $ref: '#/definitions/v1.SecretStore'
+        description: SecretStore represents a secure external location for storing
+          secrets.
+    type: object
   url.URL:
     properties:
       forceQuery:
@@ -1030,6 +1047,13 @@ definitions:
           BackendTypeS3.
         type: string
     type: object
+  v1.Configs:
+    properties:
+      default:
+        allOf:
+        - $ref: '#/definitions/v1.GenericConfig'
+        description: Default is default block of the module config.
+    type: object
   v1.FakeProvider:
     properties:
       data:
@@ -1052,6 +1076,32 @@ definitions:
     type: object
   v1.GenericConfig:
     additionalProperties: {}
+    type: object
+  v1.ModuleConfig:
+    properties:
+      configs:
+        allOf:
+        - $ref: '#/definitions/v1.Configs'
+        description: Configs contains all levels of module configs
+      path:
+        description: Path is the path of the module. It can be a local path or a remote
+          URL
+        type: string
+      version:
+        description: Version is the version of the module.
+        type: string
+    type: object
+  v1.ModuleConfigs:
+    additionalProperties:
+      $ref: '#/definitions/v1.ModuleConfig'
+    type: object
+  v1.ModulePatcherConfig:
+    properties:
+      projectSelector:
+        description: ProjectSelector contains the selected projects.
+        items:
+          type: string
+        type: array
     type: object
   v1.OnPremisesProvider:
     properties:
@@ -3086,6 +3136,160 @@ paths:
           description: Internal Server Error
           schema: {}
       summary: Update workspace
+      tags:
+      - workspace
+  /api/v1/workspaces/{id}/configs:
+    get:
+      consumes:
+      - application/json
+      description: Get configurations in the specified workspace
+      operationId: getWorkspaceConfigs
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/request.WorkspaceConfigs'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: get workspace configurations
+      tags:
+      - workspace
+    put:
+      consumes:
+      - application/json
+      description: Update the configurations in the specified workspace
+      operationId: updateWorkspaceConfigs
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated workspace configurations
+        in: body
+        name: workspace
+        required: true
+        schema:
+          $ref: '#/definitions/request.WorkspaceConfigs'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/request.WorkspaceConfigs'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update workspace configurations
+      tags:
+      - workspace
+  /api/v1/workspaces/{id}/configs/mod-deps:
+    post:
+      consumes:
+      - application/json
+      description: Create the module dependencies in kcl.mod of the specified workspace
+      operationId: createWorkspaceModDeps
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create the module dependencies of the workspace
+      tags:
+      - workspace
+  /api/v1/workspaces/configs/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate the configurations in the specified workspace
+      operationId: validateWorkspaceConfigs
+      parameters:
+      - description: Workspace configurations to be validated
+        in: body
+        name: workspace
+        required: true
+        schema:
+          $ref: '#/definitions/request.WorkspaceConfigs'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/request.WorkspaceConfigs'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Validate workspace configurations
       tags:
       - workspace
   /endpoints:

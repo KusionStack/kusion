@@ -138,7 +138,7 @@ func setupRestAPIV1(
 	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
 	organizationManager := organizationmanager.NewOrganizationManager(organizationRepo)
 	backendManager := backendmanager.NewBackendManager(backendRepo)
-	workspaceManager := workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, config.DefaultBackend)
+	workspaceManager := workspacemanager.NewWorkspaceManager(workspaceRepo, backendRepo, moduleRepo, config.DefaultBackend)
 	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, config.DefaultSource)
 	resourceManager := resourcemanager.NewResourceManager(resourceRepo)
 	moduleManager := modulemanager.NewModuleManager(moduleRepo, workspaceRepo, backendRepo)
@@ -250,6 +250,18 @@ func setupRestAPIV1(
 			r.Get("/", workspaceHandler.GetWorkspace())
 			r.Put("/", workspaceHandler.UpdateWorkspace())
 			r.Delete("/", workspaceHandler.DeleteWorkspace())
+			r.Route("/configs", func(r chi.Router) {
+				r.Get("/", workspaceHandler.GetWorkspaceConfigs())
+				r.Put("/", workspaceHandler.UpdateWorkspaceConfigs())
+				r.Route("/mod-deps", func(r chi.Router) {
+					r.Post("/", workspaceHandler.CreateWorkspaceModDeps())
+				})
+			})
+		})
+		r.Route("/configs", func(r chi.Router) {
+			r.Route("/validate", func(r chi.Router) {
+				r.Post("/", workspaceHandler.ValidateWorkspaceConfigs())
+			})
 		})
 		r.Post("/", workspaceHandler.CreateWorkspace())
 		r.Get("/", workspaceHandler.ListWorkspaces())

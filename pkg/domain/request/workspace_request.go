@@ -1,6 +1,10 @@
 package request
 
-import "net/http"
+import (
+	"net/http"
+
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+)
 
 // CreateWorkspaceRequest represents the create request structure for
 // workspace.
@@ -45,6 +49,10 @@ type WorkspaceCredentials struct {
 	AwsRegion         string `json:"awsRegion,omitempty"`
 }
 
+type WorkspaceConfigs struct {
+	*v1.Workspace `yaml:",inline" json:",inline"`
+}
+
 func (payload *CreateWorkspaceRequest) Decode(r *http.Request) error {
 	return decode(r, payload)
 }
@@ -54,5 +62,9 @@ func (payload *UpdateWorkspaceRequest) Decode(r *http.Request) error {
 }
 
 func (payload *WorkspaceCredentials) Decode(r *http.Request) error {
+	return decode(r, payload)
+}
+
+func (payload *WorkspaceConfigs) Decode(r *http.Request) error {
 	return decode(r, payload)
 }

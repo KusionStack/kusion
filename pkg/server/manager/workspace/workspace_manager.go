@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 )
@@ -85,6 +86,23 @@ func (m *WorkspaceManager) CreateWorkspace(ctx context.Context, requestPayload r
 		return nil, err
 	}
 	createdEntity.Backend = backendEntity
+
+	// Generate backend from the backend entity.
+	remoteBackend, err := NewBackendFromEntity(*backendEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get workspace storage from backend.
+	wsStorage, err := remoteBackend.WorkspaceStorage()
+	if err != nil {
+		return nil, err
+	}
+
+	// Create an initiated workspace config.
+	if err = wsStorage.Create(&v1.Workspace{Name: createdEntity.Name}); err != nil {
+		return nil, err
+	}
 
 	// Create workspace with repository
 	err = m.workspaceRepo.Create(ctx, &createdEntity)
