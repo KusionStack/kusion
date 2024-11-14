@@ -268,6 +268,7 @@ func setupRestAPIV1(
 			r.Get("/", resourceHandler.GetResource())
 		})
 		r.Get("/", resourceHandler.ListResources())
+		r.Get("/graph", resourceHandler.GetResourceGraph())
 	})
 	r.Route("/modules", func(r chi.Router) {
 		r.Post("/", moduleHandler.CreateModule())

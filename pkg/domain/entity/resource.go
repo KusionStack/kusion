@@ -34,6 +34,10 @@ type Resource struct {
 	Status string `yaml:"status" json:"status"`
 	// Attributes is the attributes of the resource.
 	Attributes map[string]interface{} `yaml:"attributes,omitempty" json:"attributes,omitempty"`
+	// Extensions is the extensions of the resource.
+	Extensions map[string]interface{} `yaml:"extensions,omitempty" json:"extensions,omitempty"`
+	// DependsOn is the depends on of the resource.
+	DependsOn []string `yaml:"dependsOn,omitempty" json:"dependsOn,omitempty"`
 	// Provider is the provider of the resource.
 	Provider string `yaml:"provider" json:"provider"`
 	// Labels are custom labels associated with the resource.
@@ -44,6 +48,32 @@ type Resource struct {
 	CreationTimestamp time.Time `yaml:"creationTimestamp,omitempty" json:"creationTimestamp,omitempty"`
 	// UpdateTimestamp is the timestamp of the updated for the resource.
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
+}
+
+type ResourceInfo struct {
+	// ResourceType is the type of the resource.
+	ResourceType string `yaml:"resourceType" json:"resourceType"`
+	// ResourcePlane is the plane of the resource.
+	ResourcePlane string `yaml:"resourcePlane" json:"resourcePlane"`
+	// ResourceName is the name of the resource.
+	ResourceName string `yaml:"resourceName" json:"resourceName"`
+	// IAMResourceID is the id of the resource in IAM.
+	IAMResourceID string `yaml:"iamResourceID" json:"iamResourceID"`
+	// CloudResourceID is the id of the resource in the cloud.
+	CloudResourceID string `yaml:"cloudResourceID" json:"cloudResourceID"`
+	// Status is the status of the resource.
+	Status string `yaml:"status" json:"status"`
+}
+
+type ResourceRelation struct {
+	DependentResource  string
+	DependencyResource string
+}
+
+type ResourceGraph struct {
+	Resources map[string]ResourceInfo `yaml:"resources" json:"resources"`
+	Relations []ResourceRelation      `yaml:"relations" json:"relations"`
+	Workload  string                  `yaml:"workload" json:"workload"`
 }
 
 type ResourceFilter struct {
@@ -67,5 +97,50 @@ func (r *Resource) Validate() error {
 		return constant.ErrResourceHasNilStack
 	}
 
+	return nil
+}
+
+func NewResourceGraph() *ResourceGraph {
+	return &ResourceGraph{
+		Resources: make(map[string]ResourceInfo),
+		Relations: []ResourceRelation{},
+		Workload:  "",
+	}
+}
+
+func (rg *ResourceGraph) SetWorkload(workload string) error {
+	rg.Workload = workload
+	return nil
+}
+
+// AddResourceRelation adds a directed edge from parent to child
+func (rg *ResourceGraph) AddResourceRelation(dependentResource, dependencyResource string) {
+	rg.Relations = append(rg.Relations, ResourceRelation{
+		DependentResource:  dependentResource,
+		DependencyResource: dependencyResource,
+	})
+}
+
+// ConstructResourceGraph constructs the resource graph from the resources.
+func (rg *ResourceGraph) ConstructResourceGraph(resources []*Resource) error {
+	for _, resource := range resources {
+		info := ResourceInfo{
+			ResourceType:    resource.ResourceType,
+			ResourcePlane:   resource.ResourcePlane,
+			ResourceName:    resource.ResourceName,
+			IAMResourceID:   resource.IAMResourceID,
+			CloudResourceID: resource.CloudResourceID,
+			Status:          resource.Status,
+		}
+		rg.Resources[resource.KusionResourceID] = info
+		if resource.Extensions[constant.DefaultWorkloadSig] == true {
+			rg.SetWorkload(resource.KusionResourceID)
+		}
+		if resource.DependsOn != nil {
+			for _, dependent := range resource.DependsOn {
+				rg.AddResourceRelation(dependent, resource.KusionResourceID)
+			}
+		}
+	}
 	return nil
 }

@@ -23,6 +23,8 @@ type ResourceModel struct {
 	LastAppliedTimestamp time.Time
 	Status               string
 	Attributes           map[string]any `gorm:"serializer:json" json:"attributes"`
+	Extensions           map[string]any `gorm:"serializer:json" json:"extensions"`
+	DependsOn            MultiString
 	Provider             string
 	Labels               MultiString
 	Owners               MultiString
@@ -61,6 +63,8 @@ func (m *ResourceModel) ToEntity() (*entity.Resource, error) {
 		LastAppliedTimestamp: m.LastAppliedTimestamp,
 		Status:               m.Status,
 		Attributes:           m.Attributes,
+		Extensions:           m.Extensions,
+		DependsOn:            []string(m.DependsOn),
 		Provider:             m.Provider,
 		Labels:               []string(m.Labels),
 		Owners:               []string(m.Owners),
@@ -86,6 +90,8 @@ func (m *ResourceModel) FromEntity(e *entity.Resource) error {
 	m.LastAppliedTimestamp = e.LastAppliedTimestamp
 	m.Status = e.Status
 	m.Attributes = e.Attributes
+	m.Extensions = e.Extensions
+	m.DependsOn = MultiString(e.DependsOn)
 	m.Provider = e.Provider
 	m.Labels = MultiString(e.Labels)
 	m.Owners = MultiString(e.Owners)

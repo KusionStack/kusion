@@ -1087,6 +1087,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/resources/graph": {
+            "get": {
+                "description": "Get resource graph by stack ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource"
+                ],
+                "summary": "Get resource graph",
+                "operationId": "getResourceGraph",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stack ID",
+                        "name": "stack_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResourceGraph"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/v1/resources/{id}": {
             "get": {
                 "description": "Get resource information by resource ID",
@@ -1112,6 +1162,182 @@ const docTemplate = `{
                         "description": "Success",
                         "schema": {
                             "$ref": "#/definitions/entity.Resource"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/runs": {
+            "get": {
+                "description": "List all runs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stack"
+                ],
+                "summary": "List runs",
+                "operationId": "listRun",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ProjectID to filter runs by. Default to all",
+                        "name": "projectID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "OrgID to filter runs by. Default to all",
+                        "name": "orgID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ProjectName to filter runs by. Default to all",
+                        "name": "projectName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cloud to filter runs by. Default to all",
+                        "name": "cloud",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Environment to filter runs by. Default to all",
+                        "name": "env",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Stack"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/runs/{run_id}": {
+            "get": {
+                "description": "Get run information by run ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "run"
+                ],
+                "summary": "Get run",
+                "operationId": "getRun",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Run ID",
+                        "name": "run",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Run"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/runs/{run_id}/result": {
+            "get": {
+                "description": "Get run result by run ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "run"
+                ],
+                "summary": "Get run result",
+                "operationId": "getRunResult",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Run ID",
+                        "name": "run",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Run"
                         }
                     },
                     "400": {
@@ -1430,12 +1656,6 @@ const docTemplate = `{
                         "description": "Environment to filter stacks by. Default to all",
                         "name": "env",
                         "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Whether to get last synced base revision. Default to false",
-                        "name": "getLastSyncedBase",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1714,6 +1934,27 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "description": "The resources to import during the stack preview",
+                        "name": "importedResources",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.StackImportRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Import existing resources during the stack preview",
+                        "name": "importResources",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "The Spec ID to use for the apply. Will generate a new spec if omitted.",
                         "name": "specID",
@@ -1762,6 +2003,95 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/stacks/{stack_id}/apply/async": {
+            "post": {
+                "description": "Start a run and asynchronously apply stack changes by stack ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stack"
+                ],
+                "summary": "Asynchronously apply stack",
+                "operationId": "applyStackAsync",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stack ID",
+                        "name": "stack_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "The resources to import during the stack preview",
+                        "name": "importedResources",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.StackImportRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Import existing resources during the stack preview",
+                        "name": "importResources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The Spec ID to use for the apply. Will generate a new spec if omitted.",
+                        "name": "specID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Force the apply even when the stack is locked. May cause concurrency issues!!!",
+                        "name": "force",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Apply in dry-run mode",
+                        "name": "dryrun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Run"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/v1/stacks/{stack_id}/destroy": {
             "post": {
                 "description": "Destroy stack information by stack ID",
@@ -1779,6 +2109,82 @@ const docTemplate = `{
                         "description": "Stack ID",
                         "name": "stack_id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Force the destroy even when the stack is locked. May cause concurrency issues!!!",
+                        "name": "force",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Destroy in dry-run mode",
+                        "name": "dryrun",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/stacks/{stack_id}/destroy/async": {
+            "post": {
+                "description": "Start a run and asynchronously destroy stack resources by stack ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stack"
+                ],
+                "summary": "Asynchronously destroy stack",
+                "operationId": "destroyStackAsync",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stack ID",
+                        "name": "stack_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -1845,6 +2251,82 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The format to generate the spec in. Choices are: spec. Default to spec.",
+                        "name": "format",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Force the generate even when the stack is locked",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Spec"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/stacks/{stack_id}/generate/async": {
+            "post": {
+                "description": "Start a run and asynchronously generate stack spec by stack ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stack"
+                ],
+                "summary": "Asynchronously generate stack",
+                "operationId": "generateStackAsync",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stack ID",
+                        "name": "stack_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "The format to generate the spec in. Choices are: spec. Default to spec.",
                         "name": "format",
                         "in": "query"
@@ -1888,15 +2370,15 @@ const docTemplate = `{
         },
         "/api/v1/stacks/{stack_id}/preview": {
             "post": {
-                "description": "Preview stack information by stack ID",
+                "description": "Start a run and asynchronously preview stack changes by stack ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "stack"
                 ],
-                "summary": "Preview stack",
-                "operationId": "previewStack",
+                "summary": "Asynchronously preview stack",
+                "operationId": "previewStackAsync",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1904,6 +2386,27 @@ const docTemplate = `{
                         "name": "stack_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "The resources to import during the stack preview",
+                        "name": "importedResources",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.StackImportRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Import existing resources during the stack preview",
+                        "name": "importResources",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -1934,7 +2437,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/models.Changes"
+                            "$ref": "#/definitions/entity.Run"
                         }
                     },
                     "400": {
@@ -2237,21 +2740,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "constant.RunStatus": {
+            "type": "string",
+            "enum": [
+                "Scheduling",
+                "InProgress",
+                "Failed",
+                "Succeeded",
+                "Cancelled",
+                "Queued"
+            ],
+            "x-enum-varnames": [
+                "RunStatusScheduling",
+                "RunStatusInProgress",
+                "RunStatusFailed",
+                "RunStatusSucceeded",
+                "RunStatusCancelled",
+                "RunStatusQueued"
+            ]
+        },
+        "constant.RunType": {
+            "type": "string",
+            "enum": [
+                "Generate",
+                "Preview",
+                "Apply",
+                "Destroy"
+            ],
+            "x-enum-varnames": [
+                "RunTypeGenerate",
+                "RunTypePreview",
+                "RunTypeApply",
+                "RunTypeDestroy"
+            ]
+        },
         "constant.SourceProviderType": {
             "type": "string",
             "enum": [
                 "git",
+                "git",
                 "github",
                 "oci",
-                "local",
-                "git"
+                "local"
             ],
             "x-enum-varnames": [
+                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal",
-                "DefaultSourceType"
+                "SourceProviderTypeLocal"
             ]
         },
         "constant.StackState": {
@@ -2492,6 +3029,18 @@ const docTemplate = `{
                     "description": "CreationTimestamp is the timestamp of the created for the resource.",
                     "type": "string"
                 },
+                "dependsOn": {
+                    "description": "DependsOn is the depends on of the resource.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extensions": {
+                    "description": "Extensions is the extensions of the resource.",
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "iamResourceID": {
                     "description": "IAMResourceID is the id of the resource in IAM.",
                     "type": "string"
@@ -2552,6 +3101,119 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.ResourceGraph": {
+            "type": "object",
+            "properties": {
+                "relations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ResourceRelation"
+                    }
+                },
+                "resources": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/entity.ResourceInfo"
+                    }
+                },
+                "workload": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ResourceInfo": {
+            "type": "object",
+            "properties": {
+                "cloudResourceID": {
+                    "description": "CloudResourceID is the id of the resource in the cloud.",
+                    "type": "string"
+                },
+                "iamResourceID": {
+                    "description": "IAMResourceID is the id of the resource in IAM.",
+                    "type": "string"
+                },
+                "resourceName": {
+                    "description": "ResourceName is the name of the resource.",
+                    "type": "string"
+                },
+                "resourcePlane": {
+                    "description": "ResourcePlane is the plane of the resource.",
+                    "type": "string"
+                },
+                "resourceType": {
+                    "description": "ResourceType is the type of the resource.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of the resource.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ResourceRelation": {
+            "type": "object",
+            "properties": {
+                "dependencyResource": {
+                    "type": "string"
+                },
+                "dependentResource": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Run": {
+            "type": "object",
+            "properties": {
+                "creationTimestamp": {
+                    "description": "CreationTimestamp is the timestamp of the created for the run.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the id of the run.",
+                    "type": "integer"
+                },
+                "logs": {
+                    "description": "Result RunResult ` + "`" + `yaml:\"result\" json:\"result\"` + "`" + `\nLogs is the logs of the run.",
+                    "type": "string"
+                },
+                "result": {
+                    "description": "Result is the result of the run.",
+                    "type": "string"
+                },
+                "stack": {
+                    "description": "Stack is the stack of the run.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.Stack"
+                        }
+                    ]
+                },
+                "status": {
+                    "description": "Status is the status of the run.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constant.RunStatus"
+                        }
+                    ]
+                },
+                "type": {
+                    "description": "RunType is the type of the run provider.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constant.RunType"
+                        }
+                    ]
+                },
+                "updateTimestamp": {
+                    "description": "UpdateTimestamp is the timestamp of the updated for the run.",
+                    "type": "string"
+                },
+                "workspace": {
+                    "description": "Workspace is the target workspace of the run.",
+                    "type": "string"
+                }
+            }
+        },
         "entity.Source": {
             "type": "object",
             "properties": {
@@ -2573,6 +3235,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "name": {
+                    "description": "Name is the name of the source.",
+                    "type": "string"
                 },
                 "owners": {
                     "description": "Owners is a list of owners for the source.",
@@ -2951,6 +3617,7 @@ const docTemplate = `{
         "request.CreateSourceRequest": {
             "type": "object",
             "required": [
+                "name",
                 "remote",
                 "sourceProvider"
             ],
@@ -2965,6 +3632,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "name": {
+                    "description": "Name is the name of the source.",
+                    "type": "string"
                 },
                 "owners": {
                     "description": "Owners is a list of owners for the source.",
@@ -3064,6 +3735,17 @@ const docTemplate = `{
                     "description": "Owners is a list of owners for the workspace.",
                     "type": "array",
                     "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.StackImportRequest": {
+            "type": "object",
+            "properties": {
+                "importedResources": {
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "string"
                     }
                 }
@@ -3218,7 +3900,10 @@ const docTemplate = `{
         "request.UpdateSourceRequest": {
             "type": "object",
             "required": [
-                "id"
+                "id",
+                "name",
+                "remote",
+                "sourceProvider"
             ],
             "properties": {
                 "description": {
@@ -3235,6 +3920,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "name": {
+                    "description": "Name is the name of the source.",
+                    "type": "string"
                 },
                 "owners": {
                     "description": "Owners is a list of owners for the source.",
