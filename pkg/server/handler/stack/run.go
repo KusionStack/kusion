@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	response "kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -95,18 +96,26 @@ func (h *Handler) ListRuns() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing runs...")
 
-		projectIDParam := r.URL.Query().Get("projectID")
-		stackIDParam := r.URL.Query().Get("stackID")
-		workspaceParam := r.URL.Query().Get("workspace")
-
-		filter, err := h.stackManager.BuildRunFilter(ctx, projectIDParam, stackIDParam, workspaceParam)
+		query := r.URL.Query()
+		filter, err := h.stackManager.BuildRunFilter(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
+		// List runs
 		runEntities, err := h.stackManager.ListRuns(ctx, filter)
-		handler.HandleResult(w, r, ctx, err, runEntities)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		paginatedResponse := response.PaginatedRunResponse{
+			Runs:        runEntities.Runs,
+			Total:       runEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

@@ -19,4 +19,9 @@ const (
 	RepoCacheTTL            = 60 * time.Minute
 	RunTimeOut              = 60 * time.Minute
 	DefaultWorkloadSig      = "kusion.io/is-workload"
+	ResourcePageDefault     = 1
+	ResourcePageSizeDefault = 100
+	ResourcePageSizeLarge   = 1000
+	RunPageDefault          = 1
+	RunPageSizeDefault      = 10
 )

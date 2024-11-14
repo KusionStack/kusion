@@ -150,5 +150,5 @@ type RunRepository interface {
 	// Get retrieves a run by its ID.
 	Get(ctx context.Context, id uint) (*entity.Run, error)
 	// List retrieves all existing run.
-	List(ctx context.Context, filter *entity.RunFilter) ([]*entity.Run, error)
+	List(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error)
 }

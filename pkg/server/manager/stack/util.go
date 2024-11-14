@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/httplog/v2"
 	"gorm.io/gorm"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -135,6 +137,9 @@ func (m *StackManager) getBackendFromWorkspaceName(ctx context.Context, workspac
 	var remoteBackend backend.Backend
 	if workspaceName == constant.DefaultWorkspace {
 		// Get default backend
+		if m.defaultBackend.BackendConfig.Type == "" {
+			return nil, constant.ErrDefaultBackendNotSet
+		}
 		return m.getDefaultBackend()
 	} else {
 		// Get backend by id
@@ -267,9 +272,14 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 	return &filter, nil
 }
 
-func (m *StackManager) BuildRunFilter(ctx context.Context, projectIDParam, stackIDParam, workspaceParam string) (*entity.RunFilter, error) {
+func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*entity.RunFilter, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building run filter...")
+
+	projectIDParam := query.Get("projectID")
+	stackIDParam := query.Get("stackID")
+	workspaceParam := query.Get("workspace")
+
 	filter := entity.RunFilter{}
 	if projectIDParam != "" {
 		// if project id is present, use project id
@@ -290,6 +300,19 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, projectIDParam, stack
 	if workspaceParam != "" {
 		// if workspace is present, use workspace
 		filter.Workspace = workspaceParam
+	}
+	// Set pagination parameters
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
 	}
 	return &filter, nil
 }
@@ -410,4 +433,23 @@ func isInRelease(release *v1.Release, id string) bool {
 		}
 	}
 	return false
+}
+
+func logToAll(sysLogger *httplog.Logger, runLogger *httplog.Logger, level string, message string, args ...any) {
+	switch strings.ToLower(level) {
+	case "info":
+		sysLogger.Info(message, args...)
+		runLogger.Info(message, args...)
+	case "error":
+		sysLogger.Error(message, args...)
+		runLogger.Error(message, args...)
+	case "warn":
+		sysLogger.Warn(message, args...)
+		runLogger.Warn(message, args...)
+	case "debug":
+		sysLogger.Debug(message, args...)
+		runLogger.Debug(message, args...)
+	default:
+		sysLogger.Error("unknown log level", "level", level)
+	}
 }

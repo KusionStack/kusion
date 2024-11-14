@@ -12,10 +12,11 @@ import (
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 
+	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *StackManager) ListRuns(ctx context.Context, filter *entity.RunFilter) ([]*entity.Run, error) {
+func (m *StackManager) ListRuns(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error) {
 	runEntities, err := m.runRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -99,6 +100,9 @@ func (m *StackManager) CreateRun(ctx context.Context, requestPayload request.Cre
 
 	// The default status is InProgress
 	createdEntity.Status = constant.RunStatusInProgress
+	// Inject trace into run metadata
+	traceID := appmiddleware.GetTraceID(ctx)
+	createdEntity.Trace = traceID
 	// Create run with repository
 	err = m.runRepo.Create(ctx, &createdEntity)
 	if err != nil && err == gorm.ErrDuplicatedKey {
