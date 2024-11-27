@@ -43,7 +43,8 @@ type Plugin struct {
 	// Module represents the real module impl
 	Module Module
 	// dir represents the working directory of the plugin binary, which will be typically set as the stack path.
-	dir string
+	dir        string
+	ModuleName string
 }
 
 func NewPlugin(key, dir string) (*Plugin, error) {
@@ -77,6 +78,7 @@ func (p *Plugin) initModule() error {
 		return err
 	}
 	pluginName := prefix[0] + "-" + prefix[1]
+	p.ModuleName = pluginName
 	client, err := NewPluginClient(pluginPath, pluginName, p.dir)
 	if err != nil {
 		return err
@@ -131,16 +133,16 @@ func NewPluginClient(modulePluginPath, moduleName, workingDir string) (*plugin.C
 	if err != nil {
 		return nil, err
 	}
-	logDir := filepath.Join(dir, log.Folder, Dir)
+	logDir := filepath.Join(dir, log.Folder, Dir, moduleName)
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 			return nil, fmt.Errorf("failed to create module log dir: %w", err)
 		}
 	}
 	logFilePath = filepath.Join(logDir, moduleName+".log")
-	logFile, err := os.Create(logFilePath)
+	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create module log file: %w", err)
+		return nil, fmt.Errorf("failed to open module %s log file: %w", moduleName, err)
 	}
 
 	// write log to a separate file
