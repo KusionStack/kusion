@@ -140,7 +140,7 @@ func NewPluginClient(modulePluginPath, moduleName, workingDir string) (*plugin.C
 		}
 	}
 	logFilePath = filepath.Join(logDir, moduleName+".log")
-	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open module %s log file: %w", moduleName, err)
 	}
