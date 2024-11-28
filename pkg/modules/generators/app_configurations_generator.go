@@ -51,8 +51,8 @@ const (
 )
 
 const (
-	kusionTraceID    = "KUSION_TRACE_ID"
-	kusionModuleName = "KUSION_MODULE_NAME"
+	kusionModuleName = "kusion_module_name"
+	kusionTraceID    = "kusion_trace_id"
 )
 
 type appConfigurationGenerator struct {
