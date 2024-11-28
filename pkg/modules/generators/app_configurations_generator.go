@@ -22,6 +22,8 @@ import (
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
 	yamlv2 "gopkg.in/yaml.v2"
 	"gopkg.in/yaml.v3"
 	k8sv1 "k8s.io/api/core/v1"
@@ -46,6 +48,11 @@ import (
 const (
 	isWorkload = "kusion.io/is-workload"
 	removalVal = "ops://kusionstack.io/remove"
+)
+
+const (
+	kusionModuleName = "kusion_module_name"
+	kusionTraceID    = "kusion_trace_id"
 )
 
 type appConfigurationGenerator struct {
@@ -539,7 +546,9 @@ func (g *appConfigurationGenerator) invokeModule(
 
 	// invoke the plugin
 	log.Infof("invoke module:%s with request:%s", key, protoRequest.String())
-	response, err := plugin.Module.Generate(context.Background(), protoRequest)
+	traceID, _ := uuid.NewUUID()
+	ctx := metadata.AppendToOutgoingContext(context.Background(), kusionTraceID, traceID.String(), kusionModuleName, plugin.ModuleName)
+	response, err := plugin.Module.Generate(ctx, protoRequest)
 	if err != nil {
 		return nil, fmt.Errorf("invoke kusion module: %s failed. %w", key, err)
 	}
