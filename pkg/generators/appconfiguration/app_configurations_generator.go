@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package generators
+package appconfiguration
 
 import (
 	"context"
@@ -32,14 +32,17 @@ import (
 	k8sjson "k8s.io/apimachinery/pkg/util/json"
 	pkg "kcl-lang.io/kpm/pkg/package"
 
+	"kusionstack.io/kusion-module-framework/pkg/module"
+	"kusionstack.io/kusion-module-framework/pkg/module/proto"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
+	"kusionstack.io/kusion/pkg/generators"
+	"kusionstack.io/kusion/pkg/generators/secret"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators/secret"
-	"kusionstack.io/kusion/pkg/modules/proto"
 
 	// import the secrets register pkg to register supported secret providers
+	ns "kusionstack.io/kusion/pkg/generators/namespace"
+	orderedres "kusionstack.io/kusion/pkg/generators/orderedresources"
 	_ "kusionstack.io/kusion/pkg/secrets/providers/register"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -71,7 +74,7 @@ func NewAppConfigurationGenerator(
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
 	dependencies *pkg.Dependencies,
-) (modules.Generator, error) {
+) (generators.SpecGenerator, error) {
 	if project == nil {
 		return nil, fmt.Errorf("project must not be nil")
 	}
@@ -113,8 +116,8 @@ func NewAppConfigurationGeneratorFunc(
 	app *v1.AppConfiguration,
 	ws *v1.Workspace,
 	kpmDependencies *pkg.Dependencies,
-) modules.NewGeneratorFunc {
-	return func() (modules.Generator, error) {
+) generators.NewSpecGeneratorFunc {
+	return func() (generators.SpecGenerator, error) {
 		return NewAppConfigurationGenerator(project, stack, appName, app, ws, kpmDependencies)
 	}
 }
@@ -150,8 +153,8 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 
 	// generate built-in resources
 	namespace := g.getNamespaceName()
-	gfs := []modules.NewGeneratorFunc{
-		NewNamespaceGeneratorFunc(namespace),
+	gfs := []generators.NewSpecGeneratorFunc{
+		ns.NewNamespaceGeneratorFunc(namespace),
 	}
 
 	if g.app.Workload != nil {
@@ -164,7 +167,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 		}))
 	}
 
-	if err = modules.CallGenerators(spec, gfs...); err != nil {
+	if err = generators.CallGenerators(spec, gfs...); err != nil {
 		return err
 	}
 
@@ -196,7 +199,7 @@ func (g *appConfigurationGenerator) Generate(spec *v1.Spec) error {
 	}
 
 	// The OrderedResourcesGenerator should be executed after all resources are generated.
-	if err = modules.CallGenerators(spec, NewOrderedResourcesGeneratorFunc()); err != nil {
+	if err = generators.CallGenerators(spec, orderedres.NewOrderedResourcesGeneratorFunc()); err != nil {
 		return err
 	}
 
@@ -432,7 +435,7 @@ type moduleConfig struct {
 }
 
 func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]v1.GenericConfig) (workload *v1.Resource, resources []v1.Resource, patchers []v1.Patcher, err error) {
-	pluginMap := make(map[string]*modules.Plugin)
+	pluginMap := make(map[string]*module.Plugin)
 	defer func() {
 		if e := recover(); e != nil {
 			switch x := e.(type) {
@@ -521,13 +524,13 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 }
 
 func (g *appConfigurationGenerator) invokeModule(
-	pluginMap map[string]*modules.Plugin,
+	pluginMap map[string]*module.Plugin,
 	key string,
 	config moduleConfig,
 ) (*proto.GeneratorResponse, error) {
 	// init the plugin
 	if pluginMap[key] == nil {
-		plugin, err := modules.NewPlugin(key, g.stack.Path)
+		plugin, err := module.NewPlugin(key, g.stack.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -698,13 +701,13 @@ func (g *appConfigurationGenerator) getNamespaceName() string {
 func mergeExtensions(project *v1.Project, stack *v1.Stack) []*v1.Extension {
 	var extensions []*v1.Extension
 	extensionKindMap := make(map[string]struct{})
-	if stack.Extensions != nil && len(stack.Extensions) != 0 {
+	if len(stack.Extensions) != 0 {
 		for _, extension := range stack.Extensions {
 			extensions = append(extensions, extension)
 			extensionKindMap[string(extension.Kind)] = struct{}{}
 		}
 	}
-	if project.Extensions != nil && len(project.Extensions) != 0 {
+	if len(project.Extensions) != 0 {
 		for _, extension := range project.Extensions {
 			if _, exist := extensionKindMap[string(extension.Kind)]; !exist {
 				extensions = append(extensions, extension)

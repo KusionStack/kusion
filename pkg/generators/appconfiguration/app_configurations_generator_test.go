@@ -1,4 +1,4 @@
-package generators
+package appconfiguration
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	pkg "kcl-lang.io/kpm/pkg/package"
 
 	orderedmap "github.com/elliotchance/orderedmap/v2"
+	"kusionstack.io/kusion-module-framework/pkg/module"
+	"kusionstack.io/kusion-module-framework/pkg/module/proto"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/proto"
 	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
@@ -65,10 +65,10 @@ func (f *fakeModule) Generate(_ context.Context, _ *proto.GeneratorRequest) (*pr
 }
 
 func mockPlugin() (*mockey.Mocker, *mockey.Mocker) {
-	pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
-		return &modules.Plugin{Module: &fakeModule{}}, nil
+	pluginMock := mockey.Mock(module.NewPlugin).To(func(key string) (*module.Plugin, error) {
+		return &module.Plugin{Module: &fakeModule{}}, nil
 	}).Build()
-	killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(nil).Build()
+	killMock := mockey.Mock((*module.Plugin).KillPluginClient).Return(nil).Build()
 	return pluginMock, killMock
 }
 
@@ -433,10 +433,10 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 
 	t.Run("Successful module call", func(t *testing.T) {
 		// Mock the plugin
-		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
-			return &modules.Plugin{Module: &fakeModule{}}, nil
+		pluginMock := mockey.Mock(module.NewPlugin).To(func(key string) (*module.Plugin, error) {
+			return &module.Plugin{Module: &fakeModule{}}, nil
 		}).Build()
-		killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(nil).Build()
+		killMock := mockey.Mock((*module.Plugin).KillPluginClient).Return(nil).Build()
 		defer func() {
 			pluginMock.UnPatch()
 			killMock.UnPatch()
@@ -451,7 +451,7 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 
 	t.Run("Failed module call due to missing module in dependencies", func(t *testing.T) {
 		// Mock the plugin
-		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
+		pluginMock := mockey.Mock(module.NewPlugin).To(func(key string) (*module.Plugin, error) {
 			return nil, fmt.Errorf("module not found")
 		}).Build()
 		defer func() {
@@ -464,10 +464,10 @@ func TestAppConfigurationGenerator_CallModules(t *testing.T) {
 
 	t.Run("Failed module call due to error in plugin", func(t *testing.T) {
 		// Mock the plugin
-		pluginMock := mockey.Mock(modules.NewPlugin).To(func(key string) (*modules.Plugin, error) {
-			return &modules.Plugin{Module: &fakeModule{}}, nil
+		pluginMock := mockey.Mock(module.NewPlugin).To(func(key string) (*module.Plugin, error) {
+			return &module.Plugin{Module: &fakeModule{}}, nil
 		}).Build()
-		killMock := mockey.Mock((*modules.Plugin).KillPluginClient).Return(fmt.Errorf("error in plugin")).Build()
+		killMock := mockey.Mock((*module.Plugin).KillPluginClient).Return(fmt.Errorf("error in plugin")).Build()
 		defer func() {
 			pluginMock.UnPatch()
 			killMock.UnPatch()

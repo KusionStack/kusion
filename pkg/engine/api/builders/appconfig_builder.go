@@ -20,8 +20,8 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/generators"
+	"kusionstack.io/kusion/pkg/generators"
+	"kusionstack.io/kusion/pkg/generators/appconfiguration"
 )
 
 type AppsConfigBuilder struct {
@@ -34,19 +34,19 @@ func (acg *AppsConfigBuilder) Build(kclPackage *api.KclPackage, project *v1.Proj
 		Resources: []v1.Resource{},
 	}
 
-	var gfs []modules.NewGeneratorFunc
-	err := modules.ForeachOrdered(acg.Apps, func(appName string, app v1.AppConfiguration) error {
+	var gfs []generators.NewSpecGeneratorFunc
+	err := generators.ForeachOrdered(acg.Apps, func(appName string, app v1.AppConfiguration) error {
 		if kclPackage == nil {
 			return fmt.Errorf("kcl package is nil when generating app configuration for %s", appName)
 		}
 		dependencies := kclPackage.GetDependenciesInModFile()
-		gfs = append(gfs, generators.NewAppConfigurationGeneratorFunc(project, stack, appName, &app, acg.Workspace, dependencies))
+		gfs = append(gfs, appconfiguration.NewAppConfigurationGeneratorFunc(project, stack, appName, &app, acg.Workspace, dependencies))
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	if err = modules.CallGenerators(i, gfs...); err != nil {
+	if err = generators.CallGenerators(i, gfs...); err != nil {
 		return nil, err
 	}
 
