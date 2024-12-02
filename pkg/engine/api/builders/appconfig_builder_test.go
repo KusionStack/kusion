@@ -24,7 +24,7 @@ import (
 	"kcl-lang.io/kpm/pkg/api"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
+	"kusionstack.io/kusion/pkg/generators"
 )
 
 func TestBuild(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBuild(t *testing.T) {
 		Workspace: buildMockWorkspace(),
 	}
 
-	callMock := mockey.Mock(modules.CallGenerators).Return(nil).Build()
+	callMock := mockey.Mock(generators.CallGenerators).Return(nil).Build()
 	defer func() {
 		callMock.UnPatch()
 	}()

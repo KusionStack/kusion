@@ -9,9 +9,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"kusionstack.io/kusion-module-framework/pkg/module"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/generators"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 type secretGenerator struct {
@@ -32,7 +33,7 @@ type GeneratorRequest struct {
 	SecretStore *v1.SecretStore
 }
 
-func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
+func NewSecretGenerator(request *GeneratorRequest) (generators.SpecGenerator, error) {
 	if len(request.Project) == 0 {
 		return nil, fmt.Errorf("project name must not be empty")
 	}
@@ -63,8 +64,8 @@ func NewSecretGenerator(request *GeneratorRequest) (modules.Generator, error) {
 	}, nil
 }
 
-func NewSecretGeneratorFunc(request *GeneratorRequest) modules.NewGeneratorFunc {
-	return func() (modules.Generator, error) {
+func NewSecretGeneratorFunc(request *GeneratorRequest) generators.NewSpecGeneratorFunc {
+	return func() (generators.SpecGenerator, error) {
 		return NewSecretGenerator(request)
 	}
 }
@@ -80,8 +81,8 @@ func (g *secretGenerator) Generate(spec *v1.Spec) error {
 			return err
 		}
 
-		resourceID := modules.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
-		err = modules.AppendToSpec(
+		resourceID := module.KubernetesResourceID(secret.TypeMeta, secret.ObjectMeta)
+		err = generators.AppendToSpec(
 			v1.Kubernetes,
 			resourceID,
 			spec,

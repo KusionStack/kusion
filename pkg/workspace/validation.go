@@ -9,7 +9,6 @@ import (
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 var (
@@ -87,9 +86,6 @@ func ValidateModuleConfig(name string, config *v1.ModuleConfig) error {
 }
 
 func ValidateModuleMetadata(name string, config *v1.ModuleConfig) error {
-	if modules.IgnoreModules[name] {
-		return nil
-	}
 	if config.Version == "" {
 		return fmt.Errorf("empty version of module:%s in the workspacek config", name)
 	}

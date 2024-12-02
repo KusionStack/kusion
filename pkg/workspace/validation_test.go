@@ -288,11 +288,6 @@ func TestValidateModuleMetadata(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("IgnoreModule", func(t *testing.T) {
-		err := ValidateModuleMetadata("service", &v1.ModuleConfig{Version: "1.0.0", Path: "/path/to/module"})
-		assert.NoError(t, err)
-	})
-
 	t.Run("EmptyModuleVersion", func(t *testing.T) {
 		err := ValidateModuleMetadata("testModule", &v1.ModuleConfig{Version: "", Path: "/path/to/module"})
 		assert.Error(t, err)
