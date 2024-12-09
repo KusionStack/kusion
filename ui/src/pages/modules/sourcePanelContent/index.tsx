@@ -87,18 +87,15 @@ const SourcesPanelContent = () => {
   }
 
   function handleAdd() {
-    console.log('新增Source')
     setActionType('ADD')
     setOpen(true)
   }
   function handleEdit(record) {
-    console.log(record, '编辑')
     setActionType('EDIT')
     setOpen(true)
     setFormData(record)
   }
   function handleDetail(record) {
-    console.log(record, '查看详情')
     setActionType('CHECK')
     setOpen(true)
     setFormData(record)
@@ -225,7 +222,7 @@ const SourcesPanelContent = () => {
         <div className={styles.right}>
           <div className={styles.tool_bar_add}>
             <Button type="primary" onClick={handleAdd}>
-              <PlusOutlined /> 新增Source
+              <PlusOutlined /> New Source
             </Button>
           </div>
         </div>

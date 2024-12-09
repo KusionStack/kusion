@@ -29,10 +29,10 @@ const ModuleForm = ({
 
   function getTitle() {
     return actionType === 'ADD'
-      ? '新增Source'
+      ? 'New Source'
       : actionType === 'EDIT'
-        ? '编辑Source'
-        : 'Source详情'
+        ? 'Edit Source'
+        : 'Source Detail'
   }
 
   return (

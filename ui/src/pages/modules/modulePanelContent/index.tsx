@@ -25,7 +25,6 @@ const ModulePanelContent = () => {
   }
 
   function handleAdd() {
-    console.log('新增Source')
     setActionType('ADD')
     setOpen(true)
   }
@@ -149,7 +148,7 @@ const ModulePanelContent = () => {
         <div className={styles.right}>
           <div className={styles.tool_bar_add}>
             <Button type="primary" onClick={handleAdd}>
-              <PlusOutlined /> 新增Module
+              <PlusOutlined /> New Module
             </Button>
           </div>
         </div>
