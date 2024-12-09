@@ -1,0 +1,26 @@
+@import '../../variable.less';
+
+.page_container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+
+  .page_container_header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    background: @background-color;
+    color: @header-color;
+    padding: 0 20px;
+    border-bottom: 1px solid @border-color;
+  }
+
+  .page_container_content {
+    // flex: 1;
+    // box-sizing: border-box;
+    height: calc(100vh - 64px);
+    overflow: auto;
+    padding: 20px;
+    background: #fafafa;
+  }
+}

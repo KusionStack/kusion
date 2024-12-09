@@ -58,3 +58,9 @@ air.toml
 
 # frontend
 frontend/
+
+
+ui/build/*
+!ui/build/.gitkeep
+
+node_modules/
