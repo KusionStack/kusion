@@ -101,6 +101,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 	dryrunParam, _ := strconv.ParseBool(r.URL.Query().Get("dryrun"))
 	forceParam, _ := strconv.ParseBool(r.URL.Query().Get("force"))
 	noCacheParam, _ := strconv.ParseBool(r.URL.Query().Get("noCache"))
+	unlockParam, _ := strconv.ParseBool(r.URL.Query().Get("unlock"))
 	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
 	specIDParam := r.URL.Query().Get("specID")
 	// TODO: Should match automatically eventually???
@@ -123,6 +124,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 		SpecID:          specIDParam,
 		ImportResources: importResourcesParam,
 		NoCache:         noCacheParam,
+		Unlock:          unlockParam,
 	}
 	params := stackmanager.StackRequestParams{
 		StackID:       uint(id),

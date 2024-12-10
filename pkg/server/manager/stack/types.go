@@ -59,6 +59,7 @@ type StackExecuteParams struct {
 	Force           bool
 	ImportResources bool
 	NoCache         bool
+	Unlock          bool
 }
 
 type RunRequestParams struct {

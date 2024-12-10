@@ -132,7 +132,8 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	// TODO: This is a temporary solution to prevent multiple requests from previewing the same stack and cause concurrency issues
 	// To override this, pass in force == true
 	if stackEntity.StackInOperation() && !params.ExecuteParams.Force {
-		return nil, ErrStackInOperation
+		err = ErrStackInOperation
+		return nil, err
 	}
 
 	// Set stack sync state to previewing
@@ -250,11 +251,12 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	releaseCreated := false
 	// Ensure the state is updated properly
 	defer func() {
-		if !releaseCreated {
-			return
-		}
 		if err != nil {
 			stackEntity.SyncState = constant.StackStateApplyFailed
+			if !releaseCreated {
+				m.stackRepo.Update(ctx, stackEntity)
+				return
+			}
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
 			_ = release.UpdateApplyRelease(storage, rel, params.ExecuteParams.Dryrun, relLock)
 		} else {
@@ -274,7 +276,8 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	// TODO: This is a temporary solution to prevent multiple requests from applying the same stack and cause concurrency issues
 	// To override this, pass in force == true
 	if stackEntity.StackInOperation() && !params.ExecuteParams.Force {
-		return ErrStackInOperation
+		err = ErrStackInOperation
+		return err
 	}
 	// Temporarily commented out
 	// if stackEntity.LastPreviewedRevision == "" || stackEntity.SyncState != constant.StackStatePreviewed {
@@ -301,6 +304,14 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	if err != nil {
 		return err
 	}
+	// Allow force unlock of the release
+	if params.ExecuteParams.Unlock {
+		err = unlockRelease(ctx, storage)
+		if err != nil {
+			return err
+		}
+	}
+	// Get the latest state from the release
 	priorState, err := release.GetLatestState(storage)
 	if err != nil {
 		return err
@@ -308,6 +319,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	if priorState == nil {
 		priorState = &apiv1.State{}
 	}
+	// Create new release
 	rel, err = release.NewApplyRelease(storage, project.Name, stackEntity.Name, ws.Name)
 	if err != nil {
 		return err
@@ -468,13 +480,14 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	rel := &apiv1.Release{}
 	releaseCreated := false
 	defer func() {
-		if !releaseCreated {
-			return
-		}
 		if err != nil {
+			stackEntity.SyncState = constant.StackStateDestroyFailed
+			if !releaseCreated {
+				m.stackRepo.Update(ctx, stackEntity)
+				return
+			}
 			rel.Phase = apiv1.ReleasePhaseFailed
 			_ = release.UpdateDestroyRelease(storage, rel)
-			stackEntity.SyncState = constant.StackStateDestroyFailed
 		} else {
 			rel.Phase = apiv1.ReleasePhaseSucceeded
 			err = release.UpdateDestroyRelease(storage, rel)
@@ -490,7 +503,8 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	// TODO: This is a temporary solution to prevent multiple requests from destroying the same stack and cause concurrency issues
 	// To override this, pass in force == true
 	if stackEntity.StackInOperation() && !params.ExecuteParams.Force {
-		return ErrStackInOperation
+		err = ErrStackInOperation
+		return err
 	}
 
 	// Set stack sync state to destroying
@@ -514,6 +528,14 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return err
 	}
+	// Allow force unlock of the release
+	if params.ExecuteParams.Unlock {
+		err = unlockRelease(ctx, storage)
+		if err != nil {
+			return err
+		}
+	}
+	// Create destroy release
 	rel, err = release.CreateDestroyRelease(storage, project.Name, stack.Name, ws.Name)
 	if err != nil {
 		return
