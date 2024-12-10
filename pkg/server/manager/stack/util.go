@@ -22,6 +22,7 @@ import (
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -452,4 +453,31 @@ func logToAll(sysLogger *httplog.Logger, runLogger *httplog.Logger, level string
 	default:
 		sysLogger.Error("unknown log level", "level", level)
 	}
+}
+
+func unlockRelease(ctx context.Context, storage release.Storage) error {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Getting workdir from stack source...")
+	// Get the latest release.
+	r, err := release.GetLatestRelease(storage)
+	if err != nil {
+		return err
+	}
+	if r == nil {
+		logger.Info("No release file found for given stack")
+		return nil
+	}
+
+	// Update the phase to 'failed', if it was not succeeded or failed.
+	if r.Phase != v1.ReleasePhaseSucceeded && r.Phase != v1.ReleasePhaseFailed {
+		r.Phase = v1.ReleasePhaseFailed
+		if err := storage.Update(r); err != nil {
+			return err
+		}
+		logger.Info("Successfully update release phase!")
+		return nil
+	} else {
+		logger.Info("No need to update the release phase, current phase: ", "phase", r.Phase)
+	}
+	return nil
 }
