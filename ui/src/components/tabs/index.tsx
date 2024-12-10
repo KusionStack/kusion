@@ -1,7 +1,5 @@
 import React, { memo } from 'react'
 import classNames from 'classnames'
-import { useTranslation } from 'react-i18next'
-import { getDataType } from '@/utils/tools'
 
 import styles from './style.module.less'
 
@@ -24,7 +22,6 @@ const KarporTabs = ({
   itemStyle,
   boxStyle,
 }: Props) => {
-  const { t } = useTranslation()
   return (
     <div className={styles.tab_container} style={boxStyle}>
       {list?.map((item, index) => (
@@ -47,9 +44,7 @@ const KarporTabs = ({
               item?.disabled ? { color: '#999', cursor: 'not-allowed' } : {}
             }
           >
-            {getDataType(item?.label) === 'String'
-              ? t(item?.label as string)
-              : item?.label}
+            {item?.label}
           </div>
         </div>
       ))}
