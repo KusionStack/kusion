@@ -16,10 +16,12 @@ const them = {
 };
 
 const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: MarkdownViewIProps) => {
+  console.log("=====MarkdownView=====")
   return (
     <ReactMarkdown
       components={{
         code({ node, className, children, ...props }) {
+          console.log(node, className, props, "=====sadsadasd===")
           const match = /language-(\w+)/.exec(className || '');
           return match ? (
             <SyntaxHighlighter

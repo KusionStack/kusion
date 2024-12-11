@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { ConfigProvider } from 'antd'
 import { Provider } from 'react-redux'
@@ -9,13 +9,40 @@ import { BrowserRouter } from 'react-router-dom'
 import WrappedRoutes from '@/router'
 import store from '@/store'
 
+
 import '@/utils/request'
 
 import './index.less'
 
+import { createClient, createConfig } from '@hey-api/client-fetch';
+import { client as kusionClient, SourceService } from '@kusionstack/kusion-api-client-sdk';
+
+const client = createClient({
+  baseUrl: 'http://30.177.51.253:80',
+});
+
+console.log(client, "====client======")
+
+// client.setConfig({
+//   baseUrl: 'http://30.177.51.253:80'
+// });
+
 dayjs.locale('zh-cn')
 
 function App() {
+
+  async function example() {
+    try {
+      const sources = await SourceService.listSource();
+      console.log('Sources:', sources.data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  useEffect(() => {
+    example();
+  }, [])
 
   return (
     <Provider store={store}>

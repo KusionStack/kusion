@@ -1,12 +1,4 @@
-import React from 'react'
-// import { AutoComplete, Input, message, Space, Tag } from 'antd'
-// import {
-//   DoubleLeftOutlined,
-//   DoubleRightOutlined,
-//   CloseOutlined,
-// } from '@ant-design/icons'
-
-// import styles from './styles.module.less'
+import React, { useEffect } from 'react'
 import { Tabs } from 'antd'
 import SourcesPanelContent from './sourcePanelContent'
 import ModulePanelContent from './modulePanelContent'
@@ -18,6 +10,7 @@ const Modules = () => {
   // function handleTabChange(value: string) {
   //   setSearchType(value)
   // }
+
 
   const tabsItmes = [
     {

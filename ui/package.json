@@ -10,6 +10,8 @@
     "@antv/g6-react-node": "^1.4.8",
     "@codemirror/language": "^6.10.6",
     "@codemirror/legacy-modes": "^6.4.2",
+    "@hey-api/client-fetch": "^0.5.2",
+    "@kusionstack/kusion-api-client-sdk": "^1.0.0",
     "@reduxjs/toolkit": "^2.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -48,12 +50,13 @@
     "react-window": "^1.8.10",
     "redux-logger": "^3.0.6",
     "redux-persist": "^6.0.0",
+    "remark-gfm": "^4.0.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "release": "standard-version",
-    "dev": "GENERATE_SOURCEMAP=false PORT=8000 craco start",
+    "dev": "GENERATE_SOURCEMAP=false PORT=8888 craco start",
     "start": "GENERATE_SOURCEMAP=false PORT=8080 HTTPS=true craco start",
     "build": "GENERATE_SOURCEMAP=false PUBLIC_URL=/public/ craco build",
     "lint:prettier": "prettier --write src\"/**/*.+(js|ts|tsx|jsx|json|md|json)\"",
