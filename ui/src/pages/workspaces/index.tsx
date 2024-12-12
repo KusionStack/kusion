@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Card, Col, Input, Popconfirm, Row, Tooltip } from 'antd'
-import PageContainer from '@/components/pageContainer'
 import {
   DeleteOutlined,
   PlusOutlined,
@@ -8,8 +7,10 @@ import {
   SortAscendingOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
+import { SourceService } from '@kusionstack/kusion-api-client-sdk';
 
 import styles from './styles.module.less'
+import G6Tree from '@/components/g6Tree'
 
 const orderIconStyle: React.CSSProperties = {
   marginLeft: 0,
@@ -23,6 +24,19 @@ const Workspaces = () => {
     orderBy: 'name',
     isAsc: true,
   })
+
+  async function getSources() {
+    try {
+      const sources = await SourceService.listSource();
+      console.log('Sources:', sources.data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  useEffect(() => {
+    getSources()
+  }, [])
 
   function handleAdd() {
     setOpen(true)
@@ -88,14 +102,14 @@ const Workspaces = () => {
     setKeyword(event?.target.value)
   }
 
-  const arrayColByN = conversionArray([1, 2, 3, 4, 5, 6, 7, 8, 9], 4)
+  const arrayColByN = conversionArray([1, 2, 3, 4], 4)
   console.log(arrayColByN, '====arrayColByN====')
 
   const mockDesc =
     '这是一段描述文字超长文本测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试'
 
   return (
-    <PageContainer title="Workspaces">
+    <>
       <div className={styles.workspace_toolbar}>
         <Button type="primary" onClick={handleAdd}>
           <PlusOutlined /> New Workspace
@@ -151,7 +165,8 @@ const Workspaces = () => {
           )
         })}
       </div>
-    </PageContainer>
+      <G6Tree />
+    </>
   )
 }
 

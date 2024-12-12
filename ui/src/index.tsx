@@ -14,35 +14,19 @@ import '@/utils/request'
 
 import './index.less'
 
-import { createClient, createConfig } from '@hey-api/client-fetch';
-import { client as kusionClient, SourceService } from '@kusionstack/kusion-api-client-sdk';
+import { client } from '@kusionstack/kusion-api-client-sdk';
 
-const client = createClient({
-  baseUrl: 'http://30.177.51.253:80',
+
+
+client.setConfig({
+  baseUrl: 'http://30.177.52.72:80'
 });
-
-console.log(client, "====client======")
-
-// client.setConfig({
-//   baseUrl: 'http://30.177.51.253:80'
-// });
 
 dayjs.locale('zh-cn')
 
+console.log(client, "====client======")
+
 function App() {
-
-  async function example() {
-    try {
-      const sources = await SourceService.listSource();
-      console.log('Sources:', sources.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  }
-
-  useEffect(() => {
-    example();
-  }, [])
 
   return (
     <Provider store={store}>

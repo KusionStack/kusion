@@ -1,91 +1,190 @@
 .wrapper {
   display: flex;
   height: 100vh;
-  background: #fff;
+  flex-direction: column;
 
-  .layout_left {
+  .nav {
     display: flex;
-    flex-direction: column;
-    position: relative;
-    border-right: 1px solid #f1f1f1;
+    padding: 0 20px;
+    background: #fff;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f5f5f5;
 
-    .toggle_collapsed_sider {
-      cursor: pointer;
-      position: absolute;
-      top: calc(50vh - 40px);
+    .left {
       display: flex;
-      justify-content: center;
       align-items: center;
+      flex: 1;
 
-      width: 10px;
-      height: 80px;
-      background-color: #fff;
-      border-radius: 0 20px 20px 0;
-      color: #d8d8d8;
-      border: 1px solid #f1f1f1;
-      border-left: 1px solid #fff;
-    }
-
-    .header {
-      position: relative;
-      height: 64px;
-      display: flex;
-      padding: 0 10px;
-      justify-content: center;
-      align-items: center;
-
-      // border-bottom: 1px solid #f1f1f1;
-      .toggle_collapsed {
-        cursor: pointer;
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        right: -10px;
-        line-height: 20px;
-        text-align: center;
-        top: 50%;
-        transform: translateY(-50%);
+      .logo {
+        margin-right: 30px;
       }
 
-      .header_left {
+      .title {
         display: flex;
+        font-weight: bold;
+        cursor: pointer;
         align-items: center;
 
-        .header_left_logo {
+        .sub_logo {
           width: 26px;
           height: 20px;
+          margin-right: 10px;
+
+          img {
+            width: 100%;
+            height: 100%;
+          }
         }
 
-        .title {
-          margin-left: 5px;
-          font-size: 20px;
+        .text {
+          display: inline-block;
+          margin: 10px 10px 10px 0;
+          font-size: 14px;
         }
       }
 
+      .tenant {
+        padding-left: 10px;
+
+        .dropText {
+          font-size: 12px;
+          color: #999;
+        }
+      }
     }
-    .bottom {
-      .bottom_item {
+
+    .right {
+      display: flex;
+      align-items: center;
+
+      .version_number {
+        margin-right: 10px;
+      }
+
+      .read_only_mode {
         display: flex;
+        padding: 2px 10px;
+        margin-right: 10px;
+        font-size: 12px;
+        color: #646566;
+        background: #f5f5f5;
+        border: 1px solid #d8d8d8;
+        border-radius: 8px;
         align-items: center;
+
+        .read_only_mode_img {
+          width: 15px;
+          height: 15px;
+        }
+
+        span {
+          margin-left: 5px;
+        }
+      }
+
+      .search {
+        margin-right: 10px;
+      }
+
+      .help {
+        margin: 0 10px;
         cursor: pointer;
-        padding: 10px;
 
-        &:hover {
-          background: #f1f1f1;
-        }
+        .help_container {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
 
-        .bottom_item_icon {
-          padding: 0 10px;
+          img {
+            width: 16px;
+            height: 16px;
+          }
+
+          .help_text {
+            margin-right: 4px;
+            margin-left: 7px;
+            font-size: 14px;
+            color: #646566;
+            text-align: right;
+          }
         }
-        .bottom_item_text {
-          font-size: 14px;
-          color: #646566;
-        }
+      }
+
+      .user {
+        display: flex;
+        margin-left: 10px;
+        font-size: 12px;
+        color: #666;
+        align-items: center;
       }
     }
   }
 
-  .right {
+  .content {
+    display: flex;
+    overflow: auto;
+    background: #fff;
     flex: 1;
+
+    .left {
+      width: 160px;
+      border-right: 1px solid #f5f5f5;
+    }
+
+    .right {
+      padding: 32px;
+      overflow-y: scroll;
+      background: #f5f7fa;
+      flex: 1;
+
+      .right_content {
+        height: calc(100% - 30px);
+      }
+    }
+  }
+}
+
+.language_content {
+  .language_content_item {
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+
+    &:hover {
+      color: #fff;
+      background: rgb(112 134 222 / 50%);
+    }
+  }
+}
+
+.github_corner:hover .octo_arm {
+  animation: octocat-wave 560ms ease-in-out;
+}
+
+@keyframes octocat-wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+
+  20%,
+  60% {
+    transform: rotate(-25deg);
+  }
+
+  40%,
+  80% {
+    transform: rotate(10deg);
+  }
+}
+
+@media (width <=500px) {
+  .github_corner .octo_arm {
+    animation: octocat-wave 560ms ease-in-out;
+  }
+
+  .github_corner:hover .octo_arm {
+    animation: none;
   }
 }
