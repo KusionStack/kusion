@@ -15,9 +15,6 @@ insertCss(`
     border-top: 2px solid #2f54eb;
     color: #646566;
   }
-  li {
-    padding-bottom: 5px;
-  }
   .type {
     background: rgba(255, 0, 0, .5);
     padding: 2px 5px;

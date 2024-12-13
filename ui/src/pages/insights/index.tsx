@@ -1,3 +1,4 @@
+import MarkdownRenderer from '@/components/markdownToHtmlOutput'
 import YamlEditor from '@/components/yamlEditor'
 import { mockYaml } from '@/utils/tools'
 import { Button } from 'antd'
@@ -14,6 +15,8 @@ const Insights = () => {
     <div>
       <Button onClick={() => setIsReadOnly(!isReadOnly)}>编辑</Button>
       <YamlEditor value={yamlValue} readOnly={isReadOnly} onChange={onChange} />
+      <br />
+      <MarkdownRenderer />
     </div>
   )
 }

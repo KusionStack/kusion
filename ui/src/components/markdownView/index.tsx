@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import remarkGfm from 'remark-gfm';
 import { dark, vscDarkPlus, coyWithoutShadows, darcula } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 import { markdownString } from "@/utils/tools"
@@ -18,31 +19,7 @@ const them = {
 const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: MarkdownViewIProps) => {
   console.log("=====MarkdownView=====")
   return (
-    <ReactMarkdown
-      components={{
-        code({ node, className, children, ...props }) {
-          console.log(node, className, props, "=====sadsadasd===")
-          const match = /language-(\w+)/.exec(className || '');
-          return match ? (
-            <SyntaxHighlighter
-              showLineNumbers={true}
-              style={them?.[themeMode]}
-              language={match[1]}
-              PreTag='div'
-              {...props}
-            >
-              {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
-          ) : (
-            <code className={className} {...props}>
-              {children}
-            </code>
-          );
-        }
-      }}
-    >
-      {markdown}
-    </ReactMarkdown>
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
   );
 
 }

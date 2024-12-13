@@ -84,14 +84,12 @@ const Workspaces = () => {
     )
   }
 
-  console.log(open, '=====open=====')
 
   function conversionArray(baseArray, n) {
     const len = baseArray.length
     const lineNum = len % n === 0 ? len / n : Math.floor(len / n + 1)
     const res = []
     for (let i = 0; i < lineNum; i++) {
-      // slice() 方法返回一个从开始到结束（不包括结束）选择的数组的一部分浅拷贝到一个新数组对象。且原始数组不会被修改。
       const temp = baseArray.slice(i * n, i * n + n)
       res.push(temp)
     }
@@ -110,11 +108,11 @@ const Workspaces = () => {
 
   return (
     <>
-      <div className={styles.workspace_toolbar}>
+      <div className={styles.kusion_workspace_toolbar}>
         <Button type="primary" onClick={handleAdd}>
           <PlusOutlined /> New Workspace
         </Button>
-        <div className={styles.workspace_toolbar_right}>
+        <div className={styles.kusion_workspace_toolbar_right}>
           <Input
             placeholder={'关键字搜索'}
             suffix={<SearchOutlined />}
@@ -123,10 +121,10 @@ const Workspaces = () => {
             onChange={handleChange}
             allowClear
           />
-          <div className={styles.action_bar_right_sort}>{renderDateSort()}</div>
+          <div className={styles.kusion_action_bar_right_sort}>{renderDateSort()}</div>
         </div>
       </div>
-      <div className={styles.workspace_content}>
+      <div className={styles.kusion_workspace_content}>
         {arrayColByN?.map((item, index) => {
           return (
             <Row
@@ -153,7 +151,7 @@ const Workspaces = () => {
                       }
                     >
                       <Tooltip title={mockDesc}>
-                        <div className={styles.card_content_desc}>
+                        <div className={styles.kusion_card_content_desc}>
                           {mockDesc}
                         </div>
                       </Tooltip>
