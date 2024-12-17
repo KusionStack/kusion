@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/liu-hm19/pterm"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/watch"
@@ -58,7 +56,8 @@ func Apply(
 	changes *models.Changes,
 	out io.Writer,
 ) (*apiv1.Release, error) {
-	logger := logutil.GetLogger(ctx)
+	sysLogger := logutil.GetLogger(ctx)
+	runLogger := logutil.GetRunLogger(ctx)
 	var err error
 
 	// construct the apply operation
@@ -79,59 +78,23 @@ func Apply(
 
 	// line summary
 	var ls lineSummary
-	// Get the multi printer from UI option.
-	multi := o.UI.MultiPrinter
-	// Max length of resource ID for progressbar width.
-	maxLen := 0
 
 	// Prepare the writer to print the operation progress and results.
-	changesWriterMap := make(map[string]*pterm.SpinnerPrinter)
 	for _, key := range changes.Values() {
-		// Get the maximum length of the resource ID.
-		if len(key.ID) > maxLen {
-			maxLen = len(key.ID)
-		}
-		// Init a spinner printer for the resource to print the apply status.
-		changesWriterMap[key.ID], err = o.UI.SpinnerPrinter.
-			WithWriter(multi.NewWriter()).
-			Start(fmt.Sprintf("Pending %s", pterm.Bold.Sprint(key.ID)))
-		if err != nil {
-			return nil, fmt.Errorf("failed to init change step spinner printer: %v", err)
-		}
+		logutil.LogToAll(sysLogger, runLogger, "Info", fmt.Sprintf("Pending %s", key.ID))
 	}
-
-	// progress bar, print dag walk detail
-	progressbar, err := pterm.DefaultProgressbar.
-		WithMaxWidth(0). // Set to 0, the terminal width will be used
-		WithTotal(len(changes.StepKeys)).
-		WithWriter(out).
-		WithRemoveWhenDone().
-		Start()
-	if err != nil {
-		return nil, err
-	}
-
-	// The writer below is for operation error printing.
-	errWriter := multi.NewWriter()
-
-	multi.WithUpdateDelay(time.Millisecond * 100)
-	multi.Start()
-	defer multi.Stop()
 
 	// wait msgCh close
 	var wg sync.WaitGroup
 	// receive msg and print detail
-	go PrintApplyDetails(
+	go ProcessApplyDetails(
+		ctx,
 		ac,
 		&err,
-		&errWriter,
 		&wg,
 		changes,
-		changesWriterMap,
-		progressbar,
 		&ls,
 		o.DryRun,
-		o.Watch,
 		gph.Resources,
 		gph,
 		rel,
@@ -140,19 +103,19 @@ func Apply(
 	watchErrCh := make(chan error)
 	// Apply while watching the resources.
 	if o.Watch && !o.DryRun {
-		logger.Info("Start watching resources ...")
+		logutil.LogToAll(sysLogger, runLogger, "Info", fmt.Sprintf("Start watching resources with timeout %d seconds ...", o.WatchTimeout))
 		Watch(
+			ctx,
 			ac,
 			changes,
 			&err,
 			o.DryRun,
 			watchErrCh,
-			multi,
-			changesWriterMap,
+			o.WatchTimeout,
 			gph,
 			rel,
 		)
-		logger.Info("Watch completed ...")
+		logutil.LogToAll(sysLogger, runLogger, "Info", "Watch started ...")
 	}
 
 	var upRel *apiv1.Release
@@ -200,7 +163,7 @@ func Apply(
 	}
 
 	// print summary
-	logger.Info(fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
+	logutil.LogToAll(sysLogger, runLogger, "Info", fmt.Sprintf("Apply complete! Resources: %d created, %d updated, %d deleted.", ls.created, ls.updated, ls.deleted))
 	return upRel, nil
 }
 
@@ -223,18 +186,17 @@ func Apply(
 // Watch function will watch the changed Kubernetes and Terraform resources.
 // Fixme: abstract the input variables into a struct.
 func Watch(
+	ctx context.Context,
 	ac *operation.ApplyOperation,
 	changes *models.Changes,
 	err *error,
 	dryRun bool,
 	watchErrCh chan error,
-	multi *pterm.MultiPrinter,
-	changesWriterMap map[string]*pterm.SpinnerPrinter,
+	watchTimeout int,
 	gph *apiv1.Graph,
 	rel *apiv1.Release,
 ) {
 	resourceMap := make(map[string]apiv1.Resource)
-	ioWriterMap := make(map[string]io.Writer)
 	toBeWatched := apiv1.Resources{}
 
 	// Get the resources to be watched.
@@ -247,7 +209,6 @@ func Watch(
 
 	go func() {
 		defer func() {
-			log.Debug("entering defer func() for watch()")
 			if p := recover(); p != nil {
 				cmdutil.RecoverErr(err)
 				log.Error(*err)
@@ -261,6 +222,9 @@ func Watch(
 			}
 			watchErrCh <- *err
 		}()
+		// Get syslogger
+		sysLogger := logutil.GetLogger(ctx)
+		runLogger := logutil.GetRunLogger(ctx)
 		// Init the runtimes according to the resource types.
 		runtimes, s := runtimeinit.Runtimes(*rel.Spec, *rel.State)
 		if v1.IsErr(s) {
@@ -268,29 +232,26 @@ func Watch(
 		}
 
 		// Prepare the tables for printing the details of the resources.
-		tables := make(map[string]*printers.Table, len(toBeWatched))
-		ticker := time.NewTicker(time.Millisecond * 100)
+		ticker := time.NewTicker(time.Millisecond * 1000)
 		defer ticker.Stop()
 
 		// Record the watched and finished resources.
 		watchedIDs := []string{}
+		watching := make(map[string]bool)
 		finished := make(map[string]bool)
 
 		for !(len(finished) == len(toBeWatched)) {
 			select {
 			// Get the resource ID to be watched.
 			case id := <-ac.WatchCh:
-				log.Debug("entering case id := <-ac.WatchCh")
-				log.Debug("id", id)
 				res := resourceMap[id]
-				log.Debug("res.Type", res.Type)
 				// Set the timeout duration for watch context, here we set an experiential value of 60 minutes.
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(120))
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(watchTimeout))
 				defer cancel()
 
 				// Get the event channel for watching the resource.
 				rsp := runtimes[res.Type].Watch(ctx, &runtime.WatchRequest{Resource: &res})
-				log.Debug("rsp", rsp)
+				logutil.LogToAll(sysLogger, runLogger, "Info", fmt.Sprintf("Watching resource rsp: %v", rsp))
 				if rsp == nil {
 					log.Debug("unsupported resource type: %s", res.Type)
 					continue
@@ -300,44 +261,32 @@ func Watch(
 				}
 
 				w := rsp.Watchers
-				table := printers.NewTable(w.IDs)
-				tables[id] = table
+				watching[id] = false
 
 				// Setup a go-routine to concurrently watch K8s and TF resources.
 				if res.Type == apiv1.Kubernetes {
 					healthPolicy, kind := getHealthPolicy(&res)
-					log.Debug("healthPolicyhealthPolicyhealthPolicyhealthPolicyhealthPolicy", healthPolicy)
-					go watchK8sResources(id, kind, w.Watchers, table, tables, gph, dryRun, healthPolicy, rel)
+					log.Debug("healthPolicy found: ", healthPolicy)
+					go watchK8sResources(id, kind, w.Watchers, watching, gph, dryRun, healthPolicy, rel)
 				} else if res.Type == apiv1.Terraform {
-					go watchTFResources(id, w.TFWatcher, table, dryRun, rel)
+					go watchTFResources(id, w.TFWatcher, watching, dryRun, rel)
 				} else {
 					log.Debug("unsupported resource type to watch: %s", string(res.Type))
 					continue
 				}
 
 				// Record the io writer related to the resource ID.
-				ioWriterMap[id] = multi.NewWriter()
 				watchedIDs = append(watchedIDs, id)
 
 			// Refresh the tables printing details of the resources to be watched.
 			default:
 				for _, id := range watchedIDs {
-					w, ok := ioWriterMap[id]
-					if !ok {
-						panic(fmt.Errorf("failed to get io writer while watching %s", id))
-					}
-					printTable(&w, id, tables)
+					logutil.LogToAll(sysLogger, runLogger, "Info", "watching resource...", "id", id, "timeElapsed", time.Now().String())
 				}
-				for id, table := range tables {
-					if finished[id] {
-						continue
-					}
-
-					if table.AllCompleted() {
+				for id := range watching {
+					if watching[id] {
 						finished[id] = true
-						changesWriterMap[id].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(id)))
-
-						// Update resource status to reconciled.
+						logutil.LogToAll(sysLogger, runLogger, "Info", "resource is reconciled...", "id", id, "timeElapsed", time.Now().String())
 						resource := graph.FindGraphResourceByID(gph.Resources, id)
 						if resource != nil {
 							resource.Status = apiv1.Reconciled
@@ -365,19 +314,16 @@ func (ls *lineSummary) Count(op models.ActionType) {
 	}
 }
 
-// PrintApplyDetails function will receive the messages of the apply operation and print the details.
+// ProcessApplyDetails function will receive the messages of the apply operation and process the details.
 // Fixme: abstract the input variables into a struct.
-func PrintApplyDetails(
+func ProcessApplyDetails(
+	ctx context.Context,
 	ac *operation.ApplyOperation,
 	err *error,
-	errWriter *io.Writer,
 	wg *sync.WaitGroup,
 	changes *models.Changes,
-	changesWriterMap map[string]*pterm.SpinnerPrinter,
-	progressbar *pterm.ProgressbarPrinter,
 	ls *lineSummary,
 	dryRun bool,
-	watch bool,
 	gphResources *apiv1.GraphResources,
 	gph *apiv1.Graph,
 	rel *apiv1.Release,
@@ -394,8 +340,9 @@ func PrintApplyDetails(
 			release.UpdateReleasePhase(rel, apiv1.ReleasePhaseFailed, relLock)
 			*err = errors.Join([]error{*err, release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)}...)
 		}
-		(*errWriter).(*bytes.Buffer).Reset()
 	}()
+	sysLogger := logutil.GetLogger(ctx)
+	runLogger := logutil.GetRunLogger(ctx)
 	wg.Add(1)
 
 	for {
@@ -413,18 +360,10 @@ func PrintApplyDetails(
 			case models.Success, models.Skip:
 				var title string
 				if changeStep.Action == models.UnChanged {
-					title = fmt.Sprintf("Skipped %s", pterm.Bold.Sprint(changeStep.ID))
-					changesWriterMap[msg.ResourceID].Success(title)
+					title = fmt.Sprintf("Skipped %s", changeStep.ID)
+					logutil.LogToAll(sysLogger, runLogger, "Info", title)
 				} else {
-					if watch && !dryRun {
-						title = fmt.Sprintf("%s %s",
-							changeStep.Action.Ing(),
-							pterm.Bold.Sprint(changeStep.ID),
-						)
-						changesWriterMap[msg.ResourceID].UpdateText(title)
-					} else {
-						changesWriterMap[msg.ResourceID].Success(fmt.Sprintf("Succeeded %s", pterm.Bold.Sprint(msg.ResourceID)))
-					}
+					logutil.LogToAll(sysLogger, runLogger, "Info", fmt.Sprintf("Succeeded %s", msg.ResourceID))
 				}
 
 				// Update resource status
@@ -440,13 +379,10 @@ func PrintApplyDetails(
 					}
 				}
 
-				progressbar.Increment()
 				ls.Count(changeStep.Action)
 			case models.Failed:
-				title := fmt.Sprintf("Failed %s", pterm.Bold.Sprint(changeStep.ID))
-				changesWriterMap[msg.ResourceID].Fail(title)
 				errStr := pretty.ErrorT.Sprintf("apply %s failed as: %s\n", msg.ResourceID, msg.OpErr.Error())
-				pterm.Fprintln(*errWriter, errStr)
+				logutil.LogToAll(sysLogger, runLogger, "Error", errStr)
 				if !dryRun {
 					// Update resource status, in case anything like update fail happened
 					gphResource := graph.FindGraphResourceByID(gphResources, msg.ResourceID)
@@ -457,9 +393,9 @@ func PrintApplyDetails(
 			default:
 				title := fmt.Sprintf("%s %s",
 					changeStep.Action.Ing(),
-					pterm.Bold.Sprint(changeStep.ID),
+					changeStep.ID,
 				)
-				changesWriterMap[msg.ResourceID].UpdateText(title)
+				logutil.LogToAll(sysLogger, runLogger, "Info", title)
 			}
 		}
 	}
@@ -483,8 +419,7 @@ func getHealthPolicy(res *apiv1.Resource) (healthPolicy interface{}, kind string
 func watchK8sResources(
 	id, kind string,
 	chs []<-chan watch.Event,
-	table *printers.Table,
-	tables map[string]*printers.Table,
+	watching map[string]bool,
 	gph *apiv1.Graph,
 	dryRun bool,
 	healthPolicy interface{},
@@ -528,51 +463,36 @@ func watchK8sResources(
 		if recvOK {
 			e := recv.Interface().(watch.Event)
 			o := e.Object.(*unstructured.Unstructured)
-			var detail string
+			// var detail string
 			var ready bool
 			if e.Type == watch.Deleted {
-				detail = fmt.Sprintf("%s has beed deleted", o.GetName())
 				ready = true
 			} else {
 				// Restore to actual type
 				target := printers.Convert(o)
 				// Check reconcile status with customized health policy for specific resource
 				if healthPolicy != nil && kind == o.GetObjectKind().GroupVersionKind().Kind {
-					log.Debug("healthPolicy", healthPolicy)
 					if code, ok := kcl.ConvertKCLCode(healthPolicy); ok {
 						resByte, err := yaml.Marshal(o.Object)
-						log.Debug("kcl health policy code", code)
 						if err != nil {
 							log.Error(err)
 							return
 						}
-						detail, ready = printers.PrintCustomizedHealthCheck(code, resByte)
+						_, ready = printers.PrintCustomizedHealthCheck(code, resByte)
 					} else {
-						detail, ready = printers.Generate(target)
+						_, ready = printers.Generate(target)
 					}
 				} else {
 					// Check reconcile status with default setup
-					detail, ready = printers.Generate(target)
+					_, ready = printers.Generate(target)
 				}
 			}
 
 			// Mark ready for breaking loop
 			if ready {
-				e.Type = printers.READY
+				watching[id] = true
+				break
 			}
-
-			// Save watched msg
-			table.Update(
-				engine.BuildIDForKubernetes(o),
-				printers.NewRow(e.Type, o.GetKind(), o.GetName(), detail))
-
-			// Write back
-			tables[id] = table
-		}
-
-		// Break when completed
-		if table.AllCompleted() {
-			break
 		}
 	}
 }
@@ -580,7 +500,7 @@ func watchK8sResources(
 func watchTFResources(
 	id string,
 	ch <-chan runtime.TFEvent,
-	table *printers.Table,
+	watching map[string]bool,
 	dryRun bool,
 	rel *apiv1.Release,
 ) {
@@ -599,6 +519,7 @@ func watchTFResources(
 		}
 	}()
 
+	var ready bool
 	for {
 		parts := strings.Split(id, engine.Separator)
 		// A valid Terraform resource ID should consist of 4 parts, including the information of the provider type
@@ -609,24 +530,14 @@ func watchTFResources(
 
 		tfEvent := <-ch
 		if tfEvent == runtime.TFApplying {
-			table.Update(
-				id,
-				printers.NewRow(watch.EventType("Applying"),
-					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Applying..."))
-		} else if tfEvent == runtime.TFSucceeded {
-			table.Update(
-				id,
-				printers.NewRow(printers.READY,
-					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Apply succeeded"))
+			continue
 		} else {
-			table.Update(
-				id,
-				printers.NewRow(watch.EventType("Failed"),
-					strings.Join([]string{parts[1], parts[2]}, engine.Separator), parts[3], "Apply failed"))
+			ready = true
 		}
 
-		// Break when all completed.
-		if table.AllCompleted() {
+		// Mark ready for breaking loop
+		if ready {
+			watching[id] = true
 			break
 		}
 	}
@@ -641,24 +552,4 @@ func createSelectCases(chs []<-chan watch.Event) []reflect.SelectCase {
 		})
 	}
 	return cases
-}
-func printTable(w *io.Writer, id string, tables map[string]*printers.Table) {
-	// Reset the buffer for live flushing.
-	(*w).(*bytes.Buffer).Reset()
-
-	// Print resource Key as heading text
-	_, _ = fmt.Fprintln(*w, pretty.LightCyanBold("[%s]", id))
-
-	table, ok := tables[id]
-	if !ok {
-		// Unsupported resource, leave a hint
-		_, _ = fmt.Fprintln(*w, "Skip monitoring unsupported resources")
-	} else {
-		// Print table
-		data := table.Print()
-		_ = pterm.DefaultTable.
-			WithStyle(pterm.NewStyle(pterm.FgDefault)).
-			WithHeaderStyle(pterm.NewStyle(pterm.FgDefault)).
-			WithHasHeader().WithSeparator("  ").WithData(data).WithWriter(*w).Render()
-	}
 }

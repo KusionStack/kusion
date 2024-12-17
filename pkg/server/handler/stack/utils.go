@@ -102,6 +102,15 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 	forceParam, _ := strconv.ParseBool(r.URL.Query().Get("force"))
 	noCacheParam, _ := strconv.ParseBool(r.URL.Query().Get("noCache"))
 	unlockParam, _ := strconv.ParseBool(r.URL.Query().Get("unlock"))
+	watchParam, _ := strconv.ParseBool(r.URL.Query().Get("watch"))
+	watchTimeoutStr := r.URL.Query().Get("watchTimeout")
+	if watchTimeoutStr == "" {
+		watchTimeoutStr = "120"
+	}
+	watchTimeoutParam, err := strconv.Atoi(watchTimeoutStr)
+	if err != nil {
+		return nil, nil, nil, stackmanager.ErrInvalidWatchTimeout
+	}
 	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
 	specIDParam := r.URL.Query().Get("specID")
 	// TODO: Should match automatically eventually???
@@ -118,13 +127,15 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 		workspaceParam = constant.DefaultWorkspace
 	}
 	executeParams := stackmanager.StackExecuteParams{
-		Detail:          detailParam,
-		Dryrun:          dryrunParam,
-		Force:           forceParam,
-		SpecID:          specIDParam,
-		ImportResources: importResourcesParam,
-		NoCache:         noCacheParam,
-		Unlock:          unlockParam,
+		Detail:              detailParam,
+		Dryrun:              dryrunParam,
+		Force:               forceParam,
+		SpecID:              specIDParam,
+		ImportResources:     importResourcesParam,
+		NoCache:             noCacheParam,
+		Unlock:              unlockParam,
+		Watch:               watchParam,
+		WatchTimeoutSeconds: watchTimeoutParam,
 	}
 	params := stackmanager.StackRequestParams{
 		StackID:       uint(id),

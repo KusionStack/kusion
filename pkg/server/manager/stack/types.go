@@ -26,6 +26,7 @@ var (
 	ErrStackInOperation                          = errors.New("the stack is being operated by another request. Please wait until it is completed")
 	ErrStackNotPreviewedYet                      = errors.New("the stack has not been previewed yet. Please generate and preview the stack first")
 	ErrInvalidRunID                              = errors.New("the run ID should be a uuid")
+	ErrInvalidWatchTimeout                       = errors.New("watchTimeout should be a number")
 )
 
 type StackManager struct {
@@ -53,13 +54,15 @@ type StackRequestParams struct {
 }
 
 type StackExecuteParams struct {
-	Detail          bool
-	Dryrun          bool
-	SpecID          string
-	Force           bool
-	ImportResources bool
-	NoCache         bool
-	Unlock          bool
+	Detail              bool
+	Dryrun              bool
+	SpecID              string
+	Force               bool
+	ImportResources     bool
+	NoCache             bool
+	Unlock              bool
+	Watch               bool
+	WatchTimeoutSeconds int
 }
 
 type RunRequestParams struct {

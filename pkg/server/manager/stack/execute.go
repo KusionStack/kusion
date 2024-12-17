@@ -27,7 +27,7 @@ import (
 func (m *StackManager) GenerateSpec(ctx context.Context, params *StackRequestParams) (string, *apiv1.Spec, error) {
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
-	logToAll(logger, runLogger, "Info", "Starting generating spec in StackManager...")
+	logutil.LogToAll(logger, runLogger, "Info", "Starting generating spec in StackManager...")
 
 	// Get the stack entity and return error if stack ID is not found
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
@@ -101,7 +101,7 @@ func (m *StackManager) GenerateSpec(ctx context.Context, params *StackRequestPar
 func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestParams, requestPayload request.StackImportRequest) (*models.Changes, error) {
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
-	logToAll(logger, runLogger, "Info", "Starting previewing stack in StackManager...")
+	logutil.LogToAll(logger, runLogger, "Info", "Starting previewing stack in StackManager...")
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
@@ -114,7 +114,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 
 	defer func() {
 		if err != nil {
-			logToAll(logger, runLogger, "Info", "Error occurred during previewing stack. Setting stack sync state to preview failed")
+			logutil.LogToAll(logger, runLogger, "Info", "Error occurred during previewing stack. Setting stack sync state to preview failed")
 			stackEntity.SyncState = constant.StackStatePreviewFailed
 			m.stackRepo.Update(ctx, stackEntity)
 		} else {
@@ -164,7 +164,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return nil, err
 	}
-	logToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
+	logutil.LogToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
 
 	directory, workDir, err := m.GetWorkdirAndDirectory(ctx, params, stackEntity)
 	if err != nil {
@@ -188,7 +188,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	// return immediately if no resource found in stack
 	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
 	if sp == nil || len(sp.Resources) == 0 {
-		logToAll(logger, runLogger, "Info", "No resource change found in this stack...")
+		logutil.LogToAll(logger, runLogger, "Info", "No resource change found in this stack...")
 		return nil, nil
 	}
 
@@ -211,7 +211,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	if params.ExecuteParams.ImportResources && len(requestPayload.ImportedResources) > 0 {
 		m.ImportTerraformResourceID(ctx, sp, requestPayload.ImportedResources)
 	}
-	logToAll(logger, runLogger, "Info", "Final Spec is: ", "spec", sp)
+	logutil.LogToAll(logger, runLogger, "Info", "Final Spec is: ", "spec", sp)
 
 	changes, err := engineapi.Preview(executeOptions, releaseStorage, sp, state, project, stack)
 	return changes, err
@@ -220,7 +220,7 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParams, requestPayload request.StackImportRequest) error {
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
-	logToAll(logger, runLogger, "Info", "Starting applying stack in StackManager ...")
+	logutil.LogToAll(logger, runLogger, "Info", "Starting applying stack in StackManager ...")
 	_, stackBackend, project, _, ws, err := m.metaHelper(ctx, params.StackID, params.Workspace)
 	if err != nil {
 		return err
@@ -239,10 +239,10 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	// If specID is explicitly specified by the caller, use the spec with the specID
 	if params.ExecuteParams.SpecID != "" {
 		specID = params.ExecuteParams.SpecID
-		logToAll(logger, runLogger, "Info", "SpecID explicitly set. Using the specified version", "SpecID", specID)
+		logutil.LogToAll(logger, runLogger, "Info", "SpecID explicitly set. Using the specified version", "SpecID", specID)
 	} else {
 		specID = stackEntity.LastPreviewedRevision
-		logToAll(logger, runLogger, "Info", "SpecID not explicitly set. Using last previewed version", "SpecID", stackEntity.LastPreviewedRevision)
+		logutil.LogToAll(logger, runLogger, "Info", "SpecID not explicitly set. Using last previewed version", "SpecID", stackEntity.LastPreviewedRevision)
 	}
 
 	var storage release.Storage
@@ -300,7 +300,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	if err != nil {
 		return err
 	}
-	logToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
+	logutil.LogToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
 	if err != nil {
 		return err
 	}
@@ -340,7 +340,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	}
 	executeOptions := BuildOptions(params.ExecuteParams.Dryrun, m.maxConcurrent)
 
-	logToAll(logger, runLogger, "Info", "Previewing using the default generator ...")
+	logutil.LogToAll(logger, runLogger, "Info", "Previewing using the default generator ...")
 
 	directory, workDir, err := m.GetWorkdirAndDirectory(ctx, params, stackEntity)
 	if err != nil {
@@ -364,7 +364,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	// return immediately if no resource found in stack
 	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
 	if sp == nil || len(sp.Resources) == 0 {
-		logToAll(logger, runLogger, "Info", "No resource change found in this stack...")
+		logutil.LogToAll(logger, runLogger, "Info", "No resource change found in this stack...")
 		return nil
 	}
 
@@ -377,12 +377,12 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 
 	// if dry run, print the hint
 	if params.ExecuteParams.Dryrun {
-		logToAll(logger, runLogger, "Info", "Dry-run mode enabled, the above resources will be applied if dryrun is set to false")
+		logutil.LogToAll(logger, runLogger, "Info", "Dry-run mode enabled, the above resources will be applied if dryrun is set to false")
 		err = ErrDryrunApply
 		return err
 	}
 
-	logToAll(logger, runLogger, "Info", "State backend found", "stateBackend", stateBackend)
+	logutil.LogToAll(logger, runLogger, "Info", "State backend found", "stateBackend", stateBackend)
 	stack.Path = tempPath(stackEntity.Path)
 
 	// Set context from workspace to spec
@@ -404,14 +404,15 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 		return err
 	}
 
-	logToAll(logger, runLogger, "Info", "Start applying diffs ...")
+	logutil.LogToAll(logger, runLogger, "Info", "Start applying diffs ...")
 	release.UpdateReleasePhase(rel, apiv1.ReleasePhaseApplying, relLock)
 	if err = release.UpdateApplyRelease(storage, rel, params.ExecuteParams.Dryrun, relLock); err != nil {
 		return err
 	}
 
 	executeOptions = BuildOptions(params.ExecuteParams.Dryrun, m.maxConcurrent)
-	executeOptions.Watch = true
+	executeOptions.Watch = params.ExecuteParams.Watch
+	executeOptions.WatchTimeout = params.ExecuteParams.WatchTimeoutSeconds
 
 	// Get graph storage directory, create if not exist
 	graphStorage, err := stackBackend.GraphStorage(project.Name, ws.Name)
@@ -465,7 +466,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestParams, w http.ResponseWriter) (err error) {
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
-	logToAll(logger, runLogger, "Info", "Starting destroying stack in StackManager ...")
+	logutil.LogToAll(logger, runLogger, "Info", "Starting destroying stack in StackManager ...")
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
@@ -525,7 +526,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	if err != nil {
 		return err
 	}
-	logToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
+	logutil.LogToAll(logger, runLogger, "Info", "State storage found with path", "releasePath", releasePath)
 	if err != nil {
 		return err
 	}
@@ -564,7 +565,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 
 	// if dryrun, print the hint
 	if params.ExecuteParams.Dryrun {
-		logToAll(logger, runLogger, "Info", "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false")
+		logutil.LogToAll(logger, runLogger, "Info", "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false")
 		return ErrDryrunDestroy
 	}
 
@@ -574,7 +575,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 		return
 	}
 	// Destroy
-	logToAll(logger, runLogger, "Info", "Start destroying resources......")
+	logutil.LogToAll(logger, runLogger, "Info", "Start destroying resources......")
 	var upRel *apiv1.Release
 
 	upRel, err = engineapi.Destroy(executeOptions, rel, changes, storage)
