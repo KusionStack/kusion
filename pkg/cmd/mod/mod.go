@@ -29,6 +29,7 @@ func NewCmdMod(streams genericiooptions.IOStreams) *cobra.Command {
 	cmd.AddCommand(NewCmdPush(streams))
 	cmd.AddCommand(NewCmdList(streams))
 	cmd.AddCommand(NewCmdAdd(streams))
+	cmd.AddCommand(NewCmdPull(streams))
 
 	return cmd
 }

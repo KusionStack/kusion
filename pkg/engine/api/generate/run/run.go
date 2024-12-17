@@ -22,7 +22,11 @@ type CodeRunner interface {
 var _ CodeRunner = &KPMRunner{}
 
 // KPMRunner implements the CodeRunner interface.
-type KPMRunner struct{}
+type KPMRunner struct {
+	Host     string
+	Username string
+	Password string
+}
 
 // Run calls KPM api to compile and run KCL based configuration code.
 func (r *KPMRunner) Run(workDir string, arguments map[string]string) (res []byte, err error) {
@@ -43,6 +47,13 @@ func (r *KPMRunner) Run(workDir string, arguments map[string]string) (res []byte
 		return nil, err
 	}
 	cli.DepDownloader = downloader.NewOciDownloader(runtime.GOOS + "/" + runtime.GOARCH)
+
+	// Login to the private oci registry.
+	if r.Host != "" && r.Username != "" && r.Password != "" {
+		if err = cli.LoginOci(r.Host, r.Username, r.Password); err != nil {
+			return nil, err
+		}
+	}
 
 	result, err := cli.RunWithOpts(
 		opt.WithKclOption(*kclpkg.NewOption().Merge(optList...)),
