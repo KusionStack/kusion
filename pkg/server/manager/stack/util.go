@@ -27,6 +27,7 @@ import (
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 	"kusionstack.io/kusion/pkg/util/diff"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 func BuildOptions(dryrun bool, maxConcurrent int) *engineapi.APIOptions {
@@ -36,6 +37,8 @@ func BuildOptions(dryrun bool, maxConcurrent int) *engineapi.APIOptions {
 		// IgnoreFields: []string{},
 		DryRun:        dryrun,
 		MaxConcurrent: maxConcurrent,
+		// Watch:         false,
+		UI: terminal.DefaultUI(),
 	}
 	return executeOptions
 }

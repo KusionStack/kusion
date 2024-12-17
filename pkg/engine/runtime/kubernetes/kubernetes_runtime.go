@@ -393,6 +393,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 		amount := 1
 		// Try to get dependent resource by owner reference
 		dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+		log.Debug("dependentGVK", dependentGVK)
 		if !dependentGVK.Empty() {
 			owner := reqObj
 			for !dependentGVK.Empty() {
@@ -719,11 +720,12 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	switch gvk.Kind {
 	// Deployment generates ReplicaSet
 	case convertor.Deployment:
-		return schema.GroupVersionKind{
-			Group:   appsv1.SchemeGroupVersion.Group,
-			Version: appsv1.SchemeGroupVersion.Version,
-			Kind:    convertor.ReplicaSet,
-		}
+		return schema.GroupVersionKind{}
+		// return schema.GroupVersionKind{
+		// 	Group:   appsv1.SchemeGroupVersion.Group,
+		// 	Version: appsv1.SchemeGroupVersion.Version,
+		// 	Kind:    convertor.ReplicaSet,
+		// }
 	// DaemonSet and StatefulSet generate ControllerRevision
 	case convertor.DaemonSet, convertor.StatefulSet:
 		return schema.GroupVersionKind{

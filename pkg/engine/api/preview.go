@@ -12,6 +12,7 @@ import (
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform"
 	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 type APIOptions struct {
@@ -20,6 +21,8 @@ type APIOptions struct {
 	IgnoreFields  []string
 	DryRun        bool
 	MaxConcurrent int
+	Watch         bool
+	UI            *terminal.UI
 }
 
 func NewAPIOptions() APIOptions {

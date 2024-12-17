@@ -411,6 +411,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	}
 
 	executeOptions = BuildOptions(params.ExecuteParams.Dryrun, m.maxConcurrent)
+	executeOptions.Watch = true
 
 	// Get graph storage directory, create if not exist
 	graphStorage, err := stackBackend.GraphStorage(project.Name, ws.Name)
