@@ -49,7 +49,7 @@ const LayoutPage = () => {
 
   const menuItems = [
     getItem('Projects', '/projects', <SearchOutlined />),
-    getItem('Test', '/workspaces', <FundOutlined />),
+    getItem('Workspaces', '/workspaces', <FundOutlined />),
     getItem('Modules', '/modules', <ClusterOutlined />),
     getItem('Insights', '/insights', <ClusterOutlined />),
   ]

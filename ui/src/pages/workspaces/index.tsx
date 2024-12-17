@@ -7,7 +7,7 @@ import {
   SortAscendingOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { SourceService } from '@kusionstack/kusion-api-client-sdk';
+import { SourceService, ResourceService } from '@kusionstack/kusion-api-client-sdk';
 
 import styles from './styles.module.less'
 import G6Tree from '@/components/g6Tree'
@@ -33,9 +33,19 @@ const Workspaces = () => {
       console.error('Error:', error);
     }
   }
+  
+  async function getResourceGraph() {
+    try {
+      const sources = await ResourceService.getResourceGraph({query: '1'} as any);
+      console.log('ResourceService:', sources.data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
 
   useEffect(() => {
     getSources()
+    getResourceGraph()
   }, [])
 
   function handleAdd() {

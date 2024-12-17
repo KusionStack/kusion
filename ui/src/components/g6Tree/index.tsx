@@ -6,14 +6,18 @@ import insertCss from "insert-css"
 import { registerFlowLine, registerResourceNode, getEdgesLayer } from "./register";
 import styles from './style.module.less'
 import { Tag } from 'antd';
+import { generateG6GraphData } from '@/utils/tools';
 
 insertCss(`
   .g6-component-tooltip {
     background-color: #f0f5ff;
-    padding: 10px 20px;
+    padding: 10px 30px;
     box-shadow: rgb(174, 174, 174) 0px 0px 10px;
     border-top: 2px solid #2f54eb;
     color: #646566;
+  }
+  .tooltip-item {
+    margin-bottom: 10px;
   }
   .type {
     background: rgba(255, 0, 0, .5);
@@ -22,10 +26,6 @@ insertCss(`
     color: #fff;
   }
 `);
-
-function Content({ label }) {
-  return <div style={{border: '1px solid red'}}><Tag color='error'>{label}</Tag></div>
-}
 
 const tooltip = new G6.Tooltip({
   offsetX: 10,
@@ -36,26 +36,27 @@ const tooltip = new G6.Tooltip({
   // custom the tooltip's content
   // 自定义 tooltip 内容
   getContent: (e) => {
-    // const outDiv = document.createElement('div');
-    // outDiv.style.width = 'fit-content';
-    // //outDiv.style.padding = '0px 0px 20px 0px';
-    // outDiv.innerHTML = `
-    //   <h4>${e.item.getModel().label || e.item.getModel().id}</h4>
-    //   <ul>
-    //     <li>Name: ${e.item.getModel().label || e.item.getModel().id}</li>
-    //     <li>Type: <span class="type">${e.item.getType()}</span></li>
-    //     <li>Status: ${e.item.getModel().label || e.item.getModel().id}</li>
-    //     <li>Source ID: ${e.item.getModel().label || e.item.getModel().id}</li>
-    //     <li>Cloud ID: ${e.item.getModel().label || e.item.getModel().id}</li>
-    //   </ul>`;
-    // return outDiv;
-    return renderToString(<Content label={e.item.getModel().label} />);
+    const { nodeData, label, id }: any = e.item.getModel();
+    const typeList = nodeData?.resourceType?.split('/');
+    const type = typeList?.[typeList?.length - 1]
+    const outDiv = document.createElement('div');
+    outDiv.style.width = 'fit-content';
+    // outDiv.style.padding = '0px 0px 10px 0px';
+    outDiv.innerHTML = `
+      <h4>${label || id}</h4>
+      <div>
+        <div class="tooltip-item">Name: ${label || id}</div>
+        <div class="tooltip-item">Type: <span class="type">${type}</span></div>
+        <div class="tooltip-item">Status: <span class="type">${nodeData?.status}</span></div>
+        <div class="tooltip-item">cloudResourceID: ${nodeData?.cloudResourceID}</div>
+        <div class="tooltip-item">iamResourceID: ${nodeData?.iamResourceID}</div>
+      </div>`;
+    return outDiv;
   },
 });
 
 const OverviewTooltip = memo((props: any) => {
   const model = props?.hiddenButtonInfo?.e.item?.get('model')
-  console.log(model, "====model=====")
   const boxStyle: any = {
     background: '#fff',
     border: '1px solid #f5f5f5',
@@ -87,7 +88,6 @@ const OverviewTooltip = memo((props: any) => {
 
 const G6Tree = ({ }) => {
 
-  let graph: IAbstractGraph | null = null
   const graphRef = useRef<any>()
 
   const [hiddenButtontooltip, setHiddenButtontooltip] = useState<{
@@ -104,7 +104,6 @@ const G6Tree = ({ }) => {
   }
 
   function handleMouseEnter(evt) {
-    console.log(evt, "=====evt===")
     const model = evt?.item?.get('model')
     // graph.setItemState(evt.item, 'hoverState', true)
     const { x, y } = graphRef.current?.getCanvasByPoint(model.x, model.y)
@@ -133,133 +132,135 @@ const G6Tree = ({ }) => {
   }
 
   function initData() {
-    const data = {
-      // 点集
-      nodes: [
-        {
-          id: '1',
-          label: 'zk',
-          kind: 'Helm',
-          health: 'Healthy',
-          status: 'Synced',
-          logoIcon: {
-            img: 'https://blazehu.com/images/k8s/status/helm.svg',
-            offsetY: 0,
-          },
-        },
-        {
-          id: '2',
-          label: 'zk-zookeeper',
-          kind: 'Service',
-          health: 'Healthy',
-          status: 'Synced',
-        },
-        {
-          id: '3',
-          label: 'zk-zookeeper-headless',
-          kind: 'Service',
-          health: 'Healthy',
-          status: 'Synced',
-        },
-        {
-          id: '4',
-          label: 'zk-zookeeper',
-          kind: 'StatefulSet',
-          health: 'Progressing',
-          status: 'Synced',
-          phase: 'StartSync',
-        },
-        {
-          id: '5',
-          label: 'zk-zookeeper',
-          kind: 'Endpoints',
-        },
-        {
-          id: '6',
-          label: 'zk-zookeeper-k2vpn',
-          kind: 'EndpointSlice',
-        },
-        {
-          id: '7',
-          label: 'zk-zookeeper-headless',
-          kind: 'Endpoints',
-        },
-        {
-          id: '8',
-          label: 'zk-zookeeper-headless-7bz9d',
-          kind: 'EndpointSlice',
-        },
-        {
-          id: '9',
-          label: 'zk-zookeeper-headless-8mbqm',
-          kind: 'EndpointSlice',
-        },
-        {
-          id: '10',
-          label: 'zk-zookeeper-0',
-          kind: 'PersistentVolumeClaim',
-          health: 'Healthy',
-        },
-        {
-          id: '11',
-          label: 'zk-zookeeper-0',
-          kind: 'Pod',
-          health: 'Progressing',
-        },
-        {
-          id: '12',
-          label: 'zk-zookeeper-565fd5c886',
-          kind: 'ControllerRevision',
-        }
-      ],
-      // 边集
-      edges: [
-        {
-          source: '1', // String，必须，起始点 id
-          target: '2', // String，必须，目标点 id
-        },
-        {
-          source: '1',
-          target: '3',
-        },
-        {
-          source: '1',
-          target: '4',
-        },
-        {
-          source: '2',
-          target: '5',
-        },
-        {
-          source: '2',
-          target: '6',
-        },
-        {
-          source: '3',
-          target: '7',
-        },
-        {
-          source: '3',
-          target: '8',
-        },
-        {
-          source: '3',
-          target: '9',
-        },
-        {
-          source: '4',
-          target: '10',
-        },
-        {
-          source: '4',
-          target: '11',
-        },
-        {
-          source: '4',
-          target: '12',
-        },
-      ],
-    };
+    // const data = {
+    //   // 点集
+    //   nodes: [
+    //     {
+    //       id: '1',
+    //       label: 'zk',
+    //       kind: 'Helm',
+    //       health: 'Healthy',
+    //       status: 'Synced',
+    //       logoIcon: {
+    //         img: 'https://blazehu.com/images/k8s/status/helm.svg',
+    //         offsetY: 0,
+    //       },
+    //     },
+    //     {
+    //       id: '2',
+    //       label: 'zk-zookeeper',
+    //       kind: 'Service',
+    //       health: 'Healthy',
+    //       status: 'Synced',
+    //     },
+    //     {
+    //       id: '3',
+    //       label: 'zk-zookeeper-headless',
+    //       kind: 'Service',
+    //       health: 'Healthy',
+    //       status: 'Synced',
+    //     },
+    //     {
+    //       id: '4',
+    //       label: 'zk-zookeeper',
+    //       kind: 'StatefulSet',
+    //       health: 'Progressing',
+    //       status: 'Synced',
+    //       phase: 'StartSync',
+    //     },
+    //     {
+    //       id: '5',
+    //       label: 'zk-zookeeper',
+    //       kind: 'Endpoints',
+    //     },
+    //     {
+    //       id: '6',
+    //       label: 'zk-zookeeper-k2vpn',
+    //       kind: 'EndpointSlice',
+    //     },
+    //     {
+    //       id: '7',
+    //       label: 'zk-zookeeper-headless',
+    //       kind: 'Endpoints',
+    //     },
+    //     {
+    //       id: '8',
+    //       label: 'zk-zookeeper-headless-7bz9d',
+    //       kind: 'EndpointSlice',
+    //     },
+    //     {
+    //       id: '9',
+    //       label: 'zk-zookeeper-headless-8mbqm',
+    //       kind: 'EndpointSlice',
+    //     },
+    //     {
+    //       id: '10',
+    //       label: 'zk-zookeeper-0',
+    //       kind: 'PersistentVolumeClaim',
+    //       health: 'Healthy',
+    //     },
+    //     {
+    //       id: '11',
+    //       label: 'zk-zookeeper-0',
+    //       kind: 'Pod',
+    //       health: 'Progressing',
+    //     },
+    //     {
+    //       id: '12',
+    //       label: 'zk-zookeeper-565fd5c886',
+    //       kind: 'ControllerRevision',
+    //     }
+    //   ],
+    //   // 边集
+    //   edges: [
+    //     {
+    //       source: '1', // String，必须，起始点 id
+    //       target: '2', // String，必须，目标点 id
+    //     },
+    //     {
+    //       source: '1',
+    //       target: '3',
+    //     },
+    //     {
+    //       source: '1',
+    //       target: '4',
+    //     },
+    //     {
+    //       source: '2',
+    //       target: '5',
+    //     },
+    //     {
+    //       source: '2',
+    //       target: '6',
+    //     },
+    //     {
+    //       source: '3',
+    //       target: '7',
+    //     },
+    //     {
+    //       source: '3',
+    //       target: '8',
+    //     },
+    //     {
+    //       source: '3',
+    //       target: '9',
+    //     },
+    //     {
+    //       source: '4',
+    //       target: '10',
+    //     },
+    //     {
+    //       source: '4',
+    //       target: '11',
+    //     },
+    //     {
+    //       source: '4',
+    //       target: '12',
+    //     },
+    //   ],
+    // };
+    const data = generateG6GraphData()
+    console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
     const valList: any = Object.values(edgesLayer);
     const maxLayerCount = Math.max(...valList);
@@ -385,7 +386,6 @@ const G6Tree = ({ }) => {
     // })
   }
 
-  console.log(hiddenButtontooltip, "=======hiddenButtontooltip=====")
 
   useEffect(() => {
     register()
@@ -400,7 +400,6 @@ const G6Tree = ({ }) => {
     }
   }, [])
 
-  console.log(tooltipopen, "====tooltipopen====")
 
   return (
     <div className={styles.kusion_g6_tree}>

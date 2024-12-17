@@ -19,12 +19,11 @@ import { client } from '@kusionstack/kusion-api-client-sdk';
 
 
 client.setConfig({
-  baseUrl: 'http://30.177.52.72:80'
+  baseUrl: 'http://30.177.51.79'
 });
 
 dayjs.locale('zh-cn')
 
-console.log(client, "====client======")
 
 function App() {
 

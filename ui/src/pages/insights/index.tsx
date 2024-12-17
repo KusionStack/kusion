@@ -1,8 +1,11 @@
+import React, { useState } from 'react'
+import { Button } from 'antd'
 import MarkdownRenderer from '@/components/markdownToHtmlOutput'
 import YamlEditor from '@/components/yamlEditor'
-import { mockYaml } from '@/utils/tools'
-import { Button } from 'antd'
-import React, { useState } from 'react'
+import CodeDiffView from '@/components/codeDiffView'
+import MarkdownView from '@/components/markdownView'
+import CodeMirrorMarkdown from '@/components/codeMirrorMarkdown'
+import { mockYaml, mockNewYaml } from '@/utils/tools'
 
 const Insights = () => {
   const [yamlValue, setYamlValue] = useState(mockYaml)
@@ -17,6 +20,14 @@ const Insights = () => {
       <YamlEditor value={yamlValue} readOnly={isReadOnly} onChange={onChange} />
       <br />
       <MarkdownRenderer />
+      <>
+        <CodeDiffView oldContent={mockYaml} newContent={mockNewYaml} />
+        <div>
+          <MarkdownView />
+          <br />
+          <CodeMirrorMarkdown />
+        </div>
+      </>
     </div>
   )
 }

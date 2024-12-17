@@ -1,5 +1,7 @@
 import G6 from '@antv/g6';
 
+import { ICON_MAP } from "@/utils/images.ts"
+
 
 function getTextSize(str, maxWidth, fontSize) {
     const width = G6.Util.getTextSize(str, fontSize)?.[0]
@@ -187,13 +189,12 @@ export const registerResourceNode = function () {
         },
         afterDraw: function drawShape(cfg, group) {
             const w = cfg.size[0];
-            // set logoIcon
-            if (cfg.kind !== 'Helm') {
-                cfg.logoIcon = {
-                    img: getResourceLogo(cfg.kind),
-                    title: cfg.kind,
-                };
-            }
+            const typeList = cfg?.nodeData?.resourceType?.split('/');
+            const type = typeList?.[typeList?.length - 1]
+            cfg.logoIcon = {
+                img: ICON_MAP?.[type],
+                title: cfg.kind || type,
+            };
             const shape = group.addShape('text', {
                 attrs: {
                     x: w / 2 - 60,
@@ -449,7 +450,6 @@ export const registerResourceNode = function () {
             const { labelCfg = {}, logoIcon = {} } = this.getOptions(cfg);
             const size = this.getSize(cfg);
             const width = size[0];
-            // console.log(size, width, "=====size====")
             const height = size[1];
 
             let label = null;
@@ -465,7 +465,6 @@ export const registerResourceNode = function () {
             } else {
                 y = -(height) / 2 + labelCfg.offsetY + offsetY + 16;
             }
-            console.log(fontStyle, w, "====fontStyle===")
             label = group.addShape('text', {
                 attrs: {
                     ...fontStyle,
@@ -479,7 +478,6 @@ export const registerResourceNode = function () {
                 labelRelated: true,
             });
             group.shapeMap['resource-name'] = label;
-            console.log(label, "====label")
             return label;
         },
         /**
@@ -619,6 +617,7 @@ export const getShortName = function (data) {
 
 export const getLogoShortName = function (data) {
     let newString = '';
+    console.log(data, "====data=====")
     const stringArray = data.split('');
     stringArray.forEach((t) => {
         if (/[A-Z]/.test(t)) {
@@ -626,22 +625,6 @@ export const getLogoShortName = function (data) {
         }
     });
     return newString;
-};
-
-export const getResourceLogo = function (kind) {
-    const ResourceIconMap = {
-        Service: 'https://blazehu.com/images/k8s/kind/svc.svg',
-        Endpoints: 'https://blazehu.com/images/k8s/kind/ep.svg',
-        PersistentVolumeClaim: 'https://blazehu.com/images/k8s/kind/pvc.svg',
-        Pod: 'https://blazehu.com/images/k8s/kind/pod.svg',
-        ConfigMap: 'https://blazehu.com/images/k8s/kind/cm.svg',
-        Deployment: 'https://blazehu.com/images/k8s/kind/deploy.svg',
-        PersistentVolume: 'https://blazehu.com/images/k8s/kind/pv.svg',
-        ReplicaSet: 'https://blazehu.com/images/k8s/kind/rs.svg',
-        Secret: 'https://blazehu.com/images/k8s/kind/secret.svg',
-        StatefulSet: 'https://blazehu.com/images/k8s/kind/sts.svg',
-    };
-    return ResourceIconMap[kind] ? ResourceIconMap[kind] : '';
 };
 
 export const getSyncImg = function (cfg) {

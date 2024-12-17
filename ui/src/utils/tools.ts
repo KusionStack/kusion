@@ -292,3 +292,65 @@ https://github.com/KusionStack/karpor/assets/49401013/7cf31cc0-7123-42f6-8543-5a
 
 </br>
 `
+
+export const topologyData = {
+  "resources": {
+    "apps/v1:Deployment:test-project-1112:test-project-1112-dev-helloworld": {
+      "resourceType": "apps/v1/Deployment",
+      "resourcePlane": "Kubernetes",
+      "resourceName": "test-project-1112/test-project-1112-dev-helloworld",
+      "iamResourceID": "",
+      "cloudResourceID": "",
+      "status": "applied"
+    },
+    "v1:Namespace:test-project-1112": {
+      "resourceType": "v1/Namespace",
+      "resourcePlane": "Kubernetes",
+      "resourceName": "test-project-1112",
+      "iamResourceID": "",
+      "cloudResourceID": "",
+      "status": "applied"
+    },
+    "v1:Service:test-project-1112:test-project-1112-dev-helloworld-private": {
+      "resourceType": "v1/Service",
+      "resourcePlane": "Kubernetes",
+      "resourceName": "test-project-1112/test-project-1112-dev-helloworld-private",
+      "iamResourceID": "",
+      "cloudResourceID": "",
+      "status": "applied"
+    }
+  },
+  "relations": [
+    {
+      "DependentResource": "v1:Namespace:test-project-1112",
+      "DependencyResource": "apps/v1:Deployment:test-project-1112:test-project-1112-dev-helloworld"
+    },
+    {
+      "DependentResource": "v1:Service:test-project-1112:test-project-1112-dev-helloworld-private",
+      "DependencyResource": "apps/v1:Deployment:test-project-1112:test-project-1112-dev-helloworld"
+    }
+  ],
+  "workload": "apps/v1:Deployment:test-project-1112:test-project-1112-dev-helloworld"
+}
+
+export function generateG6GraphData(data = topologyData) {
+  const nodes = [];
+  const edges = [];
+  Object?.entries(data?.resources)?.forEach(([key, value]) => {
+    nodes.push({
+      id: key,
+      label: value?.resourceName,
+      nodeData: value,
+    })
+  })
+  data?.relations?.forEach(item => {
+    edges.push({
+      source: item?.DependencyResource,
+      target: item?.DependentResource
+    })
+  })
+  return {
+    nodes,
+    edges
+  }
+}

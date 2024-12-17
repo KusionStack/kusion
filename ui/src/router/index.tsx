@@ -1,8 +1,9 @@
 import React, { lazy, ReactNode, Suspense } from 'react'
-import { Navigate, useRoutes } from 'react-router-dom'
+import { Navigate, Outlet, useRoutes } from 'react-router-dom'
 import { MacCommandOutlined } from '@ant-design/icons'
 import Layout from '@/components/layout'
 import Loading from '@/components/loading'
+import ProjectDetail from '@/pages/projects/projectDetail'
 
 const Projects = lazy(() => import('@/pages/projects'))
 const Insights = lazy(() => import('@/pages/insights'))
@@ -34,8 +35,21 @@ const router: RouteObject[] = [
         key: '/projects',
         path: '/projects',
         title: 'Projects',
-        element: lazyLoad(<Projects />),
+        element: <Outlet />,
         icon: <MacCommandOutlined />,
+        children: [
+          {
+            index: true,
+            key: '',
+            path: '',
+            element: lazyLoad(<Projects />)
+          },
+          {
+            key: 'projectDetail',
+            path: 'projectDetail/:id',
+            element: lazyLoad(<ProjectDetail />)
+          },
+        ]
       },
       {
         key: '/workspaces',
