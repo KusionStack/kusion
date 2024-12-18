@@ -15,7 +15,7 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *StackManager) ListStacks(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error) {
+func (m *StackManager) ListStacks(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
 	stackEntities, err := m.stackRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

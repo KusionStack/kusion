@@ -240,7 +240,10 @@ func tempPath(path string) string {
 	return fmt.Sprintf("%s/%s", constant.TmpDirPrefix, path)
 }
 
-func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, projectIDParam, projectName, envParam string) (*entity.StackFilter, error) {
+func (m *StackManager) BuildStackFilter(ctx context.Context,
+	orgIDParam, projectIDParam, projectName, envParam string,
+	query *url.Values,
+) (*entity.StackFilter, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building stack filter...")
 	filter := entity.StackFilter{}
@@ -270,6 +273,21 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 			logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
 		}
 	}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
 	return &filter, nil
 }
 

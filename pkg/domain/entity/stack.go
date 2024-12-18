@@ -46,9 +46,15 @@ type Stack struct {
 }
 
 type StackFilter struct {
-	OrgID     uint
-	ProjectID uint
-	Path      string
+	OrgID      uint
+	ProjectID  uint
+	Path       string
+	Pagination *Pagination
+}
+
+type StackListResult struct {
+	Stacks []*Stack
+	Total  int
 }
 
 // Validate checks if the stack is valid.

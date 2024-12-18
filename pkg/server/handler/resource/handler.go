@@ -19,12 +19,12 @@ import (
 // @Description	List resource information
 // @Tags			resource
 // @Produce		json
-// @Success		200	{object}	entity.Resource	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Success		200	{object}	entity.ResourceListResult	"Success"
+// @Failure		400	{object}	error						"Bad Request"
+// @Failure		401	{object}	error						"Unauthorized"
+// @Failure		429	{object}	error						"Too Many Requests"
+// @Failure		404	{object}	error						"Not Found"
+// @Failure		500	{object}	error						"Internal Server Error"
 // @Router			/api/v1/resources [get]
 func (h *Handler) ListResources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -33,12 +33,13 @@ func (h *Handler) ListResources() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing resource...")
 
-		orgIDParam := r.URL.Query().Get("orgID")
-		projectIDParam := r.URL.Query().Get("projectID")
-		stackIDParam := r.URL.Query().Get("stackID")
-		resourcePlane := r.URL.Query().Get("resourcePlane")
-		resourceType := r.URL.Query().Get("resourceType")
-		filter, err := h.resourceManager.BuildResourceFilter(ctx, orgIDParam, projectIDParam, stackIDParam, resourcePlane, resourceType)
+		query := r.URL.Query()
+		orgIDParam := query.Get("orgID")
+		projectIDParam := query.Get("projectID")
+		stackIDParam := query.Get("stackID")
+		resourcePlane := query.Get("resourcePlane")
+		resourceType := query.Get("resourceType")
+		filter, err := h.resourceManager.BuildResourceFilter(ctx, orgIDParam, projectIDParam, stackIDParam, resourcePlane, resourceType, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -83,13 +84,13 @@ func (h *Handler) GetResource() http.HandlerFunc {
 // @Description	Get resource graph by stack ID
 // @Tags			resource
 // @Produce		json
-// @Param			stack_id	query		uint				true	"Stack ID"
-// @Success		200	{object}	entity.ResourceGraph	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			stack_id	query		uint					true	"Stack ID"
+// @Success		200			{object}	entity.ResourceGraph	"Success"
+// @Failure		400			{object}	error					"Bad Request"
+// @Failure		401			{object}	error					"Unauthorized"
+// @Failure		429			{object}	error					"Too Many Requests"
+// @Failure		404			{object}	error					"Not Found"
+// @Failure		500			{object}	error					"Internal Server Error"
 // @Router			/api/v1/resources/graph [get]
 func (h *Handler) GetResourceGraph() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -97,8 +98,9 @@ func (h *Handler) GetResourceGraph() http.HandlerFunc {
 		ctx := r.Context()
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Getting resource graph...")
-		stackIDParam := r.URL.Query().Get("stackID")
-		filter, err := h.resourceManager.BuildResourceFilter(ctx, "", "", stackIDParam, "", "")
+		query := r.URL.Query()
+		stackIDParam := query.Get("stackID")
+		filter, err := h.resourceManager.BuildResourceFilter(ctx, "", "", stackIDParam, "", "", &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -111,7 +113,7 @@ func (h *Handler) GetResourceGraph() http.HandlerFunc {
 			return
 		}
 		resourceGraph := entity.NewResourceGraph()
-		if err := resourceGraph.ConstructResourceGraph(resourceEntities); err != nil {
+		if err := resourceGraph.ConstructResourceGraph(resourceEntities.Resources); err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}

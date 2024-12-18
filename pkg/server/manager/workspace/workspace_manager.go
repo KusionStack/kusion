@@ -3,15 +3,19 @@ package workspace
 import (
 	"context"
 	"errors"
+	"net/url"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *WorkspaceManager) ListWorkspaces(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+func (m *WorkspaceManager) ListWorkspaces(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
 	workspaceEntities, err := m.workspaceRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -110,4 +114,27 @@ func (m *WorkspaceManager) CreateWorkspace(ctx context.Context, requestPayload r
 		return nil, err
 	}
 	return &createdEntity, nil
+}
+
+func (m *WorkspaceManager) BuildWorkspaceFilter(ctx context.Context, query *url.Values) (*entity.WorkspaceFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building workspace filter...")
+
+	filter := entity.WorkspaceFilter{}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	return &filter, nil
 }

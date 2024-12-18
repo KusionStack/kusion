@@ -159,12 +159,12 @@ func (h *Handler) GetOrganization() http.HandlerFunc {
 // @Description	List all organizations
 // @Tags			organization
 // @Produce		json
-// @Success		200	{object}	[]entity.Organization	"Success"
-// @Failure		400	{object}	error					"Bad Request"
-// @Failure		401	{object}	error					"Unauthorized"
-// @Failure		429	{object}	error					"Too Many Requests"
-// @Failure		404	{object}	error					"Not Found"
-// @Failure		500	{object}	error					"Internal Server Error"
+// @Success		200	{object}	entity.OrganizationListResult	"Success"
+// @Failure		400	{object}	error							"Bad Request"
+// @Failure		401	{object}	error							"Unauthorized"
+// @Failure		429	{object}	error							"Too Many Requests"
+// @Failure		404	{object}	error							"Not Found"
+// @Failure		500	{object}	error							"Internal Server Error"
 // @Router			/api/v1/orgs [get]
 func (h *Handler) ListOrganizations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +173,15 @@ func (h *Handler) ListOrganizations() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing organization...")
 
-		organizationEntities, err := h.organizationManager.ListOrganizations(ctx)
+		query := r.URL.Query()
+		filter, err := h.organizationManager.BuildOrganizationFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// List organizations with pagination.
+		organizationEntities, err := h.organizationManager.ListOrganizations(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, organizationEntities)
 	}
 }

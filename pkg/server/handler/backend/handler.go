@@ -145,12 +145,12 @@ func (h *Handler) GetBackend() http.HandlerFunc {
 // @Description	List all backends
 // @Tags			backend
 // @Produce		json
-// @Success		200	{object}	entity.Backend	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Success		200	{object}	entity.BackendListResult	"Success"
+// @Failure		400	{object}	error						"Bad Request"
+// @Failure		401	{object}	error						"Unauthorized"
+// @Failure		429	{object}	error						"Too Many Requests"
+// @Failure		404	{object}	error						"Not Found"
+// @Failure		500	{object}	error						"Internal Server Error"
 // @Router			/api/v1/backends [get]
 func (h *Handler) ListBackends() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +159,15 @@ func (h *Handler) ListBackends() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing backend...")
 
-		backendEntities, err := h.backendManager.ListBackends(ctx)
+		query := r.URL.Query()
+		filter, err := h.backendManager.BuildBackendFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// List backends with pagination.
+		backendEntities, err := h.backendManager.ListBackends(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, backendEntities)
 	}
 }

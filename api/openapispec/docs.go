@@ -30,7 +30,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Backend"
+                            "$ref": "#/definitions/entity.BackendListResult"
                         }
                     },
                     "400": {
@@ -290,10 +290,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Module"
-                            }
+                            "$ref": "#/definitions/entity.ModuleListResult"
                         }
                     },
                     "400": {
@@ -545,10 +542,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Organization"
-                            }
+                            "$ref": "#/definitions/entity.OrganizationListResult"
                         }
                     },
                     "400": {
@@ -814,10 +808,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Project"
-                            }
+                            "$ref": "#/definitions/entity.ProjectListResult"
                         }
                     },
                     "400": {
@@ -1069,7 +1060,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Resource"
+                            "$ref": "#/definitions/entity.ResourceListResult"
                         }
                     },
                     "400": {
@@ -1386,7 +1377,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "$ref": "#/definitions/entity.SourceListResult"
                         }
                     },
                     "400": {
@@ -1670,10 +1661,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Stack"
-                            }
+                            "$ref": "#/definitions/entity.StackListResult"
                         }
                     },
                     "400": {
@@ -2281,7 +2269,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -2350,7 +2338,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec"
                         }
                     },
                     "400": {
@@ -2486,7 +2474,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Workspace"
+                            "$ref": "#/definitions/entity.WorkspaceListResult"
                         }
                     },
                     "400": {
@@ -3007,17 +2995,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {
@@ -3066,7 +3054,7 @@ const docTemplate = `{
                     "description": "// Type is the type of the backend.\nType string ` + "`" + `yaml:\"type\" json:\"type\"` + "`" + `\nBackend is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3089,6 +3077,20 @@ const docTemplate = `{
                 "updateTimestamp": {
                     "description": "UpdateTimestamp is the timestamp of the updated for the backend.",
                     "type": "string"
+                }
+            }
+        },
+        "entity.BackendListResult": {
+            "type": "object",
+            "properties": {
+                "backends": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Backend"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -3125,6 +3127,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/url.URL"
                         }
                     ]
+                }
+            }
+        },
+        "entity.ModuleListResult": {
+            "type": "object",
+            "properties": {
+                "modules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Module"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -3168,6 +3184,20 @@ const docTemplate = `{
                 "updateTimestamp": {
                     "description": "UpdateTimestamp is the timestamp of the updated for the organization.",
                     "type": "string"
+                }
+            }
+        },
+        "entity.OrganizationListResult": {
+            "type": "object",
+            "properties": {
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Organization"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -3231,6 +3261,20 @@ const docTemplate = `{
                 "updateTimestamp": {
                     "description": "UpdateTimestamp is the timestamp of the updated for the project.",
                     "type": "string"
+                }
+            }
+        },
+        "entity.ProjectListResult": {
+            "type": "object",
+            "properties": {
+                "projects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Project"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -3379,6 +3423,20 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.ResourceListResult": {
+            "type": "object",
+            "properties": {
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Resource"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.ResourceRelation": {
             "type": "object",
             "properties": {
@@ -3402,7 +3460,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "logs": {
-                    "description": "Result RunResult ` + "`" + `yaml:\"result\" json:\"result\"` + "`" + `\nLogs is the logs of the run.",
+                    "description": "Logs is the logs of the run.",
                     "type": "string"
                 },
                 "result": {
@@ -3424,6 +3482,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/constant.RunStatus"
                         }
                     ]
+                },
+                "trace": {
+                    "description": "Trace is the trace of the run.",
+                    "type": "string"
                 },
                 "type": {
                     "description": "RunType is the type of the run provider.",
@@ -3495,6 +3557,20 @@ const docTemplate = `{
                 "updateTimestamp": {
                     "description": "UpdateTimestamp is the timestamp of the updated for the source.",
                     "type": "string"
+                }
+            }
+        },
+        "entity.SourceListResult": {
+            "type": "object",
+            "properties": {
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Source"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -3585,6 +3661,20 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.StackListResult": {
+            "type": "object",
+            "properties": {
+                "stacks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Stack"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.Workspace": {
             "type": "object",
             "properties": {
@@ -3636,6 +3726,326 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.WorkspaceListResult": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "workspaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Workspace"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider": {
+            "type": "object",
+            "properties": {
+                "region": {
+                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType": {
+            "type": "string",
+            "enum": [
+                "PublicCloud",
+                "USGovernmentCloud",
+                "ChinaCloud",
+                "GermanCloud"
+            ],
+            "x-enum-varnames": [
+                "AzureEnvironmentPublicCloud",
+                "AzureEnvironmentUSGovernmentCloud",
+                "AzureEnvironmentChinaCloud",
+                "AzureEnvironmentGermanCloud"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider": {
+            "type": "object",
+            "properties": {
+                "environmentType": {
+                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType"
+                        }
+                    ]
+                },
+                "tenantId": {
+                    "description": "TenantID configures the Azure Tenant to send requests to.",
+                    "type": "string"
+                },
+                "vaultUrl": {
+                    "description": "Vault Url from which the secrets to be fetched from.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "description": "Default is default block of the module config.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                },
+                "valueMap": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig": {
+            "type": "object",
+            "additionalProperties": {}
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains all levels of module configs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs"
+                        }
+                    ]
+                },
+                "path": {
+                    "description": "Path is the path of the module. It can be a local path or a remote URL",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the version of the module.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig"
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModulePatcherConfig": {
+            "type": "object",
+            "properties": {
+                "projectSelector": {
+                    "description": "ProjectSelector contains the selected projects.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "attributes of the provider",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "platform name of the provider",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec": {
+            "type": "object",
+            "properties": {
+                "alicloud": {
+                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider"
+                        }
+                    ]
+                },
+                "aws": {
+                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider"
+                        }
+                    ]
+                },
+                "azure": {
+                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider"
+                        }
+                    ]
+                },
+                "fake": {
+                    "description": "Fake configures a store with static key/value pairs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider"
+                        }
+                    ]
+                },
+                "onpremises": {
+                    "description": "Onprem configures a store in on-premises environments",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider"
+                        }
+                    ]
+                },
+                "vault": {
+                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider"
+                        }
+                    ]
+                },
+                "viettelcloud": {
+                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "Attributes represents all specified attributes of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "dependsOn": {
+                    "description": "DependsOn contains all resources this resource depends on",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extensions": {
+                    "description": "Extensions specifies arbitrary metadata of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                },
+                "resources": {
+                    "description": "Resources is the list of Resource this Spec contains.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource"
+                    }
+                },
+                "secretStore": {
+                    "description": "SecretSore represents a external secret store location for storing secrets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
+                        }
+                    ]
+                }
+            }
+        },
         "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type": {
             "type": "string",
             "enum": [
@@ -3646,6 +4056,51 @@ const docTemplate = `{
                 "Kubernetes",
                 "Terraform"
             ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion": {
+            "type": "string",
+            "enum": [
+                "v1",
+                "v2"
+            ],
+            "x-enum-varnames": [
+                "VaultKVStoreV1",
+                "VaultKVStoreV2"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
+                    "type": "string"
+                },
+                "server": {
+                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider": {
+            "type": "object",
+            "properties": {
+                "cmpURL": {
+                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
+                    "type": "string"
+                },
+                "projectID": {
+                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
+                    "type": "string"
+                }
+            }
         },
         "models.ActionType": {
             "type": "integer",
@@ -3721,7 +4176,7 @@ const docTemplate = `{
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3991,7 +4446,7 @@ const docTemplate = `{
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -4273,7 +4728,7 @@ const docTemplate = `{
                     "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.GenericConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
                         }
                     ]
                 },
@@ -4281,7 +4736,7 @@ const docTemplate = `{
                     "description": "Modules are the configs of a set of modules.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.ModuleConfigs"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs"
                         }
                     ]
                 },
@@ -4289,7 +4744,7 @@ const docTemplate = `{
                     "description": "SecretStore represents a secure external location for storing secrets.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.SecretStore"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
                         }
                     ]
                 }
@@ -4349,357 +4804,6 @@ const docTemplate = `{
         },
         "url.Userinfo": {
             "type": "object"
-        },
-        "v1.AWSProvider": {
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
-                    "type": "string"
-                },
-                "region": {
-                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AlicloudProvider": {
-            "type": "object",
-            "properties": {
-                "region": {
-                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AzureEnvironmentType": {
-            "type": "string",
-            "enum": [
-                "PublicCloud",
-                "USGovernmentCloud",
-                "ChinaCloud",
-                "GermanCloud"
-            ],
-            "x-enum-varnames": [
-                "AzureEnvironmentPublicCloud",
-                "AzureEnvironmentUSGovernmentCloud",
-                "AzureEnvironmentChinaCloud",
-                "AzureEnvironmentGermanCloud"
-            ]
-        },
-        "v1.AzureKVProvider": {
-            "type": "object",
-            "properties": {
-                "environmentType": {
-                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureEnvironmentType"
-                        }
-                    ]
-                },
-                "tenantId": {
-                    "description": "TenantID configures the Azure Tenant to send requests to.",
-                    "type": "string"
-                },
-                "vaultUrl": {
-                    "description": "Vault Url from which the secrets to be fetched from.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.BackendConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "type": {
-                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.Configs": {
-            "type": "object",
-            "properties": {
-                "default": {
-                    "description": "Default is default block of the module config.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.FakeProvider": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.FakeProviderData"
-                    }
-                }
-            }
-        },
-        "v1.FakeProviderData": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                },
-                "valueMap": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.GenericConfig": {
-            "type": "object",
-            "additionalProperties": {}
-        },
-        "v1.ModuleConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains all levels of module configs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.Configs"
-                        }
-                    ]
-                },
-                "path": {
-                    "description": "Path is the path of the module. It can be a local path or a remote URL",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the version of the module.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ModuleConfigs": {
-            "type": "object",
-            "additionalProperties": {
-                "$ref": "#/definitions/v1.ModuleConfig"
-            }
-        },
-        "v1.ModulePatcherConfig": {
-            "type": "object",
-            "properties": {
-                "projectSelector": {
-                    "description": "ProjectSelector contains the selected projects.",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "v1.OnPremisesProvider": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "attributes of the provider",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "description": "platform name of the provider",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ProviderSpec": {
-            "type": "object",
-            "properties": {
-                "alicloud": {
-                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AlicloudProvider"
-                        }
-                    ]
-                },
-                "aws": {
-                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AWSProvider"
-                        }
-                    ]
-                },
-                "azure": {
-                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureKVProvider"
-                        }
-                    ]
-                },
-                "fake": {
-                    "description": "Fake configures a store with static key/value pairs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.FakeProvider"
-                        }
-                    ]
-                },
-                "onpremises": {
-                    "description": "Onprem configures a store in on-premises environments",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.OnPremisesProvider"
-                        }
-                    ]
-                },
-                "vault": {
-                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultProvider"
-                        }
-                    ]
-                },
-                "viettelcloud": {
-                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ViettelCloudProvider"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.Resource": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "Attributes represents all specified attributes of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "dependsOn": {
-                    "description": "DependsOn contains all resources this resource depends on",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "extensions": {
-                    "description": "Extensions specifies arbitrary metadata of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "id": {
-                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.SecretStore": {
-            "type": "object",
-            "properties": {
-                "provider": {
-                    "$ref": "#/definitions/v1.ProviderSpec"
-                }
-            }
-        },
-        "v1.Spec": {
-            "type": "object",
-            "properties": {
-                "context": {
-                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                },
-                "resources": {
-                    "description": "Resources is the list of Resource this Spec contains.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.Resource"
-                    }
-                },
-                "secretStore": {
-                    "description": "SecretSore represents a external secret store location for storing secrets.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.SecretStore"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.VaultKVStoreVersion": {
-            "type": "string",
-            "enum": [
-                "v1",
-                "v2"
-            ],
-            "x-enum-varnames": [
-                "VaultKVStoreV1",
-                "VaultKVStoreV2"
-            ]
-        },
-        "v1.VaultProvider": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
-                    "type": "string"
-                },
-                "server": {
-                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultKVStoreVersion"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.ViettelCloudProvider": {
-            "type": "object",
-            "properties": {
-                "cmpURL": {
-                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
-                    "type": "string"
-                },
-                "projectID": {
-                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
-                    "type": "string"
-                }
-            }
         }
     }
 }`
