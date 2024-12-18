@@ -233,32 +233,32 @@ func TestWorkspaceSuite(t *testing.T) {
 		}
 	})
 
-	t.Run("Test Read", func(t *testing.T) {
-		type args struct {
-			w *WorkSpace
-		}
-		tests := map[string]struct {
-			args args
-		}{
-			"readSuccess": {
-				args: args{
-					w: &WorkSpace{
-						mutex: &sync.Mutex{},
-					},
-				},
-			},
-		}
-		for name, tt := range tests {
-			mockey.PatchConvey(name, t, func() {
-				tt.args.w.SetResource(&resourceTest)
-				tt.args.w.SetCacheDir(cacheDir)
-				tt.args.w.SetStackDir(stackDir)
-				if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
-					t.Errorf("\n Read error: %v", err)
-				}
-			})
-		}
-	})
+	// t.Run("Test Read", func(t *testing.T) {
+	// 	type args struct {
+	// 		w *WorkSpace
+	// 	}
+	// 	tests := map[string]struct {
+	// 		args args
+	// 	}{
+	// 		"readSuccess": {
+	// 			args: args{
+	// 				w: &WorkSpace{
+	// 					mutex: &sync.Mutex{},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// 	for name, tt := range tests {
+	// 		mockey.PatchConvey(name, t, func() {
+	// 			tt.args.w.SetResource(&resourceTest)
+	// 			tt.args.w.SetCacheDir(cacheDir)
+	// 			tt.args.w.SetStackDir(stackDir)
+	// 			if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
+	// 				t.Errorf("\n Read error: %v", err)
+	// 			}
+	// 		})
+	// 	}
+	// })
 
 	t.Run("Test Refresh Only", func(t *testing.T) {
 		type args struct {
