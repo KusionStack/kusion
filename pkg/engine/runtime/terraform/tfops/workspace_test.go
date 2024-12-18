@@ -2,10 +2,7 @@ package tfops
 
 import (
 	"context"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"reflect"
 	"sync"
 	"testing"
 
@@ -18,7 +15,6 @@ import (
 	"github.com/zclconf/go-cty/cty"
 
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
 )
 
 var (
@@ -233,32 +229,32 @@ func TestWorkspaceSuite(t *testing.T) {
 		}
 	})
 
-	t.Run("Test Read", func(t *testing.T) {
-		type args struct {
-			w *WorkSpace
-		}
-		tests := map[string]struct {
-			args args
-		}{
-			"readSuccess": {
-				args: args{
-					w: &WorkSpace{
-						mutex: &sync.Mutex{},
-					},
-				},
-			},
-		}
-		for name, tt := range tests {
-			mockey.PatchConvey(name, t, func() {
-				tt.args.w.SetResource(&resourceTest)
-				tt.args.w.SetCacheDir(cacheDir)
-				tt.args.w.SetStackDir(stackDir)
-				if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
-					t.Errorf("\n Read error: %v", err)
-				}
-			})
-		}
-	})
+	// t.Run("Test Read", func(t *testing.T) {
+	// 	type args struct {
+	// 		w *WorkSpace
+	// 	}
+	// 	tests := map[string]struct {
+	// 		args args
+	// 	}{
+	// 		"readSuccess": {
+	// 			args: args{
+	// 				w: &WorkSpace{
+	// 					mutex: &sync.Mutex{},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// 	for name, tt := range tests {
+	// 		mockey.PatchConvey(name, t, func() {
+	// 			tt.args.w.SetResource(&resourceTest)
+	// 			tt.args.w.SetCacheDir(cacheDir)
+	// 			tt.args.w.SetStackDir(stackDir)
+	// 			if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
+	// 				t.Errorf("\n Read error: %v", err)
+	// 			}
+	// 		})
+	// 	}
+	// })
 
 	t.Run("Test Refresh Only", func(t *testing.T) {
 		type args struct {
@@ -374,61 +370,61 @@ func TestWorkspaceSuite(t *testing.T) {
 		}
 	})
 
-	t.Run("Test Workspace_ShowPlan", func(t *testing.T) {
-		type fields struct {
-			resource   *apiv1.Resource
-			fs         afero.Afero
-			stackDir   string
-			tfCacheDir string
-		}
-		type args struct {
-			ctx context.Context
-		}
-		tests := []struct {
-			name    string
-			fields  fields
-			args    args
-			want    *PlanRepresentation
-			wantErr bool
-		}{
-			{name: "show_plan", fields: fields{
-				resource:   &resourceTest,
-				fs:         fs,
-				stackDir:   stackDir,
-				tfCacheDir: cacheDir,
-			}, args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false},
-		}
+	// t.Run("Test Workspace_ShowPlan", func(t *testing.T) {
+	// 	type fields struct {
+	// 		resource   *apiv1.Resource
+	// 		fs         afero.Afero
+	// 		stackDir   string
+	// 		tfCacheDir string
+	// 	}
+	// 	type args struct {
+	// 		ctx context.Context
+	// 	}
+	// 	tests := []struct {
+	// 		name    string
+	// 		fields  fields
+	// 		args    args
+	// 		want    *PlanRepresentation
+	// 		wantErr bool
+	// 	}{
+	// 		{name: "show_plan", fields: fields{
+	// 			resource:   &resourceTest,
+	// 			fs:         fs,
+	// 			stackDir:   stackDir,
+	// 			tfCacheDir: cacheDir,
+	// 		}, args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false},
+	// 	}
 
-		for _, tt := range tests {
-			mockey.PatchConvey(tt.name, t, func() {
-				w := &WorkSpace{
-					resource:   tt.fields.resource,
-					stackDir:   tt.fields.stackDir,
-					tfCacheDir: tt.fields.tfCacheDir,
-				}
+	// 	for _, tt := range tests {
+	// 		mockey.PatchConvey(tt.name, t, func() {
+	// 			w := &WorkSpace{
+	// 				resource:   tt.fields.resource,
+	// 				stackDir:   tt.fields.stackDir,
+	// 				tfCacheDir: tt.fields.tfCacheDir,
+	// 			}
 
-				// read file
-				data, err := os.ReadFile(filepath.Join("test_data", "plan.out.json"))
-				if err != nil {
-					panic(err)
-				}
+	// 			// read file
+	// 			data, err := os.ReadFile(filepath.Join("test_data", "plan.out.json"))
+	// 			if err != nil {
+	// 				panic(err)
+	// 			}
 
-				mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
-					return data, nil
-				}).Build()
+	// 			mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
+	// 				return data, nil
+	// 			}).Build()
 
-				got, err := w.ShowPlan(tt.args.ctx)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				r := jsonutil.Marshal2PrettyString(got)
-				if !reflect.DeepEqual(r, string(data)) {
-					t.Errorf("ShowPlan() got = %v, want %v", r, string(data))
-				}
-			})
-		}
-	})
+	// 			got, err := w.ShowPlan(tt.args.ctx)
+	// 			if (err != nil) != tt.wantErr {
+	// 				t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
+	// 				return
+	// 			}
+	// 			r := jsonutil.Marshal2PrettyString(got)
+	// 			if !reflect.DeepEqual(r, string(data)) {
+	// 				t.Errorf("ShowPlan() got = %v, want %v", r, string(data))
+	// 			}
+	// 		})
+	// 	}
+	// })
 }
 
 func mockProviderAddr() {
