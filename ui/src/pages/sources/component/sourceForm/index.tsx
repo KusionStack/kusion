@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 // import styles from './styles.module.less'
-import { Button, Drawer, Form, Input, Space } from 'antd'
+import { Button, Modal, Form, Input, Space } from 'antd'
 
 const SourceForm = ({
   open,
@@ -36,11 +36,11 @@ const SourceForm = ({
 
   return (
     <div>
-      <Drawer
+      <Modal
         title={getTitle()}
         open={open}
         onClose={onClose}
-        extra={
+        footer={
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button onClick={onSubmit} type="primary">
@@ -49,15 +49,17 @@ const SourceForm = ({
           </Space>
         }
       >
-        <Form form={form} layout="vertical">
-          <Form.Item label="Name" name={'name'}>
-            <Input />
-          </Form.Item>
-          <Form.Item label="Url" name={'url'}>
-            <Input />
-          </Form.Item>
-        </Form>
-      </Drawer>
+        <div style={{ margin: 20 }}>
+          <Form form={form} layout="horizontal">
+            <Form.Item label="Name" name={'name'}>
+              <Input />
+            </Form.Item>
+            <Form.Item label="Url" name={'url'}>
+              <Input />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
     </div>
   )
 }

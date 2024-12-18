@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Input, Select, Space, Table } from 'antd'
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
-import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
-import ModuleForm from './component/moduleForm'
+// import { AutoComplete, Input, message, Space, Tag } from 'antd'
+// import {
+//   DoubleLeftOutlined,
+//   DoubleRightOutlined,
+//   CloseOutlined,
+// } from '@ant-design/icons'
 
 import styles from './styles.module.less'
+import { Button, Card, Input, Select, Space, Table } from 'antd'
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
+import SourceForm from './component/sourceForm'
+import { SourceService } from '@kusionstack/kusion-api-client-sdk'
 
 const { Option } = Select
 
-const ModulePage = () => {
+const SourcesPage = () => {
   const [keyword, setKeyword] = useState<string>('')
 
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
-
   const [searchParams, setSearchParams] = useState({
     pageSize: 20,
     page: 1,
@@ -22,13 +27,13 @@ const ModulePage = () => {
     total: 0,
   })
 
-  const [moduleList, setModuleList] = useState([])
+  const [resourceList, setResourceList] = useState([])
 
-  async function getModuleList(params) {
+  async function getResourceList(params) {
     try {
-      const response: any = await ModuleService.listModule();
+      const response: any = await SourceService.listSource();
       if (response?.data?.success) {
-        setModuleList(response?.data?.data);
+        setResourceList(response?.data?.data);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
@@ -42,7 +47,7 @@ const ModulePage = () => {
   }
 
   useEffect(() => {
-    getModuleList({})
+    getResourceList({})
   }, [])
 
   function handleChange(event) {
@@ -72,15 +77,12 @@ const ModulePage = () => {
       dataIndex: 'name',
     },
     {
-      title: 'Registry',
-      dataIndex: 'registry',
-      render: (_, record) => {
-        return record?.url?.Path;
-      }
+      title: 'Description',
+      dataIndex: 'description',
     },
     {
-      title: 'Publish Time',
-      dataIndex: 'publishTime',
+      title: 'Creation Time',
+      dataIndex: 'creationTimestamp',
     },
     {
       title: 'Action',
@@ -88,16 +90,13 @@ const ModulePage = () => {
       render: (_, record) => {
         return (
           <>
-            <Button type='link' onClick={() => handleDetail(record)}>详情</Button>
-            <Button type='link' onClick={() => handleEdit(record)}>编辑</Button>
-            <Button type='link' href={record?.doc?.Path} target='_blank'>文档</Button>
+            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleDetail(record)}>详情</Button>
+            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>编辑</Button>
           </>
         )
       },
     },
   ]
-
-
 
   function handleSubmit(values) {
     console.log(values, 'handleSubmit')
@@ -118,35 +117,33 @@ const ModulePage = () => {
 
   return (
     <Card>
-      <div className={styles.modules_container}>
-        <div className={styles.modules_toolbar}>
-          <div className={styles.left}>
-            <div className={styles.tool_bar_search}>
-              <Space>
-                <Input
-                  placeholder={'关键字搜索'}
-                  suffix={<SearchOutlined />}
-                  style={{ width: 260 }}
-                  value={keyword}
-                  onChange={handleChange}
-                  allowClear
-                />
-              </Space>
-            </div>
-          </div>
-          <div className={styles.right}>
+      <div className={styles.sources_container}>
+        <div className={styles.sources_toolbar}>
+          <div className={styles.sources_toolbar_left}>
             <div className={styles.tool_bar_add}>
               <Button type="primary" onClick={handleAdd}>
-                <PlusOutlined /> New Module
+                <PlusOutlined /> New Source
               </Button>
             </div>
           </div>
+          <div className={styles.sources_toolbar_right}>
+            <Space>
+              <Input
+                placeholder={'关键字搜索'}
+                suffix={<SearchOutlined />}
+                style={{ width: 260 }}
+                value={keyword}
+                onChange={handleChange}
+                allowClear
+              />
+            </Space>
+          </div>
         </div>
-        <Table columns={colums} dataSource={moduleList} />
-        <ModuleForm {...sourceFormProps} />
+        <Table size='small' columns={colums} dataSource={resourceList} />
+        <SourceForm {...sourceFormProps} />
       </div>
     </Card>
   )
 }
 
-export default ModulePage
+export default SourcesPage

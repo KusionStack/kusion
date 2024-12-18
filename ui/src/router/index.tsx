@@ -7,6 +7,7 @@ import ProjectDetail from '@/pages/projects/projectDetail'
 const Projects = lazy(() => import('@/pages/projects'))
 const Insights = lazy(() => import('@/pages/insights'))
 const Modules = lazy(() => import('@/pages/modules'))
+const Sources = lazy(() => import('@/pages/sources'))
 const Workspaces = lazy(() => import('@/pages/workspaces'))
 
 const NotFound = lazy(() => import('@/pages/notfound'))
@@ -43,8 +44,8 @@ const router: RouteObject[] = [
             element: lazyLoad(<Projects />)
           },
           {
-            key: 'projectDetail',
-            path: 'projectDetail/:id',
+            key: 'project',
+            path: 'project/:id',
             element: lazyLoad(<ProjectDetail />)
           },
         ]
@@ -60,6 +61,12 @@ const router: RouteObject[] = [
         path: '/modules',
         title: 'modules',
         element: lazyLoad(<Modules />),
+      },
+      {
+        key: '/sources',
+        path: '/sources',
+        title: 'sources',
+        element: lazyLoad(<Sources />),
       },
       {
         key: '/insights',

@@ -126,7 +126,9 @@ const Runs = () => {
   function renderTableTitle() {
     return <div className={styles.project_runs_toolbar}>
       <div className={styles.project_runs_toolbar_left}>
-        <div className={styles.project_runs_result}>共找到<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>个结果</div>
+        {
+          searchParams?.total && <div className={styles.project_runs_result}>共找到<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>个结果</div>
+        }
         <div className={styles.projects_content_toolbar_list}>
           {
             searchParams?.query && Object.entries(searchParams?.query)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {

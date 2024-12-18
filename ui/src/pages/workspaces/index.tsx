@@ -7,10 +7,11 @@ import {
   SortAscendingOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { SourceService, ResourceService } from '@kusionstack/kusion-api-client-sdk';
+import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 
 import styles from './styles.module.less'
-import G6Tree from '@/components/g6Tree'
+import WorkspaceCard from './components/workspaceCard';
+import WorkscpaceForm from './components/workscpaceForm';
 
 const orderIconStyle: React.CSSProperties = {
   marginLeft: 0,
@@ -25,39 +26,22 @@ const Workspaces = () => {
     isAsc: true,
   })
 
-  async function getSources() {
+
+  async function getListWorkspace() {
     try {
-      const sources = await SourceService.listSource();
-      console.log('Sources:', sources.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  }
-  
-  async function getResourceGraph() {
-    try {
-      const sources = await ResourceService.getResourceGraph({query: '1'} as any);
-      console.log('ResourceService:', sources.data);
+      const sources = await WorkspaceService.listWorkspace();
+      console.log('WorkspaceService:', sources.data);
     } catch (error) {
       console.error('Error:', error);
     }
   }
 
   useEffect(() => {
-    getSources()
-    getResourceGraph()
+    getListWorkspace()
   }, [])
 
   function handleAdd() {
     setOpen(true)
-  }
-
-  function confirmDelete() {
-    console.log('删除成功')
-  }
-
-  function cancel() {
-    console.log('取消操作')
   }
 
   function handleSort(key: any) {
@@ -110,6 +94,13 @@ const Workspaces = () => {
     setKeyword(event?.target.value)
   }
 
+  function handleSubmit(values) {
+    console.log(values, "=====handleSubmit values=====")
+  }
+  function handleClose() {
+    setOpen(false)
+  }
+
   const arrayColByN = conversionArray([1, 2, 3, 4], 4)
   console.log(arrayColByN, '====arrayColByN====')
 
@@ -117,7 +108,7 @@ const Workspaces = () => {
     '这是一段描述文字超长文本测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试'
 
   return (
-    <>
+    <div className={styles.kusion_workspace_container}>
       <div className={styles.kusion_workspace_toolbar}>
         <Button type="primary" onClick={handleAdd}>
           <PlusOutlined /> New Workspace
@@ -145,27 +136,7 @@ const Workspaces = () => {
               {item?.map((innerItem, innerIndex) => {
                 return (
                   <Col key={innerIndex} className="gutter-row" span={6}>
-                    <Card
-                      title={`Workspace ${innerItem}`}
-                      extra={
-                        <Popconfirm
-                          title="Delete the workspace"
-                          description="Are you sure to delete this workspace?"
-                          onConfirm={confirmDelete}
-                          onCancel={cancel}
-                          okText="Yes"
-                          cancelText="No"
-                        >
-                          <DeleteOutlined />
-                        </Popconfirm>
-                      }
-                    >
-                      <Tooltip title={mockDesc}>
-                        <div className={styles.kusion_card_content_desc}>
-                          {mockDesc}
-                        </div>
-                      </Tooltip>
-                    </Card>
+                    <WorkspaceCard title="title" desc={mockDesc} createDate="20241218" nickName="测试" />
                   </Col>
                 )
               })}
@@ -173,8 +144,8 @@ const Workspaces = () => {
           )
         })}
       </div>
-      <G6Tree graphData={{}}/>
-    </>
+      <WorkscpaceForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
+    </div>
   )
 }
 

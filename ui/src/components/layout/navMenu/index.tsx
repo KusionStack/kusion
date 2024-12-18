@@ -50,6 +50,7 @@ const LayoutPage = () => {
     getItem('Projects', '/projects', null),
     getItem('Workspaces', '/workspaces', null),
     getItem('Modules', '/modules', null),
+    getItem('Sources', '/sources', null),
     getItem('Insights', '/insights', null),
   ]
 

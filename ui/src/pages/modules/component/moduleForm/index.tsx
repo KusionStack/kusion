@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 // import styles from './styles.module.less'
-import { Button, Drawer, Form, Input, Space } from 'antd'
+import { Button, Modal, Form, Input, Space } from 'antd'
 import isUrl from 'is-url'
 
 const ModuleForm = ({
@@ -37,18 +37,21 @@ const ModuleForm = ({
 
   return (
     <div>
-      <Drawer
+      <Modal
         width={560}
         title={getTitle()}
         open={open}
         onClose={onClose}
-        extra={
-          <Space>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button onClick={onSubmit} type="primary">
-              Submit
-            </Button>
-          </Space>
+        onCancel={onClose}
+        footer={
+          [
+            <Space>
+              <Button onClick={onClose}>Cancel</Button>
+              <Button onClick={onSubmit} type="primary">
+                Submit
+              </Button>
+            </Space>
+          ]
         }
       >
         <Form form={form} layout="vertical">
@@ -98,7 +101,7 @@ const ModuleForm = ({
             <Input />
           </Form.Item>
         </Form>
-      </Drawer>
+      </Modal>
     </div>
   )
 }

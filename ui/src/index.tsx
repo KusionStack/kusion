@@ -1,29 +1,23 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { ConfigProvider } from 'antd'
 import { Provider } from 'react-redux'
 import dayjs from 'dayjs'
-import 'dayjs/locale/zh-cn'
 import enUS from 'antd/locale/en_US'
 import { BrowserRouter } from 'react-router-dom'
+import { client } from '@kusionstack/kusion-api-client-sdk';
 import WrappedRoutes from '@/router'
 import store from '@/store'
 
-
-import '@/utils/request'
-
 import './index.less'
-
-import { client } from '@kusionstack/kusion-api-client-sdk';
 
 
 
 client.setConfig({
-  baseUrl: 'http://30.177.51.79'
+  baseUrl: 'http://30.177.19.15'
 });
 
-dayjs.locale('zh-cn')
-
+dayjs.locale('en-US')
 
 function App() {
 

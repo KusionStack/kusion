@@ -70,7 +70,7 @@ const Projects = () => {
       title: 'Name',
       dataIndex: 'name',
       render: (text, record) => {
-        return <Button type='link' onClick={() => navigate(`/projects/projectDetail/${record?.id}`)}>{text}</Button>
+        return <Button type='link' onClick={() => navigate(`/projects/project/${record?.id}`)}>{text}</Button>
       }
     },
     {
@@ -78,12 +78,15 @@ const Projects = () => {
       dataIndex: 'description',
     },
     {
-      title: 'Org',
-      dataIndex: 'org',
+      title: 'organization',
+      dataIndex: 'organization',
+      render: (org) => {
+        return <div>{JSON.stringify(org || '{}')}</div>
+      }
     },
     {
-      title: 'Creator',
-      dataIndex: 'creator',
+      title: 'Owners',
+      dataIndex: 'owners',
     },
     {
       title: 'Create Time',
