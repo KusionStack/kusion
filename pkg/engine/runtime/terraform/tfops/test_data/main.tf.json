@@ -1,0 +1,21 @@
+{
+  "provider": {
+    "local": null
+  },
+  "resource": {
+    "local_file": {
+      "kusion_example": {
+        "content": "kusion",
+        "filename": "test.txt"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "local": {
+        "source": "registry.terraform.io/hashicorp/local",
+        "version": "2.2.3"
+      }
+    }
+  }
+}
