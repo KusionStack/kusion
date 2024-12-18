@@ -47,7 +47,6 @@ func TestWorkspaceSuite(t *testing.T) {
 	// Put this test in the last to delete the cache dir.
 	defer func() {
 		t.Run("Test Destroy", func(t *testing.T) {
-			defer os.RemoveAll(cacheDir)
 			type args struct {
 				w *WorkSpace
 			}

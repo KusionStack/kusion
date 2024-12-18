@@ -58,3 +58,6 @@ air.toml
 
 # frontend
 frontend/
+
+# Terraform provider binary folder
+.terraform/ 
