@@ -84,6 +84,12 @@ type ResourceFilter struct {
 	ResourceType     string
 	KusionResourceID string
 	Status           string
+	Pagination       *Pagination
+}
+
+type ResourceListResult struct {
+	Resources []*Resource
+	Total     int
 }
 
 // Validate checks if the resource is valid.

@@ -93,10 +93,17 @@ func (r *moduleRepository) Get(ctx context.Context, name string) (*entity.Module
 }
 
 // List retrieves all the modules.
-func (r *moduleRepository) List(ctx context.Context) ([]*entity.Module, error) {
+func (r *moduleRepository) List(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
 	var dataModel []ModuleModel
 	moduleEntityList := make([]*entity.Module, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+
+	// Get total rows.
+	var totalRows int64
+	r.db.WithContext(ctx).Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data with offset and limit.
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -109,5 +116,8 @@ func (r *moduleRepository) List(ctx context.Context) ([]*entity.Module, error) {
 		moduleEntityList = append(moduleEntityList, moduleEntity)
 	}
 
-	return moduleEntityList, nil
+	return &entity.ModuleListResult{
+		Modules: moduleEntityList,
+		Total:   int(totalRows),
+	}, nil
 }

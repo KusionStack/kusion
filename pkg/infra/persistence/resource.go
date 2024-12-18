@@ -136,16 +136,23 @@ func (r *resourceRepository) GetByKusionResourceID(ctx context.Context, id strin
 }
 
 // List retrieves all resources.
-func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error) {
+func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter) (*entity.ResourceListResult, error) {
 	var dataModel []ResourceModel
 	resourceEntityList := make([]*entity.Resource, 0)
 	pattern, args := GetResourceQuery(filter)
-	result := r.db.WithContext(ctx).
+	searchResult := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
 		Joins("JOIN stack ON stack.id = resource.stack_id").
 		Joins("JOIN project ON project.id = stack.project_id").
-		Where(pattern, args...).
-		Find(&dataModel)
+		Where(pattern, args...)
+
+	// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -156,5 +163,8 @@ func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFi
 		}
 		resourceEntityList = append(resourceEntityList, resourceEntity)
 	}
-	return resourceEntityList, nil
+	return &entity.ResourceListResult{
+		Resources: resourceEntityList,
+		Total:     int(totalRows),
+	}, nil
 }

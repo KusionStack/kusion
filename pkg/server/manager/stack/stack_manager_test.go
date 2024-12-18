@@ -46,9 +46,12 @@ func (m *mockStackRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error) {
+func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Stack), args.Error(1)
+	return &entity.StackListResult{
+		Stacks: args.Get(0).([]*entity.Stack),
+		Total:  len(args.Get(0).([]*entity.Stack)),
+	}, args.Error(1)
 }
 
 func (m *mockStackRepository) Get(ctx context.Context, id uint) (*entity.Stack, error) {
@@ -266,9 +269,12 @@ func (m *mockProjectRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Project), args.Error(1)
+	return &entity.ProjectListResult{
+		Projects: args.Get(0).([]*entity.Project),
+		Total:    len(args.Get(0).([]*entity.Project)),
+	}, args.Error(1)
 }
 
 func (m *mockProjectRepository) Get(ctx context.Context, id uint) (*entity.Project, error) {

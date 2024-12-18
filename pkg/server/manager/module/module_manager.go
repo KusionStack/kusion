@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/manager/workspace"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
 func (m *ModuleManager) CreateModule(ctx context.Context, requestPayload request.CreateModuleRequest) (*entity.Module, error) {
@@ -105,8 +108,8 @@ func (m *ModuleManager) GetModuleByName(ctx context.Context, name string) (*enti
 	return existingEntity, nil
 }
 
-func (m *ModuleManager) ListModules(ctx context.Context) ([]*entity.Module, error) {
-	moduleEntities, err := m.moduleRepo.List(ctx)
+func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
+	moduleEntities, err := m.moduleRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingModule
@@ -173,4 +176,26 @@ func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceI
 	}
 
 	return moduleEntities, nil
+}
+
+func (m *ModuleManager) BuildModuleFilter(ctx context.Context, query *url.Values) (*entity.ModuleFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building module filter...")
+
+	filter := entity.ModuleFilter{}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+	return &filter, nil
 }

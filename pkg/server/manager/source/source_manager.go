@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *SourceManager) ListSources(ctx context.Context) ([]*entity.Source, error) {
-	sourceEntities, err := m.sourceRepo.List(ctx)
+func (m *SourceManager) ListSources(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
+	sourceEntities, err := m.sourceRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingSource
@@ -98,4 +101,27 @@ func (m *SourceManager) CreateSource(ctx context.Context, requestPayload request
 		return nil, err
 	}
 	return &createdEntity, nil
+}
+
+func (m *SourceManager) BuildSourceFilter(ctx context.Context, query *url.Values) (*entity.SourceFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building source filter...")
+
+	filter := entity.SourceFilter{}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	return &filter, nil
 }

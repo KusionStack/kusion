@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"net/url"
 	"strconv"
 
 	"kusionstack.io/kusion/pkg/domain/constant"
@@ -9,7 +10,10 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *ResourceManager) BuildResourceFilter(ctx context.Context, orgIDParam, projectIDParam, stackIDParam, resourcePlaneParam, resourceTypeParam string) (*entity.ResourceFilter, error) {
+func (m *ResourceManager) BuildResourceFilter(ctx context.Context,
+	orgIDParam, projectIDParam, stackIDParam, resourcePlaneParam, resourceTypeParam string,
+	query *url.Values,
+) (*entity.ResourceFilter, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building resource filter...")
 	filter := entity.ResourceFilter{}
@@ -44,5 +48,20 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, orgIDParam, p
 		// if resource type is present, use resource type
 		filter.ResourceType = resourceTypeParam
 	}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.RunPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.RunPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
 	return &filter, nil
 }

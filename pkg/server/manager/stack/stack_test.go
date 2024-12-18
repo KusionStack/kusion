@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -143,9 +144,12 @@ func (m *mockWorkspaceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Workspace), args.Error(1)
+	return &entity.WorkspaceListResult{
+		Workspaces: args.Get(0).([]*entity.Workspace),
+		Total:      len(args.Get(0).([]*entity.Workspace)),
+	}, args.Error(1)
 }
 
 func (m *mockWorkspaceRepository) Get(ctx context.Context, id uint) (*entity.Workspace, error) {
@@ -249,7 +253,7 @@ func TestBuildStackFilter(t *testing.T) {
 		projectIDParam := "456"
 		projectName := ""
 		envParam := ""
-		filter, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		filter, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam, &url.Values{})
 		assert.NoError(t, err)
 		assert.Equal(t, uint(123), filter.OrgID)
 		assert.Equal(t, uint(456), filter.ProjectID)
@@ -261,7 +265,7 @@ func TestBuildStackFilter(t *testing.T) {
 		projectIDParam := "456"
 		projectName := ""
 		envParam := ""
-		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam, &url.Values{})
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidOrganizationID, err)
 	})
@@ -271,7 +275,7 @@ func TestBuildStackFilter(t *testing.T) {
 		projectIDParam := "def"
 		projectName := ""
 		envParam := ""
-		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam, &url.Values{})
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidProjectID, err)
 	})
@@ -285,7 +289,7 @@ func TestBuildStackFilter(t *testing.T) {
 			Name: projectName,
 		}
 		m.projectRepo.(*mockProjectRepository).On("GetByName", ctx, projectName).Return(expectedProject, nil)
-		filter, err := m.BuildStackFilter(ctx, orgIDParam, "", projectName, envParam)
+		filter, err := m.BuildStackFilter(ctx, orgIDParam, "", projectName, envParam, &url.Values{})
 		assert.NoError(t, err)
 		assert.Equal(t, uint(1), filter.ProjectID)
 	})
