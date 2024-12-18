@@ -4,6 +4,7 @@ import { Button, Card, Col, DatePicker, Form, Input, Row, Space, Table, Tag } fr
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { ProjectService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
+import { useNavigate } from 'react-router-dom'
 
 type TypeSearchParams = {
   name?: string
@@ -13,6 +14,7 @@ type TypeSearchParams = {
 } | undefined
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useState<TypeSearchParams>();
   const [dataSource, setDataSource] = useState([])
@@ -67,6 +69,9 @@ const Projects = () => {
     {
       title: 'Name',
       dataIndex: 'name',
+      render: (text, record) => {
+        return <Button type='link' onClick={() => navigate(`/projects/projectDetail/${record?.id}`)}>{text}</Button>
+      }
     },
     {
       title: 'Description',

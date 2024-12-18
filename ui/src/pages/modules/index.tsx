@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Tabs } from 'antd'
+import { Card, Tabs } from 'antd'
 import SourcesPanelContent from './sourcePanelContent'
 import ModulePanelContent from './modulePanelContent'
 
@@ -25,7 +25,9 @@ const Modules = () => {
   ]
 
   return (
+    <Card>
       <Tabs defaultActiveKey="1" type="card" items={tabsItmes as any} />
+    </Card>
   )
 }
 

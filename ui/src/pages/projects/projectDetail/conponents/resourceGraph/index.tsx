@@ -7,9 +7,18 @@ import G6Tree from '@/components/g6Tree'
 
 const ResourceGraph = () => {
 
+  const [graphData, setGraphData] = useState()
+
   async function getResourceGraph() {
-    // const response = await ResourceService.getResourceGraph({ query: 'sele' });
-    // console.log(response, "=====ResourceService.getResourceGraph=====")
+    const response: any = await ResourceService.getResourceGraph({
+      query: {
+        stack_id: 1
+      }
+    });
+    if (response?.data?.success) {
+      setGraphData(response?.data?.data)
+    }
+    console.log(response, "=====ResourceService.getResourceGraph=====")
   }
 
   useEffect(() => {
@@ -18,7 +27,7 @@ const ResourceGraph = () => {
 
   return (
     <div className={styles.project_graph}>
-      <G6Tree />
+      <G6Tree graphData={graphData} />
     </div>
   )
 }

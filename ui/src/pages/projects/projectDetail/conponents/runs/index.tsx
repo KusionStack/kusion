@@ -5,6 +5,7 @@ import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
 
 import styles from "./styles.module.less"
+import RunsForm from './runsForm'
 
 const Runs = () => {
   const [form] = Form.useForm();
@@ -21,13 +22,9 @@ const Runs = () => {
     console.log(values, "handleSubmit")
   }
   function handleClose() {
-    console.log("handleClose")
     setOpen(false)
   }
-  function handleCreate() {
-    setOpen(true)
-    console.log("=====handleCreate=====")
-  }
+
   function handleReset() {
     form.resetFields();
     setSearchParams({
@@ -41,7 +38,11 @@ const Runs = () => {
       ...searchParams,
       query: values,
     })
-    console.log(values, "=====handleSearch=====")
+    getListRun({
+      page: 1,
+      pageSize: 20,
+      query: values
+    })
   }
 
   function handleClear(key) {
@@ -50,18 +51,19 @@ const Runs = () => {
   }
 
   async function getListRun(params) {
-    console.log(params, "=====params=====")
     try {
       const response: any = await StackService.listRun({
-        ...params?.query,
-        pageSize: params?.pageSize,
-        currentPage: params?.page,
+        query: {
+          ...params?.query,
+          pageSize: params?.pageSize || 20,
+          page: params?.page,
+        }
       });
       if (response?.data?.success) {
-        console.log(response?.data?.data, "======StackService resData====")
         setDataSource(response?.data?.data?.runs);
         setSearchParams({
-          ...searchParams,
+          query: params?.query,
+          pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
         })
@@ -115,8 +117,11 @@ const Runs = () => {
   ]
 
   function handleCreateRuns() {
+    setOpen(true)
     console.log("========handleCreateRuns=========")
   }
+
+  console.log(searchParams?.query, "====searchParams?.query====")
 
   function renderTableTitle() {
     return <div className={styles.project_runs_toolbar}>
@@ -135,7 +140,7 @@ const Runs = () => {
           }
         </div>
         {
-          searchParams?.query && <div className={styles.projects_content_toolbar_clear}>
+          Object.entries(searchParams?.query || {})?.filter(([key, val]) => val)?.length > 0 && <div className={styles.projects_content_toolbar_clear}>
             <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
           </div>
         }
@@ -177,6 +182,7 @@ const Runs = () => {
         {renderTableTitle()}
         <Table
           size='small'
+          rowKey="id"
           columns={colums}
           dataSource={dataSource}
           pagination={
@@ -190,6 +196,7 @@ const Runs = () => {
             }
           }
         />
+        <RunsForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
       </div>
     </div>
   )

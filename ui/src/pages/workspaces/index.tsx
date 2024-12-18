@@ -173,7 +173,7 @@ const Workspaces = () => {
           )
         })}
       </div>
-      <G6Tree />
+      <G6Tree graphData={{}}/>
     </>
   )
 }

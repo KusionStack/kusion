@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import type { MenuProps } from 'antd'
 import styles from "./style.module.less"
-import { ClusterOutlined, FundOutlined, SearchOutlined } from '@ant-design/icons'
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -48,10 +47,10 @@ const LayoutPage = () => {
   }
 
   const menuItems = [
-    getItem('Projects', '/projects', <SearchOutlined />),
-    getItem('Workspaces', '/workspaces', <FundOutlined />),
-    getItem('Modules', '/modules', <ClusterOutlined />),
-    getItem('Insights', '/insights', <ClusterOutlined />),
+    getItem('Projects', '/projects', null),
+    getItem('Workspaces', '/workspaces', null),
+    getItem('Modules', '/modules', null),
+    getItem('Insights', '/insights', null),
   ]
 
   function getMenuItems() {

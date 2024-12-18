@@ -1,6 +1,5 @@
 import React, { lazy, ReactNode, Suspense } from 'react'
 import { Navigate, Outlet, useRoutes } from 'react-router-dom'
-import { MacCommandOutlined } from '@ant-design/icons'
 import Layout from '@/components/layout'
 import Loading from '@/components/loading'
 import ProjectDetail from '@/pages/projects/projectDetail'
@@ -36,7 +35,6 @@ const router: RouteObject[] = [
         path: '/projects',
         title: 'Projects',
         element: <Outlet />,
-        icon: <MacCommandOutlined />,
         children: [
           {
             index: true,
@@ -56,66 +54,19 @@ const router: RouteObject[] = [
         path: '/workspaces',
         title: 'Workspaces',
         element: lazyLoad(<Workspaces />),
-        icon: <MacCommandOutlined />,
       },
       {
         key: '/modules',
         path: '/modules',
         title: 'modules',
         element: lazyLoad(<Modules />),
-        icon: <MacCommandOutlined />,
       },
       {
         key: '/insights',
         path: '/insights',
         title: 'Insights',
         element: lazyLoad(<Insights />),
-        icon: <MacCommandOutlined />,
       },
-      // {
-      //   key: '/search',
-      //   path: '/search',
-      //   element: <Outlet />,
-      //   icon: <SearchOutlined />,
-      //   children: [
-      //     {
-      //       key: 'result',
-      //       path: 'result',
-      //       element: lazyLoad(<Result />),
-      //     },
-      //     {
-      //       path: '',
-      //       element: lazyLoad(<Search />),
-      //       children: [
-      //         {
-      //           // index: true,
-      //           key: 'modules',
-      //           path: 'modules',
-      //           element: lazyLoad(<Modules />),
-      //         },
-      //         {
-      //           key: 'projects',
-      //           path: 'projects',
-      //           element: lazyLoad(<Projects />),
-      //         },
-      //         {
-      //           key: 'insights',
-      //           path: 'insights',
-      //           element: lazyLoad(<Insights />),
-      //         },
-      //         {
-      //           key: 'workspaces',
-      //           path: 'workspaces',
-      //           element: lazyLoad(<Workspaces />),
-      //         },
-      //         {
-      //           path: '',
-      //           element: <Navigate replace to="modules" />,
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
       {
         path: '/',
         element: <Navigate replace to="/projects" />,

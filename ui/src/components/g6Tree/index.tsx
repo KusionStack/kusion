@@ -86,7 +86,7 @@ const OverviewTooltip = memo((props: any) => {
 })
 
 
-const G6Tree = ({ }) => {
+const G6Tree = ({ graphData }) => {
 
   const graphRef = useRef<any>()
 
@@ -259,7 +259,7 @@ const G6Tree = ({ }) => {
     //     },
     //   ],
     // };
-    const data = generateG6GraphData()
+    const data = generateG6GraphData(graphData)
     console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
     const valList: any = Object.values(edgesLayer);
@@ -398,7 +398,7 @@ const G6Tree = ({ }) => {
         }
       } catch (error) { }
     }
-  }, [])
+  }, [graphData])
 
 
   return (
