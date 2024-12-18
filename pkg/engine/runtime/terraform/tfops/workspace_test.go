@@ -42,247 +42,394 @@ const (
 	stackDir = "."
 )
 
-func TestWriteHCL(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
-
-	type want struct {
-		mainTF string
-	}
-
-	cases := map[string]struct {
-		args
-		want
-	}{
-		"writeSuccess": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
-				},
-			},
-			want: want{
-				mainTF: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
-			},
-		},
-	}
-
-	for name, tt := range cases {
-		t.Run(name, func(t *testing.T) {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			if err := tt.args.w.WriteHCL(); err != nil {
-				t.Errorf("writeHCL error: %v", err)
+// TestWorkspaceSuite implements the unit test cases for workspace related functions.
+func TestWorkspaceSuite(t *testing.T) {
+	// Put this test in the last to delete the cache dir.
+	defer func() {
+		t.Run("Test Destroy", func(t *testing.T) {
+			defer os.RemoveAll(cacheDir)
+			type args struct {
+				w *WorkSpace
 			}
 
-			s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "main.tf.json"))
-			if diff := cmp.Diff(string(s), tt.want.mainTF); diff != "" {
-				t.Errorf("\n%s\nWriteHCL(...): -want mainTF, +got mainTF:\n%s", name, diff)
+			type want struct {
+				err error
+			}
+
+			cases := map[string]struct {
+				args
+				want
+			}{
+				"success": {
+					args: args{
+						w: &WorkSpace{
+							mutex: &sync.Mutex{},
+						},
+					},
+					want: want{
+						err: nil,
+					},
+				},
+			}
+			for name, tt := range cases {
+				mockey.PatchConvey(name, t, func() {
+					tt.args.w.SetResource(&resourceTest)
+					tt.args.w.SetCacheDir(cacheDir)
+					tt.args.w.SetStackDir(stackDir)
+					if err := tt.w.Destroy(context.TODO()); err != nil {
+						t.Errorf("terraform destroy error: %v", err)
+					}
+				})
 			}
 		})
-	}
-}
+	}()
 
-func TestWriteTFState(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
+	t.Run("Test Write HCL", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
 
-	type want struct {
-		tfstate string
-	}
+		type want struct {
+			mainTF string
+		}
 
-	cases := map[string]struct {
-		args
-		want
-	}{
-		"writeSuccess": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+		cases := map[string]struct {
+			args
+			want
+		}{
+			"writeSuccess": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
+				},
+				want: want{
+					mainTF: "{\n  \"provider\": {\n    \"local\": null\n  },\n  \"resource\": {\n    \"local_file\": {\n      \"kusion_example\": {\n        \"content\": \"kusion\",\n        \"filename\": \"test.txt\"\n      }\n    }\n  },\n  \"terraform\": {\n    \"required_providers\": {\n      \"local\": {\n        \"source\": \"registry.terraform.io/hashicorp/local\",\n        \"version\": \"2.2.3\"\n      }\n    }\n  }\n}",
 				},
 			},
-			want: want{
-				tfstate: "{\n  \"resources\": [\n    {\n      \"instances\": [\n        {\n          \"attributes\": {\n            \"content\": \"kusion\",\n            \"filename\": \"test.txt\"\n          }\n        }\n      ],\n      \"mode\": \"managed\",\n      \"name\": \"kusion_example\",\n      \"provider\": \"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\n      \"type\": \"local_file\"\n    }\n  ],\n  \"version\": 4\n}",
-			},
-		},
-	}
+		}
 
-	for name, tt := range cases {
-		t.Run(name, func(t *testing.T) {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			if err := tt.args.w.WriteTFState(&resourceTest); err != nil {
-				t.Errorf("WriteTFState error: %v", err)
-			}
+		for name, tt := range cases {
+			t.Run(name, func(t *testing.T) {
+				tt.args.w.SetResource(&resourceTest)
+				tt.args.w.SetCacheDir(cacheDir)
+				if err := tt.args.w.WriteHCL(); err != nil {
+					t.Errorf("writeHCL error: %v", err)
+				}
 
-			s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "terraform.tfstate"))
-			if diff := cmp.Diff(string(s), tt.want.tfstate); diff != "" {
-				t.Errorf("\n%s\nWriteTFState(...): -want tfstate, +got tfstate:\n%s", name, diff)
-			}
-		})
-	}
-}
+				s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "main.tf.json"))
+				if diff := cmp.Diff(string(s), tt.want.mainTF); diff != "" {
+					t.Errorf("\n%s\nWriteHCL(...): -want mainTF, +got mainTF:\n%s", name, diff)
+				}
+			})
+		}
+	})
 
-func TestInitWorkspace(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
+	t.Run("Test Write TF State", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
 
-	type want struct {
-		err error
-	}
+		type want struct {
+			tfstate string
+		}
 
-	cases := map[string]struct {
-		args
-		want
-	}{
-		"initws": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+		cases := map[string]struct {
+			args
+			want
+		}{
+			"writeSuccess": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
+				},
+				want: want{
+					tfstate: "{\n  \"resources\": [\n    {\n      \"instances\": [\n        {\n          \"attributes\": {\n            \"content\": \"kusion\",\n            \"filename\": \"test.txt\"\n          }\n        }\n      ],\n      \"mode\": \"managed\",\n      \"name\": \"kusion_example\",\n      \"provider\": \"provider[\\\"registry.terraform.io/hashicorp/local\\\"]\",\n      \"type\": \"local_file\"\n    }\n  ],\n  \"version\": 4\n}",
 				},
 			},
-		},
-	}
-	for name, tt := range cases {
-		t.Run(name, func(t *testing.T) {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			err := tt.args.w.InitWorkSpace(context.TODO())
-			if diff := cmp.Diff(tt.want.err, err); diff != "" {
-				t.Errorf("\nInitWorkSpace(...) -want err, +got err: \n%s", diff)
-			}
-		})
-	}
-}
+		}
 
-func TestApply(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
+		for name, tt := range cases {
+			t.Run(name, func(t *testing.T) {
+				tt.args.w.SetResource(&resourceTest)
+				tt.args.w.SetCacheDir(cacheDir)
+				if err := tt.args.w.WriteTFState(&resourceTest); err != nil {
+					t.Errorf("WriteTFState error: %v", err)
+				}
 
-	tests := map[string]struct {
-		args
-	}{
-		"applySuccess": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+				s, _ := fs.ReadFile(filepath.Join(tt.w.tfCacheDir, "terraform.tfstate"))
+				if diff := cmp.Diff(string(s), tt.want.tfstate); diff != "" {
+					t.Errorf("\n%s\nWriteTFState(...): -want tfstate, +got tfstate:\n%s", name, diff)
+				}
+			})
+		}
+	})
+
+	t.Run("Test Init Workspace", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
+
+		type want struct {
+			err error
+		}
+
+		cases := map[string]struct {
+			args
+			want
+		}{
+			"initws": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
 				},
 			},
-		},
-	}
-	for name, tt := range tests {
-		mockey.PatchConvey(name, t, func() {
-			mockProviderAddr()
-			tt.w.SetResource(&resourceTest)
-			tt.w.SetCacheDir(cacheDir)
-			tt.args.w.SetStackDir(stackDir)
-			if err := tt.w.WriteHCL(); err != nil {
-				t.Errorf("\nWriteHCL error: %v", err)
-			}
-			if err := tt.w.InitWorkSpace(context.TODO()); err != nil {
-				t.Errorf("\nInitWorkSpace error: %v", err)
-			}
-			if _, err := tt.w.Apply(context.TODO()); err != nil {
-				t.Errorf("\n Apply error: %v", err)
-			}
-		})
-	}
-}
+		}
+		for name, tt := range cases {
+			t.Run(name, func(t *testing.T) {
+				tt.args.w.SetResource(&resourceTest)
+				tt.args.w.SetCacheDir(cacheDir)
+				err := tt.args.w.InitWorkSpace(context.TODO())
+				if diff := cmp.Diff(tt.want.err, err); diff != "" {
+					t.Errorf("\nInitWorkSpace(...) -want err, +got err: \n%s", diff)
+				}
+			})
+		}
+	})
 
-func TestRead(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
-	tests := map[string]struct {
-		args args
-	}{
-		"readSuccess": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+	t.Run("Test Apply", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
+
+		tests := map[string]struct {
+			args
+		}{
+			"applySuccess": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
 				},
 			},
-		},
-	}
-	for name, tt := range tests {
-		mockey.PatchConvey(name, t, func() {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			tt.args.w.SetStackDir(stackDir)
-			if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
-				t.Errorf("\n Read error: %v", err)
-			}
-		})
-	}
-}
+		}
+		for name, tt := range tests {
+			mockey.PatchConvey(name, t, func() {
+				mockProviderAddr()
+				tt.w.SetResource(&resourceTest)
+				tt.w.SetCacheDir(cacheDir)
+				tt.args.w.SetStackDir(stackDir)
+				if err := tt.w.WriteHCL(); err != nil {
+					t.Errorf("\nWriteHCL error: %v", err)
+				}
+				if err := tt.w.InitWorkSpace(context.TODO()); err != nil {
+					t.Errorf("\nInitWorkSpace error: %v", err)
+				}
+				if _, err := tt.w.Apply(context.TODO()); err != nil {
+					t.Errorf("\n Apply error: %v", err)
+				}
+			})
+		}
+	})
 
-func TestRefreshOnly(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
-	tests := map[string]struct {
-		args args
-	}{
-		"readSuccess": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+	t.Run("Test Read", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
+		tests := map[string]struct {
+			args args
+		}{
+			"readSuccess": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
 				},
 			},
-		},
-	}
-	for name, tt := range tests {
-		mockey.PatchConvey(name, t, func() {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			tt.args.w.SetStackDir(stackDir)
-			if _, err := tt.args.w.RefreshOnly(context.TODO()); err != nil {
-				t.Errorf("\n RefreshOnly error: %v", err)
-			}
-		})
-	}
-}
+		}
+		for name, tt := range tests {
+			mockey.PatchConvey(name, t, func() {
+				tt.args.w.SetResource(&resourceTest)
+				tt.args.w.SetCacheDir(cacheDir)
+				tt.args.w.SetStackDir(stackDir)
+				if _, err := tt.args.w.ShowState(context.TODO()); err != nil {
+					t.Errorf("\n Read error: %v", err)
+				}
+			})
+		}
+	})
 
-func TestGerProvider(t *testing.T) {
-	type args struct {
-		w *WorkSpace
-	}
-
-	type want struct {
-		addr string
-		err  error
-	}
-
-	tests := map[string]struct {
-		args
-		want
-	}{
-		"Success": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
+	t.Run("Test Refresh Only", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
+		tests := map[string]struct {
+			args args
+		}{
+			"readSuccess": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
 				},
 			},
-			want: want{
-				addr: "registry.terraform.io/hashicorp/local/2.2.3",
+		}
+		for name, tt := range tests {
+			mockey.PatchConvey(name, t, func() {
+				tt.args.w.SetResource(&resourceTest)
+				tt.args.w.SetCacheDir(cacheDir)
+				tt.args.w.SetStackDir(stackDir)
+				if _, err := tt.args.w.RefreshOnly(context.TODO()); err != nil {
+					t.Errorf("\n RefreshOnly error: %v", err)
+				}
+			})
+		}
+	})
+
+	t.Run("Test Get Provider", func(t *testing.T) {
+		type args struct {
+			w *WorkSpace
+		}
+
+		type want struct {
+			addr string
+			err  error
+		}
+
+		tests := map[string]struct {
+			args
+			want
+		}{
+			"Success": {
+				args: args{
+					w: &WorkSpace{
+						mutex: &sync.Mutex{},
+					},
+				},
+				want: want{
+					addr: "registry.terraform.io/hashicorp/local/2.2.3",
+				},
 			},
-		},
-	}
-	for name, tt := range tests {
-		mockey.PatchConvey(name, t, func() {
-			mockProviderAddr()
-			addr, err := tt.args.w.GetProvider()
-			if diff := cmp.Diff(tt.want.addr, addr); diff != "" {
-				t.Errorf("\nGetProvider(...) -want addr, +got addr:\n%s", diff)
-			}
-			if diff := cmp.Diff(tt.want.err, err); diff != "" {
-				t.Errorf("\nGetProvider(...) -want error, +got error:\n%s", diff)
-			}
-		})
-	}
+		}
+		for name, tt := range tests {
+			mockey.PatchConvey(name, t, func() {
+				mockProviderAddr()
+				addr, err := tt.args.w.GetProvider()
+				if diff := cmp.Diff(tt.want.addr, addr); diff != "" {
+					t.Errorf("\nGetProvider(...) -want addr, +got addr:\n%s", diff)
+				}
+				if diff := cmp.Diff(tt.want.err, err); diff != "" {
+					t.Errorf("\nGetProvider(...) -want error, +got error:\n%s", diff)
+				}
+			})
+		}
+	})
+
+	t.Run("Test Workspace_Run", func(t *testing.T) {
+		type fields struct {
+			resource   *apiv1.Resource
+			stackDir   string
+			tfCacheDir string
+		}
+		type args struct {
+			ctx context.Context
+		}
+		tests := []struct {
+			name    string
+			fields  fields
+			args    args
+			want    *PlanRepresentation
+			wantErr bool
+		}{
+			{
+				name: "plan",
+				fields: struct {
+					resource   *apiv1.Resource
+					stackDir   string
+					tfCacheDir string
+				}{
+					resource: &resourceTest, stackDir: stackDir, tfCacheDir: cacheDir,
+				},
+				args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false,
+			},
+		}
+		for _, tt := range tests {
+			mockey.PatchConvey(tt.name, t, func() {
+				w := &WorkSpace{
+					resource:   tt.fields.resource,
+					stackDir:   tt.fields.stackDir,
+					tfCacheDir: tt.fields.tfCacheDir,
+				}
+				if err := w.WriteHCL(); err != nil {
+					t.Errorf("\nWriteHCL error: %v", err)
+				}
+				mockProviderAddr()
+				_, err := w.Plan(tt.args.ctx)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("Plan() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			})
+		}
+	})
+
+	t.Run("Test Workspace_ShowPlan", func(t *testing.T) {
+		type fields struct {
+			resource   *apiv1.Resource
+			fs         afero.Afero
+			stackDir   string
+			tfCacheDir string
+		}
+		type args struct {
+			ctx context.Context
+		}
+		tests := []struct {
+			name    string
+			fields  fields
+			args    args
+			want    *PlanRepresentation
+			wantErr bool
+		}{
+			{name: "show_plan", fields: fields{
+				resource:   &resourceTest,
+				fs:         fs,
+				stackDir:   stackDir,
+				tfCacheDir: cacheDir,
+			}, args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false},
+		}
+
+		for _, tt := range tests {
+			mockey.PatchConvey(tt.name, t, func() {
+				w := &WorkSpace{
+					resource:   tt.fields.resource,
+					stackDir:   tt.fields.stackDir,
+					tfCacheDir: tt.fields.tfCacheDir,
+				}
+
+				// read file
+				data, err := os.ReadFile(filepath.Join("test_data", "plan.out.json"))
+				if err != nil {
+					panic(err)
+				}
+
+				mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
+					return data, nil
+				}).Build()
+
+				got, err := w.ShowPlan(tt.args.ctx)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				r := jsonutil.Marshal2PrettyString(got)
+				if !reflect.DeepEqual(r, string(data)) {
+					t.Errorf("ShowPlan() got = %v, want %v", r, string(data))
+				}
+			})
+		}
+	})
 }
 
 func mockProviderAddr() {
@@ -312,146 +459,4 @@ func mockProviderAddr() {
 			},
 		}, nil
 	}).Build()
-}
-
-func TestWorkSpace_Plan(t *testing.T) {
-	type fields struct {
-		resource   *apiv1.Resource
-		stackDir   string
-		tfCacheDir string
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *PlanRepresentation
-		wantErr bool
-	}{
-		{
-			name: "plan",
-			fields: struct {
-				resource   *apiv1.Resource
-				stackDir   string
-				tfCacheDir string
-			}{
-				resource: &resourceTest, stackDir: stackDir, tfCacheDir: cacheDir,
-			},
-			args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
-			w := &WorkSpace{
-				resource:   tt.fields.resource,
-				stackDir:   tt.fields.stackDir,
-				tfCacheDir: tt.fields.tfCacheDir,
-			}
-			if err := w.WriteHCL(); err != nil {
-				t.Errorf("\nWriteHCL error: %v", err)
-			}
-			mockProviderAddr()
-			_, err := w.Plan(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Plan() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestWorkSpace_ShowPlan(t *testing.T) {
-	type fields struct {
-		resource   *apiv1.Resource
-		fs         afero.Afero
-		stackDir   string
-		tfCacheDir string
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *PlanRepresentation
-		wantErr bool
-	}{
-		{name: "show_plan", fields: fields{
-			resource:   &resourceTest,
-			fs:         fs,
-			stackDir:   stackDir,
-			tfCacheDir: cacheDir,
-		}, args: struct{ ctx context.Context }{ctx: context.TODO()}, want: nil, wantErr: false},
-	}
-
-	for _, tt := range tests {
-		mockey.PatchConvey(tt.name, t, func() {
-			w := &WorkSpace{
-				resource:   tt.fields.resource,
-				stackDir:   tt.fields.stackDir,
-				tfCacheDir: tt.fields.tfCacheDir,
-			}
-
-			// read file
-			data, err := os.ReadFile(filepath.Join("test_data", "plan.out.json"))
-			if err != nil {
-				panic(err)
-			}
-
-			mockey.Mock((*exec.Cmd).CombinedOutput).To(func(*exec.Cmd) ([]byte, error) {
-				return data, nil
-			}).Build()
-
-			got, err := w.ShowPlan(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ShowPlan() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			r := jsonutil.Marshal2PrettyString(got)
-			if !reflect.DeepEqual(r, string(data)) {
-				t.Errorf("ShowPlan() got = %v, want %v", r, string(data))
-			}
-		})
-	}
-}
-
-// put this test in the last to delete the cache dir
-func TestDestroy(t *testing.T) {
-	defer os.RemoveAll(cacheDir)
-	type args struct {
-		w *WorkSpace
-	}
-
-	type want struct {
-		err error
-	}
-
-	cases := map[string]struct {
-		args
-		want
-	}{
-		"success": {
-			args: args{
-				w: &WorkSpace{
-					mutex: &sync.Mutex{},
-				},
-			},
-			want: want{
-				err: nil,
-			},
-		},
-	}
-	for name, tt := range cases {
-		mockey.PatchConvey(name, t, func() {
-			tt.args.w.SetResource(&resourceTest)
-			tt.args.w.SetCacheDir(cacheDir)
-			tt.args.w.SetStackDir(stackDir)
-			if err := tt.w.Destroy(context.TODO()); err != nil {
-				t.Errorf("terraform destroy error: %v", err)
-			}
-		})
-	}
 }
