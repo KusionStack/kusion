@@ -16,7 +16,8 @@ type ResourceModel struct {
 	ResourceType         string
 	ResourcePlane        string
 	ResourceName         string
-	KusionResourceID     string `gorm:"index:unique_kusion_resource_id,unique"`
+	ResourceURN          string `gorm:"index:unique_kusion_resource_urn,unique"`
+	KusionResourceID     string
 	IAMResourceID        string
 	CloudResourceID      string
 	LastAppliedRevision  string
@@ -56,6 +57,7 @@ func (m *ResourceModel) ToEntity() (*entity.Resource, error) {
 		ResourceType:         m.ResourceType,
 		ResourcePlane:        m.ResourcePlane,
 		ResourceName:         m.ResourceName,
+		ResourceURN:          m.ResourceURN,
 		KusionResourceID:     m.KusionResourceID,
 		IAMResourceID:        m.IAMResourceID,
 		CloudResourceID:      m.CloudResourceID,
@@ -83,6 +85,7 @@ func (m *ResourceModel) FromEntity(e *entity.Resource) error {
 	m.ResourcePlane = e.ResourcePlane
 	m.ResourceType = e.ResourceType
 	m.ResourceName = e.ResourceName
+	m.ResourceURN = e.ResourceURN
 	m.KusionResourceID = e.KusionResourceID
 	m.IAMResourceID = e.IAMResourceID
 	m.CloudResourceID = e.CloudResourceID

@@ -420,6 +420,10 @@ func convertV1ResourceToEntity(resource *v1.Resource) (*entity.Resource, error) 
 	}, nil
 }
 
+func resourceURN(project, stack, workspace, id string) string {
+	return fmt.Sprintf("%s:%s:%s:%s", project, stack, workspace, id)
+}
+
 func isKubernetesResource(resource *v1.Resource) bool {
 	return resource.Type == v1.Kubernetes
 }

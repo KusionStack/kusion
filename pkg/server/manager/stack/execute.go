@@ -451,7 +451,7 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	}
 	rel = upRel
 	// Write resources to DB
-	err = m.WriteResources(ctx, rel, stackEntity, specID)
+	err = m.WriteResources(ctx, rel, stackEntity, ws.Name, specID)
 	if err != nil {
 		return err
 	}

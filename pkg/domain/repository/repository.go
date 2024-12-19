@@ -117,8 +117,8 @@ type ResourceRepository interface {
 	Update(ctx context.Context, resource *entity.Resource) error
 	// Get retrieves a resource by its ID.
 	Get(ctx context.Context, id uint) (*entity.Resource, error)
-	// GetByKusionResourceID retrieves a resource by its KusionID.
-	GetByKusionResourceID(ctx context.Context, kusionID string) (*entity.Resource, error)
+	// GetByKusionResourceURN retrieves a resource by its Kusion resource URN.
+	GetByKusionResourceURN(ctx context.Context, urn string) (*entity.Resource, error)
 	// List retrieves all existing resource.
 	List(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error)
 }

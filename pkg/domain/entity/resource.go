@@ -20,6 +20,8 @@ type Resource struct {
 	ResourcePlane string `yaml:"resourcePlane" json:"resourcePlane"`
 	// ResourceName is the name of the resource.
 	ResourceName string `yaml:"resourceName" json:"resourceName"`
+	// ResourceURN is the urn of the resource.
+	ResourceURN string `yaml:"resourceURN" json:"resourceURN"`
 	// KusionResourceID is the id of the resource in Kusion.
 	KusionResourceID string `yaml:"kusionResourceID" json:"kusionResourceID"`
 	// IAMResourceID is the id of the resource in IAM.
