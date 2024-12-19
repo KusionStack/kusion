@@ -27,6 +27,7 @@ import (
 	runtimeinit "kusionstack.io/kusion/pkg/engine/runtime/init"
 	"kusionstack.io/kusion/pkg/infra/util/semaphore"
 	"kusionstack.io/kusion/pkg/log"
+	"kusionstack.io/kusion/pkg/server/middleware"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 	"kusionstack.io/kusion/pkg/util/kcl"
 	"kusionstack.io/kusion/pkg/util/pretty"
@@ -236,10 +237,10 @@ func Watch(
 		defer ticker.Stop()
 
 		// Record the watched and finished resources.
-		watchedIDs := []string{}
 		watching := make(map[string]bool)
 		finished := make(map[string]bool)
 
+		logutil.LogToAll(sysLogger, runLogger, "Info", "Total resources to watch: ", len(toBeWatched))
 		for !(len(finished) == len(toBeWatched)) {
 			select {
 			// Get the resource ID to be watched.
@@ -247,6 +248,8 @@ func Watch(
 				res := resourceMap[id]
 				// Set the timeout duration for watch context, here we set an experiential value of 60 minutes.
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(watchTimeout))
+				ctx = context.WithValue(ctx, middleware.APILoggerKey, sysLogger)
+				ctx = context.WithValue(ctx, middleware.RunLoggerKey, runLogger)
 				defer cancel()
 
 				// Get the event channel for watching the resource.
@@ -261,32 +264,27 @@ func Watch(
 				}
 
 				w := rsp.Watchers
+				logutil.LogToAll(sysLogger, runLogger, "Info", "setting finished to false...", "id", id, "timeElapsed", time.Now().String())
 				watching[id] = false
 
 				// Setup a go-routine to concurrently watch K8s and TF resources.
 				if res.Type == apiv1.Kubernetes {
 					healthPolicy, kind := getHealthPolicy(&res)
-					log.Debug("healthPolicy found: ", healthPolicy)
-					go watchK8sResources(id, kind, w.Watchers, watching, gph, dryRun, healthPolicy, rel)
+					go watchK8sResources(ctx, id, kind, w.Watchers, watching, gph, dryRun, healthPolicy, rel)
 				} else if res.Type == apiv1.Terraform {
-					go watchTFResources(id, w.TFWatcher, watching, dryRun, rel)
+					go watchTFResources(ctx, id, w.TFWatcher, watching, dryRun, rel)
 				} else {
 					log.Debug("unsupported resource type to watch: %s", string(res.Type))
 					continue
 				}
-
-				// Record the io writer related to the resource ID.
-				watchedIDs = append(watchedIDs, id)
-
 			// Refresh the tables printing details of the resources to be watched.
 			default:
-				for _, id := range watchedIDs {
-					logutil.LogToAll(sysLogger, runLogger, "Info", "watching resource...", "id", id, "timeElapsed", time.Now().String())
-				}
 				for id := range watching {
+					logutil.LogToAll(sysLogger, runLogger, "Info", "watching resource...", "id", id, "timeElapsed", time.Now().String())
 					if watching[id] {
 						finished[id] = true
-						logutil.LogToAll(sysLogger, runLogger, "Info", "resource is reconciled...", "id", id, "timeElapsed", time.Now().String())
+						logutil.LogToAll(sysLogger, runLogger, "Info", "finished watching. resource is reconciled...", "id", id, "timeElapsed", time.Now().String())
+						delete(watching, id)
 						resource := graph.FindGraphResourceByID(gph.Resources, id)
 						if resource != nil {
 							resource.Status = apiv1.Reconciled
@@ -417,6 +415,7 @@ func getHealthPolicy(res *apiv1.Resource) (healthPolicy interface{}, kind string
 }
 
 func watchK8sResources(
+	ctx context.Context,
 	id, kind string,
 	chs []<-chan watch.Event,
 	watching map[string]bool,
@@ -440,6 +439,9 @@ func watchK8sResources(
 		}
 	}()
 
+	sysLogger := logutil.GetLogger(ctx)
+	runLogger := logutil.GetRunLogger(ctx)
+
 	// Set resource status to `reconcile failed` before reconcile successfully.
 	resource := graph.FindGraphResourceByID(gph.Resources, id)
 	if resource != nil {
@@ -458,18 +460,25 @@ func watchK8sResources(
 	for {
 		chosen, recv, recvOK := reflect.Select(cases)
 		if cases[chosen].Dir == reflect.SelectDefault {
-			continue
+			// handle timeout
+			select {
+			case <-ctx.Done():
+				logutil.LogToAll(sysLogger, runLogger, "Info", "Watch timeout reached. Setting watching to true...", "id", id, "timeElapsed", time.Now().String())
+				watching[id] = true
+				return
+			default:
+				continue
+			}
 		}
 		if recvOK {
 			e := recv.Interface().(watch.Event)
 			o := e.Object.(*unstructured.Unstructured)
 			// var detail string
 			var ready bool
+			var kclResp string
 			if e.Type == watch.Deleted {
 				ready = true
 			} else {
-				// Restore to actual type
-				target := printers.Convert(o)
 				// Check reconcile status with customized health policy for specific resource
 				if healthPolicy != nil && kind == o.GetObjectKind().GroupVersionKind().Kind {
 					if code, ok := kcl.ConvertKCLCode(healthPolicy); ok {
@@ -478,18 +487,25 @@ func watchK8sResources(
 							log.Error(err)
 							return
 						}
-						_, ready = printers.PrintCustomizedHealthCheck(code, resByte)
+						kclResp, ready = printers.PrintCustomizedHealthCheck(code, resByte)
+						if ready {
+							logutil.LogToAll(sysLogger, runLogger, "Info", "Customized health check ready: ", "ready", ready, "kclResp", kclResp, "timeElapsed", time.Now().String(), "id", id)
+						}
 					} else {
-						_, ready = printers.Generate(target)
+						// _, ready = printers.Generate(target)
+						continue
 					}
 				} else {
 					// Check reconcile status with default setup
-					_, ready = printers.Generate(target)
+					// _, ready = printers.Generate(target)
+					// logutil.LogToAll(sysLogger, runLogger, "Info", "generic hp ready: ", "ready", ready, "timeElapsed", time.Now().String(), "id", id)
+					continue
 				}
 			}
 
 			// Mark ready for breaking loop
 			if ready {
+				logutil.LogToAll(sysLogger, runLogger, "Info", "Kubernetes resource reconciled. Setting finished to true...", "id", id, "timeElapsed", time.Now().String())
 				watching[id] = true
 				break
 			}
@@ -498,6 +514,7 @@ func watchK8sResources(
 }
 
 func watchTFResources(
+	ctx context.Context,
 	id string,
 	ch <-chan runtime.TFEvent,
 	watching map[string]bool,
@@ -518,6 +535,8 @@ func watchTFResources(
 			_ = release.UpdateApplyRelease(releaseStorage, rel, dryRun, relLock)
 		}
 	}()
+	sysLogger := logutil.GetLogger(ctx)
+	runLogger := logutil.GetRunLogger(ctx)
 
 	var ready bool
 	for {
@@ -538,6 +557,7 @@ func watchTFResources(
 		// Mark ready for breaking loop
 		if ready {
 			watching[id] = true
+			logutil.LogToAll(sysLogger, runLogger, "Info", "Terraform resource apply completed. Setting finished to true...", "id", id, "timeElapsed", time.Now().String())
 			break
 		}
 	}

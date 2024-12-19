@@ -479,6 +479,7 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		if err != nil {
 			return nil, nil, nil, err
 		}
+		// Patch health policy to the resources
 		healthPolicy := config.platformConfig[v1.FieldHealthPolicy]
 		// parse module result
 		// if only one resource exists in the workload module, it is the workload
@@ -490,6 +491,10 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 			}
 			// add isWorkload extension to workload to mark workload
 			workload.Extensions[isWorkload] = true
+			// Add healthPolicy to workload extensions
+			if healthPolicy != nil && workload != nil {
+				patchHealthPolicy(workload, healthPolicy)
+			}
 		} else {
 			for _, res := range response.Resources {
 				temp := &v1.Resource{}
@@ -505,9 +510,16 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 				}
 			}
 		}
-		// Add healthPolicy to workload extensions
-		if healthPolicy != nil && workload != nil {
-			patchHealthPolicy(workload, healthPolicy)
+		if hp, ok := healthPolicy.(v1.GenericConfig); ok {
+			for _, res := range resources {
+				if res.Type == v1.Kubernetes {
+					resApiVersion, resKind := getAPIVersionKindFromAttributes(res.Attributes)
+					hpApiVersion, hpKind := getAPIVersionKindFromHealthPolicy(hp)
+					if strings.EqualFold(resApiVersion, hpApiVersion) && strings.EqualFold(resKind, hpKind) {
+						patchHealthPolicy(&res, hp)
+					}
+				}
+			}
 		}
 		// parse patcher
 		temp := &v1.Patcher{}
@@ -744,4 +756,25 @@ func patchHealthPolicy(resource *v1.Resource, healthPolicy any) {
 		}
 		resource.Extensions[v1.FieldHealthPolicy] = healthPolicyMap
 	}
+}
+
+// getAPIVersionKindFromAttributes returns the API version and kind from the resource attributes.
+func getAPIVersionKindFromAttributes(attributes map[string]interface{}) (apiVersion, kind string) {
+	if v, ok := attributes["apiVersion"]; ok {
+		apiVersion = v.(string)
+	}
+	if k, ok := attributes["kind"]; ok {
+		kind = k.(string)
+	}
+	return apiVersion, kind
+}
+
+func getAPIVersionKindFromHealthPolicy(healthPolicy v1.GenericConfig) (apiVersion, kind string) {
+	if v, ok := healthPolicy["apiVersion"]; ok {
+		apiVersion = v.(string)
+	}
+	if k, ok := healthPolicy["kind"]; ok {
+		kind = k.(string)
+	}
+	return apiVersion, kind
 }
