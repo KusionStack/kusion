@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -281,6 +282,10 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 	projectIDParam := query.Get("projectID")
 	stackIDParam := query.Get("stackID")
 	workspaceParam := query.Get("workspace")
+	runTypeParam := query.Get("type")
+	runStatusParam := query.Get("status")
+	startTimeParam := query.Get("startTime")
+	endTimeParam := query.Get("endTime")
 
 	filter := entity.RunFilter{}
 	if projectIDParam != "" {
@@ -302,6 +307,35 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 	if workspaceParam != "" {
 		// if workspace is present, use workspace
 		filter.Workspace = workspaceParam
+	}
+	if runTypeParam != "" {
+		// if run type is present, use run type
+		filter.Type = strings.Split(runTypeParam, ",")
+	}
+	if runStatusParam != "" {
+		// if run status is present, use run status
+		filter.Status = strings.Split(runStatusParam, ",")
+	}
+	// time format: RFC3339
+	if startTimeParam != "" {
+		// if start time is present, use start time
+		startTime, err := time.Parse(time.RFC3339, startTimeParam)
+		if err != nil {
+			return nil, err
+		}
+		filter.StartTime = startTime
+	}
+	if endTimeParam != "" {
+		// if end time is present, use end time
+		endTime, err := time.Parse(time.RFC3339, endTimeParam)
+		if err != nil {
+			return nil, err
+		}
+		// validate end time is after start time
+		if !filter.StartTime.IsZero() && endTime.Before(filter.StartTime) {
+			return nil, fmt.Errorf("end time must be after start time")
+		}
+		filter.EndTime = endTime
 	}
 	// Set pagination parameters
 	page, _ := strconv.Atoi(query.Get("page"))
