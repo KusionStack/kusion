@@ -179,6 +179,34 @@ func GetRunQuery(filter *entity.RunFilter) (string, []interface{}) {
 	return CombineQueryParts(pattern), args
 }
 
+func GetVariableLabelsQuery(filter *entity.VariableLabelsFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if len(filter.Labels) != 0 {
+		var labelsPattern []string
+		for _, label := range filter.Labels {
+			labelsPattern = append(labelsPattern, "labels LIKE ?")
+			args = append(args, "%"+label+"%")
+		}
+		pattern = append(pattern, "("+strings.Join(labelsPattern, " OR ")+")")
+	}
+
+	return CombineQueryParts(pattern), args
+}
+
+func GetVariableQuery(filter *entity.VariableFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if filter.Key != "" {
+		pattern = append(pattern, "variable_key = ?")
+		args = append(args, fmt.Sprintf(filter.Key))
+	}
+
+	return CombineQueryParts(pattern), args
+}
+
 func CombineQueryParts(queryParts []string) string {
 	queryString := ""
 	if len(queryParts) > 0 {
@@ -216,6 +244,12 @@ func AutoMigrate(db *gorm.DB) error {
 		return err
 	}
 	if err := db.AutoMigrate(&RunModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&VariableLabelsModel{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&VariableModel{}); err != nil {
 		return err
 	}
 	return nil

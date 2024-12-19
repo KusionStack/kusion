@@ -24,6 +24,8 @@ var (
 	ErrAppConfigModelNil              = errors.New("appconfig model can't be nil")
 	ErrFailedToGetModuleRemote        = errors.New("failed to parse module remote")
 	ErrResourceModelNil               = errors.New("resource model can't be nil")
+	ErrVariableLabelsModelNil         = errors.New("variable labels model can't be nil")
+	ErrVariableModelNil               = errors.New("variable model can't be nil")
 	ErrFailedToGetModuleDocRemote     = errors.New("failed to parse module doc remote")
 	ErrRunModelNil                    = errors.New("run model can't be nil")
 	ErrFailedToGetRunType             = errors.New("failed to parse run type")

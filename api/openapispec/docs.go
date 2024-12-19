@@ -2281,7 +2281,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -2350,7 +2350,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec"
                         }
                     },
                     "400": {
@@ -2446,6 +2446,548 @@ const docTemplate = `{
                         "description": "Success",
                         "schema": {
                             "$ref": "#/definitions/entity.Run"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variable-labels": {
+            "get": {
+                "description": "List variable labels",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_labels"
+                ],
+                "summary": "List variable labels",
+                "operationId": "listVariableLabels",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Variable labels to filter variables by. Default to all(empty) labels.",
+                        "name": "labels",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page number of the paginated list results. Default to 1.",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page size of the paginated list results. If not set, the result won't be paginated.",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.VariableLabelsListResult"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new set of variable labels",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_labels"
+                ],
+                "summary": "Create variable labels",
+                "operationId": "createVariableLabels",
+                "parameters": [
+                    {
+                        "description": "Created variable labels",
+                        "name": "variable_labels",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateVariableLabelsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.VariableLabels"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variable-labels/{key}": {
+            "get": {
+                "description": "Get variable labels by variable key",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_labels"
+                ],
+                "summary": "Get variable labels",
+                "operationId": "getVariableLabels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.VariableLabels"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the specified variable labels",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_labels"
+                ],
+                "summary": "Update variable labels",
+                "operationId": "updateVariableLabels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated Variable Labels",
+                        "name": "variable_labels",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateVariableLabelsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.VariableLabels"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a specified variable with labels",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_labels"
+                ],
+                "summary": "Delete variable labels",
+                "operationId": "deleteVariableLabels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variables": {
+            "get": {
+                "description": "List variables",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "List variables",
+                "operationId": "listVariables",
+                "parameters": [
+                    {
+                        "description": "Variable labels to filter variables by.",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ListVariableSetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.VariableLabelsListResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new variable",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Create variable",
+                "operationId": "createVariable",
+                "parameters": [
+                    {
+                        "description": "Created variable",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateVariableSetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Variable"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variables/{fqn}": {
+            "get": {
+                "description": "Get variable by variable fqn",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Get variable",
+                "operationId": "getVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Fqn",
+                        "name": "fqn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Variable"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the specified variable",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Update variable",
+                "operationId": "updateVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Fqn",
+                        "name": "fqn",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated Variable",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateVariableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Variable"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a specified variable with fqn",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Delete variable",
+                "operationId": "deleteVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Fqn",
+                        "name": "fqn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3066,7 +3608,7 @@ const docTemplate = `{
                     "description": "// Type is the type of the backend.\nType string ` + "`" + `yaml:\"type\" json:\"type\"` + "`" + `\nBackend is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3402,7 +3944,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "logs": {
-                    "description": "Result RunResult ` + "`" + `yaml:\"result\" json:\"result\"` + "`" + `\nLogs is the logs of the run.",
+                    "description": "Logs is the logs of the run.",
                     "type": "string"
                 },
                 "result": {
@@ -3425,6 +3967,10 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "trace": {
+                    "description": "Trace is the trace of the run.",
+                    "type": "string"
+                },
                 "type": {
                     "description": "RunType is the type of the run provider.",
                     "allOf": [
@@ -3439,6 +3985,34 @@ const docTemplate = `{
                 },
                 "workspace": {
                     "description": "Workspace is the target workspace of the run.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SecretStore": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "providerType": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SecretValue": {
+            "type": "object",
+            "properties": {
+                "ref": {
+                    "description": "Ref will only return with the update secret variable",
+                    "type": "string"
+                },
+                "secretStore": {
+                    "$ref": "#/definitions/entity.SecretStore"
+                },
+                "value": {
+                    "description": "Value to store in the secret store.",
                     "type": "string"
                 }
             }
@@ -3585,6 +4159,64 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.Variable": {
+            "type": "object",
+            "properties": {
+                "fqn": {
+                    "description": "Fqn is the fully qualified name of the variable.",
+                    "type": "string"
+                },
+                "labels": {
+                    "description": "Labels clarifies the scope of the variable.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "Type is the type of the variable.",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value of the variable.",
+                    "type": "string"
+                },
+                "variableKey": {
+                    "description": "VariableKey is the access path for the variable.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.VariableLabels": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "description": "Labels is the list of variable labels, which should be sorted\nin ascending order of priority.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "variableKey": {
+                    "description": "VariableKey is the access path for the variable.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.VariableLabelsListResult": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "variableLabels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.VariableLabels"
+                    }
+                }
+            }
+        },
         "entity.Workspace": {
             "type": "object",
             "properties": {
@@ -3636,6 +4268,312 @@ const docTemplate = `{
                 }
             }
         },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider": {
+            "type": "object",
+            "properties": {
+                "region": {
+                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType": {
+            "type": "string",
+            "enum": [
+                "PublicCloud",
+                "USGovernmentCloud",
+                "ChinaCloud",
+                "GermanCloud"
+            ],
+            "x-enum-varnames": [
+                "AzureEnvironmentPublicCloud",
+                "AzureEnvironmentUSGovernmentCloud",
+                "AzureEnvironmentChinaCloud",
+                "AzureEnvironmentGermanCloud"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider": {
+            "type": "object",
+            "properties": {
+                "environmentType": {
+                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType"
+                        }
+                    ]
+                },
+                "tenantId": {
+                    "description": "TenantID configures the Azure Tenant to send requests to.",
+                    "type": "string"
+                },
+                "vaultUrl": {
+                    "description": "Vault Url from which the secrets to be fetched from.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "description": "Default is default block of the module config.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                },
+                "valueMap": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig": {
+            "type": "object",
+            "additionalProperties": {}
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains all levels of module configs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs"
+                        }
+                    ]
+                },
+                "path": {
+                    "description": "Path is the path of the module. It can be a local path or a remote URL",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the version of the module.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig"
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModulePatcherConfig": {
+            "type": "object",
+            "properties": {
+                "projectSelector": {
+                    "description": "ProjectSelector contains the selected projects.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "attributes of the provider",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "platform name of the provider",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec": {
+            "type": "object",
+            "properties": {
+                "alicloud": {
+                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider"
+                        }
+                    ]
+                },
+                "aws": {
+                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider"
+                        }
+                    ]
+                },
+                "azure": {
+                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider"
+                        }
+                    ]
+                },
+                "fake": {
+                    "description": "Fake configures a store with static key/value pairs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider"
+                        }
+                    ]
+                },
+                "onpremises": {
+                    "description": "Onprem configures a store in on-premises environments",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider"
+                        }
+                    ]
+                },
+                "vault": {
+                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider"
+                        }
+                    ]
+                },
+                "viettelcloud": {
+                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "Attributes represents all specified attributes of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "dependsOn": {
+                    "description": "DependsOn contains all resources this resource depends on",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extensions": {
+                    "description": "Extensions specifies arbitrary metadata of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                },
+                "resources": {
+                    "description": "Resources is the list of Resource this Spec contains.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource"
+                    }
+                },
+                "secretStore": {
+                    "description": "SecretSore represents a external secret store location for storing secrets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
+                        }
+                    ]
+                }
+            }
+        },
         "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type": {
             "type": "string",
             "enum": [
@@ -3646,6 +4584,51 @@ const docTemplate = `{
                 "Kubernetes",
                 "Terraform"
             ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion": {
+            "type": "string",
+            "enum": [
+                "v1",
+                "v2"
+            ],
+            "x-enum-varnames": [
+                "VaultKVStoreV1",
+                "VaultKVStoreV2"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
+                    "type": "string"
+                },
+                "server": {
+                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider": {
+            "type": "object",
+            "properties": {
+                "cmpURL": {
+                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
+                    "type": "string"
+                },
+                "projectID": {
+                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
+                    "type": "string"
+                }
+            }
         },
         "models.ActionType": {
             "type": "integer",
@@ -3721,7 +4704,7 @@ const docTemplate = `{
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3933,6 +4916,55 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateVariableLabelsRequest": {
+            "type": "object",
+            "required": [
+                "labels",
+                "variableKey"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels is the list of variable labels, which should be sorted\nin ascending order of priority.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "variableKey": {
+                    "description": "VariableKey is the access path for the variable.",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateVariableSetRequest": {
+            "type": "object",
+            "required": [
+                "type",
+                "value",
+                "variableKey"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels clarifies the scope of the variable.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "Type is the type of the variable.",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value of the variable.",
+                    "type": "string"
+                },
+                "variableKey": {
+                    "description": "VariableKey is the access path for the variable.",
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateWorkspaceRequest": {
             "type": "object",
             "required": [
@@ -3969,6 +5001,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ListVariableSetRequest": {
+            "type": "object",
+            "required": [
+                "labels"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels clarifies the scope of the variables.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.StackImportRequest": {
             "type": "object",
             "properties": {
@@ -3991,7 +5038,7 @@ const docTemplate = `{
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -4226,6 +5273,53 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateVariableLabelsRequest": {
+            "type": "object",
+            "required": [
+                "labels",
+                "variableKey"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels is the list of variable labels, which should be sorted\nin ascending order of priority.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "variableKey": {
+                    "description": "VariableKey is the access path for the variable.",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateVariableRequest": {
+            "type": "object",
+            "properties": {
+                "isSecret": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "description": "key is the unique index to use value in specific stack",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "Path is the relative path of the stack within the source.",
+                    "type": "string"
+                },
+                "project": {
+                    "description": "Project is the project related to stack",
+                    "type": "string"
+                },
+                "secretValue": {
+                    "$ref": "#/definitions/entity.SecretValue"
+                },
+                "value": {
+                    "description": "value is the plain value of no sensitive data",
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateWorkspaceRequest": {
             "type": "object",
             "required": [
@@ -4273,7 +5367,7 @@ const docTemplate = `{
                     "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.GenericConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
                         }
                     ]
                 },
@@ -4281,7 +5375,7 @@ const docTemplate = `{
                     "description": "Modules are the configs of a set of modules.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.ModuleConfigs"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs"
                         }
                     ]
                 },
@@ -4289,7 +5383,7 @@ const docTemplate = `{
                     "description": "SecretStore represents a secure external location for storing secrets.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.SecretStore"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
                         }
                     ]
                 }
@@ -4349,357 +5443,6 @@ const docTemplate = `{
         },
         "url.Userinfo": {
             "type": "object"
-        },
-        "v1.AWSProvider": {
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
-                    "type": "string"
-                },
-                "region": {
-                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AlicloudProvider": {
-            "type": "object",
-            "properties": {
-                "region": {
-                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AzureEnvironmentType": {
-            "type": "string",
-            "enum": [
-                "PublicCloud",
-                "USGovernmentCloud",
-                "ChinaCloud",
-                "GermanCloud"
-            ],
-            "x-enum-varnames": [
-                "AzureEnvironmentPublicCloud",
-                "AzureEnvironmentUSGovernmentCloud",
-                "AzureEnvironmentChinaCloud",
-                "AzureEnvironmentGermanCloud"
-            ]
-        },
-        "v1.AzureKVProvider": {
-            "type": "object",
-            "properties": {
-                "environmentType": {
-                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureEnvironmentType"
-                        }
-                    ]
-                },
-                "tenantId": {
-                    "description": "TenantID configures the Azure Tenant to send requests to.",
-                    "type": "string"
-                },
-                "vaultUrl": {
-                    "description": "Vault Url from which the secrets to be fetched from.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.BackendConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "type": {
-                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.Configs": {
-            "type": "object",
-            "properties": {
-                "default": {
-                    "description": "Default is default block of the module config.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.FakeProvider": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.FakeProviderData"
-                    }
-                }
-            }
-        },
-        "v1.FakeProviderData": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                },
-                "valueMap": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.GenericConfig": {
-            "type": "object",
-            "additionalProperties": {}
-        },
-        "v1.ModuleConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains all levels of module configs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.Configs"
-                        }
-                    ]
-                },
-                "path": {
-                    "description": "Path is the path of the module. It can be a local path or a remote URL",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the version of the module.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ModuleConfigs": {
-            "type": "object",
-            "additionalProperties": {
-                "$ref": "#/definitions/v1.ModuleConfig"
-            }
-        },
-        "v1.ModulePatcherConfig": {
-            "type": "object",
-            "properties": {
-                "projectSelector": {
-                    "description": "ProjectSelector contains the selected projects.",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "v1.OnPremisesProvider": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "attributes of the provider",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "description": "platform name of the provider",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ProviderSpec": {
-            "type": "object",
-            "properties": {
-                "alicloud": {
-                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AlicloudProvider"
-                        }
-                    ]
-                },
-                "aws": {
-                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AWSProvider"
-                        }
-                    ]
-                },
-                "azure": {
-                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureKVProvider"
-                        }
-                    ]
-                },
-                "fake": {
-                    "description": "Fake configures a store with static key/value pairs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.FakeProvider"
-                        }
-                    ]
-                },
-                "onpremises": {
-                    "description": "Onprem configures a store in on-premises environments",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.OnPremisesProvider"
-                        }
-                    ]
-                },
-                "vault": {
-                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultProvider"
-                        }
-                    ]
-                },
-                "viettelcloud": {
-                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ViettelCloudProvider"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.Resource": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "Attributes represents all specified attributes of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "dependsOn": {
-                    "description": "DependsOn contains all resources this resource depends on",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "extensions": {
-                    "description": "Extensions specifies arbitrary metadata of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "id": {
-                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.SecretStore": {
-            "type": "object",
-            "properties": {
-                "provider": {
-                    "$ref": "#/definitions/v1.ProviderSpec"
-                }
-            }
-        },
-        "v1.Spec": {
-            "type": "object",
-            "properties": {
-                "context": {
-                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                },
-                "resources": {
-                    "description": "Resources is the list of Resource this Spec contains.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.Resource"
-                    }
-                },
-                "secretStore": {
-                    "description": "SecretSore represents a external secret store location for storing secrets.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.SecretStore"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.VaultKVStoreVersion": {
-            "type": "string",
-            "enum": [
-                "v1",
-                "v2"
-            ],
-            "x-enum-varnames": [
-                "VaultKVStoreV1",
-                "VaultKVStoreV2"
-            ]
-        },
-        "v1.VaultProvider": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
-                    "type": "string"
-                },
-                "server": {
-                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultKVStoreVersion"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.ViettelCloudProvider": {
-            "type": "object",
-            "properties": {
-                "cmpURL": {
-                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
-                    "type": "string"
-                },
-                "projectID": {
-                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
-                    "type": "string"
-                }
-            }
         }
     }
 }`

@@ -83,13 +83,13 @@ func (h *Handler) GetResource() http.HandlerFunc {
 // @Description	Get resource graph by stack ID
 // @Tags			resource
 // @Produce		json
-// @Param			stack_id	query		uint				true	"Stack ID"
-// @Success		200	{object}	entity.ResourceGraph	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			stack_id	query		uint					true	"Stack ID"
+// @Success		200			{object}	entity.ResourceGraph	"Success"
+// @Failure		400			{object}	error					"Bad Request"
+// @Failure		401			{object}	error					"Unauthorized"
+// @Failure		429			{object}	error					"Too Many Requests"
+// @Failure		404			{object}	error					"Not Found"
+// @Failure		500			{object}	error					"Internal Server Error"
 // @Router			/api/v1/resources/graph [get]
 func (h *Handler) GetResourceGraph() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

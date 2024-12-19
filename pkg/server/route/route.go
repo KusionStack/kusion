@@ -21,6 +21,8 @@ import (
 	"kusionstack.io/kusion/pkg/server/handler/resource"
 	"kusionstack.io/kusion/pkg/server/handler/source"
 	"kusionstack.io/kusion/pkg/server/handler/stack"
+	"kusionstack.io/kusion/pkg/server/handler/variable"
+	"kusionstack.io/kusion/pkg/server/handler/variablelabels"
 	"kusionstack.io/kusion/pkg/server/handler/workspace"
 	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	modulemanager "kusionstack.io/kusion/pkg/server/manager/module"
@@ -29,6 +31,8 @@ import (
 	resourcemanager "kusionstack.io/kusion/pkg/server/manager/resource"
 	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
+	variablemanager "kusionstack.io/kusion/pkg/server/manager/variable"
+	variablelabelsmanager "kusionstack.io/kusion/pkg/server/manager/variablelabels"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 	authutil "kusionstack.io/kusion/pkg/server/util/auth"
@@ -133,6 +137,8 @@ func setupRestAPIV1(
 	resourceRepo := persistence.NewResourceRepository(config.DB)
 	moduleRepo := persistence.NewModuleRepository(config.DB)
 	runRepo := persistence.NewRunRepository(config.DB)
+	variableLabelsRepo := persistence.NewVariableLabelsRepository(config.DB)
+	variableRepo := persistence.NewVariableRepository(config.DB)
 
 	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, config.DefaultBackend, config.MaxConcurrent)
 	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
@@ -142,46 +148,58 @@ func setupRestAPIV1(
 	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, config.DefaultSource)
 	resourceManager := resourcemanager.NewResourceManager(resourceRepo)
 	moduleManager := modulemanager.NewModuleManager(moduleRepo, workspaceRepo, backendRepo)
+	variableLabelsManager := variablelabelsmanager.NewVariableLabelsManager(variableLabelsRepo)
+	variableManager := variablemanager.NewVariableManager(variableRepo, variableLabelsRepo)
 
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating source handler...", "error", err)
+		logger.Error("Error creating source handler...", "error", err.Error())
 		return
 	}
 	orgHandler, err := organization.NewHandler(organizationManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating org handler...", "error", err)
+		logger.Error("Error creating org handler...", "error", err.Error())
 		return
 	}
 	projectHandler, err := project.NewHandler(projectManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating project handler...", "error", err)
+		logger.Error("Error creating project handler...", "error", err.Error())
 		return
 	}
 	stackHandler, err := stack.NewHandler(stackManager, config.MaxAsyncConcurrent, config.MaxAsyncBuffer)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating stack handler...", "error", err)
+		logger.Error("Error creating stack handler...", "error", err.Error())
 		return
 	}
 	workspaceHandler, err := workspace.NewHandler(workspaceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating workspace handler...", "error", err)
+		logger.Error("Error creating workspace handler...", "error", err.Error())
 		return
 	}
 	backendHandler, err := backend.NewHandler(backendManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating backend handler...", "error", err)
+		logger.Error("Error creating backend handler...", "error", err.Error())
 		return
 	}
 	resourceHandler, err := resource.NewHandler(resourceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating resource handler...", "error", err)
+		logger.Error("Error creating resource handler...", "error", err.Error())
 		return
 	}
 	moduleHandler, err := module.NewHandler(moduleManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating module handler", "error", err)
+		logger.Error("Error creating module handler", "error", err.Error())
+		return
+	}
+	variableLabelsHandler, err := variablelabels.NewHandler(variableLabelsManager)
+	if err != nil {
+		logger.Error("Error creating variablelabels handler", "error", err.Error())
+		return
+	}
+	variableHandler, err := variable.NewHandler(variableManager, variableLabelsManager)
+	if err != nil {
+		logger.Error("Error creating variable handler", "error", err.Error())
 		return
 	}
 
@@ -289,6 +307,24 @@ func setupRestAPIV1(
 			r.Delete("/", moduleHandler.DeleteModule())
 			r.Put("/", moduleHandler.UpdateModule())
 			r.Get("/", moduleHandler.GetModule())
+		})
+	})
+	r.Route("/variable-labels", func(r chi.Router) {
+		r.Post("/", variableLabelsHandler.CreateVariableLabels())
+		r.Get("/", variableLabelsHandler.ListVariableLabels())
+		r.Route("/{variableKey}", func(r chi.Router) {
+			r.Delete("/", variableLabelsHandler.DeleteVariableLabels())
+			r.Put("/", variableLabelsHandler.UpdateVariableLabels())
+			r.Get("/", variableLabelsHandler.GetVariableLabels())
+		})
+	})
+	r.Route("/variables", func(r chi.Router) {
+		r.Post("/", variableHandler.CreateVariable())
+		r.Get("/", variableHandler.ListVariables())
+		r.Route("/{variableFqn}", func(r chi.Router) {
+			r.Delete("/", variableHandler.DeleteVariable())
+			r.Put("/", variableHandler.UpdateVariable())
+			r.Get("/", variableHandler.GetVariable())
 		})
 	})
 }

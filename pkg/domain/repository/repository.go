@@ -152,3 +152,33 @@ type RunRepository interface {
 	// List retrieves all existing run.
 	List(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error)
 }
+
+// VariableLabelsRepository is an interface that defines the repository
+// for variable labels. It follows the principles of domain-driven design (DDD).
+type VariableLabelsRepository interface {
+	// Create creates a new set of variable labels.
+	Create(ctx context.Context, vl *entity.VariableLabels) error
+	// Delete deletes a set of variable labels by its key.
+	Delete(ctx context.Context, key string) error
+	// Update updates an existing set of variable labels.
+	Update(ctx context.Context, vl *entity.VariableLabels) error
+	// GetByKey retrieves a set of variable labels by its key.
+	GetByKey(ctx context.Context, key string) (*entity.VariableLabels, error)
+	// List retrieves all existing variable labels.
+	List(ctx context.Context, filter *entity.VariableLabelsFilter) (*entity.VariableLabelsListResult, error)
+}
+
+// VariableRepository is an interface that defines the repository operations
+// for variables. It follows the principles of domain-driven design (DDD).
+type VariableRepository interface {
+	// Create creates a new variable.
+	Create(ctx context.Context, v *entity.Variable) error
+	// Delete deletes a variable by its fqn.
+	Delete(ctx context.Context, fqn string) error
+	// Update updates an existing variable.
+	Update(ctx context.Context, v *entity.Variable) error
+	// GetByFqn retrieves a variable by its fqn.
+	GetByFqn(ctx context.Context, fqn string) (*entity.Variable, error)
+	// List retrieves all existing variables.
+	List(ctx context.Context, filter *entity.VariableFilter) (*entity.VariableListResult, error)
+}
