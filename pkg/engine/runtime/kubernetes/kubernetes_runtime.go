@@ -14,7 +14,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	// discoveryv1 "k8s.io/api/discovery/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -355,33 +355,32 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 	watchers := runtime.NewWatchers()
 	// reqObj has only one watch event
 	watchers.Insert(engine.BuildIDForKubernetes(reqObj), events[0].Event)
-	// if reqObj.GetKind() == convertor.Service { // Watch Endpoints or EndpointSlice
-	// 	if gvk, err := k.mapper.KindFor(schema.GroupVersionResource{
-	// 		Group:    discoveryv1.SchemeGroupVersion.Group,
-	// 		Version:  discoveryv1.SchemeGroupVersion.Version,
-	// 		Resource: convertor.EndpointSlice,
-	// 	}); gvk.Empty() || err != nil { // Watch Endpoints
-	// 		log.Errorf("k8s runtime has no kind for EndpointSlice, err: %v", err)
-	// 		namedGVK := getNamedGVK(reqObj.GroupVersionKind())
-	// 		events, err = k.WatchByRelation(ctx, reqObj, namedGVK, 1, namedBy)
-	// 		if err != nil {
-	// 			return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
-	// 		}
+	if reqObj.GetKind() == convertor.Service { // Watch Endpoints or EndpointSlice
+		if gvk, err := k.mapper.KindFor(schema.GroupVersionResource{
+			Group:    discoveryv1.SchemeGroupVersion.Group,
+			Version:  discoveryv1.SchemeGroupVersion.Version,
+			Resource: convertor.EndpointSlice,
+		}); gvk.Empty() || err != nil { // Watch Endpoints
+			log.Errorf("k8s runtime has no kind for EndpointSlice, err: %v", err)
+			namedGVK := getNamedGVK(reqObj.GroupVersionKind())
+			events, err = k.WatchByRelation(ctx, reqObj, namedGVK, 1, namedBy)
+			if err != nil {
+				return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
+			}
 
-	// 		// Endpoints has only one watch event
-	// 		watchers.Insert(engine.BuildIDForKubernetes(events[0].Resource), events[0].Event)
-	// 	} else { // Watch EndpointSlice
-	// 		dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
-	// 		events, err = k.WatchByRelation(ctx, reqObj, dependentGVK, 1, ownedBy)
-	// 		if err != nil {
-	// 			return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
-	// 		}
+			// Endpoints has only one watch event
+			watchers.Insert(engine.BuildIDForKubernetes(events[0].Resource), events[0].Event)
+		} else { // Watch EndpointSlice
+			dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+			events, err = k.WatchByRelation(ctx, reqObj, dependentGVK, 1, ownedBy)
+			if err != nil {
+				return &runtime.WatchResponse{Status: v1.NewErrorStatus(err)}
+			}
 
-	// 		// EndpointSlice has only one watch event
-	// 		watchers.Insert(engine.BuildIDForKubernetes(events[0].Resource), events[0].Event)
-	// 	}
-	// } else
-	if reqObj.GetKind() == convertor.Namespace { // Watch Namespace's default serviceAccount
+			// EndpointSlice has only one watch event
+			watchers.Insert(engine.BuildIDForKubernetes(events[0].Resource), events[0].Event)
+		}
+	} else if reqObj.GetKind() == convertor.Namespace { // Watch Namespace's default serviceAccount
 		dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
 		events, err = k.WatchByRelation(ctx, reqObj, dependentGVK, 1, isDefaultServiceAccount)
 		if err != nil {
@@ -751,12 +750,12 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 		}
 	// Service is the owner of EndpointSlice
 	case convertor.Service:
-		return schema.GroupVersionKind{}
-		// return schema.GroupVersionKind{
-		// 	Group:   discoveryv1.SchemeGroupVersion.Group,
-		// 	Version: discoveryv1.SchemeGroupVersion.Version,
-		// 	Kind:    convertor.EndpointSlice,
-		// }
+		// return schema.GroupVersionKind{}
+		return schema.GroupVersionKind{
+			Group:   discoveryv1.SchemeGroupVersion.Group,
+			Version: discoveryv1.SchemeGroupVersion.Version,
+			Kind:    convertor.EndpointSlice,
+		}
 	// Namespace is the owner of ServiceAccount
 	case convertor.Namespace:
 		return schema.GroupVersionKind{

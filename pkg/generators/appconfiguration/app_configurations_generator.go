@@ -513,9 +513,9 @@ func (g *appConfigurationGenerator) callModules(projectModuleConfigs map[string]
 		if hp, ok := healthPolicy.(v1.GenericConfig); ok {
 			for _, res := range resources {
 				if res.Type == v1.Kubernetes {
-					resApiVersion, resKind := getAPIVersionKindFromAttributes(res.Attributes)
-					hpApiVersion, hpKind := getAPIVersionKindFromHealthPolicy(hp)
-					if strings.EqualFold(resApiVersion, hpApiVersion) && strings.EqualFold(resKind, hpKind) {
+					resAPIVersion, resKind := getAPIVersionKindFromAttributes(res.Attributes)
+					hpAPIVersion, hpKind := getAPIVersionKindFromHealthPolicy(hp)
+					if strings.EqualFold(resAPIVersion, hpAPIVersion) && strings.EqualFold(resKind, hpKind) {
 						patchHealthPolicy(&res, hp)
 					}
 				}
