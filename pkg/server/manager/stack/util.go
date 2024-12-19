@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-chi/httplog/v2"
 	"gorm.io/gorm"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -36,6 +35,8 @@ func BuildOptions(dryrun bool, maxConcurrent int) *engineapi.APIOptions {
 		// IgnoreFields: []string{},
 		DryRun:        dryrun,
 		MaxConcurrent: maxConcurrent,
+		// Watch:         false,
+		WatchTimeout: 120,
 	}
 	return executeOptions
 }
@@ -434,25 +435,6 @@ func isInRelease(release *v1.Release, id string) bool {
 		}
 	}
 	return false
-}
-
-func logToAll(sysLogger *httplog.Logger, runLogger *httplog.Logger, level string, message string, args ...any) {
-	switch strings.ToLower(level) {
-	case "info":
-		sysLogger.Info(message, args...)
-		runLogger.Info(message, args...)
-	case "error":
-		sysLogger.Error(message, args...)
-		runLogger.Error(message, args...)
-	case "warn":
-		sysLogger.Warn(message, args...)
-		runLogger.Warn(message, args...)
-	case "debug":
-		sysLogger.Debug(message, args...)
-		runLogger.Debug(message, args...)
-	default:
-		sysLogger.Error("unknown log level", "level", level)
-	}
 }
 
 func unlockRelease(ctx context.Context, storage release.Storage) error {
