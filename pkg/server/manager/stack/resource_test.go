@@ -31,7 +31,12 @@ func TestStackManager_WriteResources(t *testing.T) {
 		},
 		ModifiedTime: time.Now(),
 	}
-	stack := &entity.Stack{}
+	stack := &entity.Stack{
+		Project: &entity.Project{
+			Name: "project",
+		},
+		Name: "stack",
+	}
 	specID := "spec-1"
 
 	t.Run("WriteResources", func(t *testing.T) {
