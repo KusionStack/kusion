@@ -457,6 +457,9 @@ func watchK8sResources(
 		Send: reflect.Value{},
 	})
 
+	// when both are ready, break the loop
+	ready := map[string]bool{}
+
 	for {
 		chosen, recv, recvOK := reflect.Select(cases)
 		if cases[chosen].Dir == reflect.SelectDefault {
@@ -474,41 +477,52 @@ func watchK8sResources(
 			e := recv.Interface().(watch.Event)
 			o := e.Object.(*unstructured.Unstructured)
 			// var detail string
-			var ready bool
-			var kclResp string
 			if e.Type == watch.Deleted {
-				ready = true
+				ready["custom"] = true
 			} else {
+				// Restore to actual type
+				target := printers.Convert(o)
 				// Check reconcile status with customized health policy for specific resource
 				if healthPolicy != nil && kind == o.GetObjectKind().GroupVersionKind().Kind {
+					ready["custom"] = false
 					if code, ok := kcl.ConvertKCLCode(healthPolicy); ok {
 						resByte, err := yaml.Marshal(o.Object)
 						if err != nil {
 							log.Error(err)
 							return
 						}
-						kclResp, ready = printers.PrintCustomizedHealthCheck(code, resByte)
-						if ready {
-							logutil.LogToAll(sysLogger, runLogger, "Info", "Customized health check ready: ", "ready", ready, "kclResp", kclResp, "timeElapsed", time.Now().String(), "id", id)
+						kclResp, kclReady := printers.PrintCustomizedHealthCheck(code, resByte)
+						if kclReady {
+							ready["custom"] = true
+							logutil.LogToAll(sysLogger, runLogger, "Info", "Customized health check ready: ", "kclResp", kclResp, "timeElapsed", time.Now().String(), "id", id)
 						}
 					} else {
-						// _, ready = printers.Generate(target)
+						// Check reconcile status with default setup
+						ready["default"] = false
+						_, defaultReady := printers.Generate(target)
+						if defaultReady {
+							ready["default"] = true
+							logutil.LogToAll(sysLogger, runLogger, "Info", "Customized health check had a problem. Default health check ready: ", "timeElapsed", time.Now().String(), "id", id)
+						}
 						continue
 					}
 				} else {
 					// Check reconcile status with default setup
-					// _, ready = printers.Generate(target)
-					// logutil.LogToAll(sysLogger, runLogger, "Info", "generic hp ready: ", "ready", ready, "timeElapsed", time.Now().String(), "id", id)
+					ready["default"] = false
+					_, defaultReady := printers.Generate(target)
+					if defaultReady {
+						ready["default"] = true
+						logutil.LogToAll(sysLogger, runLogger, "Info", "default health check ready: ", "timeElapsed", time.Now().String(), "id", id)
+					}
 					continue
 				}
 			}
-
-			// Mark ready for breaking loop
-			if ready {
-				logutil.LogToAll(sysLogger, runLogger, "Info", "Kubernetes resource reconciled. Setting finished to true...", "id", id, "timeElapsed", time.Now().String())
-				watching[id] = true
-				break
-			}
+		}
+		// Mark ready for breaking loop
+		if allReady(ready) {
+			logutil.LogToAll(sysLogger, runLogger, "Info", "Kubernetes resource reconciled. Setting finished to true...", "id", id, "timeElapsed", time.Now().String())
+			watching[id] = true
+			break
 		}
 	}
 }
@@ -572,4 +586,13 @@ func createSelectCases(chs []<-chan watch.Event) []reflect.SelectCase {
 		})
 	}
 	return cases
+}
+
+func allReady(ready map[string]bool) bool {
+	for _, r := range ready {
+		if !r {
+			return false
+		}
+	}
+	return true
 }
