@@ -39,15 +39,16 @@ func TestResourceRepository(t *testing.T) {
 		defer sqlMock.ExpectClose()
 
 		var (
-			expectedID               uint = 1
-			expectedType                  = "Kubernetes"
-			expectedKusionResourceID      = "apps/v1:Deployment:my-namespace:my-deployment"
+			expectedID                uint = 1
+			expectedType                   = "Kubernetes"
+			expectedKusionResourceID       = "apps/v1:Deployment:my-namespace:my-deployment"
+			expectedKusionResourceURN      = "project:stack:workspace:apps/v1:Deployment:my-namespace:my-deployment"
 		)
 		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "kusion_resource_id"}).
-				AddRow(expectedID, expectedType, expectedKusionResourceID))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "kusion_resource_id", "kusion_resource_urn"}).
+				AddRow(expectedID, expectedType, expectedKusionResourceID, expectedKusionResourceURN))
 
-		actual, err := repo.GetByKusionResourceID(context.Background(), expectedKusionResourceID)
+		actual, err := repo.GetByKusionResourceURN(context.Background(), expectedKusionResourceURN)
 		require.NoError(t, err)
 		require.Equal(t, expectedID, actual.ID)
 		require.Equal(t, expectedType, actual.ResourceType)

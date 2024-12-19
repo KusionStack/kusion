@@ -14,7 +14,7 @@ type ProjectModel struct {
 	Source         *SourceModel `gorm:"foreignKey:ID;references:SourceID"`
 	OrganizationID uint
 	Organization   *OrganizationModel `gorm:"foreignKey:ID;references:OrganizationID"`
-	Path           string             `gorm:"index:unique_project,unique"`
+	Path           string
 	Description    string
 	Labels         MultiString
 	Owners         MultiString

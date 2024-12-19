@@ -135,6 +135,21 @@ func (r *resourceRepository) GetByKusionResourceID(ctx context.Context, id strin
 	return dataModel.ToEntity()
 }
 
+// GetByKusionResourceURN retrieves a resource by its kusion resource urn.
+func (r *resourceRepository) GetByKusionResourceURN(ctx context.Context, id string) (*entity.Resource, error) {
+	var dataModel ResourceModel
+	err := r.db.WithContext(ctx).
+		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
+		Joins("JOIN stack ON stack.id = resource.stack_id").
+		Joins("JOIN project ON project.id = stack.project_id").
+		Where("kusion_resource_urn = ?", id).
+		First(&dataModel).Error
+	if err != nil {
+		return nil, err
+	}
+	return dataModel.ToEntity()
+}
+
 // List retrieves all resources.
 func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error) {
 	var dataModel []ResourceModel
