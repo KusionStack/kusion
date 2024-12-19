@@ -93,10 +93,11 @@ func (r *moduleRepository) Get(ctx context.Context, name string) (*entity.Module
 }
 
 // List retrieves all the modules.
-func (r *moduleRepository) List(ctx context.Context) ([]*entity.Module, error) {
+func (r *moduleRepository) List(ctx context.Context, filter *entity.ModuleFilter) ([]*entity.Module, error) {
 	var dataModel []ModuleModel
 	moduleEntityList := make([]*entity.Module, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+	pattern, args := GetModuleQuery(filter)
+	result := r.db.WithContext(ctx).Where(pattern, args...).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -37,6 +37,12 @@ type ModuleWithVersion struct {
 	Doc *url.URL `yaml:"doc,omitempty" json:"doc,omitempty"`
 }
 
+// ModuleFilter is the filter for the module.
+type ModuleFilter struct {
+	// ModuleName is the name of the module to filter by.
+	ModuleName string
+}
+
 // Validate checks if the module is valid.
 // It returns an error if the module is not valid.
 func (m *Module) Validate() error {

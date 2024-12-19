@@ -48,6 +48,10 @@ type RunFilter struct {
 	ProjectID  uint
 	StackID    uint
 	Workspace  string
+	Type       []string
+	Status     []string
+	StartTime  time.Time
+	EndTime    time.Time
 	Pagination *Pagination
 }
 

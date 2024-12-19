@@ -77,17 +77,21 @@ func (h *Handler) GetRunResult() http.HandlerFunc {
 // @Description	List all runs
 // @Tags			stack
 // @Produce		json
-// @Param			projectID			query		uint			false	"ProjectID to filter runs by. Default to all"
-// @Param			orgID				query		uint			false	"OrgID to filter runs by. Default to all"
-// @Param			projectName			query		string			false	"ProjectName to filter runs by. Default to all"
-// @Param			cloud				query		string			false	"Cloud to filter runs by. Default to all"
-// @Param			env					query		string			false	"Environment to filter runs by. Default to all"
-// @Success		200					{object}	[]entity.Stack	"Success"
-// @Failure		400					{object}	error			"Bad Request"
-// @Failure		401					{object}	error			"Unauthorized"
-// @Failure		429					{object}	error			"Too Many Requests"
-// @Failure		404					{object}	error			"Not Found"
-// @Failure		500					{object}	error			"Internal Server Error"
+// @Param			projectID	query		uint			false	"ProjectID to filter runs by. Default to all"
+// @Param			orgID		query		uint			false	"OrgID to filter runs by. Default to all"
+// @Param			projectName	query		string			false	"ProjectName to filter runs by. Default to all"
+// @Param			cloud		query		string			false	"Cloud to filter runs by. Default to all"
+// @Param			env			query		string			false	"Environment to filter runs by. Default to all"
+// @Param			type		query		[]string		false	"RunType to filter runs by. Default to all"
+// @Param			status		query		[]string		false	"RunStatus to filter runs by. Default to all"
+// @Param			startTime	query		string			false	"StartTime to filter runs by. Default to all. Format: RFC3339"
+// @Param			endTime		query		string			false	"EndTime to filter runs by. Default to all. Format: RFC3339"
+// @Success		200			{object}	[]entity.Stack	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
 // @Router			/api/v1/runs [get]
 func (h *Handler) ListRuns() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

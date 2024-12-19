@@ -11,8 +11,8 @@ import (
 	"kusionstack.io/kusion/pkg/domain/request"
 )
 
-func (m *SourceManager) ListSources(ctx context.Context) ([]*entity.Source, error) {
-	sourceEntities, err := m.sourceRepo.List(ctx)
+func (m *SourceManager) ListSources(ctx context.Context, filter *entity.SourceFilter) ([]*entity.Source, error) {
+	sourceEntities, err := m.sourceRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingSource
