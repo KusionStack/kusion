@@ -6,7 +6,7 @@ import insertCss from "insert-css"
 import { registerFlowLine, registerResourceNode, getEdgesLayer } from "./register";
 import styles from './style.module.less'
 import { Tag } from 'antd';
-import { generateG6GraphData } from '@/utils/tools';
+import { generateG6GraphData, topologyData } from '@/utils/tools';
 
 insertCss(`
   .g6-component-tooltip {
@@ -86,7 +86,7 @@ const OverviewTooltip = memo((props: any) => {
 })
 
 
-const G6Tree = ({ graphData }) => {
+const G6Tree = ({ graphData = topologyData }) => {
 
   const graphRef = useRef<any>()
 
@@ -259,7 +259,8 @@ const G6Tree = ({ graphData }) => {
     //     },
     //   ],
     // };
-    const data = generateG6GraphData(graphData)
+    console.log(JSON.parse(JSON.stringify(topologyData)))
+    const data = generateG6GraphData(topologyData)
     console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
     const valList: any = Object.values(edgesLayer);

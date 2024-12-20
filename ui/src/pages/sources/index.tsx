@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 // } from '@ant-design/icons'
 
 import styles from './styles.module.less'
-import { Button, Card, Input, Select, Space, Table } from 'antd'
+import { Button, Card, Input, message, Select, Space, Table } from 'antd'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
@@ -64,12 +64,8 @@ const SourcesPage = () => {
     setOpen(true)
     setFormData(record)
   }
-  function handleDetail(record) {
-    console.log(record, '查看详情')
-    setActionType('CHECK')
-    setOpen(true)
-    setFormData(record)
-  }
+
+
 
   const colums = [
     {
@@ -89,17 +85,23 @@ const SourcesPage = () => {
       dataIndex: 'action',
       render: (_, record) => {
         return (
-          <>
-            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleDetail(record)}>详情</Button>
-            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>编辑</Button>
-          </>
+          <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>编辑</Button>
         )
       },
     },
   ]
 
-  function handleSubmit(values) {
-    console.log(values, 'handleSubmit')
+  async function handleSubmit(values) {
+    console.log(values, 'Sources handleSubmit')
+    const response: any = await SourceService.createSource({
+      body: values
+    })
+    if (response?.data?.success) {
+      message.success('Create Success')
+      setOpen(false)
+    } else {
+      message.error(response?.data?.messaage || '请求失败')
+    }
   }
 
   function handleCancel() {

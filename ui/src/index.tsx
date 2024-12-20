@@ -14,7 +14,7 @@ import './index.less'
 
 
 client.setConfig({
-  baseUrl: 'http://30.177.19.15'
+  baseUrl: 'http://30.177.36.21'
 });
 
 dayjs.locale('en-US')

@@ -3,6 +3,7 @@ import { Navigate, Outlet, useRoutes } from 'react-router-dom'
 import Layout from '@/components/layout'
 import Loading from '@/components/loading'
 import ProjectDetail from '@/pages/projects/projectDetail'
+import WorkspacesDetail from '@/pages/workspaces/workspaceDetail'
 
 const Projects = lazy(() => import('@/pages/projects'))
 const Insights = lazy(() => import('@/pages/insights'))
@@ -45,7 +46,7 @@ const router: RouteObject[] = [
           },
           {
             key: 'project',
-            path: 'project/:id',
+            path: 'detail/:projectId',
             element: lazyLoad(<ProjectDetail />)
           },
         ]
@@ -54,7 +55,20 @@ const router: RouteObject[] = [
         key: '/workspaces',
         path: '/workspaces',
         title: 'Workspaces',
-        element: lazyLoad(<Workspaces />),
+        element: <Outlet />,
+        children: [
+          {
+            index: true,
+            key: '',
+            path: '',
+            element: lazyLoad(<Workspaces />),
+          },
+          {
+            key: 'workspaceDetail',
+            path: 'detail/:workspaceId',
+            element: lazyLoad(<WorkspacesDetail />)
+          },
+        ]
       },
       {
         key: '/modules',

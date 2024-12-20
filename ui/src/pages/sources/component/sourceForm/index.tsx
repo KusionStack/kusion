@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 // import styles from './styles.module.less'
-import { Button, Modal, Form, Input, Space } from 'antd'
+import { Button, Modal, Form, Input, Space, message } from 'antd'
 
 const SourceForm = ({
   open,
@@ -11,6 +11,8 @@ const SourceForm = ({
 }) => {
   const [form] = Form.useForm()
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (formData) {
       form.setFieldsValue(formData)
@@ -18,7 +20,18 @@ const SourceForm = ({
   }, [formData, form])
 
   function onSubmit() {
-    handleSubmit()
+    if (loading) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const values = form.getFieldsValue();
+      handleSubmit(values)
+    } catch (e) {
+      message.error('提交失败');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function onClose() {

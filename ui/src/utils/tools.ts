@@ -345,8 +345,8 @@ export function generateG6GraphData(data = topologyData) {
   })
   data?.relations?.forEach(item => {
     edges.push({
-      source: item?.DependencyResource,
-      target: item?.DependentResource
+      target: item?.DependencyResource,
+      source: item?.DependentResource
     })
   })
   return {

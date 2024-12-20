@@ -6,6 +6,7 @@ import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import StackPanel from "./conponents/stackPanel"
 
 import styles from "./styles.module.less"
+import BackWithTitle from '@/components/backWithTitle'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
@@ -115,10 +116,7 @@ const ProjectDetail = () => {
 
   return (
     <div className={styles.project_detail}>
-      <div className={styles.project_detail_action}>
-        <div className={styles.project_detail_action_back} onClick={handleBack}><ArrowLeftOutlined style={{ fontSize: 20 }} /></div>
-        <h3>项目名称</h3>
-      </div>
+      <BackWithTitle title="项目名称" handleBack={handleBack} />
       <Card>
         <Tabs
           style={{ border: 'none' }}

@@ -13,7 +13,7 @@
     "@codemirror/legacy-modes": "^6.4.2",
     "@codemirror/view": "^6.35.3",
     "@hey-api/client-fetch": "^0.5.2",
-    "@kusionstack/kusion-api-client-sdk": "^1.0.0-temp.1",
+    "@kusionstack/kusion-api-client-sdk": "^1.0.1",
     "@reduxjs/toolkit": "^2.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

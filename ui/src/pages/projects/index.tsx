@@ -70,7 +70,7 @@ const Projects = () => {
       title: 'Name',
       dataIndex: 'name',
       render: (text, record) => {
-        return <Button type='link' onClick={() => navigate(`/projects/project/${record?.id}`)}>{text}</Button>
+        return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}`)}>{text}</Button>
       }
     },
     {

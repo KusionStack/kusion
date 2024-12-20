@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 // import styles from './styles.module.less'
-import { Button, Modal, Form, Input, Space } from 'antd'
+import { Button, Modal, Form, Input, Space, message } from 'antd'
 import isUrl from 'is-url'
 
 const ModuleForm = ({
@@ -11,6 +11,7 @@ const ModuleForm = ({
   handleCancel,
 }) => {
   const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (formData) {
@@ -19,7 +20,18 @@ const ModuleForm = ({
   }, [formData, form])
 
   function onSubmit() {
-    handleSubmit()
+    if (loading) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const values = form.getFieldsValue();
+      handleSubmit(values)
+    } catch (e) {
+      message.error('提交失败');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function onClose() {
@@ -94,7 +106,7 @@ const ModuleForm = ({
             name="documentUrl"
             rules={[
               {
-                required: true,
+                required: false,
               },
             ]}
           >

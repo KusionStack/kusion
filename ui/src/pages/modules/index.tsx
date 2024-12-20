@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Input, Select, Space, Table } from 'antd'
+import { Button, Card, Input, message, Select, Space, Table } from 'antd'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
 import ModuleForm from './component/moduleForm'
@@ -59,12 +59,8 @@ const ModulePage = () => {
     setOpen(true)
     setFormData(record)
   }
-  function handleDetail(record) {
-    console.log(record, '查看详情')
-    setActionType('CHECK')
-    setOpen(true)
-    setFormData(record)
-  }
+
+
 
   const colums = [
     {
@@ -88,7 +84,6 @@ const ModulePage = () => {
       render: (_, record) => {
         return (
           <>
-            <Button type='link' onClick={() => handleDetail(record)}>详情</Button>
             <Button type='link' onClick={() => handleEdit(record)}>编辑</Button>
             <Button type='link' href={record?.doc?.Path} target='_blank'>文档</Button>
           </>
@@ -99,8 +94,17 @@ const ModulePage = () => {
 
 
 
-  function handleSubmit(values) {
-    console.log(values, 'handleSubmit')
+  async function handleSubmit(values) {
+    console.log(values, 'Sources handleSubmit')
+    const response: any = await ModuleService.createModule({
+      body: values
+    })
+    if (response?.data?.success) {
+      message.success('Create Success')
+      setOpen(false)
+    } else {
+      message.error(response?.data?.messaage || '请求失败')
+    }
   }
 
   function handleCancel() {

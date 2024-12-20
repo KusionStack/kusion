@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Col, Input, Popconfirm, Row, Tooltip } from 'antd'
+import { Button, Card, Col, Input, message, Popconfirm, Row, Tooltip } from 'antd'
 import {
-  DeleteOutlined,
   PlusOutlined,
   SortDescendingOutlined,
   SortAscendingOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
-
-import styles from './styles.module.less'
+import { BackendService, WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import WorkspaceCard from './components/workspaceCard';
 import WorkscpaceForm from './components/workscpaceForm';
+
+import styles from './styles.module.less'
+import { useNavigate } from 'react-router-dom';
 
 const orderIconStyle: React.CSSProperties = {
   marginLeft: 0,
 }
 
 const Workspaces = () => {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [keyword, setKeyword] = useState<string>('')
 
@@ -25,12 +26,17 @@ const Workspaces = () => {
     orderBy: 'name',
     isAsc: true,
   })
+  const [workspaceList, setWorkspaceList] = useState([]);
 
 
   async function getListWorkspace() {
     try {
-      const sources = await WorkspaceService.listWorkspace();
-      console.log('WorkspaceService:', sources.data);
+      const response: any = await WorkspaceService.listWorkspace();
+      if (response?.data?.success) {
+        setWorkspaceList(response?.data?.data);
+      } else {
+        message.error("请求失败")
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -42,40 +48,6 @@ const Workspaces = () => {
 
   function handleAdd() {
     setOpen(true)
-  }
-
-  function handleSort(key: any) {
-    setSortParams({
-      orderBy: key,
-      isAsc: !sortParams?.isAsc,
-    })
-    // const groups = allResourcesData?.groups?.sort((a, b) =>
-    //   sortParams?.isAsc
-    //     ? b.title.localeCompare(a.title)
-    //     : a.title.localeCompare(b.title),
-    // )
-    // setAllResourcesData({
-    //   fields: allResourcesData?.fields,
-    //   groups,
-    // })
-  }
-
-  function renderDateSort() {
-    return (
-      <Button
-        type="link"
-        style={{ color: '#646566', marginRight: 0 }}
-        onClick={() => handleSort('date')}
-      >
-        日期
-        {sortParams?.orderBy === 'date' &&
-          (sortParams?.isAsc ? (
-            <SortDescendingOutlined style={orderIconStyle} />
-          ) : (
-            <SortAscendingOutlined style={orderIconStyle} />
-          ))}
-      </Button>
-    )
   }
 
 
@@ -94,18 +66,26 @@ const Workspaces = () => {
     setKeyword(event?.target.value)
   }
 
-  function handleSubmit(values) {
+  async function handleSubmit(values) {
     console.log(values, "=====handleSubmit values=====")
+    const response: any = WorkspaceService.createWorkspace({
+      body: {
+        ...values
+      }
+    })
+    if (response?.data?.success) {
+      message.success("Create Success")
+      setOpen(false)
+    } else {
+      message.error(response?.data?.message || 'Request Faild')
+    }
   }
+
   function handleClose() {
     setOpen(false)
   }
 
-  const arrayColByN = conversionArray([1, 2, 3, 4], 4)
-  console.log(arrayColByN, '====arrayColByN====')
-
-  const mockDesc =
-    '这是一段描述文字超长文本测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试'
+  const arrayColByN = conversionArray(workspaceList, 4)
 
   return (
     <div className={styles.kusion_workspace_container}>
@@ -122,7 +102,6 @@ const Workspaces = () => {
             onChange={handleChange}
             allowClear
           />
-          <div className={styles.kusion_action_bar_right_sort}>{renderDateSort()}</div>
         </div>
       </div>
       <div className={styles.kusion_workspace_content}>
@@ -136,7 +115,7 @@ const Workspaces = () => {
               {item?.map((innerItem, innerIndex) => {
                 return (
                   <Col key={innerIndex} className="gutter-row" span={6}>
-                    <WorkspaceCard title="title" desc={mockDesc} createDate="20241218" nickName="测试" />
+                    <WorkspaceCard title={innerItem?.name} desc={innerItem?.description} createDate={innerItem?.creationTimestamp} nickName={innerItem?.owners} onClick={() => navigate(`/workspaces/detail/${innerItem?.id}`)} />
                   </Col>
                 )
               })}

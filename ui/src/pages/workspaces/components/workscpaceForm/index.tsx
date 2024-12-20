@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form, Input, message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Modal, Button, Form, Input, message, Select } from 'antd';
+import { BackendService } from "@kusionstack/kusion-api-client-sdk"
 
 import styles from './styles.module.less';
 
 const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [backendList, setBackendlist] = useState([])
   const formInitialValues = {
     name: '',
     description: '',
   };
+
+  async function getBackendList() {
+    const response: any = await BackendService.listBackend()
+    if (response?.data?.success) {
+      setBackendlist(response?.data?.data)
+    } else {
+      message.error(response?.data?.message || '请求错误')
+    }
+  }
+
+  useEffect(() => {
+    getBackendList()
+  }, [])
 
   // 提交表单
   const onFinish = async () => {
@@ -19,7 +34,6 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      console.log(values, "======values======")
       handleSubmit(values)
     } catch (e) {
       message.error('提交失败');
@@ -52,6 +66,15 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
         initialValues={formInitialValues}
         layout="vertical"
       >
+        <Form.Item name="backendID" label="BackendID">
+          <Select placeholder="请选择">
+            {
+              backendList?.map((item: any) => {
+                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
+              })
+            }
+          </Select>
+        </Form.Item>
         <Form.Item name="name" label="名称">
           <Input
             placeholder="请输入"
