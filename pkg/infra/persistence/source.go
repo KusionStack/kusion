@@ -108,10 +108,17 @@ func (r *sourceRepository) GetByRemote(ctx context.Context, remote string) (*ent
 }
 
 // List retrieves all sources.
-func (r *sourceRepository) List(ctx context.Context) ([]*entity.Source, error) {
+func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
 	var dataModel []SourceModel
 	sourceEntityList := make([]*entity.Source, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+
+	// Get total rows.
+	var totalRows int64
+	r.db.WithContext(ctx).Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data with offset and limit.
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -122,5 +129,8 @@ func (r *sourceRepository) List(ctx context.Context) ([]*entity.Source, error) {
 		}
 		sourceEntityList = append(sourceEntityList, sourceEntity)
 	}
-	return sourceEntityList, nil
+	return &entity.SourceListResult{
+		Sources: sourceEntityList,
+		Total:   int(totalRows),
+	}, nil
 }

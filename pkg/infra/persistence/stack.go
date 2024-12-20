@@ -98,15 +98,22 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 }
 
 // List retrieves all stacks.
-func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error) {
+func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
 	var dataModel []StackModel
 	stackEntityList := make([]*entity.Stack, 0)
 	pattern, args := GetStackQuery(filter)
-	result := r.db.WithContext(ctx).
+	searchResult := r.db.WithContext(ctx).
 		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
 		Joins("JOIN project ON project.id = stack.project_id").
-		Where(pattern, args...).
-		Find(&dataModel)
+		Where(pattern, args...)
+
+	// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -117,5 +124,8 @@ func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) 
 		}
 		stackEntityList = append(stackEntityList, stackEntity)
 	}
-	return stackEntityList, nil
+	return &entity.StackListResult{
+		Stacks: stackEntityList,
+		Total:  int(totalRows),
+	}, nil
 }

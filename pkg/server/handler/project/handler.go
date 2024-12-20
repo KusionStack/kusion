@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/render"
 
 	"kusionstack.io/kusion/pkg/domain/constant"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -169,14 +168,14 @@ func (h *Handler) GetProject() http.HandlerFunc {
 // @Description	List all or a subset of the projects
 // @Tags			project
 // @Produce		json
-// @Param			orgID	query		uint				false	"OrganizationID to filter project list by. Default to all projects."
-// @Param			name	query		string				false	"Project name to filter project list by. This should only return one result if set."
-// @Success		200		{object}	[]entity.Project	"Success"
-// @Failure		400		{object}	error				"Bad Request"
-// @Failure		401		{object}	error				"Unauthorized"
-// @Failure		429		{object}	error				"Too Many Requests"
-// @Failure		404		{object}	error				"Not Found"
-// @Failure		500		{object}	error				"Internal Server Error"
+// @Param			orgID	query		uint						false	"OrganizationID to filter project list by. Default to all projects."
+// @Param			name	query		string						false	"Project name to filter project list by. This should only return one result if set."
+// @Success		200		{object}	entity.ProjectListResult	"Success"
+// @Failure		400		{object}	error						"Bad Request"
+// @Failure		401		{object}	error						"Unauthorized"
+// @Failure		429		{object}	error						"Too Many Requests"
+// @Failure		404		{object}	error						"Not Found"
+// @Failure		500		{object}	error						"Internal Server Error"
 // @Router			/api/v1/projects [get]
 func (h *Handler) ListProjects() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -185,8 +184,13 @@ func (h *Handler) ListProjects() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing project...")
 
-		filter := entity.ProjectFilter{}
-		orgIDParam := r.URL.Query().Get("orgID")
+		query := r.URL.Query()
+		filter, err := h.projectManager.BuildProjectFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+		orgIDParam := query.Get("orgID")
 		if orgIDParam != "" {
 			orgID, err := strconv.Atoi(orgIDParam)
 			if err != nil {
@@ -201,7 +205,7 @@ func (h *Handler) ListProjects() http.HandlerFunc {
 			filter.Name = name
 		}
 
-		projectEntities, err := h.projectManager.ListProjects(ctx, &filter)
+		projectEntities, err := h.projectManager.ListProjects(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, projectEntities)
 	}
 }

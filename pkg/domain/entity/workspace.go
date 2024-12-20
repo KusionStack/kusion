@@ -103,8 +103,14 @@ func (s *SecretStore) ConvertToKusionSecretStore() (*v1.SecretStore, error) {
 }
 
 type WorkspaceFilter struct {
-	BackendID uint
-	Name      string
+	BackendID  uint
+	Name       string
+	Pagination *Pagination
+}
+
+type WorkspaceListResult struct {
+	Workspaces []*Workspace
+	Total      int
 }
 
 // Validate checks if the workspace is valid.

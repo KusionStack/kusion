@@ -25,6 +25,15 @@ type Backend struct {
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
 }
 
+type BackendFilter struct {
+	Pagination *Pagination
+}
+
+type BackendListResult struct {
+	Backends []*Backend
+	Total    int
+}
+
 // Validate checks if the backend is valid.
 // It returns an error if the backend is not valid.
 func (w *Backend) Validate() error {

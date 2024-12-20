@@ -147,12 +147,12 @@ func (h *Handler) GetSource() http.HandlerFunc {
 // @Description	List source information by source ID
 // @Tags			source
 // @Produce		json
-// @Success		200	{object}	entity.Source	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Success		200	{object}	entity.SourceListResult	"Success"
+// @Failure		400	{object}	error					"Bad Request"
+// @Failure		401	{object}	error					"Unauthorized"
+// @Failure		429	{object}	error					"Too Many Requests"
+// @Failure		404	{object}	error					"Not Found"
+// @Failure		500	{object}	error					"Internal Server Error"
 // @Router			/api/v1/sources [get]
 func (h *Handler) ListSources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -161,8 +161,15 @@ func (h *Handler) ListSources() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing source...")
 
+		query := r.URL.Query()
+		filter, err := h.sourceManager.BuildSourceFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// List sources
-		sourceEntities, err := h.sourceManager.ListSources(ctx)
+		sourceEntities, err := h.sourceManager.ListSources(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, sourceEntities)
 	}
 }

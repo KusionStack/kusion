@@ -141,7 +141,7 @@ func TestOrganizationRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedNameFirst, expectedDisplayNameFirst).
 					AddRow(expectedIDSecond, expectedNameSecond, expectedDisplayNameSecond))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.OrganizationFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})

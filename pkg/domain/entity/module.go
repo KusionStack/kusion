@@ -37,6 +37,15 @@ type ModuleWithVersion struct {
 	Doc *url.URL `yaml:"doc,omitempty" json:"doc,omitempty"`
 }
 
+type ModuleFilter struct {
+	Pagination *Pagination
+}
+
+type ModuleListResult struct {
+	Modules []*Module
+	Total   int
+}
+
 // Validate checks if the module is valid.
 // It returns an error if the module is not valid.
 func (m *Module) Validate() error {

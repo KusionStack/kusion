@@ -9,7 +9,7 @@ import (
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
-func (m *ResourceManager) ListResources(ctx context.Context, filter *entity.ResourceFilter) ([]*entity.Resource, error) {
+func (m *ResourceManager) ListResources(ctx context.Context, filter *entity.ResourceFilter) (*entity.ResourceListResult, error) {
 	resourceEntities, err := m.resourceRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

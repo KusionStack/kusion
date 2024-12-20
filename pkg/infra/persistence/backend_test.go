@@ -145,7 +145,7 @@ func TestBackendRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedNameFirst).
 					AddRow(expectedIDSecond, expectedNameSecond))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.BackendFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})
