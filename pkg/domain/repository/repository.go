@@ -63,7 +63,7 @@ type SourceRepository interface {
 	// GetByRemote retrieves a source by its remote.
 	GetByRemote(ctx context.Context, remote string) (*entity.Source, error)
 	// List retrieves all existing sources.
-	List(ctx context.Context) ([]*entity.Source, error)
+	List(ctx context.Context, filter *entity.SourceFilter) ([]*entity.Source, error)
 	// Create creates a new source.
 	Create(ctx context.Context, source *entity.Source) error
 	// Delete deletes a stack by its ID.
@@ -135,7 +135,7 @@ type ModuleRepository interface {
 	// Get retrieves a module by its name.
 	Get(ctx context.Context, name string) (*entity.Module, error)
 	// List retrives all the existing modules.
-	List(ctx context.Context) ([]*entity.Module, error)
+	List(ctx context.Context, filter *entity.ModuleFilter) ([]*entity.Module, error)
 }
 
 // RunRepository is an interface that defines the repository operations

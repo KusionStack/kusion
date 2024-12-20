@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -105,8 +106,8 @@ func (m *ModuleManager) GetModuleByName(ctx context.Context, name string) (*enti
 	return existingEntity, nil
 }
 
-func (m *ModuleManager) ListModules(ctx context.Context) ([]*entity.Module, error) {
-	moduleEntities, err := m.moduleRepo.List(ctx)
+func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter) ([]*entity.Module, error) {
+	moduleEntities, err := m.moduleRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingModule
@@ -118,7 +119,7 @@ func (m *ModuleManager) ListModules(ctx context.Context) ([]*entity.Module, erro
 	return moduleEntities, nil
 }
 
-func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint) ([]*entity.ModuleWithVersion, error) {
+func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint, filter *entity.ModuleFilter) ([]*entity.ModuleWithVersion, error) {
 	// Get workspace entity by ID.
 	existingEntity, err := m.workspaceRepo.Get(ctx, workspaceID)
 	if err != nil {
@@ -157,6 +158,11 @@ func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceI
 	// Get the modules in the workspace.
 	moduleEntities := make([]*entity.ModuleWithVersion, 0, len(ws.Modules))
 	for moduleName, moduleConfigs := range ws.Modules {
+		// Skip if module name filter doesn't match
+		if filter.ModuleName != "" && !strings.Contains(strings.ToLower(moduleName), strings.ToLower(filter.ModuleName)) {
+			continue
+		}
+
 		moduleEntity, err := m.moduleRepo.Get(ctx, moduleName)
 		if err != nil {
 			return nil, err

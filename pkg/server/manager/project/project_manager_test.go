@@ -136,8 +136,8 @@ func (m *mockSourceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockSourceRepository) List(ctx context.Context) ([]*entity.Source, error) {
-	args := m.Called(ctx)
+func (m *mockSourceRepository) List(ctx context.Context, filter *entity.SourceFilter) ([]*entity.Source, error) {
+	args := m.Called(ctx, filter)
 	return args.Get(0).([]*entity.Source), args.Error(1)
 }
 

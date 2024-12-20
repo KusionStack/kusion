@@ -175,7 +175,7 @@ func TestSourceRepository(t *testing.T) {
 					AddRow(expectedIDFirst, expectedRemoteFirst, expectedSourceProviderFirst).
 					AddRow(expectedIDSecond, expectedRemoteSecond, expectedSourceProviderSecond))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.SourceFilter{})
 		require.NoError(t, err)
 		require.Len(t, actual, 2)
 	})
