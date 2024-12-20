@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/render"
 
 	yamlv2 "gopkg.in/yaml.v2"
+	_ "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -79,7 +80,7 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
+// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
 // @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
 // @Param			force		query		bool	false	"Force the generate even when the stack is locked"
 // @Success		200			{object}	v1.Spec	"Success"
@@ -184,7 +185,7 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
+// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
 // @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
 // @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
 // @Success		200			{object}	string	"Success"

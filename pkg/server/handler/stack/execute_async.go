@@ -238,7 +238,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 // @Param			workspace			query		string						true	"The target workspace to preview the spec in."
 // @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
 // @Param			force		query		bool	false	"Force the generate even when the stack is locked"
-// @Success		200			{object}	v1.Spec	"Success"
+// @Success		200			{object}	apiv1.Spec	"Success"
 // @Failure		400			{object}	error	"Bad Request"
 // @Failure		401			{object}	error	"Unauthorized"
 // @Failure		429			{object}	error	"Too Many Requests"
@@ -331,7 +331,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
+// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
 // @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
 // @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
 // @Success		200			{object}	string	"Success"
