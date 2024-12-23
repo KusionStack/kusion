@@ -3,27 +3,23 @@ import { Button, Drawer, Space } from 'antd'
 import Markdown from 'react-markdown'
 
 
-const MarkdownDrawer = ({ yamlData, open, handleSubmit, handleClose, validateYaml }) => {
-
-  const [yamlStr, setYamlStr] = useState(yamlData)
-
-  function handleChange(val) {
-    console.log(val, "====handleChange====")
-    setYamlStr(val)
-  }
-
-  function handleCancel() {
-    setYamlStr(yamlData)
-  }
+const MarkdownDrawer = ({ markdown, open, handleClose }) => {
 
   return (
     <Drawer
       title={'Generate kcl.mod'}
       open={open}
-      onClose={handleCancel}
+      onClose={handleClose}
       width='80%'
+      extra={
+        [
+          <Button onClick={handleClose}>Close</Button>
+        ]
+      }
     >
-      <Markdown>{yamlStr}</Markdown>
+      <div style={{ background: '#000', color: '#fff', padding: 20, height: '100%', overflowY: 'auto' }}>
+        <Markdown>{markdown}</Markdown>
+      </div>
     </Drawer>
   )
 

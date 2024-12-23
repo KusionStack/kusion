@@ -108,12 +108,12 @@ export const registerResourceNode = function () {
     G6.registerNode('resource', {
         // 自定义节点时的配置
         options: {
-            size: [185, 70],
+            size: [200, 70],
             style: {
                 radius: [0, 8, 8, 0],
-                // stroke: '#69c0ff',
-                stroke: 'red',
-                fill: '#ffffff',
+                stroke: '#e5e6e8',
+                // stroke: 'red',
+                fill: '#e5e6e8',
                 fillOpacity: 1,
             },
             // 文本样式配置
@@ -210,7 +210,7 @@ export const registerResourceNode = function () {
             });
             // draw
             // this.drawTopStroke(cfg, group);
-            // this.drawLeftStroke(cfg, group);
+            this.drawLeftStroke(cfg, group);
             // this.drawRightStroke(cfg, group);
             // this.drawBottomStroke(cfg, group);
             this.drawLogoIcon(cfg, group);
@@ -258,13 +258,11 @@ export const registerResourceNode = function () {
                 attrs: {
                     x: -300 / 2,
                     y: -72 / 2,
-                    // fill: 'rgba(228,229,229,0.79)',
-                    // fill: '#bae7ff',
-                    fill: '#2f54eb',
+                    fill: '#1677ff',
                     opacity: 0.6,
                     width: 3,
                     height: 72,
-                    // radius: [6, 6],
+                    // radius: [8,8],
                 },
             })
             return shape;

@@ -14,8 +14,8 @@ type TypeSearchParams = {
 } | undefined
 
 const initialItems = [
-  { label: 'Runs', key: 'Runs' },
   { label: 'Resource Graph', key: 'ResourceGraph' },
+  { label: 'Runs', key: 'Runs' },
 ];
 
 
@@ -26,7 +26,7 @@ const StackPanel = ({ stackName }) => {
   const [searchParams, setSearchParams] = useState<TypeSearchParams>();
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
-  const [activeKey, setActiveKey] = useState(initialItems[0].key);
+  const [activeKey, setActiveKey] = useState(initialItems?.[0]?.key);
   const [items, setItems] = useState(initialItems);
   const newTabIndex = useRef(0);
 

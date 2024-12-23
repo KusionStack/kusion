@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Card, Form, Tabs, } from 'antd'
+import { Card, Form, message, Tabs, } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
-import StackPanel from "./conponents/stackPanel"
+import StackPanel from "../components/stackPanel"
 
 import styles from "./styles.module.less"
 import BackWithTitle from '@/components/backWithTitle'
+import StackForm from '../components/stackForm'
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
@@ -19,7 +20,7 @@ const ProjectDetail = () => {
   const [form] = Form.useForm();
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const [items, setItems] = useState(initialItems);
-  const newTabIndex = useRef(0);
+  const [stackFormOpen, setStackFormOpen] = useState(false)
 
   function onChange(newActiveKey: string) {
     setActiveKey(newActiveKey);
@@ -27,11 +28,7 @@ const ProjectDetail = () => {
 
 
   const add = () => {
-    const newActiveKey = `newTab${newTabIndex.current++}`;
-    const newPanes = [...items];
-    newPanes.push({ label: 'New Tab', key: newActiveKey, closable: false });
-    setItems(newPanes);
-    setActiveKey(newActiveKey);
+    setStackFormOpen(true)
   };
 
   const remove = (targetKey: TargetKey) => {
@@ -65,26 +62,28 @@ const ProjectDetail = () => {
     }
   };
 
-  function handleSubmit(values) {
+  async function handleSubmit(values) {
     console.log(values, "handleSubmit")
+    const response: any = await StackService.createStack({
+      body: values
+    })
+    if (response?.data?.success) {
+      message.success('Create Successful')
+      handleClose()
+      const newPanes = {
+        label: values?.name,
+        key: values?.name,
+        closable: false
+      }
+      const newItems = [...items, newPanes]
+      setItems(newItems)
+    } else {
+      message.error(response?.data?.message || 'Create Failed')
+    }
   }
   function handleClose() {
     console.log("handleClose")
-  }
-  function handleCreate() {
-    console.log("=====handleCreate=====")
-  }
-  function handleReset() {
-    form.resetFields();
-  }
-  function handleSearch() {
-    const values = form.getFieldsValue()
-    console.log(values, "=====handleSearch=====")
-  }
-
-  function handleClear(key) {
-    form.setFieldValue(key, undefined)
-    handleSearch()
+    setStackFormOpen(false)
   }
 
   async function getList(params) {
@@ -133,6 +132,7 @@ const ProjectDetail = () => {
           )}
         />
         <StackPanel stackName={activeKey} />
+        <StackForm formData={{}} actionType="ADD" stackFormOpen={stackFormOpen} handleCancel={handleClose} handleSubmit={handleSubmit} />
       </Card>
     </div>
   )

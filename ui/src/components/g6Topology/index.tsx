@@ -86,7 +86,7 @@ const OverviewTooltip = memo((props: any) => {
 })
 
 
-const G6Tree = ({ graphData = topologyData }) => {
+const G6Topology = ({ graphData = topologyData }) => {
 
   const graphRef = useRef<any>()
 
@@ -120,7 +120,7 @@ const G6Tree = ({ graphData = topologyData }) => {
   }
 
   function updateSize() {
-    const container = document.getElementById('mountNode');
+    const container = document.getElementById('mountTopologyNode');
     if (container === null) {
       return;
     }
@@ -132,139 +132,14 @@ const G6Tree = ({ graphData = topologyData }) => {
   }
 
   function initData() {
-    // const data = {
-    //   // 点集
-    //   nodes: [
-    //     {
-    //       id: '1',
-    //       label: 'zk',
-    //       kind: 'Helm',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //       logoIcon: {
-    //         img: 'https://blazehu.com/images/k8s/status/helm.svg',
-    //         offsetY: 0,
-    //       },
-    //     },
-    //     {
-    //       id: '2',
-    //       label: 'zk-zookeeper',
-    //       kind: 'Service',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //     },
-    //     {
-    //       id: '3',
-    //       label: 'zk-zookeeper-headless',
-    //       kind: 'Service',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //     },
-    //     {
-    //       id: '4',
-    //       label: 'zk-zookeeper',
-    //       kind: 'StatefulSet',
-    //       health: 'Progressing',
-    //       status: 'Synced',
-    //       phase: 'StartSync',
-    //     },
-    //     {
-    //       id: '5',
-    //       label: 'zk-zookeeper',
-    //       kind: 'Endpoints',
-    //     },
-    //     {
-    //       id: '6',
-    //       label: 'zk-zookeeper-k2vpn',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '7',
-    //       label: 'zk-zookeeper-headless',
-    //       kind: 'Endpoints',
-    //     },
-    //     {
-    //       id: '8',
-    //       label: 'zk-zookeeper-headless-7bz9d',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '9',
-    //       label: 'zk-zookeeper-headless-8mbqm',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '10',
-    //       label: 'zk-zookeeper-0',
-    //       kind: 'PersistentVolumeClaim',
-    //       health: 'Healthy',
-    //     },
-    //     {
-    //       id: '11',
-    //       label: 'zk-zookeeper-0',
-    //       kind: 'Pod',
-    //       health: 'Progressing',
-    //     },
-    //     {
-    //       id: '12',
-    //       label: 'zk-zookeeper-565fd5c886',
-    //       kind: 'ControllerRevision',
-    //     }
-    //   ],
-    //   // 边集
-    //   edges: [
-    //     {
-    //       source: '1', // String，必须，起始点 id
-    //       target: '2', // String，必须，目标点 id
-    //     },
-    //     {
-    //       source: '1',
-    //       target: '3',
-    //     },
-    //     {
-    //       source: '1',
-    //       target: '4',
-    //     },
-    //     {
-    //       source: '2',
-    //       target: '5',
-    //     },
-    //     {
-    //       source: '2',
-    //       target: '6',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '7',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '8',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '9',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '10',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '11',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '12',
-    //     },
-    //   ],
-    // };
     console.log(JSON.parse(JSON.stringify(graphData)))
     const data = generateG6GraphData(graphData)
     console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
+    console.log(edgesLayer, "==edgesLayer===")
     const valList: any = Object.values(edgesLayer);
     const maxLayerCount = Math.max(...valList);
+    console.log(maxLayerCount, "===maxLayerCount===")
     return { maxLayerCount, data };
   }
 
@@ -273,7 +148,7 @@ const G6Tree = ({ graphData = topologyData }) => {
       graphRef.current.destroy();
     }
     if (!graphRef.current) {
-      const container = document.getElementById('mountNode');
+      const container = document.getElementById('mountTopologyNode');
       if (container === null) {
         return;
       }
@@ -294,14 +169,13 @@ const G6Tree = ({ graphData = topologyData }) => {
         },
       };
       const defaultNodeStyle = {
-        stroke: '#00000000',
-        // shadowColor: '#1677ff',
-        // shadowColor: '#ccd6dd',
-        // shadowOffsetX: 1,
-        // shadowOffsetY: 1,
-        // shadowBlur: 1,
-        // fill: '#f0f5ff',
         fill: '#fff',
+        stroke: '#e5e6e8',
+        radius: 8,
+        shadowColor: 'rgba(0,0,0,0.05)',
+        shadowBlur: 4,
+        shadowOffsetX: 0,
+        shadowOffsetY: 2,
         cursor: 'pointer',
       };
       // const defaultNodeSize = [345, 72]; // [width, height]
@@ -311,7 +185,7 @@ const G6Tree = ({ graphData = topologyData }) => {
         height: 32,
       };
       const graphTmp = new G6.Graph({
-        container: 'mountNode',
+        container: 'mountTopologyNode',
         width,
         height,
         fitView: true,
@@ -403,8 +277,8 @@ const G6Tree = ({ graphData = topologyData }) => {
 
 
   return (
-    <div className={styles.kusion_g6_tree}>
-      <div id="mountNode"></div>
+    <div className={styles.kusion_g6_topology}>
+      <div id="mountTopologyNode"></div>
       {tooltipopen ? (
         <OverviewTooltip
           itemWidth={itemWidth}
@@ -416,4 +290,4 @@ const G6Tree = ({ graphData = topologyData }) => {
   )
 }
 
-export default G6Tree
+export default G6Topology

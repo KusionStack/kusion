@@ -4,7 +4,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import remarkGfm from 'remark-gfm';
 import { dark, vscDarkPlus, coyWithoutShadows, darcula } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-import { markdownString } from "@/utils/tools"
+import { copy, markdownString } from "@/utils/tools"
+
+import styles from "./styles.module.less"
+import { Button } from 'antd';
+import { data } from '@remix-run/router';
+import { CopyOutlined } from '@ant-design/icons';
 
 type MarkdownViewIProps = {
   markdown?: string
@@ -19,7 +24,20 @@ const them = {
 const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: MarkdownViewIProps) => {
   console.log("=====MarkdownView=====")
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+    <div className={styles.markdown_view_container}>
+      <div className={styles.markdown_view_copy}>
+        <Button
+          type="primary"
+          size="small"
+          onClick={() => copy(markdown)}
+          disabled={!markdown}
+          icon={<CopyOutlined />}
+        >
+          copy
+        </Button>
+      </div>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+    </div>
   );
 
 }

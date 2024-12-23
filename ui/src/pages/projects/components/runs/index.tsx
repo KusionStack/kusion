@@ -1,25 +1,115 @@
 import React, { useEffect, useState } from 'react'
-
-import { Button, DatePicker, Form, Input, message, Space, Table, } from 'antd'
+import { Button, DatePicker, Form, Input, message, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
-import { StackService } from '@kusionstack/kusion-api-client-sdk'
+import { RunService, StackService } from '@kusionstack/kusion-api-client-sdk'
+import RunsForm from './runsForm'
 
 import styles from "./styles.module.less"
-import RunsForm from './runsForm'
+import GenerateDetail from './generateDetail'
+import PreviewDetail from './previewDetail'
+
+
+const RUNS_TYPES = {
+  Preview: 'Preview',
+  Generate: 'Generate',
+  Apply: 'Apply',
+  Destroy: 'Destroy',
+}
 
 const Runs = () => {
   const [form] = Form.useForm();
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 20,
+    pageSize: 10,
     page: 1,
     query: undefined,
     total: 0,
   })
 
+  const [generateOpen, setGenerateOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [currentRecord, setCurrentRecord] = useState()
+
+  async function createApply(values) {
+    const response: any = await StackService.applyStackAsync({
+      body: {
+        ...values,
+      },
+      query: {
+        workspace: values?.workspace,
+      },
+      path: {
+        stack_id: 1,
+      }
+    })
+    return response
+  }
+
+  async function createGenerate(values) {
+    const response: any = await StackService.generateStackAsync({
+      body: {
+        ...values,
+      },
+      query: {
+        workspace: values?.workspace,
+      },
+      path: {
+        stack_id: 1,
+      }
+    })
+    return response
+  }
+
+  async function createDestroy(values) {
+    const response: any = await StackService.destroyStackAsync({
+      body: {
+        ...values,
+      },
+      query: {
+        workspace: values?.workspace,
+      },
+      path: {
+        stack_id: 1,
+      }
+    })
+    return response
+  }
+
+  async function createPreview(values) {
+    const response: any = await StackService.previewStackAsync({
+      body: {
+        ...values,
+      },
+      query: {
+        workspace: values?.workspace,
+      },
+      path: {
+        stack_id: 1,
+      }
+    })
+    return response
+  }
+
   function handleSubmit(values) {
     console.log(values, "handleSubmit")
+    const type = values?.type;
+    let response = undefined;
+    if (type === 'Apply') {
+      response = createApply(values)
+    } else if (type === 'Generate') {
+      response = createGenerate(values)
+    } else if (type === 'Destroy') {
+      response = createDestroy(values)
+    } else {
+      response = createPreview(values)
+    }
+    if (response?.data?.success) {
+      message.success('Create Successful')
+      setOpen(false)
+    } else {
+      message.error(response?.data?.message || 'Create Failed')
+    }
   }
   function handleClose() {
     setOpen(false)
@@ -29,6 +119,11 @@ const Runs = () => {
     form.resetFields();
     setSearchParams({
       ...searchParams,
+      query: undefined,
+    })
+    getListRun({
+      page: 1,
+      pageSize: 10,
       query: undefined,
     })
   }
@@ -76,7 +171,7 @@ const Runs = () => {
   }
 
   useEffect(() => {
-    getListRun({})
+    getListRun(searchParams)
   }, [])
 
   function handleChangePage(page: number, pageSize: number) {
@@ -88,7 +183,13 @@ const Runs = () => {
   }
 
   function handleCheckDetail(record) {
-    console.log(record, "-=======record========")
+    setCurrentRecord(record)
+    if (record?.type === 'Generate' || record?.type === 'Apply' || record?.type === 'Destroy') {
+      setGenerateOpen(true)
+    } else {
+      setPreviewOpen(true)
+    }
+
   }
 
 
@@ -108,6 +209,9 @@ const Runs = () => {
     {
       title: 'Status',
       dataIndex: 'status',
+      render: (text) => {
+        return <Tag color={text === 'Succeeded' ? 'success' : 'error'}>{text}</Tag>
+      }
     },
     {
       title: 'Action',
@@ -119,6 +223,13 @@ const Runs = () => {
   function handleCreateRuns() {
     setOpen(true)
     console.log("========handleCreateRuns=========")
+  }
+
+  function handlGenerateColse() {
+    setGenerateOpen(false)
+  }
+  function handlePreviewClose() {
+    setPreviewOpen(false)
   }
 
   console.log(searchParams?.query, "====searchParams?.query====")
@@ -198,7 +309,11 @@ const Runs = () => {
             }
           }
         />
-        <RunsForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
+        <RunsForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} runsTypes={RUNS_TYPES} />
+        <GenerateDetail currentRecord={currentRecord} open={generateOpen} handleClose={handlGenerateColse} />
+        {
+          previewOpen && <PreviewDetail currentRecord={currentRecord} open={previewOpen} handleClose={handlePreviewClose} />
+        }
       </div>
     </div>
   )

@@ -29,7 +29,8 @@ const WorkspaceDetail = () => {
   const [openMod, setOpenMod] = useState(false)
   const [activeKey, setActiveKey] = useState('yaml');
   const [yamlData, setYamlData] = useState<any>();
-  const [workspaceModules,setWorkspaceModules] = useState([]);
+  const [workspaceModules, setWorkspaceModules] = useState([]);
+  const [markdown, setMarkdown] = useState('')
 
   console.log(location, urlSearchParams, urlParams, "====location====")
 
@@ -80,14 +81,19 @@ const WorkspaceDetail = () => {
 
 
 
-  function handleSubmit(values) {
-    console.log(values, "=====handleSubmit values=====")
+  async function handleSubmit(yamlStr) {
+    const response: any = await WorkspaceService.updateWorkspaceConfigs({
+      body: yamlStr ? JSON.parse(yamlStr || '{}') : {},
+      path: { id: 1 },
+    })
+    if (response?.data?.success) {
+      message.success('Update Successful')
+      setOpen(false)
+    } else {
+      message.error('请求失败')
+    }
   }
   function handleClose() {
-    setOpen(false)
-  }
-
-  function validateYaml() {
     setOpen(false)
   }
 
@@ -115,8 +121,21 @@ const WorkspaceDetail = () => {
     setOpen(true)
   }
 
-  function generateMod() {
-    setOpenMod(true)
+  async function generateMod() {
+    const response: any = await WorkspaceService.createWorkspaceModDeps({
+      path: {
+        id: 1
+      }
+    })
+    console.log(response, "====asdasd====")
+    if (response?.data?.success) {
+      setOpenMod(true)
+      setMarkdown(response?.data?.data)
+    } else {
+      message.error('Generate Failed')
+    }
+
+
   }
 
   const columns = [
@@ -132,6 +151,10 @@ const WorkspaceDetail = () => {
     }
   ]
 
+  function handleModClose() {
+    setOpenMod(false)
+  }
+
   console.log(workspaceModules, "===workspaceModules===")
 
   return (
@@ -145,13 +168,14 @@ const WorkspaceDetail = () => {
             activeKey === 'yaml' && <>
               <Button type='primary' style={{ marginBottom: 15 }} onClick={handleEdit}>Edit Yaml</Button>
               <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
-              <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} validateYaml={validateYaml} />
+              <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
             </>
           }
           {
             activeKey === 'modules' && <>
               <Button type='primary' style={{ marginBottom: 15 }} onClick={generateMod}>Generate kcl.mod</Button>
               <Table columns={columns} dataSource={workspaceModules} />
+              <MarkdownDrawer open={openMod} handleClose={handleModClose} markdown={markdown} />
             </>
           }
         </div>

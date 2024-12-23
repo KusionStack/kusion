@@ -2,6 +2,7 @@ import yaml from 'js-yaml'
 import moment from 'moment'
 import _ from 'lodash'
 import isUrl from 'is-url'
+import { message } from 'antd'
 
 export function truncationPageData({ list, page, pageSize }) {
   return list && list?.length > 0
@@ -40,6 +41,20 @@ export const yaml2json = (yamlStr: string) => {
   try {
     return {
       data: yaml.load(yamlStr),
+      error: false,
+    }
+  } catch (err) {
+    return {
+      data: '',
+      error: true,
+    }
+  }
+}
+
+export const josn2yaml = (jsonStr: string) => {
+  try {
+    return {
+      data: yaml.dump(JSON.parse(jsonStr)),
       error: false,
     }
   } catch (err) {
@@ -353,4 +368,14 @@ export function generateG6GraphData(data = topologyData) {
     nodes,
     edges
   }
+}
+
+export function copy(valStr) {
+  const textarea = document.createElement('textarea')
+  textarea.value = valStr
+  document.body.appendChild(textarea)
+  textarea.select()
+  document.execCommand('copy')
+  message.success("Copy Successful")
+  document.body.removeChild(textarea)
 }

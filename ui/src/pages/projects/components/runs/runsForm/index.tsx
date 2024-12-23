@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio } from 'antd';
+import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio, Switch } from 'antd';
 
 import styles from './styles.module.less';
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import { CaretRightOutlined } from '@ant-design/icons';
 
-const RunsForm = ({ open, handleClose, handleSubmit }: any) => {
+const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const { token } = theme.useToken();
@@ -68,10 +68,7 @@ const RunsForm = ({ open, handleClose, handleSubmit }: any) => {
       children: <div>
         <p>Import Existing Resource</p>
         <Form.Item name="isExecting">
-          <Radio.Group>
-            <Radio value="YES">YES</Radio>
-            <Radio value="NO">NO</Radio>
-          </Radio.Group>
+          <Switch />
         </Form.Item>
         <Form.Item name="resources" label="resource map">
           <Input.TextArea />
@@ -96,7 +93,7 @@ const RunsForm = ({ open, handleClose, handleSubmit }: any) => {
         <Button key="cancel" onClick={handleCancel}>
           取消
         </Button>,
-        <Button htmlType='submit' key="create" type="primary" onClick={onFinish}>
+        <Button key="create" type="primary" onClick={onFinish}>
           确定
         </Button>,
       ]}
@@ -113,8 +110,8 @@ const RunsForm = ({ open, handleClose, handleSubmit }: any) => {
             className={styles.selectInput}
           >
             {
-              workspaceList?.map(item => {
-                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
+              Object.entries(runsTypes)?.map(([key, value]: any) => {
+                return <Select.Option key={key} value={key}>{value}</Select.Option>
               })
             }
           </Select>

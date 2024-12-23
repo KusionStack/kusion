@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Button, Drawer, Space } from 'antd'
+import { Button, Drawer, message, Space } from 'antd'
 import YamlEditor from '@/components/yamlEditor'
+import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk'
 
-const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose, validateYaml }) => {
+const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
 
   const [yamlStr, setYamlStr] = useState(yamlData)
 
@@ -15,6 +16,21 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose, validateYam
     setYamlStr(yamlData)
   }
 
+  function onSubmit() {
+    handleSubmit(yamlStr)
+  }
+
+  async function validateYaml() {
+    const response: any = await WorkspaceService.validateWorkspaceConfigs({
+      body: yamlStr && JSON.parse(yamlStr || '{}')
+    })
+    if (response?.data?.success) {
+      message.success('Validate Successful')
+    } else {
+      message.error(response?.data?.message || '请求失败')
+    }
+  }
+
   return (
     <Drawer
       title={'YAML'}
@@ -25,7 +41,7 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose, validateYam
         <Space>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={validateYaml}>Validate</Button>
-          <Button type='primary' onClick={handleSubmit}>Submit</Button>
+          <Button type='primary' onClick={onSubmit}>Submit</Button>
         </Space>
       }
     >
