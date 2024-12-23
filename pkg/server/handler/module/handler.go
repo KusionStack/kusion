@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	modulemanager "kusionstack.io/kusion/pkg/server/manager/module"
@@ -90,7 +91,7 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Failure		429						{object}	error						"Too Many Requests"
 // @Failure		404						{object}	error						"Not Found"
 // @Failure		500						{object}	error						"Internal Server Error"
-// @Router			/api/v1/modules/{name} 											[put]
+// @Router			/api/v1/modules/{name} 																																																			[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -126,7 +127,7 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Failure		429						{object}	error			"Too Many Requests"
 // @Failure		404						{object}	error			"Not Found"
 // @Failure		500						{object}	error			"Internal Server Error"
-// @Router			/api/v1/modules/{name} 								[get]
+// @Router			/api/v1/modules/{name} 																																	[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -148,6 +149,7 @@ func (h *Handler) GetModule() http.HandlerFunc {
 // @Tags			module
 // @Produce		json
 // @Param			workspaceID	query		uint			false	"Workspace ID to filter module list by. Default to all workspaces."
+// @Param			moduleName	query		string			false	"Module name to filter module list by. Default to all modules."
 // @Success		200			{object}	[]entity.Module	"Success"
 // @Failure		400			{object}	error			"Bad Request"
 // @Failure		401			{object}	error			"Unauthorized"
@@ -163,6 +165,12 @@ func (h *Handler) ListModules() http.HandlerFunc {
 		logger.Info("Listing module...")
 
 		wsIDParam := r.URL.Query().Get("workspaceID")
+		moduleNameParam := r.URL.Query().Get("moduleName")
+
+		filter := &entity.ModuleFilter{}
+		if moduleNameParam != "" {
+			filter.ModuleName = moduleNameParam
+		}
 		if wsIDParam != "" {
 			wsID, err := strconv.Atoi(wsIDParam)
 			if err != nil {
@@ -171,13 +179,13 @@ func (h *Handler) ListModules() http.HandlerFunc {
 			}
 
 			// List modules in the specified workspace.
-			moduleEntities, err := h.moduleManager.ListModulesByWorkspaceID(ctx, uint(wsID))
+			moduleEntities, err := h.moduleManager.ListModulesByWorkspaceID(ctx, uint(wsID), filter)
 			handler.HandleResult(w, r, ctx, err, moduleEntities)
 			return
 		}
 
 		// List modules.
-		moduleEntities, err := h.moduleManager.ListModules(ctx)
+		moduleEntities, err := h.moduleManager.ListModules(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, moduleEntities)
 	}
 }

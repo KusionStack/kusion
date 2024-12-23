@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/go-chi/httplog/v2"
 	"gorm.io/gorm"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
@@ -22,6 +22,7 @@ import (
 	engineapi "kusionstack.io/kusion/pkg/engine/api"
 	sourceapi "kusionstack.io/kusion/pkg/engine/api/source"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/engine/release"
 	"kusionstack.io/kusion/pkg/engine/runtime/terraform/tfops"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -35,6 +36,8 @@ func BuildOptions(dryrun bool, maxConcurrent int) *engineapi.APIOptions {
 		// IgnoreFields: []string{},
 		DryRun:        dryrun,
 		MaxConcurrent: maxConcurrent,
+		// Watch:         false,
+		WatchTimeout: 120,
 	}
 	return executeOptions
 }
@@ -279,6 +282,10 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 	projectIDParam := query.Get("projectID")
 	stackIDParam := query.Get("stackID")
 	workspaceParam := query.Get("workspace")
+	runTypeParam := query.Get("type")
+	runStatusParam := query.Get("status")
+	startTimeParam := query.Get("startTime")
+	endTimeParam := query.Get("endTime")
 
 	filter := entity.RunFilter{}
 	if projectIDParam != "" {
@@ -300,6 +307,35 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 	if workspaceParam != "" {
 		// if workspace is present, use workspace
 		filter.Workspace = workspaceParam
+	}
+	if runTypeParam != "" {
+		// if run type is present, use run type
+		filter.Type = strings.Split(runTypeParam, ",")
+	}
+	if runStatusParam != "" {
+		// if run status is present, use run status
+		filter.Status = strings.Split(runStatusParam, ",")
+	}
+	// time format: RFC3339
+	if startTimeParam != "" {
+		// if start time is present, use start time
+		startTime, err := time.Parse(time.RFC3339, startTimeParam)
+		if err != nil {
+			return nil, err
+		}
+		filter.StartTime = startTime
+	}
+	if endTimeParam != "" {
+		// if end time is present, use end time
+		endTime, err := time.Parse(time.RFC3339, endTimeParam)
+		if err != nil {
+			return nil, err
+		}
+		// validate end time is after start time
+		if !filter.StartTime.IsZero() && endTime.Before(filter.StartTime) {
+			return nil, fmt.Errorf("end time must be after start time")
+		}
+		filter.EndTime = endTime
 	}
 	// Set pagination parameters
 	page, _ := strconv.Atoi(query.Get("page"))
@@ -418,6 +454,10 @@ func convertV1ResourceToEntity(resource *v1.Resource) (*entity.Resource, error) 
 	}, nil
 }
 
+func resourceURN(project, stack, workspace, id string) string {
+	return fmt.Sprintf("%s:%s:%s:%s", project, stack, workspace, id)
+}
+
 func isKubernetesResource(resource *v1.Resource) bool {
 	return resource.Type == v1.Kubernetes
 }
@@ -435,21 +475,29 @@ func isInRelease(release *v1.Release, id string) bool {
 	return false
 }
 
-func logToAll(sysLogger *httplog.Logger, runLogger *httplog.Logger, level string, message string, args ...any) {
-	switch strings.ToLower(level) {
-	case "info":
-		sysLogger.Info(message, args...)
-		runLogger.Info(message, args...)
-	case "error":
-		sysLogger.Error(message, args...)
-		runLogger.Error(message, args...)
-	case "warn":
-		sysLogger.Warn(message, args...)
-		runLogger.Warn(message, args...)
-	case "debug":
-		sysLogger.Debug(message, args...)
-		runLogger.Debug(message, args...)
-	default:
-		sysLogger.Error("unknown log level", "level", level)
+func unlockRelease(ctx context.Context, storage release.Storage) error {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Getting workdir from stack source...")
+	// Get the latest release.
+	r, err := release.GetLatestRelease(storage)
+	if err != nil {
+		return err
 	}
+	if r == nil {
+		logger.Info("No release file found for given stack")
+		return nil
+	}
+
+	// Update the phase to 'failed', if it was not succeeded or failed.
+	if r.Phase != v1.ReleasePhaseSucceeded && r.Phase != v1.ReleasePhaseFailed {
+		r.Phase = v1.ReleasePhaseFailed
+		if err := storage.Update(r); err != nil {
+			return err
+		}
+		logger.Info("Successfully update release phase!")
+		return nil
+	} else {
+		logger.Info("No need to update the release phase, current phase: ", "phase", r.Phase)
+	}
+	return nil
 }

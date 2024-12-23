@@ -13,6 +13,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+
 	discoveryv1 "k8s.io/api/discovery/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -393,6 +394,7 @@ func (k *KubernetesRuntime) Watch(ctx context.Context, request *runtime.WatchReq
 		amount := 1
 		// Try to get dependent resource by owner reference
 		dependentGVK := getDependentGVK(reqObj.GroupVersionKind())
+		log.Debug("watching dependent GVK: ", dependentGVK)
 		if !dependentGVK.Empty() {
 			owner := reqObj
 			for !dependentGVK.Empty() {
@@ -719,11 +721,12 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 	switch gvk.Kind {
 	// Deployment generates ReplicaSet
 	case convertor.Deployment:
-		return schema.GroupVersionKind{
-			Group:   appsv1.SchemeGroupVersion.Group,
-			Version: appsv1.SchemeGroupVersion.Version,
-			Kind:    convertor.ReplicaSet,
-		}
+		return schema.GroupVersionKind{}
+		// return schema.GroupVersionKind{
+		// 	Group:   appsv1.SchemeGroupVersion.Group,
+		// 	Version: appsv1.SchemeGroupVersion.Version,
+		// 	Kind:    convertor.ReplicaSet,
+		// }
 	// DaemonSet and StatefulSet generate ControllerRevision
 	case convertor.DaemonSet, convertor.StatefulSet:
 		return schema.GroupVersionKind{
@@ -747,6 +750,7 @@ func getDependentGVK(gvk schema.GroupVersionKind) schema.GroupVersionKind {
 		}
 	// Service is the owner of EndpointSlice
 	case convertor.Service:
+		// return schema.GroupVersionKind{}
 		return schema.GroupVersionKind{
 			Group:   discoveryv1.SchemeGroupVersion.Group,
 			Version: discoveryv1.SchemeGroupVersion.Version,

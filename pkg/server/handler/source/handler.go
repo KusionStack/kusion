@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
+	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/handler"
 	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
@@ -147,12 +148,13 @@ func (h *Handler) GetSource() http.HandlerFunc {
 // @Description	List source information by source ID
 // @Tags			source
 // @Produce		json
-// @Success		200	{object}	entity.Source	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			sourceName	query		string			false	"Source name to filter source list by. Default to all sources."
+// @Success		200			{object}	entity.Source	"Success"
+// @Failure		400			{object}	error			"Bad Request"
+// @Failure		401			{object}	error			"Unauthorized"
+// @Failure		429			{object}	error			"Too Many Requests"
+// @Failure		404			{object}	error			"Not Found"
+// @Failure		500			{object}	error			"Internal Server Error"
 // @Router			/api/v1/sources [get]
 func (h *Handler) ListSources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -160,9 +162,15 @@ func (h *Handler) ListSources() http.HandlerFunc {
 		ctx := r.Context()
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing source...")
-
+		query := r.URL.Query()
+		filter := &entity.SourceFilter{}
+		// Getting source filters
+		sourceNameParam := query.Get("sourceName")
+		if sourceNameParam != "" {
+			filter.SourceName = sourceNameParam
+		}
 		// List sources
-		sourceEntities, err := h.sourceManager.ListSources(ctx)
+		sourceEntities, err := h.sourceManager.ListSources(ctx, filter)
 		handler.HandleResult(w, r, ctx, err, sourceEntities)
 	}
 }

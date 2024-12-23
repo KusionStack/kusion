@@ -31,6 +31,10 @@ type Source struct {
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
 }
 
+type SourceFilter struct {
+	SourceName string
+}
+
 // Validate checks if the source is valid.
 // It returns an error if the source is not valid.
 func (s *Source) Validate() error {

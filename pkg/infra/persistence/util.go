@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
@@ -175,6 +176,53 @@ func GetRunQuery(filter *entity.RunFilter) (string, []interface{}) {
 	if filter.Workspace != "" {
 		pattern = append(pattern, "workspace.name = ?")
 		args = append(args, filter.Workspace)
+	}
+	if len(filter.Type) > 0 {
+		pattern = append(pattern, "run.type IN (?)")
+		args = append(args, filter.Type)
+	}
+	if len(filter.Status) > 0 {
+		pattern = append(pattern, "run.status IN (?)")
+		args = append(args, filter.Status)
+	}
+	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
+		start := time.Date(filter.StartTime.Year(),
+			filter.StartTime.Month(),
+			filter.StartTime.Day(),
+			filter.StartTime.Hour(),
+			filter.StartTime.Minute(),
+			filter.StartTime.Second(),
+			0, time.Local)
+		end := time.Date(filter.EndTime.Year(),
+			filter.EndTime.Month(),
+			filter.EndTime.Day(),
+			filter.EndTime.Hour(),
+			filter.EndTime.Minute(),
+			filter.EndTime.Second(),
+			0, time.Local)
+		pattern = append(pattern, "run.created_at >= ? AND run.created_at <= ?")
+		args = append(args, start, end)
+	}
+
+	return CombineQueryParts(pattern), args
+}
+
+func GetSourceQuery(filter *entity.SourceFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.SourceName != "" {
+		pattern = append(pattern, "source.name LIKE ?")
+		args = append(args, fmt.Sprintf("%%%s%%", filter.SourceName))
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func GetModuleQuery(filter *entity.ModuleFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.ModuleName != "" {
+		pattern = append(pattern, "module.name LIKE ?")
+		args = append(args, fmt.Sprintf("%%%s%%", filter.ModuleName))
 	}
 	return CombineQueryParts(pattern), args
 }

@@ -9,7 +9,7 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *StackManager) WriteResources(ctx context.Context, release *v1.Release, stack *entity.Stack, specID string) error {
+func (m *StackManager) WriteResources(ctx context.Context, release *v1.Release, stack *entity.Stack, workspace, specID string) error {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Writing resources into database...")
 	resourceEntitiesToInsert := []*entity.Resource{}
@@ -27,6 +27,7 @@ func (m *StackManager) WriteResources(ctx context.Context, release *v1.Release, 
 			resourceEntity.Status = constant.StatusResourceApplied
 			resourceEntity.Extensions = resource.Extensions
 			resourceEntity.DependsOn = resource.DependsOn
+			resourceEntity.ResourceURN = resourceURN(stack.Project.Name, stack.Name, workspace, resource.ID)
 			resourceEntitiesToInsert = append(resourceEntitiesToInsert, resourceEntity)
 		}
 		if err := m.resourceRepo.Create(ctx, resourceEntitiesToInsert); err != nil {
@@ -42,7 +43,8 @@ func (m *StackManager) MarkResourcesAsDeleted(ctx context.Context, release *v1.R
 
 	if release.State != nil {
 		for _, resource := range release.State.Resources {
-			resourceEntity, err := m.resourceRepo.GetByKusionResourceID(ctx, resource.ID)
+			resourceURN := resourceURN(release.Project, release.Stack, release.Workspace, resource.ID)
+			resourceEntity, err := m.resourceRepo.GetByKusionResourceURN(ctx, resourceURN)
 			if err != nil {
 				return err
 			}

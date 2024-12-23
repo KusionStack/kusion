@@ -31,7 +31,12 @@ func TestStackManager_WriteResources(t *testing.T) {
 		},
 		ModifiedTime: time.Now(),
 	}
-	stack := &entity.Stack{}
+	stack := &entity.Stack{
+		Project: &entity.Project{
+			Name: "project",
+		},
+		Name: "stack",
+	}
 	specID := "spec-1"
 
 	t.Run("WriteResources", func(t *testing.T) {
@@ -49,7 +54,7 @@ func TestStackManager_WriteResources(t *testing.T) {
 		sqlMock.ExpectExec("INSERT").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(2)))
 		sqlMock.ExpectCommit()
-		err = m.WriteResources(ctx, release, stack, specID)
+		err = m.WriteResources(ctx, release, stack, "test", specID)
 		require.NoError(t, err)
 
 		var (

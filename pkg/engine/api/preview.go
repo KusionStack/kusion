@@ -20,6 +20,8 @@ type APIOptions struct {
 	IgnoreFields  []string
 	DryRun        bool
 	MaxConcurrent int
+	Watch         bool
+	WatchTimeout  int
 }
 
 func NewAPIOptions() APIOptions {

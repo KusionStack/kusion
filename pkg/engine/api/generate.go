@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/liu-hm19/pterm"
 	yamlv3 "gopkg.in/yaml.v3"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/engine"
 	"kusionstack.io/kusion/pkg/engine/api/generate/generator"
 	"kusionstack.io/kusion/pkg/engine/api/generate/run"
 
@@ -89,6 +91,11 @@ func GenerateSpecWithSpinner(project *v1.Project, stack *v1.Stack, workspace *v1
 		}
 	}
 
+	err = ValidateSpec(versionedSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	// success
 	if style {
 		sp.Success()
@@ -115,6 +122,103 @@ func SpecFromFile(filePath string) (*v1.Spec, error) {
 		return nil, fmt.Errorf("failed to parse the intent file, please check if the file content is valid")
 	}
 	return i, nil
+}
+
+func ValidateSpec(spec *v1.Spec) error {
+	if spec == nil {
+		return fmt.Errorf("spec is nil")
+	}
+	if len(spec.Resources) == 0 {
+		return fmt.Errorf("spec has no resources")
+	}
+	err := validateSpecResources(spec.Resources)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSpecResources(resources []v1.Resource) error {
+	// Check for duplicate resource ids
+	resourceExists := make(map[string]bool)
+	for idx, resource := range resources {
+		// Check for empty resource ID
+		if resource.ID == "" {
+			return fmt.Errorf("resource ID is empty for resource %v", idx)
+		}
+		// Check whether resource ID already exists
+		if _, ok := resourceExists[resource.ID]; ok {
+			return fmt.Errorf("duplicate resource ID %s", resource.ID)
+		}
+		resourceExists[resource.ID] = true
+		// Check whether resource ID is valid
+		err := validateResourceID(resource)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateResourceID(resource v1.Resource) error {
+	switch {
+	case resource.Type == v1.Kubernetes:
+		return validateKubernetesResource(resource)
+	case resource.Type == v1.Terraform:
+		return validateTerraformResource(resource)
+	default:
+		return fmt.Errorf("invalid resource type: %s", resource.Type)
+	}
+}
+
+func validateKubernetesResource(resource v1.Resource) error {
+	idParts := strings.Split(resource.ID, engine.Separator)
+	if len(idParts) < 3 || len(idParts) > 4 {
+		return fmt.Errorf("invalid resource id with missing required fields: %s", resource.ID)
+	}
+	apiVersion := idParts[0]
+	kind := idParts[1]
+	if attributeAPIVersion, ok := resource.Attributes["apiVersion"]; ok {
+		if attributeAPIVersion != apiVersion {
+			return fmt.Errorf("unmatched API Version in resource id: %s and attribute: %s", apiVersion, attributeAPIVersion)
+		}
+	}
+	if attributeKind, ok := resource.Attributes["kind"]; ok {
+		if attributeKind != kind {
+			return fmt.Errorf("unmatched Kind in resource id: %s and attribute: %s", kind, attributeKind)
+		}
+	}
+	return nil
+}
+
+func validateTerraformResource(resource v1.Resource) error {
+	idParts := strings.Split(resource.ID, engine.Separator)
+	if len(idParts) != 4 {
+		return fmt.Errorf("invalid resource id with missing required fields: %s", resource.ID)
+	}
+	var providerNamespace, providerName string
+	// TODO: add provider namespace and name validation
+	// if _, ok := resource.Extensions["required_provider"]; ok {
+	// 	// TODO: implement when required_provider is supported in module-framework
+	// }
+	if providerExtension, ok := resource.Extensions["provider"].(string); ok {
+		srcAttrs := strings.Split(providerExtension, "/")
+		if len(srcAttrs) == 3 {
+			providerNamespace = srcAttrs[1]
+			providerName = srcAttrs[2]
+		} else if len(srcAttrs) == 2 {
+			providerNamespace = srcAttrs[0]
+			providerName = srcAttrs[1]
+		} else {
+			return fmt.Errorf("invalid terraform provider source: %s", providerExtension)
+		}
+	} else {
+		return fmt.Errorf("missing provider extension in terraform resource: %s", resource.ID)
+	}
+	if providerNamespace != idParts[0] || providerName != idParts[1] {
+		return fmt.Errorf("unmatched provider in resource id: %s and provider extension: %s", idParts[0]+"/"+idParts[1], providerNamespace+"/"+providerName)
+	}
+	return nil
 }
 
 // func buildAppConfigs(o *builders.Options, stack *v1.Stack) (map[string]v1.AppConfiguration, error) {

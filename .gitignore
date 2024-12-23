@@ -11,7 +11,7 @@
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+coverage.out
 *.log
 
 # graph
@@ -59,8 +59,10 @@ air.toml
 # frontend
 frontend/
 
-
+# ui
 ui/build/*
 !ui/build/.gitkeep
-
 node_modules/
+
+# Terraform provider binary folder
+.terraform/ 
