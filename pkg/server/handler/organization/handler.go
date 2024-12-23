@@ -20,13 +20,13 @@ import (
 // @Tags			organization
 // @Accept			json
 // @Produce		json
-// @Param			organization	body		request.CreateOrganizationRequest	true	"Created organization"
-// @Success		200				{object}	entity.Organization					"Success"
-// @Failure		400				{object}	error								"Bad Request"
-// @Failure		401				{object}	error								"Unauthorized"
-// @Failure		429				{object}	error								"Too Many Requests"
-// @Failure		404				{object}	error								"Not Found"
-// @Failure		500				{object}	error								"Internal Server Error"
+// @Param			organization	body		request.CreateOrganizationRequest			true	"Created organization"
+// @Success		200				{object}	handler.Response{data=entity.Organization}	"Success"
+// @Failure		400				{object}	error										"Bad Request"
+// @Failure		401				{object}	error										"Unauthorized"
+// @Failure		429				{object}	error										"Too Many Requests"
+// @Failure		404				{object}	error										"Not Found"
+// @Failure		500				{object}	error										"Internal Server Error"
 // @Router			/api/v1/orgs [post]
 func (h *Handler) CreateOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -59,13 +59,13 @@ func (h *Handler) CreateOrganization() http.HandlerFunc {
 // @Description	Delete specified organization by ID
 // @Tags			organization
 // @Produce		json
-// @Param			id	path		int		true	"Organization ID"
-// @Success		200	{object}	string	"Success"
-// @Failure		400	{object}	error	"Bad Request"
-// @Failure		401	{object}	error	"Unauthorized"
-// @Failure		429	{object}	error	"Too Many Requests"
-// @Failure		404	{object}	error	"Not Found"
-// @Failure		500	{object}	error	"Internal Server Error"
+// @Param			id	path		int								true	"Organization ID"
+// @Success		200	{object}	handler.Response{data=string}	"Success"
+// @Failure		400	{object}	error							"Bad Request"
+// @Failure		401	{object}	error							"Unauthorized"
+// @Failure		429	{object}	error							"Too Many Requests"
+// @Failure		404	{object}	error							"Not Found"
+// @Failure		500	{object}	error							"Internal Server Error"
 // @Router			/api/v1/orgs/{id} [delete]
 func (h *Handler) DeleteOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -88,14 +88,14 @@ func (h *Handler) DeleteOrganization() http.HandlerFunc {
 // @Tags			organization
 // @Accept			json
 // @Produce		json
-// @Param			id				path		int									true	"Organization ID"
-// @Param			organization	body		request.UpdateOrganizationRequest	true	"Updated organization"
-// @Success		200				{object}	entity.Organization					"Success"
-// @Failure		400				{object}	error								"Bad Request"
-// @Failure		401				{object}	error								"Unauthorized"
-// @Failure		429				{object}	error								"Too Many Requests"
-// @Failure		404				{object}	error								"Not Found"
-// @Failure		500				{object}	error								"Internal Server Error"
+// @Param			id				path		int											true	"Organization ID"
+// @Param			organization	body		request.UpdateOrganizationRequest			true	"Updated organization"
+// @Success		200				{object}	handler.Response{data=entity.Organization}	"Success"
+// @Failure		400				{object}	error										"Bad Request"
+// @Failure		401				{object}	error										"Unauthorized"
+// @Failure		429				{object}	error										"Too Many Requests"
+// @Failure		404				{object}	error										"Not Found"
+// @Failure		500				{object}	error										"Internal Server Error"
 // @Router			/api/v1/orgs/{id} [put]
 func (h *Handler) UpdateOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -131,13 +131,13 @@ func (h *Handler) UpdateOrganization() http.HandlerFunc {
 // @Description	Get organization information by organization ID
 // @Tags			organization
 // @Produce		json
-// @Param			id	path		int					true	"Organization ID"
-// @Success		200	{object}	entity.Organization	"Success"
-// @Failure		400	{object}	error				"Bad Request"
-// @Failure		401	{object}	error				"Unauthorized"
-// @Failure		429	{object}	error				"Too Many Requests"
-// @Failure		404	{object}	error				"Not Found"
-// @Failure		500	{object}	error				"Internal Server Error"
+// @Param			id	path		int											true	"Organization ID"
+// @Success		200	{object}	handler.Response{data=entity.Organization}	"Success"
+// @Failure		400	{object}	error										"Bad Request"
+// @Failure		401	{object}	error										"Unauthorized"
+// @Failure		429	{object}	error										"Too Many Requests"
+// @Failure		404	{object}	error										"Not Found"
+// @Failure		500	{object}	error										"Internal Server Error"
 // @Router			/api/v1/orgs/{id} [get]
 func (h *Handler) GetOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -159,12 +159,12 @@ func (h *Handler) GetOrganization() http.HandlerFunc {
 // @Description	List all organizations
 // @Tags			organization
 // @Produce		json
-// @Success		200	{object}	[]entity.Organization	"Success"
-// @Failure		400	{object}	error					"Bad Request"
-// @Failure		401	{object}	error					"Unauthorized"
-// @Failure		429	{object}	error					"Too Many Requests"
-// @Failure		404	{object}	error					"Not Found"
-// @Failure		500	{object}	error					"Internal Server Error"
+// @Success		200	{object}	handler.Response{data=[]entity.Organization}	"Success"
+// @Failure		400	{object}	error											"Bad Request"
+// @Failure		401	{object}	error											"Unauthorized"
+// @Failure		429	{object}	error											"Too Many Requests"
+// @Failure		404	{object}	error											"Not Found"
+// @Failure		500	{object}	error											"Internal Server Error"
 // @Router			/api/v1/orgs [get]
 func (h *Handler) ListOrganizations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

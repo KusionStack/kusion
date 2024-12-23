@@ -21,13 +21,13 @@ import (
 // @Tags			source
 // @Accept			json
 // @Produce		json
-// @Param			source	body		request.CreateSourceRequest	true	"Created source"
-// @Success		200		{object}	entity.Source				"Success"
-// @Failure		400		{object}	error						"Bad Request"
-// @Failure		401		{object}	error						"Unauthorized"
-// @Failure		429		{object}	error						"Too Many Requests"
-// @Failure		404		{object}	error						"Not Found"
-// @Failure		500		{object}	error						"Internal Server Error"
+// @Param			source	body		request.CreateSourceRequest				true	"Created source"
+// @Success		200		{object}	handler.Response{data=entity.Source}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/sources [post]
 func (h *Handler) CreateSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,13 +54,13 @@ func (h *Handler) CreateSource() http.HandlerFunc {
 // @Description	Delete specified source by ID
 // @Tags			source
 // @Produce		json
-// @Param			id	path		int				true	"Source ID"
-// @Success		200	{object}	entity.Source	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			id	path		int								true	"Source ID"
+// @Success		200	{object}	handler.Response{data=string}	"Success"
+// @Failure		400	{object}	error							"Bad Request"
+// @Failure		401	{object}	error							"Unauthorized"
+// @Failure		429	{object}	error							"Too Many Requests"
+// @Failure		404	{object}	error							"Not Found"
+// @Failure		500	{object}	error							"Internal Server Error"
 // @Router			/api/v1/sources/{id} [delete]
 func (h *Handler) DeleteSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -83,14 +83,14 @@ func (h *Handler) DeleteSource() http.HandlerFunc {
 // @Tags			source
 // @Accept			json
 // @Produce		json
-// @Param			id		path		int							true	"Source ID"
-// @Param			source	body		request.UpdateSourceRequest	true	"Updated source"
-// @Success		200		{object}	entity.Source				"Success"
-// @Failure		400		{object}	error						"Bad Request"
-// @Failure		401		{object}	error						"Unauthorized"
-// @Failure		429		{object}	error						"Too Many Requests"
-// @Failure		404		{object}	error						"Not Found"
-// @Failure		500		{object}	error						"Internal Server Error"
+// @Param			id		path		int										true	"Source ID"
+// @Param			source	body		request.UpdateSourceRequest				true	"Updated source"
+// @Success		200		{object}	handler.Response{data=entity.Source}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/sources/{id} [put]
 func (h *Handler) UpdateSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -120,13 +120,13 @@ func (h *Handler) UpdateSource() http.HandlerFunc {
 // @Description	Get source information by source ID
 // @Tags			source
 // @Produce		json
-// @Param			id	path		int				true	"Source ID"
-// @Success		200	{object}	entity.Source	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			id	path		int										true	"Source ID"
+// @Success		200	{object}	handler.Response{data=entity.Source}	"Success"
+// @Failure		400	{object}	error									"Bad Request"
+// @Failure		401	{object}	error									"Unauthorized"
+// @Failure		429	{object}	error									"Too Many Requests"
+// @Failure		404	{object}	error									"Not Found"
+// @Failure		500	{object}	error									"Internal Server Error"
 // @Router			/api/v1/sources/{id} [get]
 func (h *Handler) GetSource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -148,13 +148,13 @@ func (h *Handler) GetSource() http.HandlerFunc {
 // @Description	List source information by source ID
 // @Tags			source
 // @Produce		json
-// @Param			sourceName	query		string			false	"Source name to filter source list by. Default to all sources."
-// @Success		200			{object}	entity.Source	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			sourceName	query		string									false	"Source name to filter source list by. Default to all sources."
+// @Success		200			{object}	handler.Response{data=[]entity.Source}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/sources [get]
 func (h *Handler) ListSources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

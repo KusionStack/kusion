@@ -20,13 +20,13 @@ import (
 // @Tags			backend
 // @Accept			json
 // @Produce		json
-// @Param			backend	body		request.CreateBackendRequest	true	"Created backend"
-// @Success		200		{object}	entity.Backend					"Success"
-// @Failure		400		{object}	error							"Bad Request"
-// @Failure		401		{object}	error							"Unauthorized"
-// @Failure		429		{object}	error							"Too Many Requests"
-// @Failure		404		{object}	error							"Not Found"
-// @Failure		500		{object}	error							"Internal Server Error"
+// @Param			backend	body		request.CreateBackendRequest			true	"Created backend"
+// @Success		200		{object}	handler.Response{data=entity.Backend}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/backends [post]
 func (h *Handler) CreateBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -52,13 +52,13 @@ func (h *Handler) CreateBackend() http.HandlerFunc {
 // @Description	Delete specified backend by ID
 // @Tags			backend
 // @Produce		json
-// @Param			id	path		int		true	"Backend ID"
-// @Success		200	{object}	string	"Success"
-// @Failure		400	{object}	error	"Bad Request"
-// @Failure		401	{object}	error	"Unauthorized"
-// @Failure		429	{object}	error	"Too Many Requests"
-// @Failure		404	{object}	error	"Not Found"
-// @Failure		500	{object}	error	"Internal Server Error"
+// @Param			id	path		int								true	"Backend ID"
+// @Success		200	{object}	handler.Response{data=string}	"Success"
+// @Failure		400	{object}	error							"Bad Request"
+// @Failure		401	{object}	error							"Unauthorized"
+// @Failure		429	{object}	error							"Too Many Requests"
+// @Failure		404	{object}	error							"Not Found"
+// @Failure		500	{object}	error							"Internal Server Error"
 // @Router			/api/v1/backends/{id} [delete]
 func (h *Handler) DeleteBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -81,14 +81,14 @@ func (h *Handler) DeleteBackend() http.HandlerFunc {
 // @Tags			backend
 // @Accept			json
 // @Produce		json
-// @Param			id		path		int								true	"Backend ID"
-// @Param			backend	body		request.UpdateBackendRequest	true	"Updated backend"
-// @Success		200		{object}	entity.Backend					"Success"
-// @Failure		400		{object}	error							"Bad Request"
-// @Failure		401		{object}	error							"Unauthorized"
-// @Failure		429		{object}	error							"Too Many Requests"
-// @Failure		404		{object}	error							"Not Found"
-// @Failure		500		{object}	error							"Internal Server Error"
+// @Param			id		path		int										true	"Backend ID"
+// @Param			backend	body		request.UpdateBackendRequest			true	"Updated backend"
+// @Success		200		{object}	handler.Response{data=entity.Backend}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/backends/{id} [put]
 func (h *Handler) UpdateBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -117,13 +117,13 @@ func (h *Handler) UpdateBackend() http.HandlerFunc {
 // @Description	Get backend information by backend ID
 // @Tags			backend
 // @Produce		json
-// @Param			id	path		int				true	"Backend ID"
-// @Success		200	{object}	entity.Backend	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Param			id	path		int										true	"Backend ID"
+// @Success		200	{object}	handler.Response{data=entity.Backend}	"Success"
+// @Failure		400	{object}	error									"Bad Request"
+// @Failure		401	{object}	error									"Unauthorized"
+// @Failure		429	{object}	error									"Too Many Requests"
+// @Failure		404	{object}	error									"Not Found"
+// @Failure		500	{object}	error									"Internal Server Error"
 // @Router			/api/v1/backends/{id} [get]
 func (h *Handler) GetBackend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -145,12 +145,12 @@ func (h *Handler) GetBackend() http.HandlerFunc {
 // @Description	List all backends
 // @Tags			backend
 // @Produce		json
-// @Success		200	{object}	entity.Backend	"Success"
-// @Failure		400	{object}	error			"Bad Request"
-// @Failure		401	{object}	error			"Unauthorized"
-// @Failure		429	{object}	error			"Too Many Requests"
-// @Failure		404	{object}	error			"Not Found"
-// @Failure		500	{object}	error			"Internal Server Error"
+// @Success		200	{object}	handler.Response{data=entity.Backend}	"Success"
+// @Failure		400	{object}	error									"Bad Request"
+// @Failure		401	{object}	error									"Unauthorized"
+// @Failure		429	{object}	error									"Too Many Requests"
+// @Failure		404	{object}	error									"Not Found"
+// @Failure		500	{object}	error									"Internal Server Error"
 // @Router			/api/v1/backends [get]
 func (h *Handler) ListBackends() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

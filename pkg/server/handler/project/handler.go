@@ -22,13 +22,13 @@ import (
 // @Tags			project
 // @Accept			json
 // @Produce		json
-// @Param			project	body		request.CreateProjectRequest	true	"Created project"
-// @Success		200		{object}	entity.Project					"Success"
-// @Failure		400		{object}	error							"Bad Request"
-// @Failure		401		{object}	error							"Unauthorized"
-// @Failure		429		{object}	error							"Too Many Requests"
-// @Failure		404		{object}	error							"Not Found"
-// @Failure		500		{object}	error							"Internal Server Error"
+// @Param			project	body		request.CreateProjectRequest			true	"Created project"
+// @Success		200		{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/projects [post]
 func (h *Handler) CreateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,13 +70,13 @@ func (h *Handler) CreateProject() http.HandlerFunc {
 // @Description	Delete specified project by ID
 // @Tags			project
 // @Produce		json
-// @Param			project_id	path		int		true	"Project ID"
-// @Success		200			{object}	string	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
+// @Param			project_id	path		int								true	"Project ID"
+// @Success		200			{object}	handler.Response{data=string}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
 // @Router			/api/v1/projects/{project_id} [delete]
 func (h *Handler) DeleteProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -99,14 +99,14 @@ func (h *Handler) DeleteProject() http.HandlerFunc {
 // @Tags			project
 // @Accept			json
 // @Produce		json
-// @Param			project_id	path		uint							true	"Project ID"
-// @Param			project		body		request.UpdateProjectRequest	true	"Updated project"
-// @Success		200			{object}	entity.Project					"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
+// @Param			project_id	path		uint									true	"Project ID"
+// @Param			project		body		request.UpdateProjectRequest			true	"Updated project"
+// @Success		200			{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/projects/{project_id} [put]
 func (h *Handler) UpdateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -141,13 +141,13 @@ func (h *Handler) UpdateProject() http.HandlerFunc {
 // @Description	Get project information by project ID
 // @Tags			project
 // @Produce		json
-// @Param			project_id	path		uint			true	"Project ID"
-// @Success		200			{object}	entity.Project	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			project_id	path		uint									true	"Project ID"
+// @Success		200			{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/projects/{project_id} [get]
 func (h *Handler) GetProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -169,14 +169,14 @@ func (h *Handler) GetProject() http.HandlerFunc {
 // @Description	List all or a subset of the projects
 // @Tags			project
 // @Produce		json
-// @Param			orgID	query		uint				false	"OrganizationID to filter project list by. Default to all projects."
-// @Param			name	query		string				false	"Project name to filter project list by. This should only return one result if set."
-// @Success		200		{object}	[]entity.Project	"Success"
-// @Failure		400		{object}	error				"Bad Request"
-// @Failure		401		{object}	error				"Unauthorized"
-// @Failure		429		{object}	error				"Too Many Requests"
-// @Failure		404		{object}	error				"Not Found"
-// @Failure		500		{object}	error				"Internal Server Error"
+// @Param			orgID	query		uint									false	"OrganizationID to filter project list by. Default to all projects."
+// @Param			name	query		string									false	"Project name to filter project list by. This should only return one result if set."
+// @Success		200		{object}	handler.Response{data=[]entity.Project}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/projects [get]
 func (h *Handler) ListProjects() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

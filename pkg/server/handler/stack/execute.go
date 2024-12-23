@@ -20,20 +20,20 @@ import (
 // @Description	Preview stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int							true	"Stack ID"
-// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
-// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
-// @Param			output				query		string						false	"Output format. Choices are: json, default. Default to default output format in Kusion."
-// @Param			detail				query		bool						false	"Show detailed output"
-// @Param			specID				query		string						false	"The Spec ID to use for the preview. Default to the last one generated."
-// @Param			force				query		bool						false	"Force the preview even when the stack is locked"
-// @Success		200					{object}	models.Changes				"Success"
-// @Failure		400					{object}	error						"Bad Request"
-// @Failure		401					{object}	error						"Unauthorized"
-// @Failure		429					{object}	error						"Too Many Requests"
-// @Failure		404					{object}	error						"Not Found"
-// @Failure		500					{object}	error						"Internal Server Error"
+// @Param			stack_id			path		int										true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest				false	"The resources to import during the stack preview"
+// @Param			workspace			query		string									true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool									false	"Import existing resources during the stack preview"
+// @Param			output				query		string									false	"Output format. Choices are: json, default. Default to default output format in Kusion."
+// @Param			detail				query		bool									false	"Show detailed output"
+// @Param			specID				query		string									false	"The Spec ID to use for the preview. Default to the last one generated."
+// @Param			force				query		bool									false	"Force the preview even when the stack is locked"
+// @Success		200					{object}	handler.Response{data=models.Changes}	"Success"
+// @Failure		400					{object}	error									"Bad Request"
+// @Failure		401					{object}	error									"Unauthorized"
+// @Failure		429					{object}	error									"Too Many Requests"
+// @Failure		404					{object}	error									"Not Found"
+// @Failure		500					{object}	error									"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/preview [post]
 func (h *Handler) PreviewStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -79,16 +79,16 @@ func (h *Handler) PreviewStack() http.HandlerFunc {
 // @Description	Generate stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
-// @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
-// @Param			force		query		bool	false	"Force the generate even when the stack is locked"
-// @Success		200			{object}	v1.Spec	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
+// @Param			stack_id	path		int								true	"Stack ID"
+// @Param			workspace	query		string							true	"The target workspace to preview the spec in."
+// @Param			format		query		string							false	"The format to generate the spec in. Choices are: spec. Default to spec."
+// @Param			force		query		bool							false	"Force the generate even when the stack is locked"
+// @Success		200			{object}	handler.Response{data=v1.Spec}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/generate [post]
 func (h *Handler) GenerateStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -117,19 +117,19 @@ func (h *Handler) GenerateStack() http.HandlerFunc {
 // @Description	Apply stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int							true	"Stack ID"
-// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
-// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
-// @Param			specID				query		string						false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
-// @Param			force				query		bool						false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
-// @Param			dryrun				query		bool						false	"Apply in dry-run mode"
-// @Success		200					{object}	string						"Success"
-// @Failure		400					{object}	error						"Bad Request"
-// @Failure		401					{object}	error						"Unauthorized"
-// @Failure		429					{object}	error						"Too Many Requests"
-// @Failure		404					{object}	error						"Not Found"
-// @Failure		500					{object}	error						"Internal Server Error"
+// @Param			stack_id			path		int								true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest		false	"The resources to import during the stack preview"
+// @Param			workspace			query		string							true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool							false	"Import existing resources during the stack preview"
+// @Param			specID				query		string							false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
+// @Param			force				query		bool							false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun				query		bool							false	"Apply in dry-run mode"
+// @Success		200					{object}	handler.Response{data=string}	"Success"
+// @Failure		400					{object}	error							"Bad Request"
+// @Failure		401					{object}	error							"Unauthorized"
+// @Failure		429					{object}	error							"Too Many Requests"
+// @Failure		404					{object}	error							"Not Found"
+// @Failure		500					{object}	error							"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/apply [post]
 func (h *Handler) ApplyStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -184,16 +184,16 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 // @Description	Destroy stack information by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
-// @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
-// @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
-// @Success		200			{object}	string	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
+// @Param			stack_id	path		int								true	"Stack ID"
+// @Param			workspace	query		string							true	"The target workspace to preview the spec in."
+// @Param			force		query		bool							false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun		query		bool							false	"Destroy in dry-run mode"
+// @Success		200			{object}	handler.Response{data=string}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
 // @Router			/api/v1/stacks/{stack_id}/destroy [post]
 func (h *Handler) DestroyStack() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

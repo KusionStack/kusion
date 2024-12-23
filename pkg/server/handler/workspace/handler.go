@@ -22,13 +22,13 @@ import (
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			workspace	body		request.CreateWorkspaceRequest	true	"Created workspace"
-// @Success		200			{object}	entity.Workspace				"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
+// @Param			workspace	body		request.CreateWorkspaceRequest			true	"Created workspace"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/workspaces [post]
 func (h *Handler) CreateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,13 +54,13 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 // @Description	Delete specified workspace by ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int		true	"Workspace ID"
-// @Success		200	{object}	string	"Success"
-// @Failure		400	{object}	error	"Bad Request"
-// @Failure		401	{object}	error	"Unauthorized"
-// @Failure		429	{object}	error	"Too Many Requests"
-// @Failure		404	{object}	error	"Not Found"
-// @Failure		500	{object}	error	"Internal Server Error"
+// @Param			id	path		int								true	"Workspace ID"
+// @Success		200	{object}	handler.Response{data=string}	"Success"
+// @Failure		400	{object}	error							"Bad Request"
+// @Failure		401	{object}	error							"Unauthorized"
+// @Failure		429	{object}	error							"Too Many Requests"
+// @Failure		404	{object}	error							"Not Found"
+// @Failure		500	{object}	error							"Internal Server Error"
 // @Router			/api/v1/workspaces/{id} [delete]
 func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -83,14 +83,14 @@ func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			id			path		int								true	"Workspace ID"
-// @Param			workspace	body		request.UpdateWorkspaceRequest	true	"Updated workspace"
-// @Success		200			{object}	entity.Workspace				"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
+// @Param			id			path		int										true	"Workspace ID"
+// @Param			workspace	body		request.UpdateWorkspaceRequest			true	"Updated workspace"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/workspaces/{id} [put]
 func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -119,13 +119,13 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 // @Description	Get workspace information by workspace ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int					true	"Workspace ID"
-// @Success		200	{object}	entity.Workspace	"Success"
-// @Failure		400	{object}	error				"Bad Request"
-// @Failure		401	{object}	error				"Unauthorized"
-// @Failure		429	{object}	error				"Too Many Requests"
-// @Failure		404	{object}	error				"Not Found"
-// @Failure		500	{object}	error				"Internal Server Error"
+// @Param			id	path		int										true	"Workspace ID"
+// @Success		200	{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400	{object}	error									"Bad Request"
+// @Failure		401	{object}	error									"Unauthorized"
+// @Failure		429	{object}	error									"Too Many Requests"
+// @Failure		404	{object}	error									"Not Found"
+// @Failure		500	{object}	error									"Internal Server Error"
 // @Router			/api/v1/workspaces/{id} [get]
 func (h *Handler) GetWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -148,12 +148,12 @@ func (h *Handler) GetWorkspace() http.HandlerFunc {
 // @Description	List all workspaces
 // @Tags			workspace
 // @Produce		json
-// @Success		200	{object}	entity.Workspace	"Success"
-// @Failure		400	{object}	error				"Bad Request"
-// @Failure		401	{object}	error				"Unauthorized"
-// @Failure		429	{object}	error				"Too Many Requests"
-// @Failure		404	{object}	error				"Not Found"
-// @Failure		500	{object}	error				"Internal Server Error"
+// @Success		200	{object}	handler.Response{data=[]entity.Workspace}	"Success"
+// @Failure		400	{object}	error										"Bad Request"
+// @Failure		401	{object}	error										"Unauthorized"
+// @Failure		429	{object}	error										"Too Many Requests"
+// @Failure		404	{object}	error										"Not Found"
+// @Failure		500	{object}	error										"Internal Server Error"
 // @Router			/api/v1/workspaces [get]
 func (h *Handler) ListWorkspaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
