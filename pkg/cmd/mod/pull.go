@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/kubectl/pkg/util/templates"
-	"kcl-lang.io/kpm/pkg/client"
-	"kcl-lang.io/kpm/pkg/downloader"
+	"kusionstack.io/kusion-module-framework/pkg/module/registry"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/util/i18n"
 )
@@ -120,19 +118,19 @@ func (flags *PullModFlags) ToOptions(args []string, ioStreams genericiooptions.I
 	if flags.Host != "" {
 		host = flags.Host
 	} else {
-		host = os.Getenv("KUSION_MODULE_HOST")
+		host = os.Getenv("KUSION_MODULE_REGISTRY_HOST")
 	}
 
 	if flags.Username != "" {
 		username = flags.Username
 	} else {
-		username = os.Getenv("KUSION_MODULE_USERNAME")
+		username = os.Getenv("KUSION_MODULE_REGISTRY_USERNAME")
 	}
 
 	if flags.Password != "" {
 		password = flags.Password
 	} else {
-		password = os.Getenv("KUSION_MODULE_PASSWORD")
+		password = os.Getenv("KUSION_MODULE_REGISTRY_PASSWORD")
 	}
 
 	return &PullModOptions{
@@ -162,25 +160,14 @@ func (o *PullModOptions) Run() (err error) {
 		err = os.RemoveAll(path)
 	}(cacheDir)
 
-	cli, err := client.NewKpmClient()
-	if err != nil {
-		return
-	}
-	cli.DepDownloader = downloader.NewOciDownloader(runtime.GOOS + "/" + runtime.GOARCH)
-
-	// Login to the private oci registry.
-	if o.Host != "" && o.Username != "" && o.Password != "" {
-		if err = cli.LoginOci(o.Host, o.Username, o.Password); err != nil {
-			return
-		}
-	}
-
-	// Download the kusion modules with kpm sdk.
-	kclPkg, err := cli.LoadPkgFromPath(o.Dir)
+	// Get a client for private Kusion Module Registry.
+	kusionModRegCli, err := registry.NewKusionModuleClientWithCredentials(o.Host, o.Username, o.Password)
 	if err != nil {
 		return
 	}
 
-	_, _, err = cli.InitGraphAndDownloadDeps(kclPkg)
+	// Download the Kusion Module Dependencies in `kcl.mod` file.
+	err = kusionModRegCli.DownloadKusionModules(o.Dir)
+
 	return
 }
