@@ -15,8 +15,12 @@
 package v1
 
 import (
+	"context"
+	"encoding/json"
 	"time"
 
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	googleauth "golang.org/x/oauth2/google"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -247,22 +251,25 @@ const (
 	BackendS3Region           = "region"
 	BackendS3ForcePathStyle   = "forcePathStyle"
 
-	BackendTypeLocal = "local"
-	BackendTypeOss   = "oss"
-	BackendTypeS3    = "s3"
+	BackendTypeLocal  = "local"
+	BackendTypeOss    = "oss"
+	BackendTypeS3     = "s3"
+	BackendTypeGoogle = "google"
 
-	EnvOssAccessKeyID        = "OSS_ACCESS_KEY_ID"
-	EnvOssAccessKeySecret    = "OSS_ACCESS_KEY_SECRET"
-	EnvAwsAccessKeyID        = "AWS_ACCESS_KEY_ID"
-	EnvAwsSecretAccessKey    = "AWS_SECRET_ACCESS_KEY"
-	EnvAwsDefaultRegion      = "AWS_DEFAULT_REGION"
-	EnvAwsRegion             = "AWS_REGION"
-	EnvAlicloudAccessKey     = "ALICLOUD_ACCESS_KEY"
-	EnvAlicloudSecretKey     = "ALICLOUD_SECRET_KEY"
-	EnvAlicloudRegion        = "ALICLOUD_REGION"
-	EnvViettelCloudCmpURL    = "VIETTEL_CLOUD_CMP_URL"
-	EnvViettelCloudUserToken = "VIETTEL_CLOUD_USER_TOKEN"
-	EnvViettelCloudProjectID = "VIETTEL_CLOUD_PROJECT_ID"
+	EnvOssAccessKeyID             = "OSS_ACCESS_KEY_ID"
+	EnvOssAccessKeySecret         = "OSS_ACCESS_KEY_SECRET"
+	EnvAwsAccessKeyID             = "AWS_ACCESS_KEY_ID"
+	EnvAwsSecretAccessKey         = "AWS_SECRET_ACCESS_KEY"
+	EnvAwsDefaultRegion           = "AWS_DEFAULT_REGION"
+	EnvAwsRegion                  = "AWS_REGION"
+	EnvAlicloudAccessKey          = "ALICLOUD_ACCESS_KEY"
+	EnvAlicloudSecretKey          = "ALICLOUD_SECRET_KEY"
+	EnvAlicloudRegion             = "ALICLOUD_REGION"
+	EnvViettelCloudCmpURL         = "VIETTEL_CLOUD_CMP_URL"
+	EnvViettelCloudUserToken      = "VIETTEL_CLOUD_USER_TOKEN"
+	EnvViettelCloudProjectID      = "VIETTEL_CLOUD_PROJECT_ID"
+	EnvGoogleCloudCredentials     = "GOOGLE_CLOUD_CREDENTIALS"
+	EnvGoogleCloudCredentialsPath = "GOOGLE_CLOUD_CREDENTIALS_PATH"
 
 	FieldImportedResources = "importedResources"
 	FieldHealthPolicy      = "healthPolicy"
@@ -309,6 +316,18 @@ type BackendS3Config struct {
 	*GenericBackendObjectStorageConfig `yaml:",inline" json:",inline"`
 
 	// Region of S3.
+	Region string `yaml:"region,omitempty" json:"region,omitempty"`
+}
+
+// BackendGoogleConfig contains the config of using google as backend, which can be converted from BackendConfig
+// if Type is BackendGoogleConfig.
+type BackendGoogleConfig struct {
+	*GenericBackendObjectStorageConfig `yaml:",inline" json:",inline"`
+
+	// Credentials of Google.
+	// Credentials string `yaml:"credentials,omitempty" json:"credentials,omitempty"`
+	Credentials *googleauth.Credentials `yaml:"credentials,omitempty" json:"credentials,omitempty"`
+	// Region of Google.
 	Region string `yaml:"region,omitempty" json:"region,omitempty"`
 }
 
@@ -391,6 +410,35 @@ func (b *BackendConfig) ToS3Backend() *BackendS3Config {
 			ForcePathStyle:  forcePathStyle,
 		},
 		Region: region,
+	}
+}
+
+// ToGoogleBackend converts BackendConfig to structured BackendGoogleConfig, works only when the Type is
+// BackendTypeGoogle, and the Configs are with correct type, or return nil.
+func (b *BackendConfig) ToGoogleBackend() *BackendGoogleConfig {
+	if b.Type != BackendTypeGoogle {
+		return nil
+	}
+	var creds *googleauth.Credentials
+	bucket, _ := b.Configs[BackendGenericOssBucket].(string)
+	prefix, _ := b.Configs[BackendGenericOssPrefix].(string)
+	if credentialsJSON, ok := b.Configs["credentials"].(map[string]any); ok {
+		credentialsBytes, err := json.Marshal(credentialsJSON)
+		if err != nil {
+			return nil
+		}
+		ctx := context.Background()
+		creds, err = googleauth.CredentialsFromJSON(ctx, credentialsBytes, secretmanager.DefaultAuthScopes()...)
+		if err != nil {
+			return nil
+		}
+	}
+	return &BackendGoogleConfig{
+		GenericBackendObjectStorageConfig: &GenericBackendObjectStorageConfig{
+			Bucket: bucket,
+			Prefix: prefix,
+		},
+		Credentials: creds,
 	}
 }
 
