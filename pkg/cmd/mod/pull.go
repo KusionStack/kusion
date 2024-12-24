@@ -29,9 +29,9 @@ var (
 	kusion mod pull --host ghcr.io/kusion-module-registry --username username --password password
 	
 	# Or users can also pull the kusion modules in private oci registry with environment variables
-	export KUSION_MODULE_HOST=ghcr.io/kusion-module-registry
-	export KUSION_MODULE_USERNAME=username
-	export KUSION_MODULE_PASSWORD=password
+	export KUSION_MODULE_REGISTRY_HOST=ghcr.io/kusion-module-registry
+	export KUSION_MODULE_REGISTRY_USERNAME=username
+	export KUSION_MODULE_REGISTRY_PASSWORD=password
 	kusion mod pull /dir/to/kcl.mod`)
 )
 

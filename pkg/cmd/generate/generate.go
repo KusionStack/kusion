@@ -214,9 +214,9 @@ func GenerateSpecWithSpinner(
 		Stack:     stack,
 		Workspace: workspace,
 		Runner: &run.KPMRunner{
-			Host:     os.Getenv("KUSION_MODULE_HOST"),
-			Username: os.Getenv("KUSION_MODULE_USERNAME"),
-			Password: os.Getenv("KUSION_MODULE_PASSWORD"),
+			Host:     os.Getenv("KUSION_MODULE_REGISTRY_HOST"),
+			Username: os.Getenv("KUSION_MODULE_REGISTRY_USERNAME"),
+			Password: os.Getenv("KUSION_MODULE_REGISTRY_PASSWORD"),
 		},
 	}
 
