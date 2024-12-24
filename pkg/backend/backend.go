@@ -76,6 +76,13 @@ func NewBackend(name string) (Backend, error) {
 		if err != nil {
 			return nil, fmt.Errorf("new s3 storage of backend %s failed, %w", name, err)
 		}
+	case v1.BackendTypeGoogle:
+		bkConfig := bkCfg.ToGoogleBackend()
+		// storages.CompleteGoogleConfig(bkConfig)
+		storage, err = storages.NewGoogleStorage(bkConfig)
+		if err != nil {
+			return nil, fmt.Errorf("new google storage of backend %s failed, %w", name, err)
+		}
 	default:
 		return nil, fmt.Errorf("invalid type %s of backend %s", bkCfg.Type, name)
 	}
