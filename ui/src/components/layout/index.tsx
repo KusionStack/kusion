@@ -34,6 +34,7 @@ const LayoutPage = () => {
           <NavLogo />
           {/* <NavMenu /> */}
           <KusionMenu />
+          
         </div>
         <NavRight />
       </div>
