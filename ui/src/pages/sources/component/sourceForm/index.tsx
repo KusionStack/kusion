@@ -64,10 +64,13 @@ const SourceForm = ({
       >
         <div style={{ margin: 20 }}>
           <Form form={form} layout="horizontal">
-            <Form.Item label="Name" name={'name'}>
+            <Form.Item label="Name" name='name'>
               <Input />
             </Form.Item>
-            <Form.Item label="Url" name={'url'}>
+            <Form.Item label="Remote" name='remote'>
+              <Input />
+            </Form.Item>
+            <Form.Item label="SourceProvider" name='sourceProvider'>
               <Input />
             </Form.Item>
           </Form>

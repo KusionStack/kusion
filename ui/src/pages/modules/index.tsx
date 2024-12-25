@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Input, message, Select, Space, Table } from 'antd'
+import { Button, Card, Input, message, Space, Table } from 'antd'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
 import ModuleForm from './component/moduleForm'
+import { debounce } from "lodash"
 
 import styles from './styles.module.less'
 
-const { Option } = Select
 
 const ModulePage = () => {
   const [keyword, setKeyword] = useState<string>('')
@@ -45,9 +45,16 @@ const ModulePage = () => {
     getModuleList({})
   }, [])
 
-  function handleChange(event) {
-    setKeyword(event?.target.value)
-  }
+  const handleChange = debounce((event) => {
+    const val = event?.target.value;
+    setKeyword(val)
+    getModuleList({
+      ...searchParams,
+      query: {
+        keyword: val
+      }
+    })
+  }, 200)
 
   function handleAdd() {
     setActionType('ADD')
@@ -101,6 +108,7 @@ const ModulePage = () => {
     })
     if (response?.data?.success) {
       message.success('Create Success')
+      getModuleList({})
       setOpen(false)
     } else {
       message.error(response?.data?.messaage || '请求失败')

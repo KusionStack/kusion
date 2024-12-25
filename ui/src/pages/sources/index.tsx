@@ -94,10 +94,15 @@ const SourcesPage = () => {
   async function handleSubmit(values) {
     console.log(values, 'Sources handleSubmit')
     const response: any = await SourceService.createSource({
-      body: values
+      body: {
+        name: values?.name,
+        remote: values?.remote,
+        sourceProvider: values?.sourceProvider
+      }
     })
     if (response?.data?.success) {
       message.success('Create Success')
+      getResourceList({})
       setOpen(false)
     } else {
       message.error(response?.data?.messaage || '请求失败')

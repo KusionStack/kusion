@@ -145,6 +145,8 @@ type IProps = {
   isResource?: boolean
 }
 
+let graph: IAbstractGraph | null = null
+
 const TopologyMap = ({
   onTopologyNodeClick,
   topologyData,
@@ -153,7 +155,7 @@ const TopologyMap = ({
 }: IProps) => {
   const ref = useRef(null)
   const graphRef = useRef<any>()
-  let graph: IAbstractGraph | null = null
+  
   const location = useLocation()
   const { from, type, query } = queryString.parse(location?.search)
   const navigate = useNavigate()
@@ -208,20 +210,6 @@ const TopologyMap = ({
             cursor: 'pointer',
           },
           name: 'node-container',
-        })
-
-        // Add background
-        group.addShape('rect', {
-          attrs: {
-            x: 0,
-            y: 0,
-            width: nodeWidth,
-            height: 48,
-            radius: 6,
-            fill: '#f0f5ff',
-            opacity: 0.8,
-          },
-          name: 'node-background',
         })
 
         // Add side accent
@@ -402,7 +390,7 @@ const TopologyMap = ({
           width,
           height,
           fitCenter: true,
-          fitView: topologyData?.nodes?.length >= 3,
+          fitView: topologyData?.nodes?.length >= 4,
           fitViewPadding: 20,
           plugins: [toolbar],
           enabledStack: true,
@@ -529,14 +517,6 @@ const TopologyMap = ({
           }
         }
       }
-    }
-    return () => {
-      try {
-        if (graph) {
-          graph.destroy()
-          graphRef.current = null
-        }
-      } catch (error) { }
     }
     // eslint-disable-next-line
   }, [topologyData])

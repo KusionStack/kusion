@@ -2,10 +2,12 @@ import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import NavLogo from './navLogo'
+import KusionMenu from './kusionMenu'
 import NavMenu from './navMenu'
 import NavRight from './navRight'
 
 import styles from './style.module.less'
+import { Card } from 'antd'
 
 
 const LayoutPage = () => {
@@ -30,11 +32,15 @@ const LayoutPage = () => {
       <div className={styles.nav}>
         <div className={styles.nav_left}>
           <NavLogo />
-          <NavMenu />
+          {/* <NavMenu /> */}
+          <KusionMenu />
         </div>
         <NavRight />
       </div>
       <div className={styles.body_wrapper}>
+        {/* <Card>
+          
+        </Card> */}
         <Outlet />
       </div>
     </div>

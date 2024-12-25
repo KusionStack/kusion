@@ -12,9 +12,8 @@ import store from '@/store'
 import './index.less'
 
 
-
 client.setConfig({
-  baseUrl: 'http://30.177.35.79'
+  baseUrl: 'http://30.177.35.141'
 });
 
 dayjs.locale('en-US')
@@ -27,7 +26,7 @@ function App() {
         locale={enUS}
         theme={{
           token: {
-            colorPrimary: '#2f54eb',
+            colorPrimary: '#2667FF',
           },
         }}
       >

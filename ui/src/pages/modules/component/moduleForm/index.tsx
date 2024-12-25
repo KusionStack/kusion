@@ -79,8 +79,8 @@ const ModuleForm = ({
             <Input />
           </Form.Item>
           <Form.Item
-            label="Registry"
-            name="registry"
+            label="url"
+            name="url"
             rules={[
               {
                 required: true,

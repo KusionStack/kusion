@@ -7,7 +7,7 @@ import {
 
 import styles from './style.module.less'
 
-const iconStyle = { color: '#646566', marginRight: 5 }
+const iconStyle = { marginRight: 5 }
 
 const NavRight = () => {
   return (
