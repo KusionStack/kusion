@@ -3,16 +3,20 @@ package organization
 import (
 	"context"
 	"errors"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *OrganizationManager) ListOrganizations(ctx context.Context) ([]*entity.Organization, error) {
-	organizationEntities, err := m.organizationRepo.List(ctx)
+func (m *OrganizationManager) ListOrganizations(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
+	organizationEntities, err := m.organizationRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingOrganization
@@ -88,4 +92,26 @@ func (m *OrganizationManager) CreateOrganization(ctx context.Context, requestPay
 		return nil, err
 	}
 	return &createdEntity, nil
+}
+
+func (m *OrganizationManager) BuildOrganizationFilter(ctx context.Context, query *url.Values) (*entity.OrganizationFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building organization filter...")
+
+	filter := entity.OrganizationFilter{}
+
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.CommonPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.CommonPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	return &filter, nil
 }

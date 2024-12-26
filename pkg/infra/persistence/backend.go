@@ -1,3 +1,4 @@
+//nolint:dupl
 package persistence
 
 import (
@@ -95,10 +96,17 @@ func (r *backendRepository) Get(ctx context.Context, id uint) (*entity.Backend, 
 }
 
 // List retrieves all backends.
-func (r *backendRepository) List(ctx context.Context) ([]*entity.Backend, error) {
+func (r *backendRepository) List(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error) {
 	var dataModel []BackendModel
 	backendEntityList := make([]*entity.Backend, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+
+	// Get total rows.
+	var totalRows int64
+	r.db.WithContext(ctx).Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data with offset and limit.
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -109,5 +117,8 @@ func (r *backendRepository) List(ctx context.Context) ([]*entity.Backend, error)
 		}
 		backendEntityList = append(backendEntityList, backendEntity)
 	}
-	return backendEntityList, nil
+	return &entity.BackendListResult{
+		Backends: backendEntityList,
+		Total:    int(totalRows),
+	}, nil
 }

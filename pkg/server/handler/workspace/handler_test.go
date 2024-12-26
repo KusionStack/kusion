@@ -37,7 +37,12 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `workspace`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `workspace`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
 				AddRow(1, "test-ws", 1).
 				AddRow(2, "test-ws-2", 2))
@@ -58,7 +63,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]any)["workspaces"].([]any)))
 	})
 
 	t.Run("GetWorkspace", func(t *testing.T) {
@@ -78,7 +83,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		rctx.URLParams.Add("workspaceID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListWorkspaces handler function
+		// Call the GetWorkspaces handler function
 		workspaceHandler.GetWorkspace()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -177,7 +182,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		sqlMock.ExpectExec("UPDATE").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
 
-		// Call the ListWorkspaces handler function
+		// Call the UpdateWorkspaces handler function
 		workspaceHandler.UpdateWorkspace()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 

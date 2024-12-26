@@ -8,10 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
-	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -148,12 +147,14 @@ func (h *Handler) GetWorkspace() http.HandlerFunc {
 // @Description	List all workspaces
 // @Tags			workspace
 // @Produce		json
-// @Success		200	{object}	handler.Response{data=[]entity.Workspace}	"Success"
-// @Failure		400	{object}	error										"Bad Request"
-// @Failure		401	{object}	error										"Unauthorized"
-// @Failure		429	{object}	error										"Too Many Requests"
-// @Failure		404	{object}	error										"Not Found"
-// @Failure		500	{object}	error										"Internal Server Error"
+// @Param			page		query		uint														false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedWorkspaceResponse}	"Success"
+// @Failure		400			{object}	error														"Bad Request"
+// @Failure		401			{object}	error														"Unauthorized"
+// @Failure		429			{object}	error														"Too Many Requests"
+// @Failure		404			{object}	error														"Not Found"
+// @Failure		500			{object}	error														"Internal Server Error"
 // @Router			/api/v1/workspaces [get]
 func (h *Handler) ListWorkspaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -162,24 +163,27 @@ func (h *Handler) ListWorkspaces() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing workspace...")
 
-		filter := entity.WorkspaceFilter{}
-		backendIDParam := r.URL.Query().Get("backendID")
-		if backendIDParam != "" {
-			backendID, err := strconv.Atoi(backendIDParam)
-			if err != nil {
-				render.Render(w, r, handler.FailureResponse(ctx, backendmanager.ErrInvalidBackendID))
-				return
-			}
-			filter.BackendID = uint(backendID)
-		}
-		name := r.URL.Query().Get("name")
-		if name != "" {
-			filter.Name = name
+		query := r.URL.Query()
+		filter, err := h.workspaceManager.BuildWorkspaceFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
 
 		// Return found workspaces
-		workspaceEntities, err := h.workspaceManager.ListWorkspaces(ctx, &filter)
-		handler.HandleResult(w, r, ctx, err, workspaceEntities)
+		workspaceEntities, err := h.workspaceManager.ListWorkspaces(ctx, filter)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedWorkspaceResponse{
+			Workspaces:  workspaceEntities.Workspaces,
+			Total:       workspaceEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

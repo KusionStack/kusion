@@ -1,3 +1,4 @@
+//nolint:dupl
 package persistence
 
 import (
@@ -108,11 +109,20 @@ func (r *sourceRepository) GetByRemote(ctx context.Context, remote string) (*ent
 }
 
 // List retrieves all sources.
-func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter) ([]*entity.Source, error) {
+func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
 	var dataModel []SourceModel
 	sourceEntityList := make([]*entity.Source, 0)
 	pattern, args := GetSourceQuery(filter)
-	result := r.db.WithContext(ctx).Where(pattern, args...).Find(&dataModel)
+	searchResult := r.db.WithContext(ctx).Where(pattern, args...)
+
+	// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -123,5 +133,8 @@ func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter
 		}
 		sourceEntityList = append(sourceEntityList, sourceEntity)
 	}
-	return sourceEntityList, nil
+	return &entity.SourceListResult{
+		Sources: sourceEntityList,
+		Total:   int(totalRows),
+	}, nil
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -148,13 +148,15 @@ func (h *Handler) GetSource() http.HandlerFunc {
 // @Description	List source information by source ID
 // @Tags			source
 // @Produce		json
-// @Param			sourceName	query		string									false	"Source name to filter source list by. Default to all sources."
-// @Success		200			{object}	handler.Response{data=[]entity.Source}	"Success"
-// @Failure		400			{object}	error									"Bad Request"
-// @Failure		401			{object}	error									"Unauthorized"
-// @Failure		429			{object}	error									"Too Many Requests"
-// @Failure		404			{object}	error									"Not Found"
-// @Failure		500			{object}	error									"Internal Server Error"
+// @Param			sourceName	query		string													false	"Source name to filter source list by. Default to all sources."
+// @Param			page		query		uint													false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedSourceResponse}	"Success"
+// @Failure		400			{object}	error													"Bad Request"
+// @Failure		401			{object}	error													"Unauthorized"
+// @Failure		429			{object}	error													"Too Many Requests"
+// @Failure		404			{object}	error													"Not Found"
+// @Failure		500			{object}	error													"Internal Server Error"
 // @Router			/api/v1/sources [get]
 func (h *Handler) ListSources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -162,16 +164,29 @@ func (h *Handler) ListSources() http.HandlerFunc {
 		ctx := r.Context()
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing source...")
-		query := r.URL.Query()
-		filter := &entity.SourceFilter{}
+
 		// Getting source filters
-		sourceNameParam := query.Get("sourceName")
-		if sourceNameParam != "" {
-			filter.SourceName = sourceNameParam
+		query := r.URL.Query()
+		filter, err := h.sourceManager.BuildSourceFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
-		// List sources
+
+		// List sources with pagination.
 		sourceEntities, err := h.sourceManager.ListSources(ctx, filter)
-		handler.HandleResult(w, r, ctx, err, sourceEntities)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedSourceResponse{
+			Sources:     sourceEntities.Sources,
+			Total:       sourceEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

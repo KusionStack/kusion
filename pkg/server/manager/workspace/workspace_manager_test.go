@@ -48,9 +48,12 @@ func (m *mockWorkspaceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Workspace), args.Error(1)
+	return &entity.WorkspaceListResult{
+		Workspaces: args.Get(0).([]*entity.Workspace),
+		Total:      len(args.Get(0).([]*entity.Workspace)),
+	}, args.Error(1)
 }
 
 func (m *mockWorkspaceRepository) Get(ctx context.Context, id uint) (*entity.Workspace, error) {

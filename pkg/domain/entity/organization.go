@@ -26,6 +26,15 @@ type Organization struct {
 	UpdateTimestamp time.Time `yaml:"updateTimestamp,omitempty" json:"updateTimestamp,omitempty"`
 }
 
+type OrganizationFilter struct {
+	Pagination *Pagination
+}
+
+type OrganizationListResult struct {
+	Organizations []*Organization
+	Total         int
+}
+
 // Validate checks if the organization is valid.
 // It returns an error if the organization is not valid.
 func (p *Organization) Validate() error {

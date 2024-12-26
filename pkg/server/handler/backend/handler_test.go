@@ -29,7 +29,12 @@ func TestBackendHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `backend`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `backend`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
 				AddRow(1, backendName).
 				AddRow(2, backendNameSecond))
@@ -50,7 +55,7 @@ func TestBackendHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]interface{})["backends"].([]any)))
 	})
 
 	t.Run("GetBackend", func(t *testing.T) {

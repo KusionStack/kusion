@@ -38,7 +38,12 @@ func TestStackHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `stack`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `stack`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "path", "sync_state", "Project__id", "Project__name", "Project__path"}).
 				AddRow(1, stackName, stackPath, constant.StackStateUnSynced, 1, projectName, projectPath).
 				AddRow(2, stackNameSecond, stackPath, constant.StackStateUnSynced, 2, projectName, projectPath))
@@ -59,7 +64,7 @@ func TestStackHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]any)["stacks"].([]any)))
 	})
 
 	t.Run("GetStack", func(t *testing.T) {
@@ -79,7 +84,7 @@ func TestStackHandler(t *testing.T) {
 		rctx.URLParams.Add("stackID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListStacks handler function
+		// Call the GetStacks handler function
 		stackHandler.GetStack()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -185,7 +190,7 @@ func TestStackHandler(t *testing.T) {
 		sqlMock.ExpectExec("UPDATE").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
 
-		// Call the ListStacks handler function
+		// Call the UpdateStacks handler function
 		stackHandler.UpdateStack()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 

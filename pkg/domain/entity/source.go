@@ -33,6 +33,12 @@ type Source struct {
 
 type SourceFilter struct {
 	SourceName string
+	Pagination *Pagination
+}
+
+type SourceListResult struct {
+	Sources []*Source
+	Total   int
 }
 
 // Validate checks if the source is valid.

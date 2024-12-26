@@ -109,14 +109,21 @@ func (r *workspaceRepository) GetByName(ctx context.Context, name string) (*enti
 }
 
 // List retrieves all workspaces.
-func (r *workspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+func (r *workspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
 	var dataModel []WorkspaceModel
 	workspaceEntityList := make([]*entity.Workspace, 0)
 	pattern, args := GetWorkspaceQuery(filter)
-	result := r.db.WithContext(ctx).
+	searchResult := r.db.WithContext(ctx).
 		Preload("Backend").
-		Where(pattern, args...).
-		Find(&dataModel)
+		Where(pattern, args...)
+
+	// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -127,5 +134,9 @@ func (r *workspaceRepository) List(ctx context.Context, filter *entity.Workspace
 		}
 		workspaceEntityList = append(workspaceEntityList, workspaceEntity)
 	}
-	return workspaceEntityList, nil
+
+	return &entity.WorkspaceListResult{
+		Workspaces: workspaceEntityList,
+		Total:      int(totalRows),
+	}, nil
 }

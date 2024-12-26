@@ -22,6 +22,6 @@ const (
 	ResourcePageDefault     = 1
 	ResourcePageSizeDefault = 100
 	ResourcePageSizeLarge   = 1000
-	RunPageDefault          = 1
-	RunPageSizeDefault      = 10
+	CommonPageDefault       = 1
+	CommonPageSizeDefault   = 10
 )

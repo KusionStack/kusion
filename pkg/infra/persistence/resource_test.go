@@ -6,6 +6,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
@@ -67,15 +68,26 @@ func TestResourceRepository(t *testing.T) {
 			expectedIDSecond   uint = 2
 			expectedTypeSecond      = "Terraform"
 		)
-		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `resource`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `resource` .* IS NULL LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "resource_type"}).
 					AddRow(expectedIDFirst, expectedTypeFirst).
 					AddRow(expectedIDSecond, expectedTypeSecond))
 
-		actual, err := repo.List(context.Background(), &entity.ResourceFilter{})
+		actual, err := repo.List(context.Background(), &entity.ResourceFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Resources, 2)
 	})
 
 	t.Run("Delete existing record", func(t *testing.T) {
