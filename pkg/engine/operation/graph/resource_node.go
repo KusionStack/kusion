@@ -347,6 +347,7 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 			log.Debugf("import resource:%s, resource:%v", planed.ID, json.Marshal2String(s))
 			res = response.Resource
 		} else {
+			prior.DependsOn = planed.DependsOn
 			res = prior
 		}
 	default:
