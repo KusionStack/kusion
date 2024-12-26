@@ -348,10 +348,10 @@ export const topologyData = {
   "workload": "apps/v1:Deployment:test-project-1112:test-project-1112-dev-helloworld"
 }
 
-export function generateG6GraphData(data = topologyData) {
+export function generateG6GraphData(data) {
   const nodes = [];
   const edges = [];
-  Object?.entries(data?.resources)?.forEach(([key, value]) => {
+  Object?.entries(data?.resources)?.forEach(([key, value]: any) => {
     nodes.push({
       id: key,
       label: value?.resourceName,

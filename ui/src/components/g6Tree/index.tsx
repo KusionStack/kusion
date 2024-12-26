@@ -27,6 +27,8 @@ insertCss(`
   }
 `);
 
+const mockData = {"nodes":[{"id":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-699n8","label":"deployment-prometheus-prod-57f46848c9-699n8","data":{"resourceGroup":{"cluster":"ack","apiVersion":"v1","kind":"Pod","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9-699n8"}}},{"id":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-6jdsw","label":"deployment-prometheus-prod-57f46848c9-6jdsw","data":{"resourceGroup":{"cluster":"ack","apiVersion":"v1","kind":"Pod","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9-6jdsw"}}},{"id":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-cwqcl","label":"deployment-prometheus-prod-57f46848c9-cwqcl","data":{"resourceGroup":{"cluster":"ack","apiVersion":"v1","kind":"Pod","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9-cwqcl"}}},{"id":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-hwrzx","label":"deployment-prometheus-prod-57f46848c9-hwrzx","data":{"resourceGroup":{"cluster":"ack","apiVersion":"v1","kind":"Pod","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9-hwrzx"}}},{"id":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-m6lcj","label":"deployment-prometheus-prod-57f46848c9-m6lcj","data":{"resourceGroup":{"cluster":"ack","apiVersion":"v1","kind":"Pod","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9-m6lcj"}}},{"id":"apps/v1.Deployment:prometheus.deployment-prometheus-prod","label":"deployment-prometheus-prod","data":{"resourceGroup":{"cluster":"ack","apiVersion":"apps/v1","kind":"Deployment","namespace":"prometheus","name":"deployment-prometheus-prod"}}},{"id":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","label":"deployment-prometheus-prod-57f46848c9","data":{"resourceGroup":{"cluster":"ack","apiVersion":"apps/v1","kind":"ReplicaSet","namespace":"prometheus","name":"deployment-prometheus-prod-57f46848c9"}}}],"edges":[{"source":"apps/v1.Deployment:prometheus.deployment-prometheus-prod","target":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9"},{"source":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","target":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-6jdsw"},{"source":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","target":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-cwqcl"},{"source":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","target":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-hwrzx"},{"source":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","target":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-m6lcj"},{"source":"apps/v1.ReplicaSet:prometheus.deployment-prometheus-prod-57f46848c9","target":"/v1.Pod:prometheus.deployment-prometheus-prod-57f46848c9-699n8"}]} 
+
 const tooltip = new G6.Tooltip({
   offsetX: 10,
   offsetY: 10,
@@ -132,139 +134,13 @@ const G6Tree = ({ graphData = topologyData }) => {
   }
 
   function initData() {
-    // const data = {
-    //   // 点集
-    //   nodes: [
-    //     {
-    //       id: '1',
-    //       label: 'zk',
-    //       kind: 'Helm',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //       logoIcon: {
-    //         img: 'https://blazehu.com/images/k8s/status/helm.svg',
-    //         offsetY: 0,
-    //       },
-    //     },
-    //     {
-    //       id: '2',
-    //       label: 'zk-zookeeper',
-    //       kind: 'Service',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //     },
-    //     {
-    //       id: '3',
-    //       label: 'zk-zookeeper-headless',
-    //       kind: 'Service',
-    //       health: 'Healthy',
-    //       status: 'Synced',
-    //     },
-    //     {
-    //       id: '4',
-    //       label: 'zk-zookeeper',
-    //       kind: 'StatefulSet',
-    //       health: 'Progressing',
-    //       status: 'Synced',
-    //       phase: 'StartSync',
-    //     },
-    //     {
-    //       id: '5',
-    //       label: 'zk-zookeeper',
-    //       kind: 'Endpoints',
-    //     },
-    //     {
-    //       id: '6',
-    //       label: 'zk-zookeeper-k2vpn',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '7',
-    //       label: 'zk-zookeeper-headless',
-    //       kind: 'Endpoints',
-    //     },
-    //     {
-    //       id: '8',
-    //       label: 'zk-zookeeper-headless-7bz9d',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '9',
-    //       label: 'zk-zookeeper-headless-8mbqm',
-    //       kind: 'EndpointSlice',
-    //     },
-    //     {
-    //       id: '10',
-    //       label: 'zk-zookeeper-0',
-    //       kind: 'PersistentVolumeClaim',
-    //       health: 'Healthy',
-    //     },
-    //     {
-    //       id: '11',
-    //       label: 'zk-zookeeper-0',
-    //       kind: 'Pod',
-    //       health: 'Progressing',
-    //     },
-    //     {
-    //       id: '12',
-    //       label: 'zk-zookeeper-565fd5c886',
-    //       kind: 'ControllerRevision',
-    //     }
-    //   ],
-    //   // 边集
-    //   edges: [
-    //     {
-    //       source: '1', // String，必须，起始点 id
-    //       target: '2', // String，必须，目标点 id
-    //     },
-    //     {
-    //       source: '1',
-    //       target: '3',
-    //     },
-    //     {
-    //       source: '1',
-    //       target: '4',
-    //     },
-    //     {
-    //       source: '2',
-    //       target: '5',
-    //     },
-    //     {
-    //       source: '2',
-    //       target: '6',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '7',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '8',
-    //     },
-    //     {
-    //       source: '3',
-    //       target: '9',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '10',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '11',
-    //     },
-    //     {
-    //       source: '4',
-    //       target: '12',
-    //     },
-    //   ],
-    // };
     console.log(JSON.parse(JSON.stringify(graphData)))
-    const data = generateG6GraphData(graphData)
+    const data = mockData || generateG6GraphData(graphData)
     console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
     const valList: any = Object.values(edgesLayer);
     const maxLayerCount = Math.max(...valList);
+    console.log(valList, maxLayerCount, "====maxLayerCount====")
     return { maxLayerCount, data };
   }
 

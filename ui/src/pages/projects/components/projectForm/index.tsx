@@ -6,6 +6,7 @@ import styles from './styles.module.less';
 const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+
   const formInitialValues = {
     name: '',
     description: '',
@@ -14,7 +15,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
     organization: '',
   };
 
-  // 提交表单
   const onFinish = async () => {
     if (loading) {
       return;
@@ -22,7 +22,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      console.log(values, "======values======")
       handleSubmit(values)
     } catch (e) {
       message.error('提交失败');
@@ -31,16 +30,21 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
     }
   };
 
+  function onClose() {
+    form.resetFields()
+    handleClose()
+  }
+
   return (
     <Modal
       open={open}
-      title="创建新任务"
+      title="Create Project"
       footer={[
-        <Button key="cancel" onClick={() => { }}>
-          取消
+        <Button key="cancel" onClick={onClose}>
+          cancel
         </Button>,
         <Button key="create" type="primary" onClick={onFinish}>
-          确定
+          Submit
         </Button>,
       ]}
     >
@@ -49,32 +53,32 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
         initialValues={formInitialValues}
         layout="vertical"
       >
-        <Form.Item name="name" label="名称">
+        <Form.Item name="name" label="Name">
           <Input
-            placeholder="请输入"
+            placeholder="Please input Name"
             className={styles.inputConfigPath}
           />
         </Form.Item>
-        <Form.Item name="description" label="描述">
+        <Form.Item name="description" label="Description">
           <Input.TextArea
-            placeholder="这里是描述，可能很长也可能很短的一段话..."
+            placeholder="Please input description..."
             rows={4}
           />
         </Form.Item>
-        <Form.Item name="projectSource" label="项目来源">
+        <Form.Item name="projectSource" label="Project Source">
           <Select
-            placeholder="请选择 projects source"
+            placeholder="Please projects source"
             className={styles.selectInput}
           />
         </Form.Item>
-        <Form.Item name="configPath" label="配置路径">
+        <Form.Item name="configPath" label="Config Path">
           <Input
-            placeholder="请输入 config path in source"
+            placeholder="Please input config path in source"
             className={styles.inputConfigPath}
           />
         </Form.Item>
-        <Form.Item name="organization" label="所属组织">
-          <Select placeholder="请选择所属组织" className={styles.selectInput} />
+        <Form.Item name="organization" label="Organization">
+          <Select placeholder="Please select organization" className={styles.selectInput} />
         </Form.Item>
       </Form>
     </Modal>

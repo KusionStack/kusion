@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, DatePicker, Form, Input, message, Space, Table, Tag, } from 'antd'
+import { Button, DatePicker, Form, Input, message, Select, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { RunService, StackService } from '@kusionstack/kusion-api-client-sdk'
 import RunsForm from './runsForm'
@@ -7,14 +7,10 @@ import RunsForm from './runsForm'
 import styles from "./styles.module.less"
 import GenerateDetail from './generateDetail'
 import PreviewDetail from './previewDetail'
+import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 
 
-const RUNS_TYPES = {
-  Preview: 'Preview',
-  Generate: 'Generate',
-  Apply: 'Apply',
-  Destroy: 'Destroy',
-}
+
 
 const Runs = () => {
   const [form] = Form.useForm();
@@ -166,12 +162,12 @@ const Runs = () => {
         message.error('请求失败')
       }
     } catch (error) {
-
     }
   }
 
   useEffect(() => {
     getListRun(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleChangePage(page: number, pageSize: number) {
@@ -210,7 +206,8 @@ const Runs = () => {
       title: 'Status',
       dataIndex: 'status',
       render: (text) => {
-        return <Tag color={text === 'Succeeded' ? 'success' : 'error'}>{text}</Tag>
+        // return <Tag color={text === 'Succeeded' ? 'success' : 'error'}>{text}</Tag>
+        return <Tag>{RUNS_STATUS_MAP?.[text]}</Tag>
       }
     },
     {
@@ -273,10 +270,18 @@ const Runs = () => {
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
             <Form.Item name="type" label="Type">
-              <Input />
+              <Select placeholder="Please select type">
+                {
+                  Object.entries(RUNS_TYPES)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
+                }
+              </Select>
             </Form.Item>
             <Form.Item name="status" label="Status">
-              <Input />
+              <Select placeholder="Please select status">
+                {
+                  Object.entries(RUNS_STATUS_MAP)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
+                }
+              </Select>
             </Form.Item>
             <Form.Item name="createTime" label="Create Time">
               <DatePicker.RangePicker />

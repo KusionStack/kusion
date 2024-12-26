@@ -22,7 +22,6 @@ const them = {
 };
 
 const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: MarkdownViewIProps) => {
-  console.log("=====MarkdownView=====")
   return (
     <div className={styles.markdown_view_container}>
       <div className={styles.markdown_view_copy}>
@@ -36,7 +35,7 @@ const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: Markdow
           copy
         </Button>
       </div>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+      <ReactMarkdown className={styles.markdown_container} remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
     </div>
   );
 

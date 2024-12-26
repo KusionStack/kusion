@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { Button, Drawer, message, Space } from 'antd'
 import YamlEditor from '@/components/yamlEditor'
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk'
+import { josn2yaml } from '@/utils/tools'
 
 const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
-
-  const [yamlStr, setYamlStr] = useState(yamlData)
+  console.log(yamlData, "====EditYamlDrawer yamlData====")
+  const yamlSs = josn2yaml(yamlData)?.data
+  const [yamlStr, setYamlStr] = useState(yamlSs)
 
   function handleChange(val) {
     console.log(val, "====handleChange====")
@@ -13,7 +15,8 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
   }
 
   function handleCancel() {
-    setYamlStr(yamlData)
+    setYamlStr(yamlSs)
+    handleClose()
   }
 
   function onSubmit() {
@@ -31,6 +34,9 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
     }
   }
 
+
+  console.log(yamlStr, "===yamlStr====")
+  
   return (
     <Drawer
       title={'YAML'}
@@ -45,7 +51,10 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
         </Space>
       }
     >
-      <YamlEditor value={yamlStr} readOnly={false} onChange={handleChange} themeMode='DARK' />
+      {
+        yamlStr &&
+        <YamlEditor value={yamlStr} readOnly={false} onChange={handleChange} themeMode='DARK' />
+      }
     </Drawer>
   )
 

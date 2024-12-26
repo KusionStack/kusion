@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import styles from "./styles.module.less"
-import { Button, Card, Col, DatePicker, Form, Input, Row, Space, Table, Tag } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { Button, Form, Input, message, Space, Table } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { ProjectService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
-import { useNavigate } from 'react-router-dom'
 
-type TypeSearchParams = {
-  name?: string
-  org?: string
-  creator?: string
-  createTime?: string
-} | undefined
+import styles from "./styles.module.less"
 
 const Projects = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const [searchParams, setSearchParams] = useState<TypeSearchParams>();
+  const [searchParams, setSearchParams] = useState({
+    pageSize: 10,
+    page: 1,
+    query: undefined,
+    total: 0,
+  });
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
 
@@ -33,35 +32,61 @@ const Projects = () => {
   }
   function handleReset() {
     form.resetFields();
-    setSearchParams(undefined)
+    setSearchParams({
+      ...searchParams,
+      query: undefined
+    })
+    getProjectList({
+      page: 1,
+      pageSize: 10,
+      query: undefined
+    })
   }
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams(values)
-    console.log(values, "=====handleSearch=====")
+    setSearchParams({
+      ...searchParams,
+      query: values
+    })
+    getProjectList({
+      page: 1,
+      pageSize: 20,
+      query: values,
+    })
   }
 
   function handleClear(key) {
     form.setFieldValue(key, undefined)
-    // setSearchParams({
-    //   ...searchParams,
-    //   [key]: ''
-    // })
     handleSearch()
   }
 
-  async function getList(params) {
+  async function getProjectList(params) {
     try {
-      const resData: any = await ProjectService.listProject(params);
-      setDataSource(resData?.data?.data);
-      console.log(resData, "======resData====")
+      const response: any = await ProjectService.listProject({
+        query: {
+          ...params?.query,
+          pageSize: params?.pageSize || 20,
+          page: params?.page,
+        }
+      });
+      if (response?.data?.success) {
+        setDataSource(response?.data?.data);
+        setSearchParams({
+          query: params?.query,
+          pageSize: response?.data?.data?.pageSize,
+          page: response?.data?.data?.currentPage,
+          total: response?.data?.data?.total,
+        })
+      } else {
+        message.error(response?.data?.message)
+      }
     } catch (error) {
-
     }
   }
 
   useEffect(() => {
-    getList({})
+    getProjectList(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
@@ -80,8 +105,8 @@ const Projects = () => {
     {
       title: 'organization',
       dataIndex: 'organization',
-      render: (org) => {
-        return <div>{JSON.stringify(org || '{}')}</div>
+      render: (organization) => {
+        return <div>{organization?.name}</div>
       }
     },
     {
@@ -96,17 +121,18 @@ const Projects = () => {
 
   function renderTableTitle(currentPageData) {
     console.log(currentPageData, "=====currentPageData====")
+    const queryList = searchParams && Object.entries(searchParams)?.filter(([key, value]) => value)
     return <div className={styles.projects_content_toolbar}>
       <h4>Project List</h4>
       <div className={styles.projects_content_toolbar_list}>
         {
-          searchParams && Object.entries(searchParams)?.filter(([key, value]) => value)?.map(([key, value]) => {
+          queryList?.map(([key, value]) => {
             return <div className={styles.projects_content_toolbar_item}>{key}: {value} <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} /></div>
           })
         }
       </div>
       {
-        searchParams && <div className={styles.projects_content_toolbar_clear}>
+        queryList?.length > 0 && <div className={styles.projects_content_toolbar_clear}>
           <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
         </div>
       }
@@ -121,7 +147,6 @@ const Projects = () => {
           <Button type='primary' onClick={handleCreate}><PlusOutlined /> Create Projects</Button>
         </div>
       </div>
-      {/* Search Form block*/}
       <div className={styles.projects_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
@@ -131,11 +156,8 @@ const Projects = () => {
             <Form.Item name="org" label="Org">
               <Input />
             </Form.Item>
-            <Form.Item name="creator" label="Creator">
+            <Form.Item name="owner" label="Owner">
               <Input />
-            </Form.Item>
-            <Form.Item name="createTime" label="Create Time">
-              <DatePicker.RangePicker />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
               <Space>
@@ -146,9 +168,8 @@ const Projects = () => {
           </Space>
         </Form>
       </div>
-      {/* Content block */}
       <div className={styles.projects_content}>
-        <Table title={renderTableTitle} columns={colums} dataSource={dataSource} />
+        <Table rowKey="id" title={renderTableTitle} columns={colums} dataSource={dataSource} />
       </div>
       <ProjectForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
     </div>

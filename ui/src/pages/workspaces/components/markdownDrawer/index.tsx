@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Button, Drawer, Space } from 'antd'
-import Markdown from 'react-markdown'
+import MarkdownView from '@/components/markdownView'
 
 
 const MarkdownDrawer = ({ markdown, open, handleClose }) => {
+
+  console.log(markdown, "===markdown====")
 
   return (
     <Drawer
@@ -18,7 +20,7 @@ const MarkdownDrawer = ({ markdown, open, handleClose }) => {
       }
     >
       <div style={{ background: '#000', color: '#fff', padding: 20, height: '100%', overflowY: 'auto' }}>
-        <Markdown>{markdown}</Markdown>
+        <MarkdownView markdown={markdown} />
       </div>
     </Drawer>
   )

@@ -155,7 +155,7 @@ const WorkspaceDetail = () => {
     setOpenMod(false)
   }
 
-  console.log(workspaceModules, "===workspaceModules===")
+  console.log(workspaceModules, yamlData, "===workspaceModules===")
 
   return (
 
@@ -168,7 +168,9 @@ const WorkspaceDetail = () => {
             activeKey === 'yaml' && <>
               <Button type='primary' style={{ marginBottom: 15 }} onClick={handleEdit}>Edit Yaml</Button>
               <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
-              <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
+              {
+                open && yamlData && <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
+              }
             </>
           }
           {
