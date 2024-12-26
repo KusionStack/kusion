@@ -117,7 +117,7 @@ func TestWorkspaceManager_ListWorkspaces(t *testing.T) {
 	stacks, err := manager.ListWorkspaces(ctx, filter)
 
 	// Assert that the returned stacks match the expected stacks
-	if !reflect.DeepEqual(stacks, expectedWorkspaces) {
+	if !reflect.DeepEqual(stacks.Workspaces, expectedWorkspaces) {
 		t.Errorf("ListWorkspaces() returned unexpected stacks.\nExpected: %v\nGot: %v", expectedWorkspaces, stacks)
 	}
 
