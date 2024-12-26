@@ -82,7 +82,7 @@ func TestStackManager_ListStacks(t *testing.T) {
 	stacks, err := manager.ListStacks(ctx, filter)
 
 	// Assert that the returned stacks match the expected stacks
-	if !reflect.DeepEqual(stacks, expectedStacks) {
+	if !reflect.DeepEqual(stacks.Stacks, expectedStacks) {
 		t.Errorf("ListStacks() returned unexpected stacks.\nExpected: %v\nGot: %v", expectedStacks, stacks)
 	}
 
