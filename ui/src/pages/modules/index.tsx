@@ -9,12 +9,9 @@ import styles from './styles.module.less'
 
 
 const ModulePage = () => {
-  const [keyword, setKeyword] = useState<string>('')
-
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
-
   const [searchParams, setSearchParams] = useState({
     pageSize: 20,
     page: 1,
@@ -26,7 +23,11 @@ const ModulePage = () => {
 
   async function getModuleList(params) {
     try {
-      const response: any = await ModuleService.listModule();
+      const response: any = await ModuleService.listModule({
+        query: {
+          moduleName: params?.query?.moduleName
+        }
+      });
       if (response?.data?.success) {
         setModuleList(response?.data?.data);
         setSearchParams({
@@ -47,21 +48,25 @@ const ModulePage = () => {
 
   const handleChange = debounce((event) => {
     const val = event?.target.value;
-    setKeyword(val)
+    setSearchParams({
+      ...searchParams,
+      query: {
+        moduleName: val
+      }
+    })
     getModuleList({
       ...searchParams,
       query: {
-        keyword: val
+        moduleName: val
       }
     })
-  }, 200)
+  }, 800)
 
   function handleAdd() {
     setActionType('ADD')
     setOpen(true)
   }
   function handleEdit(record) {
-    console.log(record, '编辑')
     setActionType('EDIT')
     setOpen(true)
     setFormData(record)
@@ -82,8 +87,8 @@ const ModulePage = () => {
       }
     },
     {
-      title: 'Publish Time',
-      dataIndex: 'publishTime',
+      title: 'Description',
+      dataIndex: 'description',
     },
     {
       title: 'Action',
@@ -102,16 +107,26 @@ const ModulePage = () => {
 
 
   async function handleSubmit(values) {
-    console.log(values, 'Sources handleSubmit')
-    const response: any = await ModuleService.createModule({
-      body: values
-    })
+    let response: any
+    if (actionType === 'EDIT') {
+      response = await ModuleService.updateModule({
+        body: values,
+        path: {
+          name: (formData as any)?.name
+        }
+      })
+    } else {
+      response = await ModuleService.createModule({
+        body: values,
+      })
+    }
+
     if (response?.data?.success) {
-      message.success('Create Success')
+      message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getModuleList({})
       setOpen(false)
     } else {
-      message.error(response?.data?.messaage || '请求失败')
+      message.error(response?.data?.messaage)
     }
   }
 
@@ -136,10 +151,10 @@ const ModulePage = () => {
             <div className={styles.tool_bar_search}>
               <Space>
                 <Input
-                  placeholder={'关键字搜索'}
+                  placeholder='keyword search'
                   suffix={<SearchOutlined />}
                   style={{ width: 260 }}
-                  value={keyword}
+                  value={searchParams?.query?.moduleName}
                   onChange={handleChange}
                   allowClear
                 />

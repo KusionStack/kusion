@@ -80,7 +80,6 @@ const ProjectDetail = () => {
     }
   }
   function handleClose() {
-    console.log("handleClose")
     setStackFormOpen(false)
   }
 

@@ -1,29 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Col, Input, message, Popconfirm, Row, Table, Tabs, Tooltip } from 'antd'
-import {
-  PlusOutlined,
-  SortDescendingOutlined,
-  SortAscendingOutlined,
-  SearchOutlined,
-} from '@ant-design/icons'
+import { Button, Card, message, Table, Tabs } from 'antd'
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
-
-import styles from './styles.module.less'
 import BackWithTitle from '@/components/backWithTitle';
-import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import YamlEditor from '@/components/yamlEditor';
-import { mockYaml } from '@/utils/tools';
+import { josn2yaml, yaml2json } from '@/utils/tools'
 import EditYamlDrawer from '../components/editYamlDrawer';
 import MarkdownDrawer from '../components/markdownDrawer';
 
-const orderIconStyle: React.CSSProperties = {
-  marginLeft: 0,
-}
+import styles from './styles.module.less'
 
 const WorkspaceDetail = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [urlSearchParams] = useSearchParams();
   const urlParams = useParams();
   const [open, setOpen] = useState(false)
   const [openMod, setOpenMod] = useState(false)
@@ -32,10 +20,7 @@ const WorkspaceDetail = () => {
   const [workspaceModules, setWorkspaceModules] = useState([]);
   const [markdown, setMarkdown] = useState('')
 
-  console.log(location, urlSearchParams, urlParams, "====location====")
-
   async function getWorkspaceConfigs(workspaceId) {
-    console.log(Number(workspaceId), "===workspaceId===")
     const response: any = await WorkspaceService.getWorkspaceConfigs({
       path: {
         id: workspaceId
@@ -50,24 +35,10 @@ const WorkspaceDetail = () => {
         }
       })
       setWorkspaceModules(list)
-      setYamlData(JSON.stringify(response?.data?.data || {}, null, 2))
+      const yamlStr = JSON.stringify(response?.data?.data || {}, null, 2)
+      setYamlData(josn2yaml(yamlStr)?.data)
     }
-    console.log(response?.data, "=========getWorkspaceConfigs=======")
   }
-
-  async function getWorkspaceConfigsModules(workspaceId) {
-    console.log(Number(workspaceId), "===workspaceId===")
-    const response: any = await WorkspaceService.getWorkspaceConfigs({
-      path: {
-        id: workspaceId
-      }
-    })
-    if (response?.data?.success) {
-      setYamlData(JSON.stringify(response?.data?.data || {}, null, 2))
-    }
-    console.log(response?.data, "=========getWorkspaceConfigs=======")
-  }
-
 
   useEffect(() => {
     if (urlParams?.workspaceId) {
@@ -75,22 +46,19 @@ const WorkspaceDetail = () => {
     }
   }, [urlParams?.workspaceId])
 
-  function handleAdd() {
-    setOpen(true)
-  }
-
 
 
   async function handleSubmit(yamlStr) {
     const response: any = await WorkspaceService.updateWorkspaceConfigs({
-      body: yamlStr ? JSON.parse(yamlStr || '{}') : {},
-      path: { id: 1 },
+      body: yamlStr ? yaml2json(yamlStr)?.data : {},
+      path: { id: Number(urlParams?.workspaceId) },
     })
     if (response?.data?.success) {
       message.success('Update Successful')
+      getWorkspaceConfigs(urlParams?.workspaceId)
       setOpen(false)
     } else {
-      message.error('请求失败')
+      message.error(response?.data?.message)
     }
   }
   function handleClose() {
@@ -124,10 +92,9 @@ const WorkspaceDetail = () => {
   async function generateMod() {
     const response: any = await WorkspaceService.createWorkspaceModDeps({
       path: {
-        id: 1
+        id: Number(urlParams?.workspaceId)
       }
     })
-    console.log(response, "====asdasd====")
     if (response?.data?.success) {
       setOpenMod(true)
       setMarkdown(response?.data?.data)
@@ -148,14 +115,17 @@ const WorkspaceDetail = () => {
       key: 'Registry',
       title: 'Registry',
       dataIndex: "path",
-    }
+    },
+    {
+      key: 'version',
+      title: 'Version',
+      dataIndex: "version",
+    },
   ]
 
   function handleModClose() {
     setOpenMod(false)
   }
-
-  console.log(workspaceModules, yamlData, "===workspaceModules===")
 
   return (
 

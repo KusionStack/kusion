@@ -26,11 +26,10 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
   async function getWorkspaceList() {
     try {
       const response: any = await WorkspaceService.listWorkspace();
-      console.log(response, "====getWorkspaceList response===")
       if (response?.data?.success) {
         setWorkspaceList(response?.data?.data);
       } else {
-        message.error("请求失败")
+        message.error(response?.data?.messaage)
       }
     } catch (error) {
 
@@ -48,11 +47,9 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
     if (loading) {
       return;
     }
-    console.log(form.getFieldsValue(), "==sdada======")
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      console.log(values, "======values======")
       handleSubmit(values)
     } catch (e) {
       message.error('提交失败');
@@ -70,9 +67,12 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
         <Form.Item name="isExecting">
           <Switch />
         </Form.Item>
-        <Form.Item name="resources" label="resource map">
-          <Input.TextArea />
-        </Form.Item>
+        {
+          form.getFieldValue('isExecting') &&
+          <Form.Item name="resources" label="resource map">
+            <Input.TextArea />
+          </Form.Item>
+        }
       </div>,
       style: panelStyle,
     }

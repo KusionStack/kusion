@@ -2,20 +2,17 @@ import React, { useState } from 'react'
 import { Button, Drawer, message, Space } from 'antd'
 import YamlEditor from '@/components/yamlEditor'
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk'
-import { josn2yaml } from '@/utils/tools'
+import { yaml2json } from '@/utils/tools'
 
 const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
-  console.log(yamlData, "====EditYamlDrawer yamlData====")
-  const yamlSs = josn2yaml(yamlData)?.data
-  const [yamlStr, setYamlStr] = useState(yamlSs)
+  const [yamlStr, setYamlStr] = useState(yamlData)
 
   function handleChange(val) {
-    console.log(val, "====handleChange====")
     setYamlStr(val)
   }
 
   function handleCancel() {
-    setYamlStr(yamlSs)
+    setYamlStr(yamlData)
     handleClose()
   }
 
@@ -25,18 +22,16 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
 
   async function validateYaml() {
     const response: any = await WorkspaceService.validateWorkspaceConfigs({
-      body: yamlStr && JSON.parse(yamlStr || '{}')
+      body: yamlStr ? yaml2json(yamlStr)?.data : {}
     })
     if (response?.data?.success) {
       message.success('Validate Successful')
     } else {
-      message.error(response?.data?.message || '请求失败')
+      message.error(response?.data?.message)
     }
   }
 
 
-  console.log(yamlStr, "===yamlStr====")
-  
   return (
     <Drawer
       title={'YAML'}

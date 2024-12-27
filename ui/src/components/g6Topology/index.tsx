@@ -134,12 +134,9 @@ const G6Topology = ({ graphData = topologyData }) => {
   function initData() {
     console.log(JSON.parse(JSON.stringify(graphData)))
     const data = generateG6GraphData(graphData)
-    console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
-    console.log(edgesLayer, "==edgesLayer===")
     const valList: any = Object.values(edgesLayer);
     const maxLayerCount = Math.max(...valList);
-    console.log(maxLayerCount, "===maxLayerCount===")
     return { maxLayerCount, data };
   }
 

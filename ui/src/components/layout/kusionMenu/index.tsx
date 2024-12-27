@@ -55,8 +55,6 @@ const KusionMenu = () => {
     getItem('Insights', '/insights', null),
   ]
 
-  console.log(pathname, "===pathname===")
-
   function getMenuItems() {
     function loop(list) {
       return list
@@ -72,7 +70,6 @@ const KusionMenu = () => {
   }
 
   function handleKusionMenuClick(item) {
-    console.log(item, "===handleKusionMenuClick====")
     setSelectedKey(item?.key)
     navigate(item?.key)
   }

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-// import styles from './styles.module.less'
 import { Button, Modal, Form, Input, Space, message } from 'antd'
 import isUrl from 'is-url'
 
@@ -15,7 +14,13 @@ const ModuleForm = ({
 
   useEffect(() => {
     if (formData) {
-      form.setFieldsValue(formData)
+      const url = formData?.url;
+      const dovUrl = formData?.doc;
+      form.setFieldsValue({
+        ...formData,
+        url: `${url?.Scheme}${url?.Host}${url?.Path}`,
+        doc: `${dovUrl?.Scheme}//${dovUrl?.Host}${dovUrl?.Path}`,
+      })
     }
   }, [formData, form])
 
@@ -41,10 +46,8 @@ const ModuleForm = ({
 
   function getTitle() {
     return actionType === 'ADD'
-      ? 'New Source'
-      : actionType === 'EDIT'
-        ? 'Edit Source'
-        : 'Source Detail'
+      ? 'New Module'
+      : 'Edit Module'
   }
 
   return (
@@ -76,7 +79,7 @@ const ModuleForm = ({
               },
             ]}
           >
-            <Input />
+            <Input disabled={actionType === 'EDIT'} />
           </Form.Item>
           <Form.Item
             label="url"
@@ -103,7 +106,7 @@ const ModuleForm = ({
           </Form.Item>
           <Form.Item
             label="Document Url"
-            name="documentUrl"
+            name="doc"
             rules={[
               {
                 required: false,
@@ -111,6 +114,17 @@ const ModuleForm = ({
             ]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[
+              {
+                required: false,
+              },
+            ]}
+          >
+            <Input.TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>

@@ -34,7 +34,7 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
 
   return (
     <Drawer
-      title={'Priview Detail'}
+      title={'Preview Detail'}
       open={open}
       width="80%"
       onClose={handleClose}

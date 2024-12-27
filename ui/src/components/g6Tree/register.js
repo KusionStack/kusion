@@ -617,7 +617,6 @@ export const getShortName = function (data) {
 
 export const getLogoShortName = function (data) {
     let newString = '';
-    console.log(data, "====data=====")
     const stringArray = data.split('');
     stringArray.forEach((t) => {
         if (/[A-Z]/.test(t)) {

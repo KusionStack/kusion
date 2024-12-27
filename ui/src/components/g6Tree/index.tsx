@@ -134,13 +134,10 @@ const G6Tree = ({ graphData = topologyData }) => {
   }
 
   function initData() {
-    console.log(JSON.parse(JSON.stringify(graphData)))
     const data = mockData || generateG6GraphData(graphData)
-    console.log(data, "====data====")
     const edgesLayer = getEdgesLayer(data.edges || []);
     const valList: any = Object.values(edgesLayer);
     const maxLayerCount = Math.max(...valList);
-    console.log(valList, maxLayerCount, "====maxLayerCount====")
     return { maxLayerCount, data };
   }
 
@@ -248,7 +245,6 @@ const G6Tree = ({ graphData = topologyData }) => {
     graphRef.current.read(data);
     graphRef.current.zoomTo(0.75, { x: 128, y: 369 }, true, { duration: 10 });
     graphRef.current.on('node:click', (evt) => {
-      console.log(evt?.item?.get('model'), "NODE click")
       // graph.setItemState(evt.item, 'hover', true)
     })
     // graphRef.current.on('node:mouseenter', evt => {

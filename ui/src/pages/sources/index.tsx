@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from 'react'
-// import { AutoComplete, Input, message, Space, Tag } from 'antd'
-// import {
-//   DoubleLeftOutlined,
-//   DoubleRightOutlined,
-//   CloseOutlined,
-// } from '@ant-design/icons'
-
-import styles from './styles.module.less'
-import { Button, Card, Input, message, Select, Space, Table } from 'antd'
+import { Button, Card, Input, message, Space, Table } from 'antd'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
+import { debounce } from "lodash"
 
-const { Option } = Select
+import styles from './styles.module.less'
+
 
 const SourcesPage = () => {
-  const [keyword, setKeyword] = useState<string>('')
-
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
@@ -31,7 +23,12 @@ const SourcesPage = () => {
 
   async function getResourceList(params) {
     try {
-      const response: any = await SourceService.listSource();
+      const response: any = await SourceService.listSource({
+        ...searchParams,
+        query: {
+          sourceName: searchParams?.query?.sourceName,
+        }
+      });
       if (response?.data?.success) {
         setResourceList(response?.data?.data);
         setSearchParams({
@@ -47,19 +44,30 @@ const SourcesPage = () => {
   }
 
   useEffect(() => {
-    getResourceList({})
+    getResourceList(searchParams)
   }, [])
 
-  function handleChange(event) {
-    setKeyword(event?.target.value)
-  }
+  const handleChange = debounce((event) => {
+    const val = event?.target.value;
+    setSearchParams({
+      ...searchParams,
+      query: {
+        sourceName: val
+      }
+    })
+    getResourceList({
+      ...searchParams,
+      query: {
+        sourceName: val
+      }
+    })
+  }, 800)
 
   function handleAdd() {
     setActionType('ADD')
     setOpen(true)
   }
   function handleEdit(record) {
-    console.log(record, '编辑')
     setActionType('EDIT')
     setOpen(true)
     setFormData(record)
@@ -92,20 +100,37 @@ const SourcesPage = () => {
   ]
 
   async function handleSubmit(values) {
-    console.log(values, 'Sources handleSubmit')
-    const response: any = await SourceService.createSource({
-      body: {
-        name: values?.name,
-        remote: values?.remote,
-        sourceProvider: values?.sourceProvider
-      }
-    })
+    let response: any
+    if (actionType === 'EDIT') {
+      response = await SourceService.updateSource({
+        body: {
+          id: (formData as any)?.id,
+          name: values?.name,
+          remote: values?.remote,
+          sourceProvider: values?.sourceProvider,
+          description: values?.description
+        },
+        path: {
+          id: (formData as any)?.id
+        }
+      })
+    } else {
+      response = await SourceService.createSource({
+        body: {
+          name: values?.name,
+          remote: values?.remote,
+          sourceProvider: values?.sourceProvider,
+          description: values?.description,
+        }
+      })
+    }
+
     if (response?.data?.success) {
-      message.success('Create Success')
-      getResourceList({})
+      message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
+      getResourceList(searchParams)
       setOpen(false)
     } else {
-      message.error(response?.data?.messaage || '请求失败')
+      message.error(response?.data?.messaage)
     }
   }
 
@@ -127,23 +152,23 @@ const SourcesPage = () => {
       <div className={styles.sources_container}>
         <div className={styles.sources_toolbar}>
           <div className={styles.sources_toolbar_left}>
-            <div className={styles.tool_bar_add}>
-              <Button type="primary" onClick={handleAdd}>
-                <PlusOutlined /> New Source
-              </Button>
-            </div>
-          </div>
-          <div className={styles.sources_toolbar_right}>
             <Space>
               <Input
                 placeholder={'关键字搜索'}
                 suffix={<SearchOutlined />}
                 style={{ width: 260 }}
-                value={keyword}
+                value={searchParams?.query?.sourceName}
                 onChange={handleChange}
                 allowClear
               />
             </Space>
+          </div>
+          <div className={styles.sources_toolbar_right}>
+            <div className={styles.tool_bar_add}>
+              <Button type="primary" onClick={handleAdd}>
+                <PlusOutlined /> New Source
+              </Button>
+            </div>
           </div>
         </div>
         <Table size='small' columns={colums} dataSource={resourceList} />

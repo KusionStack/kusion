@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-// import styles from './styles.module.less'
-import { Button, Modal, Form, Input, Space, message } from 'antd'
+import isUrl from 'is-url'
+import { Button, Modal, Form, Input, Space, message, Select } from 'antd'
 
 const SourceForm = ({
   open,
@@ -15,7 +15,13 @@ const SourceForm = ({
 
   useEffect(() => {
     if (formData) {
-      form.setFieldsValue(formData)
+      const remote = formData?.remote;
+      form.setFieldsValue({
+        name: formData?.name,
+        sourceProvider: formData?.sourceProvider,
+        description: formData?.description,
+        remote: `${remote?.Scheme}//${remote?.Host}${remote?.Path}`,
+      })
     }
   }, [formData, form])
 
@@ -64,14 +70,47 @@ const SourceForm = ({
       >
         <div style={{ margin: 20 }}>
           <Form form={form} layout="horizontal">
-            <Form.Item label="Name" name='name'>
+            <Form.Item label="Name" name='name' rules={[
+              {
+                required: true,
+              },
+            ]}>
               <Input />
             </Form.Item>
-            <Form.Item label="Remote" name='remote'>
+            <Form.Item label="Remote" name='remote' rules={[
+              {
+                required: true,
+              },
+              {
+                validator: (_, value) => {
+                  if (!value) {
+                    return Promise.reject('必填项')
+                  }
+                  if (isUrl(value)) {
+                    return Promise.resolve()
+                  } else {
+                    return Promise.reject('不是一个URL')
+                  }
+                },
+              },
+            ]}>
               <Input />
             </Form.Item>
             <Form.Item label="SourceProvider" name='sourceProvider'>
-              <Input />
+              <Select placeholder="Please select source provider">
+                <Select.Option key="git" value="git">git</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label="Description"
+              name="description"
+              rules={[
+                {
+                  required: false,
+                },
+              ]}
+            >
+              <Input.TextArea rows={4} />
             </Form.Item>
           </Form>
         </div>

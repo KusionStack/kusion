@@ -23,12 +23,10 @@ const Projects = () => {
     console.log(values, "handleSubmit")
   }
   function handleClose() {
-    console.log("handleClose")
     setOpen(false)
   }
   function handleCreate() {
     setOpen(true)
-    console.log("=====handleCreate=====")
   }
   function handleReset() {
     form.resetFields();
@@ -120,7 +118,6 @@ const Projects = () => {
   ]
 
   function renderTableTitle(currentPageData) {
-    console.log(currentPageData, "=====currentPageData====")
     const queryList = searchParams && Object.entries(searchParams)?.filter(([key, value]) => value)
     return <div className={styles.projects_content_toolbar}>
       <h4>Project List</h4>

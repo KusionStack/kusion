@@ -1,14 +1,13 @@
-import React, { useState } from 'react'
-import { Button, Drawer, Space } from 'antd'
+import React from 'react'
+import { Button, Drawer } from 'antd'
 import MarkdownView from '@/components/markdownView'
 
 
 const MarkdownDrawer = ({ markdown, open, handleClose }) => {
 
-  console.log(markdown, "===markdown====")
-
   return (
     <Drawer
+      key="markdown"
       title={'Generate kcl.mod'}
       open={open}
       onClose={handleClose}

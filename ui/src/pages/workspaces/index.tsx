@@ -1,31 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Col, Input, message, Popconfirm, Row, Tooltip } from 'antd'
+import { Button, Col, Input, message, Row } from 'antd'
 import {
   PlusOutlined,
-  SortDescendingOutlined,
-  SortAscendingOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import { BackendService, WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
+import { useNavigate } from 'react-router-dom';
+import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import WorkspaceCard from './components/workspaceCard';
 import WorkscpaceForm from './components/workscpaceForm';
 
 import styles from './styles.module.less'
-import { useNavigate } from 'react-router-dom';
-
-const orderIconStyle: React.CSSProperties = {
-  marginLeft: 0,
-}
 
 const Workspaces = () => {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [keyword, setKeyword] = useState<string>('')
-
-  const [sortParams, setSortParams] = useState<any>({
-    orderBy: 'name',
-    isAsc: true,
-  })
   const [workspaceList, setWorkspaceList] = useState([]);
 
 
@@ -35,7 +24,7 @@ const Workspaces = () => {
       if (response?.data?.success) {
         setWorkspaceList(response?.data?.data);
       } else {
-        message.error("请求失败")
+        message.error(response?.data?.messaage)
       }
     } catch (error) {
       console.error('Error:', error);
@@ -67,7 +56,6 @@ const Workspaces = () => {
   }
 
   async function handleSubmit(values) {
-    console.log(values, "=====handleSubmit values=====")
     const response: any = WorkspaceService.createWorkspace({
       body: {
         ...values
@@ -75,9 +63,10 @@ const Workspaces = () => {
     })
     if (response?.data?.success) {
       message.success("Create Success")
+      getListWorkspace()
       setOpen(false)
     } else {
-      message.error(response?.data?.message || 'Request Faild')
+      message.error(response?.data?.message)
     }
   }
 
@@ -95,7 +84,7 @@ const Workspaces = () => {
         </Button>
         <div className={styles.kusion_workspace_toolbar_right}>
           <Input
-            placeholder={'关键字搜索'}
+            placeholder="Please keyword"
             suffix={<SearchOutlined />}
             style={{ width: 260 }}
             value={keyword}

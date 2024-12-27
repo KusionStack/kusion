@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Button, DatePicker, Form, Input, message, Select, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { RunService, StackService } from '@kusionstack/kusion-api-client-sdk'
-import RunsForm from './runsForm'
-
-import styles from "./styles.module.less"
+import moment from 'moment'
+import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 import GenerateDetail from './generateDetail'
 import PreviewDetail from './previewDetail'
-import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
+import RunsForm from './runsForm'
+
+
+import styles from "./styles.module.less"
 
 
 
@@ -88,7 +90,6 @@ const Runs = () => {
   }
 
   function handleSubmit(values) {
-    console.log(values, "handleSubmit")
     const type = values?.type;
     let response = undefined;
     if (type === 'Apply') {
@@ -125,14 +126,23 @@ const Runs = () => {
   }
   function handleSearch() {
     const values = form.getFieldsValue()
+    const [startDate, endDate] = values?.createTime;
+    const startTime = moment(startDate)?.format('YYYY-MM-DD HH:mm:ss');
+    const endTime = moment(endDate)?.format('YYYY-MM-DD HH:mm:ss');
+    const queryObj = {
+      type: values?.type,
+      status: values?.status,
+      startTime,
+      endTime
+    }
     setSearchParams({
       ...searchParams,
-      query: values,
+      query: queryObj,
     })
     getListRun({
       page: 1,
       pageSize: 20,
-      query: values
+      query: queryObj
     })
   }
 
@@ -159,7 +169,7 @@ const Runs = () => {
           total: response?.data?.data?.total,
         })
       } else {
-        message.error('请求失败')
+        message.error(response?.data?.messaage)
       }
     } catch (error) {
     }
@@ -219,7 +229,6 @@ const Runs = () => {
 
   function handleCreateRuns() {
     setOpen(true)
-    console.log("========handleCreateRuns=========")
   }
 
   function handlGenerateColse() {
@@ -228,8 +237,6 @@ const Runs = () => {
   function handlePreviewClose() {
     setPreviewOpen(false)
   }
-
-  console.log(searchParams?.query, "====searchParams?.query====")
 
   function renderTableTitle() {
     return <div className={styles.project_runs_toolbar}>
