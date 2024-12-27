@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { Button } from 'antd'
-import MarkdownRenderer from '@/components/markdownToHtmlOutput'
 import YamlEditor from '@/components/yamlEditor'
 import CodeDiffView from '@/components/codeDiffView'
 import MarkdownView from '@/components/markdownView'
@@ -21,7 +20,6 @@ const Insights = () => {
       <Button onClick={() => setIsReadOnly(!isReadOnly)}>编辑</Button>
       <YamlEditor value={yamlValue} readOnly={isReadOnly} onChange={onChange} />
       <br />
-      <MarkdownRenderer />
       <>
         <CodeDiffView oldContent={mockYaml} newContent={mockNewYaml} />
         <div>

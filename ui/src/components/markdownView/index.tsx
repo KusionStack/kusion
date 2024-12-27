@@ -1,15 +1,12 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import remarkGfm from 'remark-gfm';
-import { dark, vscDarkPlus, coyWithoutShadows, darcula } from 'react-syntax-highlighter/dist/esm/styles/prism'
-
+import { Button } from 'antd';
+import { vscDarkPlus, coyWithoutShadows } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { CopyOutlined } from '@ant-design/icons';
 import { copy, markdownString } from "@/utils/tools"
 
 import styles from "./styles.module.less"
-import { Button } from 'antd';
-import { data } from '@remix-run/router';
-import { CopyOutlined } from '@ant-design/icons';
 
 type MarkdownViewIProps = {
   markdown?: string

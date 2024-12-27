@@ -18,8 +18,8 @@ const ResourceGraph = ({ stackId }) => {
       setTopologyLoading(true)
       const response: any = await ResourceService.getResourceGraph({
         query: {
-          stack_id: id
-        }
+          stackID: id
+        } as any
       });
       if (response?.data?.success) {
         setGraphData(response?.data?.data)

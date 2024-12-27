@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table } from 'antd'
+import { Button, Form, Input, message, Space, Table, Select } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
-import { ProjectService } from '@kusionstack/kusion-api-client-sdk'
+import { OrganizationService, ProjectService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
 
 import styles from "./styles.module.less"
@@ -17,6 +17,7 @@ const Projects = () => {
     total: undefined,
   });
   const [dataSource, setDataSource] = useState([])
+  const [organizationList, setOrganizationList] = useState([])
   const [open, setOpen] = useState<boolean>(false);
 
   async function handleSubmit(values) {
@@ -70,6 +71,15 @@ const Projects = () => {
     handleSearch()
   }
 
+  async function getOrganizations() {
+    const response = await OrganizationService.listOrganization()
+    if (response?.data?.success) {
+      setOrganizationList(response?.data?.data?.organizations)
+    } else {
+      message.error(response?.data?.message)
+    }
+  }
+
   async function getProjectList(params) {
     try {
       const response: any = await ProjectService.listProject({
@@ -80,7 +90,7 @@ const Projects = () => {
         }
       });
       if (response?.data?.success) {
-        setDataSource(response?.data?.data);
+        setDataSource(response?.data?.data?.projects);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
@@ -95,6 +105,7 @@ const Projects = () => {
   }
 
   useEffect(() => {
+    getOrganizations()
     getProjectList(searchParams)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -165,7 +176,11 @@ const Projects = () => {
               <Input />
             </Form.Item>
             <Form.Item name="organization" label="Organization">
-              <Input />
+              <Select style={{ width: 150 }}>
+                {
+                  organizationList?.map(item => <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>)
+                }
+              </Select>
             </Form.Item>
             <Form.Item name="owner" label="Owner">
               <Input />

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio, Switch } from 'antd';
 
-import styles from './styles.module.less';
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import { CaretRightOutlined } from '@ant-design/icons';
+
+import styles from './styles.module.less';
 
 const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
   const [loading, setLoading] = useState(false);
