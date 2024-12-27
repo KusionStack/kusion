@@ -24,17 +24,25 @@ func (m *ModuleManager) CreateModule(ctx context.Context, requestPayload request
 	}
 
 	// Parse remote string of `URL` and `Doc`.
-	url, err := url.Parse(requestPayload.URL)
+	address, err := url.Parse(requestPayload.URL)
 	if err != nil {
 		return nil, err
 	}
-	createdEntity.URL = url
+	if address.Scheme == "" {
+		address.Scheme = "https"
+	}
+	createdEntity.URL = address
 
-	doc, err := url.Parse(requestPayload.URL)
-	if err != nil {
-		return nil, err
+	if requestPayload.Doc != "" {
+		doc, err := url.Parse(requestPayload.Doc)
+		if err != nil {
+			return nil, err
+		}
+		if doc.Scheme == "" {
+			doc.Scheme = "https"
+		}
+		createdEntity.Doc = doc
 	}
-	createdEntity.Doc = doc
 
 	// Create module with repository
 	err = m.moduleRepo.Create(ctx, &createdEntity)

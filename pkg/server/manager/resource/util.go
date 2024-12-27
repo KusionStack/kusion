@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"strconv"
 
@@ -66,6 +67,28 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Va
 	filter.Pagination = &entity.Pagination{
 		Page:     page,
 		PageSize: pageSize,
+	}
+
+	return &filter, nil
+}
+
+func (m *ResourceManager) BuildResourceGraphFilter(ctx context.Context, query *url.Values) (*entity.ResourceFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building resource graph filter...")
+
+	filter := entity.ResourceFilter{}
+
+	stackIDParam := query.Get("stackID")
+
+	if stackIDParam != "" {
+		// if stack id is present, use stack id
+		stackID, err := strconv.Atoi(stackIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidStackID
+		}
+		filter.StackID = uint(stackID)
+	} else {
+		return nil, errors.New("stackID is required")
 	}
 
 	return &filter, nil

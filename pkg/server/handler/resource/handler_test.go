@@ -116,7 +116,7 @@ func TestResourceHandler(t *testing.T) {
 				AddRow(1, "test-project"))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/resources", nil)
+		req, err := http.NewRequest("GET", "/resources/graph?stackID=1", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()
