@@ -13,14 +13,26 @@ const Projects = () => {
   const [searchParams, setSearchParams] = useState({
     pageSize: 10,
     page: 1,
-    query: undefined,
-    total: 0,
+    query: {},
+    total: undefined,
   });
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
 
-  function handleSubmit(values) {
+  async function handleSubmit(values) {
     console.log(values, "handleSubmit")
+    const response: any = await ProjectService.createProject({
+      body: {
+        domain: values?.name,
+      }
+    })
+    if (response?.data?.success) {
+      message.success('Create Successful')
+      getProjectList(searchParams)
+      setOpen(false)
+    } else {
+      message.error(response?.data?.message)
+    }
   }
   function handleClose() {
     setOpen(false)
@@ -93,7 +105,7 @@ const Projects = () => {
       title: 'Name',
       dataIndex: 'name',
       render: (text, record) => {
-        return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}`)}>{text}</Button>
+        return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}?projectName=${record?.name}`)}>{text}</Button>
       }
     },
     {
@@ -101,7 +113,7 @@ const Projects = () => {
       dataIndex: 'description',
     },
     {
-      title: 'organization',
+      title: 'Organization',
       dataIndex: 'organization',
       render: (organization) => {
         return <div>{organization?.name}</div>
@@ -118,13 +130,15 @@ const Projects = () => {
   ]
 
   function renderTableTitle(currentPageData) {
-    const queryList = searchParams && Object.entries(searchParams)?.filter(([key, value]) => value)
+    const queryList = searchParams && Object.entries(searchParams?.query || {})?.filter(([key, value]) => value)
     return <div className={styles.projects_content_toolbar}>
       <h4>Project List</h4>
       <div className={styles.projects_content_toolbar_list}>
         {
           queryList?.map(([key, value]) => {
-            return <div className={styles.projects_content_toolbar_item}>{key}: {value} <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} /></div>
+            return <div className={styles.projects_content_toolbar_item}>
+              {key}: {value as string}
+              <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} /></div>
           })
         }
       </div>
@@ -150,7 +164,7 @@ const Projects = () => {
             <Form.Item name="name" label="Project Name">
               <Input />
             </Form.Item>
-            <Form.Item name="org" label="Org">
+            <Form.Item name="organization" label="Organization">
               <Input />
             </Form.Item>
             <Form.Item name="owner" label="Owner">

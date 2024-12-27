@@ -16,7 +16,7 @@ const SourcesPage = () => {
     pageSize: 20,
     page: 1,
     query: undefined,
-    total: 0,
+    total: undefined,
   })
 
   const [resourceList, setResourceList] = useState([])

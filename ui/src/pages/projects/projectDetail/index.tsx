@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Card, Form, message, Tabs, } from 'antd'
-import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons'
+import React, { useEffect, useState } from 'react'
+import { Card, message, Tabs, } from 'antd'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import StackPanel from "../components/stackPanel"
 import BackWithTitle from '@/components/backWithTitle'
@@ -14,6 +14,7 @@ type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 const ProjectDetail = () => {
   const navigate = useNavigate()
   const urlPrams = useParams()
+  const [urlSearchName] = useSearchParams();
   const [activeKey, setActiveKey] = useState('');
   const [items, setItems] = useState([]);
   const [stackFormOpen, setStackFormOpen] = useState(false)
@@ -67,16 +68,12 @@ const ProjectDetail = () => {
     })
     if (response?.data?.success) {
       message.success('Create Successful')
+      getStackList({
+        projectId: urlPrams?.projectId
+      })
       handleClose()
-      const newPanes = {
-        label: values?.name,
-        key: values?.name,
-        closable: false
-      }
-      const newItems = [...items, newPanes]
-      setItems(newItems)
     } else {
-      message.error(response?.data?.message || 'Create Failed')
+      message.error(response?.data?.message)
     }
   }
   function handleClose() {
@@ -87,7 +84,7 @@ const ProjectDetail = () => {
     try {
       const response: any = await StackService.listStack(params);
       if (response?.data?.success) {
-        const resTabs = response?.data?.data?.map(item => {
+        const resTabs = response?.data?.data?.stacks?.map(item => {
           return {
             ...item,
             label: item?.name,
@@ -95,6 +92,7 @@ const ProjectDetail = () => {
           }
         })
         setItems(resTabs)
+        setActiveKey(resTabs?.[0]?.key)
       } else {
         message.error(response?.data?.message)
       }
@@ -104,8 +102,12 @@ const ProjectDetail = () => {
   }
 
   useEffect(() => {
-    getStackList({})
-  }, [])
+    if (urlPrams?.projectId) {
+      getStackList({
+        projectId: urlPrams?.projectId
+      })
+    }
+  }, [urlPrams?.projectId])
 
   function handleBack() {
     navigate("/projects")
@@ -113,7 +115,7 @@ const ProjectDetail = () => {
 
   return (
     <div className={styles.project_detail}>
-      <BackWithTitle title="项目名称" handleBack={handleBack} />
+      <BackWithTitle title={urlSearchName.get('projectName')} handleBack={handleBack} />
       <Card>
         <Tabs
           style={{ border: 'none' }}
@@ -129,8 +131,16 @@ const ProjectDetail = () => {
             </div>
           )}
         />
-        <StackPanel stackName={activeKey} />
-        <StackForm formData={{}} actionType="ADD" stackFormOpen={stackFormOpen} handleCancel={handleClose} handleSubmit={handleSubmit} />
+        {
+          activeKey && <StackPanel stackId={activeKey} />
+        }
+        <StackForm
+          formData={{}}
+          actionType="ADD"
+          stackFormOpen={stackFormOpen}
+          handleCancel={handleClose}
+          handleSubmit={handleSubmit}
+        />
       </Card>
     </div>
   )

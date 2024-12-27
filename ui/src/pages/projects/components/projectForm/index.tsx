@@ -39,6 +39,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
     <Modal
       open={open}
       title="Create Project"
+      onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>
           cancel
@@ -59,12 +60,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
             className={styles.inputConfigPath}
           />
         </Form.Item>
-        <Form.Item name="description" label="Description">
-          <Input.TextArea
-            placeholder="Please input description..."
-            rows={4}
-          />
-        </Form.Item>
         <Form.Item name="projectSource" label="Project Source">
           <Select
             placeholder="Please projects source"
@@ -79,6 +74,12 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
         </Form.Item>
         <Form.Item name="organization" label="Organization">
           <Select placeholder="Please select organization" className={styles.selectInput} />
+        </Form.Item>
+        <Form.Item name="description" label="Description">
+          <Input.TextArea
+            placeholder="Please input description..."
+            rows={4}
+          />
         </Form.Item>
       </Form>
     </Modal>

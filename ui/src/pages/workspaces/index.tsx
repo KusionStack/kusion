@@ -22,7 +22,7 @@ const Workspaces = () => {
     try {
       const response: any = await WorkspaceService.listWorkspace();
       if (response?.data?.success) {
-        setWorkspaceList(response?.data?.data);
+        setWorkspaceList(response?.data?.data?.workspaces);
       } else {
         message.error(response?.data?.messaage)
       }

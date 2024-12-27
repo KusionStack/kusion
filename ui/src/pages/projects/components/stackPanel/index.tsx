@@ -9,7 +9,7 @@ const tabsItems = [
 ];
 
 
-const StackPanel = ({ stackName }) => {
+const StackPanel = ({ stackId }) => {
   const [activeKey, setActiveKey] = useState(tabsItems?.[0]?.key);
 
   function onChange(newActiveKey: string) {
@@ -25,7 +25,7 @@ const StackPanel = ({ stackName }) => {
         items={tabsItems}
       />
       {activeKey === 'Runs' && <Runs />}
-      {activeKey === 'ResourceGraph' && <ResourceGraph />}
+      {activeKey === 'ResourceGraph' && <ResourceGraph stackId={stackId}/>}
     </div>
   )
 }

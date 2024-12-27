@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Button, DatePicker, Form, Input, message, Select, Space, Table, Tag, } from 'antd'
+import { Button, DatePicker, Form, message, Select, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
-import { RunService, StackService } from '@kusionstack/kusion-api-client-sdk'
+import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import moment from 'moment'
 import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 import GenerateDetail from './generateDetail'
@@ -22,7 +22,7 @@ const Runs = () => {
     pageSize: 10,
     page: 1,
     query: undefined,
-    total: 0,
+    total: undefined,
   })
 
   const [generateOpen, setGenerateOpen] = useState(false)
@@ -105,7 +105,7 @@ const Runs = () => {
       message.success('Create Successful')
       setOpen(false)
     } else {
-      message.error(response?.data?.message || 'Create Failed')
+      message.error(response?.data?.message)
     }
   }
   function handleClose() {
@@ -124,6 +124,7 @@ const Runs = () => {
       query: undefined,
     })
   }
+
   function handleSearch() {
     const values = form.getFieldsValue()
     const [startDate, endDate] = values?.createTime;
@@ -248,7 +249,7 @@ const Runs = () => {
           {
             searchParams?.query && Object.entries(searchParams?.query)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
               return (
-                <div className={styles.projects_content_toolbar_item}>
+                <div key={key} className={styles.projects_content_toolbar_item}>
                   {key}: {__value}
                   <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
                 </div>
@@ -277,14 +278,14 @@ const Runs = () => {
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
             <Form.Item name="type" label="Type">
-              <Select placeholder="Please select type">
+              <Select placeholder="Please select type" style={{ width: 150 }}>
                 {
                   Object.entries(RUNS_TYPES)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
                 }
               </Select>
             </Form.Item>
             <Form.Item name="status" label="Status">
-              <Select placeholder="Please select status">
+              <Select placeholder="Please select status" style={{ width: 150 }}>
                 {
                   Object.entries(RUNS_STATUS_MAP)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
                 }

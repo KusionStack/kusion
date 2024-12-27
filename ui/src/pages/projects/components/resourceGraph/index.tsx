@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { message } from 'antd'
 import { ResourceService } from '@kusionstack/kusion-api-client-sdk'
 import TopologyMap from '@/components/topologyMap'
@@ -7,32 +7,50 @@ import { generateG6GraphData } from '@/utils/tools'
 import styles from "./styles.module.less"
 
 
-const ResourceGraph = () => {
+const ResourceGraph = ({ stackId }) => {
+  const drawRef = useRef(null)
 
   const [graphData, setGraphData] = useState()
+  const [topologyLoading, setTopologyLoading] = useState(false)
 
-  async function getResourceGraph() {
-    const response: any = await ResourceService.getResourceGraph({
-      query: {
-        stack_id: 1
+  async function getResourceGraph(id) {
+    try {
+      setTopologyLoading(true)
+      const response: any = await ResourceService.getResourceGraph({
+        query: {
+          stack_id: id
+        }
+      });
+      if (response?.data?.success) {
+        setGraphData(response?.data?.data)
+      } else {
+        message.error(response?.data?.message)
       }
-    });
-    if (response?.data?.success) {
-      setGraphData(response?.data?.data)
-    } else {
-      message.error(response?.data?.message)
+    } catch (error) {
+
+    } finally {
+      setTopologyLoading(false)
     }
   }
 
   useEffect(() => {
-    getResourceGraph()
-  }, [])
+    if (stackId) {
+      getResourceGraph(stackId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stackId])
 
-  const topologyData = graphData && generateG6GraphData(graphData)
+
+  useEffect(() => {
+    if (graphData) {
+      const topologyData = graphData && generateG6GraphData(graphData)
+      drawRef.current?.drawGraph(topologyData)
+    }
+  }, [graphData])
 
   return (
     <div className={styles.project_graph}>
-      <TopologyMap topologyData={topologyData} topologyLoading={false} />
+      <TopologyMap ref={drawRef} topologyLoading={topologyLoading} />
     </div>
   )
 }

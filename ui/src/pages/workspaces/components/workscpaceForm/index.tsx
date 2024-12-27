@@ -8,6 +8,7 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [backendList, setBackendlist] = useState([])
+
   const formInitialValues = {
     name: '',
     description: '',
@@ -16,7 +17,7 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
   async function getBackendList() {
     const response: any = await BackendService.listBackend()
     if (response?.data?.success) {
-      setBackendlist(response?.data?.data)
+      setBackendlist(response?.data?.data?.backends)
     } else {
       message.error(response?.data?.message || '请求错误')
     }
@@ -46,6 +47,8 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
     form.resetFields();
     handleClose();
   }
+
+  console.log(backendList, "===backendList===")
 
   return (
     <Modal
