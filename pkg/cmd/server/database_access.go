@@ -40,10 +40,6 @@ func (o *DatabaseAccessOptions) InstallDB() (*gorm.DB, error) {
 	config.Net = "tcp"
 	config.ParseTime = true
 	config.InterpolateParams = true
-	config.Params = map[string]string{
-		"charset": "utf8",
-		"loc":     "Asia/Shanghai",
-	}
 	dsn := config.FormatDSN()
 	// silence log output
 	cfg := &gorm.Config{

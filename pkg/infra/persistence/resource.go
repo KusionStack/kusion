@@ -151,7 +151,6 @@ func (r *resourceRepository) GetByKusionResourceURN(ctx context.Context, id stri
 }
 
 // List retrieves all resources.
-// TODO: add `disablePagination` for resource list method.
 func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter) (*entity.ResourceListResult, error) {
 	var dataModel []ResourceModel
 	resourceEntityList := make([]*entity.Resource, 0)
@@ -167,11 +166,17 @@ func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFi
 	searchResult.Model(dataModel).Count(&totalRows)
 
 	// Fetch paginated data from searchResult with offset and limit
-	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
-	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
+	var result *gorm.DB
+	if filter.Pagination != nil {
+		offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+		result = searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
+	} else {
+		result = searchResult.Find(&dataModel)
+	}
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	for _, resource := range dataModel {
 		resourceEntity, err := resource.ToEntity()
 		if err != nil {

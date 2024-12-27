@@ -2456,6 +2456,14 @@ paths:
           type: string
         name: status
         type: array
+      - description: StackID to filter runs by. Default to all
+        in: query
+        name: stackID
+        type: integer
+      - description: Workspace to filter runs by. Default to all
+        in: query
+        name: workspace
+        type: string
       - description: 'StartTime to filter runs by. Default to all. Format: RFC3339'
         in: query
         name: startTime

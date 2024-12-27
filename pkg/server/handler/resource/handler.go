@@ -108,7 +108,7 @@ func (h *Handler) GetResourceGraph() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Getting resource graph...")
 		query := r.URL.Query()
-		filter, err := h.resourceManager.BuildResourceFilter(ctx, &query)
+		filter, err := h.resourceManager.BuildResourceGraphFilter(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

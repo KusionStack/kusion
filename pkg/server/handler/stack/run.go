@@ -85,6 +85,8 @@ func (h *Handler) GetRunResult() http.HandlerFunc {
 // @Param			env			query		string													false	"Environment to filter runs by. Default to all"
 // @Param			type		query		[]string												false	"RunType to filter runs by. Default to all"
 // @Param			status		query		[]string												false	"RunStatus to filter runs by. Default to all"
+// @Param			stackID		query		uint													false	"StackID to filter runs by. Default to all"
+// @Param			workspace	query		string													false	"Workspace to filter runs by. Default to all"
 // @Param			startTime	query		string													false	"StartTime to filter runs by. Default to all. Format: RFC3339"
 // @Param			endTime		query		string													false	"EndTime to filter runs by. Default to all. Format: RFC3339"
 // @Param			page		query		uint													false	"The current page to fetch. Default to 1"

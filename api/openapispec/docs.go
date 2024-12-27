@@ -1603,6 +1603,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "StackID to filter runs by. Default to all",
+                        "name": "stackID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workspace to filter runs by. Default to all",
+                        "name": "workspace",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "StartTime to filter runs by. Default to all. Format: RFC3339",
                         "name": "startTime",
