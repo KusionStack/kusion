@@ -81,7 +81,7 @@ definitions:
     properties:
       backendConfig:
         allOf:
-        - $ref: '#/definitions/v1.BackendConfig'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig'
         description: |-
           // Type is the type of the backend.
           Type string `yaml:"type" json:"type"`
@@ -123,6 +123,31 @@ definitions:
         allOf:
         - $ref: '#/definitions/url.URL'
         description: URL is the module oci artifact registry URL.
+    type: object
+  entity.ModuleWithVersion:
+    properties:
+      description:
+        description: Description is a human-readable description of the module.
+        type: string
+      doc:
+        allOf:
+        - $ref: '#/definitions/url.URL'
+        description: Doc is the documentation URL of the module.
+      name:
+        description: Name is the module name.
+        type: string
+      owners:
+        description: Owners is a list of owners for the module.
+        items:
+          type: string
+        type: array
+      url:
+        allOf:
+        - $ref: '#/definitions/url.URL'
+        description: URL is the module oci artifact registry URL.
+      version:
+        description: Version is the module oci artifact version.
+        type: string
     type: object
   entity.Organization:
     properties:
@@ -256,6 +281,9 @@ definitions:
       resourceType:
         description: ResourceType is the type of the resource.
         type: string
+      resourceURN:
+        description: ResourceURN is the urn of the resource.
+        type: string
       stack:
         allOf:
         - $ref: '#/definitions/entity.Stack'
@@ -317,9 +345,7 @@ definitions:
         description: ID is the id of the run.
         type: integer
       logs:
-        description: |-
-          Result RunResult `yaml:"result" json:"result"`
-          Logs is the logs of the run.
+        description: Logs is the logs of the run.
         type: string
       result:
         description: Result is the result of the run.
@@ -332,6 +358,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/constant.RunStatus'
         description: Status is the status of the run.
+      trace:
+        description: Trace is the trace of the run.
+        type: string
       type:
         allOf:
         - $ref: '#/definitions/constant.RunType'
@@ -478,6 +507,262 @@ definitions:
         description: UpdateTimestamp is the timestamp of the updated for the workspace.
         type: string
     type: object
+  handler.Duration:
+    enum:
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    type: integer
+    x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+  handler.Response:
+    properties:
+      costTime:
+        allOf:
+        - $ref: '#/definitions/handler.Duration'
+        description: Time taken for the request.
+      data:
+        description: Data payload.
+      endTime:
+        description: Request end time.
+        type: string
+      message:
+        description: Descriptive message.
+        type: string
+      startTime:
+        description: Request start time.
+        type: string
+      success:
+        description: Indicates success status.
+        type: boolean
+      traceID:
+        description: Trace identifier.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider:
+    properties:
+      profile:
+        description: |-
+          The profile to be used to interact with AWS Secrets Manager.
+          If not set, the default profile created with `aws configure` will be used.
+        type: string
+      region:
+        description: |-
+          AWS Region to be used to interact with AWS Secrets Manager.
+          Examples are us-east-1, us-west-2, etc.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider:
+    properties:
+      region:
+        description: |-
+          Alicloud Region to be used to interact with Alicloud Secrets Manager.
+          Examples are cn-beijing, cn-shanghai, etc.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType:
+    enum:
+    - PublicCloud
+    - USGovernmentCloud
+    - ChinaCloud
+    - GermanCloud
+    type: string
+    x-enum-varnames:
+    - AzureEnvironmentPublicCloud
+    - AzureEnvironmentUSGovernmentCloud
+    - AzureEnvironmentChinaCloud
+    - AzureEnvironmentGermanCloud
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider:
+    properties:
+      environmentType:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType'
+        description: |-
+          EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.
+          By-default it points to the public cloud AAD endpoint, and the following endpoints are available:
+          PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
+          Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
+      tenantId:
+        description: TenantID configures the Azure Tenant to send requests to.
+        type: string
+      vaultUrl:
+        description: Vault Url from which the secrets to be fetched from.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig:
+    properties:
+      configs:
+        additionalProperties: {}
+        description: Configs contains config items of the backend, whose keys differ
+          from different backend types.
+        type: object
+      type:
+        description: Type is the backend type, supports BackendTypeLocal, BackendTypeOss,
+          BackendTypeS3.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs:
+    properties:
+      default:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig'
+        description: Default is default block of the module config.
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData'
+        type: array
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+      valueMap:
+        additionalProperties:
+          type: string
+        type: object
+      version:
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig:
+    additionalProperties: {}
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig:
+    properties:
+      configs:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs'
+        description: Configs contains all levels of module configs
+      path:
+        description: Path is the path of the module. It can be a local path or a remote
+          URL
+        type: string
+      version:
+        description: Version is the version of the module.
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs:
+    additionalProperties:
+      $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig'
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModulePatcherConfig:
+    properties:
+      projectSelector:
+        description: ProjectSelector contains the selected projects.
+        items:
+          type: string
+        type: array
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider:
+    properties:
+      attributes:
+        additionalProperties:
+          type: string
+        description: attributes of the provider
+        type: object
+      name:
+        description: platform name of the provider
+        type: string
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec:
+    properties:
+      alicloud:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider'
+        description: Alicloud configures a store to retrieve secrets from Alicloud
+          Secrets Manager.
+      aws:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider'
+        description: AWS configures a store to retrieve secrets from AWS Secrets Manager.
+      azure:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider'
+        description: Azure configures a store to retrieve secrets from Azure KeyVault.
+      fake:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider'
+        description: Fake configures a store with static key/value pairs
+      onpremises:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider'
+        description: Onprem configures a store in on-premises environments
+      vault:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider'
+        description: Vault configures a store to retrieve secrets from HashiCorp Vault.
+      viettelcloud:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider'
+        description: ViettelCloud configures a store to retrieve secrets from ViettelCloud
+          Secrets Manager.
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource:
+    properties:
+      attributes:
+        additionalProperties: true
+        description: Attributes represents all specified attributes of this resource
+        type: object
+      dependsOn:
+        description: DependsOn contains all resources this resource depends on
+        items:
+          type: string
+        type: array
+      extensions:
+        additionalProperties: true
+        description: Extensions specifies arbitrary metadata of this resource
+        type: object
+      id:
+        description: |-
+          ID is the unique key of this resource.
+          ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
+          providerNamespace:providerName:resourceType:resourceName for Terraform resources
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type'
+        description: Type represents all Context we supported like Kubernetes and
+          Terraform
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore:
+    properties:
+      provider:
+        $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec'
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec:
+    properties:
+      context:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig'
+        description: Context contains workspace-level configurations, such as runtimes,
+          topologies, and metadata, etc.
+      resources:
+        description: Resources is the list of Resource this Spec contains.
+        items:
+          $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource'
+        type: array
+      secretStore:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore'
+        description: SecretSore represents a external secret store location for storing
+          secrets.
+    type: object
   kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type:
     enum:
     - Kubernetes
@@ -486,6 +771,41 @@ definitions:
     x-enum-varnames:
     - Kubernetes
     - Terraform
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion:
+    enum:
+    - v1
+    - v2
+    type: string
+    x-enum-varnames:
+    - VaultKVStoreV1
+    - VaultKVStoreV2
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider:
+    properties:
+      path:
+        description: 'Path is the mount path of the Vault KV backend endpoint, e.g:
+          "secret".'
+        type: string
+      server:
+        description: 'Server is the target Vault server address to connect, e.g: "https://vault.example.com:8200".'
+        type: string
+      version:
+        allOf:
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion'
+        description: |-
+          Version is the Vault KV secret engine version. Version can be either "v1" or
+          "v2", defaults to "v2".
+    type: object
+  kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider:
+    properties:
+      cmpURL:
+        description: |-
+          ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.
+          Examples are https://console.viettelcloud.vn/api/
+        type: string
+      projectID:
+        description: ProjectID to be used to interact with ViettelCloud Secrets Manager.
+        type: string
+    type: object
   models.ActionType:
     enum:
     - 0
@@ -535,7 +855,7 @@ definitions:
     properties:
       backendConfig:
         allOf:
-        - $ref: '#/definitions/v1.BackendConfig'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig'
         description: BackendConfig is the configuration of the backend.
       description:
         description: Description is a human-readable description of the backend.
@@ -727,7 +1047,7 @@ definitions:
     properties:
       backendConfig:
         allOf:
-        - $ref: '#/definitions/v1.BackendConfig'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig'
         description: BackendConfig is the configuration of the backend.
       description:
         description: Description is a human-readable description of the backend.
@@ -934,18 +1254,139 @@ definitions:
     properties:
       context:
         allOf:
-        - $ref: '#/definitions/v1.GenericConfig'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig'
         description: Context contains workspace-level configurations, such as runtimes,
           topologies, and metadata, etc.
       modules:
         allOf:
-        - $ref: '#/definitions/v1.ModuleConfigs'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs'
         description: Modules are the configs of a set of modules.
       secretStore:
         allOf:
-        - $ref: '#/definitions/v1.SecretStore'
+        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore'
         description: SecretStore represents a secure external location for storing
           secrets.
+    type: object
+  response.PaginatedBackendResponse:
+    properties:
+      backends:
+        items:
+          $ref: '#/definitions/entity.Backend'
+        type: array
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.PaginatedModuleResponse:
+    properties:
+      currentPage:
+        type: integer
+      modules:
+        items:
+          $ref: '#/definitions/entity.Module'
+        type: array
+      modulesWithVersion:
+        items:
+          $ref: '#/definitions/entity.ModuleWithVersion'
+        type: array
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.PaginatedOrganizationResponse:
+    properties:
+      currentPage:
+        type: integer
+      organizations:
+        items:
+          $ref: '#/definitions/entity.Organization'
+        type: array
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.PaginatedProjectResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      projects:
+        items:
+          $ref: '#/definitions/entity.Project'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.PaginatedResourceResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      resources:
+        items:
+          $ref: '#/definitions/entity.Resource'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.PaginatedRunResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      runs:
+        items:
+          $ref: '#/definitions/entity.Run'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.PaginatedSourceResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      sources:
+        items:
+          $ref: '#/definitions/entity.Source'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.PaginatedStackResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      stacks:
+        items:
+          $ref: '#/definitions/entity.Stack'
+        type: array
+      total:
+        type: integer
+    type: object
+  response.PaginatedWorkspaceResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      workspaces:
+        items:
+          $ref: '#/definitions/entity.Workspace'
+        type: array
     type: object
   url.URL:
     properties:
@@ -985,253 +1426,6 @@ definitions:
     type: object
   url.Userinfo:
     type: object
-  v1.AWSProvider:
-    properties:
-      profile:
-        description: |-
-          The profile to be used to interact with AWS Secrets Manager.
-          If not set, the default profile created with `aws configure` will be used.
-        type: string
-      region:
-        description: |-
-          AWS Region to be used to interact with AWS Secrets Manager.
-          Examples are us-east-1, us-west-2, etc.
-        type: string
-    type: object
-  v1.AlicloudProvider:
-    properties:
-      region:
-        description: |-
-          Alicloud Region to be used to interact with Alicloud Secrets Manager.
-          Examples are cn-beijing, cn-shanghai, etc.
-        type: string
-    type: object
-  v1.AzureEnvironmentType:
-    enum:
-    - PublicCloud
-    - USGovernmentCloud
-    - ChinaCloud
-    - GermanCloud
-    type: string
-    x-enum-varnames:
-    - AzureEnvironmentPublicCloud
-    - AzureEnvironmentUSGovernmentCloud
-    - AzureEnvironmentChinaCloud
-    - AzureEnvironmentGermanCloud
-  v1.AzureKVProvider:
-    properties:
-      environmentType:
-        allOf:
-        - $ref: '#/definitions/v1.AzureEnvironmentType'
-        description: |-
-          EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.
-          By-default it points to the public cloud AAD endpoint, and the following endpoints are available:
-          PublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud
-          Ref: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152
-      tenantId:
-        description: TenantID configures the Azure Tenant to send requests to.
-        type: string
-      vaultUrl:
-        description: Vault Url from which the secrets to be fetched from.
-        type: string
-    type: object
-  v1.BackendConfig:
-    properties:
-      configs:
-        additionalProperties: {}
-        description: Configs contains config items of the backend, whose keys differ
-          from different backend types.
-        type: object
-      type:
-        description: Type is the backend type, supports BackendTypeLocal, BackendTypeOss,
-          BackendTypeS3.
-        type: string
-    type: object
-  v1.Configs:
-    properties:
-      default:
-        allOf:
-        - $ref: '#/definitions/v1.GenericConfig'
-        description: Default is default block of the module config.
-    type: object
-  v1.FakeProvider:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/v1.FakeProviderData'
-        type: array
-    type: object
-  v1.FakeProviderData:
-    properties:
-      key:
-        type: string
-      value:
-        type: string
-      valueMap:
-        additionalProperties:
-          type: string
-        type: object
-      version:
-        type: string
-    type: object
-  v1.GenericConfig:
-    additionalProperties: {}
-    type: object
-  v1.ModuleConfig:
-    properties:
-      configs:
-        allOf:
-        - $ref: '#/definitions/v1.Configs'
-        description: Configs contains all levels of module configs
-      path:
-        description: Path is the path of the module. It can be a local path or a remote
-          URL
-        type: string
-      version:
-        description: Version is the version of the module.
-        type: string
-    type: object
-  v1.ModuleConfigs:
-    additionalProperties:
-      $ref: '#/definitions/v1.ModuleConfig'
-    type: object
-  v1.ModulePatcherConfig:
-    properties:
-      projectSelector:
-        description: ProjectSelector contains the selected projects.
-        items:
-          type: string
-        type: array
-    type: object
-  v1.OnPremisesProvider:
-    properties:
-      attributes:
-        additionalProperties:
-          type: string
-        description: attributes of the provider
-        type: object
-      name:
-        description: platform name of the provider
-        type: string
-    type: object
-  v1.ProviderSpec:
-    properties:
-      alicloud:
-        allOf:
-        - $ref: '#/definitions/v1.AlicloudProvider'
-        description: Alicloud configures a store to retrieve secrets from Alicloud
-          Secrets Manager.
-      aws:
-        allOf:
-        - $ref: '#/definitions/v1.AWSProvider'
-        description: AWS configures a store to retrieve secrets from AWS Secrets Manager.
-      azure:
-        allOf:
-        - $ref: '#/definitions/v1.AzureKVProvider'
-        description: Azure configures a store to retrieve secrets from Azure KeyVault.
-      fake:
-        allOf:
-        - $ref: '#/definitions/v1.FakeProvider'
-        description: Fake configures a store with static key/value pairs
-      onpremises:
-        allOf:
-        - $ref: '#/definitions/v1.OnPremisesProvider'
-        description: Onprem configures a store in on-premises environments
-      vault:
-        allOf:
-        - $ref: '#/definitions/v1.VaultProvider'
-        description: Vault configures a store to retrieve secrets from HashiCorp Vault.
-      viettelcloud:
-        allOf:
-        - $ref: '#/definitions/v1.ViettelCloudProvider'
-        description: ViettelCloud configures a store to retrieve secrets from ViettelCloud
-          Secrets Manager.
-    type: object
-  v1.Resource:
-    properties:
-      attributes:
-        additionalProperties: true
-        description: Attributes represents all specified attributes of this resource
-        type: object
-      dependsOn:
-        description: DependsOn contains all resources this resource depends on
-        items:
-          type: string
-        type: array
-      extensions:
-        additionalProperties: true
-        description: Extensions specifies arbitrary metadata of this resource
-        type: object
-      id:
-        description: |-
-          ID is the unique key of this resource.
-          ApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.
-          providerNamespace:providerName:resourceType:resourceName for Terraform resources
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type'
-        description: Type represents all Context we supported like Kubernetes and
-          Terraform
-    type: object
-  v1.SecretStore:
-    properties:
-      provider:
-        $ref: '#/definitions/v1.ProviderSpec'
-    type: object
-  v1.Spec:
-    properties:
-      context:
-        allOf:
-        - $ref: '#/definitions/v1.GenericConfig'
-        description: Context contains workspace-level configurations, such as runtimes,
-          topologies, and metadata, etc.
-      resources:
-        description: Resources is the list of Resource this Spec contains.
-        items:
-          $ref: '#/definitions/v1.Resource'
-        type: array
-      secretStore:
-        allOf:
-        - $ref: '#/definitions/v1.SecretStore'
-        description: SecretSore represents a external secret store location for storing
-          secrets.
-    type: object
-  v1.VaultKVStoreVersion:
-    enum:
-    - v1
-    - v2
-    type: string
-    x-enum-varnames:
-    - VaultKVStoreV1
-    - VaultKVStoreV2
-  v1.VaultProvider:
-    properties:
-      path:
-        description: 'Path is the mount path of the Vault KV backend endpoint, e.g:
-          "secret".'
-        type: string
-      server:
-        description: 'Server is the target Vault server address to connect, e.g: "https://vault.example.com:8200".'
-        type: string
-      version:
-        allOf:
-        - $ref: '#/definitions/v1.VaultKVStoreVersion'
-        description: |-
-          Version is the Vault KV secret engine version. Version can be either "v1" or
-          "v2", defaults to "v2".
-    type: object
-  v1.ViettelCloudProvider:
-    properties:
-      cmpURL:
-        description: |-
-          ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.
-          Examples are https://console.viettelcloud.vn/api/
-        type: string
-      projectID:
-        description: ProjectID to be used to interact with ViettelCloud Secrets Manager.
-        type: string
-    type: object
 info:
   contact: {}
 paths:
@@ -1239,13 +1433,27 @@ paths:
     get:
       description: List all backends
       operationId: listBackend
+      parameters:
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Backend'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedBackendResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1282,7 +1490,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Backend'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Backend'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1317,7 +1530,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1351,7 +1569,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Backend'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Backend'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1393,7 +1616,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Backend'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Backend'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1421,15 +1649,30 @@ paths:
         in: query
         name: workspaceID
         type: integer
+      - description: Module name to filter module list by. Default to all modules.
+        in: query
+        name: moduleName
+        type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/entity.Module'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedModuleResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1466,7 +1709,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Module'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Module'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1501,7 +1749,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1535,7 +1788,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Module'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Module'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1577,7 +1835,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Module'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Module'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1600,15 +1863,27 @@ paths:
     get:
       description: List all organizations
       operationId: listOrganization
+      parameters:
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/entity.Organization'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedOrganizationResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1645,7 +1920,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Organization'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Organization'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1680,7 +1960,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1714,7 +1999,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Organization'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Organization'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1756,7 +2046,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Organization'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Organization'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1789,15 +2084,28 @@ paths:
         in: query
         name: name
         type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/entity.Project'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.PaginatedProjectResponse'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1834,7 +2142,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Project'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Project'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1869,7 +2182,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1903,7 +2221,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Project'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Project'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1945,7 +2268,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Project'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Project'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -1968,13 +2296,29 @@ paths:
     get:
       description: List resource information
       operationId: listResource
+      parameters:
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Resource'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.PaginatedResourceResponse'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2009,7 +2353,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Resource'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Resource'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2044,7 +2393,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.ResourceGraph'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ResourceGraph'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2088,15 +2442,48 @@ paths:
         in: query
         name: env
         type: string
+      - collectionFormat: csv
+        description: RunType to filter runs by. Default to all
+        in: query
+        items:
+          type: string
+        name: type
+        type: array
+      - collectionFormat: csv
+        description: RunStatus to filter runs by. Default to all
+        in: query
+        items:
+          type: string
+        name: status
+        type: array
+      - description: 'StartTime to filter runs by. Default to all. Format: RFC3339'
+        in: query
+        name: startTime
+        type: string
+      - description: 'EndTime to filter runs by. Default to all. Format: RFC3339'
+        in: query
+        name: endTime
+        type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/entity.Stack'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedRunResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2131,7 +2518,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Run'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Run'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2166,7 +2558,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Run'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2189,13 +2586,31 @@ paths:
     get:
       description: List source information by source ID
       operationId: listSource
+      parameters:
+      - description: Source name to filter source list by. Default to all sources.
+        in: query
+        name: sourceName
+        type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Source'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedSourceResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2232,7 +2647,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Source'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Source'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2267,7 +2687,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Source'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2301,7 +2726,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Source'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Source'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2343,7 +2773,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Source'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Source'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2387,15 +2822,26 @@ paths:
         in: query
         name: env
         type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            items:
-              $ref: '#/definitions/entity.Stack'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedStackResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2442,7 +2888,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Stack'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Stack'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2477,7 +2928,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2511,7 +2967,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Stack'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Stack'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2553,7 +3014,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Stack'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Stack'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2616,7 +3082,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2679,7 +3150,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Run'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Run'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2728,7 +3204,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2778,7 +3259,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Run'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2827,7 +3313,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/v1.Spec'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2876,7 +3367,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/v1.Spec'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Run'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2942,7 +3438,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Run'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Run'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -2965,13 +3466,27 @@ paths:
     get:
       description: List all workspaces
       operationId: listWorkspace
+      parameters:
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Workspace'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedWorkspaceResponse'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -3008,7 +3523,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Workspace'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Workspace'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -3043,7 +3563,12 @@ paths:
         "200":
           description: Success
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -3077,7 +3602,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Workspace'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Workspace'
+              type: object
         "400":
           description: Bad Request
           schema: {}
@@ -3119,7 +3649,12 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/entity.Workspace'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Workspace'
+              type: object
         "400":
           description: Bad Request
           schema: {}

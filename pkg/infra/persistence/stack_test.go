@@ -165,15 +165,26 @@ func TestStackRepository(t *testing.T) {
 			expectedPathSecond           = "/path/to/stack/2"
 			expectedSyncStateSecond      = constant.StackStateSynced
 		)
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `stack`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
 		sqlMock.ExpectQuery("SELECT .* FROM `stack`").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name", "path", "sync_state", "Project__id", "Project__name", "Project__path"}).
 					AddRow(expectedIDFirst, expectedNameFirst, expectedPathFirst, expectedSyncStateFirst, 1, "mockedProject", "path/to/project").
 					AddRow(expectedIDSecond, expectedNameSecond, expectedPathSecond, expectedSyncStateSecond, 2, "mockedProject2", "path/to/project2"))
 
-		actual, err := repo.List(context.Background(), &entity.StackFilter{})
+		actual, err := repo.List(context.Background(), &entity.StackFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Stacks, 2)
 	})
 
 	// t.Run("Get stack entity by source id and path", func(t *testing.T) {

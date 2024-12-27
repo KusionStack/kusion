@@ -1,3 +1,4 @@
+//nolint:dupl
 package stack
 
 import (
@@ -5,6 +6,7 @@ import (
 
 	"github.com/go-chi/render"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -164,17 +166,19 @@ func (h *Handler) GetStack() http.HandlerFunc {
 // @Description	List all stacks
 // @Tags			stack
 // @Produce		json
-// @Param			projectID	query		uint									false	"ProjectID to filter stacks by. Default to all"
-// @Param			orgID		query		uint									false	"OrgID to filter stacks by. Default to all"
-// @Param			projectName	query		string									false	"ProjectName to filter stacks by. Default to all"
-// @Param			cloud		query		string									false	"Cloud to filter stacks by. Default to all"
-// @Param			env			query		string									false	"Environment to filter stacks by. Default to all"
-// @Success		200			{object}	handler.Response{data=[]entity.Stack}	"Success"
-// @Failure		400			{object}	error									"Bad Request"
-// @Failure		401			{object}	error									"Unauthorized"
-// @Failure		429			{object}	error									"Too Many Requests"
-// @Failure		404			{object}	error									"Not Found"
-// @Failure		500			{object}	error									"Internal Server Error"
+// @Param			projectID	query		uint													false	"ProjectID to filter stacks by. Default to all"
+// @Param			orgID		query		uint													false	"OrgID to filter stacks by. Default to all"
+// @Param			projectName	query		string													false	"ProjectName to filter stacks by. Default to all"
+// @Param			cloud		query		string													false	"Cloud to filter stacks by. Default to all"
+// @Param			env			query		string													false	"Environment to filter stacks by. Default to all"
+// @Param			page		query		uint													false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedStackResponse}	"Success"
+// @Failure		400			{object}	error													"Bad Request"
+// @Failure		401			{object}	error													"Unauthorized"
+// @Failure		429			{object}	error													"Too Many Requests"
+// @Failure		404			{object}	error													"Not Found"
+// @Failure		500			{object}	error													"Internal Server Error"
 // @Router			/api/v1/stacks [get]
 func (h *Handler) ListStacks() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -183,18 +187,26 @@ func (h *Handler) ListStacks() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing stack...")
 
-		orgIDParam := r.URL.Query().Get("orgID")
-		projectIDParam := r.URL.Query().Get("projectID")
-		projectNameParam := r.URL.Query().Get("projectName")
-		envParam := r.URL.Query().Get("env")
+		query := r.URL.Query()
 
-		filter, err := h.stackManager.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectNameParam, envParam)
+		filter, err := h.stackManager.BuildStackFilter(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		stackEntities, err := h.stackManager.ListStacks(ctx, filter)
-		handler.HandleResult(w, r, ctx, err, stackEntities)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedStackResponse{
+			Stacks:      stackEntities.Stacks,
+			Total:       stackEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }

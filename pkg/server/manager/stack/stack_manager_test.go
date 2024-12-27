@@ -46,9 +46,12 @@ func (m *mockStackRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter) ([]*entity.Stack, error) {
+func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Stack), args.Error(1)
+	return &entity.StackListResult{
+		Stacks: args.Get(0).([]*entity.Stack),
+		Total:  len(args.Get(0).([]*entity.Stack)),
+	}, args.Error(1)
 }
 
 func (m *mockStackRepository) Get(ctx context.Context, id uint) (*entity.Stack, error) {
@@ -79,7 +82,7 @@ func TestStackManager_ListStacks(t *testing.T) {
 	stacks, err := manager.ListStacks(ctx, filter)
 
 	// Assert that the returned stacks match the expected stacks
-	if !reflect.DeepEqual(stacks, expectedStacks) {
+	if !reflect.DeepEqual(stacks.Stacks, expectedStacks) {
 		t.Errorf("ListStacks() returned unexpected stacks.\nExpected: %v\nGot: %v", expectedStacks, stacks)
 	}
 
@@ -266,9 +269,12 @@ func (m *mockProjectRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Project), args.Error(1)
+	return &entity.ProjectListResult{
+		Projects: args.Get(0).([]*entity.Project),
+		Total:    len(args.Get(0).([]*entity.Project)),
+	}, args.Error(1)
 }
 
 func (m *mockProjectRepository) Get(ctx context.Context, id uint) (*entity.Project, error) {

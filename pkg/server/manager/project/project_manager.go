@@ -3,6 +3,8 @@ package project
 import (
 	"context"
 	"errors"
+	"net/url"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
@@ -12,7 +14,7 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *ProjectManager) ListProjects(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+func (m *ProjectManager) ListProjects(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
 	projectEntities, err := m.projectRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -167,4 +169,41 @@ func (m *ProjectManager) CreateProject(ctx context.Context, requestPayload reque
 		return nil, err
 	}
 	return &createdEntity, nil
+}
+
+func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Values) (*entity.ProjectFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building project filter...")
+
+	filter := entity.ProjectFilter{}
+
+	orgIDParam := query.Get("orgID")
+	if orgIDParam != "" {
+		orgID, err := strconv.Atoi(orgIDParam)
+		if err != nil {
+			return nil, constant.ErrInvalidOrganizationID
+		}
+		filter.OrgID = uint(orgID)
+	}
+
+	name := query.Get("name")
+	if name != "" {
+		filter.Name = name
+	}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.CommonPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.CommonPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	return &filter, nil
 }

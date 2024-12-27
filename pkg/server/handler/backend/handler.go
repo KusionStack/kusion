@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -145,12 +146,14 @@ func (h *Handler) GetBackend() http.HandlerFunc {
 // @Description	List all backends
 // @Tags			backend
 // @Produce		json
-// @Success		200	{object}	handler.Response{data=entity.Backend}	"Success"
-// @Failure		400	{object}	error									"Bad Request"
-// @Failure		401	{object}	error									"Unauthorized"
-// @Failure		429	{object}	error									"Too Many Requests"
-// @Failure		404	{object}	error									"Not Found"
-// @Failure		500	{object}	error									"Internal Server Error"
+// @Param			page		query		uint														false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedBackendResponse}	"Success"
+// @Failure		400			{object}	error														"Bad Request"
+// @Failure		401			{object}	error														"Unauthorized"
+// @Failure		429			{object}	error														"Too Many Requests"
+// @Failure		404			{object}	error														"Not Found"
+// @Failure		500			{object}	error														"Internal Server Error"
 // @Router			/api/v1/backends [get]
 func (h *Handler) ListBackends() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -159,8 +162,27 @@ func (h *Handler) ListBackends() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing backend...")
 
-		backendEntities, err := h.backendManager.ListBackends(ctx)
-		handler.HandleResult(w, r, ctx, err, backendEntities)
+		query := r.URL.Query()
+		filter, err := h.backendManager.BuildBackendFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// List paginated backends.
+		backendEntities, err := h.backendManager.ListBackends(ctx, filter)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedBackendResponse{
+			Backends:    backendEntities.Backends,
+			Total:       backendEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

@@ -169,14 +169,25 @@ func TestSourceRepository(t *testing.T) {
 			expectedRemoteSecond              = "local://mockedSource"
 			expectedSourceProviderSecond      = constant.SourceProviderTypeGithub
 		)
-		sqlMock.ExpectQuery("SELECT .* FROM `source`").
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `source`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `source` .* IS NULL LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
 					AddRow(expectedIDFirst, expectedRemoteFirst, expectedSourceProviderFirst).
 					AddRow(expectedIDSecond, expectedRemoteSecond, expectedSourceProviderSecond))
 
-		actual, err := repo.List(context.Background(), &entity.SourceFilter{})
+		actual, err := repo.List(context.Background(), &entity.SourceFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Sources, 2)
 	})
 }

@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -143,9 +144,12 @@ func (m *mockWorkspaceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) ([]*entity.Workspace, error) {
+func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Workspace), args.Error(1)
+	return &entity.WorkspaceListResult{
+		Workspaces: args.Get(0).([]*entity.Workspace),
+		Total:      len(args.Get(0).([]*entity.Workspace)),
+	}, args.Error(1)
 }
 
 func (m *mockWorkspaceRepository) Get(ctx context.Context, id uint) (*entity.Workspace, error) {
@@ -245,11 +249,12 @@ func TestBuildStackFilter(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid IDs", func(t *testing.T) {
-		orgIDParam := "123"
-		projectIDParam := "456"
-		projectName := ""
-		envParam := ""
-		filter, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		query := &url.Values{}
+		query.Add("orgID", "123")
+		query.Add("projectID", "456")
+		query.Add("projectName", "")
+		query.Add("env", "")
+		filter, err := m.BuildStackFilter(ctx, query)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(123), filter.OrgID)
 		assert.Equal(t, uint(456), filter.ProjectID)
@@ -257,35 +262,40 @@ func TestBuildStackFilter(t *testing.T) {
 
 	// Test case 1: Valid organization ID and project ID
 	t.Run("Invalid organization ID", func(t *testing.T) {
-		orgIDParam := "abc"
-		projectIDParam := "456"
-		projectName := ""
-		envParam := ""
-		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		query := &url.Values{}
+		query.Add("orgID", "abc")
+		query.Add("projectID", "456")
+		query.Add("projectName", "")
+		query.Add("env", "")
+		_, err := m.BuildStackFilter(ctx, query)
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidOrganizationID, err)
 	})
 
 	t.Run("Invalid project ID", func(t *testing.T) {
-		orgIDParam := ""
-		projectIDParam := "def"
-		projectName := ""
-		envParam := ""
-		_, err := m.BuildStackFilter(ctx, orgIDParam, projectIDParam, projectName, envParam)
+		query := &url.Values{}
+		query.Add("orgID", "")
+		query.Add("projectID", "def")
+		query.Add("projectName", "")
+		query.Add("env", "")
+		_, err := m.BuildStackFilter(ctx, query)
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidProjectID, err)
 	})
 
 	t.Run("Valid project Name", func(t *testing.T) {
-		orgIDParam := ""
 		projectName := "projectName"
-		envParam := ""
 		expectedProject := &entity.Project{
 			ID:   1,
 			Name: projectName,
 		}
 		m.projectRepo.(*mockProjectRepository).On("GetByName", ctx, projectName).Return(expectedProject, nil)
-		filter, err := m.BuildStackFilter(ctx, orgIDParam, "", projectName, envParam)
+
+		query := &url.Values{}
+		query.Add("orgID", "")
+		query.Add("env", "")
+		query.Add("projectName", projectName)
+		filter, err := m.BuildStackFilter(ctx, query)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(1), filter.ProjectID)
 	})
