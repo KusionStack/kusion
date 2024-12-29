@@ -14,6 +14,11 @@
 
 package v1
 
+import (
+	"fmt"
+	jsoniter "github.com/json-iterator/go"
+)
+
 func (r *Resource) ResourceKey() string {
 	return r.ID
 }
@@ -49,4 +54,20 @@ func (rs Resources) Less(i, j int) bool {
 	default:
 		return false
 	}
+}
+
+func (r *Resource) DeepCopy() (*Resource, error) {
+	if r == nil {
+		return nil, fmt.Errorf("source resource is nil")
+	}
+	data, err := jsoniter.Marshal(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal resource: %v", err)
+	}
+	var res Resource
+	err = jsoniter.Unmarshal(data, &res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal resource: %v", err)
+	}
+	return &res, nil
 }
