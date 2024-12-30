@@ -347,7 +347,12 @@ func (rn *ResourceNode) applyResource(operation *models.Operation, prior, planed
 			log.Debugf("import resource:%s, resource:%v", planed.ID, json.Marshal2String(s))
 			res = response.Resource
 		} else {
-			res = prior
+			copyPrior, e := prior.DeepCopy()
+			if e != nil {
+				return v1.NewErrorStatus(e)
+			}
+			res = copyPrior
+			res.DependsOn = planed.DependsOn
 		}
 	default:
 		return v1.NewErrorStatus(fmt.Errorf("unknown action type: %v", rn.Action))
