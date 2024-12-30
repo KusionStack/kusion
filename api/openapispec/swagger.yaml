@@ -30,17 +30,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
-    - git
     - github
     - oci
     - local
+    - git
     type: string
     x-enum-varnames:
-    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
+    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -2166,14 +2166,14 @@ paths:
       summary: Create project
       tags:
       - project
-  /api/v1/projects/{project_id}:
+  /api/v1/projects/{projectID}:
     delete:
       description: Delete specified project by ID
       operationId: deleteProject
       parameters:
       - description: Project ID
         in: path
-        name: project_id
+        name: projectID
         required: true
         type: integer
       produces:
@@ -2212,7 +2212,7 @@ paths:
       parameters:
       - description: Project ID
         in: path
-        name: project_id
+        name: projectID
         required: true
         type: integer
       produces:
@@ -2253,7 +2253,7 @@ paths:
       parameters:
       - description: Project ID
         in: path
-        name: project_id
+        name: projectID
         required: true
         type: integer
       - description: Updated project
@@ -2297,6 +2297,26 @@ paths:
       description: List resource information
       operationId: listResource
       parameters:
+      - description: The organization ID
+        in: query
+        name: orgID
+        type: integer
+      - description: The project ID
+        in: query
+        name: projectID
+        type: integer
+      - description: The stack ID
+        in: query
+        name: stackID
+        type: integer
+      - description: The resource type
+        in: query
+        name: resourceType
+        type: string
+      - description: The resource plane
+        in: query
+        name: resourcePlane
+        type: string
       - description: The current page to fetch. Default to 1
         in: query
         name: page
@@ -2384,7 +2404,7 @@ paths:
       parameters:
       - description: Stack ID
         in: query
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       produces:
@@ -2426,22 +2446,6 @@ paths:
         in: query
         name: projectID
         type: integer
-      - description: OrgID to filter runs by. Default to all
-        in: query
-        name: orgID
-        type: integer
-      - description: ProjectName to filter runs by. Default to all
-        in: query
-        name: projectName
-        type: string
-      - description: Cloud to filter runs by. Default to all
-        in: query
-        name: cloud
-        type: string
-      - description: Environment to filter runs by. Default to all
-        in: query
-        name: env
-        type: string
       - collectionFormat: csv
         description: RunType to filter runs by. Default to all
         in: query
@@ -2510,14 +2514,14 @@ paths:
       summary: List runs
       tags:
       - stack
-  /api/v1/runs/{run_id}:
+  /api/v1/runs/{runID}:
     get:
       description: Get run information by run ID
       operationId: getRun
       parameters:
       - description: Run ID
         in: path
-        name: run
+        name: runID
         required: true
         type: integer
       produces:
@@ -2550,14 +2554,14 @@ paths:
       summary: Get run
       tags:
       - run
-  /api/v1/runs/{run_id}/result:
+  /api/v1/runs/{runID}/result:
     get:
       description: Get run result by run ID
       operationId: getRunResult
       parameters:
       - description: Run ID
         in: path
-        name: run
+        name: runID
         required: true
         type: integer
       produces:
@@ -2822,13 +2826,9 @@ paths:
         in: query
         name: projectName
         type: string
-      - description: Cloud to filter stacks by. Default to all
+      - description: Path to filter stacks by. Default to all
         in: query
-        name: cloud
-        type: string
-      - description: Environment to filter stacks by. Default to all
-        in: query
-        name: env
+        name: path
         type: string
       - description: The current page to fetch. Default to 1
         in: query
@@ -2920,14 +2920,14 @@ paths:
       summary: Create stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}:
+  /api/v1/stacks/{stackID}:
     delete:
       description: Delete specified stack by ID
       operationId: deleteStack
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       produces:
@@ -2966,7 +2966,7 @@ paths:
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       produces:
@@ -3007,7 +3007,7 @@ paths:
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: Updated stack
@@ -3046,14 +3046,14 @@ paths:
       summary: Update stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/apply:
+  /api/v1/stacks/{stackID}/apply:
     post:
       description: Apply stack information by stack ID
       operationId: applyStack
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The resources to import during the stack preview
@@ -3114,14 +3114,14 @@ paths:
       summary: Apply stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/apply/async:
+  /api/v1/stacks/{stackID}/apply/async:
     post:
       description: Start a run and asynchronously apply stack changes by stack ID
       operationId: applyStackAsync
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The resources to import during the stack preview
@@ -3182,14 +3182,14 @@ paths:
       summary: Asynchronously apply stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/destroy:
+  /api/v1/stacks/{stackID}/destroy:
     post:
       description: Destroy stack information by stack ID
       operationId: destroyStack
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The target workspace to preview the spec in.
@@ -3236,7 +3236,7 @@ paths:
       summary: Destroy stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/destroy/async:
+  /api/v1/stacks/{stackID}/destroy/async:
     post:
       description: Start a run and asynchronously destroy stack resources by stack
         ID
@@ -3244,7 +3244,7 @@ paths:
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The target workspace to preview the spec in.
@@ -3291,14 +3291,14 @@ paths:
       summary: Asynchronously destroy stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/generate:
+  /api/v1/stacks/{stackID}/generate:
     post:
       description: Generate stack information by stack ID
       operationId: generateStack
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The target workspace to preview the spec in.
@@ -3345,14 +3345,14 @@ paths:
       summary: Generate stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/generate/async:
+  /api/v1/stacks/{stackID}/generate/async:
     post:
       description: Start a run and asynchronously generate stack spec by stack ID
       operationId: generateStackAsync
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The target workspace to preview the spec in.
@@ -3399,14 +3399,14 @@ paths:
       summary: Asynchronously generate stack
       tags:
       - stack
-  /api/v1/stacks/{stack_id}/preview:
+  /api/v1/stacks/{stackID}/preview:
     post:
       description: Start a run and asynchronously preview stack changes by stack ID
       operationId: previewStackAsync
       parameters:
       - description: Stack ID
         in: path
-        name: stack_id
+        name: stackID
         required: true
         type: integer
       - description: The resources to import during the stack preview
@@ -3475,6 +3475,10 @@ paths:
       description: List all workspaces
       operationId: listWorkspace
       parameters:
+      - description: BackendID to filter workspaces by. Default to all
+        in: query
+        name: backendID
+        type: integer
       - description: The current page to fetch. Default to 1
         in: query
         name: page

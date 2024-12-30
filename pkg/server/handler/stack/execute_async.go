@@ -24,7 +24,7 @@ import (
 // @Description	Start a run and asynchronously preview stack changes by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int									true	"Stack ID"
+// @Param			stackID				path		int									true	"Stack ID"
 // @Param			importedResources	body		request.StackImportRequest			false	"The resources to import during the stack preview"
 // @Param			workspace			query		string								true	"The target workspace to preview the spec in."
 // @Param			importResources		query		bool								false	"Import existing resources during the stack preview"
@@ -38,7 +38,7 @@ import (
 // @Failure		429					{object}	error								"Too Many Requests"
 // @Failure		404					{object}	error								"Not Found"
 // @Failure		500					{object}	error								"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/preview [post]
+// @Router			/api/v1/stacks/{stackID}/preview [post]
 func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -129,7 +129,7 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously apply stack changes by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int									true	"Stack ID"
+// @Param			stackID				path		int									true	"Stack ID"
 // @Param			importedResources	body		request.StackImportRequest			false	"The resources to import during the stack preview"
 // @Param			workspace			query		string								true	"The target workspace to preview the spec in."
 // @Param			importResources		query		bool								false	"Import existing resources during the stack preview"
@@ -142,7 +142,7 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 // @Failure		429					{object}	error								"Too Many Requests"
 // @Failure		404					{object}	error								"Not Found"
 // @Failure		500					{object}	error								"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/apply/async [post]
+// @Router			/api/v1/stacks/{stackID}/apply/async [post]
 func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -234,7 +234,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously generate stack spec by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int									true	"Stack ID"
+// @Param			stackID		path		int									true	"Stack ID"
 // @Param			workspace	query		string								true	"The target workspace to preview the spec in."
 // @Param			format		query		string								false	"The format to generate the spec in. Choices are: spec. Default to spec."
 // @Param			force		query		bool								false	"Force the generate even when the stack is locked"
@@ -244,7 +244,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 // @Failure		429			{object}	error								"Too Many Requests"
 // @Failure		404			{object}	error								"Not Found"
 // @Failure		500			{object}	error								"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/generate/async [post]
+// @Router			/api/v1/stacks/{stackID}/generate/async [post]
 func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -330,7 +330,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously destroy stack resources by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int									true	"Stack ID"
+// @Param			stackID		path		int									true	"Stack ID"
 // @Param			workspace	query		string								true	"The target workspace to preview the spec in."
 // @Param			force		query		bool								false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
 // @Param			dryrun		query		bool								false	"Destroy in dry-run mode"
@@ -340,7 +340,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 // @Failure		429			{object}	error								"Too Many Requests"
 // @Failure		404			{object}	error								"Not Found"
 // @Failure		500			{object}	error								"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/destroy/async [post]
+// @Router			/api/v1/stacks/{stackID}/destroy/async [post]
 func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
