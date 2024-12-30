@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import { Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -32,20 +32,10 @@ const KusionMenu = () => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [selectedKey, setSelectedKey] = useState(pathname);
-  const { isLogin, isUnsafeMode } = useSelector((state: any) => state.globalSlice)
 
-  function handleMenuClick(event) {
-    if (event.key === '/search') {
-      navigate('/search')
-    } else if (!isLogin && !isUnsafeMode && ['/login']?.includes(pathname)) {
-      return
-    } else if (event?.domEvent.metaKey && event?.domEvent.button === 0) {
-      const { origin } = window.location
-      window.open(`${origin}${event.key}`)
-    } else {
-      navigate(event.key)
-    }
-  }
+  useEffect(() => {
+    setSelectedKey(pathname)
+  }, [pathname])
 
   const menuItems = [
     getItem('Projects', '/projects', null),
@@ -77,14 +67,6 @@ const KusionMenu = () => {
 
   return (
     <div className={styles.nav_menu}>
-      {/* <Menu
-        style={{ border: 'none' }}
-        mode="horizontal"
-        // theme='dark'
-        selectedKeys={[pathname]}
-        items={getMenuItems()}
-        onClick={handleMenuClick}
-      /> */}
       <ul className={styles.kusion_menu_container}>
         {
           getMenuItems()?.map(item => {

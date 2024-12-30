@@ -1,33 +1,25 @@
-import React, { useState } from 'react'
-import { Button } from 'antd'
-import YamlEditor from '@/components/yamlEditor'
-import CodeDiffView from '@/components/codeDiffView'
-import MarkdownView from '@/components/markdownView'
-import CodeMirrorMarkdown from '@/components/codeMirrorMarkdown'
-import { mockYaml, mockNewYaml } from '@/utils/tools'
-import G6Tree from '@/components/g6Tree'
+import React from 'react'
+import { SmileOutlined } from '@ant-design/icons';
+import { Button, Card, Result } from 'antd';
+import { useNavigate } from 'react-router-dom';
+
+import styles from "./styles.module.less"
 
 const Insights = () => {
-  const [yamlValue, setYamlValue] = useState(mockYaml)
-  const [isReadOnly, setIsReadOnly] = useState(true)
+  const navigate = useNavigate()
 
-  function onChange(value) {
-    setYamlValue(value)
+  function goHome() {
+    navigate('/projects')
   }
   return (
-    <div>
-      <G6Tree />
-      <Button onClick={() => setIsReadOnly(!isReadOnly)}>编辑</Button>
-      <YamlEditor value={yamlValue} readOnly={isReadOnly} onChange={onChange} />
-      <br />
-      <>
-        <CodeDiffView oldContent={mockYaml} newContent={mockNewYaml} />
-        <div>
-          <MarkdownView />
-          <br />
-          <CodeMirrorMarkdown />
-        </div>
-      </>
+    <div className={styles.insight_container}>
+      <Card style={{ width: '100%', height: '100%' }}>
+        <Result
+          icon={<SmileOutlined />}
+          title="Coming soon..."
+          extra={<Button type="primary" onClick={goHome}>Back Home</Button>}
+        />
+      </Card>
     </div>
   )
 }
