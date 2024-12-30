@@ -79,10 +79,6 @@ func (h *Handler) GetRunResult() http.HandlerFunc {
 // @Tags			stack
 // @Produce		json
 // @Param			projectID	query		uint													false	"ProjectID to filter runs by. Default to all"
-// @Param			orgID		query		uint													false	"OrgID to filter runs by. Default to all"
-// @Param			projectName	query		string													false	"ProjectName to filter runs by. Default to all"
-// @Param			cloud		query		string													false	"Cloud to filter runs by. Default to all"
-// @Param			env			query		string													false	"Environment to filter runs by. Default to all"
 // @Param			type		query		[]string												false	"RunType to filter runs by. Default to all"
 // @Param			status		query		[]string												false	"RunStatus to filter runs by. Default to all"
 // @Param			stackID		query		uint													false	"StackID to filter runs by. Default to all"

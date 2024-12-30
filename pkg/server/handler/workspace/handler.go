@@ -147,6 +147,7 @@ func (h *Handler) GetWorkspace() http.HandlerFunc {
 // @Description	List all workspaces
 // @Tags			workspace
 // @Produce		json
+// @Param			backendID	query		uint														false	"BackendID to filter workspaces by. Default to all"
 // @Param			page		query		uint														false	"The current page to fetch. Default to 1"
 // @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
 // @Success		200			{object}	handler.Response{data=response.PaginatedWorkspaceResponse}	"Success"

@@ -251,7 +251,7 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 	orgIDParam := query.Get("orgID")
 	projectIDParam := query.Get("projectID")
 	projectNameParam := query.Get("projectName")
-	envParam := query.Get("env")
+	pathParam := query.Get("path")
 
 	if orgIDParam != "" {
 		orgID, err := strconv.Atoi(orgIDParam)
@@ -274,8 +274,8 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 			return nil, err
 		}
 		filter.ProjectID = projectEntity.ID
-		if envParam != "" {
-			filter.Path = fmt.Sprintf("%s/%s", projectEntity.Path, envParam)
+		if pathParam != "" {
+			filter.Path = pathParam
 			logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
 		}
 	}

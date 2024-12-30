@@ -93,7 +93,7 @@ func (h *Handler) GetResource() http.HandlerFunc {
 // @Description	Get resource graph by stack ID
 // @Tags			resource
 // @Produce		json
-// @Param			stack_id	query		uint										true	"Stack ID"
+// @Param			stackID	query		uint										true	"Stack ID"
 // @Success		200			{object}	handler.Response{data=entity.ResourceGraph}	"Success"
 // @Failure		400			{object}	error										"Bad Request"
 // @Failure		401			{object}	error										"Unauthorized"
