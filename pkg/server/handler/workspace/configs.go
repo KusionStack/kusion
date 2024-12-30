@@ -15,14 +15,14 @@ import (
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			id	path		int							true	"Workspace ID"
-// @Success		200	{object}	request.WorkspaceConfigs	"Success"
-// @Failure		400	{object}	error						"Bad Request"
-// @Failure		401	{object}	error						"Unauthorized"
-// @Failure		429	{object}	error						"Too Many Requests"
-// @Failure		404	{object}	error						"Not Found"
-// @Failure		500	{object}	error						"Internal Server Error"
-// @Router			/api/v1/workspaces/{id}/configs [get]
+// @Param			workspaceID	path		int							true	"Workspace ID"
+// @Success		200			{object}	request.WorkspaceConfigs	"Success"
+// @Failure		400			{object}	error						"Bad Request"
+// @Failure		401			{object}	error						"Unauthorized"
+// @Failure		429			{object}	error						"Too Many Requests"
+// @Failure		404			{object}	error						"Not Found"
+// @Failure		500			{object}	error						"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID}/configs [get]
 func (h *Handler) GetWorkspaceConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from the context.
@@ -72,7 +72,7 @@ func (h *Handler) ValidateWorkspaceConfigs() http.HandlerFunc {
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			id			path		int							true	"Workspace ID"
+// @Param			workspaceID	path		int							true	"Workspace ID"
 // @Param			workspace	body		request.WorkspaceConfigs	true	"Updated workspace configurations"
 // @Success		200			{object}	request.WorkspaceConfigs	"Success"
 // @Failure		400			{object}	error						"Bad Request"
@@ -80,7 +80,7 @@ func (h *Handler) ValidateWorkspaceConfigs() http.HandlerFunc {
 // @Failure		429			{object}	error						"Too Many Requests"
 // @Failure		404			{object}	error						"Not Found"
 // @Failure		500			{object}	error						"Internal Server Error"
-// @Router			/api/v1/workspaces/{id}/configs [put]
+// @Router			/api/v1/workspaces/{workspaceID}/configs [put]
 func (h *Handler) UpdateWorkspaceConfigs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -109,14 +109,14 @@ func (h *Handler) UpdateWorkspaceConfigs() http.HandlerFunc {
 // @Tags			workspace
 // @Accept			json
 // @Produce		plain
-// @Param			id											path		int		true	"Workspace ID"
-// @Success		200											{object}	string	"Success"
-// @Failure		400											{object}	error	"Bad Request"
-// @Failure		401											{object}	error	"Unauthorized"
-// @Failure		429											{object}	error	"Too Many Requests"
-// @Failure		404											{object}	error	"Not Found"
-// @Failure		500											{object}	error	"Internal Server Error"
-// @Router			/api/v1/workspaces/{id}/configs/mod-deps 																															[post]
+// @Param			workspaceID											path		int		true	"Workspace ID"
+// @Success		200													{object}	string	"Success"
+// @Failure		400													{object}	error	"Bad Request"
+// @Failure		401													{object}	error	"Unauthorized"
+// @Failure		429													{object}	error	"Too Many Requests"
+// @Failure		404													{object}	error	"Not Found"
+// @Failure		500													{object}	error	"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID}/configs/mod-deps 																																								[post]
 func (h *Handler) CreateWorkspaceModDeps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.

@@ -54,14 +54,14 @@ func (h *Handler) CreateModule() http.HandlerFunc {
 // @Description	Delete the specified module by name
 // @Tags			module
 // @Produce		json
-// @Param			name					path		string							true	"Module Name"
-// @Success		200						{object}	handler.Response{data=string}	"Success"
-// @Failure		400						{object}	error							"Bad Request"
-// @Failure		401						{object}	error							"Unauthorized"
-// @Failure		429						{object}	error							"Too Many Requests"
-// @Failure		404						{object}	error							"Not Found"
-// @Failure		500						{object}	error							"Internal Server Error"
-// @Router			/api/v1/modules/{name} 	[delete]
+// @Param			moduleName						path		string							true	"Module Name"
+// @Success		200								{object}	handler.Response{data=string}	"Success"
+// @Failure		400								{object}	error							"Bad Request"
+// @Failure		401								{object}	error							"Unauthorized"
+// @Failure		429								{object}	error							"Too Many Requests"
+// @Failure		404								{object}	error							"Not Found"
+// @Failure		500								{object}	error							"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 	[delete]
 func (h *Handler) DeleteModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -83,15 +83,15 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Tags			module
 // @Accept			json
 // @Produce		json
-// @Param			name					path		string									true	"Module Name"
-// @Param			module					body		request.UpdateModuleRequest				true	"Updated module"
-// @Success		200						{object}	handler.Response{data=entity.Module}	"Success"
-// @Failure		400						{object}	error									"Bad Request"
-// @Failure		401						{object}	error									"Unauthorized"
-// @Failure		429						{object}	error									"Too Many Requests"
-// @Failure		404						{object}	error									"Not Found"
-// @Failure		500						{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																																																																																																																											[put]
+// @Param			moduleName						path		string									true	"Module Name"
+// @Param			module							body		request.UpdateModuleRequest				true	"Updated module"
+// @Success		200								{object}	handler.Response{data=entity.Module}	"Success"
+// @Failure		400								{object}	error									"Bad Request"
+// @Failure		401								{object}	error									"Unauthorized"
+// @Failure		429								{object}	error									"Too Many Requests"
+// @Failure		404								{object}	error									"Not Found"
+// @Failure		500								{object}	error									"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																												[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -120,14 +120,14 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Description	Get module information by module name
 // @Tags			module
 // @Produce		json
-// @Param			name					path		string									true	"Module Name"
-// @Success		200						{object}	handler.Response{data=entity.Module}	"Success"
-// @Failure		400						{object}	error									"Bad Request"
-// @Failure		401						{object}	error									"Unauthorized"
-// @Failure		429						{object}	error									"Too Many Requests"
-// @Failure		404						{object}	error									"Not Found"
-// @Failure		500						{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																																																																																																									[get]
+// @Param			moduleName						path		string									true	"Module Name"
+// @Success		200								{object}	handler.Response{data=entity.Module}	"Success"
+// @Failure		400								{object}	error									"Bad Request"
+// @Failure		401								{object}	error									"Unauthorized"
+// @Failure		429								{object}	error									"Too Many Requests"
+// @Failure		404								{object}	error									"Not Found"
+// @Failure		500								{object}	error									"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																										[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.

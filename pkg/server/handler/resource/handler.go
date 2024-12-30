@@ -20,14 +20,19 @@ import (
 // @Description	List resource information
 // @Tags			resource
 // @Produce		json
-// @Param			page		query		uint														false	"The current page to fetch. Default to 1"
-// @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
-// @Success		200			{object}	handler.Response{data=[]response.PaginatedResourceResponse}	"Success"
-// @Failure		400			{object}	error														"Bad Request"
-// @Failure		401			{object}	error														"Unauthorized"
-// @Failure		429			{object}	error														"Too Many Requests"
-// @Failure		404			{object}	error														"Not Found"
-// @Failure		500			{object}	error														"Internal Server Error"
+// @Param			orgID			query		uint														false	"The organization ID"
+// @Param			projectID		query		uint														false	"The project ID"
+// @Param			stackID			query		uint														false	"The stack ID"
+// @Param			resourceType	query		string														false	"The resource type"
+// @Param			resourcePlane	query		string														false	"The resource plane"
+// @Param			page			query		uint														false	"The current page to fetch. Default to 1"
+// @Param			pageSize		query		uint														false	"The size of the page. Default to 10"
+// @Success		200				{object}	handler.Response{data=[]response.PaginatedResourceResponse}	"Success"
+// @Failure		400				{object}	error														"Bad Request"
+// @Failure		401				{object}	error														"Unauthorized"
+// @Failure		429				{object}	error														"Too Many Requests"
+// @Failure		404				{object}	error														"Not Found"
+// @Failure		500				{object}	error														"Internal Server Error"
 // @Router			/api/v1/resources [get]
 func (h *Handler) ListResources() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -65,14 +70,14 @@ func (h *Handler) ListResources() http.HandlerFunc {
 // @Description	Get resource information by resource ID
 // @Tags			resource
 // @Produce		json
-// @Param			id	path		int										true	"Resource ID"
-// @Success		200	{object}	handler.Response{data=entity.Resource}	"Success"
-// @Failure		400	{object}	error									"Bad Request"
-// @Failure		401	{object}	error									"Unauthorized"
-// @Failure		429	{object}	error									"Too Many Requests"
-// @Failure		404	{object}	error									"Not Found"
-// @Failure		500	{object}	error									"Internal Server Error"
-// @Router			/api/v1/resources/{id} [get]
+// @Param			resourceID	path		int										true	"Resource ID"
+// @Success		200			{object}	handler.Response{data=entity.Resource}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/resources/{resourceID} [get]
 func (h *Handler) GetResource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -94,12 +99,12 @@ func (h *Handler) GetResource() http.HandlerFunc {
 // @Tags			resource
 // @Produce		json
 // @Param			stackID	query		uint										true	"Stack ID"
-// @Success		200			{object}	handler.Response{data=entity.ResourceGraph}	"Success"
-// @Failure		400			{object}	error										"Bad Request"
-// @Failure		401			{object}	error										"Unauthorized"
-// @Failure		429			{object}	error										"Too Many Requests"
-// @Failure		404			{object}	error										"Not Found"
-// @Failure		500			{object}	error										"Internal Server Error"
+// @Success		200		{object}	handler.Response{data=entity.ResourceGraph}	"Success"
+// @Failure		400		{object}	error										"Bad Request"
+// @Failure		401		{object}	error										"Unauthorized"
+// @Failure		429		{object}	error										"Too Many Requests"
+// @Failure		404		{object}	error										"Not Found"
+// @Failure		500		{object}	error										"Internal Server Error"
 // @Router			/api/v1/resources/graph [get]
 func (h *Handler) GetResourceGraph() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

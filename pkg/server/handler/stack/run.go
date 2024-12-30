@@ -16,14 +16,14 @@ import (
 // @Description	Get run information by run ID
 // @Tags			run
 // @Produce		json
-// @Param			run	path		int									true	"Run ID"
-// @Success		200	{object}	handler.Response{data=entity.Run}	"Success"
-// @Failure		400	{object}	error								"Bad Request"
-// @Failure		401	{object}	error								"Unauthorized"
-// @Failure		429	{object}	error								"Too Many Requests"
-// @Failure		404	{object}	error								"Not Found"
-// @Failure		500	{object}	error								"Internal Server Error"
-// @Router			/api/v1/runs/{run_id} [get]
+// @Param			runID	path		int									true	"Run ID"
+// @Success		200		{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400		{object}	error								"Bad Request"
+// @Failure		401		{object}	error								"Unauthorized"
+// @Failure		429		{object}	error								"Too Many Requests"
+// @Failure		404		{object}	error								"Not Found"
+// @Failure		500		{object}	error								"Internal Server Error"
+// @Router			/api/v1/runs/{runID} [get]
 func (h *Handler) GetRun() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -44,14 +44,14 @@ func (h *Handler) GetRun() http.HandlerFunc {
 // @Description	Get run result by run ID
 // @Tags			run
 // @Produce		json
-// @Param			run	path		int							true	"Run ID"
-// @Success		200	{object}	handler.Response{data=any}	"Success"
-// @Failure		400	{object}	error						"Bad Request"
-// @Failure		401	{object}	error						"Unauthorized"
-// @Failure		429	{object}	error						"Too Many Requests"
-// @Failure		404	{object}	error						"Not Found"
-// @Failure		500	{object}	error						"Internal Server Error"
-// @Router			/api/v1/runs/{run_id}/result [get]
+// @Param			runID	path		int							true	"Run ID"
+// @Success		200		{object}	handler.Response{data=any}	"Success"
+// @Failure		400		{object}	error						"Bad Request"
+// @Failure		401		{object}	error						"Unauthorized"
+// @Failure		429		{object}	error						"Too Many Requests"
+// @Failure		404		{object}	error						"Not Found"
+// @Failure		500		{object}	error						"Internal Server Error"
+// @Router			/api/v1/runs/{runID}/result [get]
 func (h *Handler) GetRunResult() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context

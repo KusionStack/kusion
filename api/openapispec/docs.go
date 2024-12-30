@@ -147,7 +147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/backends/{id}": {
+        "/api/v1/backends/{backendID}": {
             "get": {
                 "description": "Get backend information by backend ID",
                 "produces": [
@@ -162,7 +162,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -225,7 +225,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     },
@@ -294,7 +294,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -485,7 +485,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/modules/{name}": {
+        "/api/v1/modules/{moduleName}": {
             "get": {
                 "description": "Get module information by module name",
                 "produces": [
@@ -500,7 +500,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }
@@ -563,7 +563,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     },
@@ -632,7 +632,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }
@@ -811,7 +811,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/orgs/{id}": {
+        "/api/v1/orgs/{orgID}": {
             "get": {
                 "description": "Get organization information by organization ID",
                 "produces": [
@@ -826,7 +826,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -889,7 +889,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     },
@@ -958,7 +958,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -1152,7 +1152,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/projects/{project_id}": {
+        "/api/v1/projects/{projectID}": {
             "get": {
                 "description": "Get project information by project ID",
                 "produces": [
@@ -1167,7 +1167,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     }
@@ -1230,7 +1230,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     },
@@ -1299,7 +1299,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     }
@@ -1358,6 +1358,36 @@ const docTemplate = `{
                 "summary": "List resource",
                 "operationId": "listResource",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The organization ID",
+                        "name": "orgID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The project ID",
+                        "name": "projectID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The stack ID",
+                        "name": "stackID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The resource type",
+                        "name": "resourceType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The resource plane",
+                        "name": "resourcePlane",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "The current page to fetch. Default to 1",
@@ -1431,7 +1461,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "query",
                         "required": true
                     }
@@ -1478,7 +1508,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/resources/{id}": {
+        "/api/v1/resources/{resourceID}": {
             "get": {
                 "description": "Get resource information by resource ID",
                 "produces": [
@@ -1493,7 +1523,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Resource ID",
-                        "name": "id",
+                        "name": "resourceID",
                         "in": "path",
                         "required": true
                     }
@@ -1556,30 +1586,6 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "ProjectID to filter runs by. Default to all",
                         "name": "projectID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "OrgID to filter runs by. Default to all",
-                        "name": "orgID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "ProjectName to filter runs by. Default to all",
-                        "name": "projectName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Cloud to filter runs by. Default to all",
-                        "name": "cloud",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Environment to filter runs by. Default to all",
-                        "name": "env",
                         "in": "query"
                     },
                     {
@@ -1681,7 +1687,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/runs/{run_id}": {
+        "/api/v1/runs/{runID}": {
             "get": {
                 "description": "Get run information by run ID",
                 "produces": [
@@ -1696,7 +1702,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Run ID",
-                        "name": "run",
+                        "name": "runID",
                         "in": "path",
                         "required": true
                     }
@@ -1743,7 +1749,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/runs/{run_id}/result": {
+        "/api/v1/runs/{runID}/result": {
             "get": {
                 "description": "Get run result by run ID",
                 "produces": [
@@ -1758,7 +1764,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Run ID",
-                        "name": "run",
+                        "name": "runID",
                         "in": "path",
                         "required": true
                     }
@@ -1943,7 +1949,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/sources/{id}": {
+        "/api/v1/sources/{sourceID}": {
             "get": {
                 "description": "Get source information by source ID",
                 "produces": [
@@ -1958,7 +1964,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -2021,7 +2027,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     },
@@ -2090,7 +2096,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -2169,14 +2175,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Cloud to filter stacks by. Default to all",
-                        "name": "cloud",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Environment to filter stacks by. Default to all",
-                        "name": "env",
+                        "description": "Path to filter stacks by. Default to all",
+                        "name": "path",
                         "in": "query"
                     },
                     {
@@ -2311,7 +2311,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}": {
+        "/api/v1/stacks/{stackID}": {
             "get": {
                 "description": "Get stack information by stack ID",
                 "produces": [
@@ -2326,7 +2326,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     }
@@ -2389,7 +2389,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2458,7 +2458,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     }
@@ -2505,7 +2505,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/apply": {
+        "/api/v1/stacks/{stackID}/apply": {
             "post": {
                 "description": "Apply stack information by stack ID",
                 "produces": [
@@ -2520,7 +2520,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2606,7 +2606,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/apply/async": {
+        "/api/v1/stacks/{stackID}/apply/async": {
             "post": {
                 "description": "Start a run and asynchronously apply stack changes by stack ID",
                 "produces": [
@@ -2621,7 +2621,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2707,7 +2707,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/destroy": {
+        "/api/v1/stacks/{stackID}/destroy": {
             "post": {
                 "description": "Destroy stack information by stack ID",
                 "produces": [
@@ -2722,7 +2722,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2788,7 +2788,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/destroy/async": {
+        "/api/v1/stacks/{stackID}/destroy/async": {
             "post": {
                 "description": "Start a run and asynchronously destroy stack resources by stack ID",
                 "produces": [
@@ -2803,7 +2803,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2869,7 +2869,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/generate": {
+        "/api/v1/stacks/{stackID}/generate": {
             "post": {
                 "description": "Generate stack information by stack ID",
                 "produces": [
@@ -2884,7 +2884,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2950,7 +2950,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/generate/async": {
+        "/api/v1/stacks/{stackID}/generate/async": {
             "post": {
                 "description": "Start a run and asynchronously generate stack spec by stack ID",
                 "produces": [
@@ -2965,7 +2965,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -3031,7 +3031,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/preview": {
+        "/api/v1/stacks/{stackID}/preview": {
             "post": {
                 "description": "Start a run and asynchronously preview stack changes by stack ID",
                 "produces": [
@@ -3046,7 +3046,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -3150,6 +3150,12 @@ const docTemplate = `{
                 "summary": "List workspaces",
                 "operationId": "listWorkspace",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "BackendID to filter workspaces by. Default to all",
+                        "name": "backendID",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "The current page to fetch. Default to 1",
@@ -3325,7 +3331,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}": {
+        "/api/v1/workspaces/{workspaceID}": {
             "get": {
                 "description": "Get workspace information by workspace ID",
                 "produces": [
@@ -3340,7 +3346,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3403,7 +3409,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -3472,7 +3478,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3519,7 +3525,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs": {
+        "/api/v1/workspaces/{workspaceID}/configs": {
             "get": {
                 "description": "Get configurations in the specified workspace",
                 "consumes": [
@@ -3537,7 +3543,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3588,7 +3594,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -3632,7 +3638,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs/mod-deps": {
+        "/api/v1/workspaces/{workspaceID}/configs/mod-deps": {
             "post": {
                 "description": "Create the module dependencies in kcl.mod of the specified workspace",
                 "consumes": [
@@ -3650,7 +3656,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3748,17 +3754,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {
