@@ -159,7 +159,7 @@ const Runs = ({ stackId }) => {
           endTime,
           pageSize: params?.pageSize || 10,
           page: params?.page,
-          stackId: stackId
+          stackID: stackId
         }
       });
       if (response?.data?.success) {
