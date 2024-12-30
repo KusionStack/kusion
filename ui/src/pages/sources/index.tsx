@@ -30,7 +30,7 @@ const SourcesPage = () => {
         }
       });
       if (response?.data?.success) {
-        setResourceList(response?.data?.data);
+        setResourceList(response?.data?.data?.sources);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,

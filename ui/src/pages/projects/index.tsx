@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Space, Table, Select } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
-import { OrganizationService, ProjectService } from '@kusionstack/kusion-api-client-sdk'
+import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
 
 import styles from "./styles.module.less"
@@ -18,7 +18,27 @@ const Projects = () => {
   });
   const [dataSource, setDataSource] = useState([])
   const [organizationList, setOrganizationList] = useState([])
+  const [sourceList, setSourceList] = useState([])
   const [open, setOpen] = useState<boolean>(false);
+
+  async function getResourceList() {
+    try {
+      const response: any = await SourceService.listSource({
+        ...searchParams,
+        query: {
+          page: 1,
+          pageSize: 10000
+        }
+      });
+      if (response?.data?.success) {
+        setSourceList(response?.data?.data?.sources);
+      } else {
+        message.error(response?.data?.messaage)
+      }
+    } catch (error) {
+
+    }
+  }
 
   async function handleSubmit(values) {
     console.log(values, "handleSubmit")
@@ -106,6 +126,7 @@ const Projects = () => {
 
   useEffect(() => {
     getOrganizations()
+    getResourceList()
     getProjectList(searchParams)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -197,7 +218,11 @@ const Projects = () => {
       <div className={styles.projects_content}>
         <Table rowKey="id" title={renderTableTitle} columns={colums} dataSource={dataSource} />
       </div>
-      <ProjectForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
+      <ProjectForm open={open}
+        sourceList={sourceList}
+        organizationList={organizationList}
+        handleSubmit={handleSubmit}
+        handleClose={handleClose} />
     </div>
   )
 }

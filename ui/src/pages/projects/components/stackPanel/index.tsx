@@ -24,7 +24,7 @@ const StackPanel = ({ stackId }) => {
         activeKey={activeKey}
         items={tabsItems}
       />
-      {activeKey === 'Runs' && <Runs />}
+      {activeKey === 'Runs' && <Runs stackId={stackId}/>}
       {activeKey === 'ResourceGraph' && <ResourceGraph stackId={stackId}/>}
     </div>
   )

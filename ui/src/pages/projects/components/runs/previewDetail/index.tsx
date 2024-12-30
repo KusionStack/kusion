@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Drawer, Segmented, Select } from 'antd'
+import { Drawer, Segmented, Select, Tag } from 'antd'
 import { default as AnsiUp } from 'ansi_up';
 import CodeDiffView from '@/components/codeDiffView'
 
@@ -10,6 +10,7 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
   const ansi_up = new AnsiUp();
   const logRef = useRef<HTMLDivElement | null>(null);
   const { stepKeys, changeSteps } = currentRecord?.result && JSON.parse(currentRecord?.result)
+  console.log(stepKeys, changeSteps, "===stepKeys, changeSteps===")
 
   const [activeKey, setActiveKey] = useState('Exec Result')
   const [selectedResource, setSelectedResource] = useState(stepKeys?.[0])
@@ -50,10 +51,18 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                 <Select value={selectedResource} style={{ width: 500, marginBottom: 10 }} onChange={handleChangeResources}>
                   {
                     stepKeys?.map(item => {
-                      return <Select.Option key={item} value={item}>{item}</Select.Option>
+                      return <Select.Option key={item} value={item}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <div style={{ flex: 1, overflowX: 'hidden', textOverflow: 'ellipsis' }}>{item}</div>
+                          <div>
+                            <Tag>{changeSteps?.[item]?.action}</Tag>
+                          </div>
+                        </div>
+                      </Select.Option>
                     })
                   }
                 </Select>
+                <strong style={{ marginLeft: 10, color: '#666' }}>{changeSteps?.[selectedResource]?.action}</strong>
               </div>
               <CodeDiffView oldContent={changeSteps?.[selectedResource]?.from ? JSON.stringify(changeSteps?.[selectedResource]?.from, null, 2) : ''} newContent={changeSteps?.[selectedResource]?.to ? JSON.stringify(changeSteps?.[selectedResource]?.to, null, 2) : ''} />
             </div>
@@ -67,7 +76,7 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
           )
         }
       </div>
-    </Drawer>
+    </Drawer >
   )
 
 }

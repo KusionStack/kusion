@@ -109,54 +109,6 @@ type IProps = {
   clusterOptions?: string[]
 }
 
-insertCss(`
-  .g6-component-tooltip {
-    background-color: #f0f5ff;
-    padding: 10px 30px;
-    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
-    border-top: 2px solid #2f54eb;
-    color: #646566;
-  }
-  .tooltip-item {
-    margin-bottom: 10px;
-  }
-  .type {
-    background: rgba(255, 0, 0, .5);
-    padding: 2px 5px;
-    border-radius: 6px;
-    color: #fff;
-  }
-`);
-
-
-const tooltip = new G6.Tooltip({
-  offsetX: 10,
-  offsetY: 10,
-  // the types of items that allow the tooltip show up
-  // 允许出现 tooltip 的 item 类型
-  itemTypes: ['node', 'edge'],
-  // custom the tooltip's content
-  // 自定义 tooltip 内容
-  getContent: (e) => {
-    const { nodeData, label, id }: any = e.item.getModel();
-    const typeList = nodeData?.resourceType?.split('/');
-    const type = typeList?.[typeList?.length - 1]
-    const outDiv = document.createElement('div');
-    outDiv.style.width = 'fit-content';
-    // outDiv.style.padding = '0px 0px 10px 0px';
-    outDiv.innerHTML = `
-      <h4>${label || id}</h4>
-      <div>
-        <div class="tooltip-item">Name: ${label || id}</div>
-        <div class="tooltip-item">Type: <span class="type">${type}</span></div>
-        <div class="tooltip-item">Status: <span class="type">${nodeData?.status}</span></div>
-        <div class="tooltip-item">cloudResourceID: ${nodeData?.cloudResourceID}</div>
-        <div class="tooltip-item">iamResourceID: ${nodeData?.iamResourceID}</div>
-      </div>`;
-    return outDiv;
-  },
-});
-
 interface OverviewTooltipProps {
   type: string
   itemWidth: number
@@ -173,7 +125,6 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
   hiddenButtonInfo,
 }) => {
   const model = hiddenButtonInfo?.e?.item?.get('model') as NodeModel
-  console.log(model, '====model=====')
   const { nodeData } = model
   const typeList = nodeData?.resourceType?.split('/');
   const typeStr = typeList?.[typeList?.length - 1]
@@ -204,6 +155,12 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
     marginRight: 5,
   }
 
+  const statusStyle = {
+    border: '1px solid #1677ff',
+    padding: '2px 5px',
+    borderRadius: 6,
+  }
+
   return (
     <div style={boxStyle}>
       <div style={itemStyle}>
@@ -215,7 +172,9 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
       </div>
       <div style={itemStyle}>
         <span style={labelStyle}>Status: </span>
-        {nodeData?.status}
+        <span style={statusStyle}>
+          {nodeData?.status}
+        </span>
       </div>
       <div style={itemStyle}>
         <span style={labelStyle}>cloudResourceID: </span>
@@ -439,7 +398,6 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       height,
       fitCenter: true,
       plugins: [toolbar],
-      // plugins: [toolbar, tooltip],
       enabledStack: true,
       modes: {
         default: ['drag-canvas', 'drag-node', 'click-select'],

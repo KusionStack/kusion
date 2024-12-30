@@ -14,7 +14,7 @@ import styles from "./styles.module.less"
 
 
 
-const Runs = () => {
+const Runs = ({ stackId }) => {
   const [form] = Form.useForm();
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
@@ -38,7 +38,7 @@ const Runs = () => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: 1,
+        stack_id: stackId,
       }
     })
     return response
@@ -53,7 +53,7 @@ const Runs = () => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: 1,
+        stack_id: stackId,
       }
     })
     return response
@@ -68,7 +68,7 @@ const Runs = () => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: 1,
+        stack_id: stackId,
       }
     })
     return response
@@ -83,7 +83,7 @@ const Runs = () => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: 1,
+        stack_id: stackId,
       }
     })
     return response
@@ -127,27 +127,14 @@ const Runs = () => {
 
   function handleSearch() {
     const values = form.getFieldsValue()
-    let startTime, endTime
-    if (values?.createTime) {
-      const [startDate, endDate] = values?.createTime;
-      startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
-      endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
-    }
-
-    const queryObj = {
-      type: values?.type,
-      status: values?.status,
-      startTime,
-      endTime
-    }
     setSearchParams({
       ...searchParams,
-      query: queryObj,
+      query: values,
     })
     getListRun({
       page: 1,
-      pageSize: 20,
-      query: queryObj
+      pageSize: 10,
+      query: values
     })
   }
 
@@ -158,11 +145,21 @@ const Runs = () => {
 
   async function getListRun(params) {
     try {
+      let startTime, endTime
+      if (params?.query?.createTime) {
+        const [startDate, endDate] = params?.query?.createTime;
+        startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+        endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+      }
       const response: any = await StackService.listRun({
         query: {
-          ...params?.query,
-          pageSize: params?.pageSize || 20,
+          type: params?.query?.type,
+          status: params?.query?.status,
+          startTime,
+          endTime,
+          pageSize: params?.pageSize || 10,
           page: params?.page,
+          stackId: stackId
         }
       });
       if (response?.data?.success) {
@@ -181,9 +178,11 @@ const Runs = () => {
   }
 
   useEffect(() => {
-    getListRun(searchParams)
+    if (stackId) {
+      getListRun(searchParams)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [stackId])
 
   function handleChangePage(page: number, pageSize: number) {
     getListRun({
@@ -247,11 +246,24 @@ const Runs = () => {
     return <div className={styles.project_runs_toolbar}>
       <div className={styles.project_runs_toolbar_left}>
         {
-          searchParams?.total && <div className={styles.project_runs_result}>共找到<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>个结果</div>
+          (searchParams?.total !== null || searchParams?.total !== undefined)
+            ? <div className={styles.project_runs_result}>共找到<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>个结果</div>
+            : null
         }
         <div className={styles.projects_content_toolbar_list}>
           {
             searchParams?.query && Object.entries(searchParams?.query)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
+              if (key === 'createTime') {
+                const [startDate, endDate] = __value;
+                const startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+                const endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+                return (
+                  <div key={key} className={styles.projects_content_toolbar_item}>
+                    {key}: {`${startTime} ~ ${endTime}`}
+                    <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
+                  </div>
+                )
+              }
               return (
                 <div key={key} className={styles.projects_content_toolbar_item}>
                   {key}: {__value}
@@ -311,7 +323,6 @@ const Runs = () => {
       <div className={styles.project_runs_content}>
         {renderTableTitle()}
         <Table
-          size='small'
           rowKey="id"
           columns={colums}
           dataSource={dataSource}

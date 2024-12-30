@@ -3,7 +3,7 @@ import { Modal, Button, Form, Select, Input, message } from 'antd';
 
 import styles from './styles.module.less';
 
-const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
+const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, sourceList }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -64,16 +64,48 @@ const ProjectForm = ({ open, handleClose, handleSubmit }: any) => {
           <Select
             placeholder="Please projects source"
             className={styles.selectInput}
-          />
+          >
+            {
+              sourceList?.map(item => {
+                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
+              })
+            }
+          </Select>
         </Form.Item>
-        <Form.Item name="configPath" label="Config Path">
+        <Form.Item name="configPath" label="Config Path"
+          rules={[
+            {
+              required: true,
+            },
+            {
+              validator: (_, value) => {
+                if (!value) {
+                  return Promise.reject('Required')
+                }
+                const pathRex1 = new RegExp("^(/[^/\0]+)*$");
+                const pathRex2 = new RegExp("^(\/?[^/\0]+)+$");
+                if (pathRex1.test(value) || pathRex2.test(value)) {
+                  return Promise.resolve()
+                } else {
+                  return Promise.reject('Not a path')
+                }
+              },
+            },
+          ]}
+        >
           <Input
             placeholder="Please input config path in source"
             className={styles.inputConfigPath}
           />
         </Form.Item>
         <Form.Item name="organization" label="Organization">
-          <Select placeholder="Please select organization" className={styles.selectInput} />
+          <Select placeholder="Please select organization" className={styles.selectInput}>
+            {
+              organizationList?.map(item => {
+                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
+              })
+            }
+          </Select>
         </Form.Item>
         <Form.Item name="description" label="Description">
           <Input.TextArea

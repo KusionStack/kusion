@@ -63,7 +63,7 @@ const ProjectDetail = () => {
     const response: any = await StackService.createStack({
       body: {
         ...values,
-        projectID: urlPrams?.projectId
+        projectID: Number(urlPrams?.projectId)
       }
     })
     if (response?.data?.success) {

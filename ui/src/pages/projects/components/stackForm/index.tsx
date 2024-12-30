@@ -90,11 +90,12 @@ const StackForm = ({
                   if (!value) {
                     return Promise.reject('Required')
                   }
-                  const pathRex = new RegExp("^[A-z]:\\\\(.+?\\\\)*$");
-                  if (pathRex.test(value)) {
+                  const pathRex1 = new RegExp("^(/[^/\0]+)*$");
+                  const pathRex2 = new RegExp("^(\/?[^/\0]+)+$");
+                  if (pathRex1.test(value) || pathRex2.test(value)) {
                     return Promise.resolve()
                   } else {
-                    return Promise.reject('is Not Validate Path')
+                    return Promise.reject('Not a path')
                   }
                 },
               },
