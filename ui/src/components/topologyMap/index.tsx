@@ -438,7 +438,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       width,
       height,
       fitCenter: true,
-      plugins: [toolbar, tooltip],
+      plugins: [toolbar],
+      // plugins: [toolbar, tooltip],
       enabledStack: true,
       modes: {
         default: ['drag-canvas', 'drag-node', 'click-select'],
