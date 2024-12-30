@@ -29,7 +29,7 @@ const ModulePage = () => {
         }
       });
       if (response?.data?.success) {
-        setModuleList(response?.data?.data);
+        setModuleList(response?.data?.data?.modules);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
