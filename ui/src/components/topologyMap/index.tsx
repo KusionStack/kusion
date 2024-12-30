@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import G6 from '@antv/g6'
 import type {
   IG6GraphEvent,
@@ -6,6 +6,7 @@ import type {
   ModelConfig,
   IAbstractGraph,
 } from '@antv/g6'
+import insertCss from "insert-css"
 import { useLocation } from 'react-router-dom'
 import queryString from 'query-string'
 import Loading from '@/components/loading'
@@ -36,6 +37,12 @@ interface NodeModel {
   resourceGroup?: {
     name: string
   }
+  nodeData: {
+    resourceType: string
+    status: string
+    iamResourceID: string | number
+    cloudResourceID: string | number
+  },
   data?: {
     count?: number
     resourceGroup?: {
@@ -102,6 +109,126 @@ type IProps = {
   clusterOptions?: string[]
 }
 
+insertCss(`
+  .g6-component-tooltip {
+    background-color: #f0f5ff;
+    padding: 10px 30px;
+    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+    border-top: 2px solid #2f54eb;
+    color: #646566;
+  }
+  .tooltip-item {
+    margin-bottom: 10px;
+  }
+  .type {
+    background: rgba(255, 0, 0, .5);
+    padding: 2px 5px;
+    border-radius: 6px;
+    color: #fff;
+  }
+`);
+
+
+const tooltip = new G6.Tooltip({
+  offsetX: 10,
+  offsetY: 10,
+  // the types of items that allow the tooltip show up
+  // 允许出现 tooltip 的 item 类型
+  itemTypes: ['node', 'edge'],
+  // custom the tooltip's content
+  // 自定义 tooltip 内容
+  getContent: (e) => {
+    const { nodeData, label, id }: any = e.item.getModel();
+    const typeList = nodeData?.resourceType?.split('/');
+    const type = typeList?.[typeList?.length - 1]
+    const outDiv = document.createElement('div');
+    outDiv.style.width = 'fit-content';
+    // outDiv.style.padding = '0px 0px 10px 0px';
+    outDiv.innerHTML = `
+      <h4>${label || id}</h4>
+      <div>
+        <div class="tooltip-item">Name: ${label || id}</div>
+        <div class="tooltip-item">Type: <span class="type">${type}</span></div>
+        <div class="tooltip-item">Status: <span class="type">${nodeData?.status}</span></div>
+        <div class="tooltip-item">cloudResourceID: ${nodeData?.cloudResourceID}</div>
+        <div class="tooltip-item">iamResourceID: ${nodeData?.iamResourceID}</div>
+      </div>`;
+    return outDiv;
+  },
+});
+
+interface OverviewTooltipProps {
+  type: string
+  itemWidth: number
+  hiddenButtonInfo: {
+    x: number
+    y: number
+    e?: IG6GraphEvent
+  }
+  open: boolean
+}
+
+const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
+  type,
+  hiddenButtonInfo,
+}) => {
+  const model = hiddenButtonInfo?.e?.item?.get('model') as NodeModel
+  console.log(model, '====model=====')
+  const { nodeData } = model
+  const typeList = nodeData?.resourceType?.split('/');
+  const typeStr = typeList?.[typeList?.length - 1]
+
+  const boxStyle: any = {
+    background: '#fff',
+    border: '1px solid #f5f5f5',
+    position: 'absolute',
+    top: hiddenButtonInfo?.y || -500,
+    left: hiddenButtonInfo?.x + 14 || -500,
+    transform: 'translate(-50%, -100%)',
+    zIndex: 5,
+    padding: '6px 12px',
+    borderRadius: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    borderTop: '2px solid #1677ff',
+  }
+
+  const itemStyle = {
+    color: '#333',
+    fontSize: 14,
+    whiteSpace: 'nowrap',
+  }
+
+  const labelStyle = {
+    color: '#999',
+    fontSize: 14,
+    marginRight: 5,
+  }
+
+  return (
+    <div style={boxStyle}>
+      <div style={itemStyle}>
+        {type === 'cluster' ? model?.label : model?.id}
+      </div>
+      <div style={itemStyle}>
+        <span style={labelStyle}>Type: </span>
+        {typeStr}
+      </div>
+      <div style={itemStyle}>
+        <span style={labelStyle}>Status: </span>
+        {nodeData?.status}
+      </div>
+      <div style={itemStyle}>
+        <span style={labelStyle}>cloudResourceID: </span>
+        {nodeData?.cloudResourceID}
+      </div>
+      <div style={itemStyle}>
+        <span style={labelStyle}>iamResourceID: </span>
+        {nodeData?.iamResourceID}
+      </div>
+    </div>
+  )
+}
+
 const TopologyMap = forwardRef((props: IProps, drawRef) => {
   const {
     onTopologyNodeClick,
@@ -113,14 +240,29 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
   const graphRef = useRef<IAbstractGraph | null>(null)
   const location = useLocation()
   const { type } = queryString.parse(location?.search)
+  const [tooltipopen, setTooltipopen] = useState(false)
+  const [itemWidth, setItemWidth] = useState<number>(100)
+  const [hiddenButtontooltip, setHiddenButtontooltip] = useState<{
+    x: number
+    y: number
+    e?: IG6GraphEvent
+  }>({ x: -500, y: -500, e: undefined })
 
 
   function handleMouseEnter(evt) {
     graphRef.current?.setItemState(evt.item, 'hoverState', true)
+    const bbox = evt.item.getBBox()
+    const point = graphRef.current?.getCanvasByPoint(bbox.centerX, bbox.minY)
+    if (bbox) {
+      setItemWidth(bbox.width)
+    }
+    setHiddenButtontooltip({ x: point.x, y: point.y - 5, e: evt })
+    setTooltipopen(true)
   }
 
   const handleMouseLeave = (evt: IG6GraphEvent) => {
     graphRef.current?.setItemState(evt.item, 'hoverState', false)
+    setTooltipopen(false)
   }
 
   G6.registerNode(
@@ -296,7 +438,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       width,
       height,
       fitCenter: true,
-      plugins: [toolbar],
+      plugins: [toolbar, tooltip],
       enabledStack: true,
       modes: {
         default: ['drag-canvas', 'drag-node', 'click-select'],
@@ -419,6 +561,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         graphRef.current?.on('node:click', evt => {
           const node = evt.item
           const model = node.getModel()
+          setTooltipopen(false)
           graphRef.current?.getNodes().forEach(n => {
             graphRef.current?.setItemState(n, 'selected', false)
           })
@@ -484,6 +627,14 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         >
           <Loading />
         </div>
+        {tooltipopen ? (
+          <OverviewTooltip
+            type={type as string}
+            itemWidth={itemWidth}
+            hiddenButtonInfo={hiddenButtontooltip}
+            open={tooltipopen}
+          />
+        ) : null}
       </div>
     </div>
   )

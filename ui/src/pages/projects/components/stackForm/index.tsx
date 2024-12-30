@@ -85,18 +85,19 @@ const StackForm = ({
               {
                 required: true,
               },
-              // {
-              //   validator: (_, value) => {
-              //     if (!value) {
-              //       return Promise.reject('必填项')
-              //     }
-              //     if (isUrl(value)) {
-              //       return Promise.resolve()
-              //     } else {
-              //       return Promise.reject('不是一个URL')
-              //     }
-              //   },
-              // },
+              {
+                validator: (_, value) => {
+                  if (!value) {
+                    return Promise.reject('Required')
+                  }
+                  const pathRex = new RegExp("^[A-z]:\\\\(.+?\\\\)*$");
+                  if (pathRex.test(value)) {
+                    return Promise.resolve()
+                  } else {
+                    return Promise.reject('is Not Validate Path')
+                  }
+                },
+              },
             ]}
           >
             <Input />

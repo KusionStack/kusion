@@ -127,13 +127,11 @@ const Runs = () => {
 
   function handleSearch() {
     const values = form.getFieldsValue()
-    let startTime
-    let endTime
+    let startTime, endTime
     if (values?.createTime) {
       const [startDate, endDate] = values?.createTime;
-      console.log(moment(startDate)?.format('YYYY-MM-DDTHH:mm:ssZ'), endDate, "===endDate===")
-      startTime = startDate && moment(startDate)?.format('YYYY-MM-DDTHH:mm:ssZ');
-      endTime = endDate && moment(endDate)?.format('YYYY-MM-DDTHH:mm:ssZ');
+      startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+      endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
     }
 
     const queryObj = {
@@ -163,8 +161,6 @@ const Runs = () => {
       const response: any = await StackService.listRun({
         query: {
           ...params?.query,
-          // startTime: '2024-12-18T14:34:22.432Z',
-          // endTime: '2024-12-20T14:34:22.432Z',
           pageSize: params?.pageSize || 20,
           page: params?.page,
         }
