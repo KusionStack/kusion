@@ -91,7 +91,7 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Failure		429						{object}	error									"Too Many Requests"
 // @Failure		404						{object}	error									"Not Found"
 // @Failure		500						{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																																																																																																																																						[put]
+// @Router			/api/v1/modules/{name} 																																																																																																																																																																	[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -127,7 +127,7 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Failure		429						{object}	error									"Too Many Requests"
 // @Failure		404						{object}	error									"Not Found"
 // @Failure		500						{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																																																																																																																				[get]
+// @Router			/api/v1/modules/{name} 																																																																																																																																															[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.

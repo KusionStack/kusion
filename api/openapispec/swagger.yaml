@@ -1514,14 +1514,14 @@ paths:
       summary: Create backend
       tags:
       - backend
-  /api/v1/backends/{id}:
+  /api/v1/backends/{backendID}:
     delete:
       description: Delete specified backend by ID
       operationId: deleteBackend
       parameters:
       - description: Backend ID
         in: path
-        name: id
+        name: backendID
         required: true
         type: integer
       produces:
@@ -1560,7 +1560,7 @@ paths:
       parameters:
       - description: Backend ID
         in: path
-        name: id
+        name: backendID
         required: true
         type: integer
       produces:
@@ -1601,7 +1601,7 @@ paths:
       parameters:
       - description: Backend ID
         in: path
-        name: id
+        name: backendID
         required: true
         type: integer
       - description: Updated backend
@@ -1944,14 +1944,14 @@ paths:
       summary: Create organization
       tags:
       - organization
-  /api/v1/orgs/{id}:
+  /api/v1/orgs/{orgID}:
     delete:
       description: Delete specified organization by ID
       operationId: deleteOrganization
       parameters:
       - description: Organization ID
         in: path
-        name: id
+        name: orgID
         required: true
         type: integer
       produces:
@@ -1990,7 +1990,7 @@ paths:
       parameters:
       - description: Organization ID
         in: path
-        name: id
+        name: orgID
         required: true
         type: integer
       produces:
@@ -2031,7 +2031,7 @@ paths:
       parameters:
       - description: Organization ID
         in: path
-        name: id
+        name: orgID
         required: true
         type: integer
       - description: Updated organization
@@ -2357,14 +2357,14 @@ paths:
       summary: List resource
       tags:
       - resource
-  /api/v1/resources/{id}:
+  /api/v1/resources/{resourceID}:
     get:
       description: Get resource information by resource ID
       operationId: getResource
       parameters:
       - description: Resource ID
         in: path
-        name: id
+        name: resourceID
         required: true
         type: integer
       produces:
@@ -2683,14 +2683,14 @@ paths:
       summary: Create source
       tags:
       - source
-  /api/v1/sources/{id}:
+  /api/v1/sources/{sourceID}:
     delete:
       description: Delete specified source by ID
       operationId: deleteSource
       parameters:
       - description: Source ID
         in: path
-        name: id
+        name: sourceID
         required: true
         type: integer
       produces:
@@ -2729,7 +2729,7 @@ paths:
       parameters:
       - description: Source ID
         in: path
-        name: id
+        name: sourceID
         required: true
         type: integer
       produces:
@@ -2770,7 +2770,7 @@ paths:
       parameters:
       - description: Source ID
         in: path
-        name: id
+        name: sourceID
         required: true
         type: integer
       - description: Updated source
@@ -3559,14 +3559,14 @@ paths:
       summary: Create workspace
       tags:
       - workspace
-  /api/v1/workspaces/{id}:
+  /api/v1/workspaces/{workspaceID}:
     delete:
       description: Delete specified workspace by ID
       operationId: deleteWorkspace
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       produces:
@@ -3605,7 +3605,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       produces:
@@ -3646,7 +3646,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       - description: Updated workspace
@@ -3685,7 +3685,7 @@ paths:
       summary: Update workspace
       tags:
       - workspace
-  /api/v1/workspaces/{id}/configs:
+  /api/v1/workspaces/{workspaceID}/configs:
     get:
       consumes:
       - application/json
@@ -3694,7 +3694,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       produces:
@@ -3730,7 +3730,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       - description: Updated workspace configurations
@@ -3764,7 +3764,7 @@ paths:
       summary: Update workspace configurations
       tags:
       - workspace
-  /api/v1/workspaces/{id}/configs/mod-deps:
+  /api/v1/workspaces/{workspaceID}/configs/mod-deps:
     post:
       consumes:
       - application/json
@@ -3773,7 +3773,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceID
         required: true
         type: integer
       produces:

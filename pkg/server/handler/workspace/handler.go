@@ -53,14 +53,14 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 // @Description	Delete specified workspace by ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int								true	"Workspace ID"
-// @Success		200	{object}	handler.Response{data=string}	"Success"
-// @Failure		400	{object}	error							"Bad Request"
-// @Failure		401	{object}	error							"Unauthorized"
-// @Failure		429	{object}	error							"Too Many Requests"
-// @Failure		404	{object}	error							"Not Found"
-// @Failure		500	{object}	error							"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [delete]
+// @Param			workspaceID	path		int								true	"Workspace ID"
+// @Success		200			{object}	handler.Response{data=string}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID} [delete]
 func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -82,7 +82,7 @@ func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			id			path		int										true	"Workspace ID"
+// @Param			workspaceID	path		int										true	"Workspace ID"
 // @Param			workspace	body		request.UpdateWorkspaceRequest			true	"Updated workspace"
 // @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
 // @Failure		400			{object}	error									"Bad Request"
@@ -90,7 +90,7 @@ func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 // @Failure		429			{object}	error									"Too Many Requests"
 // @Failure		404			{object}	error									"Not Found"
 // @Failure		500			{object}	error									"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [put]
+// @Router			/api/v1/workspaces/{workspaceID} [put]
 func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -118,14 +118,14 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 // @Description	Get workspace information by workspace ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int										true	"Workspace ID"
-// @Success		200	{object}	handler.Response{data=entity.Workspace}	"Success"
-// @Failure		400	{object}	error									"Bad Request"
-// @Failure		401	{object}	error									"Unauthorized"
-// @Failure		429	{object}	error									"Too Many Requests"
-// @Failure		404	{object}	error									"Not Found"
-// @Failure		500	{object}	error									"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [get]
+// @Param			workspaceID	path		int										true	"Workspace ID"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID} [get]
 func (h *Handler) GetWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context

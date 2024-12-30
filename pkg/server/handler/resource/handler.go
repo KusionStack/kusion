@@ -70,14 +70,14 @@ func (h *Handler) ListResources() http.HandlerFunc {
 // @Description	Get resource information by resource ID
 // @Tags			resource
 // @Produce		json
-// @Param			id	path		int										true	"Resource ID"
-// @Success		200	{object}	handler.Response{data=entity.Resource}	"Success"
-// @Failure		400	{object}	error									"Bad Request"
-// @Failure		401	{object}	error									"Unauthorized"
-// @Failure		429	{object}	error									"Too Many Requests"
-// @Failure		404	{object}	error									"Not Found"
-// @Failure		500	{object}	error									"Internal Server Error"
-// @Router			/api/v1/resources/{id} [get]
+// @Param			resourceID	path		int										true	"Resource ID"
+// @Success		200			{object}	handler.Response{data=entity.Resource}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/resources/{resourceID} [get]
 func (h *Handler) GetResource() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context

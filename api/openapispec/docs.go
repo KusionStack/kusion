@@ -147,7 +147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/backends/{id}": {
+        "/api/v1/backends/{backendID}": {
             "get": {
                 "description": "Get backend information by backend ID",
                 "produces": [
@@ -162,7 +162,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -225,7 +225,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     },
@@ -294,7 +294,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -811,7 +811,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/orgs/{id}": {
+        "/api/v1/orgs/{orgID}": {
             "get": {
                 "description": "Get organization information by organization ID",
                 "produces": [
@@ -826,7 +826,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -889,7 +889,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     },
@@ -958,7 +958,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -1508,7 +1508,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/resources/{id}": {
+        "/api/v1/resources/{resourceID}": {
             "get": {
                 "description": "Get resource information by resource ID",
                 "produces": [
@@ -1523,7 +1523,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Resource ID",
-                        "name": "id",
+                        "name": "resourceID",
                         "in": "path",
                         "required": true
                     }
@@ -1949,7 +1949,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/sources/{id}": {
+        "/api/v1/sources/{sourceID}": {
             "get": {
                 "description": "Get source information by source ID",
                 "produces": [
@@ -1964,7 +1964,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -2027,7 +2027,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     },
@@ -2096,7 +2096,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -3331,7 +3331,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}": {
+        "/api/v1/workspaces/{workspaceID}": {
             "get": {
                 "description": "Get workspace information by workspace ID",
                 "produces": [
@@ -3346,7 +3346,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3409,7 +3409,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -3478,7 +3478,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3525,7 +3525,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs": {
+        "/api/v1/workspaces/{workspaceID}/configs": {
             "get": {
                 "description": "Get configurations in the specified workspace",
                 "consumes": [
@@ -3543,7 +3543,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3594,7 +3594,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -3638,7 +3638,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs/mod-deps": {
+        "/api/v1/workspaces/{workspaceID}/configs/mod-deps": {
             "post": {
                 "description": "Create the module dependencies in kcl.mod of the specified workspace",
                 "consumes": [
@@ -3656,7 +3656,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }

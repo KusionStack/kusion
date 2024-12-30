@@ -60,14 +60,14 @@ func (h *Handler) CreateOrganization() http.HandlerFunc {
 // @Description	Delete specified organization by ID
 // @Tags			organization
 // @Produce		json
-// @Param			id	path		int								true	"Organization ID"
-// @Success		200	{object}	handler.Response{data=string}	"Success"
-// @Failure		400	{object}	error							"Bad Request"
-// @Failure		401	{object}	error							"Unauthorized"
-// @Failure		429	{object}	error							"Too Many Requests"
-// @Failure		404	{object}	error							"Not Found"
-// @Failure		500	{object}	error							"Internal Server Error"
-// @Router			/api/v1/orgs/{id} [delete]
+// @Param			orgID	path		int								true	"Organization ID"
+// @Success		200		{object}	handler.Response{data=string}	"Success"
+// @Failure		400		{object}	error							"Bad Request"
+// @Failure		401		{object}	error							"Unauthorized"
+// @Failure		429		{object}	error							"Too Many Requests"
+// @Failure		404		{object}	error							"Not Found"
+// @Failure		500		{object}	error							"Internal Server Error"
+// @Router			/api/v1/orgs/{orgID} [delete]
 func (h *Handler) DeleteOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -89,7 +89,7 @@ func (h *Handler) DeleteOrganization() http.HandlerFunc {
 // @Tags			organization
 // @Accept			json
 // @Produce		json
-// @Param			id				path		int											true	"Organization ID"
+// @Param			orgID			path		int											true	"Organization ID"
 // @Param			organization	body		request.UpdateOrganizationRequest			true	"Updated organization"
 // @Success		200				{object}	handler.Response{data=entity.Organization}	"Success"
 // @Failure		400				{object}	error										"Bad Request"
@@ -97,7 +97,7 @@ func (h *Handler) DeleteOrganization() http.HandlerFunc {
 // @Failure		429				{object}	error										"Too Many Requests"
 // @Failure		404				{object}	error										"Not Found"
 // @Failure		500				{object}	error										"Internal Server Error"
-// @Router			/api/v1/orgs/{id} [put]
+// @Router			/api/v1/orgs/{orgID} [put]
 func (h *Handler) UpdateOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -132,14 +132,14 @@ func (h *Handler) UpdateOrganization() http.HandlerFunc {
 // @Description	Get organization information by organization ID
 // @Tags			organization
 // @Produce		json
-// @Param			id	path		int											true	"Organization ID"
-// @Success		200	{object}	handler.Response{data=entity.Organization}	"Success"
-// @Failure		400	{object}	error										"Bad Request"
-// @Failure		401	{object}	error										"Unauthorized"
-// @Failure		429	{object}	error										"Too Many Requests"
-// @Failure		404	{object}	error										"Not Found"
-// @Failure		500	{object}	error										"Internal Server Error"
-// @Router			/api/v1/orgs/{id} [get]
+// @Param			orgID	path		int											true	"Organization ID"
+// @Success		200		{object}	handler.Response{data=entity.Organization}	"Success"
+// @Failure		400		{object}	error										"Bad Request"
+// @Failure		401		{object}	error										"Unauthorized"
+// @Failure		429		{object}	error										"Too Many Requests"
+// @Failure		404		{object}	error										"Not Found"
+// @Failure		500		{object}	error										"Internal Server Error"
+// @Router			/api/v1/orgs/{orgID} [get]
 func (h *Handler) GetOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
