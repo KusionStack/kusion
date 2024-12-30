@@ -485,7 +485,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/modules/{name}": {
+        "/api/v1/modules/{moduleName}": {
             "get": {
                 "description": "Get module information by module name",
                 "produces": [
@@ -500,7 +500,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }
@@ -563,7 +563,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     },
@@ -632,7 +632,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }

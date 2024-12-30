@@ -1733,14 +1733,14 @@ paths:
       summary: Create module
       tags:
       - module
-  /api/v1/modules/{name}:
+  /api/v1/modules/{moduleName}:
     delete:
       description: Delete the specified module by name
       operationId: deleteModule
       parameters:
       - description: Module Name
         in: path
-        name: name
+        name: moduleName
         required: true
         type: string
       produces:
@@ -1779,7 +1779,7 @@ paths:
       parameters:
       - description: Module Name
         in: path
-        name: name
+        name: moduleName
         required: true
         type: string
       produces:
@@ -1820,7 +1820,7 @@ paths:
       parameters:
       - description: Module Name
         in: path
-        name: name
+        name: moduleName
         required: true
         type: string
       - description: Updated module
