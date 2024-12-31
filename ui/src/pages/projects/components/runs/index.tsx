@@ -2,17 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { Button, DatePicker, Form, message, Select, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
-import moment from 'moment'
 import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 import GenerateDetail from './generateDetail'
 import PreviewDetail from './previewDetail'
 import RunsForm from './runsForm'
 
-
 import styles from "./styles.module.less"
-
-
-
 
 const Runs = ({ stackId }) => {
   const [form] = Form.useForm();

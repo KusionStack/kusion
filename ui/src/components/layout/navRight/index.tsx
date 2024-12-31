@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import {
-  FileOutlined,
+  CodeOutlined,
   QuestionCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -20,7 +20,7 @@ const NavRight = () => {
             window.open('https://www.kusionstack.io/karpor')
           }}
         >
-          <FileOutlined style={iconStyle} />
+          <CodeOutlined style={iconStyle} />
           Document
         </span>
       </div>

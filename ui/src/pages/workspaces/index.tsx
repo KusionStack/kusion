@@ -79,9 +79,6 @@ const Workspaces = () => {
   return (
     <div className={styles.kusion_workspace_container}>
       <div className={styles.kusion_workspace_toolbar}>
-        <Button type="primary" onClick={handleAdd}>
-          <PlusOutlined /> New Workspace
-        </Button>
         <div className={styles.kusion_workspace_toolbar_right}>
           <Input
             placeholder="Please keyword"
@@ -92,6 +89,9 @@ const Workspaces = () => {
             allowClear
           />
         </div>
+        <Button type="primary" onClick={handleAdd}>
+          <PlusOutlined /> New Workspace
+        </Button>
       </div>
       <div className={styles.kusion_workspace_content}>
         {arrayColByN?.map((item, index) => {

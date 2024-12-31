@@ -1,8 +1,8 @@
 import React from "react";
+import { Tooltip } from "antd";
+import workspaceSvg from "@/assets/img/workspace.svg"
 
 import styles from "./styles.module.less"
-import { PlusOutlined } from "@ant-design/icons";
-import { Tooltip } from "antd";
 
 const WorkspaceCard = ({ title, desc, nickName, createDate, onClick }) => {
 
@@ -10,7 +10,9 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick }) => {
     <div className={styles.workspace_card} onClick={onClick}>
       <div className={styles.workspace_card_container}>
         <div className={styles.workspace_card_header}>
-          <div className={styles.workspace_card_icon}><PlusOutlined /></div>
+          <div className={styles.workspace_card_icon}>
+            <img src={workspaceSvg} alt="svgIcon" />
+          </div>
           <div className={styles.workspace_card_title}>{title}</div>
         </div>
         <div className={styles.workspace_card_content}>
