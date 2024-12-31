@@ -31,9 +31,11 @@ const Runs = ({ stackId }) => {
       },
       query: {
         workspace: values?.workspace,
+        stackID: stackId,
+        type: 'Apply',
       },
       path: {
-        stack_id: stackId,
+        stackID: stackId,
       }
     })
     return response
@@ -48,7 +50,7 @@ const Runs = ({ stackId }) => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: stackId,
+        stackID: stackId,
       }
     })
     return response
@@ -63,7 +65,7 @@ const Runs = ({ stackId }) => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: stackId,
+        stackID: stackId,
       }
     })
     return response
@@ -78,7 +80,7 @@ const Runs = ({ stackId }) => {
         workspace: values?.workspace,
       },
       path: {
-        stack_id: stackId,
+        stackID: stackId,
       }
     })
     return response
@@ -242,7 +244,7 @@ const Runs = ({ stackId }) => {
       <div className={styles.project_runs_toolbar_left}>
         {
           (searchParams?.total !== null || searchParams?.total !== undefined)
-            ? <div className={styles.project_runs_result}>共找到<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>个结果</div>
+            ? <div className={styles.project_runs_result}>Total<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>results</div>
             : null
         }
         <div className={styles.projects_content_toolbar_list}>

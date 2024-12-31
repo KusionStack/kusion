@@ -4,7 +4,7 @@ import { BackendService } from "@kusionstack/kusion-api-client-sdk"
 
 import styles from './styles.module.less';
 
-const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
+const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [backendList, setBackendlist] = useState([])
@@ -19,7 +19,7 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
     if (response?.data?.success) {
       setBackendlist(response?.data?.data?.backends)
     } else {
-      message.error(response?.data?.message || '请求错误')
+      message.error(response?.data?.message || 'request error')
     }
   }
 
@@ -37,7 +37,7 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('submit failed');
     } finally {
       setLoading(false);
     }
@@ -53,13 +53,13 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
   return (
     <Modal
       open={open}
-      title="创建新任务"
+      title="Create New Workspace"
       footer={[
         <Button key="cancel" onClick={handleCancel}>
-          取消
+          Cancel
         </Button>,
         <Button key="create" type="primary" onClick={onFinish}>
-          确定
+          Confirm
         </Button>,
       ]}
       onCancel={handleCancel}
@@ -70,7 +70,7 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
         layout="vertical"
       >
         <Form.Item name="backendID" label="BackendID">
-          <Select placeholder="请选择">
+          <Select placeholder="Please select a backend">
             {
               backendList?.map((item: any) => {
                 return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
@@ -78,15 +78,15 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
             }
           </Select>
         </Form.Item>
-        <Form.Item name="name" label="名称">
+        <Form.Item name="name" label="Name">
           <Input
-            placeholder="请输入"
+            placeholder="Please input"
             className={styles.inputConfigPath}
           />
         </Form.Item>
-        <Form.Item name="description" label="描述">
+        <Form.Item name="description" label="Description">
           <Input.TextArea
-            placeholder="这里是描述，可能很长也可能很短的一段话..."
+            placeholder="This is a description, it may be long or short..."
             rows={4}
           />
         </Form.Item>
@@ -95,4 +95,4 @@ const WorkscpaceForm = ({ open, handleClose, handleSubmit }: any) => {
   );
 };
 
-export default WorkscpaceForm;
+export default WorkspaceFrom;

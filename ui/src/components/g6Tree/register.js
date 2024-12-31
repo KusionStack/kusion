@@ -2,7 +2,7 @@ import G6 from '@antv/g6';
 
 import { ICON_MAP } from "@/utils/images.ts"
 
-
+// TODO: improve this file
 function getTextSize(str, maxWidth, fontSize) {
     const width = G6.Util.getTextSize(str, fontSize)?.[0]
     return width > maxWidth ? maxWidth : width

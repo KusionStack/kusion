@@ -31,10 +31,8 @@ const tooltip = new G6.Tooltip({
   offsetX: 10,
   offsetY: 10,
   // the types of items that allow the tooltip show up
-  // 允许出现 tooltip 的 item 类型
   itemTypes: ['node', 'edge'],
   // custom the tooltip's content
-  // 自定义 tooltip 内容
   getContent: (e) => {
     const { nodeData, label, id }: any = e.item.getModel();
     const typeList = nodeData?.resourceType?.split('/');
@@ -190,12 +188,12 @@ const G6Topology = ({ graphData = topologyData }) => {
         modes: {
           default: [{
             type: 'drag-canvas',
-            // ... 其他配置
+            // ... other configurations
           }, {
             type: 'scroll-canvas',
             direction: 'y',
             scalableRange: height * -0.5,
-            // ... 其他配置
+            // ... other configurations
           }],
         },
         plugins: [tooltip],
@@ -203,8 +201,8 @@ const G6Topology = ({ graphData = topologyData }) => {
           type: 'dagre',
           rankdir: 'LR',
           align: 'DL',
-          nodesep: 30, // 可选
-          // ranksep: 60, // 可选
+          nodesep: 30, // optional
+          // ranksep: 60, // optional
           nodesepFunc: () => 1,
           ranksepFunc: () => 1,
         },

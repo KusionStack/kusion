@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Modal, Form, Input, Space, message } from 'antd'
 import isUrl from 'is-url'
+import styles from './styles.module.less';
 
 const ModuleForm = ({
   open,
@@ -11,29 +12,34 @@ const ModuleForm = ({
 }) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false);
-
+  
+  // Listen to the form values
+  const nameValue = Form.useWatch('name', form);
+  const urlValue = Form.useWatch('url', form);
+    
   useEffect(() => {
     if (formData) {
       const url = formData?.url;
-      const dovUrl = formData?.doc;
+      const docUrl = formData?.doc;
       form.setFieldsValue({
         ...formData,
         url: `${url?.Scheme}${url?.Host}${url?.Path}`,
-        doc: `${dovUrl?.Scheme}//${dovUrl?.Host}${dovUrl?.Path}`,
+        doc: `${docUrl?.Scheme}//${docUrl?.Host}${docUrl?.Path}`,
       })
     }
   }, [formData, form])
 
-  function onSubmit() {
+  async function onSubmit() {
     if (loading) {
       return;
     }
     try {
       setLoading(true);
+      await form.validateFields();
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('submit failed');
     } finally {
       setLoading(false);
     }
@@ -62,28 +68,49 @@ const ModuleForm = ({
           [
             <Space>
               <Button onClick={onClose}>Cancel</Button>
-              <Button onClick={onSubmit} type="primary">
+              <Button 
+                onClick={onSubmit} 
+                type="primary"
+                disabled={!nameValue || 
+                  !urlValue ||
+                  form.getFieldError('name').length > 0 ||
+                  form.getFieldError('url').length > 0 ||
+                  form.getFieldError('doc').length > 0 ||
+                  !!form.getFieldsError().filter(({errors}) => errors.length).length}
+              >
                 Submit
               </Button>
+              {/* debug
+              <div style={{marginTop: '10px', fontSize: '12px', color: '#666'}}>
+                <div>Fields Touched: {JSON.stringify(form.isFieldsTouched(['name', 'url']))}</div>
+                <div>Form Errors: {JSON.stringify(form.getFieldsError())}</div>
+                <div>Form Values: {JSON.stringify(form.getFieldValue('name'))}</div>
+              </div> */}
             </Space>
           ]
         }
       >
-        <Form form={form} layout="vertical">
+        <Form 
+          form={form} 
+          layout="vertical"
+          validateTrigger={['onChange', 'onBlur']}
+        >
           <Form.Item
             label="Name"
             name="name"
             rules={[
               {
                 required: true,
+                message: 'Please input module name',
               },
             ]}
           >
             <Input disabled={actionType === 'EDIT'} />
           </Form.Item>
           <Form.Item
-            label="url"
+            label="URL"
             name="url"
+            validateTrigger={['onChange', 'onBlur']}
             rules={[
               {
                 required: true,
@@ -91,12 +118,12 @@ const ModuleForm = ({
               {
                 validator: (_, value) => {
                   if (!value) {
-                    return Promise.reject('必填项')
+                    return Promise.reject('URL is required')
                   }
                   if (isUrl(value)) {
                     return Promise.resolve()
                   } else {
-                    return Promise.reject('不是一个URL')
+                    return Promise.reject('Please input valid URL')
                   }
                 },
               },
@@ -105,11 +132,19 @@ const ModuleForm = ({
             <Input />
           </Form.Item>
           <Form.Item
-            label="Document Url"
+            label="Document URL" 
             name="doc"
+            validateTrigger={['onChange', 'onBlur']}
             rules={[
               {
-                required: false,
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  if (isUrl(value)) {
+                    return Promise.resolve()
+                  } else {
+                    return Promise.reject('Please input valid URL')
+                  }
+                },
               },
             ]}
           >
@@ -118,13 +153,8 @@ const ModuleForm = ({
           <Form.Item
             label="Description"
             name="description"
-            rules={[
-              {
-                required: false,
-              },
-            ]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
       </Modal>

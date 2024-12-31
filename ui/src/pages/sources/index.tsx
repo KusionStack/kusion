@@ -93,7 +93,7 @@ const SourcesPage = () => {
       dataIndex: 'action',
       render: (_, record) => {
         return (
-          <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>编辑</Button>
+          <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
         )
       },
     },
@@ -111,7 +111,7 @@ const SourcesPage = () => {
           description: values?.description
         },
         path: {
-          id: (formData as any)?.id
+          sourceID: (formData as any)?.id
         }
       })
     } else {
@@ -154,7 +154,7 @@ const SourcesPage = () => {
           <div className={styles.sources_toolbar_left}>
             <Space>
               <Input
-                placeholder={'关键字搜索'}
+                placeholder={'keyword search'}
                 suffix={<SearchOutlined />}
                 style={{ width: 260 }}
                 value={searchParams?.query?.sourceName}

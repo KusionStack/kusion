@@ -2,7 +2,7 @@ import G6 from '@antv/g6';
 
 import { ICON_MAP } from "@/utils/images.ts"
 
-
+// TODO: improve this file
 function getTextSize(str, maxWidth, fontSize) {
     const width = G6.Util.getTextSize(str, fontSize)?.[0]
     return width > maxWidth ? maxWidth : width
@@ -13,11 +13,11 @@ function fittingString(str, maxWidth, fontSize) {
     const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)?.[0]
     let currentWidth = 0
     let res = str
-    const pattern = new RegExp('[\u4E00-\u9FA5]+') // distinguish the Chinese charactors and letters
+    const pattern = new RegExp('[\u4E00-\u9FA5]+') // distinguish the Chinese characters and letters
     str?.split('')?.forEach((letter, i) => {
         if (currentWidth > maxWidth - ellipsisLength) return
         if (pattern?.test(letter)) {
-            // Chinese charactors
+            // Chinese characters
             currentWidth += fontSize
         } else {
             // get the width of single letter according to the fontSize

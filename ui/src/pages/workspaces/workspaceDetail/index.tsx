@@ -23,7 +23,7 @@ const WorkspaceDetail = () => {
   async function getWorkspaceConfigs(workspaceId) {
     const response: any = await WorkspaceService.getWorkspaceConfigs({
       path: {
-        id: workspaceId
+        workspaceID: workspaceId
       }
     })
     if (response?.data?.success) {
@@ -51,7 +51,8 @@ const WorkspaceDetail = () => {
   async function handleSubmit(yamlStr) {
     const response: any = await WorkspaceService.updateWorkspaceConfigs({
       body: yamlStr ? yaml2json(yamlStr)?.data : {},
-      path: { id: Number(urlParams?.workspaceId) },
+      path: { 
+        workspaceID: Number(urlParams?.workspaceId) },
     })
     if (response?.data?.success) {
       message.success('Update Successful')
@@ -92,7 +93,7 @@ const WorkspaceDetail = () => {
   async function generateMod() {
     const response: any = await WorkspaceService.createWorkspaceModDeps({
       path: {
-        id: Number(urlParams?.workspaceId)
+        workspaceID: Number(urlParams?.workspaceId)
       }
     })
     if (response?.data?.success) {

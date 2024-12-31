@@ -74,7 +74,7 @@ const ModulePage = () => {
 
 
 
-  const colums = [
+  const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -96,8 +96,8 @@ const ModulePage = () => {
       render: (_, record) => {
         return (
           <>
-            <Button type='link' onClick={() => handleEdit(record)}>编辑</Button>
-            <Button type='link' href={record?.doc?.Path} target='_blank'>文档</Button>
+            <Button type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <Button type='link' href={record?.doc?.Path} target='_blank'>doc</Button>
           </>
         )
       },
@@ -112,7 +112,7 @@ const ModulePage = () => {
       response = await ModuleService.updateModule({
         body: values,
         path: {
-          name: (formData as any)?.name
+          moduleName: (formData as any)?.name
         }
       })
     } else {
@@ -169,7 +169,7 @@ const ModulePage = () => {
             </div>
           </div>
         </div>
-        <Table columns={colums} dataSource={moduleList} />
+        <Table columns={columns} dataSource={moduleList} />
         <ModuleForm {...sourceFormProps} />
       </div>
     </Card>

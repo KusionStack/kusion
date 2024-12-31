@@ -13,7 +13,7 @@ import './index.less'
 
 
 client.setConfig({
-  baseUrl: 'http://30.177.151.114'
+  baseUrl: 'http://localhost:80'
 });
 
 dayjs.locale('en-US')
@@ -21,7 +21,7 @@ dayjs.locale('en-US')
 function App() {
 
   return (
-    <Provider store={store}>
+    <Provider store={store}> 
       <ConfigProvider
         locale={enUS}
         theme={{
