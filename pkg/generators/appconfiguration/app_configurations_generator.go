@@ -393,7 +393,7 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 					} else {
 						name := e["name"].(string)
 						if name == env.Name {
-							envs = append(envs[:i], envs[i+1:])
+							envs = append(envs[:i], envs[i+1:]...)
 							i--
 							log.Infof("we're gonna remove env:%s from workload:%s, container:%s", env.Name, workload.ID,
 								container["name"])
