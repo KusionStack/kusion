@@ -146,7 +146,7 @@ Find more information at: https://www.kusionstack.io`),
 		{
 			Message: "Release Management Commands:",
 			Commands: []*cobra.Command{
-				rel.NewCmdRel(o.IOStreams),
+				rel.NewCmdRel(o.UI, o.IOStreams),
 			},
 		},
 	}
