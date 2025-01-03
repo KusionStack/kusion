@@ -6,6 +6,7 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 	cmdutil "kusionstack.io/kusion/pkg/cmd/util"
 	"kusionstack.io/kusion/pkg/util/i18n"
+	"kusionstack.io/kusion/pkg/util/terminal"
 )
 
 var relLong = i18n.T(`
@@ -14,7 +15,7 @@ var relLong = i18n.T(`
 		These commands help you observe and operate the Kusion release files of a Project in a Workspace. `)
 
 // NewCmdRel returns an initialized Command instance for 'release' sub command.
-func NewCmdRel(streams genericiooptions.IOStreams) *cobra.Command {
+func NewCmdRel(ui *terminal.UI, streams genericiooptions.IOStreams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "release",
 		DisableFlagsInUseLine: true,
@@ -23,7 +24,7 @@ func NewCmdRel(streams genericiooptions.IOStreams) *cobra.Command {
 		Run:                   cmdutil.DefaultSubCommandRun(streams.ErrOut),
 	}
 
-	cmd.AddCommand(NewCmdUnlock(streams), NewCmdList(streams), NewCmdShow(streams))
+	cmd.AddCommand(NewCmdUnlock(streams), NewCmdList(streams), NewCmdShow(streams), NewCmdRollback(ui, streams))
 
 	return cmd
 }
