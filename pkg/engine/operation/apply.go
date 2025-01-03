@@ -43,7 +43,6 @@ type ApplyResponse struct {
 func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Status) {
 	log.Infof("engine: Apply start!")
 	o := ao.Operation
-
 	defer func() {
 		close(o.MsgCh)
 

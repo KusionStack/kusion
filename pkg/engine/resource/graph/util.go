@@ -148,6 +148,9 @@ func RemoveResource(gph *v1.Graph, resource *v1.GraphResource) {
 
 // RemoveResourceIndex clears the entire resource index of the Graph.
 func RemoveResourceIndex(gph *v1.Graph) {
+	if gph == nil || gph.Resources == nil {
+		return
+	}
 	gph.Resources.ResourceIndex = nil
 }
 
