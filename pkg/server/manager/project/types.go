@@ -12,6 +12,7 @@ var (
 	ErrUpdatingNonExistingProject = errors.New("the project to update does not exist")
 	ErrSourceNotFound             = errors.New("the specified source does not exist")
 	ErrOrgNotFound                = errors.New("the specified org does not exist")
+	ErrDefaultSourceRemoteInvalid = errors.New("the default source remote url is invalid")
 )
 
 type ProjectManager struct {
