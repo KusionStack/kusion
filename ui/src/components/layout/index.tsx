@@ -1,6 +1,5 @@
-import React, { memo, useEffect } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 import NavLogo from './navLogo'
 import KusionMenu from './kusionMenu'
 import NavRight from './navRight'
@@ -9,6 +8,21 @@ import styles from './style.module.less'
 
 
 const LayoutPage = () => {
+
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const [selectedKey, setSelectedKey] = useState(pathname);
+
+  useEffect(() => {
+    setSelectedKey(pathname)
+  }, [pathname])
+
+  function onClick(key) {
+    setSelectedKey(key)
+    navigate(key)
+  }
+
+
 
   return (
     <div className={styles.wrapper}>
@@ -51,11 +65,10 @@ const LayoutPage = () => {
       <div className={styles.nav}>
         <div className={styles.nav_left}>
           <NavLogo />
-          {/* <NavMenu /> */}
-          <KusionMenu />
+          <KusionMenu onClick={onClick} selectedKey={selectedKey} />
         </div>
         <div style={{ marginRight: 60 }}>
-          <NavRight />
+          <NavRight onClick={onClick} selectedKey={selectedKey} />
         </div>
       </div>
       <div className={styles.body_wrapper}>

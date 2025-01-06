@@ -1,8 +1,41 @@
-.modules_container {
-  .modules_toolbar {
+.modules {
+  .modules_action {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+  }
+
+  .modules_search {
+    background: #fff;
+    padding: 20px;
+    padding-bottom: 0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .modules_content {
+    .modules_content_toolbar {
+      display: flex;
+      align-items: center;
+
+      .modules_content_toolbar_list {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+
+        .modules_content_toolbar_item {
+          height: 22px;
+          border-radius: 11px;
+          display: flex;
+          align-items: center;
+          background: #5765f21a;
+          padding: 0 10px;
+          margin-right: 5px;
+          color: #140e35;
+        }
+      }
+    }
+
   }
 }

@@ -2,18 +2,27 @@ import React, { memo } from 'react'
 import {
   CodeOutlined,
   QuestionCircleOutlined,
-  UserOutlined,
 } from '@ant-design/icons'
 
 import styles from './style.module.less'
 
 const iconStyle = { marginRight: 5 }
 
-const NavRight = () => {
+
+const NavRight = ({ onClick, selectedKey }) => {
+
+  function handleClick() {
+    onClick('/backends')
+  }
   return (
     <div
       className={styles.nav_right}
     >
+      <div className={styles.nav_right_item} onClick={handleClick}
+        style={{ borderBottom: selectedKey === '/backends' ? '2px solid #fff' : 'none' }}
+      >
+        Backends
+      </div>
       <div className={styles.nav_right_item}>
         <span
           onClick={() => {
@@ -32,16 +41,6 @@ const NavRight = () => {
         >
           <QuestionCircleOutlined style={iconStyle} />
           Help&Fallback
-        </span>
-      </div>
-      <div className={styles.nav_right_item}>
-        <span
-          onClick={() => {
-            window.open('https://www.kusionstack.io/karpor')
-          }}
-        >
-          <UserOutlined style={iconStyle} />
-          Role
         </span>
       </div>
     </div>

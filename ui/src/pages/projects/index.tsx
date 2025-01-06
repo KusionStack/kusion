@@ -222,7 +222,8 @@ const Projects = () => {
         sourceList={sourceList}
         organizationList={organizationList}
         handleSubmit={handleSubmit}
-        handleClose={handleClose} />
+        handleClose={handleClose}
+      />
     </div>
   )
 }

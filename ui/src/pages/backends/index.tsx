@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Space, Table } from 'antd'
+import { Button, Form, Input, message, Space, Table, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import SourceForm from './component/sourceForm'
-import { SourceService } from '@kusionstack/kusion-api-client-sdk'
+import { BackendService } from '@kusionstack/kusion-api-client-sdk'
+import BackendForm from './component/backendForm'
+import ConfigYamlDrawer from './component/configYamlDrawer'
 
 import styles from './styles.module.less'
 
-
-const SourcesPage = () => {
+const BackendsPage = () => {
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
@@ -20,13 +20,15 @@ const SourcesPage = () => {
   })
 
   const [dataSource, setDataSource] = useState([])
+  const [currentRecord, setCurrentRecord] = useState({})
+  const [configOpen, setConfigOpen] = useState(false)
 
-  async function getResourceList(params) {
+  async function getBackendList(params) {
     try {
-      const response: any = await SourceService.listSource({
+      const response: any = await BackendService.listBackend({
         ...searchParams,
         query: {
-          sourceName: searchParams?.query?.sourceName,
+          sourceName: params?.query?.sourceName,
         }
       });
       if (response?.data?.success) {
@@ -44,7 +46,7 @@ const SourcesPage = () => {
   }
 
   useEffect(() => {
-    getResourceList(searchParams)
+    getBackendList(searchParams)
   }, [])
 
   function handleReset() {
@@ -53,7 +55,7 @@ const SourcesPage = () => {
       ...searchParams,
       query: undefined
     })
-    getResourceList({
+    getBackendList({
       page: 1,
       pageSize: 10,
       query: undefined
@@ -65,7 +67,7 @@ const SourcesPage = () => {
       ...searchParams,
       query: values
     })
-    getResourceList({
+    getBackendList({
       page: 1,
       pageSize: 10,
       query: values,
@@ -82,6 +84,10 @@ const SourcesPage = () => {
     setFormData(record)
   }
 
+  function handleShowConfig(record) {
+    setCurrentRecord(record)
+    setConfigOpen(true)
+  }
 
 
   const columns = [
@@ -90,12 +96,22 @@ const SourcesPage = () => {
       dataIndex: 'name',
     },
     {
+      title: 'Type',
+      dataIndex: 'type',
+      render: (_, record) => {
+        return <Tag>{record?.backendConfig?.type}</Tag>
+      }
+    },
+    {
       title: 'Description',
       dataIndex: 'description',
     },
     {
-      title: 'Creation Time',
-      dataIndex: 'creationTimestamp',
+      title: 'Config',
+      dataIndex: 'config',
+      render: (_, record) => {
+        return <Button type='link' onClick={() => handleShowConfig(record)}>Detail</Button>
+      }
     },
     {
       title: 'Action',
@@ -111,24 +127,28 @@ const SourcesPage = () => {
   async function handleSubmit(values) {
     let response: any
     if (actionType === 'EDIT') {
-      response = await SourceService.updateSource({
+      response = await BackendService.updateBackend({
         body: {
           id: (formData as any)?.id,
           name: values?.name,
-          remote: values?.remote,
-          sourceProvider: values?.sourceProvider,
+          backendConfig: {
+            configs: values?.configs,
+            type: values?.type,
+          },
           description: values?.description
         },
         path: {
-          sourceID: (formData as any)?.id
+          backendID: (formData as any)?.id
         }
       })
     } else {
-      response = await SourceService.createSource({
+      response = await BackendService.createBackend({
         body: {
           name: values?.name,
-          remote: values?.remote,
-          sourceProvider: values?.sourceProvider,
+          backendConfig: {
+            configs: values?.configs,
+            type: values?.type,
+          },
           description: values?.description,
         }
       })
@@ -136,7 +156,7 @@ const SourcesPage = () => {
 
     if (response?.data?.success) {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
-      getResourceList(searchParams)
+      getBackendList(searchParams)
       setOpen(false)
     } else {
       message.error(response?.data?.messaage)
@@ -156,20 +176,26 @@ const SourcesPage = () => {
     handleCancel,
   }
 
+  const configYamlProps = {
+    open: configOpen,
+    handleClose: () => setConfigOpen(false),
+    yamlData: (currentRecord as any)?.backendConfig?.configs
+  }
+
   return (
     <div className={styles.sources}>
       <div className={styles.sources_action}>
-        <h3>Modules</h3>
+        <h3>Backends</h3>
         <div className={styles.sources_action_create}>
           <Button type="primary" onClick={handleAdd}>
-            <PlusOutlined /> New Module
+            <PlusOutlined /> New Backend
           </Button>
         </div>
       </div>
       <div className={styles.sources_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
-            <Form.Item name="sourceName" label="Source Name">
+            <Form.Item name="backendName" label="Backend Name">
               <Input />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
@@ -184,9 +210,10 @@ const SourcesPage = () => {
       <div className={styles.modules_content}>
         <Table columns={columns} dataSource={dataSource} />
       </div>
-      <SourceForm {...sourceFormProps} />
+      <ConfigYamlDrawer {...configYamlProps} />
+      <BackendForm {...sourceFormProps} />
     </div>
   )
 }
 
-export default SourcesPage
+export default BackendsPage

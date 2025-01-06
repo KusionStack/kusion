@@ -28,14 +28,8 @@ function getItem(
 }
 
 
-const KusionMenu = () => {
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
-  const [selectedKey, setSelectedKey] = useState(pathname);
-
-  useEffect(() => {
-    setSelectedKey(pathname)
-  }, [pathname])
+const KusionMenu = ({selectedKey, onClick}) => {
+ 
 
   const menuItems = [
     getItem('Projects', '/projects', null),
@@ -60,8 +54,7 @@ const KusionMenu = () => {
   }
 
   function handleKusionMenuClick(item) {
-    setSelectedKey(item?.key)
-    navigate(item?.key)
+    onClick(item?.key)
   }
 
 

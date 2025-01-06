@@ -2,8 +2,10 @@ import React, { lazy, ReactNode, Suspense } from 'react'
 import { Navigate, Outlet, useRoutes } from 'react-router-dom'
 import Layout from '@/components/layout'
 import Loading from '@/components/loading'
+
 import ProjectDetail from '@/pages/projects/projectDetail'
 import WorkspacesDetail from '@/pages/workspaces/workspaceDetail'
+import Backends from '@/pages/backends'
 
 const Projects = lazy(() => import('@/pages/projects'))
 const Insights = lazy(() => import('@/pages/insights'))
@@ -87,6 +89,12 @@ const router: RouteObject[] = [
         path: '/insights',
         title: 'Insights',
         element: lazyLoad(<Insights />),
+      },
+      {
+        key: '/backends',
+        path: '/backends',
+        title: 'backends',
+        element: lazyLoad(<Backends />),
       },
       {
         path: '/',

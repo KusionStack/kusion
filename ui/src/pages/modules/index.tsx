@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Card, Input, message, Space, Table } from 'antd'
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
+import { Button, Form, Input, message, Space, Table } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
 import ModuleForm from './component/moduleForm'
-import { debounce } from "lodash"
 
 import styles from './styles.module.less'
 
 
 const ModulePage = () => {
+  const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
@@ -19,7 +19,7 @@ const ModulePage = () => {
     total: undefined,
   })
 
-  const [moduleList, setModuleList] = useState([])
+  const [dataSource, setDataSource] = useState([])
 
   async function getModuleList(params) {
     try {
@@ -29,7 +29,7 @@ const ModulePage = () => {
         }
       });
       if (response?.data?.success) {
-        setModuleList(response?.data?.data?.modules);
+        setDataSource(response?.data?.data?.modules);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
@@ -46,21 +46,30 @@ const ModulePage = () => {
     getModuleList({})
   }, [])
 
-  const handleChange = debounce((event) => {
-    const val = event?.target.value;
+  function handleReset() {
+    form.resetFields();
     setSearchParams({
       ...searchParams,
-      query: {
-        moduleName: val
-      }
+      query: undefined
     })
     getModuleList({
-      ...searchParams,
-      query: {
-        moduleName: val
-      }
+      page: 1,
+      pageSize: 10,
+      query: undefined
     })
-  }, 800)
+  }
+  function handleSearch() {
+    const values = form.getFieldsValue()
+    setSearchParams({
+      ...searchParams,
+      query: values
+    })
+    getModuleList({
+      page: 1,
+      pageSize: 10,
+      query: values,
+    })
+  }
 
   function handleAdd() {
     setActionType('ADD')
@@ -144,35 +153,35 @@ const ModulePage = () => {
   }
 
   return (
-    <Card>
-      <div className={styles.modules_container}>
-        <div className={styles.modules_toolbar}>
-          <div className={styles.left}>
-            <div className={styles.tool_bar_search}>
-              <Space>
-                <Input
-                  placeholder='keyword search'
-                  suffix={<SearchOutlined />}
-                  style={{ width: 260 }}
-                  value={searchParams?.query?.moduleName}
-                  onChange={handleChange}
-                  allowClear
-                />
-              </Space>
-            </div>
-          </div>
-          <div className={styles.right}>
-            <div className={styles.tool_bar_add}>
-              <Button type="primary" onClick={handleAdd}>
-                <PlusOutlined /> New Module
-              </Button>
-            </div>
-          </div>
+    <div className={styles.modules}>
+      <div className={styles.modules_action}>
+        <h3>Modules</h3>
+        <div className={styles.modules_action_create}>
+          <Button type="primary" onClick={handleAdd}>
+            <PlusOutlined /> New Module
+          </Button>
         </div>
-        <Table columns={columns} dataSource={moduleList} />
-        <ModuleForm {...sourceFormProps} />
       </div>
-    </Card>
+      <div className={styles.modules_search}>
+        <Form form={form} style={{ marginBottom: 0 }}>
+          <Space>
+            <Form.Item name="moduleName" label="Module Name">
+              <Input />
+            </Form.Item>
+            <Form.Item style={{ marginLeft: 20 }}>
+              <Space>
+                <Button onClick={handleReset}>Reset</Button>
+                <Button type='primary' onClick={handleSearch}>Search</Button>
+              </Space>
+            </Form.Item>
+          </Space>
+        </Form>
+      </div>
+      <div className={styles.modules_content}>
+        <Table columns={columns} dataSource={dataSource} />
+      </div>
+      <ModuleForm {...sourceFormProps} />
+    </div>
   )
 }
 

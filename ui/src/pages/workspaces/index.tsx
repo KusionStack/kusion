@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Col, Input, message, Row } from 'antd'
+import { Button, Col, Form, Input, message, Row, Space } from 'antd'
 import {
   PlusOutlined,
-  SearchOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom';
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
@@ -13,16 +12,33 @@ import styles from './styles.module.less'
 
 const Workspaces = () => {
   const navigate = useNavigate()
+  const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
-  const [keyword, setKeyword] = useState<string>('')
+  const [searchParams, setSearchParams] = useState({
+    pageSize: 20,
+    page: 1,
+    query: undefined,
+    total: undefined,
+  })
   const [workspaceList, setWorkspaceList] = useState([]);
 
 
-  async function getListWorkspace() {
+  async function getListWorkspace(params) {
     try {
-      const response: any = await WorkspaceService.listWorkspace();
+      const response: any = await WorkspaceService.listWorkspace({
+        ...searchParams,
+        query: {
+          workspaceName: searchParams?.query?.workspaceName,
+        }
+      });
       if (response?.data?.success) {
         setWorkspaceList(response?.data?.data?.workspaces);
+        setSearchParams({
+          query: params?.query,
+          pageSize: response?.data?.data?.pageSize,
+          page: response?.data?.data?.currentPage,
+          total: response?.data?.data?.total,
+        })
       } else {
         message.error(response?.data?.messaage)
       }
@@ -32,7 +48,8 @@ const Workspaces = () => {
   }
 
   useEffect(() => {
-    getListWorkspace()
+    getListWorkspace(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleAdd() {
@@ -51,8 +68,29 @@ const Workspaces = () => {
     return res
   }
 
-  function handleChange(event) {
-    setKeyword(event?.target.value)
+  function handleReset() {
+    form.resetFields();
+    setSearchParams({
+      ...searchParams,
+      query: undefined
+    })
+    getListWorkspace({
+      page: 1,
+      pageSize: 10,
+      query: undefined
+    })
+  }
+  function handleSearch() {
+    const values = form.getFieldsValue()
+    setSearchParams({
+      ...searchParams,
+      query: values
+    })
+    getListWorkspace({
+      page: 1,
+      pageSize: 10,
+      query: values,
+    })
   }
 
   async function handleSubmit(values) {
@@ -63,7 +101,7 @@ const Workspaces = () => {
     })
     if (response?.data?.success) {
       message.success("Create Success")
-      getListWorkspace()
+      getListWorkspace(searchParams)
       setOpen(false)
     } else {
       message.error(response?.data?.message)
@@ -78,20 +116,28 @@ const Workspaces = () => {
 
   return (
     <div className={styles.kusion_workspace_container}>
-      <div className={styles.kusion_workspace_toolbar}>
-        <div className={styles.kusion_workspace_toolbar_right}>
-          <Input
-            placeholder="Please keyword"
-            suffix={<SearchOutlined />}
-            style={{ width: 260 }}
-            value={keyword}
-            onChange={handleChange}
-            allowClear
-          />
+      <div className={styles.kusion_workspace_action}>
+        <h3>Workspaces</h3>
+        <div className={styles.kusion_workspace_action_create}>
+          <Button type="primary" onClick={handleAdd}>
+            <PlusOutlined /> New Workspace
+          </Button>
         </div>
-        <Button type="primary" onClick={handleAdd}>
-          <PlusOutlined /> New Workspace
-        </Button>
+      </div>
+      <div className={styles.kusion_workspace_search}>
+        <Form form={form} style={{ marginBottom: 0 }}>
+          <Space>
+            <Form.Item name="workspaceName" label="Workspace Name">
+              <Input />
+            </Form.Item>
+            <Form.Item style={{ marginLeft: 20 }}>
+              <Space>
+                <Button onClick={handleReset}>Reset</Button>
+                <Button type='primary' onClick={handleSearch}>Search</Button>
+              </Space>
+            </Form.Item>
+          </Space>
+        </Form>
       </div>
       <div className={styles.kusion_workspace_content}>
         {arrayColByN?.map((item, index) => {
