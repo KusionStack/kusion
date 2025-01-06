@@ -59,6 +59,7 @@ const SourceForm = ({
         title={getTitle()}
         open={open}
         onClose={onClose}
+        onCancel={onClose}
         footer={
           <Space>
             <Button onClick={onClose}>Cancel</Button>

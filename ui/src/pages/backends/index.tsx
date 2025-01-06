@@ -6,6 +6,7 @@ import BackendForm from './component/backendForm'
 import ConfigYamlDrawer from './component/configYamlDrawer'
 
 import styles from './styles.module.less'
+import { josn2yaml } from '@/utils/tools'
 
 const BackendsPage = () => {
   const [form] = Form.useForm();
@@ -32,7 +33,7 @@ const BackendsPage = () => {
         }
       });
       if (response?.data?.success) {
-        setDataSource(response?.data?.data?.sources);
+        setDataSource(response?.data?.data?.backends);
         setSearchParams({
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
@@ -126,16 +127,24 @@ const BackendsPage = () => {
 
   async function handleSubmit(values) {
     let response: any
+    let bodyParams: any = {};
+    try {
+      bodyParams = {
+        name: values?.name,
+        backendConfig: {
+          configs: values?.configs ? JSON.parse(values?.configs) : {},
+          type: values?.type,
+        },
+        description: values?.description
+      }
+    } catch (error) {
+      console.log(error)
+    }
     if (actionType === 'EDIT') {
       response = await BackendService.updateBackend({
         body: {
           id: (formData as any)?.id,
-          name: values?.name,
-          backendConfig: {
-            configs: values?.configs,
-            type: values?.type,
-          },
-          description: values?.description
+          ...bodyParams,
         },
         path: {
           backendID: (formData as any)?.id
@@ -143,14 +152,7 @@ const BackendsPage = () => {
       })
     } else {
       response = await BackendService.createBackend({
-        body: {
-          name: values?.name,
-          backendConfig: {
-            configs: values?.configs,
-            type: values?.type,
-          },
-          description: values?.description,
-        }
+        body: bodyParams
       })
     }
 
@@ -179,7 +181,7 @@ const BackendsPage = () => {
   const configYamlProps = {
     open: configOpen,
     handleClose: () => setConfigOpen(false),
-    yamlData: (currentRecord as any)?.backendConfig?.configs
+    yamlData: (currentRecord as any)?.backendConfig?.configs ? josn2yaml(JSON.stringify((currentRecord as any)?.backendConfig?.configs))?.data : ''
   }
 
   return (
@@ -208,7 +210,7 @@ const BackendsPage = () => {
         </Form>
       </div>
       <div className={styles.modules_content}>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table rowKey="id" columns={columns} dataSource={dataSource} />
       </div>
       <ConfigYamlDrawer {...configYamlProps} />
       <BackendForm {...sourceFormProps} />

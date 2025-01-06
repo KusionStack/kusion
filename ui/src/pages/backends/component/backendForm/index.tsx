@@ -15,12 +15,11 @@ const BackendForm = ({
 
   useEffect(() => {
     if (formData) {
-      const remote = formData?.remote;
       form.setFieldsValue({
         name: formData?.name,
-        sourceProvider: formData?.sourceProvider,
+        type: formData?.backendConfig?.type,
         description: formData?.description,
-        remote: `${remote?.Scheme}//${remote?.Host}${remote?.Path}`,
+        configs: formData?.backendConfig?.configs ? JSON.stringify(formData?.backendConfig?.configs) : '',
       })
     }
   }, [formData, form])
@@ -58,6 +57,7 @@ const BackendForm = ({
       <Modal
         title={getTitle()}
         open={open}
+        onCancel={onClose}
         onClose={onClose}
         footer={
           <Space>
