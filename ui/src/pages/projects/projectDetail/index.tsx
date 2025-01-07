@@ -82,7 +82,11 @@ const ProjectDetail = () => {
 
   async function getStackList(params) {
     try {
-      const response: any = await StackService.listStack(params);
+      const response: any = await StackService.listStack({
+        query: {
+          projectID: params?.projectId
+        }
+      });
       if (response?.data?.success) {
         const resTabs = response?.data?.data?.stacks?.map(item => {
           return {

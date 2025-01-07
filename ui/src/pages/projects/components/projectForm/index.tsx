@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Select, Input, message } from 'antd';
 
-const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, sourceList }: any) => {
+const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
@@ -117,21 +117,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
           <Input
             placeholder="Enter path from source root (e.g. path/to/project)"
           />
-        </Form.Item>
-        <Form.Item name="organization" label="Organization"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Select placeholder="Select organization">
-            {
-              organizationList?.map(item => {
-                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
-              })
-            }
-          </Select>
         </Form.Item>
         <Form.Item name="description" label="Description"
           getValueFromEvent={(e) => {

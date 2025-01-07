@@ -92,10 +92,10 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
       title="Create Runs"
       footer={[
         <Button key="cancel" onClick={handleCancel}>
-          取消
+          Cancel
         </Button>,
         <Button key="create" type="primary" onClick={onFinish}>
-          确定
+          Submit
         </Button>,
       ]}
       onCancel={handleCancel}

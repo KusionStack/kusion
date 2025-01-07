@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Space, Table, Tag } from 'antd'
+import { Button,  message, Table, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
 import BackendForm from './component/backendForm'
 import ConfigYamlDrawer from './component/configYamlDrawer'
-
-import styles from './styles.module.less'
 import { josn2yaml } from '@/utils/tools'
 
+import styles from './styles.module.less'
+
+
 const BackendsPage = () => {
-  const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
@@ -19,7 +19,6 @@ const BackendsPage = () => {
     query: undefined,
     total: undefined,
   })
-
   const [dataSource, setDataSource] = useState([])
   const [currentRecord, setCurrentRecord] = useState({})
   const [configOpen, setConfigOpen] = useState(false)
@@ -49,31 +48,6 @@ const BackendsPage = () => {
   useEffect(() => {
     getBackendList(searchParams)
   }, [])
-
-  function handleReset() {
-    form.resetFields();
-    setSearchParams({
-      ...searchParams,
-      query: undefined
-    })
-    getBackendList({
-      page: 1,
-      pageSize: 10,
-      query: undefined
-    })
-  }
-  function handleSearch() {
-    const values = form.getFieldsValue()
-    setSearchParams({
-      ...searchParams,
-      query: values
-    })
-    getBackendList({
-      page: 1,
-      pageSize: 10,
-      query: values,
-    })
-  }
 
   function handleAdd() {
     setActionType('ADD')
@@ -193,21 +167,6 @@ const BackendsPage = () => {
             <PlusOutlined /> New Backend
           </Button>
         </div>
-      </div>
-      <div className={styles.sources_search}>
-        <Form form={form} style={{ marginBottom: 0 }}>
-          <Space>
-            <Form.Item name="backendName" label="Backend Name">
-              <Input />
-            </Form.Item>
-            <Form.Item style={{ marginLeft: 20 }}>
-              <Space>
-                <Button onClick={handleReset}>Reset</Button>
-                <Button type='primary' onClick={handleSearch}>Search</Button>
-              </Space>
-            </Form.Item>
-          </Space>
-        </Form>
       </div>
       <div className={styles.modules_content}>
         <Table rowKey="id" columns={columns} dataSource={dataSource} />

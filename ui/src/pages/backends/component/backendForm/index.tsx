@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import isUrl from 'is-url'
 import { Button, Modal, Form, Input, Space, message, Select } from 'antd'
 
 const BackendForm = ({
@@ -84,7 +83,7 @@ const BackendForm = ({
             ]}>
               <Select placeholder="please select type">
                 {
-                  ['oss', 's3', 'local']?.map(item => <Select.Option key={item} value={item}>{item}</Select.Option>)
+                  ['oss', 's3', 'local', 'google']?.map(item => <Select.Option key={item} value={item}>{item}</Select.Option>)
                 }
               </Select>
             </Form.Item>

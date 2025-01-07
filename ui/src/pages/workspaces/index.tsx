@@ -94,15 +94,17 @@ const Workspaces = () => {
   }
 
   async function handleSubmit(values) {
-    const response: any = WorkspaceService.createWorkspace({
+    const response: any = await WorkspaceService.createWorkspace({
       body: {
-        ...values
+        ...values,
+        owners: ['default']
       }
     })
     if (response?.data?.success) {
       message.success("Create Success")
       getListWorkspace(searchParams)
       setOpen(false)
+      navigate(`/workspaces/detail/${response?.data?.data?.id}`)
     } else {
       message.error(response?.data?.message)
     }

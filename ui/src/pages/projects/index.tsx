@@ -21,6 +21,25 @@ const Projects = () => {
   const [sourceList, setSourceList] = useState([])
   const [open, setOpen] = useState<boolean>(false);
 
+  async function createOrganization() {
+    const response = await OrganizationService.createOrganization({
+      body: {
+        name: 'default',
+        owners: ['default']
+      }
+    })
+    if (response?.data?.success) {
+      getOrganizations()
+    }
+  }
+
+  useEffect(() => {
+    if (organizationList?.length === 0) {
+      createOrganization()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationList])
+
   async function getSourceList() {
     try {
       const response: any = await SourceService.listSource({
@@ -41,15 +60,14 @@ const Projects = () => {
   }
 
   async function handleSubmit(values) {
-    console.log(values, "handleSubmit")
     const response: any = await ProjectService.createProject({
       body: {
         name: values?.name,
         path: values?.path,
-        description: values?.description,
         sourceID: values?.projectSource,
-        organizationID: values?.organization
-      }
+        organizationID: organizationList?.[0]?.id,
+        description: values?.description,
+      } as any
     })
     if (response?.data?.success) {
       message.success('Create Successful')
@@ -94,7 +112,7 @@ const Projects = () => {
     form.setFieldValue(key, undefined)
     handleSearch()
   }
-  
+
   function handleChangePage(page, pageSize) {
     getProjectList({
       page,
@@ -153,19 +171,20 @@ const Projects = () => {
       }
     },
     {
+      title: 'Source',
+      dataIndex: 'source',
+      render: (sourceObj) => {
+        const remote = sourceObj?.remote;
+        return `${remote?.Scheme}//${remote?.Host}${remote?.Path}`
+      }
+    },
+    {
       title: 'Description',
       dataIndex: 'description',
     },
     {
-      title: 'Organization',
-      dataIndex: 'organization',
-      render: (organization) => {
-        return <div>{organization?.name}</div>
-      }
-    },
-    {
-      title: 'Owners',
-      dataIndex: 'owners',
+      title: 'Path',
+      dataIndex: 'path',
     },
     {
       title: 'Create Time',
@@ -208,13 +227,6 @@ const Projects = () => {
             <Form.Item name="name" label="Project Name">
               <Input />
             </Form.Item>
-            <Form.Item name="organization" label="Organization">
-              <Select style={{ width: 150 }}>
-                {
-                  organizationList?.map(item => <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>)
-                }
-              </Select>
-            </Form.Item>
             <Form.Item name="owner" label="Owner">
               <Input />
             </Form.Item>
@@ -228,10 +240,10 @@ const Projects = () => {
         </Form>
       </div>
       <div className={styles.projects_content}>
-        <Table 
-          rowKey="id" 
-          title={renderTableTitle} 
-          columns={colums} 
+        <Table
+          rowKey="id"
+          title={renderTableTitle}
+          columns={colums}
           dataSource={dataSource}
           pagination={
             {

@@ -59,7 +59,7 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
           Cancel
         </Button>,
         <Button key="create" type="primary" onClick={onFinish}>
-          Confirm
+          Submit
         </Button>,
       ]}
       onCancel={handleCancel}

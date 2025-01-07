@@ -35,8 +35,10 @@ const WorkspaceDetail = () => {
         }
       })
       setWorkspaceModules(list)
-      const yamlStr = JSON.stringify(response?.data?.data || {}, null, 2)
-      setYamlData(josn2yaml(yamlStr)?.data)
+      const yamlStr = response?.data?.data && JSON.stringify(response?.data?.data || {}, null, 2)
+      if (yamlStr) {
+        setYamlData(josn2yaml(yamlStr)?.data)
+      }
     }
   }
 
@@ -51,8 +53,9 @@ const WorkspaceDetail = () => {
   async function handleSubmit(yamlStr) {
     const response: any = await WorkspaceService.updateWorkspaceConfigs({
       body: yamlStr ? yaml2json(yamlStr)?.data : {},
-      path: { 
-        workspaceID: Number(urlParams?.workspaceId) },
+      path: {
+        workspaceID: Number(urlParams?.workspaceId)
+      },
     })
     if (response?.data?.success) {
       message.success('Update Successful')
@@ -138,7 +141,9 @@ const WorkspaceDetail = () => {
           {
             activeKey === 'yaml' && <>
               <Button type='primary' style={{ marginBottom: 15 }} onClick={handleEdit}>Edit Yaml</Button>
-              <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
+              {
+                yamlData && <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
+              }
               {
                 open && yamlData && <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
               }

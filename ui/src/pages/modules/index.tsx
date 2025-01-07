@@ -144,6 +144,14 @@ const ModulePage = () => {
     setOpen(false)
   }
 
+  function handleChangePage(page: number, pageSize: number) {
+    getModuleList({
+      ...searchParams,
+      page,
+      pageSize,
+    })
+  }
+
   const sourceFormProps = {
     open,
     actionType,
@@ -178,7 +186,19 @@ const ModulePage = () => {
         </Form>
       </div>
       <div className={styles.modules_content}>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table columns={columns}
+          dataSource={dataSource}
+          pagination={
+            {
+              style: { paddingRight: 20 },
+              total: searchParams?.total,
+              showTotal: (total: number, range: any[]) => `${range?.[0]}-${range?.[1]} Total ${total} `,
+              pageSize: searchParams?.pageSize,
+              current: searchParams?.page,
+              onChange: handleChangePage,
+            }
+          }
+        />
       </div>
       <ModuleForm {...sourceFormProps} />
     </div>

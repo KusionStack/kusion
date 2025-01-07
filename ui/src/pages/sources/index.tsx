@@ -24,7 +24,6 @@ const SourcesPage = () => {
   async function getResourceList(params) {
     try {
       const response: any = await SourceService.listSource({
-        ...searchParams,
         query: {
           sourceName: searchParams?.query?.sourceName,
         }
@@ -82,6 +81,14 @@ const SourcesPage = () => {
     setFormData(record)
   }
 
+  function handleChangePage(page: number, pageSize: number) {
+    getResourceList({
+      ...searchParams,
+      page,
+      pageSize,
+    })
+  }
+
 
 
   const columns = [
@@ -94,8 +101,11 @@ const SourcesPage = () => {
       dataIndex: 'description',
     },
     {
-      title: 'Creation Time',
-      dataIndex: 'creationTimestamp',
+      title: 'Url',
+      dataIndex: 'remote',
+      render: (remoteObj) => {
+        return `${remoteObj?.Scheme}//${remoteObj?.Host}${remoteObj?.Path}`
+      }
     },
     {
       title: 'Action',
@@ -159,10 +169,10 @@ const SourcesPage = () => {
   return (
     <div className={styles.sources}>
       <div className={styles.sources_action}>
-        <h3>Modules</h3>
+        <h3>Sources</h3>
         <div className={styles.sources_action_create}>
           <Button type="primary" onClick={handleAdd}>
-            <PlusOutlined /> New Module
+            <PlusOutlined /> New Source
           </Button>
         </div>
       </div>
@@ -182,7 +192,18 @@ const SourcesPage = () => {
         </Form>
       </div>
       <div className={styles.modules_content}>
-        <Table columns={columns} dataSource={dataSource} />
+        <Table columns={columns} dataSource={dataSource}
+          pagination={
+            {
+              style: { paddingRight: 20 },
+              total: searchParams?.total,
+              showTotal: (total: number, range: any[]) => `${range?.[0]}-${range?.[1]} Total ${total} `,
+              pageSize: searchParams?.pageSize,
+              current: searchParams?.page,
+              onChange: handleChangePage,
+            }
+          }
+        />
       </div>
       <SourceForm {...sourceFormProps} />
     </div>

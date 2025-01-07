@@ -217,8 +217,7 @@ const Runs = ({ stackId }) => {
       title: 'Status',
       dataIndex: 'status',
       render: (text) => {
-        // return <Tag color={text === 'Succeeded' ? 'success' : 'error'}>{text}</Tag>
-        return <Tag>{RUNS_STATUS_MAP?.[text]}</Tag>
+        return <Tag color={text === 'Succeeded' ? 'success' : text === 'Failed' ? 'error' : 'warning'}>{RUNS_STATUS_MAP?.[text]}</Tag>
       }
     },
     {
@@ -305,7 +304,7 @@ const Runs = ({ stackId }) => {
               </Select>
             </Form.Item>
             <Form.Item name="createTime" label="Create Time">
-              <DatePicker.RangePicker />
+              <DatePicker.RangePicker showTime={{ format: 'HH:mm' }} />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
               <Space>

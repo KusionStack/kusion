@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Drawer, Segmented, Select, Tag } from 'antd'
+import { Badge, Drawer, Segmented, Select, Tag } from 'antd'
 import { default as AnsiUp } from 'ansi_up';
 import CodeDiffView from '@/components/codeDiffView'
 
@@ -55,14 +55,18 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <div style={{ flex: 1, overflowX: 'hidden', textOverflow: 'ellipsis' }}>{item}</div>
                           <div>
-                            <Tag>{changeSteps?.[item]?.action}</Tag>
+                            <Badge status={
+                              changeSteps?.[item]?.action === 'Undefined' ? 'error' : changeSteps?.[item]?.action === 'UnChanged' ? "success" : 'warning'
+                            } text={changeSteps?.[item]?.action} />
                           </div>
                         </div>
                       </Select.Option>
                     })
                   }
                 </Select>
-                <strong style={{ marginLeft: 10, color: '#666' }}>{changeSteps?.[selectedResource]?.action}</strong>
+                <Badge style={{ marginLeft: 10 }} status={
+                  changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "success" : 'warning'
+                } text={changeSteps?.[selectedResource]?.action} />
               </div>
               <CodeDiffView oldContent={changeSteps?.[selectedResource]?.from ? JSON.stringify(changeSteps?.[selectedResource]?.from, null, 2) : ''} newContent={changeSteps?.[selectedResource]?.to ? JSON.stringify(changeSteps?.[selectedResource]?.to, null, 2) : ''} />
             </div>
