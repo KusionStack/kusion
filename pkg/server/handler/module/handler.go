@@ -43,6 +43,12 @@ func (h *Handler) CreateModule() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Return the created entity.
 		createdEntity, err := h.moduleManager.CreateModule(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
@@ -91,7 +97,7 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Failure		429								{object}	error									"Too Many Requests"
 // @Failure		404								{object}	error									"Not Found"
 // @Failure		500								{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																												[put]
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																																																		[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -105,6 +111,12 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateModuleRequest
 		if err := requestPayload.Decode(r); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
@@ -127,7 +139,7 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Failure		429								{object}	error									"Too Many Requests"
 // @Failure		404								{object}	error									"Not Found"
 // @Failure		500								{object}	error									"Internal Server Error"
-// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																										[get]
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																																[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.

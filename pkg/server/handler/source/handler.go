@@ -43,6 +43,12 @@ func (h *Handler) CreateSource() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Return created entity
 		createdEntity, err := h.sourceManager.CreateSource(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
@@ -105,6 +111,12 @@ func (h *Handler) UpdateSource() http.HandlerFunc {
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateSourceRequest
 		if err := requestPayload.Decode(r); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}

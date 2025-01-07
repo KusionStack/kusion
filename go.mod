@@ -105,6 +105,7 @@ require (
 	github.com/containers/libtrust v0.0.0-20230121012942-c1716e8a8d01 // indirect
 	github.com/containers/ocicrypt v1.2.0 // indirect
 	github.com/containers/storage v1.56.0 // indirect
+	github.com/creack/pty v1.1.20 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
@@ -112,6 +113,7 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-plugin v1.6.1 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/kubescape/go-git-url v0.0.30 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
@@ -325,9 +327,9 @@ require (
 	go.opentelemetry.io/otel v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
-	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
+	go.starlark.net v0.0.0-20231101134539-556fd59b42f6 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/arch v0.4.0 // indirect
+	golang.org/x/arch v0.11.0 // indirect
 	golang.org/x/crypto v0.29.0
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.31.0 // indirect

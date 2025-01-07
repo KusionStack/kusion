@@ -13,6 +13,12 @@ type SourceProviderType string
 var (
 	ErrSourceNil               = errors.New("source is nil")
 	ErrDirectoryToCleanupEmpty = errors.New("temp kcp-kusion directory to clean up is empty")
+	ErrEmptySourceName         = errors.New("source must have a name")
+	ErrInvalidSourceName       = errors.New("project name can only have alphanumeric characters and underscores with [a-zA-Z0-9_]")
+	ErrEmptySourceProvider     = errors.New("source must have a source provider")
+	ErrInvalidSourceProvider   = errors.New("source provider is should be one of the following: [git, github, oci, local]")
+	ErrEmptySourceRemote       = errors.New("source must have a remote")
+	ErrInvalidSourceRemote     = errors.New("source remote is not a valid URL")
 )
 
 const (

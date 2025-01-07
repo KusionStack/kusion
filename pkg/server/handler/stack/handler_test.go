@@ -169,12 +169,10 @@ func TestStackHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateStackRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateStackRequest: request.CreateStackRequest{
-				Name:      stackNameUpdated,
-				Path:      stackPathUpdated,
-				ProjectID: 1,
-			},
+			ID:        1,
+			Name:      stackNameUpdated,
+			Path:      stackPathUpdated,
+			ProjectID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -289,11 +287,9 @@ func TestStackHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateStackRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateStackRequest: request.CreateStackRequest{
-				Name: "test-stack-updated",
-				Path: stackPathUpdated,
-			},
+			ID:   1,
+			Name: "test-stack-updated",
+			Path: stackPathUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

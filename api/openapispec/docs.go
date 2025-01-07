@@ -3754,17 +3754,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
+                "git",
                 "github",
                 "oci",
-                "local",
-                "git"
+                "local"
             ],
             "x-enum-varnames": [
+                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal",
-                "DefaultSourceType"
+                "SourceProviderTypeLocal"
             ]
         },
         "constant.StackState": {
@@ -4919,6 +4919,7 @@ const docTemplate = `{
         "request.CreateBackendRequest": {
             "type": "object",
             "required": [
+                "backendConfig",
                 "name"
             ],
             "properties": {
@@ -4975,6 +4976,7 @@ const docTemplate = `{
         "request.CreateOrganizationRequest": {
             "type": "object",
             "required": [
+                "name",
                 "owners"
             ],
             "properties": {
@@ -5005,7 +5007,8 @@ const docTemplate = `{
         "request.CreateProjectRequest": {
             "type": "object",
             "required": [
-                "domain"
+                "name",
+                "path"
             ],
             "properties": {
                 "description": {
@@ -5188,8 +5191,7 @@ const docTemplate = `{
         "request.UpdateBackendRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "backendConfig": {
@@ -5248,8 +5250,7 @@ const docTemplate = `{
         "request.UpdateOrganizationRequest": {
             "type": "object",
             "required": [
-                "id",
-                "owners"
+                "id"
             ],
             "properties": {
                 "description": {
@@ -5283,7 +5284,6 @@ const docTemplate = `{
         "request.UpdateProjectRequest": {
             "type": "object",
             "required": [
-                "domain",
                 "id"
             ],
             "properties": {
@@ -5334,10 +5334,7 @@ const docTemplate = `{
         "request.UpdateSourceRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name",
-                "remote",
-                "sourceProvider"
+                "id"
             ],
             "properties": {
                 "description": {
@@ -5379,8 +5376,7 @@ const docTemplate = `{
         "request.UpdateStackRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "description": {

@@ -59,6 +59,9 @@ func (m *SourceManager) UpdateSourceByID(ctx context.Context, id uint, requestPa
 	if err != nil {
 		return nil, err
 	}
+	if remote.Scheme == "" {
+		remote.Scheme = "https"
+	}
 	requestEntity.Remote = remote
 
 	// Get the existing source by id
@@ -93,6 +96,10 @@ func (m *SourceManager) CreateSource(ctx context.Context, requestPayload request
 	if err != nil {
 		return nil, err
 	}
+	if remote.Scheme == "" {
+		remote.Scheme = "https"
+	}
+
 	createdEntity.Remote = remote
 
 	// Create source with repository

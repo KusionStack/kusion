@@ -30,17 +30,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
+    - git
     - github
     - oci
     - local
-    - git
     type: string
     x-enum-varnames:
+    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
-    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -864,6 +864,7 @@ definitions:
         description: Name is the name of the backend.
         type: string
     required:
+    - backendConfig
     - name
     type: object
   request.CreateModuleRequest:
@@ -908,6 +909,7 @@ definitions:
           type: string
         type: array
     required:
+    - name
     - owners
     type: object
   request.CreateProjectRequest:
@@ -942,7 +944,8 @@ definitions:
         description: SourceID is the configuration source id associated with the project.
         type: integer
     required:
-    - domain
+    - name
+    - path
     type: object
   request.CreateSourceRequest:
     properties:
@@ -1060,7 +1063,6 @@ definitions:
         type: string
     required:
     - id
-    - name
     type: object
   request.UpdateModuleRequest:
     properties:
@@ -1107,7 +1109,6 @@ definitions:
         type: array
     required:
     - id
-    - owners
     type: object
   request.UpdateProjectRequest:
     properties:
@@ -1144,7 +1145,6 @@ definitions:
         description: SourceID is the configuration source id associated with the project.
         type: integer
     required:
-    - domain
     - id
     type: object
   request.UpdateSourceRequest:
@@ -1176,9 +1176,6 @@ definitions:
         type: string
     required:
     - id
-    - name
-    - remote
-    - sourceProvider
     type: object
   request.UpdateStackRequest:
     properties:
@@ -1218,7 +1215,6 @@ definitions:
         type: string
     required:
     - id
-    - name
     type: object
   request.UpdateWorkspaceRequest:
     properties:

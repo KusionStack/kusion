@@ -168,14 +168,6 @@ func (h *Handler) ApplyStack() http.HandlerFunc {
 		// Apply completed
 		logger.Info("apply completed")
 		render.Render(w, r, handler.SuccessResponse(ctx, "apply completed"))
-
-		// TODO: How to implement watch?
-		// if o.Watch {
-		// 	fmt.Println("Start watching changes ...")
-		// 	if err = Watch(o, sp, changes); err != nil {
-		// 		return err
-		// 	}
-		// }
 	}
 }
 
