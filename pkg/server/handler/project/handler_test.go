@@ -217,12 +217,10 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateProjectRequest: request.CreateProjectRequest{
-				Name:           projectNameUpdated,
-				Path:           projectPathUpdated,
-				OrganizationID: 1,
-			},
+			ID:             1,
+			Name:           projectNameUpdated,
+			Path:           projectPathUpdated,
+			OrganizationID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -339,12 +337,10 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID: 2,
-			CreateProjectRequest: request.CreateProjectRequest{
-				Name:           "test-project-updated",
-				Path:           projectPathUpdated,
-				OrganizationID: 1,
-			},
+			ID:             2,
+			Name:           "test-project-updated",
+			Path:           projectPathUpdated,
+			OrganizationID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

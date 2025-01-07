@@ -148,9 +148,7 @@ func TestStackManager_UpdateStackByID(t *testing.T) {
 	ctx := context.TODO()
 	id := uint(1)
 	requestPayload := request.UpdateStackRequest{
-		CreateStackRequest: request.CreateStackRequest{
-			DesiredVersion: "v1.0.0",
-		},
+		DesiredVersion: "v1.0.0",
 	}
 	mockStackRepo := &mockStackRepository{}
 	mockProjectRepo := &mockProjectRepository{}

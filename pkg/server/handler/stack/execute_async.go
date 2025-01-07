@@ -60,6 +60,7 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypePreview)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -164,6 +165,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeApply)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -219,13 +221,6 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}
 		}()
 		render.Render(w, r, handler.SuccessResponse(ctx, runEntity))
-		// TODO: How to implement watch?
-		// if o.Watch {
-		// 	fmt.Println("Start watching changes ...")
-		// 	if err = Watch(o, sp, changes); err != nil {
-		// 		return err
-		// 	}
-		// }
 	}
 }
 
@@ -266,6 +261,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeGenerate)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -362,6 +358,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeDestroy)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {

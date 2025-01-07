@@ -152,10 +152,8 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateOrganizationRequest: request.CreateOrganizationRequest{
-				Name: orgNameUpdated,
-			},
+			ID:   1,
+			Name: orgNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -266,10 +264,8 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateOrganizationRequest: request.CreateOrganizationRequest{
-				Name: orgNameUpdated,
-			},
+			ID:   1,
+			Name: orgNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

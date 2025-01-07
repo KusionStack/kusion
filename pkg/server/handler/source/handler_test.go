@@ -153,11 +153,9 @@ func TestSourceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateSourceRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateSourceRequest: request.CreateSourceRequest{
-				SourceProvider: string(constant.SourceProviderTypeGithub),
-				Remote:         "https://github.com/test/updated-remote",
-			},
+			ID:             1,
+			SourceProvider: string(constant.SourceProviderTypeGithub),
+			Remote:         "https://github.com/test/updated-remote",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -269,11 +267,9 @@ func TestSourceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateSourceRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateSourceRequest: request.CreateSourceRequest{
-				SourceProvider: string(constant.SourceProviderTypeGithub),
-				Remote:         "https://github.com/test/updated-remote",
-			},
+			ID:             1,
+			SourceProvider: string(constant.SourceProviderTypeGithub),
+			Remote:         "https://github.com/test/updated-remote",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

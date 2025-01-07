@@ -116,7 +116,7 @@ func (h *Handler) UpdateWorkspaceConfigs() http.HandlerFunc {
 // @Failure		429													{object}	error	"Too Many Requests"
 // @Failure		404													{object}	error	"Not Found"
 // @Failure		500													{object}	error	"Internal Server Error"
-// @Router			/api/v1/workspaces/{workspaceID}/configs/mod-deps 																																								[post]
+// @Router			/api/v1/workspaces/{workspaceID}/configs/mod-deps 																																														[post]
 func (h *Handler) CreateWorkspaceModDeps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.

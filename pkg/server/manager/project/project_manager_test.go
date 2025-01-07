@@ -225,11 +225,9 @@ func TestProjectManager_UpdateProjectByID(t *testing.T) {
 	ctx := context.TODO()
 	id := uint(1)
 	requestPayload := request.UpdateProjectRequest{
-		CreateProjectRequest: request.CreateProjectRequest{
-			SourceID:       2,
-			OrganizationID: 3,
-			Labels:         []string{"label1", "label2"},
-		},
+		SourceID:       2,
+		OrganizationID: 3,
+		Labels:         []string{"label1", "label2"},
 	}
 	mockRepo := &mockProjectRepository{}
 	mockSourceRepo := &mockSourceRepository{}

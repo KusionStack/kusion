@@ -1,6 +1,9 @@
 package constant
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // These constants represent the possible states of a stack.
 const (
@@ -24,4 +27,9 @@ const (
 	ResourcePageSizeLarge   = 1000
 	CommonPageDefault       = 1
 	CommonPageSizeDefault   = 10
+)
+
+var (
+	ErrEmptyURL   = errors.New("URL is empty")
+	ErrInvalidURL = errors.New("invalid URL")
 )
