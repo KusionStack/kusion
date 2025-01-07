@@ -21,7 +21,7 @@ const Projects = () => {
   const [sourceList, setSourceList] = useState([])
   const [open, setOpen] = useState<boolean>(false);
 
-  async function getResourceList() {
+  async function getSourceList() {
     try {
       const response: any = await SourceService.listSource({
         ...searchParams,
@@ -44,7 +44,11 @@ const Projects = () => {
     console.log(values, "handleSubmit")
     const response: any = await ProjectService.createProject({
       body: {
-        domain: values?.name,
+        name: values?.name,
+        path: values?.path,
+        description: values?.description,
+        sourceID: values?.projectSource,
+        organizationID: values?.organization
       }
     })
     if (response?.data?.success) {
@@ -90,6 +94,14 @@ const Projects = () => {
     form.setFieldValue(key, undefined)
     handleSearch()
   }
+  
+  function handleChangePage(page, pageSize) {
+    getProjectList({
+      page,
+      pageSize,
+      query: searchParams?.query
+    })
+  }
 
   async function getOrganizations() {
     const response = await OrganizationService.listOrganization()
@@ -126,7 +138,7 @@ const Projects = () => {
 
   useEffect(() => {
     getOrganizations()
-    getResourceList()
+    getSourceList()
     getProjectList(searchParams)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -216,7 +228,22 @@ const Projects = () => {
         </Form>
       </div>
       <div className={styles.projects_content}>
-        <Table rowKey="id" title={renderTableTitle} columns={colums} dataSource={dataSource} />
+        <Table 
+          rowKey="id" 
+          title={renderTableTitle} 
+          columns={colums} 
+          dataSource={dataSource}
+          pagination={
+            {
+              style: { paddingRight: 20 },
+              total: searchParams?.total,
+              showTotal: (total: number, range: any[]) => `${range?.[0]}-${range?.[1]} Total ${total} `,
+              pageSize: searchParams?.pageSize,
+              current: searchParams?.page,
+              onChange: handleChangePage,
+            }
+          }
+        />
       </div>
       <ProjectForm open={open}
         sourceList={sourceList}

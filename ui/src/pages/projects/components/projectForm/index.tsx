@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Select, Input, message } from 'antd';
 
-import styles from './styles.module.less';
-
 const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, sourceList }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -24,7 +22,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('submit failed');
     } finally {
       setLoading(false);
     }
@@ -54,16 +52,38 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
         initialValues={formInitialValues}
         layout="vertical"
       >
-        <Form.Item name="name" label="Name">
+        <Form.Item name="name" label="Name"
+          rules={[
+            {
+              required: true,
+            },
+            {
+              validator: (_, value) => {
+                if (!value) {
+                  return Promise.reject('Name is required');
+                }
+                const nameRegex = /^[a-zA-Z0-9_-]+$/;
+                if (nameRegex.test(value)) {
+                  return Promise.resolve();
+                }
+                return Promise.reject('Name can only contain letters, numbers, underscores and hyphens');
+              }
+            }
+          ]}
+        >
           <Input
-            placeholder="Please input Name"
-            className={styles.inputConfigPath}
+            placeholder="Enter project name"
           />
         </Form.Item>
-        <Form.Item name="projectSource" label="Project Source">
+        <Form.Item name="projectSource" label="Project Source"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
           <Select
-            placeholder="Please projects source"
-            className={styles.selectInput}
+            placeholder="Select project source"
           >
             {
               sourceList?.map(item => {
@@ -72,7 +92,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
             }
           </Select>
         </Form.Item>
-        <Form.Item name="configPath" label="Config Path"
+        <Form.Item name="path" label="Path"
           rules={[
             {
               required: true,
@@ -82,24 +102,30 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
                 if (!value) {
                   return Promise.reject('Required')
                 }
-                const pathRex1 = new RegExp("^(/[^/\0]+)*$");
-                const pathRex2 = new RegExp("^(\/?[^/\0]+)+$");
-                if (pathRex1.test(value) || pathRex2.test(value)) {
-                  return Promise.resolve()
-                } else {
-                  return Promise.reject('Not a path')
+                const pathRegex = /^[a-zA-Z0-9_\/-]+$/;
+                if (value.startsWith('/')) {
+                  return Promise.reject('Path should be relative (without leading slash)')
                 }
+                if (pathRegex.test(value)) {
+                  return Promise.resolve()
+                }
+                return Promise.reject('Invalid path format')
               },
             },
           ]}
         >
           <Input
-            placeholder="Please input config path in source"
-            className={styles.inputConfigPath}
+            placeholder="Enter path from source root (e.g. path/to/project)"
           />
         </Form.Item>
-        <Form.Item name="organization" label="Organization">
-          <Select placeholder="Please select organization" className={styles.selectInput}>
+        <Form.Item name="organization" label="Organization"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Select placeholder="Select organization">
             {
               organizationList?.map(item => {
                 return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
@@ -107,10 +133,25 @@ const ProjectForm = ({ open, handleClose, handleSubmit, organizationList, source
             }
           </Select>
         </Form.Item>
-        <Form.Item name="description" label="Description">
+        <Form.Item name="description" label="Description"
+          getValueFromEvent={(e) => {
+            const currentValue = e.target.value;
+            const previousValue = form.getFieldValue('description') || '';
+            const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
+            
+            // If word count exceeds 100, return the previous value
+            return wordCount <= 100 ? currentValue : previousValue;
+          }}
+        >
           <Input.TextArea
-            placeholder="Please input description..."
+            placeholder="Enter description..."
             rows={4}
+            showCount={{
+              formatter: ({ value }) => {
+                const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                return `${words} / 100`;
+              }
+            }}
           />
         </Form.Item>
       </Form>
