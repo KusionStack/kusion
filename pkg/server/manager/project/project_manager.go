@@ -121,6 +121,12 @@ func (m *ProjectManager) CreateProject(ctx context.Context, requestPayload reque
 			// if a source with the default remote does not exist, create a new source
 			logger.Info("Source not found, creating new source with default remote...", "remote", m.defaultSource.Remote)
 			sourceEntity = &m.defaultSource
+			if sourceEntity.Name == "" {
+				sourceEntity.Name, err = GenerateDefaultSourceName(m.defaultSource.Remote.String())
+				if err != nil {
+					return nil, err
+				}
+			}
 			err = m.sourceRepo.Create(ctx, sourceEntity)
 			if err != nil {
 				return nil, err
