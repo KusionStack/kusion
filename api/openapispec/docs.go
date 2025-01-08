@@ -5430,9 +5430,7 @@ const docTemplate = `{
         "request.UpdateWorkspaceRequest": {
             "type": "object",
             "required": [
-                "backendID",
-                "id",
-                "owners"
+                "id"
             ],
             "properties": {
                 "backendID": {

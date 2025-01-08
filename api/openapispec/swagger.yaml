@@ -1242,9 +1242,7 @@ definitions:
           type: string
         type: array
     required:
-    - backendID
     - id
-    - owners
     type: object
   request.WorkspaceConfigs:
     properties:

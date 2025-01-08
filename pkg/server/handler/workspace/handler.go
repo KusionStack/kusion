@@ -43,6 +43,12 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		createdEntity, err := h.workspaceManager.CreateWorkspace(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
@@ -104,6 +110,12 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 		// Decode the request body into the payload.
 		var requestPayload request.UpdateWorkspaceRequest
 		if err := requestPayload.Decode(r); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}

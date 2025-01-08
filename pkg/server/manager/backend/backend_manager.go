@@ -22,6 +22,14 @@ func (m *BackendManager) ListBackends(ctx context.Context, filter *entity.Backen
 		}
 		return nil, err
 	}
+
+	for i, entity := range backendEntities.Backends {
+		entity, err := MaskBackendSensitiveData(entity)
+		if err != nil {
+			return nil, err
+		}
+		backendEntities.Backends[i] = entity
+	}
 	return backendEntities, nil
 }
 
@@ -33,6 +41,12 @@ func (m *BackendManager) GetBackendByID(ctx context.Context, id uint) (*entity.B
 		}
 		return nil, err
 	}
+
+	existingEntity, err = MaskBackendSensitiveData(existingEntity)
+	if err != nil {
+		return nil, err
+	}
+
 	return existingEntity, nil
 }
 
@@ -71,6 +85,12 @@ func (m *BackendManager) UpdateBackendByID(ctx context.Context, id uint, request
 	if err != nil {
 		return nil, err
 	}
+
+	updatedEntity, err = MaskBackendSensitiveData(updatedEntity)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedEntity, nil
 }
 
@@ -86,7 +106,13 @@ func (m *BackendManager) CreateBackend(ctx context.Context, requestPayload reque
 	if err != nil {
 		return nil, err
 	}
-	return &createdEntity, nil
+
+	maskedEntity, err := MaskBackendSensitiveData(&createdEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	return maskedEntity, nil
 }
 
 func (m *BackendManager) BuildBackendFilter(ctx context.Context, query *url.Values) (*entity.BackendFilter, error) {

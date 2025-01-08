@@ -10,6 +10,7 @@ var (
 	ErrGettingNonExistingBackend  = errors.New("the backend does not exist")
 	ErrUpdatingNonExistingBackend = errors.New("the backend to update does not exist")
 	ErrInvalidBackendID           = errors.New("the backend ID should be a uuid")
+	ErrInternalServerError        = errors.New("internal server error")
 )
 
 type BackendManager struct {

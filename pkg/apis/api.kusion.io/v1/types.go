@@ -250,6 +250,7 @@ const (
 	BackendGenericOssPrefix   = "prefix"
 	BackendS3Region           = "region"
 	BackendS3ForcePathStyle   = "forcePathStyle"
+	BackendGoogleCredentials  = "credentials"
 
 	BackendTypeLocal  = "local"
 	BackendTypeOss    = "oss"
@@ -422,7 +423,7 @@ func (b *BackendConfig) ToGoogleBackend() *BackendGoogleConfig {
 	var creds *googleauth.Credentials
 	bucket, _ := b.Configs[BackendGenericOssBucket].(string)
 	prefix, _ := b.Configs[BackendGenericOssPrefix].(string)
-	if credentialsJSON, ok := b.Configs["credentials"].(map[string]any); ok {
+	if credentialsJSON, ok := b.Configs[BackendGoogleCredentials].(map[string]any); ok {
 		credentialsBytes, err := json.Marshal(credentialsJSON)
 		if err != nil {
 			return nil

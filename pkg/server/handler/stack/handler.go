@@ -128,6 +128,12 @@ func (h *Handler) UpdateStack() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		updatedEntity, err := h.stackManager.UpdateStackByID(ctx, params.StackID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
