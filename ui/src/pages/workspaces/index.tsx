@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Col, Form, Input, message, Row, Space } from 'antd'
+import { Button, Col, Form, Input, message, Row, Select, Space } from 'antd'
 import {
   PlusOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom';
-import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
+import { BackendService, WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import WorkspaceCard from './components/workspaceCard';
 import WorkscpaceForm from './components/workscpaceForm';
 
@@ -21,13 +21,32 @@ const Workspaces = () => {
     total: undefined,
   })
   const [workspaceList, setWorkspaceList] = useState([]);
+  const [backendList, setBackendList] = useState([]);
+
+
+  async function getBackendList() {
+    try {
+      const response: any = await BackendService.listBackend({
+        ...searchParams,
+        query: {
+          page: 1,
+          pageSize: 10000,
+        }
+      });
+      if (response?.data?.success) {
+        setBackendList(response?.data?.data?.backends);
+      }
+    } catch (error) {
+
+    }
+  }
 
 
   async function getListWorkspace(params) {
     try {
       const response: any = await WorkspaceService.listWorkspace({
         query: {
-          workspaceName: params?.query?.workspaceName,
+          backendID: params?.query?.backendID,
           page: params?.page || searchParams?.page,
           pageSize: params?.pageSize || searchParams?.pageSize,
         }
@@ -49,6 +68,7 @@ const Workspaces = () => {
   }
 
   useEffect(() => {
+    getBackendList()
     getListWorkspace(searchParams)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -130,8 +150,12 @@ const Workspaces = () => {
       <div className={styles.kusion_workspace_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
-            <Form.Item name="workspaceName" label="Workspace Name">
-              <Input />
+            <Form.Item name="backendID" label="Workspace Name">
+              <Select style={{ width: 200 }}>
+                {
+                  backendList?.map(item => <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>)
+                }
+              </Select>
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
               <Space>
