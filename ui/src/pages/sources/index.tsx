@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Space, Table } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
@@ -91,6 +91,18 @@ const SourcesPage = () => {
     })
   }
 
+  async function confirmDelete(record) {
+    const response: any = await SourceService.deleteSource({
+      path: {
+        sourceID: record?.id
+      },
+    })
+    if (response?.data?.success) {
+      message.success('delete successful')
+      getResourceList(searchParams)
+    }
+  }
+
 
 
   const columns = [
@@ -114,7 +126,18 @@ const SourcesPage = () => {
       dataIndex: 'action',
       render: (_, record) => {
         return (
-          <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+          <Space>
+            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <Popconfirm
+              title="Delete the source"
+              description="Are you sure to delete this source?"
+              onConfirm={() => confirmDelete(record)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type='link' danger>Delete</Button>
+            </Popconfirm>
+          </Space>
         )
       },
     },
@@ -194,7 +217,10 @@ const SourcesPage = () => {
         </Form>
       </div>
       <div className={styles.modules_content}>
-        <Table columns={columns} dataSource={dataSource}
+        <Table
+          rowKey="id"
+          columns={columns} 
+          dataSource={dataSource}
           pagination={
             {
               style: { paddingRight: 20 },

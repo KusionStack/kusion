@@ -137,6 +137,18 @@ const Workspaces = () => {
 
   const arrayColByN = conversionArray(workspaceList, 4)
 
+  async function confirmDelete(record) {
+    const response: any = await WorkspaceService.deleteWorkspace({
+      path: {
+        workspaceID: record?.id,
+      },
+    })
+    if (response?.data?.success) {
+      message.success('delete successful')
+      getListWorkspace(searchParams)
+    }
+  }
+
   return (
     <div className={styles.kusion_workspace_container}>
       <div className={styles.kusion_workspace_action}>
@@ -177,7 +189,14 @@ const Workspaces = () => {
               {item?.map((innerItem, innerIndex) => {
                 return (
                   <Col key={innerIndex} className="gutter-row" span={6}>
-                    <WorkspaceCard title={innerItem?.name} desc={innerItem?.description} createDate={innerItem?.creationTimestamp} nickName={innerItem?.owners} onClick={() => navigate(`/workspaces/detail/${innerItem?.id}`)} />
+                    <WorkspaceCard
+                      title={innerItem?.name}
+                      desc={innerItem?.description}
+                      createDate={innerItem?.creationTimestamp}
+                      nickName={innerItem?.owners}
+                      onClick={() => navigate(`/workspaces/detail/${innerItem?.id}`)}
+                      onDelete={() => confirmDelete(innerItem)}
+                    />
                   </Col>
                 )
               })}

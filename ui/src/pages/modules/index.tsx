@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Space, Table } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
 import ModuleForm from './component/moduleForm'
@@ -83,6 +83,18 @@ const ModulePage = () => {
     setFormData(record)
   }
 
+  async function confirmDelete(record) {
+    const response: any = await ModuleService.deleteModule({
+      path: {
+        moduleName: record?.name
+      },
+    })
+    if (response?.data?.success) {
+      message.success('delete successful')
+      getModuleList(searchParams)
+    }
+  }
+
 
 
   const columns = [
@@ -106,10 +118,19 @@ const ModulePage = () => {
       dataIndex: 'action',
       render: (_, record) => {
         return (
-          <>
+          <Space>
             <Button type='link' onClick={() => handleEdit(record)}>edit</Button>
             <Button type='link' href={record?.doc?.Path} target='_blank'>doc</Button>
-          </>
+            <Popconfirm
+              title="Delete the module"
+              description="Are you sure to delete this module?"
+              onConfirm={() => confirmDelete(record)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type='link' danger>Delete</Button>
+            </Popconfirm>
+          </Space>
         )
       },
     },
@@ -188,7 +209,9 @@ const ModulePage = () => {
         </Form>
       </div>
       <div className={styles.modules_content}>
-        <Table columns={columns}
+        <Table
+          rowKey="id"
+          columns={columns}
           dataSource={dataSource}
           pagination={
             {

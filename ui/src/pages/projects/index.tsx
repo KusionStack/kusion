@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table, Select } from 'antd'
+import { Button, Form, Input, message, Space, Table, Select, Popconfirm } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
@@ -161,6 +161,18 @@ const Projects = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  async function confirmDelete(record) {
+    const response: any = await ProjectService.deleteProject({
+      path: {
+        projectID: record?.id,
+      },
+    })
+    if (response?.data?.success) {
+      message.success('delete successful')
+      getProjectList(searchParams)
+    }
+  }
+
 
   const colums = [
     {
@@ -190,6 +202,25 @@ const Projects = () => {
       title: 'Create Time',
       dataIndex: 'creationTimestamp',
     },
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      render: (_, record) => {
+        return (
+          <Space>
+            <Popconfirm
+              title="Delete the project"
+              description="Are you sure to delete this project?"
+              onConfirm={() => confirmDelete(record)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type='link' danger>Delete</Button>
+            </Popconfirm>
+          </Space>
+        )
+      },
+    }
   ]
 
   function renderTableTitle(currentPageData) {

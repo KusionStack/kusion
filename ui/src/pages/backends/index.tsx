@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button,  message, Table, Tag } from 'antd'
+import { Button, message, Popconfirm, Space, Table, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
 import BackendForm from './component/backendForm'
@@ -64,6 +64,18 @@ const BackendsPage = () => {
     setConfigOpen(true)
   }
 
+  async function confirmDelete(id) {
+    const response: any = await BackendService.deleteBackend({
+      path: {
+        backendID: id
+      },
+    })
+    if (response?.data?.success) {
+      message.success('delete successful')
+      getBackendList(searchParams)
+    }
+  }
+
 
   const columns = [
     {
@@ -93,7 +105,18 @@ const BackendsPage = () => {
       dataIndex: 'action',
       render: (_, record) => {
         return (
-          <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+          <Space>
+            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <Popconfirm
+              title="Delete the backend"
+              description="Are you sure to delete this backend?"
+              onConfirm={() => confirmDelete(record?.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type='link' danger>Delete</Button>
+            </Popconfirm>
+          </Space>
         )
       },
     },
