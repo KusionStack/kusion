@@ -40,6 +40,8 @@ const WorkspaceDetail = () => {
       const yamlStr = Object?.keys(response?.data?.data)?.length > 0 ? JSON.stringify(response?.data?.data || {}, null, 2) : JSON.stringify(DEFAULT_WORKSPACE_YAML, null, 2)
       console.log(yamlStr, "====yamlStr====")
       setYamlData(josn2yaml(yamlStr)?.data)
+    } else {
+      message.error(response?.data?.message)
     }
   }
 
