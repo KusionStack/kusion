@@ -25,7 +25,9 @@ const SourcesPage = () => {
     try {
       const response: any = await SourceService.listSource({
         query: {
-          sourceName: searchParams?.query?.sourceName,
+          sourceName: params?.query?.sourceName,
+          page: params?.page || searchParams?.page,
+          pageSize: params?.pageSize || searchParams?.pageSize,
         }
       });
       if (response?.data?.success) {

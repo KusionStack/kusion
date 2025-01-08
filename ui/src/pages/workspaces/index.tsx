@@ -26,9 +26,10 @@ const Workspaces = () => {
   async function getListWorkspace(params) {
     try {
       const response: any = await WorkspaceService.listWorkspace({
-        ...searchParams,
         query: {
-          workspaceName: searchParams?.query?.workspaceName,
+          workspaceName: params?.query?.workspaceName,
+          page: params?.page || searchParams?.page,
+          pageSize: params?.pageSize || searchParams?.pageSize,
         }
       });
       if (response?.data?.success) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Modal, Form, Input, Space, message, Select } from 'antd'
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 const BackendForm = ({
   open,
@@ -54,6 +55,7 @@ const BackendForm = ({
   return (
     <div>
       <Modal
+        width={650}
         title={getTitle()}
         open={open}
         onCancel={onClose}
@@ -68,7 +70,14 @@ const BackendForm = ({
         }
       >
         <div style={{ margin: 20 }}>
-          <Form form={form} layout="vertical">
+          <Form form={form} layout="vertical"
+            initialValues={{
+              configs: [{
+                key: undefined,
+                value: undefined
+              }]
+            }}
+          >
             <Form.Item label="Name" name='name' rules={[
               {
                 required: true,
@@ -87,17 +96,64 @@ const BackendForm = ({
                 }
               </Select>
             </Form.Item>
-            <Form.Item
-              label="Configs"
-              name="configs"
-              rules={[
-                {
-                  required: false,
-                },
-              ]}
-            >
-              <Input.TextArea rows={4} />
-            </Form.Item>
+            <Form.List name="configs">
+              {(fields, { add, remove }) => {
+                return (
+                  <>
+                    {fields.map(({ key, name, ...restField }, index) => {
+                      return (
+                        <Form.Item
+                          label={index === 0 ? 'Configs' : ''}
+                          required={true}
+                          key={key}
+                          style={{ marginBottom: 0 }}
+                        >
+                          <Space
+                            style={{ display: 'flex', marginBottom: 8, width: '100%' }}
+                            align="baseline"
+                          >
+                            <Form.Item
+                              style={{ flex: 1 }}
+                              {...restField}
+                              name={[name, 'key']}
+                              rules={[
+                                {
+                                  required: false,
+                                  message: 'Missing first name',
+                                },
+                              ]}
+                            >
+                              <Input style={{ width: 250 }} />
+                            </Form.Item>
+                            <Form.Item
+                              style={{ flex: 1 }}
+                              {...restField}
+                              name={[name, 'value']}
+                              rules={[{ required: false, message: 'Required' }]}
+                            >
+                              <Input style={{ width: 250 }} />
+                            </Form.Item>
+                            {fields?.length > 1 && (
+                              <MinusCircleOutlined onClick={() => remove(name)} />
+                            )}
+                          </Space>
+                        </Form.Item>
+                      )
+                    })}
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add
+                      </Button>
+                    </Form.Item>
+                  </>
+                )
+              }}
+            </Form.List>
             <Form.Item
               label="Description"
               name="description"

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio, Switch } from 'antd';
+import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio, Switch, Space } from 'antd';
 
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
-import { CaretRightOutlined } from '@ant-design/icons';
+import { CaretRightOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 import styles from './styles.module.less';
 
@@ -11,13 +11,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
   const [form] = Form.useForm();
   const { token } = theme.useToken();
   const [workspaceList, setWorkspaceList] = useState([])
-  const formInitialValues = {
-    name: '',
-    description: '',
-    projectSource: '',
-    configPath: '',
-    organization: '',
-  };
+  const [switchEnable, setSwitchEnable] = useState<boolean>(false);
 
   function handleCancel() {
     form.resetFields();
@@ -59,6 +53,10 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
     }
   };
 
+  function handleChangeSwitch(checked) {
+    setSwitchEnable(checked)
+  }
+
   const getItems = (panelStyle) => [
     {
       key: 'advancedSetting',
@@ -66,13 +64,70 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
       children: <div>
         <p>Import Existing Resource</p>
         <Form.Item name="isExecting">
-          <Switch />
+          <Switch onChange={handleChangeSwitch} />
         </Form.Item>
         {
-          form.getFieldValue('isExecting') &&
-          <Form.Item name="resources" label="resource map">
-            <Input.TextArea />
-          </Form.Item>
+          switchEnable &&
+          <Form.List name="configs">
+            {(fields, { add, remove }) => {
+              return (
+                <>
+                  {fields.map(({ key, name, ...restField }, index) => {
+                    return (
+                      <Form.Item
+                        label={index === 0 ? 'Resources' : ''}
+                        required={true}
+                        key={key}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Space
+                          style={{ display: 'flex', marginBottom: 8 }}
+                          align="baseline"
+                        >
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'key']}
+                            rules={[
+                              {
+                                required: false,
+                                message: 'Missing first name',
+                              },
+                            ]}
+                          >
+                            <Input
+                              style={{ width: 280 }}
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'value']}
+                            rules={[{ required: false, message: 'Required' }]}
+                          >
+                            <Input
+                              style={{ width: 280 }}
+                            />
+                          </Form.Item>
+                          {fields?.length > 1 && (
+                            <MinusCircleOutlined onClick={() => remove(name)} />
+                          )}
+                        </Space>
+                      </Form.Item>
+                    )
+                  })}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      block
+                      icon={<PlusOutlined />}
+                    >
+                      Add
+                    </Button>
+                  </Form.Item>
+                </>
+              )
+            }}
+          </Form.List>
         }
       </div>,
       style: panelStyle,
@@ -88,6 +143,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
 
   return (
     <Modal
+      width={650}
       open={open}
       title="Create Runs"
       footer={[
@@ -102,7 +158,14 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
     >
       <Form
         form={form}
-        initialValues={formInitialValues}
+        initialValues={{
+          configs: [
+            {
+              key: '',
+              value: '',
+            },
+          ],
+        }}
         layout="vertical"
       >
         <Form.Item name="type" label="Type">

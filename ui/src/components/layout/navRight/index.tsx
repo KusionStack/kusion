@@ -2,6 +2,7 @@ import React, { memo } from 'react'
 import {
   CodeOutlined,
   QuestionCircleOutlined,
+  SettingOutlined,
 } from '@ant-design/icons'
 
 import styles from './style.module.less'
@@ -21,7 +22,7 @@ const NavRight = ({ onClick, selectedKey }) => {
       <div className={styles.nav_right_item} onClick={handleClick}
         style={{ borderBottom: selectedKey === '/backends' ? '2px solid #fff' : 'none' }}
       >
-        Backends
+        <SettingOutlined style={iconStyle} />Backends
       </div>
       <div className={styles.nav_right_item}>
         <span

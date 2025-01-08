@@ -9,6 +9,7 @@ import EditYamlDrawer from '../components/editYamlDrawer';
 import MarkdownDrawer from '../components/markdownDrawer';
 
 import styles from './styles.module.less'
+import { DEFAULT_WORKSPACE_YAML } from '@/utils/constants';
 
 const WorkspaceDetail = () => {
   const navigate = useNavigate();
@@ -27,18 +28,18 @@ const WorkspaceDetail = () => {
       }
     })
     if (response?.data?.success) {
+      console.log(response?.data?.data, "====response?.data?.data===")
       const tempData = response?.data?.data?.modules;
-      const list = Object.keys(tempData)?.map(key => {
+      const list = tempData && Object.keys(tempData)?.map(key => {
         return {
           moduleName: key,
           ...tempData?.[key]
         }
       })
       setWorkspaceModules(list)
-      const yamlStr = response?.data?.data && JSON.stringify(response?.data?.data || {}, null, 2)
-      if (yamlStr) {
-        setYamlData(josn2yaml(yamlStr)?.data)
-      }
+      const yamlStr = Object?.keys(response?.data?.data)?.length > 0 ? JSON.stringify(response?.data?.data || {}, null, 2) : JSON.stringify(DEFAULT_WORKSPACE_YAML, null, 2)
+      console.log(yamlStr, "====yamlStr====")
+      setYamlData(josn2yaml(yamlStr)?.data)
     }
   }
 

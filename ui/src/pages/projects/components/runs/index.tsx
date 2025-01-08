@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react'
 import { Button, DatePicker, Form, message, Select, Space, Table, Tag, } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 import GenerateDetail from './generateDetail'
 import PreviewDetail from './previewDetail'
 import RunsForm from './runsForm'
 
 import styles from "./styles.module.less"
+
+// use plugin
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const timeFormatter = 'YYYY-MM-DDTHH:mm:ssZ'
 
 const Runs = ({ stackId }) => {
   const [form] = Form.useForm();
@@ -145,8 +154,8 @@ const Runs = ({ stackId }) => {
       let startTime, endTime
       if (params?.query?.createTime) {
         const [startDate, endDate] = params?.query?.createTime;
-        startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
-        endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+        startTime = dayjs(startDate).utc().format(timeFormatter)
+        endTime = dayjs(endDate).utc().format(timeFormatter)
       }
       const response: any = await StackService.listRun({
         query: {
@@ -251,8 +260,8 @@ const Runs = ({ stackId }) => {
             searchParams?.query && Object.entries(searchParams?.query)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
               if (key === 'createTime') {
                 const [startDate, endDate] = __value;
-                const startTime = startDate?.format('YYYY-MM-DDTHH:mm:ssZ');
-                const endTime = endDate?.format('YYYY-MM-DDTHH:mm:ssZ');
+                const startTime = dayjs(startDate).utc().format(timeFormatter)
+                const endTime = dayjs(endDate).utc().format(timeFormatter)
                 return (
                   <div key={key} className={styles.projects_content_toolbar_item}>
                     {key}: {`${startTime} ~ ${endTime}`}
