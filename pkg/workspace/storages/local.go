@@ -111,6 +111,37 @@ func (s *LocalStorage) SetCurrent(name string) error {
 	return s.writeMeta()
 }
 
+func (s *LocalStorage) RenameWorkspace(oldName, newName string) (err error) {
+	if oldName == "" || newName == "" {
+		return fmt.Errorf("given name is empty")
+	}
+
+	// restore the old workspace name if the rename failed
+	defer func() {
+		if err != nil {
+			removeAvailableWorkspaces(s.meta, newName)
+			addAvailableWorkspaces(s.meta, oldName)
+			s.writeMeta()
+		}
+	}()
+
+	// update the meta file
+	removeAvailableWorkspaces(s.meta, oldName)
+	addAvailableWorkspaces(s.meta, newName)
+	if err = s.writeMeta(); err != nil {
+		return err
+	}
+
+	// rename the workspace file
+	oldPath := filepath.Join(s.path, oldName+yamlSuffix)
+	newPath := filepath.Join(s.path, newName+yamlSuffix)
+	if err = os.Rename(oldPath, newPath); err != nil {
+		return fmt.Errorf("rename workspace file failed: %w", err)
+	}
+
+	return nil
+}
+
 func (s *LocalStorage) initDefaultWorkspaceIf() error {
 	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.

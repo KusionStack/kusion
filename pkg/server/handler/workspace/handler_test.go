@@ -167,9 +167,8 @@ func TestWorkspaceHandler(t *testing.T) {
 
 		// Set request body
 		requestPayload := request.UpdateWorkspaceRequest{
-			ID:        1,
-			Name:      wsNameUpdated,
-			BackendID: 1,
+			ID:   1,
+			Name: wsNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -212,10 +211,16 @@ func TestWorkspaceHandler(t *testing.T) {
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Mock the Delete method of the workspace repository
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
+				AddRow(1, "test-ws", 1))
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "backend_config"}).
+				AddRow(1, "{\"type\":\"local\"}"))
 		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id"}).
-				AddRow(1))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
+				AddRow(1, "test-ws", 1))
 		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
@@ -246,7 +251,6 @@ func TestWorkspaceHandler(t *testing.T) {
 		rctx.URLParams.Add("workspaceID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
@@ -280,9 +284,8 @@ func TestWorkspaceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateWorkspaceRequest{
 			// Set your request payload fields here
-			ID:        1,
-			Name:      "test-ws-updated",
-			BackendID: 1,
+			ID:   1,
+			Name: "test-ws-updated",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -378,5 +381,9 @@ func (m *mockStorage) GetCurrent() (string, error) {
 }
 
 func (m *mockStorage) SetCurrent(name string) error {
+	return nil
+}
+
+func (m *mockStorage) RenameWorkspace(oldName, newName string) error {
 	return nil
 }

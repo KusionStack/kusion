@@ -5433,10 +5433,6 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
-                "backendID": {
-                    "description": "BackendID is the configuration backend id associated with the workspace.",
-                    "type": "integer"
-                },
                 "description": {
                     "description": "Description is a human-readable description of the workspace.",
                     "type": "string"

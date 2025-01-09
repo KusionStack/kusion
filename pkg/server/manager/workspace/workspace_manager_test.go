@@ -11,6 +11,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	backend "kusionstack.io/kusion/pkg/backend"
 	entity "kusionstack.io/kusion/pkg/domain/entity"
+	"kusionstack.io/kusion/pkg/domain/request"
 )
 
 type mockWorkspaceRepository struct {
@@ -59,6 +60,54 @@ func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.Works
 func (m *mockWorkspaceRepository) Get(ctx context.Context, id uint) (*entity.Workspace, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*entity.Workspace), args.Error(1)
+}
+
+type mockBackendRepository struct {
+	mock.Mock
+}
+
+func (m *mockBackendRepository) GetByName(ctx context.Context, name string) (*entity.Backend, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) != nil {
+		return args.Get(0).(*entity.Backend), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *mockBackendRepository) GetByID(ctx context.Context, id uint) (*entity.Backend, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*entity.Backend), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *mockBackendRepository) Create(ctx context.Context, backend *entity.Backend) error {
+	args := m.Called(ctx, backend)
+	return args.Error(0)
+}
+
+func (m *mockBackendRepository) Update(ctx context.Context, backend *entity.Backend) error {
+	args := m.Called(ctx, backend)
+	return args.Error(0)
+}
+
+func (m *mockBackendRepository) Delete(ctx context.Context, id uint) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *mockBackendRepository) List(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error) {
+	args := m.Called(ctx, filter)
+	return &entity.BackendListResult{
+		Backends: args.Get(0).([]*entity.Backend),
+		Total:    len(args.Get(0).([]*entity.Backend)),
+	}, args.Error(1)
+}
+
+func (m *mockBackendRepository) Get(ctx context.Context, id uint) (*entity.Backend, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*entity.Backend), args.Error(1)
 }
 
 func TestInvalidNewBackendFromEntity(t *testing.T) {
@@ -161,11 +210,26 @@ func TestWorkspaceManager_GetWorkspaceByID(t *testing.T) {
 func TestWorkspaceManager_DeleteWorkspaceByID(t *testing.T) {
 	ctx := context.TODO()
 	id := uint(1)
-	// Create a mock workspace repository
-	mockRepo := &mockWorkspaceRepository{}
-	mockRepo.On("Delete", ctx, id).Return(nil)
+	// Create a mock workspace and backend repository
+	mockWorkspaceRepo := &mockWorkspaceRepository{}
+	mockBackendRepo := &mockBackendRepository{}
+
+	mockWorkspaceRepo.On("Get", ctx, id).Return(&entity.Workspace{
+		ID: id,
+		Backend: &entity.Backend{
+			ID: 1,
+		},
+	}, nil)
+	mockWorkspaceRepo.On("Delete", ctx, id).Return(nil)
+	mockBackendRepo.On("Get", ctx, id).Return(&entity.Backend{
+		ID: id,
+		BackendConfig: v1.BackendConfig{
+			Type: v1.BackendTypeLocal,
+		},
+	}, nil)
 	manager := &WorkspaceManager{
-		workspaceRepo: mockRepo,
+		workspaceRepo: mockWorkspaceRepo,
+		backendRepo:   mockBackendRepo,
 	}
 	err := manager.DeleteWorkspaceByID(ctx, id)
 	if err != nil {
@@ -176,27 +240,42 @@ func TestWorkspaceManager_DeleteWorkspaceByID(t *testing.T) {
 func TestWorkspaceManager_UpdateWorkspaceByID(t *testing.T) {
 	ctx := context.TODO()
 	id := uint(1)
-	// Create a mock workspace repository
-	mockRepo := &mockWorkspaceRepository{}
+	// Create a mock workspace and backend repository
+	mockWorkspaceRepo := &mockWorkspaceRepository{}
+	mockBackendRepo := &mockBackendRepository{}
 	// Set the expected return value for the Get method
-	expectedWorkspace := &entity.Workspace{
-		// Set your expected workspace entity here
+	expectedBackend := &entity.Backend{
+		ID: 1,
+		BackendConfig: v1.BackendConfig{
+			Type: v1.BackendTypeLocal,
+		},
 	}
-	mockRepo.On("Get", ctx, id).Return(expectedWorkspace, nil)
+
+	updatedWorkspace := &entity.Workspace{
+		ID:      id,
+		Name:    "dev",
+		Backend: expectedBackend,
+	}
+	mockWorkspaceRepo.On("Get", ctx, id).Return(updatedWorkspace, nil)
+	mockWorkspaceRepo.On("Update", ctx, updatedWorkspace).Return(nil)
+	mockBackendRepo.On("Get", ctx, id).Return(expectedBackend, nil)
 	// Create a new WorkspaceManager instance with the mock repository
 	manager := &WorkspaceManager{
-		workspaceRepo: mockRepo,
+		workspaceRepo: mockWorkspaceRepo,
+		backendRepo:   mockBackendRepo,
 	}
-	// Call the GetWorkspaceByID method
-	workspace, err := manager.GetWorkspaceByID(ctx, id)
+	// Call the UpdateWorkspaceByID method
+	workspace, err := manager.UpdateWorkspaceByID(ctx, id, request.UpdateWorkspaceRequest{
+		Name: "dev",
+	})
 	// Assert that the returned workspace matches the expected workspace
-	if !reflect.DeepEqual(workspace, expectedWorkspace) {
-		t.Errorf("GetWorkspaceByID() returned unexpected workspace.\nExpected: %v\nGot: %v", expectedWorkspace, workspace)
+	if !reflect.DeepEqual(workspace, updatedWorkspace) {
+		t.Errorf("UpdateWorkspaceByID() returned unexpected workspace.\nExpected: %v\nGot: %v", updatedWorkspace, workspace)
 	}
 	// Assert that no error occurred
 	if err != nil {
-		t.Errorf("GetWorkspaceByID() returned an unexpected error: %v", err)
+		t.Errorf("UpdateWorkspaceByID() returned an unexpected error: %v", err)
 	}
-	// Assert that the Get method of the mock repository was called with the correct parameters
-	mockRepo.AssertCalled(t, "Get", ctx, id)
+	// Assert that the Update method of the mock repository was called with the correct parameters
+	mockWorkspaceRepo.AssertCalled(t, "Update", ctx, updatedWorkspace)
 }

@@ -35,8 +35,6 @@ type UpdateWorkspaceRequest struct {
 	Labels map[string]string `json:"labels"`
 	// Owners is a list of owners for the workspace.
 	Owners []string `json:"owners"`
-	// BackendID is the configuration backend id associated with the workspace.
-	BackendID uint `json:"backendID"`
 }
 
 type WorkspaceCredentials struct {
@@ -59,6 +57,10 @@ func (payload *CreateWorkspaceRequest) Validate() error {
 		return constant.ErrEmptyWorkspaceName
 	}
 
+	if payload.Name == constant.DefaultWorkspace {
+		return constant.ErrInvalidDefaultWorkspaceName
+	}
+
 	if validName(payload.Name) {
 		return constant.ErrInvalidWorkspaceName
 	}
@@ -75,6 +77,10 @@ func (payload *CreateWorkspaceRequest) Validate() error {
 }
 
 func (payload *UpdateWorkspaceRequest) Validate() error {
+	if payload.Name == constant.DefaultWorkspace {
+		return constant.ErrInvalidDefaultWorkspaceName
+	}
+
 	if payload.Name != "" && validName(payload.Name) {
 		return constant.ErrInvalidWorkspaceName
 	}

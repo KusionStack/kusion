@@ -28,4 +28,7 @@ type Storage interface {
 
 	// SetCurrent sets the specified workspace as the current workspace.
 	SetCurrent(name string) error
+
+	// RenameWorkspace renames the workspace.
+	RenameWorkspace(oldName, newName string) error
 }

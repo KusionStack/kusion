@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
@@ -215,6 +214,40 @@ func TestS3Storage_SetCurrent(t *testing.T) {
 			mockey.PatchConvey("mock s3 operation", t, func() {
 				mockS3StorageWriteMeta()
 				err := mockS3Storage(mockWorkspacesMetaData()).SetCurrent(tc.current)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestS3Storage_RenameWorkspace(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		oldName string
+		newName string
+	}{
+		{
+			name:    "rename workspace successfully",
+			success: true,
+			oldName: "dev",
+			newName: "newName",
+		},
+		{
+			name:    "failed to rename workspace name is empty",
+			success: false,
+			oldName: "",
+			newName: "newName",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock s3 operation", t, func() {
+				mockey.Mock((*s3.S3).CopyObject).Return(&s3.CopyObjectOutput{}, nil).Build()
+				mockey.Mock((*s3.S3).PutObject).Return(&s3.PutObjectOutput{}, nil).Build()
+				mockey.Mock((*s3.S3).DeleteObject).Return(&s3.DeleteObjectOutput{}, nil).Build()
+				err := mockS3Storage(mockWorkspacesMetaData()).RenameWorkspace(tc.oldName, tc.newName)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

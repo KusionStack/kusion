@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
+	googlestorage "cloud.google.com/go/storage"
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/option"
-
-	googlestorage "cloud.google.com/go/storage"
 	googleauth "golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
@@ -221,4 +220,60 @@ func TestGoogleStorage_SetCurrent(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestGoogleStorage_RenameWorkspace(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		oldName string
+		newName string
+	}{
+		{
+			name:    "rename workspace successfully",
+			success: true,
+			oldName: "dev",
+			newName: "newName",
+		},
+		{
+			name:    "failed to rename workspace name is empty",
+			success: false,
+			oldName: "",
+			newName: "newName",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock google storage operations", t, func() {
+				mockey.Mock((*googlestorage.ObjectHandle).CopierFrom).Return(&googlestorage.Copier{}).Build()
+				mockey.Mock((*googlestorage.Copier).Run).Return(&googlestorage.ObjectAttrs{}, nil).Build()
+				mockey.Mock((*googlestorage.ObjectHandle).Delete).Return(nil).Build()
+				mockey.Mock((*googlestorage.BucketHandle).Object).Return(&googlestorage.ObjectHandle{}).Build()
+				mockey.Mock((*googlestorage.ObjectHandle).NewWriter).Return(&mockWriter{}).Build()
+				mockey.Mock((*mockWriter).Close).Return(nil).Build()
+				mockGoogleStorageWriteMeta()
+				mockGoogleStorageWriteWorkspace()
+				storage := mockGoogleStorage()
+
+				// Call the RenameWorkspace method
+				err := storage.RenameWorkspace(tc.oldName, tc.newName)
+
+				// Assert that no error occurred
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+type mockWriter struct{}
+
+func (w *mockWriter) Write(p []byte) (n int, err error) {
+	// Simulate a successful write operation
+	return len(p), nil
+}
+
+func (w *mockWriter) Close() error {
+	// Simulate a successful close operation
+	return nil
 }

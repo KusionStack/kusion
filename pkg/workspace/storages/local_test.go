@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
@@ -356,6 +355,46 @@ func TestLocalStorage_SetCurrent(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.wsName, current)
 				_ = s.SetCurrent("default")
+			}
+		})
+	}
+}
+
+func TestLocalStorage_RenameWorkspace(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		oldName string
+		newName string
+	}{
+		{
+			name:    "failed to rename workspace name is empty",
+			success: false,
+			oldName: "dev",
+			newName: "",
+		},
+		{
+			name:    "rename workspace successfully",
+			success: true,
+			oldName: "dev",
+			newName: "newName",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			os.RemoveAll(testDataFolder("for_rename_workspaces"))
+			s, err := NewLocalStorage(testDataFolder("for_rename_workspaces"))
+			assert.NoError(t, err)
+			err = s.Create(mockWorkspace(tc.oldName))
+			assert.NoError(t, err)
+			err = s.RenameWorkspace(tc.oldName, tc.newName)
+			assert.Equal(t, tc.success, err == nil)
+			if tc.success {
+				names, err := s.GetNames()
+				assert.NoError(t, err)
+				assert.Contains(t, names, tc.newName)
+				assert.NotContains(t, names, tc.oldName)
 			}
 		})
 	}
