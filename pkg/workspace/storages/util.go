@@ -65,6 +65,7 @@ func removeAvailableWorkspaces(meta *workspacesMetaData, name string) {
 	for i, ws := range meta.AvailableWorkspaces {
 		if name == ws {
 			meta.AvailableWorkspaces = append(meta.AvailableWorkspaces[:i], meta.AvailableWorkspaces[i+1:]...)
+			break // break the loop after removing the workspace
 		}
 	}
 

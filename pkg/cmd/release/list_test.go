@@ -102,6 +102,10 @@ func (f *fakeWorkspaceStorage) SetCurrent(name string) error {
 	return nil
 }
 
+func (f *fakeWorkspaceStorage) RenameWorkspace(oldName, newName string) error {
+	return nil
+}
+
 type fakeStorageForList struct {
 	revisions []uint64
 	releases  map[uint64]*v1.Release

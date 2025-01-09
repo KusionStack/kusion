@@ -8,7 +8,6 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
-
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
@@ -213,6 +212,40 @@ func TestOssStorage_SetCurrent(t *testing.T) {
 			mockey.PatchConvey("mock oss operation", t, func() {
 				mockOssStorageWriteMeta()
 				err := mockOssStorage(mockWorkspacesMetaData()).SetCurrent(tc.current)
+				assert.Equal(t, tc.success, err == nil)
+			})
+		})
+	}
+}
+
+func TestOssStorage_RenameWorkspace(t *testing.T) {
+	testcases := []struct {
+		name    string
+		success bool
+		oldName string
+		newName string
+	}{
+		{
+			name:    "rename workspace successfully",
+			success: true,
+			oldName: "dev",
+			newName: "newName",
+		},
+		{
+			name:    "failed to rename workspace name is empty",
+			success: false,
+			oldName: "",
+			newName: "newName",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockey.PatchConvey("mock oss operation", t, func() {
+				mockey.Mock(oss.Bucket.GetObject).Return(io.NopCloser(bytes.NewReader([]byte(""))), nil).Build()
+				mockey.Mock(oss.Bucket.PutObject).Return(nil).Build()
+				mockey.Mock(oss.Bucket.DeleteObject).Return(nil).Build()
+				err := mockOssStorage(mockWorkspacesMetaData()).RenameWorkspace(tc.oldName, tc.newName)
 				assert.Equal(t, tc.success, err == nil)
 			})
 		})

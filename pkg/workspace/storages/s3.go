@@ -127,6 +127,53 @@ func (s *S3Storage) SetCurrent(name string) error {
 	return s.writeMeta()
 }
 
+func (s *S3Storage) RenameWorkspace(oldName, newName string) (err error) {
+	if oldName == "" || newName == "" {
+		return fmt.Errorf("given name is empty")
+	}
+
+	// restore the old workspace name if the rename failed
+	defer func() {
+		if err != nil {
+			removeAvailableWorkspaces(s.meta, newName)
+			addAvailableWorkspaces(s.meta, oldName)
+			s.writeMeta()
+		}
+	}()
+
+	// update the meta file
+	removeAvailableWorkspaces(s.meta, oldName)
+	addAvailableWorkspaces(s.meta, newName)
+	if err = s.writeMeta(); err != nil {
+		return err
+	}
+
+	// rename the workspace file by copying and deleting
+	oldPath := s.prefix + "/" + oldName + yamlSuffix
+	newPath := s.prefix + "/" + newName + yamlSuffix
+
+	// copy to new path
+	copyInput := &s3.CopyObjectInput{
+		Bucket:     aws.String(s.bucket),
+		CopySource: aws.String(s.bucket + "/" + oldPath),
+		Key:        aws.String(newPath),
+	}
+	if _, err = s.s3.CopyObject(copyInput); err != nil {
+		return fmt.Errorf("copy workspace failed: %w", err)
+	}
+
+	// delete old file
+	deleteInput := &s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(oldPath),
+	}
+	if _, err = s.s3.DeleteObject(deleteInput); err != nil {
+		return fmt.Errorf("delete old workspace failed: %w", err)
+	}
+
+	return nil
+}
+
 func (s *S3Storage) initDefaultWorkspaceIf() error {
 	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.
