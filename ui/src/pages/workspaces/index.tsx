@@ -118,6 +118,7 @@ const Workspaces = () => {
     const response: any = await WorkspaceService.createWorkspace({
       body: {
         ...values,
+        // TODO: get actual owner
         owners: ['default']
       }
     })

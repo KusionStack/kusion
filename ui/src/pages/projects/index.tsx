@@ -174,10 +174,11 @@ const Projects = () => {
   }
 
 
-  const colums = [
+  const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
+      width: 230,
       render: (text, record) => {
         return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}?projectName=${record?.name}`)}>{text}</Button>
       }
@@ -185,10 +186,15 @@ const Projects = () => {
     {
       title: 'Source',
       dataIndex: 'source',
+      width: 400,
       render: (sourceObj) => {
         const remote = sourceObj?.remote;
         return `${remote?.Scheme}://${remote?.Host}${remote?.Path}`
       }
+    },
+    {
+      title: 'Path',
+      dataIndex: 'path',
     },
     {
       title: 'Description',
@@ -201,10 +207,6 @@ const Projects = () => {
           </div>
         </Tooltip>
       }
-    },
-    {
-      title: 'Path',
-      dataIndex: 'path',
     },
     {
       title: 'Create Time',
@@ -223,7 +225,7 @@ const Projects = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type='link' danger>Delete</Button>
+              <Button type='link' danger>delete</Button>
             </Popconfirm>
           </Space>
         )
@@ -279,7 +281,7 @@ const Projects = () => {
         <Table
           rowKey="id"
           title={renderTableTitle}
-          columns={colums}
+          columns={columns}
           dataSource={dataSource}
           pagination={
             {

@@ -1,7 +1,9 @@
 import React from "react";
 import { Button, Popconfirm, Tooltip } from "antd";
 import workspaceSvg from "@/assets/img/workspace.svg"
-
+import {
+  DeleteOutlined,
+} from '@ant-design/icons'
 import styles from "./styles.module.less"
 
 const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete }) => {
@@ -27,7 +29,7 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete })
               okText="Yes"
               cancelText="No"
             >
-              <Button type='link' danger>Delete</Button>
+              <Button type='link' danger><DeleteOutlined /></Button>
             </Popconfirm>
           </div>
         </div>

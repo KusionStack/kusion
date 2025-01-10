@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import {
-  CodeOutlined,
+  FileOutlined,
   QuestionCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons'
@@ -30,7 +30,7 @@ const NavRight = ({ onClick, selectedKey }) => {
             window.open('https://www.kusionstack.io/docs')
           }}
         >
-          <CodeOutlined style={iconStyle} />
+          <FileOutlined style={iconStyle} />
           Document
         </span>
       </div>
@@ -41,7 +41,7 @@ const NavRight = ({ onClick, selectedKey }) => {
           }}
         >
           <QuestionCircleOutlined style={iconStyle} />
-          Help&Fallback
+          Help&Feedback
         </span>
       </div>
     </div>
