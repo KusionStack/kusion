@@ -1,6 +1,6 @@
 ## Overview
 
-Karpor Dashboard is the dashboard of karpor, which provides users with functions such as multi-cluster search and insights.
+The Kusion Developer Portal is a centralized web interface that provides streamlined management and interaction with the `Kusion` server through an intuitive UI.
 
 ## Quick Start
 

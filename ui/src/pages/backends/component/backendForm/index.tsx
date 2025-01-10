@@ -91,16 +91,21 @@ const BackendForm = ({
                 required: true,
               },
             ]}>
-              <Input />
+              <Input placeholder="Enter backend name" />
             </Form.Item>
             <Form.Item label="Type" name='type' rules={[
               {
                 required: true,
               },
             ]}>
-              <Select placeholder="please select type">
+              <Select placeholder="Select backend type">
                 {
-                  ['oss', 's3', 'local', 'google']?.map(item => <Select.Option key={item} value={item}>{item}</Select.Option>)
+                  [
+                    { label: 'aliyun-oss', value: 'oss' },
+                    { label: 'aws-s3', value: 's3' },
+                    { label: 'local', value: 'local' },
+                    { label: 'google-cloud-storage', value: 'google' }
+                  ].map(item => <Select.Option key={item.value} value={item.value}>{item.label}</Select.Option>)
                 }
               </Select>
             </Form.Item>
@@ -130,7 +135,7 @@ const BackendForm = ({
                                 },
                               ]}
                             >
-                              <Input style={{ width: 250 }} />
+                              <Input style={{ width: 250 }} placeholder="Enter key" />
                             </Form.Item>
                             <Form.Item
                               style={{ flex: 1 }}
@@ -138,7 +143,7 @@ const BackendForm = ({
                               name={[name, 'value']}
                               rules={[{ required: false, message: 'Required' }]}
                             >
-                              <Input style={{ width: 250 }} />
+                              <Input style={{ width: 250 }} placeholder="Enter value" />
                             </Form.Item>
                             {fields?.length > 1 && (
                               <MinusCircleOutlined onClick={() => remove(name)} />
@@ -161,16 +166,26 @@ const BackendForm = ({
                 )
               }}
             </Form.List>
-            <Form.Item
-              label="Description"
-              name="description"
-              rules={[
-                {
-                  required: false,
-                },
-              ]}
+            <Form.Item name="description" label="Description"
+              getValueFromEvent={(e) => {
+                const currentValue = e.target.value;
+                const previousValue = form.getFieldValue('description') || '';
+                const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
+                
+                // If word count exceeds 200, return the previous value
+                return wordCount <= 200 ? currentValue : previousValue;
+              }}
             >
-              <Input.TextArea rows={4} />
+              <Input.TextArea
+                placeholder="Enter description for this backend..."
+                rows={4}
+                showCount={{
+                  formatter: ({ value }) => {
+                    const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                    return `${words} / 200 words`;
+                  }
+                }}
+              />
             </Form.Item>
           </Form>
         </div>

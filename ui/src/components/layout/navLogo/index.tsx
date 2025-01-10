@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '@/assets/img/Kusion_logo.png'
+import logo from '@/assets/img/kusion_logo_white_transparent.png'
 
 import styles from './style.module.less'
 

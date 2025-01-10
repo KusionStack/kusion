@@ -70,7 +70,7 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
         layout="vertical"
       >
         <Form.Item name="backendID" label="BackendID">
-          <Select placeholder="Please select a backend">
+          <Select placeholder="Select a backend">
             {
               backendList?.map((item: any) => {
                 return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
@@ -80,14 +80,29 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
         </Form.Item>
         <Form.Item name="name" label="Name">
           <Input
-            placeholder="Please input"
+            placeholder="Enter workspace name"
             className={styles.inputConfigPath}
           />
         </Form.Item>
-        <Form.Item name="description" label="Description">
+        <Form.Item name="description" label="Description"
+          getValueFromEvent={(e) => {
+            const currentValue = e.target.value;
+            const previousValue = form.getFieldValue('description') || '';
+            const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
+            
+            // If word count exceeds 200, return the previous value
+            return wordCount <= 200 ? currentValue : previousValue;
+          }}
+        >
           <Input.TextArea
-            placeholder="This is a description, it may be long or short..."
+            placeholder="Enter description for this workspace..."
             rows={4}
+            showCount={{
+              formatter: ({ value }) => {
+                const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                return `${words} / 200 words`;
+              }
+            }}
           />
         </Form.Item>
       </Form>

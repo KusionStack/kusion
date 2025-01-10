@@ -27,7 +27,7 @@ const NavRight = ({ onClick, selectedKey }) => {
       <div className={styles.nav_right_item}>
         <span
           onClick={() => {
-            window.open('https://www.kusionstack.io/karpor')
+            window.open('https://www.kusionstack.io/docs')
           }}
         >
           <CodeOutlined style={iconStyle} />
@@ -37,7 +37,7 @@ const NavRight = ({ onClick, selectedKey }) => {
       <div className={styles.nav_right_item}>
         <span
           onClick={() => {
-            window.open('https://www.kusionstack.io/karpor')
+            window.open('https://github.com/KusionStack/kusion/issues')
           }}
         >
           <QuestionCircleOutlined style={iconStyle} />

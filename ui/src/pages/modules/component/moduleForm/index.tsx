@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Modal, Form, Input, Space, message } from 'antd'
 import isUrl from 'is-url'
-import styles from './styles.module.less';
 
 const ModuleForm = ({
   open,
@@ -105,7 +104,7 @@ const ModuleForm = ({
               },
             ]}
           >
-            <Input disabled={actionType === 'EDIT'} />
+            <Input placeholder="Enter module name" disabled={actionType === 'EDIT'} />
           </Form.Item>
           <Form.Item
             label="URL"
@@ -129,7 +128,7 @@ const ModuleForm = ({
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Enter module URL" />
           </Form.Item>
           <Form.Item
             label="Document URL" 
@@ -148,14 +147,29 @@ const ModuleForm = ({
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Enter module document URL" />
           </Form.Item>
-          <Form.Item
-            label="Description"
-            name="description"
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
+          <Form.Item name="description" label="Description"
+          getValueFromEvent={(e) => {
+            const currentValue = e.target.value;
+            const previousValue = form.getFieldValue('description') || '';
+            const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
+            
+            // If word count exceeds 200, return the previous value
+            return wordCount <= 200 ? currentValue : previousValue;
+          }}
+        >
+          <Input.TextArea
+            placeholder="Enter description for this module..."
+            rows={4}
+            showCount={{
+              formatter: ({ value }) => {
+                const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                return `${words} / 200 words`;
+              }
+            }}
+          />
+        </Form.Item>
         </Form>
       </Modal>
     </div>

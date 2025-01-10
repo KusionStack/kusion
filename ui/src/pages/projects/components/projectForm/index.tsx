@@ -72,7 +72,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
           ]}
         >
           <Input
-            placeholder="Enter project name"
+            placeholder="Enter project name" 
           />
         </Form.Item>
         <Form.Item name="projectSource" label="Project Source"
@@ -124,17 +124,17 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
             const previousValue = form.getFieldValue('description') || '';
             const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
             
-            // If word count exceeds 100, return the previous value
-            return wordCount <= 100 ? currentValue : previousValue;
+            // If word count exceeds 200, return the previous value
+            return wordCount <= 200 ? currentValue : previousValue;
           }}
         >
           <Input.TextArea
-            placeholder="Enter description..."
+            placeholder="Enter description for this project..."
             rows={4}
             showCount={{
               formatter: ({ value }) => {
                 const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
-                return `${words} / 100`;
+                return `${words} / 200 words`;
               }
             }}
           />

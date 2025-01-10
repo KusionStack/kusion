@@ -34,7 +34,7 @@ const SourceForm = ({
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('submit failed');
     } finally {
       setLoading(false);
     }
@@ -70,13 +70,13 @@ const SourceForm = ({
         }
       >
         <div style={{ margin: 20 }}>
-          <Form form={form} layout="horizontal">
+          <Form form={form} layout="vertical">
             <Form.Item label="Name" name='name' rules={[
               {
                 required: true,
               },
             ]}>
-              <Input />
+              <Input placeholder="Enter source name" />
             </Form.Item>
             <Form.Item label="Remote" name='remote' rules={[
               {
@@ -85,20 +85,24 @@ const SourceForm = ({
               {
                 validator: (_, value) => {
                   if (!value) {
-                    return Promise.reject('必填项')
+                    return Promise.reject('required')
                   }
                   if (isUrl(value)) {
                     return Promise.resolve()
                   } else {
-                    return Promise.reject('不是一个URL')
+                    return Promise.reject('not a url')
                   }
                 },
               },
             ]}>
-              <Input />
+              <Input placeholder="Enter source address" />
             </Form.Item>
-            <Form.Item label="SourceProvider" name='sourceProvider'>
-              <Select placeholder="Please select source provider">
+            <Form.Item label="SourceProvider" name='sourceProvider' rules={[
+              {
+                required: true,
+              },
+            ]}>
+              <Select placeholder="Select source provider">
                 <Select.Option key="git" value="git">git</Select.Option>
               </Select>
             </Form.Item>
@@ -111,7 +115,16 @@ const SourceForm = ({
                 },
               ]}
             >
-              <Input.TextArea rows={4} />
+              <Input.TextArea
+                placeholder="Enter description for this source..."
+                rows={4}
+                showCount={{
+                  formatter: ({ value }) => {
+                    const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                    return `${words} / 200 words`;
+                  }
+                }}
+              />
             </Form.Item>
           </Form>
         </div>

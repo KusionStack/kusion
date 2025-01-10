@@ -101,10 +101,12 @@ const ModulePage = () => {
     {
       title: 'Name',
       dataIndex: 'name',
+      width: 300,
     },
     {
       title: 'Registry',
       dataIndex: 'registry',
+      width: 450,
       render: (_, record) => {
         return `${record?.url?.Scheme}://${record?.url?.Host}${record?.url?.Path}`;
       }
@@ -112,7 +114,7 @@ const ModulePage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 350,
+      width: 400,
       render: (desc) => {
         return <Tooltip placement="topLeft" title={desc}>
           <div className={styles.moduleDesc}>
@@ -127,8 +129,14 @@ const ModulePage = () => {
       render: (_, record) => {
         return (
           <Space>
-            <Button type='link' onClick={() => handleEdit(record)}>edit</Button>
-            <Button type='link' href={record?.doc?.Path} target='_blank'>doc</Button>
+            {record?.doc?.Host && record?.doc?.Path ? (
+              <Button style={{ padding: '0px' }} type='link' href={`${record?.doc?.Scheme}://${record?.doc?.Host}${record?.doc?.Path}`} target='_blank'>doc</Button>
+            ) : (
+              <Button style={{ padding: '0px' }} type='link' disabled>doc</Button>
+            )}
+            <span style={{ padding: '0px 10px' }}></span>
+            <Button style={{ padding: '0px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <span>/</span>
             <Popconfirm
               title="Delete the module"
               description="Are you sure to delete this module?"
@@ -136,7 +144,7 @@ const ModulePage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type='link' danger>Delete</Button>
+              <Button style={{ padding: '0px' }} type='link' danger>delete</Button>
             </Popconfirm>
           </Space>
         )

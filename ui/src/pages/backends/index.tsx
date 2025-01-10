@@ -92,7 +92,7 @@ const BackendsPage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 350,
+      width: 500,
       render: (desc) => {
         return <Tooltip placement="topLeft" title={desc}>
           <div className={styles.backendDesc}>
@@ -105,7 +105,7 @@ const BackendsPage = () => {
       title: 'Config',
       dataIndex: 'config',
       render: (_, record) => {
-        return <Button type='link' onClick={() => handleShowConfig(record)}>Detail</Button>
+        return <Button style={{ padding: '0px' }} type='link' onClick={() => handleShowConfig(record)}>Detail</Button>
       }
     },
     {
@@ -114,7 +114,8 @@ const BackendsPage = () => {
       render: (_, record) => {
         return (
           <Space>
-            <Button style={{ padding: '0 5px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <Button style={{ padding: '0px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <span>/</span>
             <Popconfirm
               title="Delete the backend"
               description="Are you sure to delete this backend?"
@@ -122,7 +123,7 @@ const BackendsPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type='link' danger>Delete</Button>
+              <Button style={{ padding: '0px' }} type='link' danger>delete</Button>
             </Popconfirm>
           </Space>
         )
