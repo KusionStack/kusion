@@ -36,6 +36,7 @@ type Project struct {
 type ProjectFilter struct {
 	OrgID      uint
 	Name       string
+	FuzzyName  string
 	Pagination *Pagination
 }
 

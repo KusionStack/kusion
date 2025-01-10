@@ -20,4 +20,5 @@ var (
 	ErrInvalidAppConfigName     = errors.New("appConfig name can only have alphanumeric characters and underscores with [a-zA-Z0-9_]")
 	ErrInvalidProjectID         = errors.New("the project ID should be a uuid")
 	ErrInvalidStackID           = errors.New("the stack ID should be a uuid")
+	ErrProjectNameAndFuzzyName  = errors.New("project name and fuzzy name cannot be set at the same time")
 )
