@@ -13,7 +13,7 @@ const ModulePage = () => {
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
   const [searchParams, setSearchParams] = useState({
-    pageSize: 20,
+    pageSize: 10,
     page: 1,
     query: undefined,
     total: undefined,
@@ -106,7 +106,7 @@ const ModulePage = () => {
       title: 'Registry',
       dataIndex: 'registry',
       render: (_, record) => {
-        return record?.url?.Path;
+        return `${record?.url?.Scheme}://${record?.url?.Host}${record?.url?.Path}`;
       }
     },
     {

@@ -13,7 +13,7 @@ const SourcesPage = () => {
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
   const [searchParams, setSearchParams] = useState({
-    pageSize: 20,
+    pageSize: 10,
     page: 1,
     query: undefined,
     total: undefined,
@@ -118,7 +118,7 @@ const SourcesPage = () => {
       title: 'Url',
       dataIndex: 'remote',
       render: (remoteObj) => {
-        return `${remoteObj?.Scheme}//${remoteObj?.Host}${remoteObj?.Path}`
+        return `${remoteObj?.Scheme}://${remoteObj?.Host}${remoteObj?.Path}`
       }
     },
     {

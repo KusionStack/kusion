@@ -84,7 +84,7 @@ const WorkspaceDetail = () => {
     },
     {
       key: 'modules',
-      label: '可用 modules',
+      label: 'Available modules',
     },
   ]
 

@@ -103,7 +103,7 @@ const Projects = () => {
     })
     getProjectList({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       query: values,
     })
   }
@@ -135,7 +135,7 @@ const Projects = () => {
       const response: any = await ProjectService.listProject({
         query: {
           ...params?.query,
-          pageSize: params?.pageSize || 20,
+          pageSize: params?.pageSize || 10,
           page: params?.page,
         }
       });
@@ -187,7 +187,7 @@ const Projects = () => {
       dataIndex: 'source',
       render: (sourceObj) => {
         const remote = sourceObj?.remote;
-        return `${remote?.Scheme}//${remote?.Host}${remote?.Path}`
+        return `${remote?.Scheme}://${remote?.Host}${remote?.Path}`
       }
     },
     {

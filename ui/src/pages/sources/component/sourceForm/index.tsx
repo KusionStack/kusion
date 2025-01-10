@@ -20,7 +20,7 @@ const SourceForm = ({
         name: formData?.name,
         sourceProvider: formData?.sourceProvider,
         description: formData?.description,
-        remote: `${remote?.Scheme}//${remote?.Host}${remote?.Path}`,
+        remote: `${remote?.Scheme}://${remote?.Host}${remote?.Path}`,
       })
     }
   }, [formData, form])

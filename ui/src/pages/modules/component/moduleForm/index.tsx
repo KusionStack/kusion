@@ -23,8 +23,8 @@ const ModuleForm = ({
       const docUrl = formData?.doc;
       form.setFieldsValue({
         ...formData,
-        url: `${url?.Scheme}${url?.Host}${url?.Path}`,
-        doc: `${docUrl?.Scheme}//${docUrl?.Host}${docUrl?.Path}`,
+        url: `${url?.Scheme}://${url?.Host}${url?.Path}`,
+        doc: `${docUrl?.Scheme}://${docUrl?.Host}${docUrl?.Path}`,
       })
     }
   }, [formData, form])
