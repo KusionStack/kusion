@@ -11,7 +11,7 @@ func TestNewCmdRel(t *testing.T) {
 	t.Run("successfully get release help", func(t *testing.T) {
 		streams, _, _, _ := genericiooptions.NewTestIOStreams()
 
-		cmd := NewCmdRel(streams)
+		cmd := NewCmdRel(nil, streams)
 		assert.NotNil(t, cmd)
 	})
 }
