@@ -32,7 +32,7 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete })
           </div>
         </div>
         <div className={styles.workspace_card_content} onClick={onClick}>
-          <Tooltip title={desc}>
+          <Tooltip title={desc} placement="topLeft">
             <div className={styles.kusion_card_content_desc}>
               {desc}
             </div>

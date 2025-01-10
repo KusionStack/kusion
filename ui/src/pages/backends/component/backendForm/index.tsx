@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Modal, Form, Input, Space, message, Select } from 'antd'
+import { Button, Modal, Form, Input, Space, Select } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 const BackendForm = ({
@@ -15,11 +15,12 @@ const BackendForm = ({
 
   useEffect(() => {
     if (formData) {
+      const configs = formData?.backendConfig?.configs ? Object.entries(formData?.backendConfig?.configs)?.map(([key, value]) => ({ key, value })) : []
       form.setFieldsValue({
         name: formData?.name,
         type: formData?.backendConfig?.type,
         description: formData?.description,
-        configs: formData?.backendConfig?.configs ? JSON.stringify(formData?.backendConfig?.configs) : '',
+        configs: configs
       })
     }
   }, [formData, form])
@@ -31,9 +32,16 @@ const BackendForm = ({
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      handleSubmit(values)
+      const configObj = {};
+      values?.configs?.forEach(({ key, value }) => {
+        configObj[key] = value
+      })
+      handleSubmit({
+        ...values,
+        configs: Object.keys(configObj)?.length > 0 ? configObj : undefined
+      })
     } catch (e) {
-      message.error('提交失败');
+      console.log(e, "Error")
     } finally {
       setLoading(false);
     }
@@ -104,7 +112,6 @@ const BackendForm = ({
                       return (
                         <Form.Item
                           label={index === 0 ? 'Configs' : ''}
-                          required={true}
                           key={key}
                           style={{ marginBottom: 0 }}
                         >

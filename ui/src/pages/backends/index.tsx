@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, message, Popconfirm, Space, Table, Tag } from 'antd'
+import { Button, message, Popconfirm, Space, Table, Tag, Tooltip } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
 import BackendForm from './component/backendForm'
@@ -92,6 +92,14 @@ const BackendsPage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
+      width: 350,
+      render: (desc) => {
+        return <Tooltip placement="topLeft" title={desc}>
+          <div className={styles.backendDesc}>
+            {desc}
+          </div>
+        </Tooltip>
+      }
     },
     {
       title: 'Config',
@@ -129,7 +137,7 @@ const BackendsPage = () => {
       bodyParams = {
         name: values?.name,
         backendConfig: {
-          configs: values?.configs ? JSON.parse(values?.configs) : {},
+          configs: values?.configs,
           type: values?.type,
         },
         description: values?.description
@@ -192,7 +200,12 @@ const BackendsPage = () => {
         </div>
       </div>
       <div className={styles.modules_content}>
-        <Table rowKey="id" columns={columns} dataSource={dataSource} />
+        <Table
+          title={() => <h4>Backend List</h4>}
+          rowKey="id"
+          columns={columns}
+          dataSource={dataSource}
+        />
       </div>
       <ConfigYamlDrawer {...configYamlProps} />
       <BackendForm {...sourceFormProps} />

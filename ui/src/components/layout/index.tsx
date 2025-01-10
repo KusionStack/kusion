@@ -3,17 +3,20 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import NavLogo from './navLogo'
 import KusionMenu from './kusionMenu'
 import NavRight from './navRight'
+// import { router } from '@/router'
 
 import styles from './style.module.less'
 
-
 const LayoutPage = () => {
+
+  // console.log(router?.[0], "===router====")
 
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [selectedKey, setSelectedKey] = useState(pathname);
 
   useEffect(() => {
+    console.log(pathname, "====workspaces====")
     setSelectedKey(pathname)
   }, [pathname])
 

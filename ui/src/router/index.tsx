@@ -29,7 +29,7 @@ export interface RouteObject {
   index?: any
 }
 
-const router: RouteObject[] = [
+export const router: RouteObject[] = [
   {
     path: '/',
     element: <Layout />,

@@ -193,8 +193,9 @@ const Projects = () => {
     {
       title: 'Description',
       dataIndex: 'description',
+      width: 350,
       render: (desc) => {
-        return <Tooltip title={desc}>
+        return <Tooltip placement="topLeft" title={desc}>
           <div className={styles.projectDetail}>
             {desc}
           </div>

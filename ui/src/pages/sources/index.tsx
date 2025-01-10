@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Popconfirm, Space, Table } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table, Tooltip } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
@@ -113,6 +113,15 @@ const SourcesPage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
+      width: 350,
+      render: (desc) => {
+        return <Tooltip placement="topLeft" title={desc}>
+          <div className={styles.sourceDesc}>
+            {desc}
+          </div>
+        </Tooltip>
+      }
+
     },
     {
       title: 'Url',
@@ -218,8 +227,9 @@ const SourcesPage = () => {
       </div>
       <div className={styles.modules_content}>
         <Table
+          title={() => <h4>Source List</h4>}
           rowKey="id"
-          columns={columns} 
+          columns={columns}
           dataSource={dataSource}
           pagination={
             {
