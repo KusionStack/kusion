@@ -197,6 +197,15 @@ func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Valu
 		filter.Name = name
 	}
 
+	fuzzyName := query.Get("fuzzyName")
+	if fuzzyName != "" {
+		filter.FuzzyName = fuzzyName
+	}
+
+	if name != "" && fuzzyName != "" {
+		return nil, constant.ErrProjectNameAndFuzzyName
+	}
+
 	// Set pagination parameters.
 	page, _ := strconv.Atoi(query.Get("page"))
 	if page <= 0 {
