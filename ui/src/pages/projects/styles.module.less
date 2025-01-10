@@ -13,14 +13,17 @@
     border-radius: 8px;
     margin-bottom: 20px;
   }
+
   .projects_content {
     .projects_content_toolbar {
       display: flex;
       align-items: center;
+
       .projects_content_toolbar_list {
         display: flex;
         align-items: center;
         margin-left: 10px;
+
         .projects_content_toolbar_item {
           height: 22px;
           border-radius: 11px;
@@ -33,6 +36,17 @@
         }
       }
     }
-    
+
   }
+}
+
+.projectDetail {
+  display: -webkit-box;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  cursor: pointer;
 }

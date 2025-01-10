@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table, Select, Popconfirm } from 'antd'
+import { Button, Form, Input, message, Space, Table, Select, Popconfirm, Tooltip } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
@@ -193,6 +193,13 @@ const Projects = () => {
     {
       title: 'Description',
       dataIndex: 'description',
+      render: (desc) => {
+        return <Tooltip title={desc}>
+          <div className={styles.projectDetail}>
+            {desc}
+          </div>
+        </Tooltip>
+      }
     },
     {
       title: 'Path',
@@ -256,9 +263,6 @@ const Projects = () => {
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
             <Form.Item name="name" label="Project Name">
-              <Input />
-            </Form.Item>
-            <Form.Item name="owner" label="Owner">
               <Input />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>

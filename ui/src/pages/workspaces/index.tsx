@@ -194,7 +194,7 @@ const Workspaces = () => {
                       desc={innerItem?.description}
                       createDate={innerItem?.creationTimestamp}
                       nickName={innerItem?.owners}
-                      onClick={() => navigate(`/workspaces/detail/${innerItem?.id}`)}
+                      onClick={() => navigate(`/workspaces/detail/${innerItem?.id}?workspaceName=${innerItem?.name}`)}
                       onDelete={() => confirmDelete(innerItem)}
                     />
                   </Col>

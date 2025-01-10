@@ -46,10 +46,7 @@ const EditYamlDrawer = ({ yamlData, open, handleSubmit, handleClose }) => {
         </Space>
       }
     >
-      {
-        yamlStr &&
-        <YamlEditor value={yamlStr} readOnly={false} onChange={handleChange} themeMode='DARK' />
-      }
+      <YamlEditor value={yamlStr} readOnly={false} onChange={handleChange} themeMode='DARK' />
     </Drawer>
   )
 

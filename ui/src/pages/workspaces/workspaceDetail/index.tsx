@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Button, Card, message, Table, Tabs } from 'antd'
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import BackWithTitle from '@/components/backWithTitle';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import YamlEditor from '@/components/yamlEditor';
 import { josn2yaml, yaml2json } from '@/utils/tools'
 import EditYamlDrawer from '../components/editYamlDrawer';
@@ -14,6 +14,7 @@ import { DEFAULT_WORKSPACE_YAML } from '@/utils/constants';
 const WorkspaceDetail = () => {
   const navigate = useNavigate();
   const urlParams = useParams();
+  const [urlSearchName] = useSearchParams();
   const [open, setOpen] = useState(false)
   const [openMod, setOpenMod] = useState(false)
   const [activeKey, setActiveKey] = useState('yaml');
@@ -137,18 +138,16 @@ const WorkspaceDetail = () => {
   return (
 
     <div className={styles.workspace_detail_container}>
-      <BackWithTitle title="Workspaces" handleBack={handleBack} />
+      <BackWithTitle title={urlSearchName?.get('workspaceName')} handleBack={handleBack} />
       <Card>
         <div className={styles.workspace_detail}>
           <Tabs activeKey={activeKey} items={items} onChange={handleTabsChange} />
           {
             activeKey === 'yaml' && <>
               <Button type='primary' style={{ marginBottom: 15 }} onClick={handleEdit}>Edit Yaml</Button>
+              <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
               {
-                yamlData && <YamlEditor readOnly={true} value={yamlData} themeMode={'DARK'} />
-              }
-              {
-                open && yamlData && <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
+                open && <EditYamlDrawer yamlData={yamlData} open={open} handleClose={handleClose} handleSubmit={handleSubmit} />
               }
             </>
           }
