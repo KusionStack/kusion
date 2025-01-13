@@ -38,9 +38,8 @@ const WorkspaceDetail = () => {
         }
       })
       setWorkspaceModules(list)
-      const yamlStr = Object?.keys(response?.data?.data)?.length > 0 ? JSON.stringify(response?.data?.data || {}, null, 2) : JSON.stringify(DEFAULT_WORKSPACE_YAML, null, 2)
-      console.log(yamlStr, "====yamlStr====")
-      setYamlData(josn2yaml(yamlStr)?.data)
+      const yamlStr = Object?.keys(response?.data?.data)?.length > 0 && JSON.stringify(response?.data?.data || {}, null, 2) 
+      setYamlData(yamlStr ? josn2yaml(yamlStr)?.data : DEFAULT_WORKSPACE_YAML)
     } else {
       message.error(response?.data?.message)
     }

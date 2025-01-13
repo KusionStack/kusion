@@ -22,42 +22,31 @@ export const RUNS_ACTION_MAP = {
   Delete: 'Delete',
 }
 
-const moduleIdentifier = "myModule";
-const kamName = "myKAM";
-const moduleName = "module-name";
-const moduleVersion = "0.2.0";
-const field1 = "apiUrl";
-const value1 = "https://api.example.com";
-const field2 = "timeout";
-const value2 = "30s";
-const patcherName = "myPatcher";
-const field1Override = "https://api.override.com";
-const project1Name = "project1";
-const project2Name = "project2";
-const region = "us-west-2";
-const profile = "default";
-const contextName = "env";
-const contextValue = "production";
-
 export const DEFAULT_WORKSPACE_YAML = `
-#  modules:
-#    ${moduleIdentifier} or ${kamName}:
-#      path: oci://ghcr.io/kusionstack/${moduleName}
-#      version: ${moduleVersion}
-#      configs: 
-#        default:
-#          ${field1}: ${value1}
-#          ${field2}: ${value2}
-#        ${patcherName}:
-#          ${field1}: ${field1Override}
-#          projectSelector:
-#          - ${project1Name}
-#          - ${project2Name}
-#  secretStore:
-#    provider:
-#      aws:
-#        region: ${region}
-#        profile: ${profile}
-#  context:
-#    ${contextName}: ${contextValue}
-`;
+## The platform configuration for Modules:
+# modules:
+#   \${module_identifier} or \${KAM_name}:
+#     path: oci://ghcr.io/kusionstack/module-name # url of the module artifact
+#     version: 0.2.0 # version of the module
+#     configs: 
+#       default: # default configuration, applied to all projects
+#         \${field1}: \${value1}
+#         #\${field2}: \${value2}
+#         ...
+#       \${patcher_name}: #patcher configuration, applied to the projects assigned in projectSelector
+#         \${field1}: \${value1_override}
+#         ...
+#         projectSelector:
+#         - \${project1_name}
+#         - \${project2_name}
+#     ...
+# secretStore: # access the sensitive data stored in a cloud-based secrets manager
+#   provider:
+#     aws:
+#       region: \${region}
+#       profile: \${profile}
+#     ...
+# context:
+#   \${context_name}: \${context_value}
+#   ... 
+`
