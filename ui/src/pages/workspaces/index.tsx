@@ -27,7 +27,6 @@ const Workspaces = () => {
   async function getBackendList() {
     try {
       const response: any = await BackendService.listBackend({
-        ...searchParams,
         query: {
           page: 1,
           pageSize: 10000,
@@ -163,7 +162,7 @@ const Workspaces = () => {
       <div className={styles.kusion_workspace_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
-            <Form.Item name="backendID" label="Workspace Name">
+            <Form.Item name="backendID" label="Backend">
               <Select style={{ width: 200 }}>
                 {
                   backendList?.map(item => <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>)
