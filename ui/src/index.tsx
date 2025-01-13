@@ -11,6 +11,8 @@ import store from '@/store'
 
 import './index.less'
 
+console.log(process.env, "========env========")
+
 
 client.setConfig({
   baseUrl: 'http://localhost:80'
