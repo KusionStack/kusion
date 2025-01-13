@@ -1030,6 +1030,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Fuzzy match project name to filter project list by.",
+                        "name": "fuzzyName",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "The current page to fetch. Default to 1",
                         "name": "page",
@@ -3754,17 +3760,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {
