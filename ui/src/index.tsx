@@ -11,9 +11,8 @@ import store from '@/store'
 
 import './index.less'
 
-
 client.setConfig({
-  baseUrl: 'http://30.177.35.231:80'
+  baseUrl: `http://localhost:${process.env.REACT_APP_SERVER_PORT || 80}`
 });
 
 dayjs.locale('en-US')
