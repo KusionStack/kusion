@@ -1,3 +1,4 @@
+//nolint:dupl
 package persistence
 
 import (
@@ -105,10 +106,17 @@ func (r *organizationRepository) GetByName(ctx context.Context, name string) (*e
 }
 
 // List retrieves all organizations.
-func (r *organizationRepository) List(ctx context.Context) ([]*entity.Organization, error) {
+func (r *organizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
 	var dataModel []OrganizationModel
 	organizationEntityList := make([]*entity.Organization, 0)
-	result := r.db.WithContext(ctx).Find(&dataModel)
+
+	// Get total rows.
+	var totalRows int64
+	r.db.WithContext(ctx).Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data with offset and limit.
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -119,5 +127,8 @@ func (r *organizationRepository) List(ctx context.Context) ([]*entity.Organizati
 		}
 		organizationEntityList = append(organizationEntityList, organizationEntity)
 	}
-	return organizationEntityList, nil
+	return &entity.OrganizationListResult{
+		Organizations: organizationEntityList,
+		Total:         int(totalRows),
+	}, nil
 }

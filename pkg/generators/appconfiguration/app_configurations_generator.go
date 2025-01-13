@@ -299,6 +299,13 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		}
 		// merge labels
 		for k, v := range patcher.Labels {
+			// NOTE: we implement value-based map removal by agreeing on a specific value
+			// `ops://kusionstack.io/remove` as the `remove` operation index for label patcher.
+			if v == removalVal {
+				delete(objLabels, k)
+				continue
+			}
+
 			objLabels[k] = v
 		}
 		un.SetLabels(objLabels)
@@ -315,6 +322,13 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		}
 		// merge labels
 		for k, v := range patcher.PodLabels {
+			// NOTE: we implement value-based map removal by agreeing on a specific value
+			// `ops://kusionstack.io/remove` as the `remove` operation index for pod label patcher.
+			if v == removalVal {
+				delete(podLabels, k)
+				continue
+			}
+
 			podLabels[k] = v
 		}
 		err = unstructured.SetNestedStringMap(un.Object, podLabels, "spec", "template", "metadata", "labels")
@@ -331,6 +345,13 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		}
 		// merge annotations
 		for k, v := range patcher.Annotations {
+			// NOTE: we implement value-based map removal by agreeing on a specific value
+			// `ops://kusionstack.io/remove` as the `remove` operation index for annotation patcher.
+			if v == removalVal {
+				delete(objAnnotations, k)
+				continue
+			}
+
 			objAnnotations[k] = v
 		}
 		un.SetAnnotations(objAnnotations)
@@ -347,6 +368,13 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 		}
 		// merge annotations
 		for k, v := range patcher.PodAnnotations {
+			// NOTE: we implement value-based map removal by agreeing on a specific value
+			// `ops://kusionstack.io/remove` as the `remove` operation index for pod annotation patcher.
+			if v == removalVal {
+				delete(podAnnotations, k)
+				continue
+			}
+
 			podAnnotations[k] = v
 		}
 		err = unstructured.SetNestedStringMap(un.Object, podAnnotations, "spec", "template", "metadata", "annotations")
@@ -393,7 +421,7 @@ func PatchWorkload(workload *v1.Resource, patcher *v1.Patcher) error {
 					} else {
 						name := e["name"].(string)
 						if name == env.Name {
-							envs = append(envs[:i], envs[i+1:])
+							envs = append(envs[:i], envs[i+1:]...)
 							i--
 							log.Infof("we're gonna remove env:%s from workload:%s, container:%s", env.Name, workload.ID,
 								container["name"])

@@ -213,7 +213,11 @@ func GenerateSpecWithSpinner(
 		Project:   project,
 		Stack:     stack,
 		Workspace: workspace,
-		Runner:    &run.KPMRunner{},
+		Runner: &run.KPMRunner{
+			Host:     os.Getenv("KUSION_MODULE_REGISTRY_HOST"),
+			Username: os.Getenv("KUSION_MODULE_REGISTRY_USERNAME"),
+			Password: os.Getenv("KUSION_MODULE_REGISTRY_PASSWORD"),
+		},
 	}
 
 	if noStyle {

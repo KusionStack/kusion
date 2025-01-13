@@ -101,6 +101,10 @@ func GetProjectQuery(filter *entity.ProjectFilter) (string, []interface{}) {
 		pattern = append(pattern, "name = ?")
 		args = append(args, filter.Name)
 	}
+	if filter.FuzzyName != "" {
+		pattern = append(pattern, "name LIKE ?")
+		args = append(args, fmt.Sprintf("%%%s%%", filter.FuzzyName))
+	}
 	return CombineQueryParts(pattern), args
 }
 

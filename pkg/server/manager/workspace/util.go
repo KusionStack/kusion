@@ -40,6 +40,12 @@ func NewBackendFromEntity(backendEntity entity.Backend) (backend.Backend, error)
 		if err != nil {
 			return nil, fmt.Errorf("new s3 storage of backend %s failed, %w", backendEntity.Name, err)
 		}
+	case v1.BackendTypeGoogle:
+		bkConfig := backendEntity.BackendConfig.ToGoogleBackend()
+		storage, err = storages.NewGoogleStorage(bkConfig)
+		if err != nil {
+			return nil, fmt.Errorf("new google storage of backend %s failed, %w", backendEntity.Name, err)
+		}
 	default:
 		return nil, fmt.Errorf("invalid type %s of backend %s", backendEntity.BackendConfig.Type, backendEntity.Name)
 	}

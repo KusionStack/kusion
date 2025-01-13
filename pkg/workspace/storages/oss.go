@@ -117,6 +117,51 @@ func (s *OssStorage) SetCurrent(name string) error {
 	return s.writeMeta()
 }
 
+func (s *OssStorage) RenameWorkspace(oldName, newName string) (err error) {
+	if oldName == "" || newName == "" {
+		return fmt.Errorf("given name is empty")
+	}
+
+	// restore the old workspace name if the rename failed
+	defer func() {
+		if err != nil {
+			removeAvailableWorkspaces(s.meta, newName)
+			addAvailableWorkspaces(s.meta, oldName)
+			s.writeMeta()
+		}
+	}()
+
+	// update the meta file
+	removeAvailableWorkspaces(s.meta, oldName)
+	addAvailableWorkspaces(s.meta, newName)
+	if err = s.writeMeta(); err != nil {
+		return err
+	}
+
+	// rename the workspace file by copying and deleting
+	oldPath := s.prefix + "/" + oldName + yamlSuffix
+	newPath := s.prefix + "/" + newName + yamlSuffix
+
+	// get old workspace content
+	body, err := s.bucket.GetObject(oldPath)
+	if err != nil {
+		return fmt.Errorf("get old workspace failed: %w", err)
+	}
+	defer body.Close()
+
+	// copy to new path
+	if err = s.bucket.PutObject(newPath, body); err != nil {
+		return fmt.Errorf("copy workspace failed: %w", err)
+	}
+
+	// delete old file
+	if err = s.bucket.DeleteObject(oldPath); err != nil {
+		return fmt.Errorf("delete old workspace failed: %w", err)
+	}
+
+	return nil
+}
+
 func (s *OssStorage) initDefaultWorkspaceIf() error {
 	if !checkWorkspaceExistence(s.meta, DefaultWorkspace) {
 		// if there is no default workspace, create one with empty workspace.

@@ -37,7 +37,12 @@ func TestWorkspaceHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `workspace`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `workspace`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
 				AddRow(1, "test-ws", 1).
 				AddRow(2, "test-ws-2", 2))
@@ -58,7 +63,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]any)["workspaces"].([]any)))
 	})
 
 	t.Run("GetWorkspace", func(t *testing.T) {
@@ -78,7 +83,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		rctx.URLParams.Add("workspaceID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListWorkspaces handler function
+		// Call the GetWorkspaces handler function
 		workspaceHandler.GetWorkspace()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -162,9 +167,8 @@ func TestWorkspaceHandler(t *testing.T) {
 
 		// Set request body
 		requestPayload := request.UpdateWorkspaceRequest{
-			ID:        1,
-			Name:      wsNameUpdated,
-			BackendID: 1,
+			ID:   1,
+			Name: wsNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -177,7 +181,7 @@ func TestWorkspaceHandler(t *testing.T) {
 		sqlMock.ExpectExec("UPDATE").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
 
-		// Call the ListWorkspaces handler function
+		// Call the UpdateWorkspaces handler function
 		workspaceHandler.UpdateWorkspace()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -207,10 +211,16 @@ func TestWorkspaceHandler(t *testing.T) {
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 		// Mock the Delete method of the workspace repository
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
+				AddRow(1, "test-ws", 1))
+		sqlMock.ExpectQuery("SELECT").
+			WillReturnRows(sqlmock.NewRows([]string{"id", "backend_config"}).
+				AddRow(1, "{\"type\":\"local\"}"))
 		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
-			WillReturnRows(sqlmock.NewRows([]string{"id"}).
-				AddRow(1))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
+				AddRow(1, "test-ws", 1))
 		sqlMock.ExpectExec("DELETE").WillReturnResult(sqlmock.NewResult(1, 0))
 		sqlMock.ExpectCommit()
 
@@ -241,7 +251,6 @@ func TestWorkspaceHandler(t *testing.T) {
 		rctx.URLParams.Add("workspaceID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		sqlMock.ExpectBegin()
 		sqlMock.ExpectQuery("SELECT").
 			WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
@@ -275,9 +284,8 @@ func TestWorkspaceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateWorkspaceRequest{
 			// Set your request payload fields here
-			ID:        1,
-			Name:      "test-ws-updated",
-			BackendID: 1,
+			ID:   1,
+			Name: "test-ws-updated",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -373,5 +381,9 @@ func (m *mockStorage) GetCurrent() (string, error) {
 }
 
 func (m *mockStorage) SetCurrent(name string) error {
+	return nil
+}
+
+func (m *mockStorage) RenameWorkspace(oldName, newName string) error {
 	return nil
 }

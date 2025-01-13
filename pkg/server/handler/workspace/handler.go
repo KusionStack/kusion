@@ -8,10 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
-	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -22,13 +21,13 @@ import (
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			workspace	body		request.CreateWorkspaceRequest	true	"Created workspace"
-// @Success		200			{object}	entity.Workspace				"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
+// @Param			workspace	body		request.CreateWorkspaceRequest			true	"Created workspace"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
 // @Router			/api/v1/workspaces [post]
 func (h *Handler) CreateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +43,12 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		createdEntity, err := h.workspaceManager.CreateWorkspace(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
 	}
@@ -54,14 +59,14 @@ func (h *Handler) CreateWorkspace() http.HandlerFunc {
 // @Description	Delete specified workspace by ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int		true	"Workspace ID"
-// @Success		200	{object}	string	"Success"
-// @Failure		400	{object}	error	"Bad Request"
-// @Failure		401	{object}	error	"Unauthorized"
-// @Failure		429	{object}	error	"Too Many Requests"
-// @Failure		404	{object}	error	"Not Found"
-// @Failure		500	{object}	error	"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [delete]
+// @Param			workspaceID	path		int								true	"Workspace ID"
+// @Success		200			{object}	handler.Response{data=string}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID} [delete]
 func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -83,15 +88,15 @@ func (h *Handler) DeleteWorkspace() http.HandlerFunc {
 // @Tags			workspace
 // @Accept			json
 // @Produce		json
-// @Param			id			path		int								true	"Workspace ID"
-// @Param			workspace	body		request.UpdateWorkspaceRequest	true	"Updated workspace"
-// @Success		200			{object}	entity.Workspace				"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [put]
+// @Param			workspaceID	path		int										true	"Workspace ID"
+// @Param			workspace	body		request.UpdateWorkspaceRequest			true	"Updated workspace"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID} [put]
 func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -109,6 +114,12 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		updatedEntity, err := h.workspaceManager.UpdateWorkspaceByID(ctx, params.WorkspaceID, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
 	}
@@ -119,14 +130,14 @@ func (h *Handler) UpdateWorkspace() http.HandlerFunc {
 // @Description	Get workspace information by workspace ID
 // @Tags			workspace
 // @Produce		json
-// @Param			id	path		int					true	"Workspace ID"
-// @Success		200	{object}	entity.Workspace	"Success"
-// @Failure		400	{object}	error				"Bad Request"
-// @Failure		401	{object}	error				"Unauthorized"
-// @Failure		429	{object}	error				"Too Many Requests"
-// @Failure		404	{object}	error				"Not Found"
-// @Failure		500	{object}	error				"Internal Server Error"
-// @Router			/api/v1/workspaces/{id} [get]
+// @Param			workspaceID	path		int										true	"Workspace ID"
+// @Success		200			{object}	handler.Response{data=entity.Workspace}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/workspaces/{workspaceID} [get]
 func (h *Handler) GetWorkspace() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -148,12 +159,15 @@ func (h *Handler) GetWorkspace() http.HandlerFunc {
 // @Description	List all workspaces
 // @Tags			workspace
 // @Produce		json
-// @Success		200	{object}	entity.Workspace	"Success"
-// @Failure		400	{object}	error				"Bad Request"
-// @Failure		401	{object}	error				"Unauthorized"
-// @Failure		429	{object}	error				"Too Many Requests"
-// @Failure		404	{object}	error				"Not Found"
-// @Failure		500	{object}	error				"Internal Server Error"
+// @Param			backendID	query		uint														false	"BackendID to filter workspaces by. Default to all"
+// @Param			page		query		uint														false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedWorkspaceResponse}	"Success"
+// @Failure		400			{object}	error														"Bad Request"
+// @Failure		401			{object}	error														"Unauthorized"
+// @Failure		429			{object}	error														"Too Many Requests"
+// @Failure		404			{object}	error														"Not Found"
+// @Failure		500			{object}	error														"Internal Server Error"
 // @Router			/api/v1/workspaces [get]
 func (h *Handler) ListWorkspaces() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -162,24 +176,27 @@ func (h *Handler) ListWorkspaces() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing workspace...")
 
-		filter := entity.WorkspaceFilter{}
-		backendIDParam := r.URL.Query().Get("backendID")
-		if backendIDParam != "" {
-			backendID, err := strconv.Atoi(backendIDParam)
-			if err != nil {
-				render.Render(w, r, handler.FailureResponse(ctx, backendmanager.ErrInvalidBackendID))
-				return
-			}
-			filter.BackendID = uint(backendID)
-		}
-		name := r.URL.Query().Get("name")
-		if name != "" {
-			filter.Name = name
+		query := r.URL.Query()
+		filter, err := h.workspaceManager.BuildWorkspaceFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
 
 		// Return found workspaces
-		workspaceEntities, err := h.workspaceManager.ListWorkspaces(ctx, &filter)
-		handler.HandleResult(w, r, ctx, err, workspaceEntities)
+		workspaceEntities, err := h.workspaceManager.ListWorkspaces(ctx, filter)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedWorkspaceResponse{
+			Workspaces:  workspaceEntities.Workspaces,
+			Total:       workspaceEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

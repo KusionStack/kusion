@@ -24,21 +24,21 @@ import (
 // @Description	Start a run and asynchronously preview stack changes by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int							true	"Stack ID"
-// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
-// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
-// @Param			output				query		string						false	"Output format. Choices are: json, default. Default to default output format in Kusion."
-// @Param			detail				query		bool						false	"Show detailed output"
-// @Param			specID				query		string						false	"The Spec ID to use for the preview. Default to the last one generated."
-// @Param			force				query		bool						false	"Force the preview even when the stack is locked"
-// @Success		200					{object}	entity.Run					"Success"
-// @Failure		400					{object}	error						"Bad Request"
-// @Failure		401					{object}	error						"Unauthorized"
-// @Failure		429					{object}	error						"Too Many Requests"
-// @Failure		404					{object}	error						"Not Found"
-// @Failure		500					{object}	error						"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/preview [post]
+// @Param			stackID				path		int									true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest			false	"The resources to import during the stack preview"
+// @Param			workspace			query		string								true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool								false	"Import existing resources during the stack preview"
+// @Param			output				query		string								false	"Output format. Choices are: json, default. Default to default output format in Kusion."
+// @Param			detail				query		bool								false	"Show detailed output"
+// @Param			specID				query		string								false	"The Spec ID to use for the preview. Default to the last one generated."
+// @Param			force				query		bool								false	"Force the preview even when the stack is locked"
+// @Success		200					{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400					{object}	error								"Bad Request"
+// @Failure		401					{object}	error								"Unauthorized"
+// @Failure		429					{object}	error								"Too Many Requests"
+// @Failure		404					{object}	error								"Not Found"
+// @Failure		500					{object}	error								"Internal Server Error"
+// @Router			/api/v1/stacks/{stackID}/preview [post]
 func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -60,6 +60,7 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypePreview)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -129,20 +130,20 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously apply stack changes by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id			path		int							true	"Stack ID"
-// @Param			importedResources	body		request.StackImportRequest	false	"The resources to import during the stack preview"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
-// @Param			importResources		query		bool						false	"Import existing resources during the stack preview"
-// @Param			specID				query		string						false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
-// @Param			force				query		bool						false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
-// @Param			dryrun				query		bool						false	"Apply in dry-run mode"
-// @Success		200					{object}	entity.Run					"Success"
-// @Failure		400					{object}	error						"Bad Request"
-// @Failure		401					{object}	error						"Unauthorized"
-// @Failure		429					{object}	error						"Too Many Requests"
-// @Failure		404					{object}	error						"Not Found"
-// @Failure		500					{object}	error						"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/apply/async [post]
+// @Param			stackID				path		int									true	"Stack ID"
+// @Param			importedResources	body		request.StackImportRequest			false	"The resources to import during the stack preview"
+// @Param			workspace			query		string								true	"The target workspace to preview the spec in."
+// @Param			importResources		query		bool								false	"Import existing resources during the stack preview"
+// @Param			specID				query		string								false	"The Spec ID to use for the apply. Will generate a new spec if omitted."
+// @Param			force				query		bool								false	"Force the apply even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun				query		bool								false	"Apply in dry-run mode"
+// @Success		200					{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400					{object}	error								"Bad Request"
+// @Failure		401					{object}	error								"Unauthorized"
+// @Failure		429					{object}	error								"Too Many Requests"
+// @Failure		404					{object}	error								"Not Found"
+// @Failure		500					{object}	error								"Internal Server Error"
+// @Router			/api/v1/stacks/{stackID}/apply/async [post]
 func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -164,6 +165,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeApply)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -219,13 +221,6 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}
 		}()
 		render.Render(w, r, handler.SuccessResponse(ctx, runEntity))
-		// TODO: How to implement watch?
-		// if o.Watch {
-		// 	fmt.Println("Start watching changes ...")
-		// 	if err = Watch(o, sp, changes); err != nil {
-		// 		return err
-		// 	}
-		// }
 	}
 }
 
@@ -234,17 +229,17 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously generate stack spec by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace			query		string						true	"The target workspace to preview the spec in."
-// @Param			format		query		string	false	"The format to generate the spec in. Choices are: spec. Default to spec."
-// @Param			force		query		bool	false	"Force the generate even when the stack is locked"
-// @Success		200			{object}	apiv1.Spec	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/generate/async [post]
+// @Param			stackID		path		int									true	"Stack ID"
+// @Param			workspace	query		string								true	"The target workspace to preview the spec in."
+// @Param			format		query		string								false	"The format to generate the spec in. Choices are: spec. Default to spec."
+// @Param			force		query		bool								false	"Force the generate even when the stack is locked"
+// @Success		200			{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400			{object}	error								"Bad Request"
+// @Failure		401			{object}	error								"Unauthorized"
+// @Failure		429			{object}	error								"Too Many Requests"
+// @Failure		404			{object}	error								"Not Found"
+// @Failure		500			{object}	error								"Internal Server Error"
+// @Router			/api/v1/stacks/{stackID}/generate/async [post]
 func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -266,6 +261,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeGenerate)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {
@@ -330,17 +326,17 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 // @Description	Start a run and asynchronously destroy stack resources by stack ID
 // @Tags			stack
 // @Produce		json
-// @Param			stack_id	path		int		true	"Stack ID"
-// @Param			workspace	query		string	true	"The target workspace to preview the spec in."
-// @Param			force		query		bool	false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
-// @Param			dryrun		query		bool	false	"Destroy in dry-run mode"
-// @Success		200			{object}	string	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
-// @Router			/api/v1/stacks/{stack_id}/destroy/async [post]
+// @Param			stackID		path		int									true	"Stack ID"
+// @Param			workspace	query		string								true	"The target workspace to preview the spec in."
+// @Param			force		query		bool								false	"Force the destroy even when the stack is locked. May cause concurrency issues!!!"
+// @Param			dryrun		query		bool								false	"Destroy in dry-run mode"
+// @Success		200			{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400			{object}	error								"Bad Request"
+// @Failure		401			{object}	error								"Unauthorized"
+// @Failure		429			{object}	error								"Too Many Requests"
+// @Failure		404			{object}	error								"Not Found"
+// @Failure		500			{object}	error								"Internal Server Error"
+// @Router			/api/v1/stacks/{stackID}/destroy/async [post]
 func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -362,6 +358,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 			}
 		}
 
+		requestPayload.Type = string(constant.RunTypeDestroy)
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
 		if err != nil {

@@ -34,8 +34,15 @@ type Project struct {
 }
 
 type ProjectFilter struct {
-	OrgID uint
-	Name  string
+	OrgID      uint
+	Name       string
+	FuzzyName  string
+	Pagination *Pagination
+}
+
+type ProjectListResult struct {
+	Projects []*Project
+	Total    int
 }
 
 // Validate checks if the project is valid.

@@ -1,3 +1,4 @@
+//nolint:dupl
 package persistence
 
 import (
@@ -9,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
@@ -139,14 +141,25 @@ func TestBackendRepository(t *testing.T) {
 			expectedIDSecond   uint = 2
 			expectedNameSecond      = "mockedBackend2"
 		)
-		sqlMock.ExpectQuery("SELECT .* FROM `backend`").
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `backend`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `backend` .* IS NULL LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name"}).
 					AddRow(expectedIDFirst, expectedNameFirst).
 					AddRow(expectedIDSecond, expectedNameSecond))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.BackendFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Backends, 2)
 	})
 }

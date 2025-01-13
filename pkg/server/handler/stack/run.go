@@ -1,3 +1,4 @@
+//nolint:dupl
 package stack
 
 import (
@@ -15,14 +16,14 @@ import (
 // @Description	Get run information by run ID
 // @Tags			run
 // @Produce		json
-// @Param			run	path		int			true	"Run ID"
-// @Success		200	{object}	entity.Run	"Success"
-// @Failure		400	{object}	error		"Bad Request"
-// @Failure		401	{object}	error		"Unauthorized"
-// @Failure		429	{object}	error		"Too Many Requests"
-// @Failure		404	{object}	error		"Not Found"
-// @Failure		500	{object}	error		"Internal Server Error"
-// @Router			/api/v1/runs/{run_id} [get]
+// @Param			runID	path		int									true	"Run ID"
+// @Success		200		{object}	handler.Response{data=entity.Run}	"Success"
+// @Failure		400		{object}	error								"Bad Request"
+// @Failure		401		{object}	error								"Unauthorized"
+// @Failure		429		{object}	error								"Too Many Requests"
+// @Failure		404		{object}	error								"Not Found"
+// @Failure		500		{object}	error								"Internal Server Error"
+// @Router			/api/v1/runs/{runID} [get]
 func (h *Handler) GetRun() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -43,14 +44,14 @@ func (h *Handler) GetRun() http.HandlerFunc {
 // @Description	Get run result by run ID
 // @Tags			run
 // @Produce		json
-// @Param			run	path		int			true	"Run ID"
-// @Success		200	{object}	entity.Run	"Success"
-// @Failure		400	{object}	error		"Bad Request"
-// @Failure		401	{object}	error		"Unauthorized"
-// @Failure		429	{object}	error		"Too Many Requests"
-// @Failure		404	{object}	error		"Not Found"
-// @Failure		500	{object}	error		"Internal Server Error"
-// @Router			/api/v1/runs/{run_id}/result [get]
+// @Param			runID	path		int							true	"Run ID"
+// @Success		200		{object}	handler.Response{data=any}	"Success"
+// @Failure		400		{object}	error						"Bad Request"
+// @Failure		401		{object}	error						"Unauthorized"
+// @Failure		429		{object}	error						"Too Many Requests"
+// @Failure		404		{object}	error						"Not Found"
+// @Failure		500		{object}	error						"Internal Server Error"
+// @Router			/api/v1/runs/{runID}/result [get]
 func (h *Handler) GetRunResult() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -77,21 +78,21 @@ func (h *Handler) GetRunResult() http.HandlerFunc {
 // @Description	List all runs
 // @Tags			stack
 // @Produce		json
-// @Param			projectID	query		uint			false	"ProjectID to filter runs by. Default to all"
-// @Param			orgID		query		uint			false	"OrgID to filter runs by. Default to all"
-// @Param			projectName	query		string			false	"ProjectName to filter runs by. Default to all"
-// @Param			cloud		query		string			false	"Cloud to filter runs by. Default to all"
-// @Param			env			query		string			false	"Environment to filter runs by. Default to all"
-// @Param			type		query		[]string		false	"RunType to filter runs by. Default to all"
-// @Param			status		query		[]string		false	"RunStatus to filter runs by. Default to all"
-// @Param			startTime	query		string			false	"StartTime to filter runs by. Default to all. Format: RFC3339"
-// @Param			endTime		query		string			false	"EndTime to filter runs by. Default to all. Format: RFC3339"
-// @Success		200			{object}	[]entity.Stack	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			projectID	query		uint													false	"ProjectID to filter runs by. Default to all"
+// @Param			type		query		[]string												false	"RunType to filter runs by. Default to all"
+// @Param			status		query		[]string												false	"RunStatus to filter runs by. Default to all"
+// @Param			stackID		query		uint													false	"StackID to filter runs by. Default to all"
+// @Param			workspace	query		string													false	"Workspace to filter runs by. Default to all"
+// @Param			startTime	query		string													false	"StartTime to filter runs by. Default to all. Format: RFC3339"
+// @Param			endTime		query		string													false	"EndTime to filter runs by. Default to all. Format: RFC3339"
+// @Param			page		query		uint													false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedRunResponse}	"Success"
+// @Failure		400			{object}	error													"Bad Request"
+// @Failure		401			{object}	error													"Unauthorized"
+// @Failure		429			{object}	error													"Too Many Requests"
+// @Failure		404			{object}	error													"Not Found"
+// @Failure		500			{object}	error													"Internal Server Error"
 // @Router			/api/v1/runs [get]
 func (h *Handler) ListRuns() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

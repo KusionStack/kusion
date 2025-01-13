@@ -27,7 +27,12 @@ func TestSourceHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `source`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `source`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "source_provider"}).
 				AddRow(1, string(constant.SourceProviderTypeGithub)).
 				AddRow(2, string(constant.SourceProviderTypeLocal)))
@@ -48,9 +53,9 @@ func TestSourceHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
-		assert.Equal(t, string(constant.SourceProviderTypeGithub), resp.Data.([]any)[0].(map[string]any)["sourceProvider"])
-		assert.Equal(t, string(constant.SourceProviderTypeLocal), resp.Data.([]any)[1].(map[string]any)["sourceProvider"])
+		assert.Equal(t, 2, len(resp.Data.(map[string]any)["sources"].([]any)))
+		assert.Equal(t, string(constant.SourceProviderTypeGithub), resp.Data.(map[string]any)["sources"].([]any)[0].(map[string]any)["sourceProvider"])
+		assert.Equal(t, string(constant.SourceProviderTypeLocal), resp.Data.(map[string]any)["sources"].([]any)[1].(map[string]any)["sourceProvider"])
 	})
 
 	t.Run("GetSource", func(t *testing.T) {
@@ -148,11 +153,9 @@ func TestSourceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateSourceRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateSourceRequest: request.CreateSourceRequest{
-				SourceProvider: string(constant.SourceProviderTypeGithub),
-				Remote:         "https://github.com/test/updated-remote",
-			},
+			ID:             1,
+			SourceProvider: string(constant.SourceProviderTypeGithub),
+			Remote:         "https://github.com/test/updated-remote",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -264,11 +267,9 @@ func TestSourceHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateSourceRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateSourceRequest: request.CreateSourceRequest{
-				SourceProvider: string(constant.SourceProviderTypeGithub),
-				Remote:         "https://github.com/test/updated-remote",
-			},
+			ID:             1,
+			SourceProvider: string(constant.SourceProviderTypeGithub),
+			Remote:         "https://github.com/test/updated-remote",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

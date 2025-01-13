@@ -12,7 +12,7 @@ import (
 type ResourceModel struct {
 	gorm.Model
 	StackID              uint
-	Stack                *StackModel `gorm:"foreignKey:ID;references:StackID"`
+	Stack                *StackModel
 	ResourceType         string
 	ResourcePlane        string
 	ResourceName         string

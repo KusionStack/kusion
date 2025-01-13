@@ -26,11 +26,37 @@ const docTemplate = `{
                 ],
                 "summary": "List backends",
                 "operationId": "listBackend",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Backend"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedBackendResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -83,7 +109,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Backend"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Backend"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -109,7 +147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/backends/{id}": {
+        "/api/v1/backends/{backendID}": {
             "get": {
                 "description": "Get backend information by backend ID",
                 "produces": [
@@ -124,7 +162,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -133,7 +171,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Backend"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Backend"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -175,7 +225,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     },
@@ -193,7 +243,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Backend"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Backend"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -232,7 +294,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Backend ID",
-                        "name": "id",
+                        "name": "backendID",
                         "in": "path",
                         "required": true
                     }
@@ -241,7 +303,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -284,16 +358,43 @@ const docTemplate = `{
                         "description": "Workspace ID to filter module list by. Default to all workspaces.",
                         "name": "workspaceID",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Module name to filter module list by. Default to all modules.",
+                        "name": "moduleName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Module"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedModuleResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -346,7 +447,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Module"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Module"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -372,7 +485,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/modules/{name}": {
+        "/api/v1/modules/{moduleName}": {
             "get": {
                 "description": "Get module information by module name",
                 "produces": [
@@ -387,7 +500,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }
@@ -396,7 +509,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Module"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Module"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -438,7 +563,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     },
@@ -456,7 +581,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Module"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Module"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -495,7 +632,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Module Name",
-                        "name": "name",
+                        "name": "moduleName",
                         "in": "path",
                         "required": true
                     }
@@ -504,7 +641,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -541,14 +690,37 @@ const docTemplate = `{
                 ],
                 "summary": "List organizations",
                 "operationId": "listOrganization",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Organization"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedOrganizationResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -601,7 +773,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Organization"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Organization"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -627,7 +811,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/orgs/{id}": {
+        "/api/v1/orgs/{orgID}": {
             "get": {
                 "description": "Get organization information by organization ID",
                 "produces": [
@@ -642,7 +826,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -651,7 +835,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Organization"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Organization"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -693,7 +889,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     },
@@ -711,7 +907,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Organization"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Organization"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -750,7 +958,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Organization ID",
-                        "name": "id",
+                        "name": "orgID",
                         "in": "path",
                         "required": true
                     }
@@ -759,7 +967,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -808,16 +1028,46 @@ const docTemplate = `{
                         "description": "Project name to filter project list by. This should only return one result if set.",
                         "name": "name",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fuzzy match project name to filter project list by.",
+                        "name": "fuzzyName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Project"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.PaginatedProjectResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -870,7 +1120,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Project"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Project"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -896,7 +1158,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/projects/{project_id}": {
+        "/api/v1/projects/{projectID}": {
             "get": {
                 "description": "Get project information by project ID",
                 "produces": [
@@ -911,7 +1173,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     }
@@ -920,7 +1182,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Project"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Project"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -962,7 +1236,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     },
@@ -980,7 +1254,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Project"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Project"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1019,7 +1305,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Project ID",
-                        "name": "project_id",
+                        "name": "projectID",
                         "in": "path",
                         "required": true
                     }
@@ -1028,7 +1314,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1065,11 +1363,70 @@ const docTemplate = `{
                 ],
                 "summary": "List resource",
                 "operationId": "listResource",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The organization ID",
+                        "name": "orgID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The project ID",
+                        "name": "projectID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The stack ID",
+                        "name": "stackID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The resource type",
+                        "name": "resourceType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The resource plane",
+                        "name": "resourcePlane",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Resource"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.PaginatedResourceResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1110,7 +1467,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "query",
                         "required": true
                     }
@@ -1119,7 +1476,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.ResourceGraph"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.ResourceGraph"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1145,7 +1514,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/resources/{id}": {
+        "/api/v1/resources/{resourceID}": {
             "get": {
                 "description": "Get resource information by resource ID",
                 "produces": [
@@ -1160,7 +1529,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Resource ID",
-                        "name": "id",
+                        "name": "resourceID",
                         "in": "path",
                         "required": true
                     }
@@ -1169,7 +1538,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Resource"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Resource"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1214,27 +1595,59 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "RunType to filter runs by. Default to all",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "RunStatus to filter runs by. Default to all",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "OrgID to filter runs by. Default to all",
-                        "name": "orgID",
+                        "description": "StackID to filter runs by. Default to all",
+                        "name": "stackID",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "ProjectName to filter runs by. Default to all",
-                        "name": "projectName",
+                        "description": "Workspace to filter runs by. Default to all",
+                        "name": "workspace",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Cloud to filter runs by. Default to all",
-                        "name": "cloud",
+                        "description": "StartTime to filter runs by. Default to all. Format: RFC3339",
+                        "name": "startTime",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Environment to filter runs by. Default to all",
-                        "name": "env",
+                        "description": "EndTime to filter runs by. Default to all. Format: RFC3339",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
                         "in": "query"
                     }
                 ],
@@ -1242,10 +1655,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Stack"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedRunResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1271,7 +1693,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/runs/{run_id}": {
+        "/api/v1/runs/{runID}": {
             "get": {
                 "description": "Get run information by run ID",
                 "produces": [
@@ -1286,7 +1708,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Run ID",
-                        "name": "run",
+                        "name": "runID",
                         "in": "path",
                         "required": true
                     }
@@ -1295,7 +1717,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Run"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Run"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1321,7 +1755,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/runs/{run_id}/result": {
+        "/api/v1/runs/{runID}/result": {
             "get": {
                 "description": "Get run result by run ID",
                 "produces": [
@@ -1336,7 +1770,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Run ID",
-                        "name": "run",
+                        "name": "runID",
                         "in": "path",
                         "required": true
                     }
@@ -1345,7 +1779,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Run"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1382,11 +1828,43 @@ const docTemplate = `{
                 ],
                 "summary": "List source",
                 "operationId": "listSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name to filter source list by. Default to all sources.",
+                        "name": "sourceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedSourceResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1439,7 +1917,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Source"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1465,7 +1955,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/sources/{id}": {
+        "/api/v1/sources/{sourceID}": {
             "get": {
                 "description": "Get source information by source ID",
                 "produces": [
@@ -1480,7 +1970,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -1489,7 +1979,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Source"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1531,7 +2033,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     },
@@ -1549,7 +2051,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Source"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1588,7 +2102,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Source ID",
-                        "name": "id",
+                        "name": "sourceID",
                         "in": "path",
                         "required": true
                     }
@@ -1597,7 +2111,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Source"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1655,14 +2181,20 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Cloud to filter stacks by. Default to all",
-                        "name": "cloud",
+                        "description": "Path to filter stacks by. Default to all",
+                        "name": "path",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "Environment to filter stacks by. Default to all",
-                        "name": "env",
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
                         "in": "query"
                     }
                 ],
@@ -1670,10 +2202,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Stack"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedStackResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1738,7 +2279,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Stack"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Stack"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1764,7 +2317,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}": {
+        "/api/v1/stacks/{stackID}": {
             "get": {
                 "description": "Get stack information by stack ID",
                 "produces": [
@@ -1779,7 +2332,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     }
@@ -1788,7 +2341,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Stack"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Stack"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1830,7 +2395,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -1848,7 +2413,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Stack"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Stack"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1887,7 +2464,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     }
@@ -1896,7 +2473,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1922,7 +2511,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/apply": {
+        "/api/v1/stacks/{stackID}/apply": {
             "post": {
                 "description": "Apply stack information by stack ID",
                 "produces": [
@@ -1937,7 +2526,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -1985,7 +2574,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2011,7 +2612,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/apply/async": {
+        "/api/v1/stacks/{stackID}/apply/async": {
             "post": {
                 "description": "Start a run and asynchronously apply stack changes by stack ID",
                 "produces": [
@@ -2026,7 +2627,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2074,7 +2675,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Run"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Run"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2100,7 +2713,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/destroy": {
+        "/api/v1/stacks/{stackID}/destroy": {
             "post": {
                 "description": "Destroy stack information by stack ID",
                 "produces": [
@@ -2115,7 +2728,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2143,7 +2756,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2169,7 +2794,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/destroy/async": {
+        "/api/v1/stacks/{stackID}/destroy/async": {
             "post": {
                 "description": "Start a run and asynchronously destroy stack resources by stack ID",
                 "produces": [
@@ -2184,7 +2809,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2212,7 +2837,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Run"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2238,7 +2875,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/generate": {
+        "/api/v1/stacks/{stackID}/generate": {
             "post": {
                 "description": "Generate stack information by stack ID",
                 "produces": [
@@ -2253,7 +2890,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2281,7 +2918,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2307,7 +2956,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/generate/async": {
+        "/api/v1/stacks/{stackID}/generate/async": {
             "post": {
                 "description": "Start a run and asynchronously generate stack spec by stack ID",
                 "produces": [
@@ -2322,7 +2971,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2350,7 +2999,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/v1.Spec"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Run"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2376,7 +3037,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/stacks/{stack_id}/preview": {
+        "/api/v1/stacks/{stackID}/preview": {
             "post": {
                 "description": "Start a run and asynchronously preview stack changes by stack ID",
                 "produces": [
@@ -2391,7 +3052,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Stack ID",
-                        "name": "stack_id",
+                        "name": "stackID",
                         "in": "path",
                         "required": true
                     },
@@ -2445,7 +3106,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Run"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Run"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2482,11 +3155,43 @@ const docTemplate = `{
                 ],
                 "summary": "List workspaces",
                 "operationId": "listWorkspace",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "BackendID to filter workspaces by. Default to all",
+                        "name": "backendID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Workspace"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedWorkspaceResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2539,7 +3244,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Workspace"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Workspace"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2620,7 +3337,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}": {
+        "/api/v1/workspaces/{workspaceID}": {
             "get": {
                 "description": "Get workspace information by workspace ID",
                 "produces": [
@@ -2635,7 +3352,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -2644,7 +3361,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Workspace"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Workspace"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2686,7 +3415,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -2704,7 +3433,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/entity.Workspace"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Workspace"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2743,7 +3484,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -2752,7 +3493,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2778,7 +3531,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs": {
+        "/api/v1/workspaces/{workspaceID}/configs": {
             "get": {
                 "description": "Get configurations in the specified workspace",
                 "consumes": [
@@ -2796,7 +3549,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -2847,7 +3600,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     },
@@ -2891,7 +3644,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/workspaces/{id}/configs/mod-deps": {
+        "/api/v1/workspaces/{workspaceID}/configs/mod-deps": {
             "post": {
                 "description": "Create the module dependencies in kcl.mod of the specified workspace",
                 "consumes": [
@@ -2909,7 +3662,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceID",
                         "in": "path",
                         "required": true
                     }
@@ -3007,17 +3760,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {
@@ -3066,7 +3819,7 @@ const docTemplate = `{
                     "description": "// Type is the type of the backend.\nType string ` + "`" + `yaml:\"type\" json:\"type\"` + "`" + `\nBackend is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3125,6 +3878,46 @@ const docTemplate = `{
                             "$ref": "#/definitions/url.URL"
                         }
                     ]
+                }
+            }
+        },
+        "entity.ModuleWithVersion": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description is a human-readable description of the module.",
+                    "type": "string"
+                },
+                "doc": {
+                    "description": "Doc is the documentation URL of the module.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/url.URL"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "Name is the module name.",
+                    "type": "string"
+                },
+                "owners": {
+                    "description": "Owners is a list of owners for the module.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "URL is the module oci artifact registry URL.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/url.URL"
+                        }
+                    ]
+                },
+                "version": {
+                    "description": "Version is the module oci artifact version.",
+                    "type": "string"
                 }
             }
         },
@@ -3312,6 +4105,10 @@ const docTemplate = `{
                     "description": "ResourceType is the type of the resource.",
                     "type": "string"
                 },
+                "resourceURN": {
+                    "description": "ResourceURN is the urn of the resource.",
+                    "type": "string"
+                },
                 "stack": {
                     "description": "Stack is the stack associated with the resource.",
                     "allOf": [
@@ -3402,7 +4199,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "logs": {
-                    "description": "Result RunResult ` + "`" + `yaml:\"result\" json:\"result\"` + "`" + `\nLogs is the logs of the run.",
+                    "description": "Logs is the logs of the run.",
                     "type": "string"
                 },
                 "result": {
@@ -3424,6 +4221,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/constant.RunStatus"
                         }
                     ]
+                },
+                "trace": {
+                    "description": "Trace is the trace of the run.",
+                    "type": "string"
                 },
                 "type": {
                     "description": "RunType is the type of the run provider.",
@@ -3636,6 +4437,371 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.Duration": {
+            "type": "integer",
+            "enum": [
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000
+            ],
+            "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour"
+            ]
+        },
+        "handler.Response": {
+            "type": "object",
+            "properties": {
+                "costTime": {
+                    "description": "Time taken for the request.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/handler.Duration"
+                        }
+                    ]
+                },
+                "data": {
+                    "description": "Data payload."
+                },
+                "endTime": {
+                    "description": "Request end time.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Descriptive message.",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "Request start time.",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "Indicates success status.",
+                    "type": "boolean"
+                },
+                "traceID": {
+                    "description": "Trace identifier.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider": {
+            "type": "object",
+            "properties": {
+                "region": {
+                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType": {
+            "type": "string",
+            "enum": [
+                "PublicCloud",
+                "USGovernmentCloud",
+                "ChinaCloud",
+                "GermanCloud"
+            ],
+            "x-enum-varnames": [
+                "AzureEnvironmentPublicCloud",
+                "AzureEnvironmentUSGovernmentCloud",
+                "AzureEnvironmentChinaCloud",
+                "AzureEnvironmentGermanCloud"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider": {
+            "type": "object",
+            "properties": {
+                "environmentType": {
+                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureEnvironmentType"
+                        }
+                    ]
+                },
+                "tenantId": {
+                    "description": "TenantID configures the Azure Tenant to send requests to.",
+                    "type": "string"
+                },
+                "vaultUrl": {
+                    "description": "Vault Url from which the secrets to be fetched from.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "description": "Default is default block of the module config.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProviderData": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                },
+                "valueMap": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig": {
+            "type": "object",
+            "additionalProperties": {}
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "description": "Configs contains all levels of module configs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Configs"
+                        }
+                    ]
+                },
+                "path": {
+                    "description": "Path is the path of the module. It can be a local path or a remote URL",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the version of the module.",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfig"
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModulePatcherConfig": {
+            "type": "object",
+            "properties": {
+                "projectSelector": {
+                    "description": "ProjectSelector contains the selected projects.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "attributes of the provider",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "platform name of the provider",
+                    "type": "string"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec": {
+            "type": "object",
+            "properties": {
+                "alicloud": {
+                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AlicloudProvider"
+                        }
+                    ]
+                },
+                "aws": {
+                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AWSProvider"
+                        }
+                    ]
+                },
+                "azure": {
+                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.AzureKVProvider"
+                        }
+                    ]
+                },
+                "fake": {
+                    "description": "Fake configures a store with static key/value pairs",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.FakeProvider"
+                        }
+                    ]
+                },
+                "onpremises": {
+                    "description": "Onprem configures a store in on-premises environments",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.OnPremisesProvider"
+                        }
+                    ]
+                },
+                "vault": {
+                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider"
+                        }
+                    ]
+                },
+                "viettelcloud": {
+                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "description": "Attributes represents all specified attributes of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "dependsOn": {
+                    "description": "DependsOn contains all resources this resource depends on",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extensions": {
+                    "description": "Extensions specifies arbitrary metadata of this resource",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ProviderSpec"
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Spec": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
+                        }
+                    ]
+                },
+                "resources": {
+                    "description": "Resources is the list of Resource this Spec contains.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Resource"
+                    }
+                },
+                "secretStore": {
+                    "description": "SecretSore represents a external secret store location for storing secrets.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
+                        }
+                    ]
+                }
+            }
+        },
         "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type": {
             "type": "string",
             "enum": [
@@ -3646,6 +4812,51 @@ const docTemplate = `{
                 "Kubernetes",
                 "Terraform"
             ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion": {
+            "type": "string",
+            "enum": [
+                "v1",
+                "v2"
+            ],
+            "x-enum-varnames": [
+                "VaultKVStoreV1",
+                "VaultKVStoreV2"
+            ]
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultProvider": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
+                    "type": "string"
+                },
+                "server": {
+                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.VaultKVStoreVersion"
+                        }
+                    ]
+                }
+            }
+        },
+        "kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ViettelCloudProvider": {
+            "type": "object",
+            "properties": {
+                "cmpURL": {
+                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
+                    "type": "string"
+                },
+                "projectID": {
+                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
+                    "type": "string"
+                }
+            }
         },
         "models.ActionType": {
             "type": "integer",
@@ -3714,6 +4925,7 @@ const docTemplate = `{
         "request.CreateBackendRequest": {
             "type": "object",
             "required": [
+                "backendConfig",
                 "name"
             ],
             "properties": {
@@ -3721,7 +4933,7 @@ const docTemplate = `{
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -3770,6 +4982,7 @@ const docTemplate = `{
         "request.CreateOrganizationRequest": {
             "type": "object",
             "required": [
+                "name",
                 "owners"
             ],
             "properties": {
@@ -3800,7 +5013,8 @@ const docTemplate = `{
         "request.CreateProjectRequest": {
             "type": "object",
             "required": [
-                "domain"
+                "name",
+                "path"
             ],
             "properties": {
                 "description": {
@@ -3983,15 +5197,14 @@ const docTemplate = `{
         "request.UpdateBackendRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "backendConfig": {
                     "description": "BackendConfig is the configuration of the backend.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.BackendConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.BackendConfig"
                         }
                     ]
                 },
@@ -4043,8 +5256,7 @@ const docTemplate = `{
         "request.UpdateOrganizationRequest": {
             "type": "object",
             "required": [
-                "id",
-                "owners"
+                "id"
             ],
             "properties": {
                 "description": {
@@ -4078,7 +5290,6 @@ const docTemplate = `{
         "request.UpdateProjectRequest": {
             "type": "object",
             "required": [
-                "domain",
                 "id"
             ],
             "properties": {
@@ -4129,10 +5340,7 @@ const docTemplate = `{
         "request.UpdateSourceRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name",
-                "remote",
-                "sourceProvider"
+                "id"
             ],
             "properties": {
                 "description": {
@@ -4174,8 +5382,7 @@ const docTemplate = `{
         "request.UpdateStackRequest": {
             "type": "object",
             "required": [
-                "id",
-                "name"
+                "id"
             ],
             "properties": {
                 "description": {
@@ -4229,15 +5436,9 @@ const docTemplate = `{
         "request.UpdateWorkspaceRequest": {
             "type": "object",
             "required": [
-                "backendID",
-                "id",
-                "owners"
+                "id"
             ],
             "properties": {
-                "backendID": {
-                    "description": "BackendID is the configuration backend id associated with the workspace.",
-                    "type": "integer"
-                },
                 "description": {
                     "description": "Description is a human-readable description of the workspace.",
                     "type": "string"
@@ -4273,7 +5474,7 @@ const docTemplate = `{
                     "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.GenericConfig"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.GenericConfig"
                         }
                     ]
                 },
@@ -4281,7 +5482,7 @@ const docTemplate = `{
                     "description": "Modules are the configs of a set of modules.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.ModuleConfigs"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.ModuleConfigs"
                         }
                     ]
                 },
@@ -4289,9 +5490,195 @@ const docTemplate = `{
                     "description": "SecretStore represents a secure external location for storing secrets.",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/v1.SecretStore"
+                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.SecretStore"
                         }
                     ]
+                }
+            }
+        },
+        "response.PaginatedBackendResponse": {
+            "type": "object",
+            "properties": {
+                "backends": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Backend"
+                    }
+                },
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedModuleResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "modules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Module"
+                    }
+                },
+                "modulesWithVersion": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ModuleWithVersion"
+                    }
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedOrganizationResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Organization"
+                    }
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedProjectResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "projects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Project"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedResourceResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Resource"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedRunResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "runs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Run"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedSourceResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Source"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedStackResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "stacks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Stack"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedWorkspaceResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "workspaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Workspace"
+                    }
                 }
             }
         },
@@ -4349,357 +5736,6 @@ const docTemplate = `{
         },
         "url.Userinfo": {
             "type": "object"
-        },
-        "v1.AWSProvider": {
-            "type": "object",
-            "properties": {
-                "profile": {
-                    "description": "The profile to be used to interact with AWS Secrets Manager.\nIf not set, the default profile created with ` + "`" + `aws configure` + "`" + ` will be used.",
-                    "type": "string"
-                },
-                "region": {
-                    "description": "AWS Region to be used to interact with AWS Secrets Manager.\nExamples are us-east-1, us-west-2, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AlicloudProvider": {
-            "type": "object",
-            "properties": {
-                "region": {
-                    "description": "Alicloud Region to be used to interact with Alicloud Secrets Manager.\nExamples are cn-beijing, cn-shanghai, etc.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AzureEnvironmentType": {
-            "type": "string",
-            "enum": [
-                "PublicCloud",
-                "USGovernmentCloud",
-                "ChinaCloud",
-                "GermanCloud"
-            ],
-            "x-enum-varnames": [
-                "AzureEnvironmentPublicCloud",
-                "AzureEnvironmentUSGovernmentCloud",
-                "AzureEnvironmentChinaCloud",
-                "AzureEnvironmentGermanCloud"
-            ]
-        },
-        "v1.AzureKVProvider": {
-            "type": "object",
-            "properties": {
-                "environmentType": {
-                    "description": "EnvironmentType specifies the Azure cloud environment endpoints to use for connecting and authenticating with Azure.\nBy-default it points to the public cloud AAD endpoint, and the following endpoints are available:\nPublicCloud, USGovernmentCloud, ChinaCloud, GermanCloud\nRef: https://github.com/Azure/go-autorest/blob/main/autorest/azure/environments.go#L152",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureEnvironmentType"
-                        }
-                    ]
-                },
-                "tenantId": {
-                    "description": "TenantID configures the Azure Tenant to send requests to.",
-                    "type": "string"
-                },
-                "vaultUrl": {
-                    "description": "Vault Url from which the secrets to be fetched from.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.BackendConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains config items of the backend, whose keys differ from different backend types.",
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "type": {
-                    "description": "Type is the backend type, supports BackendTypeLocal, BackendTypeOss, BackendTypeS3.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.Configs": {
-            "type": "object",
-            "properties": {
-                "default": {
-                    "description": "Default is default block of the module config.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.FakeProvider": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.FakeProviderData"
-                    }
-                }
-            }
-        },
-        "v1.FakeProviderData": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                },
-                "valueMap": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.GenericConfig": {
-            "type": "object",
-            "additionalProperties": {}
-        },
-        "v1.ModuleConfig": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "description": "Configs contains all levels of module configs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.Configs"
-                        }
-                    ]
-                },
-                "path": {
-                    "description": "Path is the path of the module. It can be a local path or a remote URL",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the version of the module.",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ModuleConfigs": {
-            "type": "object",
-            "additionalProperties": {
-                "$ref": "#/definitions/v1.ModuleConfig"
-            }
-        },
-        "v1.ModulePatcherConfig": {
-            "type": "object",
-            "properties": {
-                "projectSelector": {
-                    "description": "ProjectSelector contains the selected projects.",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "v1.OnPremisesProvider": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "attributes of the provider",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "description": "platform name of the provider",
-                    "type": "string"
-                }
-            }
-        },
-        "v1.ProviderSpec": {
-            "type": "object",
-            "properties": {
-                "alicloud": {
-                    "description": "Alicloud configures a store to retrieve secrets from Alicloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AlicloudProvider"
-                        }
-                    ]
-                },
-                "aws": {
-                    "description": "AWS configures a store to retrieve secrets from AWS Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AWSProvider"
-                        }
-                    ]
-                },
-                "azure": {
-                    "description": "Azure configures a store to retrieve secrets from Azure KeyVault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.AzureKVProvider"
-                        }
-                    ]
-                },
-                "fake": {
-                    "description": "Fake configures a store with static key/value pairs",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.FakeProvider"
-                        }
-                    ]
-                },
-                "onpremises": {
-                    "description": "Onprem configures a store in on-premises environments",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.OnPremisesProvider"
-                        }
-                    ]
-                },
-                "vault": {
-                    "description": "Vault configures a store to retrieve secrets from HashiCorp Vault.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultProvider"
-                        }
-                    ]
-                },
-                "viettelcloud": {
-                    "description": "ViettelCloud configures a store to retrieve secrets from ViettelCloud Secrets Manager.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ViettelCloudProvider"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.Resource": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "description": "Attributes represents all specified attributes of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "dependsOn": {
-                    "description": "DependsOn contains all resources this resource depends on",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "extensions": {
-                    "description": "Extensions specifies arbitrary metadata of this resource",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "id": {
-                    "description": "ID is the unique key of this resource.\nApiVersion:Kind:Namespace:Name is an idiomatic way for Kubernetes resources.\nproviderNamespace:providerName:resourceType:resourceName for Terraform resources",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type represents all Context we supported like Kubernetes and Terraform",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/kusionstack_io_kusion_pkg_apis_api_kusion_io_v1.Type"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.SecretStore": {
-            "type": "object",
-            "properties": {
-                "provider": {
-                    "$ref": "#/definitions/v1.ProviderSpec"
-                }
-            }
-        },
-        "v1.Spec": {
-            "type": "object",
-            "properties": {
-                "context": {
-                    "description": "Context contains workspace-level configurations, such as runtimes, topologies, and metadata, etc.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.GenericConfig"
-                        }
-                    ]
-                },
-                "resources": {
-                    "description": "Resources is the list of Resource this Spec contains.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.Resource"
-                    }
-                },
-                "secretStore": {
-                    "description": "SecretSore represents a external secret store location for storing secrets.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.SecretStore"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.VaultKVStoreVersion": {
-            "type": "string",
-            "enum": [
-                "v1",
-                "v2"
-            ],
-            "x-enum-varnames": [
-                "VaultKVStoreV1",
-                "VaultKVStoreV2"
-            ]
-        },
-        "v1.VaultProvider": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "description": "Path is the mount path of the Vault KV backend endpoint, e.g: \"secret\".",
-                    "type": "string"
-                },
-                "server": {
-                    "description": "Server is the target Vault server address to connect, e.g: \"https://vault.example.com:8200\".",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Version is the Vault KV secret engine version. Version can be either \"v1\" or\n\"v2\", defaults to \"v2\".",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.VaultKVStoreVersion"
-                        }
-                    ]
-                }
-            }
-        },
-        "v1.ViettelCloudProvider": {
-            "type": "object",
-            "properties": {
-                "cmpURL": {
-                    "description": "ViettelCloud CMP URL to be used to interact with ViettelCloud Secrets Manager.\nExamples are https://console.viettelcloud.vn/api/",
-                    "type": "string"
-                },
-                "projectID": {
-                    "description": "ProjectID to be used to interact with ViettelCloud Secrets Manager.",
-                    "type": "string"
-                }
-            }
         }
     }
 }`

@@ -41,6 +41,13 @@ type ModuleWithVersion struct {
 type ModuleFilter struct {
 	// ModuleName is the name of the module to filter by.
 	ModuleName string
+	Pagination *Pagination
+}
+
+type ModuleListResult struct {
+	Modules            []*Module
+	ModulesWithVersion []*ModuleWithVersion
+	Total              int
 }
 
 // Validate checks if the module is valid.

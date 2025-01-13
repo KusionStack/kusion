@@ -37,7 +37,12 @@ func TestProjectHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `project`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `project`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__remote", "Source__source_provider"}).
 				AddRow(1, projectName, projectPath, 1, "test-org", owners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub).
 				AddRow(2, projectNameSecond, projectPath, 2, "test-org-2", owners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub))
@@ -58,7 +63,7 @@ func TestProjectHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]interface{})["projects"].([]any)))
 	})
 
 	t.Run("GetProject", func(t *testing.T) {
@@ -78,7 +83,7 @@ func TestProjectHandler(t *testing.T) {
 		rctx.URLParams.Add("projectID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListProjects handler function
+		// Call the GetProjects handler function
 		projectHandler.GetProject()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -212,12 +217,10 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateProjectRequest: request.CreateProjectRequest{
-				Name:           projectNameUpdated,
-				Path:           projectPathUpdated,
-				OrganizationID: 1,
-			},
+			ID:             1,
+			Name:           projectNameUpdated,
+			Path:           projectPathUpdated,
+			OrganizationID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -233,7 +236,7 @@ func TestProjectHandler(t *testing.T) {
 		sqlMock.ExpectExec("UPDATE").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
 
-		// Call the ListProjects handler function
+		// Call the UpdateProjects handler function
 		projectHandler.UpdateProject()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -334,12 +337,10 @@ func TestProjectHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateProjectRequest{
 			// Set your request payload fields here
-			ID: 2,
-			CreateProjectRequest: request.CreateProjectRequest{
-				Name:           "test-project-updated",
-				Path:           projectPathUpdated,
-				OrganizationID: 1,
-			},
+			ID:             2,
+			Name:           "test-project-updated",
+			Path:           projectPathUpdated,
+			OrganizationID: 1,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/render"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	modulemanager "kusionstack.io/kusion/pkg/server/manager/module"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
@@ -21,13 +21,13 @@ import (
 // @Tags			module
 // @Accept			json
 // @Produce		json
-// @Param			module				body		request.CreateModuleRequest	true	"Created module"
-// @Success		200					{object}	entity.Module				"Success"
-// @Failure		400					{object}	error						"Bad Request"
-// @Failure		401					{object}	error						"Unauthorized"
-// @Failure		429					{object}	error						"Too Many Requests"
-// @Failure		404					{object}	error						"Not Found"
-// @Failure		500					{object}	error						"Internal Server Error"
+// @Param			module				body		request.CreateModuleRequest				true	"Created module"
+// @Success		200					{object}	handler.Response{data=entity.Module}	"Success"
+// @Failure		400					{object}	error									"Bad Request"
+// @Failure		401					{object}	error									"Unauthorized"
+// @Failure		429					{object}	error									"Too Many Requests"
+// @Failure		404					{object}	error									"Not Found"
+// @Failure		500					{object}	error									"Internal Server Error"
 // @Router			/api/v1/modules 	[post]
 func (h *Handler) CreateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +43,12 @@ func (h *Handler) CreateModule() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Return the created entity.
 		createdEntity, err := h.moduleManager.CreateModule(ctx, requestPayload)
 		handler.HandleResult(w, r, ctx, err, createdEntity)
@@ -54,14 +60,14 @@ func (h *Handler) CreateModule() http.HandlerFunc {
 // @Description	Delete the specified module by name
 // @Tags			module
 // @Produce		json
-// @Param			name					path		string	true	"Module Name"
-// @Success		200						{object}	string	"Success"
-// @Failure		400						{object}	error	"Bad Request"
-// @Failure		401						{object}	error	"Unauthorized"
-// @Failure		429						{object}	error	"Too Many Requests"
-// @Failure		404						{object}	error	"Not Found"
-// @Failure		500						{object}	error	"Internal Server Error"
-// @Router			/api/v1/modules/{name} 	[delete]
+// @Param			moduleName						path		string							true	"Module Name"
+// @Success		200								{object}	handler.Response{data=string}	"Success"
+// @Failure		400								{object}	error							"Bad Request"
+// @Failure		401								{object}	error							"Unauthorized"
+// @Failure		429								{object}	error							"Too Many Requests"
+// @Failure		404								{object}	error							"Not Found"
+// @Failure		500								{object}	error							"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 	[delete]
 func (h *Handler) DeleteModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -83,15 +89,15 @@ func (h *Handler) DeleteModule() http.HandlerFunc {
 // @Tags			module
 // @Accept			json
 // @Produce		json
-// @Param			name					path		string						true	"Module Name"
-// @Param			module					body		request.UpdateModuleRequest	true	"Updated module"
-// @Success		200						{object}	entity.Module				"Success"
-// @Failure		400						{object}	error						"Bad Request"
-// @Failure		401						{object}	error						"Unauthorized"
-// @Failure		429						{object}	error						"Too Many Requests"
-// @Failure		404						{object}	error						"Not Found"
-// @Failure		500						{object}	error						"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																																			[put]
+// @Param			moduleName						path		string									true	"Module Name"
+// @Param			module							body		request.UpdateModuleRequest				true	"Updated module"
+// @Success		200								{object}	handler.Response{data=entity.Module}	"Success"
+// @Failure		400								{object}	error									"Bad Request"
+// @Failure		401								{object}	error									"Unauthorized"
+// @Failure		429								{object}	error									"Too Many Requests"
+// @Failure		404								{object}	error									"Not Found"
+// @Failure		500								{object}	error									"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																																																													[put]
 func (h *Handler) UpdateModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -109,6 +115,12 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 			return
 		}
 
+		// Validate request payload
+		if err := requestPayload.Validate(); err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
 		// Return the updated module.
 		updatedEntity, err := h.moduleManager.UpdateModuleByName(ctx, params.ModuleName, requestPayload)
 		handler.HandleResult(w, r, ctx, err, updatedEntity)
@@ -120,14 +132,14 @@ func (h *Handler) UpdateModule() http.HandlerFunc {
 // @Description	Get module information by module name
 // @Tags			module
 // @Produce		json
-// @Param			name					path		string			true	"Module Name"
-// @Success		200						{object}	entity.Module	"Success"
-// @Failure		400						{object}	error			"Bad Request"
-// @Failure		401						{object}	error			"Unauthorized"
-// @Failure		429						{object}	error			"Too Many Requests"
-// @Failure		404						{object}	error			"Not Found"
-// @Failure		500						{object}	error			"Internal Server Error"
-// @Router			/api/v1/modules/{name} 																																	[get]
+// @Param			moduleName						path		string									true	"Module Name"
+// @Success		200								{object}	handler.Response{data=entity.Module}	"Success"
+// @Failure		400								{object}	error									"Bad Request"
+// @Failure		401								{object}	error									"Unauthorized"
+// @Failure		429								{object}	error									"Too Many Requests"
+// @Failure		404								{object}	error									"Not Found"
+// @Failure		500								{object}	error									"Internal Server Error"
+// @Router			/api/v1/modules/{moduleName} 																																																																																																																																																																																											[get]
 func (h *Handler) GetModule() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -148,14 +160,16 @@ func (h *Handler) GetModule() http.HandlerFunc {
 // @Description	List module information
 // @Tags			module
 // @Produce		json
-// @Param			workspaceID	query		uint			false	"Workspace ID to filter module list by. Default to all workspaces."
-// @Param			moduleName	query		string			false	"Module name to filter module list by. Default to all modules."
-// @Success		200			{object}	[]entity.Module	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
+// @Param			workspaceID	query		uint													false	"Workspace ID to filter module list by. Default to all workspaces."
+// @Param			moduleName	query		string													false	"Module name to filter module list by. Default to all modules."
+// @Param			page		query		uint													false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=response.PaginatedModuleResponse}	"Success"
+// @Failure		400			{object}	error													"Bad Request"
+// @Failure		401			{object}	error													"Unauthorized"
+// @Failure		429			{object}	error													"Too Many Requests"
+// @Failure		404			{object}	error													"Not Found"
+// @Failure		500			{object}	error													"Internal Server Error"
 // @Router			/api/v1/modules [get]
 func (h *Handler) ListModules() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -164,13 +178,17 @@ func (h *Handler) ListModules() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing module...")
 
-		wsIDParam := r.URL.Query().Get("workspaceID")
-		moduleNameParam := r.URL.Query().Get("moduleName")
+		query := r.URL.Query()
 
-		filter := &entity.ModuleFilter{}
-		if moduleNameParam != "" {
-			filter.ModuleName = moduleNameParam
+		// Get module filter.
+		filter, err := h.moduleManager.BuildModuleFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
+
+		// List modules with pagination.
+		wsIDParam := query.Get("workspaceID")
 		if wsIDParam != "" {
 			wsID, err := strconv.Atoi(wsIDParam)
 			if err != nil {
@@ -178,15 +196,36 @@ func (h *Handler) ListModules() http.HandlerFunc {
 				return
 			}
 
-			// List modules in the specified workspace.
+			// List modules in the specified workspace with pagination.
 			moduleEntities, err := h.moduleManager.ListModulesByWorkspaceID(ctx, uint(wsID), filter)
-			handler.HandleResult(w, r, ctx, err, moduleEntities)
+			if err != nil {
+				render.Render(w, r, handler.FailureResponse(ctx, err))
+				return
+			}
+
+			paginatedResponse := response.PaginatedModuleResponse{
+				ModulesWithVersion: moduleEntities.ModulesWithVersion,
+				Total:              moduleEntities.Total,
+				CurrentPage:        filter.Pagination.Page,
+				PageSize:           filter.Pagination.PageSize,
+			}
+			handler.HandleResult(w, r, ctx, err, paginatedResponse)
 			return
 		}
 
-		// List modules.
 		moduleEntities, err := h.moduleManager.ListModules(ctx, filter)
-		handler.HandleResult(w, r, ctx, err, moduleEntities)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
+		}
+
+		paginatedResponse := response.PaginatedModuleResponse{
+			Modules:     moduleEntities.Modules,
+			Total:       moduleEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

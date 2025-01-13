@@ -33,7 +33,7 @@ func (m *ModuleModel) ToEntity() (*entity.Module, error) {
 		return nil, ErrModuleModelNil
 	}
 
-	url, err := url.Parse(m.URL)
+	address, err := url.Parse(m.URL)
 	if err != nil {
 		return nil, ErrFailedToGetModuleRemote
 	}
@@ -45,7 +45,7 @@ func (m *ModuleModel) ToEntity() (*entity.Module, error) {
 
 	return &entity.Module{
 		Name:        m.Name,
-		URL:         url,
+		URL:         address,
 		Description: m.Description,
 		Owners:      []string(m.Owners),
 		Doc:         doc,

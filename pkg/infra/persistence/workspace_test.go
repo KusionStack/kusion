@@ -7,6 +7,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
@@ -133,14 +134,25 @@ func TestWorkspaceRepository(t *testing.T) {
 			expectedIDSecond   uint = 2
 			expectedNameSecond      = "mockedWorkspace2"
 		)
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `workspace`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
 		sqlMock.ExpectQuery("SELECT .* FROM `workspace`").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
 					AddRow(expectedIDFirst, expectedNameFirst, 1).
 					AddRow(expectedIDSecond, expectedNameSecond, 2))
 
-		actual, err := repo.List(context.Background(), &entity.WorkspaceFilter{})
+		actual, err := repo.List(context.Background(), &entity.WorkspaceFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Workspaces, 2)
 	})
 }

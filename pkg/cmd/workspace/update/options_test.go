@@ -55,15 +55,16 @@ func TestOptions_Validate(t *testing.T) {
 		{
 			name: "valid options",
 			opts: &Options{
-				Name:     "dev",
-				FilePath: "dev.yaml",
+				Name:    "dev",
+				NewName: "dev-test",
 			},
 			success: true,
 		},
 		{
-			name: "invalid options empty file path",
+			name: "invalid options invalid new name",
 			opts: &Options{
-				Name: "dev",
+				Name:    "dev",
+				NewName: "default",
 			},
 			success: false,
 		},

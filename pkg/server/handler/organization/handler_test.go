@@ -31,7 +31,12 @@ func TestOrganizationHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `organization`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `organization`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "Backend__id"}).
 				AddRow(1, orgName, 1).
 				AddRow(2, orgNameSecond, 2))
@@ -52,7 +57,7 @@ func TestOrganizationHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]interface{})["organizations"].([]any)))
 	})
 
 	t.Run("GetOrganization", func(t *testing.T) {
@@ -72,7 +77,7 @@ func TestOrganizationHandler(t *testing.T) {
 		rctx.URLParams.Add("organizationID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListOrganizations handler function
+		// Call the GetOrganizations handler function
 		organizationHandler.GetOrganization()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -147,10 +152,8 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateOrganizationRequest: request.CreateOrganizationRequest{
-				Name: orgNameUpdated,
-			},
+			ID:   1,
+			Name: orgNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -163,7 +166,7 @@ func TestOrganizationHandler(t *testing.T) {
 		sqlMock.ExpectExec("UPDATE").
 			WillReturnResult(sqlmock.NewResult(int64(1), int64(1)))
 
-		// Call the ListOrganizations handler function
+		// Call the UpdateOrganizations handler function
 		organizationHandler.UpdateOrganization()(recorder, req)
 		assert.Equal(t, http.StatusOK, recorder.Code)
 
@@ -261,10 +264,8 @@ func TestOrganizationHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateOrganizationRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateOrganizationRequest: request.CreateOrganizationRequest{
-				Name: orgNameUpdated,
-			},
+			ID:   1,
+			Name: orgNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

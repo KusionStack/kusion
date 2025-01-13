@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/infra/persistence"
 	"kusionstack.io/kusion/pkg/server/handler"
@@ -29,7 +30,12 @@ func TestBackendHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `backend`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `backend`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
 				AddRow(1, backendName).
 				AddRow(2, backendNameSecond))
@@ -50,7 +56,7 @@ func TestBackendHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]interface{})["backends"].([]any)))
 	})
 
 	t.Run("GetBackend", func(t *testing.T) {
@@ -101,6 +107,13 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.CreateBackendRequest{
 			Name: backendName,
+			BackendConfig: v1.BackendConfig{
+				Type: v1.BackendTypeS3,
+				Configs: map[string]any{
+					"accessKeyID": "mockedAccessKeyID",
+					"secretKeyID": "mockedSecretKeyID",
+				},
+			},
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -144,10 +157,8 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateBackendRequest: request.CreateBackendRequest{
-				Name: backendNameUpdated,
-			},
+			ID:   1,
+			Name: backendNameUpdated,
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)
@@ -258,10 +269,8 @@ func TestBackendHandler(t *testing.T) {
 		// Set request body
 		requestPayload := request.UpdateBackendRequest{
 			// Set your request payload fields here
-			ID: 1,
-			CreateBackendRequest: request.CreateBackendRequest{
-				Name: "test-backend-updated",
-			},
+			ID:   1,
+			Name: "test-backend-updated",
 		}
 		reqBody, err := json.Marshal(requestPayload)
 		assert.NoError(t, err)

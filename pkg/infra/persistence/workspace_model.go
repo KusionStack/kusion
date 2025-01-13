@@ -14,7 +14,7 @@ type WorkspaceModel struct {
 	Labels      MultiString
 	Owners      MultiString
 	BackendID   uint
-	Backend     *BackendModel `gorm:"foreignKey:ID;references:BackendID"`
+	Backend     *BackendModel
 }
 
 // The TableName method returns the name of the database table that the struct is mapped to.

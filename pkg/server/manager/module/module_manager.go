@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 	"kusionstack.io/kusion/pkg/server/manager/workspace"
+	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
 func (m *ModuleManager) CreateModule(ctx context.Context, requestPayload request.CreateModuleRequest) (*entity.Module, error) {
@@ -21,17 +24,25 @@ func (m *ModuleManager) CreateModule(ctx context.Context, requestPayload request
 	}
 
 	// Parse remote string of `URL` and `Doc`.
-	url, err := url.Parse(requestPayload.URL)
+	address, err := url.Parse(requestPayload.URL)
 	if err != nil {
 		return nil, err
 	}
-	createdEntity.URL = url
+	if address.Scheme == "" {
+		address.Scheme = "https"
+	}
+	createdEntity.URL = address
 
-	doc, err := url.Parse(requestPayload.URL)
-	if err != nil {
-		return nil, err
+	if requestPayload.Doc != "" {
+		doc, err := url.Parse(requestPayload.Doc)
+		if err != nil {
+			return nil, err
+		}
+		if doc.Scheme == "" {
+			doc.Scheme = "https"
+		}
+		createdEntity.Doc = doc
 	}
-	createdEntity.Doc = doc
 
 	// Create module with repository
 	err = m.moduleRepo.Create(ctx, &createdEntity)
@@ -60,17 +71,25 @@ func (m *ModuleManager) UpdateModuleByName(ctx context.Context, name string, req
 	}
 
 	// Parse remote string of `URL` and `Doc`.
-	url, err := url.Parse(requestPayload.URL)
+	address, err := url.Parse(requestPayload.URL)
 	if err != nil {
 		return nil, err
 	}
-	requestEntity.URL = url
+	if address.Scheme == "" {
+		address.Scheme = "https"
+	}
+	requestEntity.URL = address
 
-	doc, err := url.Parse(requestPayload.Doc)
-	if err != nil {
-		return nil, err
+	if requestPayload.Doc != "" {
+		doc, err := url.Parse(requestPayload.Doc)
+		if err != nil {
+			return nil, err
+		}
+		if doc.Scheme == "" {
+			doc.Scheme = "https"
+		}
+		requestEntity.Doc = doc
 	}
-	requestEntity.Doc = doc
 
 	// Get the existing module by name.
 	updatedEntity, err := m.moduleRepo.Get(ctx, name)
@@ -106,7 +125,7 @@ func (m *ModuleManager) GetModuleByName(ctx context.Context, name string) (*enti
 	return existingEntity, nil
 }
 
-func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter) ([]*entity.Module, error) {
+func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
 	moduleEntities, err := m.moduleRepo.List(ctx, filter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -119,7 +138,7 @@ func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFi
 	return moduleEntities, nil
 }
 
-func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint, filter *entity.ModuleFilter) ([]*entity.ModuleWithVersion, error) {
+func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
 	// Get workspace entity by ID.
 	existingEntity, err := m.workspaceRepo.Get(ctx, workspaceID)
 	if err != nil {
@@ -178,5 +197,43 @@ func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceI
 		})
 	}
 
-	return moduleEntities, nil
+	// Calculate the pagination scope.
+	// Note: we assume that the `Page` and `PageSize` here is always valid.
+	start := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	end := filter.Pagination.Page*filter.Pagination.PageSize - 1
+	if end > len(moduleEntities) {
+		end = len(moduleEntities)
+	}
+
+	return &entity.ModuleListResult{
+		ModulesWithVersion: moduleEntities[start:end],
+		Total:              len(moduleEntities),
+	}, nil
+}
+
+func (m *ModuleManager) BuildModuleFilter(ctx context.Context, query *url.Values) (*entity.ModuleFilter, error) {
+	logger := logutil.GetLogger(ctx)
+	logger.Info("Building module filter...")
+
+	moduleNameParam := query.Get("moduleName")
+
+	filter := entity.ModuleFilter{}
+	if moduleNameParam != "" {
+		filter.ModuleName = moduleNameParam
+	}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.CommonPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.CommonPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+	return &filter, nil
 }

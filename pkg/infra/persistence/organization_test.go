@@ -7,6 +7,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
@@ -135,14 +136,25 @@ func TestOrganizationRepository(t *testing.T) {
 			expectedNameSecond             = "mockedOrganization2"
 			expectedDisplayNameSecond      = "mockedDisplayName2"
 		)
-		sqlMock.ExpectQuery("SELECT .* FROM `organization`").
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `organization`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `organization` .* IS NULL LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name", "display_name"}).
 					AddRow(expectedIDFirst, expectedNameFirst, expectedDisplayNameFirst).
 					AddRow(expectedIDSecond, expectedNameSecond, expectedDisplayNameSecond))
 
-		actual, err := repo.List(context.Background())
+		actual, err := repo.List(context.Background(), &entity.OrganizationFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Organizations, 2)
 	})
 }

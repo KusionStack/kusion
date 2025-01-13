@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	"kusionstack.io/kusion/pkg/domain/constant"
 )
 
 // CreateWorkspaceRequest represents the create request structure for
@@ -33,9 +34,7 @@ type UpdateWorkspaceRequest struct {
 	// Labels are custom labels associated with the workspace.
 	Labels map[string]string `json:"labels"`
 	// Owners is a list of owners for the workspace.
-	Owners []string `json:"owners" binding:"required"`
-	// BackendID is the configuration backend id associated with the workspace.
-	BackendID uint `json:"backendID" binding:"required"`
+	Owners []string `json:"owners"`
 }
 
 type WorkspaceCredentials struct {
@@ -51,6 +50,42 @@ type WorkspaceCredentials struct {
 
 type WorkspaceConfigs struct {
 	*v1.Workspace `yaml:",inline" json:",inline"`
+}
+
+func (payload *CreateWorkspaceRequest) Validate() error {
+	if payload.Name == "" {
+		return constant.ErrEmptyWorkspaceName
+	}
+
+	if payload.Name == constant.DefaultWorkspace {
+		return constant.ErrInvalidDefaultWorkspaceName
+	}
+
+	if validName(payload.Name) {
+		return constant.ErrInvalidWorkspaceName
+	}
+
+	if payload.BackendID == 0 {
+		return constant.ErrEmptyBackendID
+	}
+
+	if len(payload.Owners) == 0 {
+		return constant.ErrEmptyOwners
+	}
+
+	return nil
+}
+
+func (payload *UpdateWorkspaceRequest) Validate() error {
+	if payload.Name == constant.DefaultWorkspace {
+		return constant.ErrInvalidDefaultWorkspaceName
+	}
+
+	if payload.Name != "" && validName(payload.Name) {
+		return constant.ErrInvalidWorkspaceName
+	}
+
+	return nil
 }
 
 func (payload *CreateWorkspaceRequest) Decode(r *http.Request) error {

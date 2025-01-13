@@ -156,14 +156,25 @@ func TestProjectRepository(t *testing.T) {
 			expectedNameSecond      = "mockedProject2"
 			expectedPathSecond      = "/path/to/project/2"
 		)
-		sqlMock.ExpectQuery("SELECT .* FROM `project`").
+
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `project`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `project` .* IS NULL LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__remote", "Source__source_provider"}).
 					AddRow(expectedID, expectedName, expectedPath, 1, "mockedOrg", expectedOrgOwners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub).
 					AddRow(expectedIDSecond, expectedNameSecond, expectedPathSecond, 1, "mockedOrg", expectedOrgOwners, 2, "https://github.com/test/repo2", constant.SourceProviderTypeGithub))
 
-		actual, err := repo.List(context.Background(), &entity.ProjectFilter{})
+		actual, err := repo.List(context.Background(), &entity.ProjectFilter{
+			Pagination: &entity.Pagination{
+				Page:     constant.CommonPageDefault,
+				PageSize: constant.CommonPageSizeDefault,
+			},
+		})
 		require.NoError(t, err)
-		require.Len(t, actual, 2)
+		require.Len(t, actual.Projects, 2)
 	})
 }

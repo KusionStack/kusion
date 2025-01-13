@@ -46,9 +46,12 @@ func (m *mockProjectRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Project), args.Error(1)
+	return &entity.ProjectListResult{
+		Projects: args.Get(0).([]*entity.Project),
+		Total:    len(args.Get(0).([]*entity.Project)),
+	}, args.Error(1)
 }
 
 func (m *mockProjectRepository) Get(ctx context.Context, id uint) (*entity.Project, error) {
@@ -91,9 +94,12 @@ func (m *mockOrganizationRepository) Delete(ctx context.Context, id uint) error 
 	return args.Error(0)
 }
 
-func (m *mockOrganizationRepository) List(ctx context.Context) ([]*entity.Organization, error) {
+func (m *mockOrganizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
 	args := m.Called(ctx)
-	return args.Get(0).([]*entity.Organization), args.Error(1)
+	return &entity.OrganizationListResult{
+		Organizations: args.Get(0).([]*entity.Organization),
+		Total:         len(args.Get(0).([]*entity.Organization)),
+	}, args.Error(1)
 }
 
 func (m *mockOrganizationRepository) Get(ctx context.Context, id uint) (*entity.Organization, error) {
@@ -136,9 +142,12 @@ func (m *mockSourceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockSourceRepository) List(ctx context.Context, filter *entity.SourceFilter) ([]*entity.Source, error) {
-	args := m.Called(ctx, filter)
-	return args.Get(0).([]*entity.Source), args.Error(1)
+func (m *mockSourceRepository) List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
+	args := m.Called(ctx)
+	return &entity.SourceListResult{
+		Sources: args.Get(0).([]*entity.Source),
+		Total:   len(args.Get(0).([]*entity.Source)),
+	}, args.Error(1)
 }
 
 func (m *mockSourceRepository) Get(ctx context.Context, id uint) (*entity.Source, error) {
@@ -166,7 +175,7 @@ func TestProjectManager_ListProjects(t *testing.T) {
 		projectRepo: mockRepo,
 	}
 	projects, err := manager.ListProjects(ctx, filter)
-	if !reflect.DeepEqual(projects, expectedProjects) {
+	if !reflect.DeepEqual(projects.Projects, expectedProjects) {
 		t.Errorf("ListProjects() returned unexpected projects.\nExpected: %v\nGot: %v", expectedProjects, projects)
 	}
 	if err != nil {
@@ -216,11 +225,9 @@ func TestProjectManager_UpdateProjectByID(t *testing.T) {
 	ctx := context.TODO()
 	id := uint(1)
 	requestPayload := request.UpdateProjectRequest{
-		CreateProjectRequest: request.CreateProjectRequest{
-			SourceID:       2,
-			OrganizationID: 3,
-			Labels:         []string{"label1", "label2"},
-		},
+		SourceID:       2,
+		OrganizationID: 3,
+		Labels:         []string{"label1", "label2"},
 	}
 	mockRepo := &mockProjectRepository{}
 	mockSourceRepo := &mockSourceRepository{}

@@ -10,8 +10,8 @@ import (
 	"github.com/go-chi/render"
 
 	"kusionstack.io/kusion/pkg/domain/constant"
-	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
+	"kusionstack.io/kusion/pkg/domain/response"
 	"kusionstack.io/kusion/pkg/server/handler"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
@@ -22,13 +22,13 @@ import (
 // @Tags			project
 // @Accept			json
 // @Produce		json
-// @Param			project	body		request.CreateProjectRequest	true	"Created project"
-// @Success		200		{object}	entity.Project					"Success"
-// @Failure		400		{object}	error							"Bad Request"
-// @Failure		401		{object}	error							"Unauthorized"
-// @Failure		429		{object}	error							"Too Many Requests"
-// @Failure		404		{object}	error							"Not Found"
-// @Failure		500		{object}	error							"Internal Server Error"
+// @Param			project	body		request.CreateProjectRequest			true	"Created project"
+// @Success		200		{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400		{object}	error									"Bad Request"
+// @Failure		401		{object}	error									"Unauthorized"
+// @Failure		429		{object}	error									"Too Many Requests"
+// @Failure		404		{object}	error									"Not Found"
+// @Failure		500		{object}	error									"Internal Server Error"
 // @Router			/api/v1/projects [post]
 func (h *Handler) CreateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,14 +70,14 @@ func (h *Handler) CreateProject() http.HandlerFunc {
 // @Description	Delete specified project by ID
 // @Tags			project
 // @Produce		json
-// @Param			project_id	path		int		true	"Project ID"
-// @Success		200			{object}	string	"Success"
-// @Failure		400			{object}	error	"Bad Request"
-// @Failure		401			{object}	error	"Unauthorized"
-// @Failure		429			{object}	error	"Too Many Requests"
-// @Failure		404			{object}	error	"Not Found"
-// @Failure		500			{object}	error	"Internal Server Error"
-// @Router			/api/v1/projects/{project_id} [delete]
+// @Param			projectID	path		int								true	"Project ID"
+// @Success		200			{object}	handler.Response{data=string}	"Success"
+// @Failure		400			{object}	error							"Bad Request"
+// @Failure		401			{object}	error							"Unauthorized"
+// @Failure		429			{object}	error							"Too Many Requests"
+// @Failure		404			{object}	error							"Not Found"
+// @Failure		500			{object}	error							"Internal Server Error"
+// @Router			/api/v1/projects/{projectID} [delete]
 func (h *Handler) DeleteProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -99,15 +99,15 @@ func (h *Handler) DeleteProject() http.HandlerFunc {
 // @Tags			project
 // @Accept			json
 // @Produce		json
-// @Param			project_id	path		uint							true	"Project ID"
-// @Param			project		body		request.UpdateProjectRequest	true	"Updated project"
-// @Success		200			{object}	entity.Project					"Success"
-// @Failure		400			{object}	error							"Bad Request"
-// @Failure		401			{object}	error							"Unauthorized"
-// @Failure		429			{object}	error							"Too Many Requests"
-// @Failure		404			{object}	error							"Not Found"
-// @Failure		500			{object}	error							"Internal Server Error"
-// @Router			/api/v1/projects/{project_id} [put]
+// @Param			projectID	path		uint									true	"Project ID"
+// @Param			project		body		request.UpdateProjectRequest			true	"Updated project"
+// @Success		200			{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/projects/{projectID} [put]
 func (h *Handler) UpdateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -141,14 +141,14 @@ func (h *Handler) UpdateProject() http.HandlerFunc {
 // @Description	Get project information by project ID
 // @Tags			project
 // @Produce		json
-// @Param			project_id	path		uint			true	"Project ID"
-// @Success		200			{object}	entity.Project	"Success"
-// @Failure		400			{object}	error			"Bad Request"
-// @Failure		401			{object}	error			"Unauthorized"
-// @Failure		429			{object}	error			"Too Many Requests"
-// @Failure		404			{object}	error			"Not Found"
-// @Failure		500			{object}	error			"Internal Server Error"
-// @Router			/api/v1/projects/{project_id} [get]
+// @Param			projectID	path		uint									true	"Project ID"
+// @Success		200			{object}	handler.Response{data=entity.Project}	"Success"
+// @Failure		400			{object}	error									"Bad Request"
+// @Failure		401			{object}	error									"Unauthorized"
+// @Failure		429			{object}	error									"Too Many Requests"
+// @Failure		404			{object}	error									"Not Found"
+// @Failure		500			{object}	error									"Internal Server Error"
+// @Router			/api/v1/projects/{projectID} [get]
 func (h *Handler) GetProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context
@@ -169,14 +169,17 @@ func (h *Handler) GetProject() http.HandlerFunc {
 // @Description	List all or a subset of the projects
 // @Tags			project
 // @Produce		json
-// @Param			orgID	query		uint				false	"OrganizationID to filter project list by. Default to all projects."
-// @Param			name	query		string				false	"Project name to filter project list by. This should only return one result if set."
-// @Success		200		{object}	[]entity.Project	"Success"
-// @Failure		400		{object}	error				"Bad Request"
-// @Failure		401		{object}	error				"Unauthorized"
-// @Failure		429		{object}	error				"Too Many Requests"
-// @Failure		404		{object}	error				"Not Found"
-// @Failure		500		{object}	error				"Internal Server Error"
+// @Param			orgID		query		uint														false	"OrganizationID to filter project list by. Default to all projects."
+// @Param			name		query		string														false	"Project name to filter project list by. This should only return one result if set."
+// @Param			fuzzyName	query		string														false	"Fuzzy match project name to filter project list by."
+// @Param			page		query		uint														false	"The current page to fetch. Default to 1"
+// @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
+// @Success		200			{object}	handler.Response{data=[]response.PaginatedProjectResponse}	"Success"
+// @Failure		400			{object}	error														"Bad Request"
+// @Failure		401			{object}	error														"Unauthorized"
+// @Failure		429			{object}	error														"Too Many Requests"
+// @Failure		404			{object}	error														"Not Found"
+// @Failure		500			{object}	error														"Internal Server Error"
 // @Router			/api/v1/projects [get]
 func (h *Handler) ListProjects() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -185,24 +188,26 @@ func (h *Handler) ListProjects() http.HandlerFunc {
 		logger := logutil.GetLogger(ctx)
 		logger.Info("Listing project...")
 
-		filter := entity.ProjectFilter{}
-		orgIDParam := r.URL.Query().Get("orgID")
-		if orgIDParam != "" {
-			orgID, err := strconv.Atoi(orgIDParam)
-			if err != nil {
-				render.Render(w, r, handler.FailureResponse(ctx, constant.ErrInvalidOrganizationID))
-				return
-			}
-			filter.OrgID = uint(orgID)
+		query := r.URL.Query()
+		filter, err := h.projectManager.BuildProjectFilter(ctx, &query)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
 
-		name := r.URL.Query().Get("name")
-		if name != "" {
-			filter.Name = name
+		projectEntities, err := h.projectManager.ListProjects(ctx, filter)
+		if err != nil {
+			render.Render(w, r, handler.FailureResponse(ctx, err))
+			return
 		}
 
-		projectEntities, err := h.projectManager.ListProjects(ctx, &filter)
-		handler.HandleResult(w, r, ctx, err, projectEntities)
+		paginatedResponse := response.PaginatedProjectResponse{
+			Projects:    projectEntities.Projects,
+			Total:       projectEntities.Total,
+			CurrentPage: filter.Pagination.Page,
+			PageSize:    filter.Pagination.PageSize,
+		}
+		handler.HandleResult(w, r, ctx, err, paginatedResponse)
 	}
 }
 

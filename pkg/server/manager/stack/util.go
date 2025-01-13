@@ -242,10 +242,17 @@ func tempPath(path string) string {
 	return fmt.Sprintf("%s/%s", constant.TmpDirPrefix, path)
 }
 
-func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, projectIDParam, projectName, envParam string) (*entity.StackFilter, error) {
+func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) (*entity.StackFilter, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building stack filter...")
+
 	filter := entity.StackFilter{}
+
+	orgIDParam := query.Get("orgID")
+	projectIDParam := query.Get("projectID")
+	projectNameParam := query.Get("projectName")
+	pathParam := query.Get("path")
+
 	if orgIDParam != "" {
 		orgID, err := strconv.Atoi(orgIDParam)
 		if err != nil {
@@ -253,25 +260,40 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, orgIDParam, project
 		}
 		filter.OrgID = uint(orgID)
 	}
+	// If project id is present, use project id.
 	if projectIDParam != "" {
-		// if project id is present, use project id
 		projectID, err := strconv.Atoi(projectIDParam)
 		if err != nil {
 			return nil, constant.ErrInvalidProjectID
 		}
 		filter.ProjectID = uint(projectID)
-	} else if projectName != "" {
-		// otherwise, use project name
-		projectEntity, err := m.projectRepo.GetByName(ctx, projectName)
+	} else if projectNameParam != "" {
+		// Otherwise, use project name.
+		projectEntity, err := m.projectRepo.GetByName(ctx, projectNameParam)
 		if err != nil {
 			return nil, err
 		}
 		filter.ProjectID = projectEntity.ID
-		if envParam != "" {
-			filter.Path = fmt.Sprintf("%s/%s", projectEntity.Path, envParam)
+		if pathParam != "" {
+			filter.Path = pathParam
 			logger.Info("Showing path filter without cloud", "filter.Path: ", filter.Path)
 		}
 	}
+
+	// Set pagination parameters.
+	page, _ := strconv.Atoi(query.Get("page"))
+	if page <= 0 {
+		page = constant.CommonPageDefault
+	}
+	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
+	if pageSize <= 0 {
+		pageSize = constant.CommonPageSizeDefault
+	}
+	filter.Pagination = &entity.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
 	return &filter, nil
 }
 
@@ -340,11 +362,11 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 	// Set pagination parameters
 	page, _ := strconv.Atoi(query.Get("page"))
 	if page <= 0 {
-		page = constant.RunPageDefault
+		page = constant.CommonPageDefault
 	}
 	pageSize, _ := strconv.Atoi(query.Get("pageSize"))
 	if pageSize <= 0 {
-		pageSize = constant.RunPageSizeDefault
+		pageSize = constant.CommonPageSizeDefault
 	}
 	filter.Pagination = &entity.Pagination{
 		Page:     page,

@@ -3,9 +3,11 @@ package request
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/go-chi/render"
+	"kusionstack.io/kusion/pkg/domain/constant"
 )
 
 // decode detects the correct decoder for use on an HTTP request and
@@ -36,4 +38,24 @@ func validName(name string) bool {
 	// Validate project, stack and appconfig name contains only alphanumeric
 	// and underscore characters
 	return !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(name)
+}
+
+func validURL(address string) error {
+	// Check if address is empty
+	if address == "" {
+		return constant.ErrEmptyURL
+	}
+
+	// Check if address is a valid URL
+	u, err := url.Parse(address)
+	if err != nil {
+		return constant.ErrInvalidURL
+	}
+
+	// Check if host is present
+	if u.Host == "" {
+		return constant.ErrInvalidURL
+	}
+
+	return nil
 }

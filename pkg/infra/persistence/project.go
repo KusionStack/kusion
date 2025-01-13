@@ -110,15 +110,22 @@ func (r *projectRepository) GetByName(ctx context.Context, name string) (*entity
 }
 
 // List retrieves all projects.
-func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilter) ([]*entity.Project, error) {
+func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
 	var dataModel []ProjectModel
 	projectEntityList := make([]*entity.Project, 0)
 	pattern, args := GetProjectQuery(filter)
-	result := r.db.WithContext(ctx).
+	searchResult := r.db.WithContext(ctx).
 		Preload("Source").
 		Preload("Organization").
-		Where(pattern, args...).
-		Find(&dataModel)
+		Where(pattern, args...)
+
+	// Get total rows
+	var totalRows int64
+	searchResult.Model(dataModel).Count(&totalRows)
+
+	// Fetch paginated data from searchResult with offset and limit
+	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
+	result := searchResult.Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -129,5 +136,8 @@ func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilt
 		}
 		projectEntityList = append(projectEntityList, projectEntity)
 	}
-	return projectEntityList, nil
+	return &entity.ProjectListResult{
+		Projects: projectEntityList,
+		Total:    int(totalRows),
+	}, nil
 }

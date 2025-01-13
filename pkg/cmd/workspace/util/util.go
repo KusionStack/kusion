@@ -15,7 +15,7 @@ import (
 var (
 	ErrMoreThanOneArgs = errors.New("more than one args are not accepted")
 	ErrEmptyName       = errors.New("empty workspace name")
-	ErrInvalidDefault  = errors.New("invalid default workspace")
+	ErrInvalidDefault  = errors.New("default workspace cannot be modified")
 	ErrEmptyFilePath   = errors.New("empty configuration file path")
 )
 

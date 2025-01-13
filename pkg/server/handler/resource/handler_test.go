@@ -28,7 +28,12 @@ func TestResourceHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `resource`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(2))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "resource_plane", "resource_name", "kusion_resource_id"}).
 				AddRow(1, "Kubernetes", "Kubernetes", resourceName, "a:b:c:d").
 				AddRow(2, "Terraform", "AWS", resourceNameSecond, "e:f:g:h"))
@@ -49,7 +54,7 @@ func TestResourceHandler(t *testing.T) {
 		}
 
 		// Assertion
-		assert.Equal(t, 2, len(resp.Data.([]any)))
+		assert.Equal(t, 2, len(resp.Data.(map[string]interface{})["resources"].([]any)))
 	})
 
 	t.Run("GetResource", func(t *testing.T) {
@@ -69,7 +74,7 @@ func TestResourceHandler(t *testing.T) {
 		rctx.URLParams.Add("resourceID", "1")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-		// Call the ListResources handler function
+		// Call the GetResources handler function
 		resourceHandler.GetResource()(recorder, req)
 		fmt.Println(recorder.Body.String())
 		assert.Equal(t, http.StatusOK, recorder.Code)
@@ -93,20 +98,25 @@ func TestResourceHandler(t *testing.T) {
 		defer persistence.CloseDB(t, fakeGDB)
 		defer sqlMock.ExpectClose()
 
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT count(.*) FROM `resource`").
+			WillReturnRows(
+				sqlmock.NewRows([]string{"count"}).
+					AddRow(3))
+
+		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "resource_plane", "resource_name", "kusion_resource_id", "stack_id", "depends_on", "extensions"}).
 				AddRow(1, "Kubernetes", "Kubernetes", resourceName, "a:b:c:d", "1", "e:f:g:h", `{"kusion.io/is-workload":true}`).
 				AddRow(2, "Terraform", "AWS", resourceNameSecond, "e:f:g:h", "1", nil, `{}`).
 				AddRow(3, "Terraform", "AWS", resourceNameSecond, "z:x:y:w", "1", "e:f:g:h", `{}`))
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT .* FROM `stack`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "project_id"}).
 				AddRow(1, "test-stack", "1"))
-		sqlMock.ExpectQuery("SELECT").
+		sqlMock.ExpectQuery("SELECT .* FROM `project`").
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).
 				AddRow(1, "test-project"))
 
 		// Create a new HTTP request
-		req, err := http.NewRequest("GET", "/resources", nil)
+		req, err := http.NewRequest("GET", "/resources/graph?stackID=1", nil)
 		assert.NoError(t, err)
 
 		rctx := chi.NewRouteContext()

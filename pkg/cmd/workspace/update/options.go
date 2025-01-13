@@ -12,6 +12,7 @@ type Options struct {
 	FilePath string
 	Backend  string
 	Current  bool
+	NewName  string
 }
 
 func NewOptions() *Options {
@@ -28,8 +29,13 @@ func (o *Options) Complete(args []string) error {
 }
 
 func (o *Options) Validate() error {
-	if err := util.ValidateFilePath(o.FilePath); err != nil {
-		return err
+	if o.NewName != "" {
+		if err := util.ValidateNotDefaultName(o.NewName); err != nil {
+			return err
+		}
+		if err := util.ValidateNotDefaultName(o.Name); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -53,12 +59,25 @@ func (o *Options) Run() error {
 			return err
 		}
 	}
-	ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
-	if err != nil {
-		return err
+
+	if o.NewName == "" && o.FilePath == "" {
+		return fmt.Errorf("new name or file path is required")
 	}
-	if err = storage.Update(ws); err != nil {
-		return err
+
+	if o.NewName != "" {
+		if err = storage.RenameWorkspace(o.Name, o.NewName); err != nil {
+			return err
+		}
+	}
+
+	if o.FilePath != "" {
+		ws, err := util.GetValidWorkspaceFromFile(o.FilePath, o.Name)
+		if err != nil {
+			return err
+		}
+		if err = storage.Update(ws); err != nil {
+			return err
+		}
 	}
 
 	if o.Current && o.Name != "" {
@@ -67,6 +86,6 @@ func (o *Options) Run() error {
 		}
 	}
 
-	fmt.Printf("update workspace %s successfully\n", ws.Name)
+	fmt.Printf("update workspace %s successfully\n", o.Name)
 	return nil
 }

@@ -107,7 +107,7 @@ func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter) (*en
 		Joins("JOIN workspace ON workspace.name = run.workspace").
 		Where(pattern, args...)
 
-		// Get total rows
+	// Get total rows
 	var totalRows int64
 	searchResult.Model(dataModel).Count(&totalRows)
 
