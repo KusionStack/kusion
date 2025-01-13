@@ -18,6 +18,7 @@ type Config struct {
 	MaxAsyncBuffer     int
 	LogFilePath        string
 	AutoMigrate        bool
+	DevPortalEnabled   bool
 }
 
 func NewConfig() *Config {

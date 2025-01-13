@@ -17,6 +17,7 @@ type ServerOptions struct {
 	MaxAsyncConcurrent int
 	MaxAsyncBuffer     int
 	LogFilePath        string
+	DevPortalEnabled   bool
 }
 
 type Options interface {

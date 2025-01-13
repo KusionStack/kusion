@@ -4,7 +4,10 @@ import (
 	"context"
 	"expvar"
 	"fmt"
+	"io"
+	"io/fs"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -33,12 +36,14 @@ import (
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 	authutil "kusionstack.io/kusion/pkg/server/util/auth"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
+	"kusionstack.io/kusion/ui"
 )
 
 // NewCoreRoute creates and configures an instance of chi.Mux with the given
 // configuration and extra configuration parameters.
 func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 	router := chi.NewRouter()
+	logger := logutil.GetLogger(context.TODO())
 
 	// Set up middlewares for logging, recovery, and timing, etc.
 	router.Use(appmiddleware.TraceID)
@@ -84,7 +89,45 @@ func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 	// Endpoint to list all available endpoints in the router.
 	router.Get("/server-configs", expvar.Handler().ServeHTTP)
 
-	logger := logutil.GetLogger(context.TODO())
+	// buildFS, _ := fs.Sub(ui.Embedded, "build")
+	// // Public to serve the static files for the portal
+	// portalHandler := http.StripPrefix("/public", http.FileServer(http.FS(buildFS)))
+	// router.Mount("/public", portalHandler)
+
+	// router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+	// 	indexFile, err := ui.Embedded.Open("build/index.html")
+	// 	if err != nil {
+	// 		logger.Warn("Failed to open dashboard index.html from embedded filesystem", "error", err.Error())
+	// 	}
+	// 	defer indexFile.Close()
+
+	// 	http.ServeContent(w, r, "index.html", time.Time{}, indexFile.(io.ReadSeeker))
+	// })
+
+	// Serve static files from embedded filesystem
+	buildFS, _ := fs.Sub(ui.Embedded, "build")
+	fileServer := http.FileServer(http.FS(buildFS))
+
+	// Handle static file requests under /public path
+	router.Get("/public/*", func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/public")
+		fileServer.ServeHTTP(w, r)
+	})
+
+	// Handle all other paths by serving index.html for SPA routing
+	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		indexFile, err := buildFS.Open("index.html")
+		if err != nil {
+			logger.Warn("Failed to open index.html from embedded filesystem", "error", err.Error())
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer indexFile.Close()
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.Copy(w, indexFile)
+	})
+
 	logger.Info(fmt.Sprintf("Listening on :%d", config.Port))
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), router)
 	logger.Info("Server Started...")

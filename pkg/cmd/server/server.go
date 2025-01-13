@@ -57,6 +57,8 @@ func (o *ServerOptions) AddServerFlags(cmd *cobra.Command) {
 		i18n.T("Maximum number of concurrent async executions including generate, preview, apply and destroy. Default to 10."))
 	cmd.Flags().StringVarP(&o.LogFilePath, "log-file-path", "", constant.DefaultLogFilePath,
 		i18n.T("File path to write logs to. Default to /home/admin/logs/kusion.log"))
+	cmd.Flags().BoolVarP(&o.DevPortalEnabled, "dev-portal-enabled", "d", true,
+		i18n.T("Enable dev portal. Default to true."))
 	o.Database.AddFlags(cmd.Flags())
 	o.DefaultBackend.AddFlags(cmd.Flags())
 	o.DefaultSource.AddFlags(cmd.Flags())

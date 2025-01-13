@@ -25,6 +25,25 @@ KCLVM_URL_BASE_MIRRORS:=
 CCRED=\033[0;31m
 CCEND=\033[0m
 
+# Check if the SKIP_BUILD_PORTAL flag is set to control the portal building process.
+# If the flag is not set, the BUILD_PORTAL variable is assigned the value 'build-portal'.
+# If the flag is set, the BUILD_PORTAL variable remains empty.
+ifndef SKIP_BUILD_PORTAL
+	BUILD_PORTAL = build-portal
+else
+	BUILD_PORTAL =
+endif
+
+# Show the portal build status
+show-portal-status:
+	@if [ "$(BUILD_PORTAL)" = "build-portal" ]; then \
+		echo "🚀 Building the portal as SKIP_BUILD_PORTAL is not set."; \
+		echo ""; \
+	else \
+		echo "⏭️  Skipping the portal build as SKIP_BUILD_PORTAL is set."; \
+		echo ""; \
+	fi
+
 help:  ## This help message :)
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
@@ -66,7 +85,7 @@ clean:  ## Clean build bundles
 
 build-all: build-local-darwin-all build-local-linux-all build-local-darwin-arm64-all build-local-windows-all ## Build all platforms (darwin, linux, windows)
 
-build-local-darwin:  ## Build kusion tool chain for macOS
+build-local-darwin: show-portal-status $(BUILD_PORTAL) ## Build kusion tool chain for macOS
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-darwin
@@ -87,7 +106,7 @@ build-local-darwin-all: build-local-darwin ## Build kusion for macOS
 	cd ./_build/bundles/kusion-darwin && tar -zcvf ../kusion-darwin.tgz .
 	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-darwin.tgz > kusion-darwin.tgz.md5.txt
 
-build-local-darwin-arm64: ## Build kusion tool chain for macOS arm64
+build-local-darwin-arm64: show-portal-status $(BUILD_PORTAL) ## Build kusion tool chain for macOS arm64
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-darwin-arm64
@@ -118,7 +137,7 @@ build-local-linux-in-docker: ## Build kusionctl-linux in docker
 build-local-linux-all-in-docker: ## Build kusionctl-linux with kcl and kclopenapi in docker
 	${RUN_IN_DOCKER} make build-local-linux-all
 
-build-local-linux:  ## Build kusion tool chain for linux
+build-local-linux: show-portal-status $(BUILD_PORTAL) ## Build kusion tool chain for linux
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-linux
@@ -143,7 +162,7 @@ build-local-linux-all: build-local-linux  ## Build kusion for linux
 	cd ./_build/bundles/kusion-linux && tar -zcvf ../kusion-linux.tgz  .
 	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-linux.tgz > kusion-linux.tgz.md5.txt
 
-build-local-windows:  ## Build kusion tool chain for windows
+build-local-windows: show-portal-status $(BUILD_PORTAL) ## Build kusion tool chain for windows
 	# Delete old artifacts
 	-rm -f ./pkg/version/z_update_version.go
 	-rm -rf ./_build/bundles/kusion-windows
@@ -168,9 +187,11 @@ build-local-windows-all: build-local-windows  ## Build kusion for windows
 	cd ./_build/bundles/kusion-windows && zip -r ../kusion-windows.zip .
 	cd ./_build/bundles && go run ../../hack/md5file/main.go kusion-windows.zip > kusion-windows.zip.md5.txt
 
+build-portal:  ## Build kusion portal
+	cd ui && npm install && npm run build && touch build/.gitkeep
+
 build-image:  ## Build kusion image
-	make build-local-linux-all
-	docker build -t kusion/kusion .
+	docker build -t kusionstack/kusion .
 
 sh-in-docker:  ## Run a shell in the docker container of kusion
 	${RUN_IN_DOCKER} bash
@@ -190,4 +211,4 @@ gen-api-doc: ## Generate API Documentation by API Specification
 	@which swagger > /dev/null || (echo "Installing swagger@v0.30.5 ..."; go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.5 && echo "Installation complete!\n")
 	-swagger generate markdown -f ./api/openapispec/swagger.json --output=docs/api.md && echo "🎉 Done!" || (echo "💥 Fail!"; exit 1)
 
-.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all e2e-test gen-api-spec gen-api-doc
+.PHONY: test cover cover-html format lint lint-fix doc build-changelog upload clean build-all build-image build-local-linux build-local-windows build-local-linux-all build-local-windows-all e2e-test gen-api-spec gen-api-doc build-portal show-portal-status

@@ -1,7 +1,7 @@
 {
-  "name": "kusion-frontend",
-  "version": "0.2.0",
-  "private": true,
+  "name": "@kusionstack/kusion-dev-portal",
+  "version": "1.0.0",
+  "description": "Kusion Developer Portal",
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
     "@antv/g2": "^5.1.13",
@@ -117,5 +117,5 @@
     "stylelint-config-standard": "^36.0.0",
     "stylelint-prettier": "^5.0.0"
   },
-  "repository": "git@gitlab.alipay-inc.com:karpor/karpor-fe.git"
+  "repository": "git@git@github.com:KusionStack/kusion.git"
 }
