@@ -209,7 +209,7 @@ const Runs = ({ stackId }) => {
   }
 
 
-  const colums = [
+  const columns = [
     {
       title: 'Runs ID',
       dataIndex: 'id',
@@ -329,7 +329,7 @@ const Runs = ({ stackId }) => {
         {renderTableTitle()}
         <Table
           rowKey="id"
-          columns={colums}
+          columns={columns}
           dataSource={dataSource}
           pagination={
             {

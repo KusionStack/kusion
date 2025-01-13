@@ -2,6 +2,7 @@ package route
 
 import (
 	"context"
+	"encoding/json"
 	"expvar"
 	"fmt"
 	"io"
@@ -89,20 +90,13 @@ func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 	// Endpoint to list all available endpoints in the router.
 	router.Get("/server-configs", expvar.Handler().ServeHTTP)
 
-	// buildFS, _ := fs.Sub(ui.Embedded, "build")
-	// // Public to serve the static files for the portal
-	// portalHandler := http.StripPrefix("/public", http.FileServer(http.FS(buildFS)))
-	// router.Mount("/public", portalHandler)
-
-	// router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-	// 	indexFile, err := ui.Embedded.Open("build/index.html")
-	// 	if err != nil {
-	// 		logger.Warn("Failed to open dashboard index.html from embedded filesystem", "error", err.Error())
-	// 	}
-	// 	defer indexFile.Close()
-
-	// 	http.ServeContent(w, r, "index.html", time.Time{}, indexFile.(io.ReadSeeker))
-	// })
+	// Endpoint to get server port
+	router.Get("/api/server-port", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]int{
+			"port": config.Port,
+		})
+	})
 
 	// Serve static files from embedded filesystem
 	buildFS, _ := fs.Sub(ui.Embedded, "build")

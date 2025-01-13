@@ -32,7 +32,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          cancel
+          Cancel
         </Button>,
         <Button key="create" type="primary" onClick={onFinish}>
           Submit

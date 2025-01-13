@@ -11,9 +11,26 @@ import store from '@/store'
 
 import './index.less'
 
-client.setConfig({
-  baseUrl: `http://localhost:${process.env.REACT_APP_SERVER_PORT || 80}`
-});
+const portAPI = 'api/server-port';
+const defaultPort = '80';
+
+async function loadServerConfig() {
+  try {
+    const response = await fetch(portAPI);
+    const config = await response.json();
+    const port = config?.port || defaultPort;
+
+    client.setConfig({
+      baseUrl: `http://localhost:${port}`
+    });
+  } catch (error) {
+    client.setConfig({
+      baseUrl: `http://localhost:${defaultPort}`
+    });
+  }
+}
+
+loadServerConfig();
 
 dayjs.locale('en-US')
 
