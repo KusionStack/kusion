@@ -15,7 +15,7 @@ type RunModel struct {
 	// StackID is the stack ID of the run.
 	StackID uint
 	// Stack is the stack of the run.
-	Stack *StackModel `gorm:"foreignKey:ID;references:StackID"`
+	Stack *StackModel
 	// Workspace is the target workspace of the run.
 	Workspace string
 	// Status is the status of the run.
