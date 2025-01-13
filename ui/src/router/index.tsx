@@ -3,15 +3,14 @@ import { Navigate, Outlet, useRoutes } from 'react-router-dom'
 import Layout from '@/components/layout'
 import Loading from '@/components/loading'
 
-import ProjectDetail from '@/pages/projects/projectDetail'
-import WorkspacesDetail from '@/pages/workspaces/workspaceDetail'
-import Backends from '@/pages/backends'
-
 const Projects = lazy(() => import('@/pages/projects'))
 const Insights = lazy(() => import('@/pages/insights'))
 const Modules = lazy(() => import('@/pages/modules'))
 const Sources = lazy(() => import('@/pages/sources'))
 const Workspaces = lazy(() => import('@/pages/workspaces'))
+const Backends = lazy(() => import('@/pages/backends'))
+const ProjectDetail = lazy(() => import('@/pages/projects/projectDetail'))
+const WorkspacesDetail = lazy(() => import('@/pages/workspaces/workspaceDetail'))
 
 const NotFound = lazy(() => import('@/pages/notfound'))
 

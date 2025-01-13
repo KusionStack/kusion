@@ -5,14 +5,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  const formInitialValues = {
-    name: '',
-    description: '',
-    projectSource: '',
-    configPath: '',
-    organization: '',
-  };
-
   const onFinish = async () => {
     if (loading) {
       return;
@@ -49,7 +41,6 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
     >
       <Form
         form={form}
-        initialValues={formInitialValues}
         layout="vertical"
       >
         <Form.Item name="name" label="Name"
@@ -72,7 +63,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
           ]}
         >
           <Input
-            placeholder="Enter project name" 
+            placeholder="Enter project name"
           />
         </Form.Item>
         <Form.Item name="projectSource" label="Project Source"
@@ -123,7 +114,7 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
             const currentValue = e.target.value;
             const previousValue = form.getFieldValue('description') || '';
             const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
-            
+
             // If word count exceeds 200, return the previous value
             return wordCount <= 200 ? currentValue : previousValue;
           }}

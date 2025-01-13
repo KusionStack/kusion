@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Button } from 'antd';
 import { vscDarkPlus, coyWithoutShadows } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { CopyOutlined } from '@ant-design/icons';
-import { copy, markdownString } from "@/utils/tools"
+import { copy } from "@/utils/tools"
 
 import styles from "./styles.module.less"
 
@@ -13,12 +13,7 @@ type MarkdownViewIProps = {
   themeMode?: 'LIGHT' | 'DARK'
 }
 
-const them = {
-  DARK: vscDarkPlus,
-  LIGHT: coyWithoutShadows
-};
-
-const MarkdownView = ({ markdown = markdownString, themeMode = 'DARK' }: MarkdownViewIProps) => {
+const MarkdownView = ({ markdown }: MarkdownViewIProps) => {
   return (
     <div className={styles.markdown_view_container}>
       <div className={styles.markdown_view_copy}>
