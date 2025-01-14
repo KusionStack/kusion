@@ -180,7 +180,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
             }
           </Select>
         </Form.Item>
-        <Form.Item name="workspaceName" label="Workspace">
+        <Form.Item name="workspace" label="Workspace">
           <Select
             placeholder="Please Select Workspace"
             className={styles.selectInput}
