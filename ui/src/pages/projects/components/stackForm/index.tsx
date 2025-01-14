@@ -76,7 +76,7 @@ const StackForm = ({
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Enter stack name" />
           </Form.Item>
           <Form.Item
             label="Path"
@@ -101,7 +101,7 @@ const StackForm = ({
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Enter stack path from source root (e.g. path/to/project/stack)" />
           </Form.Item>
         </Form>
       </Modal>
