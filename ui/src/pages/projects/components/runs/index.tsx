@@ -38,11 +38,11 @@ const Runs = ({ stackId }) => {
       body: {
         ...values,
         stackID: stackId,
+        workspace: values?.workspace,
       },
       query: {
         workspace: values?.workspace,
-        stackID: stackId,
-        type: 'Apply',
+        noCache: true,
       },
       path: {
         stackID: stackId,
@@ -54,11 +54,13 @@ const Runs = ({ stackId }) => {
   async function createGenerate(values) {
     const response: any = await StackService.generateStackAsync({
       body: {
-        stackID: stackId,
         ...values,
+        stackID: stackId,
+        workspace: values?.workspace,
       },
       query: {
         workspace: values?.workspace,
+        noCache: true,
       },
       path: {
         stackID: stackId,
@@ -72,9 +74,11 @@ const Runs = ({ stackId }) => {
       body: {
         ...values,
         stackID: stackId,
+        workspace: values?.workspace,
       },
       query: {
         workspace: values?.workspace,
+        noCache: true,
       },
       path: {
         stackID: stackId,
@@ -88,9 +92,12 @@ const Runs = ({ stackId }) => {
       body: {
         ...values,
         stackID: stackId,
+        workspace: values?.workspace,
       },
       query: {
         workspace: values?.workspace,
+        output: 'json',
+        noCache: true,
       },
       path: {
         stackID: stackId,

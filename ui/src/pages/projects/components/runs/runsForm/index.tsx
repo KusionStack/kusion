@@ -172,7 +172,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
       >
         <Form.Item name="type" label="Type">
           <Select
-            placeholder="Please Select Type"
+            placeholder="Select Type"
           >
             {
               Object.entries(runsTypes)?.map(([key, value]: any) => {
@@ -183,7 +183,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
         </Form.Item>
         <Form.Item name="workspace" label="Workspace">
           <Select
-            placeholder="Please Select Workspace"
+            placeholder="Select Workspace"
           >
             {
               workspaceList?.map(item => {

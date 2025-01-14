@@ -39,6 +39,7 @@ interface NodeModel {
   nodeData: {
     resourceType: string
     status: string
+    resourceURN: string
     iamResourceID: string | number
     cloudResourceID: string | number
   },
@@ -113,8 +114,6 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
 }) => {
   const model = hiddenButtonInfo?.e?.item?.get('model') as NodeModel
   const { nodeData } = model
-  const typeList = nodeData?.resourceType?.split('/');
-  const typeStr = typeList?.[typeList?.length - 1]
 
   const boxStyle: any = {
     background: '#fff',
@@ -155,12 +154,12 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
       </div>
       <div style={itemStyle}>
         <span style={labelStyle}>Type: </span>
-        {typeStr}
+        {nodeData?.resourceType}
       </div>
       <div style={itemStyle}>
         <span style={labelStyle}>Status: </span>
         <span style={statusStyle}>
-          {nodeData?.status}
+        {nodeData?.status}
         </span>
       </div>
       <div style={itemStyle}>
@@ -170,6 +169,10 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
       <div style={itemStyle}>
         <span style={labelStyle}>iamResourceID: </span>
         {nodeData?.iamResourceID}
+      </div>
+      <div style={itemStyle}>
+        <span style={labelStyle}>resourceURN: </span>
+        {nodeData?.resourceURN}
       </div>
     </div>
   )

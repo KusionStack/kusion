@@ -63,6 +63,8 @@ type ResourceInfo struct {
 	IAMResourceID string `yaml:"iamResourceID" json:"iamResourceID"`
 	// CloudResourceID is the id of the resource in the cloud.
 	CloudResourceID string `yaml:"cloudResourceID" json:"cloudResourceID"`
+	// ResourceURN is the urn of the resource.
+	ResourceURN string `yaml:"resourceURN" json:"resourceURN"`
 	// Status is the status of the resource.
 	Status string `yaml:"status" json:"status"`
 }
@@ -138,6 +140,7 @@ func (rg *ResourceGraph) ConstructResourceGraph(resources []*Resource) error {
 			ResourceName:    resource.ResourceName,
 			IAMResourceID:   resource.IAMResourceID,
 			CloudResourceID: resource.CloudResourceID,
+			ResourceURN:     resource.ResourceURN,
 			Status:          resource.Status,
 		}
 		rg.Resources[resource.KusionResourceID] = info
