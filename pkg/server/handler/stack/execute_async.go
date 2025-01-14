@@ -102,6 +102,7 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			}()
 
 			// Call preview stack
+			params.Workspace = requestPayload.Workspace
 			changes, err := h.stackManager.PreviewStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
 				logger.Error("Error previewing stack", "error", err)
@@ -200,6 +201,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}()
 
 			// call apply stack
+			params.Workspace = requestPayload.Workspace
 			err = h.stackManager.ApplyStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {
@@ -308,6 +310,7 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			}()
 
 			// Call generate stack
+			params.Workspace = requestPayload.Workspace
 			_, sp, err = h.stackManager.GenerateSpec(newCtx, params)
 			if err != nil {
 				logger.Error("Error generating stack", "error", err)
@@ -396,6 +399,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 				}
 			}()
 
+			params.Workspace = requestPayload.Workspace
 			err = h.stackManager.DestroyStack(newCtx, params, w)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {
