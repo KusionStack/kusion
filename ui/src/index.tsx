@@ -21,11 +21,11 @@ async function loadServerConfig() {
     const port = config?.port || defaultPort;
 
     client.setConfig({
-      baseUrl: `http://30.177.32.215:${port}`
+      baseUrl: `http://localhost:${port}`
     });
   } catch (error) {
     client.setConfig({
-      baseUrl: `http://30.177.32.215:${defaultPort}`
+      baseUrl: `http://localhost:${defaultPort}`
     });
   }
 }
@@ -37,7 +37,7 @@ dayjs.locale('en-US')
 function App() {
 
   return (
-    <Provider store={store}>
+    <Provider store={store}> 
       <ConfigProvider
         locale={enUS}
         theme={{
