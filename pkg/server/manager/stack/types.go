@@ -27,6 +27,7 @@ var (
 	ErrStackNotPreviewedYet                      = errors.New("the stack has not been previewed yet. Please generate and preview the stack first")
 	ErrInvalidRunID                              = errors.New("the run ID should be a uuid")
 	ErrInvalidWatchTimeout                       = errors.New("watchTimeout should be a number")
+	ErrWorkspaceEmpty                            = errors.New("workspace should not be empty")
 )
 
 type StackManager struct {

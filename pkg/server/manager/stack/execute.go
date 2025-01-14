@@ -65,6 +65,9 @@ func (m *StackManager) GenerateSpec(ctx context.Context, params *StackRequestPar
 
 	// Otherwise, generate spec from stack entity using the default generator
 	project, stack, wsBackend, err := m.getStackProjectAndBackend(ctx, stackEntity, params.Workspace)
+	if err != nil {
+		return "", nil, err
+	}
 	wsStorage, err := wsBackend.WorkspaceStorage()
 	if err != nil {
 		return "", nil, err
