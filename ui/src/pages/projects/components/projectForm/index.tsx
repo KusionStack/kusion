@@ -41,10 +41,10 @@ const ProjectForm = ({ open, actionType, handleClose, handleSubmit, sourceList,f
   
   function getTitle() {
     return actionType === 'ADD'
-      ? 'New Source'
+      ? 'New Project'
       : actionType === 'EDIT'
-        ? 'Edit Source'
-        : 'Source Detail'
+        ? 'Edit Project'
+        : 'Project Detail'
   }
 
   return (
