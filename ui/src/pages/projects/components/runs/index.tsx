@@ -53,6 +53,7 @@ const Runs = ({ stackId }) => {
   async function createGenerate(values) {
     const response: any = await StackService.generateStackAsync({
       body: {
+        stackID: stackId,
         ...values,
       },
       query: {
@@ -95,21 +96,22 @@ const Runs = ({ stackId }) => {
     return response
   }
 
-  function handleSubmit(values) {
+  async function handleSubmit(values) {
     const type = values?.type;
     let response = undefined;
     if (type === 'Apply') {
-      response = createApply(values)
+      response = await createApply(values)
     } else if (type === 'Generate') {
-      response = createGenerate(values)
+      response = await createGenerate(values)
     } else if (type === 'Destroy') {
-      response = createDestroy(values)
+      response = await createDestroy(values)
     } else {
-      response = createPreview(values)
+      response = await createPreview(values)
     }
     if (response?.data?.success) {
       message.success('Create Successful')
       setOpen(false)
+      getListRun(searchParams)
     } else {
       message.error(response?.data?.message)
     }
@@ -336,17 +338,17 @@ const Runs = ({ stackId }) => {
             current: searchParams?.page,
             pageSize: searchParams?.pageSize,
             showTotal: (total, range) => (
-              <div style={{ 
-                fontSize: '12px', 
-                display: 'flex', 
+              <div style={{
+                fontSize: '12px',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end' 
+                justifyContent: 'flex-end'
               }}>
                 show{' '}
                 <Select
                   value={searchParams?.pageSize}
                   size="small"
-                  style={{ 
+                  style={{
                     width: 55,
                     margin: '0 4px',
                     fontSize: '12px'
@@ -358,7 +360,7 @@ const Runs = ({ stackId }) => {
               </div>
             ),
             size: "default",
-            style: { 
+            style: {
               marginTop: '16px',
               textAlign: 'right'
             },
