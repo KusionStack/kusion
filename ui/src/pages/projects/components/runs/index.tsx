@@ -37,6 +37,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.applyStackAsync({
       body: {
         ...values,
+        stackID: stackId,
       },
       query: {
         workspace: values?.workspace,
@@ -70,6 +71,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.destroyStackAsync({
       body: {
         ...values,
+        stackID: stackId,
       },
       query: {
         workspace: values?.workspace,
@@ -85,6 +87,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.previewStackAsync({
       body: {
         ...values,
+        stackID: stackId,
       },
       query: {
         workspace: values?.workspace,
