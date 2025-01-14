@@ -235,17 +235,17 @@ const ModulePage = () => {
             current: searchParams?.page,
             pageSize: searchParams?.pageSize,
             showTotal: (total, range) => (
-              <div style={{ 
-                fontSize: '12px', 
-                display: 'flex', 
+              <div style={{
+                fontSize: '12px',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end' 
+                justifyContent: 'flex-end'
               }}>
                 show{' '}
                 <Select
                   value={searchParams?.pageSize}
                   size="small"
-                  style={{ 
+                  style={{
                     width: 55,
                     margin: '0 4px',
                     fontSize: '12px'
@@ -257,7 +257,7 @@ const ModulePage = () => {
               </div>
             ),
             size: "default",
-            style: { 
+            style: {
               marginTop: '16px',
               textAlign: 'right'
             },

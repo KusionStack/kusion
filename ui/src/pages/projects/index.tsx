@@ -340,7 +340,7 @@ const Projects = () => {
                   value={searchParams?.pageSize}
                   size="small"
                   style={{ 
-                    width: 55,
+                    width: 60,
                     margin: '0 4px',
                     fontSize: '12px'
                   }}

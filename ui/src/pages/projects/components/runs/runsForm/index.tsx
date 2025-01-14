@@ -170,7 +170,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
       >
         <Form.Item name="type" label="Type">
           <Select
-            placeholder="Please Select Workspace"
+            placeholder="Please Select Type"
             className={styles.selectInput}
           >
             {
@@ -180,14 +180,14 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
             }
           </Select>
         </Form.Item>
-        <Form.Item name="workspace" label="Workspace">
+        <Form.Item name="workspaceName" label="Workspace">
           <Select
             placeholder="Please Select Workspace"
             className={styles.selectInput}
           >
             {
               workspaceList?.map(item => {
-                return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>
+                return <Select.Option key={item?.id} value={item?.name}>{item?.name}</Select.Option>
               })
             }
           </Select>

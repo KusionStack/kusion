@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, message, Popconfirm, Space, Table, Tag, Tooltip } from 'antd'
+import { Button, message, notification, Popconfirm, Space, Table, Tag, Tooltip } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
 import BackendForm from './component/backendForm'
@@ -26,7 +26,6 @@ const BackendsPage = () => {
   async function getBackendList(params) {
     try {
       const response: any = await BackendService.listBackend({
-        ...searchParams,
         query: {
           sourceName: params?.query?.sourceName,
         }
@@ -39,6 +38,9 @@ const BackendsPage = () => {
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
         })
+      } else {
+        // message.error(response?.data?.message)
+        notification.error(response?.data?.message)
       }
     } catch (error) {
 
@@ -73,6 +75,9 @@ const BackendsPage = () => {
     if (response?.data?.success) {
       message.success('delete successful')
       getBackendList(searchParams)
+    } else {
+      // message.error(response?.data?.message)
+      notification.error(response?.data?.message)
     }
   }
 
