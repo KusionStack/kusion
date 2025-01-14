@@ -39,13 +39,6 @@ const Projects = () => {
     }
   }
 
-  useEffect(() => {
-    if (organizationList?.length === 0) {
-      createOrganization()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationList])
-
   async function getSourceList() {
     try {
       const response: any = await SourceService.listSource({
@@ -158,7 +151,11 @@ const Projects = () => {
   async function getOrganizations() {
     const response = await OrganizationService.listOrganization()
     if (response?.data?.success) {
-      setOrganizationList(response?.data?.data?.organizations)
+      if (response?.data?.data?.organizations?.length > 0) {
+        setOrganizationList(response?.data?.data?.organizations)
+      } else {
+        createOrganization()
+      }
     } else {
       message.error(response?.data?.message)
     }
