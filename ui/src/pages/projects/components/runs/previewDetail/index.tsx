@@ -3,8 +3,6 @@ import { Badge, Drawer, Segmented, Select, Tag } from 'antd'
 import { default as AnsiUp } from 'ansi_up';
 import CodeDiffView from '@/components/codeDiffView'
 
-import styles from "./styles.module.less"
-
 const PreviewDetail = ({ open, currentRecord, handleClose }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const ansi_up = new AnsiUp();
@@ -46,8 +44,8 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
         </div>
         {
           activeKey === 'Exec Result' && (
-            <div>
-              <div className={styles.results}>
+            <>
+              <div>
                 <Select value={selectedResource} style={{ width: 500, marginBottom: 10 }} onChange={handleChangeResources}>
                   {
                     stepKeys?.map(item => {
@@ -55,9 +53,11 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <div style={{ flex: 1, overflowX: 'hidden', textOverflow: 'ellipsis' }}>{item}</div>
                           <div>
-                            <Badge status={
-                              changeSteps?.[item]?.action === 'Undefined' ? 'error' : changeSteps?.[item]?.action === 'UnChanged' ? "success" : 'warning'
-                            } text={changeSteps?.[item]?.action} />
+                            <Tag color={
+                              changeSteps?.[item]?.action === 'Undefined' ? 'error' : changeSteps?.[item]?.action === 'UnChanged' ? "default" : 'warning'
+                            } >
+                              {changeSteps?.[item]?.action}
+                            </Tag>
                           </div>
                         </div>
                       </Select.Option>
@@ -65,11 +65,11 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                   }
                 </Select>
                 <Badge style={{ marginLeft: 10 }} status={
-                  changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "success" : 'warning'
+                  changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "default" : 'warning'
                 } text={changeSteps?.[selectedResource]?.action} />
               </div>
               <CodeDiffView oldContent={changeSteps?.[selectedResource]?.from ? JSON.stringify(changeSteps?.[selectedResource]?.from, null, 2) : ''} newContent={changeSteps?.[selectedResource]?.to ? JSON.stringify(changeSteps?.[selectedResource]?.to, null, 2) : ''} />
-            </div>
+            </>
           )
         }
         {

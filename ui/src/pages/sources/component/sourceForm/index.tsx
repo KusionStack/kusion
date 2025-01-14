@@ -32,7 +32,9 @@ const SourceForm = ({
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      handleSubmit(values)
+      handleSubmit(values,() => {
+        form.resetFields()
+      })
     } catch (e) {
       message.error('submit failed');
     } finally {

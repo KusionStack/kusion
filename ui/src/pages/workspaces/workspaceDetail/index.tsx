@@ -38,7 +38,7 @@ const WorkspaceDetail = () => {
         }
       })
       setWorkspaceModules(list)
-      const yamlStr = Object?.keys(response?.data?.data)?.length > 0 && JSON.stringify(response?.data?.data || {}, null, 2) 
+      const yamlStr = Object?.keys(response?.data?.data)?.length > 0 && JSON.stringify(response?.data?.data || {}, null, 2)
       setYamlData(yamlStr ? josn2yaml(yamlStr)?.data : DEFAULT_WORKSPACE_YAML)
     } else {
       message.error(response?.data?.message)
@@ -108,8 +108,6 @@ const WorkspaceDetail = () => {
     } else {
       message.error('Generate Failed')
     }
-
-
   }
 
   const columns = [

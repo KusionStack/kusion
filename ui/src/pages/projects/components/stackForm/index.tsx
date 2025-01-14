@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-// import styles from './styles.module.less'
 import { Button, Modal, Form, Input, Space, message } from 'antd'
 
 const StackForm = ({
@@ -25,7 +24,9 @@ const StackForm = ({
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      handleSubmit(values)
+      handleSubmit(values, () => {
+        form.resetFields()
+      })
     } catch (e) {
       message.error('Submit failed');
     } finally {

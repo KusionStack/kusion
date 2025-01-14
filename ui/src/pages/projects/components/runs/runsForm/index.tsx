@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form, Select, Input, message, Collapse, theme, Radio, Switch, Space } from 'antd';
-
+import { Modal, Button, Form, Select, Input, message, Collapse, theme, Switch, Space } from 'antd';
 import { WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import { CaretRightOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-
-import styles from './styles.module.less';
 
 const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
   const [loading, setLoading] = useState(false);
@@ -45,7 +42,18 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      handleSubmit(values)
+      const configObj = {};
+      values?.configs?.forEach(({ key, value }) => {
+        if (key && value) {
+          configObj[key] = value
+        }
+      })
+      handleSubmit({
+        ...values,
+        configs: Object.keys(configObj)?.length > 0 ? configObj : undefined
+      }, () => {
+        form.resetFields()
+      })
     } catch (e) {
       message.error('Submit failed');
     } finally {
@@ -87,12 +95,6 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
                           <Form.Item
                             {...restField}
                             name={[name, 'key']}
-                            rules={[
-                              {
-                                required: false,
-                                message: 'Missing first name',
-                              },
-                            ]}
                           >
                             <Input
                               style={{ width: 280 }}
@@ -171,7 +173,6 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
         <Form.Item name="type" label="Type">
           <Select
             placeholder="Please Select Type"
-            className={styles.selectInput}
           >
             {
               Object.entries(runsTypes)?.map(([key, value]: any) => {
@@ -183,7 +184,6 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
         <Form.Item name="workspace" label="Workspace">
           <Select
             placeholder="Please Select Workspace"
-            className={styles.selectInput}
           >
             {
               workspaceList?.map(item => {

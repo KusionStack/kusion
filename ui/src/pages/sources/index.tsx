@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Popconfirm, Space, Table, Tooltip, Select } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
+import SourceForm from './component/sourceForm'
+import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
 
 import styles from './styles.module.less'
+
 
 
 const SourcesPage = () => {
@@ -38,6 +40,8 @@ const SourcesPage = () => {
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
         })
+      } else {
+        message.error(response?.data?.message)
       }
     } catch (error) {
 
@@ -100,6 +104,8 @@ const SourcesPage = () => {
     if (response?.data?.success) {
       message.success('delete successful')
       getResourceList(searchParams)
+    } else {
+      message.error(response?.data?.message)
     }
   }
 
@@ -116,18 +122,13 @@ const SourcesPage = () => {
       dataIndex: 'description',
       width: 450,
       render: (desc) => {
-        return <Tooltip placement="topLeft" title={desc}>
-          <div style={{ textAlign: 'left' }}>
-            {desc}
-          </div>
-        </Tooltip>
+        return <DescriptionWithTooltip desc={desc} width={450} />
       }
-
     },
     {
       title: 'Url',
       dataIndex: 'remote',
-      width:450,
+      width: 450,
       render: (remoteObj) => {
         return `${remoteObj?.Scheme}://${remoteObj?.Host}${remoteObj?.Path}`
       }
@@ -155,7 +156,7 @@ const SourcesPage = () => {
     },
   ]
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     let response: any
     if (actionType === 'EDIT') {
       response = await SourceService.updateSource({
@@ -184,6 +185,7 @@ const SourcesPage = () => {
     if (response?.data?.success) {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getResourceList(searchParams)
+      callback && callback()
       setOpen(false)
     } else {
       message.error(response?.data?.messaage)
@@ -239,17 +241,17 @@ const SourcesPage = () => {
             current: searchParams?.page,
             pageSize: searchParams?.pageSize,
             showTotal: (total, range) => (
-              <div style={{ 
-                fontSize: '12px', 
-                display: 'flex', 
+              <div style={{
+                fontSize: '12px',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end' 
+                justifyContent: 'flex-end'
               }}>
                 show{' '}
                 <Select
                   value={searchParams?.pageSize}
                   size="small"
-                  style={{ 
+                  style={{
                     width: 55,
                     margin: '0 4px',
                     fontSize: '12px'
@@ -261,7 +263,7 @@ const SourcesPage = () => {
               </div>
             ),
             size: "default",
-            style: { 
+            style: {
               marginTop: '16px',
               textAlign: 'right'
             },

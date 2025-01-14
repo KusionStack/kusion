@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { Button, message, notification, Popconfirm, Space, Table, Tag, Tooltip } from 'antd'
+import { Button, message, Popconfirm, Space, Table, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
+import { josn2yaml } from '@/utils/tools'
+import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
 import BackendForm from './component/backendForm'
 import ConfigYamlDrawer from './component/configYamlDrawer'
-import { josn2yaml } from '@/utils/tools'
 
 import styles from './styles.module.less'
-
 
 const BackendsPage = () => {
   const [open, setOpen] = useState(false)
@@ -39,8 +39,7 @@ const BackendsPage = () => {
           total: response?.data?.data?.total,
         })
       } else {
-        // message.error(response?.data?.message)
-        notification.error(response?.data?.message)
+        message.error(response?.data?.message)
       }
     } catch (error) {
 
@@ -76,8 +75,7 @@ const BackendsPage = () => {
       message.success('delete successful')
       getBackendList(searchParams)
     } else {
-      // message.error(response?.data?.message)
-      notification.error(response?.data?.message)
+      message.error(response?.data?.message)
     }
   }
 
@@ -99,11 +97,7 @@ const BackendsPage = () => {
       dataIndex: 'description',
       width: 500,
       render: (desc) => {
-        return <Tooltip placement="topLeft" title={desc}>
-          <div style={{ textAlign: 'left' }}>
-            {desc}
-          </div>
-        </Tooltip>
+        return <DescriptionWithTooltip desc={desc} width={500} />
       }
     },
     {
@@ -136,7 +130,7 @@ const BackendsPage = () => {
     },
   ]
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     let response: any
     let bodyParams: any = {};
     try {
@@ -171,6 +165,7 @@ const BackendsPage = () => {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getBackendList(searchParams)
       setOpen(false)
+      callback && callback()
     } else {
       message.error(response?.data?.messaage)
     }

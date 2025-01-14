@@ -34,11 +34,15 @@ const BackendForm = ({
       const values = form.getFieldsValue();
       const configObj = {};
       values?.configs?.forEach(({ key, value }) => {
-        configObj[key] = value
+        if (key && value) {
+          configObj[key] = value
+        }
       })
       handleSubmit({
         ...values,
         configs: Object.keys(configObj)?.length > 0 ? configObj : undefined
+      }, () => {
+        form.resetFields()
       })
     } catch (e) {
       console.log(e, "Error")
@@ -171,7 +175,7 @@ const BackendForm = ({
                 const currentValue = e.target.value;
                 const previousValue = form.getFieldValue('description') || '';
                 const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
-                
+
                 // If word count exceeds 200, return the previous value
                 return wordCount <= 200 ? currentValue : previousValue;
               }}

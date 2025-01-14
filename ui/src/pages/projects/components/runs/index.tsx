@@ -99,7 +99,7 @@ const Runs = ({ stackId }) => {
     return response
   }
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     const type = values?.type;
     let response = undefined;
     if (type === 'Apply') {
@@ -114,6 +114,7 @@ const Runs = ({ stackId }) => {
     if (response?.data?.success) {
       message.success('Create Successful')
       setOpen(false)
+      callback && callback()
       getListRun(searchParams)
     } else {
       message.error(response?.data?.message)

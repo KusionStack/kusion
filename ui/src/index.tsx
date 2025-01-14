@@ -21,11 +21,11 @@ async function loadServerConfig() {
     const port = config?.port || defaultPort;
 
     client.setConfig({
-      baseUrl: `http://localhost:${port}`
+      baseUrl: `http://30.177.32.215:${port}`
     });
   } catch (error) {
     client.setConfig({
-      baseUrl: `http://localhost:${defaultPort}`
+      baseUrl: `http://30.177.32.215:${defaultPort}`
     });
   }
 }
@@ -37,12 +37,12 @@ dayjs.locale('en-US')
 function App() {
 
   return (
-    <Provider store={store}> 
+    <Provider store={store}>
       <ConfigProvider
         locale={enUS}
         theme={{
           token: {
-            colorPrimary: '#2667FF',
+            colorPrimary: '#1778ff',
           },
         }}
       >

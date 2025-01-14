@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Popconfirm, Space, Table, Tooltip, Select } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
+import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
 import ModuleForm from './component/moduleForm'
 
 import styles from './styles.module.less'
+
 
 
 const ModulePage = () => {
@@ -38,6 +40,8 @@ const ModulePage = () => {
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
         })
+      } else {
+        message.error(response?.data?.message)
       }
     } catch (error) {
 
@@ -92,6 +96,8 @@ const ModulePage = () => {
     if (response?.data?.success) {
       message.success('delete successful')
       getModuleList(searchParams)
+    } else {
+      message.error(response?.data?.message)
     }
   }
 
@@ -116,11 +122,7 @@ const ModulePage = () => {
       dataIndex: 'description',
       width: 400,
       render: (desc) => {
-        return <Tooltip placement="topLeft" title={desc}>
-          <div style={{ textAlign: 'left' }}>
-            {desc}
-          </div>
-        </Tooltip>
+        return <DescriptionWithTooltip desc={desc} width={400} />
       }
     },
     {
@@ -154,7 +156,7 @@ const ModulePage = () => {
 
 
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     let response: any
     if (actionType === 'EDIT') {
       response = await ModuleService.updateModule({
@@ -173,6 +175,7 @@ const ModulePage = () => {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getModuleList({})
       setOpen(false)
+      callback && callback()
     } else {
       message.error(response?.data?.messaage)
     }

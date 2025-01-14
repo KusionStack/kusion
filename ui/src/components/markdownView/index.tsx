@@ -2,7 +2,6 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from 'antd';
-import { vscDarkPlus, coyWithoutShadows } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { CopyOutlined } from '@ant-design/icons';
 import { copy } from "@/utils/tools"
 

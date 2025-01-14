@@ -36,6 +36,8 @@ const Workspaces = () => {
       });
       if (response?.data?.success) {
         setBackendList(response?.data?.data?.backends);
+      } else {
+        message.error(response?.data?.message)
       }
     } catch (error) {
 
@@ -121,7 +123,7 @@ const Workspaces = () => {
     })
   }
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     let response: any
     if (actionType === 'EDIT') {
       response = await WorkspaceService.updateWorkspace({
@@ -146,6 +148,7 @@ const Workspaces = () => {
     if (response?.data?.success) {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getListWorkspace(searchParams)
+      callback && callback()
       setOpen(false)
       if (actionType === 'ADD') {
         navigate(`/workspaces/detail/${response?.data?.data?.id}`)
@@ -171,6 +174,8 @@ const Workspaces = () => {
     if (response?.data?.success) {
       message.success('delete successful')
       getListWorkspace(searchParams)
+    } else {
+      message.error(response?.data?.message)
     }
   }
 

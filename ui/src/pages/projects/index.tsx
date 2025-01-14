@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table, Popconfirm, Tooltip, Select } from 'antd'
+import { Button, Form, Input, message, Space, Table, Popconfirm, Select } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
+import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
 
 import styles from "./styles.module.less"
+
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -32,6 +34,8 @@ const Projects = () => {
     })
     if (response?.data?.success) {
       getOrganizations()
+    } else {
+      message.error(response?.data?.message)
     }
   }
 
@@ -61,7 +65,7 @@ const Projects = () => {
     }
   }
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     let response: any
     if (actionType === 'EDIT') {
       response = await ProjectService.updateProject({
@@ -91,6 +95,7 @@ const Projects = () => {
     if (response?.data?.success) {
       message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getProjectList(searchParams)
+      callback && callback()
       setOpen(false)
     } else {
       message.error(response?.data?.message)
@@ -135,7 +140,7 @@ const Projects = () => {
     setActionType('ADD')
     setOpen(true)
   }
-  
+
   function handleEdit(record) {
     setActionType('EDIT')
     setOpen(true)
@@ -199,6 +204,8 @@ const Projects = () => {
     if (response?.data?.success) {
       message.success('delete successful')
       getProjectList(searchParams)
+    } else {
+      message.error(response?.data?.message)
     }
   }
 
@@ -230,11 +237,7 @@ const Projects = () => {
       dataIndex: 'description',
       width: 350,
       render: (desc) => {
-        return <Tooltip placement="topLeft" title={desc}>
-          <div style={{ textAlign: 'left' }}>
-            {desc}
-          </div>
-        </Tooltip>
+        return <DescriptionWithTooltip desc={desc} width={350} />
       }
     },
     {
@@ -263,7 +266,7 @@ const Projects = () => {
       },
     }
   ]
-  
+
   const projectFormProps = {
     open,
     actionType,
@@ -329,17 +332,17 @@ const Projects = () => {
             current: searchParams?.page,
             pageSize: searchParams?.pageSize,
             showTotal: (total, range) => (
-              <div style={{ 
-                fontSize: '12px', 
-                display: 'flex', 
+              <div style={{
+                fontSize: '12px',
+                display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end' 
+                justifyContent: 'flex-end'
               }}>
                 show{' '}
                 <Select
                   value={searchParams?.pageSize}
                   size="small"
-                  style={{ 
+                  style={{
                     width: 60,
                     margin: '0 4px',
                     fontSize: '12px'
@@ -351,7 +354,7 @@ const Projects = () => {
               </div>
             ),
             size: "default",
-            style: { 
+            style: {
               marginTop: '16px',
               textAlign: 'right'
             },

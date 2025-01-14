@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Input, message, Select } from 'antd';
 import { BackendService } from "@kusionstack/kusion-api-client-sdk"
 
-import styles from './styles.module.less';
-
 const WorkspaceFrom = ({ open, actionType, handleClose, handleSubmit, formData }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -40,7 +38,9 @@ const WorkspaceFrom = ({ open, actionType, handleClose, handleSubmit, formData }
     try {
       setLoading(true);
       const values = form.getFieldsValue();
-      handleSubmit(values)
+      handleSubmit(values,() => {
+        form.resetFields()
+      })
     } catch (e) {
       message.error('submit failed');
     } finally {
@@ -91,7 +91,6 @@ const WorkspaceFrom = ({ open, actionType, handleClose, handleSubmit, formData }
         <Form.Item name="name" label="Name">
           <Input
             placeholder="Enter workspace name"
-            className={styles.inputConfigPath}
           />
         </Form.Item>
         <Form.Item name="description" label="Description"

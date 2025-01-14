@@ -4,9 +4,6 @@ import { ResourceService } from '@kusionstack/kusion-api-client-sdk'
 import TopologyMap from '@/components/topologyMap'
 import { generateG6GraphData } from '@/utils/tools'
 
-import styles from "./styles.module.less"
-
-
 const ResourceGraph = ({ stackId }) => {
   const drawRef = useRef(null)
 
@@ -49,9 +46,7 @@ const ResourceGraph = ({ stackId }) => {
   }, [graphData])
 
   return (
-    <div className={styles.project_graph}>
-      <TopologyMap ref={drawRef} topologyLoading={topologyLoading} />
-    </div>
+    <TopologyMap ref={drawRef} topologyLoading={topologyLoading} />
   )
 }
 

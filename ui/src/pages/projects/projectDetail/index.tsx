@@ -59,7 +59,7 @@ const ProjectDetail = () => {
     }
   };
 
-  async function handleSubmit(values) {
+  async function handleSubmit(values, callback) {
     const response: any = await StackService.createStack({
       body: {
         ...values,
@@ -68,6 +68,7 @@ const ProjectDetail = () => {
     })
     if (response?.data?.success) {
       message.success('Create Successful')
+      callback && callback()
       getStackList({
         projectId: urlPrams?.projectId
       })
