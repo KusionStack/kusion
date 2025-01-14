@@ -15,17 +15,18 @@ const portAPI = 'api/server-port';
 const defaultPort = '80';
 
 async function loadServerConfig() {
+  const isDevelopment = process.env.NODE_ENV === 'development';
   try {
     const response = await fetch(portAPI);
     const config = await response.json();
     const port = config?.port || defaultPort;
 
     client.setConfig({
-      baseUrl: `http://localhost:${port}`
+      baseUrl: isDevelopment ? `http://localhost:${port}` : ''
     });
   } catch (error) {
     client.setConfig({
-      baseUrl: `http://localhost:${defaultPort}`
+      baseUrl: isDevelopment ? `http://localhost:${defaultPort}` : ''
     });
   }
 }
