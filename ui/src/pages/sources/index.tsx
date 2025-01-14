@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Form, Input, message, Popconfirm, Space, Table, Tooltip } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table, Tooltip, Select } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import SourceForm from './component/sourceForm'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
@@ -117,7 +117,7 @@ const SourcesPage = () => {
       width: 450,
       render: (desc) => {
         return <Tooltip placement="topLeft" title={desc}>
-          <div className={styles.sourceDesc}>
+          <div style={{ textAlign: 'left' }}>
             {desc}
           </div>
         </Tooltip>
@@ -234,16 +234,41 @@ const SourcesPage = () => {
           rowKey="id"
           columns={columns}
           dataSource={dataSource}
-          pagination={
-            {
-              style: { paddingRight: 20 },
-              total: searchParams?.total,
-              showTotal: (total: number, range: any[]) => `${range?.[0]}-${range?.[1]} Total ${total} `,
-              pageSize: searchParams?.pageSize,
-              current: searchParams?.page,
-              onChange: handleChangePage,
-            }
-          }
+          pagination={{
+            total: searchParams?.total,
+            current: searchParams?.page,
+            pageSize: searchParams?.pageSize,
+            showTotal: (total, range) => (
+              <div style={{ 
+                fontSize: '12px', 
+                display: 'flex', 
+                alignItems: 'center',
+                justifyContent: 'flex-end' 
+              }}>
+                show{' '}
+                <Select
+                  value={searchParams?.pageSize}
+                  size="small"
+                  style={{ 
+                    width: 55,
+                    margin: '0 4px',
+                    fontSize: '12px'
+                  }}
+                  onChange={(value) => handleChangePage(1, value)}
+                  options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
+                />
+                items, {range[0]}-{range[1]} of {total} items
+              </div>
+            ),
+            size: "default",
+            style: { 
+              marginTop: '16px',
+              textAlign: 'right'
+            },
+            onChange: (page, size) => {
+              handleChangePage(page, size);
+            },
+          }}
         />
       </div>
       <SourceForm {...sourceFormProps} />

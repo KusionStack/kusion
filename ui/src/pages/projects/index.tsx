@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table, Select, Popconfirm, Tooltip } from 'antd'
+import { Button, Form, Input, message, Space, Table, Popconfirm, Tooltip, Select } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
@@ -10,6 +10,8 @@ import styles from "./styles.module.less"
 const Projects = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [actionType, setActionType] = useState('ADD')
+  const [formData, setFormData] = useState()
   const [searchParams, setSearchParams] = useState({
     pageSize: 10,
     page: 1,
@@ -60,17 +62,34 @@ const Projects = () => {
   }
 
   async function handleSubmit(values) {
-    const response: any = await ProjectService.createProject({
-      body: {
-        name: values?.name,
-        path: values?.path,
-        sourceID: values?.projectSource,
-        organizationID: organizationList?.[0]?.id,
-        description: values?.description,
-      } as any
-    })
+    let response: any
+    if (actionType === 'EDIT') {
+      response = await ProjectService.updateProject({
+        body: {
+          id: (formData as any)?.id,
+          name: values?.name,
+          path: values?.path,
+          sourceID: values?.projectSource,
+          organizationID: organizationList?.[0]?.id,
+          description: values?.description,
+        },
+        path: {
+          projectID: (formData as any)?.id
+        }
+      })
+    } else {
+      response = await ProjectService.createProject({
+        body: {
+          name: values?.name,
+          path: values?.path,
+          sourceID: values?.projectSource,
+          organizationID: organizationList?.[0]?.id,
+          description: values?.description,
+        }
+      })
+    }
     if (response?.data?.success) {
-      message.success('Create Successful')
+      message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getProjectList(searchParams)
       setOpen(false)
     } else {
@@ -78,11 +97,10 @@ const Projects = () => {
     }
   }
   function handleClose() {
+    setFormData(undefined)
     setOpen(false)
   }
-  function handleCreate() {
-    setOpen(true)
-  }
+
   function handleReset() {
     form.resetFields();
     setSearchParams({
@@ -111,6 +129,17 @@ const Projects = () => {
   function handleClear(key) {
     form.setFieldValue(key, undefined)
     handleSearch()
+  }
+
+  function handleAdd() {
+    setActionType('ADD')
+    setOpen(true)
+  }
+  
+  function handleEdit(record) {
+    setActionType('EDIT')
+    setOpen(true)
+    setFormData(record)
   }
 
   function handleChangePage(page, pageSize) {
@@ -202,7 +231,7 @@ const Projects = () => {
       width: 350,
       render: (desc) => {
         return <Tooltip placement="topLeft" title={desc}>
-          <div className={styles.projectDetail}>
+          <div style={{ textAlign: 'left' }}>
             {desc}
           </div>
         </Tooltip>
@@ -218,6 +247,8 @@ const Projects = () => {
       render: (_, record) => {
         return (
           <Space>
+            <Button style={{ padding: '0px' }} type='link' onClick={() => handleEdit(record)}>edit</Button>
+            <span>/</span>
             <Popconfirm
               title="Delete the project"
               description="Are you sure to delete this project?"
@@ -225,13 +256,23 @@ const Projects = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type='link' danger>delete</Button>
+              <Button style={{ padding: '0px' }} type='link' danger>delete</Button>
             </Popconfirm>
           </Space>
         )
       },
     }
   ]
+  
+  const projectFormProps = {
+    open,
+    actionType,
+    handleSubmit,
+    formData,
+    handleClose,
+    sourceList,
+    organizationList,
+  }
 
   function renderTableTitle(currentPageData) {
     const queryList = searchParams && Object.entries(searchParams?.query || {})?.filter(([key, value]) => value)
@@ -241,7 +282,7 @@ const Projects = () => {
         {
           queryList?.map(([key, value]) => {
             return <div className={styles.projects_content_toolbar_item}>
-              {key}: {value as string}
+              {key === 'fuzzyName' ? 'name' : key}: {value as string}
               <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} /></div>
           })
         }
@@ -259,13 +300,13 @@ const Projects = () => {
       <div className={styles.projects_action}>
         <h3>Projects</h3>
         <div className={styles.projects_action_create}>
-          <Button type='primary' onClick={handleCreate}><PlusOutlined /> Create Projects</Button>
+          <Button type='primary' onClick={handleAdd}><PlusOutlined /> Create Projects</Button>
         </div>
       </div>
       <div className={styles.projects_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
-            <Form.Item name="name" label="Project Name">
+            <Form.Item name="fuzzyName" label="Project Name">
               <Input />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
@@ -283,24 +324,44 @@ const Projects = () => {
           title={renderTableTitle}
           columns={columns}
           dataSource={dataSource}
-          pagination={
-            {
-              style: { paddingRight: 20 },
-              total: searchParams?.total,
-              showTotal: (total: number, range: any[]) => `${range?.[0]}-${range?.[1]} Total ${total} `,
-              pageSize: searchParams?.pageSize,
-              current: searchParams?.page,
-              onChange: handleChangePage,
-            }
-          }
+          pagination={{
+            total: searchParams?.total,
+            current: searchParams?.page,
+            pageSize: searchParams?.pageSize,
+            showTotal: (total, range) => (
+              <div style={{ 
+                fontSize: '12px', 
+                display: 'flex', 
+                alignItems: 'center',
+                justifyContent: 'flex-end' 
+              }}>
+                show{' '}
+                <Select
+                  value={searchParams?.pageSize}
+                  size="small"
+                  style={{ 
+                    width: 55,
+                    margin: '0 4px',
+                    fontSize: '12px'
+                  }}
+                  onChange={(value) => handleChangePage(1, value)}
+                  options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
+                />
+                items, {range[0]}-{range[1]} of {total} items
+              </div>
+            ),
+            size: "default",
+            style: { 
+              marginTop: '16px',
+              textAlign: 'right'
+            },
+            onChange: (page, size) => {
+              handleChangePage(page, size);
+            },
+          }}
         />
       </div>
-      <ProjectForm open={open}
-        sourceList={sourceList}
-        organizationList={organizationList}
-        handleSubmit={handleSubmit}
-        handleClose={handleClose}
-      />
+      <ProjectForm {...projectFormProps} />
     </div>
   )
 }

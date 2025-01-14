@@ -4,15 +4,20 @@ import { BackendService } from "@kusionstack/kusion-api-client-sdk"
 
 import styles from './styles.module.less';
 
-const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
+const WorkspaceFrom = ({ open, actionType, handleClose, handleSubmit, formData }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [backendList, setBackendlist] = useState([])
 
-  const formInitialValues = {
-    name: '',
-    description: '',
-  };
+  useEffect(() => {
+    if (formData) {
+      form.setFieldsValue({
+        name: formData?.name,
+        description: formData?.description,
+        backendID: formData?.backend?.name
+      })
+    }
+  }, [formData, form])
 
   async function getBackendList() {
     const response: any = await BackendService.listBackend()
@@ -27,7 +32,7 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
     getBackendList()
   }, [])
 
-  // 提交表单
+  // Submit form
   const onFinish = async () => {
     if (loading) {
       return;
@@ -47,13 +52,19 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
     form.resetFields();
     handleClose();
   }
-
-  console.log(backendList, "===backendList===")
+  
+  function getTitle() {
+    return actionType === 'ADD'
+      ? 'New Workspace'
+      : actionType === 'EDIT'
+        ? 'Edit Workspace'
+        : 'Workspace Detail'
+  }
 
   return (
     <Modal
       open={open}
-      title="Create New Workspace"
+      title={getTitle()}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           Cancel
@@ -66,11 +77,10 @@ const WorkspaceFrom = ({ open, handleClose, handleSubmit }: any) => {
     >
       <Form
         form={form}
-        initialValues={formInitialValues}
         layout="vertical"
       >
         <Form.Item name="backendID" label="BackendID">
-          <Select placeholder="Select a backend">
+          <Select placeholder="Select a backend" disabled={actionType === 'EDIT'}>
             {
               backendList?.map((item: any) => {
                 return <Select.Option key={item?.id} value={item?.id}>{item?.name}</Select.Option>

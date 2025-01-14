@@ -37,7 +37,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
     getWorkspaceList()
   }, [])
 
-  // 提交表单
+  // Submit form
   const onFinish = async () => {
     if (loading) {
       return;
@@ -47,7 +47,7 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('Submit failed');
     } finally {
       setLoading(false);
     }

@@ -95,7 +95,7 @@ const BackendsPage = () => {
       width: 500,
       render: (desc) => {
         return <Tooltip placement="topLeft" title={desc}>
-          <div className={styles.backendDesc}>
+          <div style={{ textAlign: 'left' }}>
             {desc}
           </div>
         </Tooltip>

@@ -3,10 +3,11 @@ import { Button, Popconfirm, Tooltip } from "antd";
 import workspaceSvg from "@/assets/img/workspace.svg"
 import {
   DeleteOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import styles from "./styles.module.less"
 
-const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete }) => {
+const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, handleEdit }) => {
 
   return (
     <div className={styles.workspace_card}>
@@ -19,6 +20,12 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete })
             <div className={styles.workspace_card_title}>{title}</div>
           </div>
           <div>
+            <Button type='link' onClick={() => handleEdit({
+              name: title,
+              description: desc,
+            })}>
+              <EditOutlined />
+            </Button>
             <Popconfirm
               title="Delete the workspace"
               description="Are you sure to delete this workspace?"

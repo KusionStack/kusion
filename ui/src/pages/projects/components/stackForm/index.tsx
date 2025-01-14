@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 // import styles from './styles.module.less'
 import { Button, Modal, Form, Input, Space, message } from 'antd'
-import isUrl from 'is-url'
 
 const StackForm = ({
   stackFormOpen,
@@ -28,7 +27,7 @@ const StackForm = ({
       const values = form.getFieldsValue();
       handleSubmit(values)
     } catch (e) {
-      message.error('提交失败');
+      message.error('Submit failed');
     } finally {
       setLoading(false);
     }

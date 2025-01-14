@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Select, Input, message } from 'antd';
 
-const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
+const ProjectForm = ({ open, actionType, handleClose, handleSubmit, sourceList,formData }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  
+  useEffect(() => {
+    if (formData) {
+      form.setFieldsValue({
+        name: formData?.name,
+        projectSource: formData?.source?.name,
+        path: formData?.path,
+        description: formData?.description,
+      })
+    }
+  }, [formData, form])
+
 
   const onFinish = async () => {
     if (loading) {
@@ -24,11 +36,19 @@ const ProjectForm = ({ open, handleClose, handleSubmit, sourceList }: any) => {
     form.resetFields()
     handleClose()
   }
+  
+  function getTitle() {
+    return actionType === 'ADD'
+      ? 'New Source'
+      : actionType === 'EDIT'
+        ? 'Edit Source'
+        : 'Source Detail'
+  }
 
   return (
     <Modal
       open={open}
-      title="Create Project"
+      title={getTitle()}
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>

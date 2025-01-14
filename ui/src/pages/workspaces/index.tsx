@@ -13,9 +13,11 @@ import styles from './styles.module.less'
 const Workspaces = () => {
   const navigate = useNavigate()
   const [form] = Form.useForm();
+  const [actionType, setActionType] = useState('ADD')
+  const [formData, setFormData] = useState()
   const [open, setOpen] = useState(false)
   const [searchParams, setSearchParams] = useState({
-    pageSize: 20,
+    pageSize: 30,
     page: 1,
     query: undefined,
     total: undefined,
@@ -73,9 +75,15 @@ const Workspaces = () => {
   }, [])
 
   function handleAdd() {
+    setActionType('ADD')
     setOpen(true)
   }
 
+  function handleEdit(record) {
+    setActionType('EDIT')
+    setOpen(true)
+    setFormData(record)
+  }
 
   function conversionArray(baseArray, n) {
     const len = baseArray.length
@@ -114,24 +122,41 @@ const Workspaces = () => {
   }
 
   async function handleSubmit(values) {
-    const response: any = await WorkspaceService.createWorkspace({
-      body: {
-        ...values,
-        // TODO: get actual owner
-        owners: ['default']
-      }
-    })
+    let response: any
+    if (actionType === 'EDIT') {
+      response = await WorkspaceService.updateWorkspace({
+        body: {
+          ...values,
+          // TODO: get actual owner
+          owners: ['default']
+        },
+        path: {
+          workspaceID: (formData as any)?.id
+        }
+      })
+    } else {
+      response = await WorkspaceService.createWorkspace({
+        body: {
+          ...values,
+          // TODO: get actual owner
+          owners: ['default']
+        }
+      })
+    }
     if (response?.data?.success) {
-      message.success("Create Success")
+      message.success(actionType === 'EDIT' ? 'Update Successful' : 'Create Successful')
       getListWorkspace(searchParams)
       setOpen(false)
-      navigate(`/workspaces/detail/${response?.data?.data?.id}`)
+      if (actionType === 'ADD') {
+        navigate(`/workspaces/detail/${response?.data?.data?.id}`)
+      }
     } else {
       message.error(response?.data?.message)
     }
   }
 
   function handleClose() {
+    setFormData(undefined)
     setOpen(false)
   }
 
@@ -196,6 +221,7 @@ const Workspaces = () => {
                       nickName={innerItem?.owners}
                       onClick={() => navigate(`/workspaces/detail/${innerItem?.id}?workspaceName=${innerItem?.name}`)}
                       onDelete={() => confirmDelete(innerItem)}
+                      handleEdit={() => handleEdit(innerItem)}
                     />
                   </Col>
                 )
@@ -204,7 +230,7 @@ const Workspaces = () => {
           )
         })}
       </div>
-      <WorkscpaceForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} />
+      <WorkscpaceForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} actionType={actionType} formData={formData} />
     </div>
   )
 }

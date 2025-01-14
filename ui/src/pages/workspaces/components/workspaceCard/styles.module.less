@@ -19,40 +19,52 @@
       align-items: center;
       font-size: 16px;
       font-weight: 500;
-
-      .workspace_card_header_left {
-        flex: 1;
-        display: flex;
-        align-items: center;
+      line-height: 1;
+      :global(.ant-btn-link) {
+        margin-right: -15px;
+        font-size: 16px;
       }
+    }
 
+    .workspace_card_header_left {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    
+    img {
+      display: inline-flex;
+      width: 20px;
+      height: 20px;
+      position: relative;
+      top: 2px;
+    }
 
-      .workspace_card_title {
-        margin-left: 10px;
-      }
+    .workspace_card_title {
+      margin-left: 10px;
     }
 
     .workspace_card_content {
       border-bottom: 1px solid #7aa1e114;
       margin-bottom: 15px;
       padding: 20px 0;
-
-      .kusion_card_content_desc {
-        height: 3em;
-        line-height: 1.5em;
-        display: -webkit-box;
-        margin-bottom: 10px;
-        overflow: hidden;
-        font-size: 16px;
-        font-weight: 400;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        cursor: pointer;
-      }
     }
-
+    
+    .kusion_card_content_desc {
+      height: 3em;
+      line-height: 1.5em;
+      display: -webkit-box;
+      margin-bottom: 10px;
+      overflow: hidden;
+      font-size: 16px;
+      font-weight: 400;
+      text-overflow: ellipsis;
+      word-break: break-all;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      cursor: pointer;
+    }
+  
     .workspace_card_footer {
       display: flex;
       justify-content: space-between;
@@ -61,5 +73,4 @@
       color: #140e3573;
     }
   }
-
 }
