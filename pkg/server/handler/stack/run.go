@@ -86,6 +86,8 @@ func (h *Handler) GetRunResult() http.HandlerFunc {
 // @Param			endTime		query		string													false	"EndTime to filter runs by. Default to all. Format: RFC3339"
 // @Param			page		query		uint													false	"The current page to fetch. Default to 1"
 // @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Param			sortBy		query		string													false	"Which field to sort the list by. Default to id"
+// @Param			ascending	query		bool													false	"Whether to sort the list in ascending order. Default to false"
 // @Success		200			{object}	handler.Response{data=response.PaginatedRunResponse}	"Success"
 // @Failure		400			{object}	error													"Bad Request"
 // @Failure		401			{object}	error													"Unauthorized"

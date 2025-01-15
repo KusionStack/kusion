@@ -30,17 +30,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
-    - git
     - github
     - oci
     - local
+    - git
     type: string
     x-enum-varnames:
-    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
+    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -324,6 +324,9 @@ definitions:
         type: string
       resourceType:
         description: ResourceType is the type of the resource.
+        type: string
+      resourceURN:
+        description: ResourceURN is the urn of the resource.
         type: string
       status:
         description: Status is the status of the resource.
@@ -2086,6 +2089,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2478,6 +2489,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
