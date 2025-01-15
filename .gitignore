@@ -59,5 +59,10 @@ air.toml
 # frontend
 frontend/
 
+# ui
+ui/build/*
+!ui/build/.gitkeep
+node_modules/
+
 # Terraform provider binary folder
 .terraform/ 

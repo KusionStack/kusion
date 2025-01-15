@@ -20,6 +20,7 @@ func NewServerOptions() *ServerOptions {
 		MaxAsyncConcurrent: constant.MaxAsyncConcurrent,
 		MaxAsyncBuffer:     constant.MaxAsyncBuffer,
 		LogFilePath:        constant.DefaultLogFilePath,
+		DevPortalEnabled:   true,
 	}
 }
 
@@ -42,6 +43,7 @@ func (o *ServerOptions) Config() (*server.Config, error) {
 	cfg.MaxAsyncConcurrent = o.MaxAsyncConcurrent
 	cfg.MaxAsyncBuffer = o.MaxAsyncBuffer
 	cfg.LogFilePath = o.LogFilePath
+	cfg.DevPortalEnabled = o.DevPortalEnabled
 	return cfg, nil
 }
 

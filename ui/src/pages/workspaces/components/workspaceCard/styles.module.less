@@ -1,0 +1,76 @@
+@import "@/variable.less";
+
+.workspace_card {
+
+  border-radius: 8px;
+  box-shadow: 0px 6px 16px 0px #00000014, 0px 4px 6px -4px #0000001f;
+
+  &:hover {
+    background-image: linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%, #ffffff 100%);
+  }
+
+  .workspace_card_container {
+    padding: 20px;
+
+    .workspace_card_header {
+      color: @primary-color;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
+      :global(.ant-btn-link) {
+        margin-right: -15px;
+        font-size: 16px;
+      }
+    }
+
+    .workspace_card_header_left {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    
+    img {
+      display: inline-flex;
+      width: 20px;
+      height: 20px;
+      position: relative;
+      top: 2px;
+    }
+
+    .workspace_card_title {
+      margin-left: 10px;
+    }
+
+    .workspace_card_content {
+      border-bottom: 1px solid #7aa1e114;
+      margin-bottom: 15px;
+      padding: 20px 0;
+    }
+    
+    .kusion_card_content_desc {
+      height: 3em;
+      line-height: 1.5em;
+      display: -webkit-box;
+      margin-bottom: 10px;
+      overflow: hidden;
+      font-size: 16px;
+      font-weight: 400;
+      text-overflow: ellipsis;
+      word-break: break-all;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      cursor: pointer;
+    }
+  
+    .workspace_card_footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #140e3573;
+    }
+  }
+}
