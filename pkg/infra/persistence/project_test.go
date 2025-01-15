@@ -173,6 +173,8 @@ func TestProjectRepository(t *testing.T) {
 				Page:     constant.CommonPageDefault,
 				PageSize: constant.CommonPageSizeDefault,
 			},
+		}, &entity.SortOptions{
+			Field: constant.SortByID,
 		})
 		require.NoError(t, err)
 		require.Len(t, actual.Projects, 2)

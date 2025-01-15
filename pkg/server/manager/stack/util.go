@@ -297,7 +297,7 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 	return &filter, nil
 }
 
-func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*entity.RunFilter, error) {
+func (m *StackManager) BuildRunFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.RunFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building run filter...")
 
@@ -314,7 +314,7 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 		// if project id is present, use project id
 		projectID, err := strconv.Atoi(projectIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidProjectID
+			return nil, nil, constant.ErrInvalidProjectID
 		}
 		filter.ProjectID = uint(projectID)
 	}
@@ -322,7 +322,7 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 		// if project id is present, use project id
 		stackID, err := strconv.Atoi(stackIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidStackID
+			return nil, nil, constant.ErrInvalidStackID
 		}
 		filter.StackID = uint(stackID)
 	}
@@ -343,7 +343,7 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 		// if start time is present, use start time
 		startTime, err := time.Parse(time.RFC3339, startTimeParam)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		filter.StartTime = startTime
 	}
@@ -351,11 +351,11 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 		// if end time is present, use end time
 		endTime, err := time.Parse(time.RFC3339, endTimeParam)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		// validate end time is after start time
 		if !filter.StartTime.IsZero() && endTime.Before(filter.StartTime) {
-			return nil, fmt.Errorf("end time must be after start time")
+			return nil, nil, fmt.Errorf("end time must be after start time")
 		}
 		filter.EndTime = endTime
 	}
@@ -372,7 +372,19 @@ func (m *StackManager) BuildRunFilter(ctx context.Context, query *url.Values) (*
 		Page:     page,
 		PageSize: pageSize,
 	}
-	return &filter, nil
+
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateRunSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	runSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+	return &filter, runSortOptions, nil
 }
 
 func (m *StackManager) ImportTerraformResourceID(ctx context.Context, sp *v1.Spec, importedResources map[string]string) {
@@ -529,4 +541,20 @@ func validateExecuteRequestParams(params *StackRequestParams) error {
 		return ErrWorkspaceEmpty
 	}
 	return nil
+}
+
+func validateRunSortOptions(sortBy string) (string, error) {
+	if sortBy == "" {
+		return constant.SortByID, nil
+	}
+	if sortBy != constant.SortByID && sortBy != constant.SortByCreateTimestamp {
+		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id or create timestamp", sortBy)
+	}
+	switch sortBy {
+	case constant.SortByCreateTimestamp:
+		return "created_at", nil
+	case constant.SortByModifiedTimestamp:
+		return "updated_at", nil
+	}
+	return sortBy, nil
 }

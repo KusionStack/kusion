@@ -189,13 +189,13 @@ func (h *Handler) ListProjects() http.HandlerFunc {
 		logger.Info("Listing project...")
 
 		query := r.URL.Query()
-		filter, err := h.projectManager.BuildProjectFilter(ctx, &query)
+		filter, projectSortOptions, err := h.projectManager.BuildProjectFilterAndSortOptions(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
-		projectEntities, err := h.projectManager.ListProjects(ctx, filter)
+		projectEntities, err := h.projectManager.ListProjects(ctx, filter, projectSortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

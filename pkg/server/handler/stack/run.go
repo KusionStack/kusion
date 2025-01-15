@@ -102,14 +102,14 @@ func (h *Handler) ListRuns() http.HandlerFunc {
 		logger.Info("Listing runs...")
 
 		query := r.URL.Query()
-		filter, err := h.stackManager.BuildRunFilter(ctx, &query)
+		filter, runSortOptions, err := h.stackManager.BuildRunFilterAndSortOptions(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// List runs
-		runEntities, err := h.stackManager.ListRuns(ctx, filter)
+		runEntities, err := h.stackManager.ListRuns(ctx, filter, runSortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

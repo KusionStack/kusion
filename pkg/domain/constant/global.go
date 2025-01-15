@@ -27,6 +27,10 @@ const (
 	ResourcePageSizeLarge   = 1000
 	CommonPageDefault       = 1
 	CommonPageSizeDefault   = 10
+	SortByCreateTimestamp   = "createTimestamp"
+	SortByModifiedTimestamp = "modifiedTimestamp"
+	SortByName              = "name"
+	SortByID                = "id"
 )
 
 var (

@@ -37,7 +37,7 @@ type ProjectRepository interface {
 	// GetByName retrieves a project by its name.
 	GetByName(ctx context.Context, name string) (*entity.Project, error)
 	// List retrieves all existing projects.
-	List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error)
+	List(ctx context.Context, filter *entity.ProjectFilter, sortOptions *entity.SortOptions) (*entity.ProjectListResult, error)
 }
 
 // StackRepository is an interface that defines the repository operations
@@ -150,5 +150,5 @@ type RunRepository interface {
 	// Get retrieves a run by its ID.
 	Get(ctx context.Context, id uint) (*entity.Run, error)
 	// List retrieves all existing run.
-	List(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error)
+	List(ctx context.Context, filter *entity.RunFilter, sortOptions *entity.SortOptions) (*entity.RunListResult, error)
 }
