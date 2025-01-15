@@ -14,8 +14,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *ProjectManager) ListProjects(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
-	projectEntities, err := m.projectRepo.List(ctx, filter)
+func (m *ProjectManager) ListProjects(ctx context.Context, filter *entity.ProjectFilter, sortOptions *entity.SortOptions) (*entity.ProjectListResult, error) {
+	projectEntities, err := m.projectRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingProject
@@ -177,7 +177,7 @@ func (m *ProjectManager) CreateProject(ctx context.Context, requestPayload reque
 	return &createdEntity, nil
 }
 
-func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Values) (*entity.ProjectFilter, error) {
+func (m *ProjectManager) BuildProjectFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.ProjectFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building project filter...")
 
@@ -187,7 +187,7 @@ func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Valu
 	if orgIDParam != "" {
 		orgID, err := strconv.Atoi(orgIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidOrganizationID
+			return nil, nil, constant.ErrInvalidOrganizationID
 		}
 		filter.OrgID = uint(orgID)
 	}
@@ -203,7 +203,7 @@ func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Valu
 	}
 
 	if name != "" && fuzzyName != "" {
-		return nil, constant.ErrProjectNameAndFuzzyName
+		return nil, nil, constant.ErrProjectNameAndFuzzyName
 	}
 
 	// Set pagination parameters.
@@ -220,5 +220,17 @@ func (m *ProjectManager) BuildProjectFilter(ctx context.Context, query *url.Valu
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateProjectSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	projectSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, projectSortOptions, nil
 }

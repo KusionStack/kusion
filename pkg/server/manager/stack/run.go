@@ -16,8 +16,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *StackManager) ListRuns(ctx context.Context, filter *entity.RunFilter) (*entity.RunListResult, error) {
-	runEntities, err := m.runRepo.List(ctx, filter)
+func (m *StackManager) ListRuns(ctx context.Context, filter *entity.RunFilter, sortOptions *entity.SortOptions) (*entity.RunListResult, error) {
+	runEntities, err := m.runRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingStack

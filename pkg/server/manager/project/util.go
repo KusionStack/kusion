@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"kusionstack.io/kusion/pkg/domain/constant"
 )
 
 // GenerateDefaultSourceName generates a default source name based on the remote URL
@@ -24,4 +26,20 @@ func GenerateDefaultSourceName(remoteURL string) (string, error) {
 	}
 
 	return sourceName, nil
+}
+
+func validateProjectSortOptions(sortBy string) (string, error) {
+	if sortBy == "" {
+		return constant.SortByID, nil
+	}
+	if sortBy != constant.SortByID && sortBy != constant.SortByName && sortBy != constant.SortByCreateTimestamp {
+		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id, name or create timestamp", sortBy)
+	}
+	switch sortBy {
+	case constant.SortByCreateTimestamp:
+		return "created_at", nil
+	case constant.SortByModifiedTimestamp:
+		return "updated_at", nil
+	}
+	return sortBy, nil
 }

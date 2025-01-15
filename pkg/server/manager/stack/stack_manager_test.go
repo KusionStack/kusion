@@ -267,7 +267,7 @@ func (m *mockProjectRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
+func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter, sortOptions *entity.SortOptions) (*entity.ProjectListResult, error) {
 	args := m.Called(ctx, filter)
 	return &entity.ProjectListResult{
 		Projects: args.Get(0).([]*entity.Project),

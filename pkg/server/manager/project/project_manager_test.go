@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 )
@@ -46,7 +47,7 @@ func (m *mockProjectRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
+func (m *mockProjectRepository) List(ctx context.Context, filter *entity.ProjectFilter, sortOptions *entity.SortOptions) (*entity.ProjectListResult, error) {
 	args := m.Called(ctx, filter)
 	return &entity.ProjectListResult{
 		Projects: args.Get(0).([]*entity.Project),
@@ -163,6 +164,9 @@ func (m *mockSourceRepository) GetByRemote(ctx context.Context, remote string) (
 func TestProjectManager_ListProjects(t *testing.T) {
 	ctx := context.TODO()
 	filter := &entity.ProjectFilter{}
+	sortOptions := &entity.SortOptions{
+		Field: constant.SortByID,
+	}
 	mockRepo := &mockProjectRepository{}
 	expectedProjects := []*entity.Project{
 		{
@@ -174,7 +178,7 @@ func TestProjectManager_ListProjects(t *testing.T) {
 	manager := &ProjectManager{
 		projectRepo: mockRepo,
 	}
-	projects, err := manager.ListProjects(ctx, filter)
+	projects, err := manager.ListProjects(ctx, filter, sortOptions)
 	if !reflect.DeepEqual(projects.Projects, expectedProjects) {
 		t.Errorf("ListProjects() returned unexpected projects.\nExpected: %v\nGot: %v", expectedProjects, projects)
 	}

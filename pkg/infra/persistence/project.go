@@ -110,13 +110,20 @@ func (r *projectRepository) GetByName(ctx context.Context, name string) (*entity
 }
 
 // List retrieves all projects.
-func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilter) (*entity.ProjectListResult, error) {
+func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilter, sortOptions *entity.SortOptions) (*entity.ProjectListResult, error) {
 	var dataModel []ProjectModel
 	projectEntityList := make([]*entity.Project, 0)
 	pattern, args := GetProjectQuery(filter)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
 	searchResult := r.db.WithContext(ctx).
 		Preload("Source").
 		Preload("Organization").
+		Order(sortArgs).
 		Where(pattern, args...)
 
 	// Get total rows
