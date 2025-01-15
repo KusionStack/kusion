@@ -103,7 +103,7 @@ func (r *runRepository) List(ctx context.Context, filter *entity.RunFilter, sort
 
 	sortArgs := sortOptions.Field
 	if !sortOptions.Ascending {
-		sortArgs = sortArgs + " DESC"
+		sortArgs += " DESC"
 	}
 
 	searchResult := r.db.WithContext(ctx).

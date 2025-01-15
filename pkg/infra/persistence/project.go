@@ -117,7 +117,7 @@ func (r *projectRepository) List(ctx context.Context, filter *entity.ProjectFilt
 
 	sortArgs := sortOptions.Field
 	if !sortOptions.Ascending {
-		sortArgs = sortArgs + " DESC"
+		sortArgs += " DESC"
 	}
 
 	searchResult := r.db.WithContext(ctx).

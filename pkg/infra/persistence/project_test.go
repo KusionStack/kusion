@@ -162,7 +162,7 @@ func TestProjectRepository(t *testing.T) {
 				sqlmock.NewRows([]string{"count"}).
 					AddRow(2))
 
-		sqlMock.ExpectQuery("SELECT .* FROM `project` .* IS NULL LIMIT").
+		sqlMock.ExpectQuery("SELECT .* FROM `project` .* IS NULL .* LIMIT").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name", "path", "Organization__id", "Organization__name", "Organization__owners", "Source__id", "Source__remote", "Source__source_provider"}).
 					AddRow(expectedID, expectedName, expectedPath, 1, "mockedOrg", expectedOrgOwners, 1, "https://github.com/test/repo", constant.SourceProviderTypeGithub).
