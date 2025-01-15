@@ -123,9 +123,6 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 			operatorParam = constant.DefaultUser
 		}
 	}
-	if workspaceParam == "" {
-		return ctx, nil, nil, stackmanager.ErrWorkspaceEmpty
-	}
 	executeParams := stackmanager.StackExecuteParams{
 		Detail:              detailParam,
 		Dryrun:              dryrunParam,
@@ -200,4 +197,10 @@ func handleCrash(ctx context.Context) {
 		runLogger.Error("Panic recovered", "error", r)
 		logStackTrace(runLogger)
 	}
+}
+
+func updateRunRequestPayload(requestPayload *request.CreateRunRequest, params *stackmanager.StackRequestParams, runType constant.RunType) {
+	requestPayload.StackID = params.StackID
+	requestPayload.Type = string(runType)
+	requestPayload.Workspace = params.Workspace
 }

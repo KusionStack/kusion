@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -52,13 +51,14 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypePreview)
 
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
@@ -102,7 +102,6 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			}()
 
 			// Call preview stack
-			params.Workspace = requestPayload.Workspace
 			changes, err := h.stackManager.PreviewStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
 				logger.Error("Error previewing stack", "error", err)
@@ -157,13 +156,14 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeApply)
 
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
@@ -201,7 +201,6 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			}()
 
 			// call apply stack
-			params.Workspace = requestPayload.Workspace
 			err = h.stackManager.ApplyStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {
@@ -260,13 +259,14 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeGenerate)
 
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
@@ -310,7 +310,6 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			}()
 
 			// Call generate stack
-			params.Workspace = requestPayload.Workspace
 			_, sp, err = h.stackManager.GenerateSpec(newCtx, params)
 			if err != nil {
 				logger.Error("Error generating stack", "error", err)
@@ -357,13 +356,14 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeDestroy)
 
 		// Create a Run object in database and start background task
 		runEntity, err := h.stackManager.CreateRun(ctx, requestPayload)
@@ -399,7 +399,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 				}
 			}()
 
-			params.Workspace = requestPayload.Workspace
+			// Call destroy stack
 			err = h.stackManager.DestroyStack(newCtx, params, w)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {

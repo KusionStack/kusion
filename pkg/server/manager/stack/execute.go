@@ -29,6 +29,11 @@ func (m *StackManager) GenerateSpec(ctx context.Context, params *StackRequestPar
 	runLogger := logutil.GetRunLogger(ctx)
 	logutil.LogToAll(logger, runLogger, "Info", "Starting generating spec in StackManager...")
 
+	err := validateExecuteRequestParams(params)
+	if err != nil {
+		return "", nil, err
+	}
+
 	// Get the stack entity and return error if stack ID is not found
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
 	if err != nil {
@@ -105,6 +110,11 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
 	logutil.LogToAll(logger, runLogger, "Info", "Starting previewing stack in StackManager...")
+
+	err := validateExecuteRequestParams(params)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
@@ -224,6 +234,12 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
 	logutil.LogToAll(logger, runLogger, "Info", "Starting applying stack in StackManager ...")
+
+	err := validateExecuteRequestParams(params)
+	if err != nil {
+		return err
+	}
+
 	_, stackBackend, project, _, ws, err := m.metaHelper(ctx, params.StackID, params.Workspace)
 	if err != nil {
 		return err
@@ -466,10 +482,15 @@ func (m *StackManager) ApplyStack(ctx context.Context, params *StackRequestParam
 	return nil
 }
 
-func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestParams, w http.ResponseWriter) (err error) {
+func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestParams, w http.ResponseWriter) error {
 	logger := logutil.GetLogger(ctx)
 	runLogger := logutil.GetRunLogger(ctx)
 	logutil.LogToAll(logger, runLogger, "Info", "Starting destroying stack in StackManager ...")
+
+	err := validateExecuteRequestParams(params)
+	if err != nil {
+		return err
+	}
 
 	// Get the stack entity by id
 	stackEntity, err := m.stackRepo.Get(ctx, params.StackID)
@@ -543,7 +564,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	// Create destroy release
 	rel, err = release.CreateDestroyRelease(storage, project.Name, stack.Name, ws.Name)
 	if err != nil {
-		return
+		return err
 	}
 	if len(rel.Spec.Resources) == 0 {
 		return ErrNoManagedResourceToDestroy
@@ -556,7 +577,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	// compute changes for preview
 	changes, err := engineapi.DestroyPreview(executeOptions, rel.Spec, rel.State, project, stack, storage)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Summary preview table
@@ -575,7 +596,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 	// update release phase to destroying
 	rel.Phase = apiv1.ReleasePhaseDestroying
 	if err = release.UpdateDestroyRelease(storage, rel); err != nil {
-		return
+		return err
 	}
 	// Destroy
 	logutil.LogToAll(logger, runLogger, "Info", "Start destroying resources......")
@@ -583,7 +604,7 @@ func (m *StackManager) DestroyStack(ctx context.Context, params *StackRequestPar
 
 	upRel, err = engineapi.Destroy(executeOptions, rel, changes, storage)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Mark resources as deleted in the database
