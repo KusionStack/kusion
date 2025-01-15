@@ -30,17 +30,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
+    - git
     - github
     - oci
     - local
-    - git
     type: string
     x-enum-varnames:
+    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
-    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -3394,6 +3394,77 @@ paths:
       tags:
       - stack
   /api/v1/stacks/{stackID}/preview:
+    post:
+      description: Preview stack information by stack ID
+      operationId: previewStack
+      parameters:
+      - description: Stack ID
+        in: path
+        name: stackID
+        required: true
+        type: integer
+      - description: The resources to import during the stack preview
+        in: body
+        name: importedResources
+        schema:
+          $ref: '#/definitions/request.StackImportRequest'
+      - description: The target workspace to preview the spec in.
+        in: query
+        name: workspace
+        required: true
+        type: string
+      - description: Import existing resources during the stack preview
+        in: query
+        name: importResources
+        type: boolean
+      - description: 'Output format. Choices are: json, default. Default to default
+          output format in Kusion.'
+        in: query
+        name: output
+        type: string
+      - description: Show detailed output
+        in: query
+        name: detail
+        type: boolean
+      - description: The Spec ID to use for the preview. Default to the last one generated.
+        in: query
+        name: specID
+        type: string
+      - description: Force the preview even when the stack is locked
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Changes'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Preview stack
+      tags:
+      - stack
+  /api/v1/stacks/{stackID}/preview/async:
     post:
       description: Start a run and asynchronously preview stack changes by stack ID
       operationId: previewStackAsync

@@ -38,7 +38,7 @@ import (
 // @Failure		429					{object}	error								"Too Many Requests"
 // @Failure		404					{object}	error								"Not Found"
 // @Failure		500					{object}	error								"Internal Server Error"
-// @Router			/api/v1/stacks/{stackID}/preview [post]
+// @Router			/api/v1/stacks/{stackID}/preview/async [post]
 func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context

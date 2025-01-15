@@ -47,7 +47,7 @@ func TestResourceRepository(t *testing.T) {
 			expectedKusionResourceURN      = "project:stack:workspace:apps/v1:Deployment:my-namespace:my-deployment"
 		)
 		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
-			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "kusion_resource_id", "kusion_resource_urn"}).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "resource_type", "kusion_resource_id", "resource_urn"}).
 				AddRow(expectedID, expectedType, expectedKusionResourceID, expectedKusionResourceURN))
 
 		actual, err := repo.GetByKusionResourceURN(context.Background(), expectedKusionResourceURN)
