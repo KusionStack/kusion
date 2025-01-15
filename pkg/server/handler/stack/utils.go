@@ -92,7 +92,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 	// Get stack with repository
 	id, err := strconv.Atoi(stackID)
 	if err != nil {
-		return nil, nil, nil, stackmanager.ErrInvalidStackID
+		return ctx, nil, nil, stackmanager.ErrInvalidStackID
 	}
 	logger := logutil.GetLogger(ctx)
 	// Get Params
@@ -109,7 +109,7 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 	}
 	watchTimeoutParam, err := strconv.Atoi(watchTimeoutStr)
 	if err != nil {
-		return nil, nil, nil, stackmanager.ErrInvalidWatchTimeout
+		return ctx, nil, nil, stackmanager.ErrInvalidWatchTimeout
 	}
 	importResourcesParam, _ := strconv.ParseBool(r.URL.Query().Get("importResources"))
 	specIDParam := r.URL.Query().Get("specID")
@@ -122,9 +122,6 @@ func requestHelper(r *http.Request) (context.Context, *httplog.Logger, *stackman
 		if operatorParam == "" {
 			operatorParam = constant.DefaultUser
 		}
-	}
-	if workspaceParam == "" {
-		workspaceParam = constant.DefaultWorkspace
 	}
 	executeParams := stackmanager.StackExecuteParams{
 		Detail:              detailParam,
@@ -196,7 +193,14 @@ func handleCrash(ctx context.Context) {
 		logger := logutil.GetLogger(ctx)
 		runLogger := logutil.GetRunLogger(ctx)
 		logger.Error("Recovered from panic during async execution:", "error", r)
+		logStackTrace(logger)
 		runLogger.Error("Panic recovered", "error", r)
 		logStackTrace(runLogger)
 	}
+}
+
+func updateRunRequestPayload(requestPayload *request.CreateRunRequest, params *stackmanager.StackRequestParams, runType constant.RunType) {
+	requestPayload.StackID = params.StackID
+	requestPayload.Type = string(runType)
+	requestPayload.Workspace = params.Workspace
 }

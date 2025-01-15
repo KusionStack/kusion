@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -52,13 +51,14 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypePreview)
 
 		requestPayload.Type = string(constant.RunTypePreview)
 		// Create a Run object in database and start background task
@@ -157,13 +157,14 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeApply)
 
 		requestPayload.Type = string(constant.RunTypeApply)
 		// Create a Run object in database and start background task
@@ -253,13 +254,14 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeGenerate)
 
 		requestPayload.Type = string(constant.RunTypeGenerate)
 		// Create a Run object in database and start background task
@@ -350,13 +352,14 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 		var requestPayload request.CreateRunRequest
 		if err := requestPayload.Decode(r); err != nil {
 			if err == io.EOF {
-				render.Render(w, r, handler.FailureResponse(ctx, fmt.Errorf("request body should not be empty when importResources is set to true")))
+				render.Render(w, r, handler.FailureResponse(ctx, stackmanager.ErrRunRequestBodyEmpty))
 				return
 			} else {
 				render.Render(w, r, handler.FailureResponse(ctx, err))
 				return
 			}
 		}
+		updateRunRequestPayload(&requestPayload, params, constant.RunTypeDestroy)
 
 		requestPayload.Type = string(constant.RunTypeDestroy)
 		// Create a Run object in database and start background task
@@ -393,6 +396,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 				}
 			}()
 
+			// Call destroy stack
 			err = h.stackManager.DestroyStack(newCtx, params, w)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {

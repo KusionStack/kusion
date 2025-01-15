@@ -523,3 +523,10 @@ func unlockRelease(ctx context.Context, storage release.Storage) error {
 	}
 	return nil
 }
+
+func validateExecuteRequestParams(params *StackRequestParams) error {
+	if params.Workspace == "" {
+		return ErrWorkspaceEmpty
+	}
+	return nil
+}

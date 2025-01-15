@@ -49,9 +49,12 @@ func (m *RunModel) ToEntity() (*entity.Run, error) {
 		return nil, ErrFailedToGetRunStatus
 	}
 
-	stackEntity, err := m.Stack.ToEntity()
-	if err != nil {
-		return nil, err
+	var stackEntity *entity.Stack
+	if m.Stack != nil {
+		stackEntity, err = m.Stack.ToEntity()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &entity.Run{
