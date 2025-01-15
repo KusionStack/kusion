@@ -159,7 +159,7 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
       <div style={itemStyle}>
         <span style={labelStyle}>Status: </span>
         <span style={statusStyle}>
-        {nodeData?.status}
+          {nodeData?.status}
         </span>
       </div>
       <div style={itemStyle}>
@@ -481,6 +481,10 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
 
   function drawGraph(topologyData) {
     if (topologyData) {
+      if (graphRef.current) {
+        graphRef.current?.destroy()
+        graphRef.current = null
+      }
       if (!graphRef.current) {
         graphRef.current = initGraph()
         graphRef.current?.read(topologyData)

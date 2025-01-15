@@ -1,26 +1,55 @@
 import React, { useEffect, useState } from 'react'
-import { Card, message, Tabs, } from 'antd'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Button, Card, message, Tabs, Tooltip, Modal } from 'antd'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import queryString from 'query-string'
 import { PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
-import StackPanel from "../components/stackPanel"
 import BackWithTitle from '@/components/backWithTitle'
 import StackForm from '../components/stackForm'
+import Runs from '../components/runs'
+import ResourceGraph from '../components/resourceGraph'
 
 import styles from "./styles.module.less"
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
+const tabsItems = [
+  { label: 'Resource Graph', key: 'ResourceGraph' },
+  { label: 'Runs', key: 'Runs' },
+];
+
 const ProjectDetail = () => {
   const navigate = useNavigate()
   const urlPrams = useParams()
-  const [urlSearchName] = useSearchParams();
-  const [activeKey, setActiveKey] = useState('');
+  const location = useLocation()
+  const { projectName, stackId, panelKey } = queryString.parse(location?.search);
+
+  const [activeKey, setActiveKey] = useState(stackId || undefined);
   const [items, setItems] = useState([]);
   const [stackFormOpen, setStackFormOpen] = useState(false)
+  const [panelActiveKey, setPanelActiveKey] = useState(panelKey || tabsItems?.[0]?.key);
+  const [formData, setFormData] = useState<any>()
 
-  function onChange(newActiveKey: string) {
+
+
+  function handleStackTabChange(newActiveKey: string) {
     setActiveKey(newActiveKey);
+    const newParams = queryString.stringify({
+      projectName,
+      stackId: newActiveKey,
+      panelKey: 'ResourceGraph',
+    })
+    navigate(`?${newParams}`, { replace: true })
+  };
+
+  function handlePanelTabChange(newActiveKey: string) {
+    setPanelActiveKey(newActiveKey);
+    const newParams = queryString.stringify({
+      projectName,
+      stackId: activeKey,
+      panelKey: newActiveKey,
+    })
+    navigate(`?${newParams}`)
   };
 
 
@@ -28,24 +57,27 @@ const ProjectDetail = () => {
     setStackFormOpen(true)
   };
 
-  const remove = (targetKey: TargetKey) => {
-    let newActiveKey = activeKey;
-    let lastIndex = -1;
-    items.forEach((item, i) => {
-      if (item.key === targetKey) {
-        lastIndex = i - 1;
+  function remove(targetKey: TargetKey) {
+    Modal.confirm({
+      title: 'Are you sure to delete this stack?',
+      okText: 'Yes',
+      cancelText: 'No',
+      onOk: async () => {
+        const response = await StackService.deleteStack({
+          path: {
+            stackID: Number(targetKey),
+          }
+        })
+        if (response?.data?.success) {
+          message.success('Deleted Successful')
+          getStackList({
+            projectId: urlPrams?.projectId
+          }, true)
+        } else {
+          message.error(response?.data?.message)
+        }
       }
     });
-    const newPanes = items.filter((item) => item.key !== targetKey);
-    if (newPanes.length && newActiveKey === targetKey) {
-      if (lastIndex >= 0) {
-        newActiveKey = newPanes[lastIndex].key;
-      } else {
-        newActiveKey = newPanes[0].key;
-      }
-    }
-    setItems(newPanes);
-    setActiveKey(newActiveKey);
   };
 
   const onEdit = (
@@ -60,14 +92,27 @@ const ProjectDetail = () => {
   };
 
   async function handleSubmit(values, callback) {
-    const response: any = await StackService.createStack({
-      body: {
-        ...values,
-        projectID: Number(urlPrams?.projectId)
-      }
-    })
+    let response: any
+    if (formData?.id) {
+      response = await StackService.updateStack({
+        body: {
+          ...values,
+          projectID: Number(urlPrams?.projectId)
+        },
+        path: {
+          stackID: formData?.id
+        }
+      })
+    } else {
+      response = await StackService.createStack({
+        body: {
+          ...values,
+          projectID: Number(urlPrams?.projectId)
+        }
+      })
+    }
     if (response?.data?.success) {
-      message.success('Create Successful')
+      message.success(formData?.id ? 'Update Successful' : 'Create Successful')
       callback && callback()
       getStackList({
         projectId: urlPrams?.projectId
@@ -79,9 +124,10 @@ const ProjectDetail = () => {
   }
   function handleClose() {
     setStackFormOpen(false)
+    setFormData(undefined)
   }
 
-  async function getStackList(params) {
+  async function getStackList(params, isDelete?: boolean) {
     try {
       const response: any = await StackService.listStack({
         query: {
@@ -92,12 +138,16 @@ const ProjectDetail = () => {
         const resTabs = response?.data?.data?.stacks?.map(item => {
           return {
             ...item,
-            label: item?.name,
+            label: (
+              <Tooltip title={`path: ${item?.path}`}>
+                {item?.name}
+              </Tooltip>
+            ),
             key: item?.id,
           }
         })
         setItems(resTabs)
-        setActiveKey(resTabs?.[0]?.key)
+        setActiveKey(isDelete ? resTabs?.[0]?.key : (stackId || resTabs?.[0]?.key))
       } else {
         message.error(response?.data?.message)
       }
@@ -112,36 +162,55 @@ const ProjectDetail = () => {
         projectId: urlPrams?.projectId
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlPrams?.projectId])
 
   function handleBack() {
     navigate("/projects")
   }
 
+
+
+  function handleClickEdit() {
+    const currentStack = items?.find(item => Number(item?.id) === Number(activeKey))
+    setFormData(currentStack)
+    setStackFormOpen(true)
+  }
+
   return (
     <div className={styles.project_detail}>
-      <BackWithTitle title={urlSearchName.get('projectName')} handleBack={handleBack} />
+      <BackWithTitle title={projectName} handleBack={handleBack} />
       <Card>
-        <Tabs
-          style={{ border: 'none' }}
-          type="editable-card"
-          onChange={onChange}
-          activeKey={activeKey}
-          onEdit={onEdit}
-          items={items}
-          addIcon={(
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <PlusOutlined />
-              <div style={{ width: 100 }}>Create Stack</div>
-            </div>
-          )}
-        />
+        <div className={styles.project_detail_stackTab}>
+          <Tabs
+            style={{ border: 'none' }}
+            type="editable-card"
+            onChange={handleStackTabChange}
+            activeKey={Number(activeKey) as any}
+            onEdit={onEdit}
+            items={items}
+            addIcon={(
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <PlusOutlined />
+                <div style={{ width: 100 }}>New Stack</div>
+              </div>
+            )}
+          />
+        </div>
         {
-          activeKey && <StackPanel stackId={activeKey} />
+          activeKey && <>
+            <Tabs
+              onChange={handlePanelTabChange}
+              activeKey={panelActiveKey as string}
+              items={tabsItems}
+              tabBarExtraContent={<Button type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
+            />
+            {panelActiveKey === 'Runs' && <Runs stackId={activeKey} panelActiveKey={panelActiveKey} />}
+            {panelActiveKey === 'ResourceGraph' && <ResourceGraph stackId={activeKey} />}
+          </>
         }
         <StackForm
-          formData={{}}
-          actionType="ADD"
+          formData={formData}
           stackFormOpen={stackFormOpen}
           handleCancel={handleClose}
           handleSubmit={handleSubmit}

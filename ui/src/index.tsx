@@ -13,6 +13,7 @@ import './index.less'
 
 const portAPI = 'api/server-port';
 const defaultPort = '80';
+const defalutUrl = 'http://localhost';
 
 async function loadServerConfig() {
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -22,11 +23,11 @@ async function loadServerConfig() {
     const port = config?.port || defaultPort;
 
     client.setConfig({
-      baseUrl: isDevelopment ? `http://localhost:${port}` : ''
+      baseUrl: isDevelopment ? `${defalutUrl}:${port}` : ''
     });
   } catch (error) {
     client.setConfig({
-      baseUrl: isDevelopment ? `http://localhost:${defaultPort}` : ''
+      baseUrl: isDevelopment ? `${defalutUrl}:${defaultPort}` : ''
     });
   }
 }

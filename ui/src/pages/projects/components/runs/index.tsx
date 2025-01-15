@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { Button, DatePicker, Form, message, Space, Table, Tag, Select } from 'antd'
-import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
+import React, { useEffect, useRef, useState } from 'react'
+import { Button, DatePicker, Form, message, Space, Table, Tag, Select, Tooltip } from 'antd'
+import { CloseOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons'
+import { useLocation, useNavigate } from 'react-router-dom'
+import queryString from 'query-string'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -18,26 +20,47 @@ dayjs.extend(timezone);
 
 const timeFormatter = 'YYYY-MM-DDTHH:mm:ssZ'
 
-const Runs = ({ stackId }) => {
+const Runs = ({ stackId, panelActiveKey }) => {
   const [form] = Form.useForm();
+  const navigate = useNavigate()
+  const location = useLocation();
+  const { pageSize = 10, page = 1, total = 0, projectName, type, status, startTime, endTime, stackId: urlStackId } = queryString.parse(location?.search);
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 10,
-    page: 1,
-    query: undefined,
-    total: undefined,
+    pageSize,
+    page,
+    query: {
+      type,
+      status,
+      startTime,
+      endTime,
+    },
+    total,
   })
-
   const [generateOpen, setGenerateOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentRecord, setCurrentRecord] = useState()
+  const searchParamsRef = useRef<any>();
+
+  useEffect(() => {
+    const newParams = queryString.stringify({
+      projectName,
+      ...(searchParamsRef.current?.query || {}),
+      stackId,
+      page: Number(urlStackId) !== Number(stackId) ? 1 : searchParamsRef.current?.page,
+      pageSize: searchParamsRef.current?.pageSize,
+      panelKey: panelActiveKey
+    })
+    navigate(`?${newParams}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, navigate])
 
   async function createApply(values) {
     const response: any = await StackService.applyStackAsync({
       body: {
         ...values,
-        stackID: stackId,
+        stackID: Number(stackId),
         workspace: values?.workspace,
       },
       query: {
@@ -45,7 +68,7 @@ const Runs = ({ stackId }) => {
         noCache: true,
       },
       path: {
-        stackID: stackId,
+        stackID: Number(stackId),
       }
     })
     return response
@@ -55,7 +78,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.generateStackAsync({
       body: {
         ...values,
-        stackID: stackId,
+        stackID: Number(stackId),
         workspace: values?.workspace,
       },
       query: {
@@ -63,7 +86,7 @@ const Runs = ({ stackId }) => {
         noCache: true,
       },
       path: {
-        stackID: stackId,
+        stackID: Number(stackId),
       }
     })
     return response
@@ -73,7 +96,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.destroyStackAsync({
       body: {
         ...values,
-        stackID: stackId,
+        stackID: Number(stackId),
         workspace: values?.workspace,
       },
       query: {
@@ -81,7 +104,7 @@ const Runs = ({ stackId }) => {
         noCache: true,
       },
       path: {
-        stackID: stackId,
+        stackID: Number(stackId),
       }
     })
     return response
@@ -91,7 +114,7 @@ const Runs = ({ stackId }) => {
     const response: any = await StackService.previewStackAsync({
       body: {
         ...values,
-        stackID: stackId,
+        stackID: Number(stackId),
         workspace: values?.workspace,
       },
       query: {
@@ -100,7 +123,7 @@ const Runs = ({ stackId }) => {
         noCache: true,
       },
       path: {
-        stackID: stackId,
+        stackID: Number(stackId),
       }
     })
     return response
@@ -133,10 +156,12 @@ const Runs = ({ stackId }) => {
 
   function handleReset() {
     form.resetFields();
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: undefined,
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams
     getListRun({
       page: 1,
       pageSize: 10,
@@ -146,10 +171,12 @@ const Runs = ({ stackId }) => {
 
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: values,
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams
     getListRun({
       page: 1,
       pageSize: 10,
@@ -178,17 +205,19 @@ const Runs = ({ stackId }) => {
           endTime,
           pageSize: params?.pageSize || 10,
           page: params?.page,
-          stackID: stackId
+          stackID: Number(stackId),
         }
       });
       if (response?.data?.success) {
         setDataSource(response?.data?.data?.runs);
-        setSearchParams({
+        const newParams = {
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
-        })
+        }
+        setSearchParams(newParams)
+        searchParamsRef.current = newParams
       } else {
         message.error(response?.data?.messaage)
       }
@@ -197,8 +226,15 @@ const Runs = ({ stackId }) => {
   }
 
   useEffect(() => {
+    let timer;
     if (stackId) {
       getListRun(searchParams)
+      timer = setInterval(() => {
+        getListRun(searchParamsRef.current)
+      }, 7000)
+    }
+    return () => {
+      if (timer) clearInterval(timer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stackId])
@@ -245,7 +281,7 @@ const Runs = ({ stackId }) => {
     {
       title: 'Action',
       dataIndex: 'action',
-      render: (_, record) => <Button type='link' onClick={() => handleCheckDetail(record)}>Detail</Button>
+      render: (_, record) => <Button style={{ padding: 0 }} type='link' onClick={() => handleCheckDetail(record)}>Detail</Button>
     },
   ]
 
@@ -259,6 +295,12 @@ const Runs = ({ stackId }) => {
   function handlePreviewClose() {
     setPreviewOpen(false)
   }
+
+  function refresh() {
+    getListRun(searchParams)
+  }
+
+
 
   function renderTableTitle() {
     return <div className={styles.project_runs_toolbar}>
@@ -292,13 +334,27 @@ const Runs = ({ stackId }) => {
           }
         </div>
         {
-          Object.entries(searchParams?.query || {})?.filter(([key, val]) => val)?.length > 0 && <div className={styles.projects_content_toolbar_clear}>
-            <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
-          </div>
+          Object.entries(searchParams?.query || {})?.filter(([key, val]) => val)?.length > 0 && (
+            <div className={styles.projects_content_toolbar_clear}>
+              <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
+            </div>
+          )
         }
       </div>
       <div className={styles.projects_content_toolbar_create}>
-        <Button onClick={handleCreateRuns}><PlusOutlined /> Create Runs</Button>
+        <Space>
+          <Tooltip title={'Refresh'}>
+            <Button
+              style={{ color: '#646566', fontSize: 18 }}
+              icon={<RedoOutlined />}
+              onClick={refresh}
+              type="text"
+            />
+          </Tooltip>
+          <Button type="primary" onClick={handleCreateRuns}>
+            <PlusOutlined /> New Runs
+          </Button>
+        </Space>
       </div>
     </div>
   }
@@ -312,21 +368,21 @@ const Runs = ({ stackId }) => {
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
             <Form.Item name="type" label="Type">
-              <Select placeholder="Please select type" style={{ width: 150 }}>
+              <Select placeholder="Please select type" style={{ width: 150 }} allowClear>
                 {
                   Object.entries(RUNS_TYPES)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
                 }
               </Select>
             </Form.Item>
             <Form.Item name="status" label="Status">
-              <Select placeholder="Please select status" style={{ width: 150 }}>
+              <Select placeholder="Please select status" style={{ width: 150 }} allowClear>
                 {
                   Object.entries(RUNS_STATUS_MAP)?.map(([key, value]) => <Select.Option key={key} value={value}>{value}</Select.Option>)
                 }
               </Select>
             </Form.Item>
             <Form.Item name="createTime" label="Create Time">
-              <DatePicker.RangePicker showTime={{ format: 'HH:mm' }} />
+              <DatePicker.RangePicker allowClear showTime={{ format: 'HH:mm' }} />
             </Form.Item>
             <Form.Item style={{ marginLeft: 20 }}>
               <Space>
@@ -345,9 +401,9 @@ const Runs = ({ stackId }) => {
           columns={columns}
           dataSource={dataSource}
           pagination={{
-            total: searchParams?.total,
-            current: searchParams?.page,
-            pageSize: searchParams?.pageSize,
+            total: Number(searchParams?.total),
+            current: Number(searchParams?.page),
+            pageSize: Number(searchParams?.pageSize),
             showTotal: (total, range) => (
               <div style={{
                 fontSize: '12px',
@@ -360,11 +416,11 @@ const Runs = ({ stackId }) => {
                   value={searchParams?.pageSize}
                   size="small"
                   style={{
-                    width: 55,
+                    width: 60,
                     margin: '0 4px',
                     fontSize: '12px'
                   }}
-                  onChange={(value) => handleChangePage(1, value)}
+                  onChange={(value) => handleChangePage(1, value as number)}
                   options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
                 />
                 items, {range[0]}-{range[1]} of {total} items
