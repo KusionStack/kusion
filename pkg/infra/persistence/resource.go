@@ -142,7 +142,7 @@ func (r *resourceRepository) GetByKusionResourceURN(ctx context.Context, id stri
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
 		Joins("JOIN stack ON stack.id = resource.stack_id").
 		Joins("JOIN project ON project.id = stack.project_id").
-		Where("kusion_resource_urn = ?", id).
+		Where("resource_urn = ?", id).
 		First(&dataModel).Error
 	if err != nil {
 		return nil, err

@@ -3028,6 +3028,113 @@
         },
         "/api/v1/stacks/{stackID}/preview": {
             "post": {
+                "description": "Preview stack information by stack ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stack"
+                ],
+                "summary": "Preview stack",
+                "operationId": "previewStack",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stack ID",
+                        "name": "stackID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "The resources to import during the stack preview",
+                        "name": "importedResources",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/request.StackImportRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "The target workspace to preview the spec in.",
+                        "name": "workspace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Import existing resources during the stack preview",
+                        "name": "importResources",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Output format. Choices are: json, default. Default to default output format in Kusion.",
+                        "name": "output",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show detailed output",
+                        "name": "detail",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "The Spec ID to use for the preview. Default to the last one generated.",
+                        "name": "specID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Force the preview even when the stack is locked",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Changes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/stacks/{stackID}/preview/async": {
+            "post": {
                 "description": "Start a run and asynchronously preview stack changes by stack ID",
                 "produces": [
                     "application/json"
@@ -3749,17 +3856,17 @@
             "type": "string",
             "enum": [
                 "git",
+                "git",
                 "github",
                 "oci",
-                "local",
-                "git"
+                "local"
             ],
             "x-enum-varnames": [
+                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal",
-                "DefaultSourceType"
+                "SourceProviderTypeLocal"
             ]
         },
         "constant.StackState": {
