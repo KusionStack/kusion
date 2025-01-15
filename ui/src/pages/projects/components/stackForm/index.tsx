@@ -3,7 +3,6 @@ import { Button, Modal, Form, Input, Space, message } from 'antd'
 
 const StackForm = ({
   stackFormOpen,
-  actionType,
   handleSubmit,
   formData,
   handleCancel,
@@ -40,11 +39,7 @@ const StackForm = ({
   }
 
   function getTitle() {
-    return actionType === 'ADD'
-      ? 'New Stack'
-      : actionType === 'EDIT'
-        ? 'Edit Stack'
-        : 'Stack Detail'
+    return formData?.id ? 'Edit Stack' : 'New Stack'
   }
 
   return (

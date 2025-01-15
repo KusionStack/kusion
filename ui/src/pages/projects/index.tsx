@@ -288,9 +288,11 @@ const Projects = () => {
         }
       </div>
       {
-        queryList?.length > 0 && <div className={styles.projects_content_toolbar_clear}>
-          <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
-        </div>
+        queryList?.length > 0 && (
+          <div className={styles.projects_content_toolbar_clear}>
+            <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
+          </div>
+        )
       }
     </div>
   }
@@ -300,7 +302,9 @@ const Projects = () => {
       <div className={styles.projects_action}>
         <h3>Projects</h3>
         <div className={styles.projects_action_create}>
-          <Button type='primary' onClick={handleAdd}><PlusOutlined /> Create Projects</Button>
+          <Button type='primary' onClick={handleAdd}>
+            <PlusOutlined /> New Project
+          </Button>
         </div>
       </div>
       <div className={styles.projects_search}>
