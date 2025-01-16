@@ -26,7 +26,11 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
 
   useEffect(() => {
     if (logRef && logRef.current) {
-      const logHtml = ansi_up.ansi_to_html(currentRecord?.logs);
+      console.log(currentRecord?.logs, currentRecord?.logs?.includes('\n'), "====53==>>")
+      const res = currentRecord?.logs?.replace(/\\n/g, '<br>')
+      console.log(res, "===res=====")
+      const logHtml = ansi_up.ansi_to_html(currentRecord?.logs?.replace(/\\n/g, '<br>'));
+      console.log(logHtml, "===logHtml====")
       logRef.current.innerHTML = logHtml;
     }
   }, [ansi_up, currentRecord?.logs, logRef]);

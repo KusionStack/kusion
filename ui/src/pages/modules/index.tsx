@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import queryString from 'query-string'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
 import type { TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,18 +13,34 @@ import styles from './styles.module.less'
 
 
 const ModulePage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
+  const { pageSize = 10, page = 1, total = 0, moduleName } = queryString.parse(location?.search);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 10,
-    page: 1,
-    query: undefined,
-    total: undefined,
-  })
-
+    pageSize,
+    page,
+    query: {
+      moduleName
+    },
+    total,
+  });
   const [dataSource, setDataSource] = useState([])
+  const searchParamsRef = useRef<any>();
+
+  useEffect(() => {
+    const newParams = queryString.stringify({
+      moduleName,
+      ...(searchParamsRef.current?.query || {}),
+      page: searchParamsRef.current?.page,
+      pageSize: searchParamsRef.current?.pageSize,
+    })
+    navigate(`?${newParams}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, navigate])
 
   async function getModuleList(params) {
     try {
@@ -35,12 +53,14 @@ const ModulePage = () => {
       });
       if (response?.data?.success) {
         setDataSource(response?.data?.data?.modules);
-        setSearchParams({
+        const newParams = {
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
-        })
+        }
+        setSearchParams(newParams)
+        searchParamsRef.current = newParams;
       } else {
         message.error(response?.data?.message)
       }
@@ -50,15 +70,20 @@ const ModulePage = () => {
   }
 
   useEffect(() => {
-    getModuleList({})
+    getModuleList(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleReset() {
     form.resetFields();
-    setSearchParams({
+    const newParams = {
       ...searchParams,
-      query: undefined
-    })
+      query: {
+        moduleName: undefined
+      }
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getModuleList({
       page: 1,
       pageSize: 10,
@@ -67,10 +92,12 @@ const ModulePage = () => {
   }
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: values
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getModuleList({
       page: 1,
       pageSize: 10,
@@ -114,7 +141,7 @@ const ModulePage = () => {
     {
       title: 'Registry',
       dataIndex: 'registry',
-      
+
       render: (_, record) => {
         return `${record?.url?.Scheme}://${record?.url?.Host}${record?.url?.Path}`;
       }
@@ -122,7 +149,7 @@ const ModulePage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      
+
       render: (desc) => {
         return <DescriptionWithTooltip desc={desc} width={400} />
       }
@@ -159,6 +186,12 @@ const ModulePage = () => {
   ]
 
 
+  useEffect(() => {
+    form.setFieldsValue({
+      moduleName: searchParams?.query?.moduleName
+    })
+  }, [searchParams?.query, form])
+
 
   async function handleSubmit(values, callback) {
     let response: any
@@ -190,7 +223,7 @@ const ModulePage = () => {
     setOpen(false)
   }
 
-  function handleChangePage(page: number, pageSize: number) {
+  function handleChangePage(page: number, pageSize: any) {
     getModuleList({
       ...searchParams,
       page,
@@ -239,9 +272,9 @@ const ModulePage = () => {
           scroll={{ x: 1300 }}
           dataSource={dataSource}
           pagination={{
-            total: searchParams?.total,
-            current: searchParams?.page,
-            pageSize: searchParams?.pageSize,
+            total: Number(searchParams?.total),
+            current: Number(searchParams?.page),
+            pageSize: Number(searchParams?.pageSize),
             showTotal: (total, range) => (
               <div style={{
                 fontSize: '12px',
@@ -254,7 +287,7 @@ const ModulePage = () => {
                   value={searchParams?.pageSize}
                   size="small"
                   style={{
-                    width: 55,
+                    width: 60,
                     margin: '0 4px',
                     fontSize: '12px'
                   }}
