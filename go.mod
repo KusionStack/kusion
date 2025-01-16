@@ -86,7 +86,7 @@ require (
 	k8s.io/utils v0.0.0-20240821151609-f90d01438635
 	kcl-lang.io/kcl-go v0.10.0-alpha.3
 	kcl-lang.io/kcl-plugin v0.5.0
-	kcl-lang.io/kpm v0.9.5
+	kcl-lang.io/kpm v0.9.9
 	kusionstack.io/kube-api v0.3.1
 	kusionstack.io/kusion-api-go v0.13.0
 	kusionstack.io/kusion-module-framework v0.2.3-beta.9

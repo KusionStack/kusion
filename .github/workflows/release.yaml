@@ -57,6 +57,19 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.22
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install npm packages and build UI
+        working-directory: ./ui
+        run: |
+          npm install
+          # Using 'CI=false' prevents build errors due to warnings.
+          # It bypasses the 'process.env.CI = true' setting in CI environments
+          # that treats warnings as errors, ensuring a successful build.
+          CI=false npm run build
+          touch build/.gitkeep
       # Get version information
       - name: Get version
         id: get_version
