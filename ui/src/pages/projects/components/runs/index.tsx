@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Button, DatePicker, Form, message, Space, Table, Tag, Select, Tooltip } from 'antd'
+import type { TableColumnsType } from 'antd'
 import { CloseOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import queryString from 'query-string'
@@ -258,10 +259,11 @@ const Runs = ({ stackId, panelActiveKey }) => {
   }
 
 
-  const columns = [
+  const columns: TableColumnsType<any> = [
     {
       title: 'Runs ID',
       dataIndex: 'id',
+      fixed: 'left',
     },
     {
       title: 'Type',
@@ -281,6 +283,8 @@ const Runs = ({ stackId, panelActiveKey }) => {
     {
       title: 'Action',
       dataIndex: 'action',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => <Button style={{ padding: 0 }} type='link' onClick={() => handleCheckDetail(record)}>Detail</Button>
     },
   ]
@@ -400,6 +404,7 @@ const Runs = ({ stackId, panelActiveKey }) => {
           rowKey="id"
           columns={columns}
           dataSource={dataSource}
+          scroll={{ x: 1300 }}
           pagination={{
             total: Number(searchParams?.total),
             current: Number(searchParams?.page),

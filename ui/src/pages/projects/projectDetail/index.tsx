@@ -199,12 +199,14 @@ const ProjectDetail = () => {
         </div>
         {
           activeKey && <>
-            <Tabs
-              onChange={handlePanelTabChange}
-              activeKey={panelActiveKey as string}
-              items={tabsItems}
-              tabBarExtraContent={<Button type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
-            />
+            <div style={{ marginRight: 30 }}>
+              <Tabs
+                onChange={handlePanelTabChange}
+                activeKey={panelActiveKey as string}
+                items={tabsItems}
+                tabBarExtraContent={<Button type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
+              />
+            </div>
             {panelActiveKey === 'Runs' && <Runs stackId={activeKey} panelActiveKey={panelActiveKey} />}
             {panelActiveKey === 'ResourceGraph' && <ResourceGraph stackId={activeKey} />}
           </>

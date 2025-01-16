@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Select, Input, message } from 'antd';
 
-const ProjectForm = ({ open, actionType, handleClose, handleSubmit, sourceList,formData }: any) => {
+const ProjectForm = ({ open, actionType, handleClose, handleSubmit, sourceList, formData }: any) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  
+
   useEffect(() => {
     if (formData) {
       form.setFieldsValue({
         name: formData?.name,
-        projectSource: formData?.source?.name,
+        projectSource: formData?.source?.id,
         path: formData?.path,
         description: formData?.description,
       })
@@ -38,7 +38,7 @@ const ProjectForm = ({ open, actionType, handleClose, handleSubmit, sourceList,f
     form.resetFields()
     handleClose()
   }
-  
+
   function getTitle() {
     return actionType === 'ADD'
       ? 'New Project'

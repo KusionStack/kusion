@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, message, Popconfirm, Space, Table, Tag } from 'antd'
+import type { TableColumnsType } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { BackendService } from '@kusionstack/kusion-api-client-sdk'
 import { josn2yaml } from '@/utils/tools'
@@ -80,10 +81,11 @@ const BackendsPage = () => {
   }
 
 
-  const columns = [
+  const columns: TableColumnsType<any> = [
     {
       title: 'Name',
       dataIndex: 'name',
+      fixed: 'left',
     },
     {
       title: 'Type',
@@ -95,7 +97,6 @@ const BackendsPage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 500,
       render: (desc) => {
         return <DescriptionWithTooltip desc={desc} width={500} />
       }
@@ -110,6 +111,8 @@ const BackendsPage = () => {
     {
       title: 'Action',
       dataIndex: 'action',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => {
         return (
           <Space>
@@ -206,6 +209,7 @@ const BackendsPage = () => {
           rowKey="id"
           columns={columns}
           dataSource={dataSource}
+          scroll={{ x: 1300 }}
         />
       </div>
       <ConfigYamlDrawer {...configYamlProps} />
