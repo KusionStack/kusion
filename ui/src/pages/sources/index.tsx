@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
 import SourceForm from './component/sourceForm'
@@ -111,16 +112,16 @@ const SourcesPage = () => {
 
 
 
-  const columns = [
+  const columns: TableColumnsType<any> = [
     {
       title: 'Name',
       dataIndex: 'name',
       width: 300,
+      fixed: 'left'
     },
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 450,
       render: (desc) => {
         return <DescriptionWithTooltip desc={desc} width={450} />
       }
@@ -128,7 +129,6 @@ const SourcesPage = () => {
     {
       title: 'Url',
       dataIndex: 'remote',
-      width: 450,
       render: (remoteObj) => {
         return `${remoteObj?.Scheme}://${remoteObj?.Host}${remoteObj?.Path}`
       }
@@ -136,6 +136,8 @@ const SourcesPage = () => {
     {
       title: 'Action',
       dataIndex: 'action',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => {
         return (
           <Space>
@@ -235,6 +237,7 @@ const SourcesPage = () => {
           title={() => <h4>Source List</h4>}
           rowKey="id"
           columns={columns}
+          scroll={{ x: 1300 }}
           dataSource={dataSource}
           pagination={{
             total: searchParams?.total,

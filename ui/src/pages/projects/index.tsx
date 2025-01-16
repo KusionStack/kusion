@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Space, Table, Popconfirm, Select } from 'antd'
+import type { TableColumnsType } from 'antd'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
@@ -207,11 +208,11 @@ const Projects = () => {
   }
 
 
-  const columns = [
+  const columns: TableColumnsType<any> = [
     {
       title: 'Name',
       dataIndex: 'name',
-      width: 230,
+      fixed: 'left',
       render: (text, record) => {
         return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}?projectName=${record?.name}`)}>{text}</Button>
       }
@@ -219,7 +220,6 @@ const Projects = () => {
     {
       title: 'Source',
       dataIndex: 'source',
-      width: 400,
       render: (sourceObj) => {
         const remote = sourceObj?.remote;
         return `${remote?.Scheme}://${remote?.Host}${remote?.Path}`
@@ -232,9 +232,8 @@ const Projects = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 350,
       render: (desc) => {
-        return <DescriptionWithTooltip desc={desc} width={350} />
+        return <DescriptionWithTooltip desc={desc} />
       }
     },
     {
@@ -244,6 +243,8 @@ const Projects = () => {
     {
       title: 'Action',
       dataIndex: 'action',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => {
         return (
           <Space>
@@ -288,9 +289,11 @@ const Projects = () => {
         }
       </div>
       {
-        queryList?.length > 0 && <div className={styles.projects_content_toolbar_clear}>
-          <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
-        </div>
+        queryList?.length > 0 && (
+          <div className={styles.projects_content_toolbar_clear}>
+            <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
+          </div>
+        )
       }
     </div>
   }
@@ -300,7 +303,9 @@ const Projects = () => {
       <div className={styles.projects_action}>
         <h3>Projects</h3>
         <div className={styles.projects_action_create}>
-          <Button type='primary' onClick={handleAdd}><PlusOutlined /> Create Projects</Button>
+          <Button type='primary' onClick={handleAdd}>
+            <PlusOutlined /> New Project
+          </Button>
         </div>
       </div>
       <div className={styles.projects_search}>
@@ -324,6 +329,7 @@ const Projects = () => {
           title={renderTableTitle}
           columns={columns}
           dataSource={dataSource}
+          scroll={{ x: 1300 }}
           pagination={{
             total: searchParams?.total,
             current: searchParams?.page,

@@ -3,7 +3,12 @@ import { Tooltip } from 'antd'
 
 import styles from './styles.module.less'
 
-const DescriptionWithTooltip = ({ desc, width }) => {
+type IProps = {
+  desc: string
+  width?: number | string
+}
+
+const DescriptionWithTooltip = ({ desc, width }: IProps) => {
 
   return (<Tooltip placement="topLeft" title={desc}>
     <div className={styles.descriptionWithTooltip} style={{ width }}>

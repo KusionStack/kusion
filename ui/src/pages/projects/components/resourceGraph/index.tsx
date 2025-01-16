@@ -6,7 +6,6 @@ import { generateG6GraphData } from '@/utils/tools'
 
 const ResourceGraph = ({ stackId }) => {
   const drawRef = useRef(null)
-
   const [graphData, setGraphData] = useState()
   const [topologyLoading, setTopologyLoading] = useState(false)
 

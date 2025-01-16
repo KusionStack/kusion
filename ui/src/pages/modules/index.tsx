@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons'
 import { ModuleService } from '@kusionstack/kusion-api-client-sdk'
 import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
@@ -103,16 +104,17 @@ const ModulePage = () => {
 
 
 
-  const columns = [
+  const columns: TableColumnsType<any> = [
     {
       title: 'Name',
       dataIndex: 'name',
       width: 300,
+      fixed: 'left',
     },
     {
       title: 'Registry',
       dataIndex: 'registry',
-      width: 450,
+      
       render: (_, record) => {
         return `${record?.url?.Scheme}://${record?.url?.Host}${record?.url?.Path}`;
       }
@@ -120,7 +122,7 @@ const ModulePage = () => {
     {
       title: 'Description',
       dataIndex: 'description',
-      width: 400,
+      
       render: (desc) => {
         return <DescriptionWithTooltip desc={desc} width={400} />
       }
@@ -128,6 +130,8 @@ const ModulePage = () => {
     {
       title: 'Action',
       dataIndex: 'action',
+      fixed: 'right',
+      width: 200,
       render: (_, record) => {
         return (
           <Space>
@@ -232,6 +236,7 @@ const ModulePage = () => {
           title={() => <h4>Module List</h4>}
           rowKey="id"
           columns={columns}
+          scroll={{ x: 1300 }}
           dataSource={dataSource}
           pagination={{
             total: searchParams?.total,

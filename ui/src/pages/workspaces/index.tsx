@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Col, Form, Input, message, Row, Select, Space } from 'antd'
+import { Button, Col, Form, Input, message, Pagination, Row, Select, Space } from 'antd'
 import {
   PlusOutlined,
 } from '@ant-design/icons'
@@ -17,7 +17,7 @@ const Workspaces = () => {
   const [formData, setFormData] = useState()
   const [open, setOpen] = useState(false)
   const [searchParams, setSearchParams] = useState({
-    pageSize: 30,
+    pageSize: 10,
     page: 1,
     query: undefined,
     total: undefined,
@@ -179,6 +179,50 @@ const Workspaces = () => {
     }
   }
 
+  function handleChangePage(page, pageSize) {
+    getListWorkspace({
+      page,
+      pageSize,
+      query: searchParams?.query
+    })
+  }
+
+  const pageProps: any = {
+    total: searchParams?.total,
+    current: searchParams?.page,
+    pageSize: searchParams?.pageSize,
+    showTotal: (total, range) => (
+      <div style={{
+        fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+      }}>
+        show{' '}
+        <Select
+          value={searchParams?.pageSize}
+          size="small"
+          style={{
+            width: 60,
+            margin: '0 4px',
+            fontSize: '12px'
+          }}
+          onChange={(value) => handleChangePage(1, value)}
+          options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
+        />
+        items, {range[0]}-{range[1]} of {total} items
+      </div>
+    ),
+    size: "default",
+    style: {
+      marginTop: '16px',
+      textAlign: 'right'
+    },
+    onChange: (page, size) => {
+      handleChangePage(page, size);
+    },
+  }
+
   return (
     <div className={styles.kusion_workspace_container}>
       <div className={styles.kusion_workspace_action}>
@@ -234,6 +278,9 @@ const Workspaces = () => {
             </Row>
           )
         })}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+          <Pagination {...pageProps} />
+        </div>
       </div>
       <WorkscpaceForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} actionType={actionType} formData={formData} />
     </div>
