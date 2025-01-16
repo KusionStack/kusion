@@ -26,5 +26,4 @@ RUN /usr/local/bin/kusion
 
 FROM base
 COPY --from=build /src/_build/bundles/kusion-linux/bin/kusion /usr/local/bin/kusion
-COPY --from=build /src/ui/build /usr/local/bin/ui/build
 RUN /usr/local/bin/kusion
