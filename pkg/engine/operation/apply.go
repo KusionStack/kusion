@@ -44,6 +44,11 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 	log.Infof("engine: Apply start!")
 	o := ao.Operation
 
+	// keep release state
+	rsp = &ApplyResponse{
+		Release: req.Release,
+	}
+
 	defer func() {
 		close(o.MsgCh)
 
@@ -62,12 +67,12 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 	}()
 
 	if s = validateApplyRequest(req); v1.IsErr(s) {
-		return nil, s
+		return rsp, s
 	}
 
 	// Update the operation semaphore.
 	if err := o.UpdateSemaphore(); err != nil {
-		return nil, v1.NewErrorStatus(err)
+		return rsp, v1.NewErrorStatus(err)
 	}
 
 	// 1. init & build Indexes
@@ -81,14 +86,14 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 
 	runtimesMap, s := runtimeinit.Runtimes(*req.Release.Spec, *req.Release.State)
 	if v1.IsErr(s) {
-		return nil, s
+		return rsp, s
 	}
 	o.RuntimeMap = runtimesMap
 
 	// 2. build & walk DAG
 	applyGraph, s := newApplyGraph(req.Release.Spec, priorState)
 	if v1.IsErr(s) {
-		return nil, s
+		return rsp, s
 	}
 	log.Infof("Apply Graph:\n%s", applyGraph.String())
 	// Get dependencies and dependents of each node to be populated into resource graph.
@@ -96,7 +101,7 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 
 	rel, s := copyRelease(req.Release)
 	if v1.IsErr(s) {
-		return nil, s
+		return rsp, s
 	}
 	applyOperation := &ApplyOperation{
 		Operation: models.Operation{
@@ -122,10 +127,10 @@ func (ao *ApplyOperation) Apply(req *ApplyRequest) (rsp *ApplyResponse, s v1.Sta
 	// Wait
 	if diags := w.Wait(); diags.HasErrors() {
 		s = v1.NewErrorStatus(diags.Err())
-		return nil, s
 	}
-
-	return &ApplyResponse{Release: applyOperation.Release, Graph: resourceGraph}, nil
+	rsp.Release = applyOperation.Release
+	rsp.Graph = resourceGraph
+	return rsp, s
 }
 
 func (ao *ApplyOperation) walkFun(v dag.Vertex) (diags tfdiags.Diagnostics) {
