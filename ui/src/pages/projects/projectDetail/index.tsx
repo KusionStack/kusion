@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button, Card, message, Tabs, Tooltip, Modal } from 'antd'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import queryString from 'query-string'
-import { PlusOutlined } from '@ant-design/icons'
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import BackWithTitle from '@/components/backWithTitle'
 import StackForm from '../components/stackForm'
 import Runs from '../components/runs'
 import ResourceGraph from '../components/resourceGraph'
+import { KusionTabs } from '@/components/kusionTabs'
 
 import styles from "./styles.module.less"
+
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
@@ -22,6 +23,7 @@ const ProjectDetail = () => {
   const navigate = useNavigate()
   const urlPrams = useParams()
   const location = useLocation()
+  const funcRef = useRef<any>()
   const { projectName, stackId, panelKey } = queryString.parse(location?.search);
 
   const [activeKey, setActiveKey] = useState(stackId || undefined);
@@ -34,12 +36,18 @@ const ProjectDetail = () => {
 
   function handleStackTabChange(newActiveKey: string) {
     setActiveKey(newActiveKey);
-    const newParams = queryString.stringify({
-      projectName,
-      stackId: newActiveKey,
-      panelKey: 'ResourceGraph',
-    })
-    navigate(`?${newParams}`, { replace: true })
+    if (panelKey === 'Runs') {
+      if (funcRef.current) {
+        funcRef.current?.replacePage(1, newActiveKey)
+      }
+    } else {
+      const newParams = queryString.stringify({
+        projectName,
+        stackId: newActiveKey,
+        panelKey: 'ResourceGraph',
+      })
+      navigate(`?${newParams}`, { replace: true })
+    }
   };
 
   function handlePanelTabChange(newActiveKey: string) {
@@ -50,11 +58,6 @@ const ProjectDetail = () => {
       panelKey: newActiveKey,
     })
     navigate(`?${newParams}`)
-  };
-
-
-  const add = () => {
-    setStackFormOpen(true)
   };
 
   function remove(targetKey: TargetKey) {
@@ -80,16 +83,9 @@ const ProjectDetail = () => {
     });
   };
 
-  const onEdit = (
-    targetKey: React.MouseEvent | React.KeyboardEvent | string,
-    action: 'add' | 'remove',
-  ) => {
-    if (action === 'add') {
-      add();
-    } else {
-      remove(targetKey);
-    }
-  };
+  function onEdit(action, key) {
+    action === 'add' ? setStackFormOpen(true) : remove(key)
+  }
 
   async function handleSubmit(values, callback) {
     let response: any
@@ -182,19 +178,13 @@ const ProjectDetail = () => {
       <BackWithTitle title={projectName} handleBack={handleBack} />
       <Card>
         <div className={styles.project_detail_stackTab}>
-          <Tabs
-            style={{ border: 'none' }}
-            type="editable-card"
-            onChange={handleStackTabChange}
-            activeKey={Number(activeKey) as any}
-            onEdit={onEdit}
+          <KusionTabs
             items={items}
-            addIcon={(
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <PlusOutlined />
-                <div style={{ width: 100 }}>New Stack</div>
-              </div>
-            )}
+            addIsDiasble={false}
+            activeKey={Number(activeKey) as any}
+            handleClickItem={handleStackTabChange}
+            onEdit={onEdit}
+            disabledAdd={false}
           />
         </div>
         {
@@ -207,7 +197,7 @@ const ProjectDetail = () => {
                 tabBarExtraContent={<Button type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
               />
             </div>
-            {panelActiveKey === 'Runs' && <Runs stackId={activeKey} panelActiveKey={panelActiveKey} />}
+            {panelActiveKey === 'Runs' && <Runs ref={funcRef} stackId={activeKey} panelActiveKey={panelActiveKey} />}
             {panelActiveKey === 'ResourceGraph' && <ResourceGraph stackId={activeKey} />}
           </>
         }

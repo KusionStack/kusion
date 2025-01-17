@@ -1,0 +1,65 @@
+.tabs_wrapper {
+  width: 100%;
+  margin-bottom: 10px;
+
+  .tabs_container {
+    display: flex;
+    align-items: center;
+    overflow: auto;
+
+    .tabs {
+      display: flex;
+
+      .tab {
+        display: flex;
+        padding: 10px 16px;
+        margin-right: 2px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        background-color: rgb(0 0 0 / 2%);
+        color: #646566;
+        border: 1px solid #f1f1f1;
+        border-radius: 8px 8px 0 0;
+
+        &.active_tab {
+          z-index: 1000;
+          color: #1778ff;
+          background: #1677ff14;
+          border: 1px solid #f1f1f1;
+        }
+
+        .edit_icon {
+          padding: 0 6px;
+          margin-right: -4px;
+          margin-left: 8px;
+          font-size: 14px;
+          color: #8a8a8a;
+
+          &:hover {
+            color: #f14c4c;
+            transform: scale(1.05);
+
+            :global(.anticon) {
+              transform: rotate(180deg) scale(1.1);
+            }
+          }
+        }
+      }
+    }
+
+    .add_box {
+      background: #1778ff;
+      color: #fff;
+      padding: 9px 16px 10px;
+      cursor: pointer;
+      border: 1px solid #1778ff;
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+    }
+  }
+
+  .tabs_container::-webkit-scrollbar {
+    display: none;
+  }
+}

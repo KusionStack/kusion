@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Space, Table, Popconfirm, Select } from 'antd'
 import type { TableColumnsType } from 'antd'
+import queryString from 'query-string'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { OrganizationService, ProjectService, SourceService } from '@kusionstack/kusion-api-client-sdk'
 import ProjectForm from './components/projectForm'
@@ -10,21 +11,38 @@ import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
 import styles from "./styles.module.less"
 
 
+
 const Projects = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
+  const { pageSize = 10, page = 1, total = 0, fuzzyName } = queryString.parse(location?.search);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 10,
-    page: 1,
-    query: {},
-    total: undefined,
+    pageSize,
+    page,
+    query: {
+      fuzzyName
+    },
+    total,
   });
   const [dataSource, setDataSource] = useState([])
   const [organizationList, setOrganizationList] = useState([])
   const [sourceList, setSourceList] = useState([])
   const [open, setOpen] = useState<boolean>(false);
+  const searchParamsRef = useRef<any>();
+
+  useEffect(() => {
+    const newParams = queryString.stringify({
+      fuzzyName,
+      ...(searchParamsRef.current?.query || {}),
+      page: searchParamsRef.current?.page,
+      pageSize: searchParamsRef.current?.pageSize,
+    })
+    navigate(`?${newParams}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, navigate])
 
   async function createOrganization() {
     const response = await OrganizationService.createOrganization({
@@ -102,10 +120,14 @@ const Projects = () => {
 
   function handleReset() {
     form.resetFields();
-    setSearchParams({
+    const newParams = {
       ...searchParams,
-      query: undefined
-    })
+      query: {
+        fuzzyName: undefined
+      }
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getProjectList({
       page: 1,
       pageSize: 10,
@@ -114,10 +136,12 @@ const Projects = () => {
   }
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: values
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getProjectList({
       page: 1,
       pageSize: 10,
@@ -173,12 +197,14 @@ const Projects = () => {
       });
       if (response?.data?.success) {
         setDataSource(response?.data?.data?.projects);
-        setSearchParams({
+        const newParams = {
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
-        })
+        }
+        setSearchParams(newParams)
+        searchParamsRef.current = newParams;
       } else {
         message.error(response?.data?.message)
       }
@@ -192,6 +218,12 @@ const Projects = () => {
     getProjectList(searchParams)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    form.setFieldsValue({
+      fuzzyName: searchParams?.query?.fuzzyName
+    })
+  }, [searchParams?.query, form])
 
   async function confirmDelete(record) {
     const response: any = await ProjectService.deleteProject({
@@ -331,9 +363,9 @@ const Projects = () => {
           dataSource={dataSource}
           scroll={{ x: 1300 }}
           pagination={{
-            total: searchParams?.total,
-            current: searchParams?.page,
-            pageSize: searchParams?.pageSize,
+            total: Number(searchParams?.total),
+            current: Number(searchParams?.page),
+            pageSize: Number(searchParams?.pageSize),
             showTotal: (total, range) => (
               <div style={{
                 fontSize: '12px',

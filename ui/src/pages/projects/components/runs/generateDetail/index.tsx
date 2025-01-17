@@ -18,6 +18,7 @@ const GenerateDetail = ({ open, currentRecord, handleClose }) => {
 
   useEffect(() => {
     if (logRef && logRef.current) {
+      console.log(currentRecord?.logs?.includes('\n'), "======>>")
       const logHtml = ansi_up.ansi_to_html(currentRecord?.logs);
       logRef.current.innerHTML = logHtml;
     }

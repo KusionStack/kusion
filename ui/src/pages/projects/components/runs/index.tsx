@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Button, DatePicker, Form, message, Space, Table, Tag, Select, Tooltip } from 'antd'
 import type { TableColumnsType } from 'antd'
 import { CloseOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import queryString from 'query-string'
+import moment from "moment"
 import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -21,11 +22,16 @@ dayjs.extend(timezone);
 
 const timeFormatter = 'YYYY-MM-DDTHH:mm:ssZ'
 
-const Runs = ({ stackId, panelActiveKey }) => {
+type IProps = {
+  stackId: any
+  panelActiveKey?: any
+}
+
+const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
   const [form] = Form.useForm();
   const navigate = useNavigate()
   const location = useLocation();
-  const { pageSize = 10, page = 1, total = 0, projectName, type, status, startTime, endTime, stackId: urlStackId } = queryString.parse(location?.search);
+  const { pageSize = 10, page = 1, total = 0, projectName, type, status, startTime, endTime, stackId } = queryString.parse(location?.search);
   const [dataSource, setDataSource] = useState([])
   const [open, setOpen] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useState({
@@ -42,20 +48,55 @@ const Runs = ({ stackId, panelActiveKey }) => {
   const [generateOpen, setGenerateOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentRecord, setCurrentRecord] = useState()
-  const searchParamsRef = useRef<any>();
+  const searchParamsRef = useRef<any>({
+    pageSize,
+    page,
+    query: {
+      type,
+      status,
+      startTime,
+      endTime,
+    },
+    total,
+  });
 
-  useEffect(() => {
-    const newParams = queryString.stringify({
+  function replacePage(page?: number, newStackId?: number) {
+    const paramObj = {
       projectName,
-      ...(searchParamsRef.current?.query || {}),
-      stackId,
-      page: Number(urlStackId) !== Number(stackId) ? 1 : searchParamsRef.current?.page,
+      type: searchParamsRef.current?.query?.type,
+      status: searchParamsRef.current?.query?.status,
+      startTime: searchParamsRef.current?.query?.startTime,
+      endTime: searchParamsRef.current?.query?.endTime,
+      stackId: newStackId || stackId,
+      page: page || searchParamsRef.current?.page,
       pageSize: searchParamsRef.current?.pageSize,
       panelKey: panelActiveKey
+    }
+    const newParams = queryString.stringify(paramObj)
+    navigate(`?${newParams}`, { replace: true })
+  }
+
+  useImperativeHandle(funcRef, () => ({
+    replacePage,
+  }))
+
+  // useEffect(() => {
+  //   replacePage()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [searchParams, navigate])
+
+  useEffect(() => {
+    const startTime = searchParams?.query?.startTime;
+    const endTime = searchParams?.query?.endTime;
+    const timeObj = (startTime && endTime ? {
+      createTime: [moment(startTime), moment(endTime as any),]
+    } : {})
+    form.setFieldsValue({
+      type: searchParams?.query?.type,
+      status: searchParams?.query?.status,
+      ...timeObj,
     })
-    navigate(`?${newParams}`)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, navigate])
+  }, [searchParams?.query, form])
 
   async function createApply(values) {
     const response: any = await StackService.applyStackAsync({
@@ -195,8 +236,12 @@ const Runs = ({ stackId, panelActiveKey }) => {
       let startTime, endTime
       if (params?.query?.createTime) {
         const [startDate, endDate] = params?.query?.createTime;
-        startTime = dayjs(startDate).utc().format(timeFormatter)
-        endTime = dayjs(endDate).utc().format(timeFormatter)
+        startTime = params.query.startTime = dayjs(startDate).utc().format(timeFormatter)
+        endTime = params.query.endTime = dayjs(endDate).utc().format(timeFormatter)
+      }
+      if (params?.query?.startTime && params?.query?.endTime) {
+        startTime = params?.query?.startTime
+        endTime = params?.query?.endTime
       }
       const response: any = await StackService.listRun({
         query: {
@@ -229,7 +274,7 @@ const Runs = ({ stackId, panelActiveKey }) => {
   useEffect(() => {
     let timer;
     if (stackId) {
-      getListRun(searchParams)
+      getListRun(searchParamsRef.current)
       timer = setInterval(() => {
         getListRun(searchParamsRef.current)
       }, 7000)
@@ -307,6 +352,11 @@ const Runs = ({ stackId, panelActiveKey }) => {
 
 
   function renderTableTitle() {
+    const queryParams = {
+      type: searchParams?.query?.type,
+      status: searchParams?.query?.status,
+      createTime: searchParams?.query?.startTime && searchParams?.query?.endTime ? [searchParams?.query?.startTime, searchParams?.query?.endTime] : undefined,
+    }
     return <div className={styles.project_runs_toolbar}>
       <div className={styles.project_runs_toolbar_left}>
         {
@@ -316,14 +366,14 @@ const Runs = ({ stackId, panelActiveKey }) => {
         }
         <div className={styles.projects_content_toolbar_list}>
           {
-            searchParams?.query && Object.entries(searchParams?.query)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
+            searchParams?.query && Object.entries(queryParams)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
               if (key === 'createTime') {
                 const [startDate, endDate] = __value;
-                const startTime = dayjs(startDate).utc().format(timeFormatter)
-                const endTime = dayjs(endDate).utc().format(timeFormatter)
+                // const startTime = dayjs(startDate).utc().format(timeFormatter)
+                // const endTime = dayjs(endDate).utc().format(timeFormatter)
                 return (
                   <div key={key} className={styles.projects_content_toolbar_item}>
-                    {key}: {`${startTime} ~ ${endTime}`}
+                    {key}: {`${startDate} ~ ${endDate}`}
                     <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
                   </div>
                 )
@@ -449,6 +499,7 @@ const Runs = ({ stackId, panelActiveKey }) => {
       </div>
     </div>
   )
-}
+})
 
 export default Runs
+

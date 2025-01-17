@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import queryString from 'query-string'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
 import type { TableColumnsType } from 'antd';
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,18 +13,35 @@ import styles from './styles.module.less'
 
 
 const SourcesPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false)
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
+  const { pageSize = 10, page = 1, total = 0, sourceName } = queryString.parse(location?.search);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 10,
-    page: 1,
-    query: undefined,
-    total: undefined,
-  })
+    pageSize,
+    page,
+    query: {
+      sourceName
+    },
+    total,
+  });
 
   const [dataSource, setDataSource] = useState([])
+  const searchParamsRef = useRef<any>();
+
+  useEffect(() => {
+    const newParams = queryString.stringify({
+      sourceName,
+      ...(searchParamsRef.current?.query || {}),
+      page: searchParamsRef.current?.page,
+      pageSize: searchParamsRef.current?.pageSize,
+    })
+    navigate(`?${newParams}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, navigate])
 
   async function getResourceList(params) {
     try {
@@ -35,12 +54,14 @@ const SourcesPage = () => {
       });
       if (response?.data?.success) {
         setDataSource(response?.data?.data?.sources);
-        setSearchParams({
+        const newParams = {
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
-        })
+        }
+        setSearchParams(newParams)
+        searchParamsRef.current = newParams;
       } else {
         message.error(response?.data?.message)
       }
@@ -55,10 +76,14 @@ const SourcesPage = () => {
 
   function handleReset() {
     form.resetFields();
-    setSearchParams({
+    const newParams = {
       ...searchParams,
-      query: undefined
-    })
+      query: {
+        sourceName: undefined
+      }
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getResourceList({
       page: 1,
       pageSize: 10,
@@ -67,10 +92,12 @@ const SourcesPage = () => {
   }
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: values
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getResourceList({
       page: 1,
       pageSize: 10,
@@ -88,13 +115,19 @@ const SourcesPage = () => {
     setFormData(record)
   }
 
-  function handleChangePage(page: number, pageSize: number) {
+  function handleChangePage(page: number, pageSize: any) {
     getResourceList({
       ...searchParams,
       page,
       pageSize,
     })
   }
+
+  useEffect(() => {
+    form.setFieldsValue({
+      sourceName: searchParams?.query?.sourceName
+    })
+  }, [searchParams?.query, form])
 
   async function confirmDelete(record) {
     const response: any = await SourceService.deleteSource({
@@ -240,9 +273,9 @@ const SourcesPage = () => {
           scroll={{ x: 1300 }}
           dataSource={dataSource}
           pagination={{
-            total: searchParams?.total,
-            current: searchParams?.page,
-            pageSize: searchParams?.pageSize,
+            total: Number(searchParams?.total),
+            current: Number(searchParams?.page),
+            pageSize: Number(searchParams?.pageSize),
             showTotal: (total, range) => (
               <div style={{
                 fontSize: '12px',

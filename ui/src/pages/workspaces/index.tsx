@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import { Button, Col, Form, Input, message, Pagination, Row, Select, Space } from 'antd'
+import React, { useEffect, useRef, useState } from 'react'
+import { Button, Col, Form, message, Pagination, Row, Select, Space } from 'antd'
 import {
   PlusOutlined,
 } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom';
+import queryString from 'query-string'
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BackendService, WorkspaceService } from '@kusionstack/kusion-api-client-sdk';
 import WorkspaceCard from './components/workspaceCard';
 import WorkscpaceForm from './components/workscpaceForm';
@@ -12,19 +13,34 @@ import styles from './styles.module.less'
 
 const Workspaces = () => {
   const navigate = useNavigate()
+  const location = useLocation();
   const [form] = Form.useForm();
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
   const [open, setOpen] = useState(false)
+  const { pageSize = 10, page = 1, total = 0, backendID } = queryString.parse(location?.search);
   const [searchParams, setSearchParams] = useState({
-    pageSize: 10,
-    page: 1,
-    query: undefined,
-    total: undefined,
-  })
+    pageSize,
+    page,
+    query: {
+      backendID
+    },
+    total,
+  });
   const [workspaceList, setWorkspaceList] = useState([]);
   const [backendList, setBackendList] = useState([]);
+  const searchParamsRef = useRef<any>();
 
+  useEffect(() => {
+    const newParams = queryString.stringify({
+      backendID,
+      ...(searchParamsRef.current?.query || {}),
+      page: searchParamsRef.current?.page,
+      pageSize: searchParamsRef.current?.pageSize,
+    })
+    navigate(`?${newParams}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, navigate])
 
   async function getBackendList() {
     try {
@@ -56,12 +72,14 @@ const Workspaces = () => {
       });
       if (response?.data?.success) {
         setWorkspaceList(response?.data?.data?.workspaces);
-        setSearchParams({
+        const newParams = {
           query: params?.query,
           pageSize: response?.data?.data?.pageSize,
           page: response?.data?.data?.currentPage,
           total: response?.data?.data?.total,
-        })
+        }
+        setSearchParams(newParams)
+        searchParamsRef.current = newParams;
       } else {
         message.error(response?.data?.messaage)
       }
@@ -100,10 +118,14 @@ const Workspaces = () => {
 
   function handleReset() {
     form.resetFields();
-    setSearchParams({
+    const newParams = {
       ...searchParams,
-      query: undefined
-    })
+      query: {
+        backendID: undefined
+      }
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getListWorkspace({
       page: 1,
       pageSize: 10,
@@ -112,16 +134,24 @@ const Workspaces = () => {
   }
   function handleSearch() {
     const values = form.getFieldsValue()
-    setSearchParams({
+    const newParams = {
       ...searchParams,
       query: values
-    })
+    }
+    setSearchParams(newParams)
+    searchParamsRef.current = newParams;
     getListWorkspace({
       page: 1,
       pageSize: 10,
       query: values,
     })
   }
+
+  useEffect(() => {
+    form.setFieldsValue({
+      backendID: searchParams?.query?.backendID ? Number(searchParams?.query?.backendID) : undefined
+    })
+  }, [searchParams?.query, form])
 
   async function handleSubmit(values, callback) {
     let response: any
