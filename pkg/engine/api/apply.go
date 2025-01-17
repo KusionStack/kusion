@@ -139,10 +139,12 @@ func Apply(
 			Release: rel,
 			Graph:   gph,
 		})
+		if rsp != nil {
+			upRel = rsp.Release
+		}
 		if v1.IsErr(st) {
 			return nil, fmt.Errorf("apply failed, status:\n%v", st)
 		}
-		upRel = rsp.Release
 	}
 
 	// wait for msgCh closed
