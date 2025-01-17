@@ -23,7 +23,6 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
   }
 
 
-
   useEffect(() => {
     if (logRef && logRef.current) {
       console.log(currentRecord?.logs, currentRecord?.logs?.includes('\n'), "====53==>>")

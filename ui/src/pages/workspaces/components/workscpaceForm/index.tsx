@@ -79,7 +79,7 @@ const WorkspaceFrom = ({ open, actionType, handleClose, handleSubmit, formData }
         form={form}
         layout="vertical"
       >
-        <Form.Item name="backendID" label="BackendID">
+        <Form.Item name="backendID" label="Backend">
           <Select placeholder="Select a backend" disabled={actionType === 'EDIT'}>
             {
               backendList?.map((item: any) => {

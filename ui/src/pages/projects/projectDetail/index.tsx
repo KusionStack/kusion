@@ -38,7 +38,10 @@ const ProjectDetail = () => {
     setActiveKey(newActiveKey);
     if (panelKey === 'Runs') {
       if (funcRef.current) {
-        funcRef.current?.replacePage(1, newActiveKey)
+        funcRef.current?.updateRunsURL({
+          page: 1,
+          stackId: newActiveKey
+        })
       }
     } else {
       const newParams = queryString.stringify({
