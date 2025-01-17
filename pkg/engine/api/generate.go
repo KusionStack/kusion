@@ -203,10 +203,10 @@ func validateTerraformResource(resource v1.Resource) error {
 	// }
 	if providerExtension, ok := resource.Extensions["provider"].(string); ok {
 		srcAttrs := strings.Split(providerExtension, "/")
-		if len(srcAttrs) == 3 {
+		if len(srcAttrs) == 4 {
 			providerNamespace = srcAttrs[1]
 			providerName = srcAttrs[2]
-		} else if len(srcAttrs) == 2 {
+		} else if len(srcAttrs) == 3 {
 			providerNamespace = srcAttrs[0]
 			providerName = srcAttrs[1]
 		} else {
