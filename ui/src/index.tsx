@@ -13,7 +13,7 @@ import './index.less'
 
 const portAPI = 'api/server-port';
 const defaultPort = '80';
-const defalutUrl = 'http://30.177.35.87';
+const defalutUrl = 'http://localhost';
 
 async function loadServerConfig() {
   const isDevelopment = process.env.NODE_ENV === 'development';
