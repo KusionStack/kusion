@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef, useState } from "react";
 import { Button, Popconfirm, Tooltip } from "antd";
 import workspaceSvg from "@/assets/img/workspace.svg"
 import {
@@ -8,6 +8,21 @@ import {
 import styles from "./styles.module.less"
 
 const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, handleEdit }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const timerRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    timerRef.current = setTimeout(() => {
+      setShowTooltip(true);
+    }, 1000);
+  };
+
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setShowTooltip(false);
+  };
 
   return (
     <div className={styles.workspace_card}>
@@ -17,7 +32,9 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, h
             <div className={styles.workspace_card_icon}>
               <img src={workspaceSvg} alt="svgIcon" />
             </div>
-            <div className={styles.workspace_card_title}>{title}</div>
+            <div className={styles.workspace_card_title}>
+              {title}
+            </div>
           </div>
           <div>
             <Button type='link' onClick={(e) => {
@@ -56,8 +73,21 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, h
           </div>
         </div>
         <div className={styles.workspace_card_content} onClick={onClick} style={{cursor: 'pointer'}}>
-          <Tooltip title={desc} placement="topLeft">
-            <div className={styles.kusion_card_content_desc}>
+          <Tooltip 
+            title={desc} 
+            placement="topLeft"
+            open={showTooltip}
+            onOpenChange={(visible) => {
+              if (!visible) {
+                handleMouseLeave();
+              }
+            }}
+          >
+            <div 
+              className={styles.kusion_card_content_desc}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
               {desc}
             </div>
           </Tooltip>
