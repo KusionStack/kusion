@@ -98,29 +98,31 @@ func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 		})
 	})
 
-	// Serve static files from embedded filesystem
-	buildFS, _ := fs.Sub(ui.Embedded, "build")
-	fileServer := http.FileServer(http.FS(buildFS))
+	if config.DevPortalEnabled {
+		// Serve static files from embedded filesystem
+		buildFS, _ := fs.Sub(ui.Embedded, "build")
+		fileServer := http.FileServer(http.FS(buildFS))
 
-	// Handle static file requests under /public path
-	router.Get("/public/*", func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/public")
-		fileServer.ServeHTTP(w, r)
-	})
+		// Handle static file requests under /public path
+		router.Get("/public/*", func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, "/public")
+			fileServer.ServeHTTP(w, r)
+		})
 
-	// Handle all other paths by serving index.html for SPA routing
-	router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		indexFile, err := buildFS.Open("index.html")
-		if err != nil {
-			logger.Warn("Failed to open index.html from embedded filesystem", "error", err.Error())
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		defer indexFile.Close()
+		// Handle all other paths by serving index.html for SPA routing
+		router.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+			indexFile, err := buildFS.Open("index.html")
+			if err != nil {
+				logger.Warn("Failed to open index.html from embedded filesystem", "error", err.Error())
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			defer indexFile.Close()
 
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		io.Copy(w, indexFile)
-	})
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			io.Copy(w, indexFile)
+		})
+	}
 
 	logger.Info(fmt.Sprintf("Listening on :%d", config.Port))
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), router)

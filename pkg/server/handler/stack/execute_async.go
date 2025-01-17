@@ -77,47 +77,50 @@ func (h *Handler) PreviewStackAsync() http.HandlerFunc {
 			logger.Info("Async preview in progress")
 			var previewChanges any
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel()            // make sure the context is canceled to free resources
-			defer handleCrash(newCtx) // recover from possible panic
+			defer cancel()                                            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
 				case <-newCtx.Done():
-					logger.Info("preview execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
+					logutil.LogToAll(logger, runLogger, "info", "preview execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
 					h.setRunToCancelled(newCtx, runEntity.ID)
 				default:
 					if err != nil {
-						logger.Info("preview failed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "error", "preview failed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToFailed(newCtx, runEntity.ID)
 					} else {
-						logger.Info("preview completed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "info", "preview completed for stack", "stackID", params.StackID, "time", time.Now())
 						if pc, ok := previewChanges.(*models.Changes); ok {
 							h.setRunToSuccess(newCtx, runEntity.ID, pc)
 						} else {
-							logger.Error("Error casting preview changes to models.Changes", "error", "casting error")
+							logutil.LogToAll(logger, runLogger, "error", "Error casting preview changes to models.Changes", "error", "casting error")
 							h.setRunToFailed(newCtx, runEntity.ID)
 						}
 					}
 				}
 			}()
 
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
+
 			// Call preview stack
-			changes, err := h.stackManager.PreviewStack(newCtx, params, requestPayload.ImportedResources)
+			var changes *models.Changes
+			changes, err = h.stackManager.PreviewStack(newCtx, params, requestPayload.ImportedResources)
 			if err != nil {
-				logger.Error("Error previewing stack", "error", err)
+				logutil.LogToAll(logger, runLogger, "error", "Error previewing stack", "error", err)
 				return
 			}
 
 			previewChanges, err = stackmanager.ProcessChanges(newCtx, w, changes, params.Format, params.ExecuteParams.Detail)
 			if err != nil {
-				logger.Error("Error processing preview changes", "error", err)
+				logutil.LogToAll(logger, runLogger, "error", "Error processing preview changes", "error", err)
 				return
 			}
 		})
 		defer func() {
 			if inBufferZone {
-				logger.Info("The task is in the buffer zone, waiting for an available worker")
+				logutil.LogToAll(logger, runLogger, "info", "The task is in the buffer zone, waiting for an available worker")
 				h.setRunToQueued(ctx, runEntity.ID)
 			}
 		}()
@@ -182,25 +185,27 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async apply in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel()            // make sure the context is canceled to free resources
-			defer handleCrash(newCtx) // recover from possible panic
+			defer cancel()                                            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
 				case <-newCtx.Done():
-					logger.Info("apply execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
+					logutil.LogToAll(logger, runLogger, "info", "apply execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
 					h.setRunToCancelled(newCtx, runEntity.ID)
 				default:
 					if err != nil {
-						logger.Info("apply failed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "error", "apply failed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToFailed(newCtx, runEntity.ID)
 					} else {
-						logger.Info("apply completed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "info", "apply completed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToSuccess(newCtx, runEntity.ID, "apply completed")
 					}
 				}
 			}()
+
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
 
 			// call apply stack
 			err = h.stackManager.ApplyStack(newCtx, params, requestPayload.ImportedResources)
@@ -209,7 +214,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 					render.Render(w, r, handler.SuccessResponse(ctx, "Dry-run mode enabled, the above resources will be applied if dryrun is set to false"))
 					return
 				} else {
-					logger.Error("Error applying stack", "error", err)
+					logutil.LogToAll(logger, runLogger, "error", "Error applying stack", "error", err)
 					return
 				}
 			}
@@ -217,7 +222,7 @@ func (h *Handler) ApplyStackAsync() http.HandlerFunc {
 
 		defer func() {
 			if inBufferZone {
-				logger.Info("The task is in the buffer zone, waiting for an available worker")
+				logutil.LogToAll(logger, runLogger, "info", "The task is in the buffer zone, waiting for an available worker")
 				h.setRunToQueued(ctx, runEntity.ID)
 			}
 		}()
@@ -279,26 +284,26 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			// defer safe.HandleCrash(aciLoggingRecoverHandler(h.aciClient, &req, log))
 			logger.Info("Async generate in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel()            // make sure the context is canceled to free resources
-			defer handleCrash(newCtx) // recover from possible panic
+			defer cancel()                                            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
 
 			var sp *apiv1.Spec
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
 				case <-newCtx.Done():
-					logger.Info("generate execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
+					logutil.LogToAll(logger, runLogger, "info", "generate execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
 					h.setRunToCancelled(newCtx, runEntity.ID)
 				default:
 					if err != nil {
-						logger.Info("generate failed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "error", "generate failed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToFailed(newCtx, runEntity.ID)
 					} else {
-						logger.Info("generate completed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "info", "generate completed for stack", "stackID", params.StackID, "time", time.Now())
 						if yaml, err := yamlv2.Marshal(sp); err == nil {
 							h.setRunToSuccess(newCtx, runEntity.ID, string(yaml))
 						} else {
-							logger.Error("Error marshalling generated spec", "error", err)
+							logutil.LogToAll(logger, runLogger, "error", "Error marshalling generated spec", "error", err)
 							h.setRunToFailed(newCtx, runEntity.ID)
 						}
 					}
@@ -308,14 +313,14 @@ func (h *Handler) GenerateStackAsync() http.HandlerFunc {
 			// Call generate stack
 			_, sp, err = h.stackManager.GenerateSpec(newCtx, params)
 			if err != nil {
-				logger.Error("Error generating stack", "error", err)
+				logutil.LogToAll(logger, runLogger, "error", "Error generating stack", "error", err)
 				return
 			}
 		})
 
 		defer func() {
 			if inBufferZone {
-				logger.Info("The task is in the buffer zone, waiting for an available worker")
+				logutil.LogToAll(logger, runLogger, "info", "The task is in the buffer zone, waiting for an available worker")
 				h.setRunToQueued(ctx, runEntity.ID)
 			}
 		}()
@@ -376,21 +381,21 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 		inBufferZone := h.workerPool.Do(func() {
 			logger.Info("Async destroy in progress")
 			newCtx, cancel := CopyToNewContextWithTimeout(ctx, constant.RunTimeOut)
-			defer cancel()            // make sure the context is canceled to free resources
-			defer handleCrash(newCtx) // recover from possible panic
+			defer cancel()                                            // make sure the context is canceled to free resources
+			defer handleCrash(newCtx, h.setRunToFailed, runEntity.ID) // recover from possible panic
 
 			// update status of the run when exiting the async run
 			defer func() {
 				select {
 				case <-newCtx.Done():
-					logger.Info("destroy execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
+					logutil.LogToAll(logger, runLogger, "info", "destroy execution timed out", "stackID", params.StackID, "time", time.Now(), "timeout", newCtx.Err())
 					h.setRunToCancelled(newCtx, runEntity.ID)
 				default:
 					if err != nil {
-						logger.Info("destroy failed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "error", "destroy failed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToFailed(newCtx, runEntity.ID)
 					} else {
-						logger.Info("destroy completed for stack", "stackID", params.StackID, "time", time.Now())
+						logutil.LogToAll(logger, runLogger, "info", "destroy completed for stack", "stackID", params.StackID, "time", time.Now())
 						h.setRunToSuccess(newCtx, runEntity.ID, "destroy completed")
 					}
 				}
@@ -400,10 +405,10 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 			err = h.stackManager.DestroyStack(newCtx, params, w)
 			if err != nil {
 				if err == stackmanager.ErrDryrunDestroy {
-					logger.Info("Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false")
+					logutil.LogToAll(logger, runLogger, "info", "Dry-run mode enabled, the above resources will be destroyed if dryrun is set to false")
 					return
 				} else {
-					logger.Error("Error destroying stack", "error", err)
+					logutil.LogToAll(logger, runLogger, "error", "Error destroying stack", "error", err)
 					return
 				}
 			}
@@ -411,7 +416,7 @@ func (h *Handler) DestroyStackAsync() http.HandlerFunc {
 
 		defer func() {
 			if inBufferZone {
-				logger.Info("The task is in the buffer zone, waiting for an available worker")
+				logutil.LogToAll(logger, runLogger, "info", "The task is in the buffer zone, waiting for an available worker")
 				h.setRunToQueued(ctx, runEntity.ID)
 			}
 		}()

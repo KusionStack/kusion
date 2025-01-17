@@ -29,6 +29,7 @@ var (
 	ErrInvalidWatchTimeout                       = errors.New("watchTimeout should be a number")
 	ErrWorkspaceEmpty                            = errors.New("workspace should not be empty in query")
 	ErrRunRequestBodyEmpty                       = errors.New("run request body should not be empty")
+	ErrRunCrashed                                = errors.New("run crashed")
 )
 
 type StackManager struct {
