@@ -12,7 +12,7 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, h
   return (
     <div className={styles.workspace_card}>
       <div className={styles.workspace_card_container}>
-        <div className={styles.workspace_card_header}>
+        <div className={styles.workspace_card_header} style={{cursor: 'pointer'}} onClick={onClick}>
           <div className={styles.workspace_card_header_left}>
             <div className={styles.workspace_card_icon}>
               <img src={workspaceSvg} alt="svgIcon" />
@@ -20,27 +20,42 @@ const WorkspaceCard = ({ title, desc, nickName, createDate, onClick, onDelete, h
             <div className={styles.workspace_card_title}>{title}</div>
           </div>
           <div>
-            <Button type='link' onClick={() => handleEdit({
-              name: title,
-              description: desc,
-            })}>
+            <Button type='link' onClick={(e) => {
+              e.stopPropagation();
+              handleEdit({
+                name: title,
+                description: desc,
+              });
+            }}>
               <EditOutlined />
             </Button>
             <Popconfirm
-              title="Delete the workspace"
-              description="Are you sure to delete this workspace?"
+              title={<span style={{fontSize: '18px'}}>Delete the workspace</span>}
+              description={<span style={{fontSize: '16px'}}>Are you sure to delete this workspace?</span>}
               onConfirm={(event) => {
                 event.stopPropagation()
                 onDelete()
               }}
-              okText="Yes"
-              cancelText="No"
+              onCancel={(e) => {
+                e.stopPropagation()
+              }}
+              okText={<span style={{fontSize: '16px'}}>Yes</span>}
+              cancelText={<span style={{fontSize: '16px'}}>No</span>}
+              overlayStyle={{
+                width: '330px'
+              }}
+              okButtonProps={{
+                style: {height: '30px', width: '60px'}
+              }}
+              cancelButtonProps={{
+                style: {height: '30px', width: '60px'}
+              }}
             >
-              <Button type='link' danger><DeleteOutlined /></Button>
+              <Button type='link' danger onClick={(e) => e.stopPropagation()}><DeleteOutlined /></Button>
             </Popconfirm>
           </div>
         </div>
-        <div className={styles.workspace_card_content} onClick={onClick}>
+        <div className={styles.workspace_card_content} onClick={onClick} style={{cursor: 'pointer'}}>
           <Tooltip title={desc} placement="topLeft">
             <div className={styles.kusion_card_content_desc}>
               {desc}

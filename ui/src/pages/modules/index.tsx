@@ -162,7 +162,7 @@ const ModulePage = () => {
       render: (_, record) => {
         return (
           <Space>
-            {record?.doc?.Host && record?.doc?.Path ? (
+            {record?.doc?.Host ? (
               <Button style={{ padding: '0px' }} type='link' href={`${record?.doc?.Scheme}://${record?.doc?.Host}${record?.doc?.Path}`} target='_blank'>doc</Button>
             ) : (
               <Button style={{ padding: '0px' }} type='link' disabled>doc</Button>
