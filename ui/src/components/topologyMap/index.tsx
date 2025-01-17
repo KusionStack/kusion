@@ -87,6 +87,7 @@ function fittingString(str: string, maxWidth: number, fontSize: number) {
 }
 
 function getNodeName(cfg: NodeConfig, type: string) {
+  console.log(cfg.label, "sdasdsad")
   const list = cfg?.label?.split('.')
   const len = list?.length || 0
   return list?.[len - 1] || ''
@@ -141,10 +142,28 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
     marginRight: 5,
   }
 
-  const statusStyle = {
-    border: '1px solid #1677ff',
-    padding: '2px 5px',
-    borderRadius: 6,
+  const statusStyleMap = {
+    destroyed: {
+      padding: '2px 5px',
+      borderRadius: 6,
+      color: 'rgba(0,0,0,0.88)',
+      background: '#fafafa',
+      border: '1px solid #d9d9d9'
+    },
+    applied: {
+      border: '1px solid #91caff',
+      padding: '2px 5px',
+      borderRadius: 6,
+      color: '#1778ff',
+      background: '#e6f4ff',
+    },
+    failed: {
+      padding: '2px 5px',
+      borderRadius: 6,
+      color: '#ff4d4f',
+      background: '#fff2f0',
+      border: '1px solid #ffccc7'
+    }
   }
 
   return (
@@ -158,7 +177,7 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
       </div>
       <div style={itemStyle}>
         <span style={labelStyle}>Status: </span>
-        <span style={statusStyle}>
+        <span style={statusStyleMap?.[nodeData?.status]}>
           {nodeData?.status}
         </span>
       </div>
@@ -256,14 +275,21 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
 
         // Add Kubernetes icon
         const iconSize = 32
-        const kind = cfg?.data?.resourceGroup?.kind || ''
+        const resourcePlane = (cfg?.nodeData as any)?.resourcePlane
+        const typeList = (cfg?.nodeData as any)?.resourceType?.split('/')
+        const nodeType = resourcePlane === 'custom' ? 'custom'
+          : resourcePlane === 'alicloud' ? 'alicloud'
+            : resourcePlane === 'azure' ? 'azure'
+              : resourcePlane === 'google' ? 'google'
+                : resourcePlane === 'aws' ? 'aws'
+                  : typeList?.[typeList?.length - 1]
         group.addShape('image', {
           attrs: {
             x: 16,
             y: (48 - iconSize) / 2,
             width: iconSize,
             height: iconSize,
-            img: ICON_MAP[kind as keyof typeof ICON_MAP] || ICON_MAP.Kubernetes,
+            img: ICON_MAP?.[nodeType as keyof typeof ICON_MAP] || ICON_MAP.Kubernetes,
           },
           name: 'node-icon',
         })
@@ -272,7 +298,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         group.addShape('text', {
           attrs: {
             x: 52,
-            y: 24,
+            y: 20,
             text: fittingString(displayName || '', 100, 14),
             fontSize: 14,
             fontWeight: 500,
@@ -319,6 +345,40 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             name: 'count-text',
           })
         }
+
+        const statusColorMap = {
+          destroyed: 'rgba(0,0,0,0.88)',
+          applied: '#1778ff',
+          failed: '#ff4d4f'
+        }
+
+
+        group.addShape('circle', {
+          attrs: {
+            x: 190,
+            y: 10,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            r: 3,
+            opacity: 0.8,
+          },
+          name: 'status-circle',
+        })
+
+        group.addShape('text', {
+          attrs: {
+            x: 52,
+            y: 34,
+            text: nodeType,
+            fontSize: 10,
+            fontWeight: 400,
+            fill: '#8a8a8a',
+            cursor: 'pointer',
+            textBaseline: 'middle',
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+          },
+          name: 'node-type',
+        })
 
         return rect
       },

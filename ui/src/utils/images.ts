@@ -30,6 +30,11 @@ import volume from '@/assets/labeled/vol-128.png'
 import nodeIcon from '@/assets/labeled/node-128.png'
 import crd from '@/assets/labeled/crd-128.png'
 import kubernetes from '@/assets/kubernetes.png'
+import aliyun from '@/assets/graph/aliyun.png'
+import aws from '@/assets/graph/aws.png'
+import azure from '@/assets/graph/azure.png'
+import google from '@/assets/graph/google.png'
+import custom from '@/assets/graph/custom.png'
 
 export const ICON_MAP = {
   ClusterRole: cRole,
@@ -67,4 +72,9 @@ export const ICON_MAP = {
   PodDisruptionBudget: crd,
   CRD: crd,
   Kubernetes: kubernetes,
+  alicloud: aliyun,
+  google,
+  aws,
+  azure,
+  custom
 }

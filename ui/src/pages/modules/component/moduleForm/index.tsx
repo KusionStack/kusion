@@ -11,11 +11,11 @@ const ModuleForm = ({
 }) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false);
-
+  
   // Listen to the form values
   const nameValue = Form.useWatch('name', form);
   const urlValue = Form.useWatch('url', form);
-
+    
   useEffect(() => {
     if (formData) {
       const url = formData?.url;
@@ -57,10 +57,6 @@ const ModuleForm = ({
       : 'Edit Module'
   }
 
-  // form.validateFields((error: any, values: any) => {
-  //   console.log(error, values, "====values====")
-  // })
-
   return (
     <div>
       <Modal
@@ -73,15 +69,15 @@ const ModuleForm = ({
           [
             <Space>
               <Button onClick={onClose}>Cancel</Button>
-              <Button
-                onClick={onSubmit}
+              <Button 
+                onClick={onSubmit} 
                 type="primary"
-                disabled={!nameValue ||
+                disabled={!nameValue || 
                   !urlValue ||
                   form.getFieldError('name').length > 0 ||
                   form.getFieldError('url').length > 0 ||
                   form.getFieldError('doc').length > 0 ||
-                  !!form.getFieldsError().filter(({ errors }) => errors.length).length}
+                  !!form.getFieldsError().filter(({errors}) => errors.length).length}
               >
                 Submit
               </Button>
@@ -95,8 +91,8 @@ const ModuleForm = ({
           ]
         }
       >
-        <Form
-          form={form}
+        <Form 
+          form={form} 
           layout="vertical"
           validateTrigger={['onChange', 'onBlur']}
         >
@@ -137,7 +133,7 @@ const ModuleForm = ({
             <Input placeholder="Enter module URL" />
           </Form.Item>
           <Form.Item
-            label="Document URL"
+            label="Document URL" 
             name="doc"
             validateTrigger={['onChange', 'onBlur']}
             rules={[
@@ -156,26 +152,26 @@ const ModuleForm = ({
             <Input placeholder="Enter module document URL" />
           </Form.Item>
           <Form.Item name="description" label="Description"
-            getValueFromEvent={(e) => {
-              const currentValue = e.target.value;
-              const previousValue = form.getFieldValue('description') || '';
-              const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
-
-              // If word count exceeds 200, return the previous value
-              return wordCount <= 200 ? currentValue : previousValue;
+          getValueFromEvent={(e) => {
+            const currentValue = e.target.value;
+            const previousValue = form.getFieldValue('description') || '';
+            const wordCount = currentValue.trim().split(/\s+/).filter(Boolean).length;
+            
+            // If word count exceeds 200, return the previous value
+            return wordCount <= 200 ? currentValue : previousValue;
+          }}
+        >
+          <Input.TextArea
+            placeholder="Enter description for this module..."
+            rows={4}
+            showCount={{
+              formatter: ({ value }) => {
+                const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
+                return `${words} / 200 words`;
+              }
             }}
-          >
-            <Input.TextArea
-              placeholder="Enter description for this module..."
-              rows={4}
-              showCount={{
-                formatter: ({ value }) => {
-                  const words = value ? value.trim().split(/\s+/).filter(Boolean).length : 0;
-                  return `${words} / 200 words`;
-                }
-              }}
-            />
-          </Form.Item>
+          />
+        </Form.Item>
         </Form>
       </Modal>
     </div>

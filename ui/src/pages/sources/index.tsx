@@ -3,7 +3,7 @@ import queryString from 'query-string'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
 import type { TableColumnsType } from 'antd';
-import { PlusOutlined } from '@ant-design/icons'
+import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
 import SourceForm from './component/sourceForm'
 import DescriptionWithTooltip from '@/components/descriptionWithTooltip'
@@ -115,11 +115,15 @@ const SourcesPage = () => {
     setFormData(record)
   }
 
-  function handleChangePage(page: number, pageSize: any) {
+  function handleChangePage({ current, pageSize }, filters, { field, order }) {
     getResourceList({
-      ...searchParams,
-      page,
+      page: current,
       pageSize,
+      query: {
+        ...searchParams?.query,
+        sortBy: field === 'creationTimestamp' ? 'createTimestamp' : field,
+        ascending: order === "ascend",
+      }
     })
   }
 
@@ -150,7 +154,9 @@ const SourcesPage = () => {
       title: 'Name',
       dataIndex: 'name',
       width: 300,
-      fixed: 'left'
+      fixed: 'left',
+      sorter: true,
+      sortDirections: ['ascend', 'descend', 'ascend'],
     },
     {
       title: 'Description',
@@ -240,6 +246,38 @@ const SourcesPage = () => {
     handleCancel,
   }
 
+
+  function handleClear(key) {
+    form.setFieldValue(key, undefined)
+    handleSearch()
+  }
+
+  function renderTableTitle() {
+    const newQuery = {
+      sourceName: searchParams?.query?.sourceName,
+    }
+    const queryList = newQuery && Object.entries(newQuery || {})?.filter(([key, value]) => value !== undefined && value !== null)
+    return <div className={styles.sources_content_toolbar}>
+      <h4>Source List</h4>
+      <div className={styles.sources_content_toolbar_list}>
+        {
+          queryList?.map(([key, value]) => {
+            return <div className={styles.sources_content_toolbar_item}>
+              {key === 'fuzzyName' ? 'name' : key}: {value as string}
+              <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} /></div>
+          })
+        }
+      </div>
+      {
+        queryList?.length > 0 && (
+          <div className={styles.projects_content_toolbar_clear}>
+            <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
+          </div>
+        )
+      }
+    </div>
+  }
+
   return (
     <div className={styles.sources}>
       <div className={styles.sources_action}>
@@ -265,46 +303,25 @@ const SourcesPage = () => {
           </Space>
         </Form>
       </div>
-      <div className={styles.modules_content}>
+      <div className={styles.sources_content}>
         <Table
-          title={() => <h4>Source List</h4>}
+          title={renderTableTitle}
           rowKey="id"
           columns={columns}
           scroll={{ x: 1300 }}
           dataSource={dataSource}
+          onChange={handleChangePage}
           pagination={{
             total: Number(searchParams?.total),
             current: Number(searchParams?.page),
             pageSize: Number(searchParams?.pageSize),
-            showTotal: (total, range) => (
-              <div style={{
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end'
-              }}>
-                show{' '}
-                <Select
-                  value={searchParams?.pageSize}
-                  size="small"
-                  style={{
-                    width: 55,
-                    margin: '0 4px',
-                    fontSize: '12px'
-                  }}
-                  onChange={(value) => handleChangePage(1, value)}
-                  options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
-                />
-                items, {range[0]}-{range[1]} of {total} items
-              </div>
-            ),
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 15, 20, 30, 40, 50, 75, 100],
             size: "default",
             style: {
-              marginTop: '16px',
+              marginRight: 16,
               textAlign: 'right'
-            },
-            onChange: (page, size) => {
-              handleChangePage(page, size);
             },
           }}
         />
