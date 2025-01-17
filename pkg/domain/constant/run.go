@@ -18,6 +18,8 @@ const (
 	RunStatusSucceeded  RunStatus = "Succeeded"
 	RunStatusCancelled  RunStatus = "Cancelled"
 	RunStatusQueued     RunStatus = "Queued"
+	RunResultFailed     string    = "{\"result\":\"Operation Failed\"}"
+	RunResultCancelled  string    = "{\"result\":\"Operation Cancelled\"}"
 )
 
 // ParseRunType parses a string into a RunType.

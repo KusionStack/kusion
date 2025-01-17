@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -28,7 +29,6 @@ func (h *Handler) setRunToSuccess(ctx context.Context, runID uint, result any) {
 		logger.Error("Error marshalling preview changes", "error", err)
 		return
 	}
-	logger.Info("Result", "result", string(resultBytes))
 	// Update the Run object in database to include the preview result
 	updateRunResultPayload := request.UpdateRunResultRequest{
 		Result: string(resultBytes),
@@ -45,10 +45,11 @@ func (h *Handler) setRunToSuccess(ctx context.Context, runID uint, result any) {
 func (h *Handler) setRunToFailed(ctx context.Context, runID uint) {
 	logger := logutil.GetLogger(ctx)
 	runLogs := logutil.GetRunLoggerBuffer(ctx)
+	logsNew := strings.ReplaceAll(runLogs.String(), "\n", "\n\n")
 	updateRunResultPayload := request.UpdateRunResultRequest{
-		Result: "",
+		Result: constant.RunResultFailed,
 		Status: string(constant.RunStatusFailed),
-		Logs:   runLogs.String(),
+		Logs:   logsNew,
 	}
 	_, err := h.stackManager.UpdateRunResultAndStatusByID(ctx, runID, updateRunResultPayload)
 	if err != nil {
@@ -60,7 +61,7 @@ func (h *Handler) setRunToCancelled(ctx context.Context, runID uint) {
 	logger := logutil.GetLogger(ctx)
 	runLogs := logutil.GetRunLoggerBuffer(ctx)
 	updateRunResultPayload := request.UpdateRunResultRequest{
-		Result: "",
+		Result: constant.RunResultCancelled,
 		Status: string(constant.RunStatusCancelled),
 		Logs:   runLogs.String(),
 	}
@@ -188,7 +189,9 @@ func logStackTrace(runLogger *httplog.Logger) {
 	runLogger.Error(string(buf[:stackSize]))
 }
 
-func handleCrash(ctx context.Context) {
+type SetRunToFailedFunc func(context.Context, uint)
+
+func handleCrash(ctx context.Context, statusHandlingFunc SetRunToFailedFunc, runID uint) {
 	if r := recover(); r != nil {
 		logger := logutil.GetLogger(ctx)
 		runLogger := logutil.GetRunLogger(ctx)
@@ -197,6 +200,7 @@ func handleCrash(ctx context.Context) {
 		runLogger.Error("Panic recovered", "error", r)
 		logStackTrace(runLogger)
 	}
+	statusHandlingFunc(ctx, runID)
 }
 
 func updateRunRequestPayload(requestPayload *request.CreateRunRequest, params *stackmanager.StackRequestParams, runType constant.RunType) {

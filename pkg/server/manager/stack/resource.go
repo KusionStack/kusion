@@ -72,7 +72,7 @@ func (m *StackManager) ReconcileResources(ctx context.Context, stackID uint, rel
 	var resourceToBeDeleted []*entity.Resource
 
 	for _, resource := range currentResources.Resources {
-		if !isInRelease(release, resource.KusionResourceID) {
+		if !isInRelease(release, resource.KusionResourceID, resource.Stack) {
 			resource.LastAppliedTimestamp = release.ModifiedTime
 			resource.Status = constant.StatusResourceDestroyed
 			resourceToBeDeleted = append(resourceToBeDeleted, resource)

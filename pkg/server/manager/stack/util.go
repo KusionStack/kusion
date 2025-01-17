@@ -500,7 +500,12 @@ func getReleasePath(namespace, source, projectPath, workspace string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", namespace, source, projectPath, workspace)
 }
 
-func isInRelease(release *v1.Release, id string) bool {
+func isInRelease(release *v1.Release, id string, resourceStack *entity.Stack) bool {
+	if resourceStack != nil {
+		if release.Stack != resourceStack.Name || release.Project != resourceStack.Project.Name {
+			return false
+		}
+	}
 	for _, resource := range release.State.Resources {
 		if resource.ID == id {
 			return true
