@@ -199,8 +199,8 @@ func handleCrash(ctx context.Context, statusHandlingFunc SetRunToFailedFunc, run
 		logStackTrace(logger)
 		runLogger.Error("Panic recovered", "error", r)
 		logStackTrace(runLogger)
+		statusHandlingFunc(ctx, runID)
 	}
-	statusHandlingFunc(ctx, runID)
 }
 
 func updateRunRequestPayload(requestPayload *request.CreateRunRequest, params *stackmanager.StackRequestParams, runType constant.RunType) {
