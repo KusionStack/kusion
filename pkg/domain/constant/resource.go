@@ -8,6 +8,7 @@ const (
 	AzureProviderType       = "azure"
 	GoogleProviderType      = "google"
 	CustomProviderType      = "custom"
+	HashicorpProviderType   = "hashicorp"
 	StatusResourceApplied   = "applied"
 	StatusResourceDestroyed = "destroyed"
 	StatusResourceFailed    = "failed"

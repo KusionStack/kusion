@@ -438,36 +438,33 @@ func convertV1ResourceToEntity(resource *v1.Resource) (*entity.Resource, error) 
 		if providerInfo, ok := resource.Extensions["provider"].(string); ok {
 			resourceProvider = providerInfo
 		}
+		// idParts = [providerNamespace, providerName, resourceType, resourceName]
+		resourceType = idParts[2]
+		resourceName = idParts[3]
 		// Look at second element of the id to determine the resource plane
 		switch idParts[1] {
 		case constant.AWSProviderType:
 			resourcePlane = constant.AWSProviderType
-			resourceType = idParts[2]
-			resourceName = idParts[3]
 			if arn, ok := resource.Attributes["arn"].(string); ok {
 				cloudResourceID = arn
 			}
 		case constant.AzureProviderType:
 			resourcePlane = constant.AzureProviderType
-			resourceType = idParts[2]
-			resourceName = idParts[3]
 			if resID, ok := resource.Attributes["id"].(string); ok {
 				cloudResourceID = resID
 			}
 		case constant.GoogleProviderType:
 			resourcePlane = constant.GoogleProviderType
-			resourceType = idParts[2]
-			resourceName = idParts[3]
 			if resID, ok := resource.Attributes["id"].(string); ok {
 				cloudResourceID = resID
 			}
 		case constant.AliCloudProviderType:
 			resourcePlane = constant.AliCloudProviderType
-			resourceType = idParts[2]
-			resourceName = idParts[3]
 			if resID, ok := resource.Attributes["id"].(string); ok {
 				cloudResourceID = resID
 			}
+		case constant.HashicorpProviderType:
+			resourcePlane = constant.HashicorpProviderType
 		default:
 			if _, ok := resource.Extensions["provider"]; ok {
 				resourcePlane = constant.CustomProviderType
