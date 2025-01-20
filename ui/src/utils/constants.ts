@@ -22,8 +22,7 @@ export const RUNS_ACTION_MAP = {
   Delete: 'Delete',
 }
 
-export const DEFAULT_WORKSPACE_YAML = `
-## The platform configuration for Modules:
+export const DEFAULT_WORKSPACE_YAML = `## The platform configuration for Modules:
 # modules:
 #   \${module_identifier} or \${KAM_name}:
 #     path: oci://ghcr.io/kusionstack/module-name # url of the module artifact

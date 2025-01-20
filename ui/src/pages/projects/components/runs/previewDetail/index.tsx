@@ -8,7 +8,6 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
   const ansi_up = new AnsiUp();
   const logRef = useRef<HTMLDivElement | null>(null);
   const { stepKeys, changeSteps } = currentRecord?.result && JSON.parse(currentRecord?.result)
-  console.log(stepKeys, changeSteps, "===stepKeys, changeSteps===")
 
   const [activeKey, setActiveKey] = useState('Exec Result')
   const [selectedResource, setSelectedResource] = useState(stepKeys?.[0])
@@ -25,12 +24,9 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
 
   useEffect(() => {
     if (logRef && logRef.current) {
-      console.log(currentRecord?.logs, currentRecord?.logs?.includes('\n'), "====53==>>")
-      const res = currentRecord?.logs?.replace(/\\n/g, '<br>')
-      console.log(res, "===res=====")
-      const logHtml = ansi_up.ansi_to_html(currentRecord?.logs?.replace(/\\n/g, '<br>'));
-      console.log(logHtml, "===logHtml====")
+      const logHtml = ansi_up.ansi_to_html(currentRecord?.logs);
       logRef.current.innerHTML = logHtml;
+      logRef.current.style.whiteSpace = 'pre-wrap';
     }
   }, [ansi_up, currentRecord?.logs, logRef]);
 
@@ -78,7 +74,7 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
         {
           activeKey === 'Exec Logs' && (
             <div style={{ background: '#000', color: '#fff', padding: 20 }}>
-              <div ref={logRef}></div>
+              <div ref={logRef} />
             </div>
           )
         }

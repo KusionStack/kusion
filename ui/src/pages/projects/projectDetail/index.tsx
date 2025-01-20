@@ -197,7 +197,7 @@ const ProjectDetail = () => {
                 onChange={handlePanelTabChange}
                 activeKey={panelActiveKey as string}
                 items={tabsItems}
-                tabBarExtraContent={<Button type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
+                tabBarExtraContent={<Button style={{ height: 45, marginBottom: 5, fontSize: 16 }} type="primary" onClick={handleClickEdit}>Edit Stack</Button>}
               />
             </div>
             {panelActiveKey === 'Runs' && <Runs ref={funcRef} stackId={activeKey} panelActiveKey={panelActiveKey} />}

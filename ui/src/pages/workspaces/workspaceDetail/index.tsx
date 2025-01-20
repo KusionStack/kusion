@@ -29,7 +29,6 @@ const WorkspaceDetail = () => {
       }
     })
     if (response?.data?.success) {
-      console.log(response?.data?.data, "====response?.data?.data===")
       const tempData = response?.data?.data?.modules;
       const list = tempData && Object.keys(tempData)?.map(key => {
         return {
@@ -80,7 +79,7 @@ const WorkspaceDetail = () => {
   const items = [
     {
       key: 'yaml',
-      label: 'workspace.yaml',
+      label: `${urlSearchName?.get('workspaceName')}.yaml` || 'workspace.yaml',
     },
     {
       key: 'modules',

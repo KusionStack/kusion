@@ -181,7 +181,7 @@ const Workspaces = () => {
       callback && callback()
       setOpen(false)
       if (actionType === 'ADD') {
-        navigate(`/workspaces/detail/${response?.data?.data?.id}`)
+        navigate(`/workspaces/detail/${response?.data?.data?.id}?workspaceName=${response?.data?.data?.name}`)
       }
     } else {
       message.error(response?.data?.message)

@@ -8,8 +8,10 @@ import type {
 } from '@antv/g6'
 import { useLocation } from 'react-router-dom'
 import queryString from 'query-string'
+import insertCss from 'insert-css';
 import Loading from '@/components/loading'
 import { ICON_MAP } from '@/utils/images'
+import { capitalized } from '@/utils/tools'
 
 import styles from './style.module.less'
 interface NodeConfig extends ModelConfig {
@@ -109,6 +111,13 @@ interface OverviewTooltipProps {
   open: boolean
 }
 
+const statusColorMap = {
+  destroyed: '#8a8a8a',
+  applied: '#1778ff',
+  failed: '#F5222D',
+  unknown: '#F5222D',
+}
+
 const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
   type,
   hiddenButtonInfo,
@@ -197,6 +206,86 @@ const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
   )
 }
 
+insertCss(`
+  .g6-component-tooltip {
+    // border-top: 2px solid #1677ff;
+    // background-color: rgba(255, 255, 255, 0.8);
+    background: #fff;
+    box-shadow: rgb(174, 174, 174) 0px 0px 10px;
+  }
+  .tooltip-item {
+    color: #333;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .tooltip-item-label {
+    color: #999;
+    font-size: 14px;
+    margin-right: 5px;
+  }
+  .tooltip-item-status {
+    padding: 2px 5px;
+    border-radius: 6px;
+  }
+  .tooltip-item-destroyed {
+    color: rgba(0,0,0,0.88);
+    background: #fafafa;
+    border: 1px solid #d9d9d9;
+  }
+  .tooltip-item-applied {
+    color: #1778ff;
+    background: #e6f4ff;
+    border: 1px solid #91caff;
+  }
+  .tooltip-item-failed,.tooltip-item-unknown {
+    color: #ff4d4f;
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+  }
+`);
+
+
+const tooltip = new G6.Tooltip({
+  offsetX: 10,
+  offsetY: 10,
+  itemTypes: ['node', 'edge'],
+  getContent: (e) => {
+    const model = e?.item?.get('model') as NodeModel
+    const { nodeData } = model as any
+    const outDiv = document.createElement('div');
+    outDiv.style.width = 'fit-content';
+    //outDiv.style.padding = '0px 0px 20px 0px';
+    outDiv.innerHTML = `
+      <div class="tooltip-box">
+        <div class="tooltip-item">
+          ${model?.label}
+        </div>
+        <div class="tooltip-item">
+          <span class="tooltip-item-label">Type: </span>
+          ${nodeData?.resourceType}
+        </div>
+        <div class="tooltip-item">
+          <span class="tooltip-item-label">Status: </span>
+          <span class="tooltip-item-status tooltip-item-${nodeData?.status}">${nodeData?.status}</span>
+        </div>
+        <div class="tooltip-item">
+          <span class="tooltip-item-label">cloudResourceID: </span>
+          ${nodeData?.cloudResourceID}
+        </div>
+        <div class="tooltip-item">
+          <span class="tooltip-item-label">iamResourceID: </span>
+          ${nodeData?.iamResourceID}
+        </div>
+        <div class="tooltip-item">
+          <span class="tooltip-item-label">resourceURN: </span>
+          ${nodeData?.resourceURN}
+        </div>
+      </div>
+    `;
+    return outDiv;
+  },
+});
+
 const TopologyMap = forwardRef((props: IProps, drawRef) => {
   const {
     onTopologyNodeClick,
@@ -249,6 +338,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             radius: 6,
             fill: '#ffffff',
             stroke: '#e6f4ff',
+            // fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             lineWidth: 1,
             shadowColor: 'rgba(0,0,0,0.06)',
             shadowBlur: 8,
@@ -267,28 +357,24 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             width: 3,
             height: 48,
             radius: [3, 0, 0, 3],
-            fill: '#1677ff',
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             opacity: 0.4,
           },
           name: 'node-accent',
         })
 
         // Add Kubernetes icon
-        const iconSize = 32
+        const iconSize = 40
         const resourcePlane = (cfg?.nodeData as any)?.resourcePlane
         const typeList = (cfg?.nodeData as any)?.resourceType?.split('/')
-        const nodeType = resourcePlane === 'custom' ? 'custom'
-          : resourcePlane === 'alicloud' ? 'alicloud'
-            : resourcePlane === 'azure' ? 'azure'
-              : resourcePlane === 'google' ? 'google'
-                : resourcePlane === 'aws' ? 'aws'
-                  : typeList?.[typeList?.length - 1]
+        const nodeType = resourcePlane === 'Kubernetes' ? typeList?.[typeList?.length - 1] : resourcePlane
+        const iconHeight = resourcePlane === 'aws' ? 30 : resourcePlane === 'azure' ? 27 : iconSize
         group.addShape('image', {
           attrs: {
-            x: 16,
-            y: (48 - iconSize) / 2,
+            x: 5,
+            y: (48 - iconHeight) / 2,
             width: iconSize,
-            height: iconSize,
+            height: iconHeight,
             img: ICON_MAP?.[nodeType as keyof typeof ICON_MAP] || ICON_MAP.Kubernetes,
           },
           name: 'node-icon',
@@ -346,29 +432,48 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           })
         }
 
-        const statusColorMap = {
-          destroyed: 'rgba(0,0,0,0.88)',
-          applied: '#1778ff',
-          failed: '#ff4d4f'
-        }
 
 
-        group.addShape('circle', {
+
+        const statusShape = group.addShape('circle', {
           attrs: {
             x: 190,
             y: 10,
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
-            r: 3,
+            r: 4,
             opacity: 0.8,
           },
           name: 'status-circle',
         })
 
+        statusShape.animate({
+          x: 190,
+          y: 10,
+          r: 5,
+          opacity: 0.5,
+        }, {
+          duration: 1000,
+          easing: 'easeCubic',
+          delay: 0,
+          repeat: true,
+        },)
+        statusShape.animate({
+          x: 190,
+          y: 10,
+          r: 3,
+          opacity: 0.3,
+        }, {
+          duration: 1000,
+          easing: 'easeCubic',
+          delay: 0,
+          repeat: true,
+        },)
+
         group.addShape('text', {
           attrs: {
             x: 52,
             y: 34,
-            text: nodeType,
+            text: capitalized(nodeType),
             fontSize: 10,
             fontWeight: 400,
             fill: '#8a8a8a',
@@ -381,6 +486,15 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         })
 
         return rect
+      },
+      setState(name, value, item) {
+        const shape = item.get('keyShape')
+        const status = (item.getModel()?.nodeData as any)?.status
+        if (name === 'hover' || name === 'hoverState') {
+          shape?.attr('stroke', value ? statusColorMap?.[status] : '#fff')
+          shape?.attr('lineWidth', 1)
+          shape?.attr('strokeOpacity', value ? 0.7 : 1)
+        }
       },
     },
     'single-node',
@@ -445,7 +559,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       width,
       height,
       fitCenter: true,
-      plugins: [toolbar],
+      plugins: [toolbar, tooltip],
       enabledStack: true,
       modes: {
         default: ['drag-canvas', 'drag-node', 'click-select'],
@@ -456,7 +570,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         rankdir: 'LR',
         align: 'UL',
         nodesep: 10,
-        ranksep: 40,
+        ranksep: 20,
         nodesepFunc: () => 1,
         ranksepFunc: () => 1,
         controlPoints: true,
@@ -549,6 +663,10 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         graphRef.current = initGraph()
         graphRef.current?.read(topologyData)
 
+        setTimeout(() => {
+          graphRef.current.fitCenter()
+        }, 100)
+
         graphRef.current?.on('node:click', evt => {
           const node = evt.item
           const model = node.getModel()
@@ -608,8 +726,17 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
   return (
     <div
       className={styles.g6_topology}
-      style={{ height: 600 }}
+      style={{ height: 800 }}
     >
+      <div className={styles.g6_node_status}>
+        {
+          Object.entries(statusColorMap)?.map(([key, value]) => {
+            return <div key={key} className={styles.status_item}>
+              {key}<span className={styles.status_dot} style={{ background: value }}></span>
+            </div>
+          })
+        }
+      </div>
       <div ref={containerRef} className={styles.g6_overview}>
         <div
           className={styles.g6_loading}
@@ -617,14 +744,14 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         >
           <Loading />
         </div>
-        {tooltipopen ? (
+        {/* {tooltipopen ? (
           <OverviewTooltip
             type={type as string}
             itemWidth={itemWidth}
             hiddenButtonInfo={hiddenButtontooltip}
             open={tooltipopen}
           />
-        ) : null}
+        ) : null} */}
       </div>
     </div>
   )
