@@ -1,0 +1,31 @@
+.prrviewContainer {
+  display: flex;
+  align-items: center;
+
+  .status {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+
+    .pulse {
+      margin-right: 7px;
+      animation: fade-animation 1.5s infinite;
+    }
+  }
+}
+
+
+@keyframes fade-animation {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

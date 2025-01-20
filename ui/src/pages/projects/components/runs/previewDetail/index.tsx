@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Badge, Drawer, Segmented, Select, Tag } from 'antd'
 import { default as AnsiUp } from 'ansi_up';
 import CodeDiffView from '@/components/codeDiffView'
+import styles from "./styles.module.less"
 
 const PreviewDetail = ({ open, currentRecord, handleClose }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,7 +45,7 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
         {
           activeKey === 'Exec Result' && (
             <>
-              <div>
+              <div className={styles.prrviewContainer}>
                 <Select value={selectedResource} style={{ width: 500, marginBottom: 10 }} onChange={handleChangeResources}>
                   {
                     stepKeys?.map(item => {
@@ -63,9 +64,14 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                     })
                   }
                 </Select>
-                <Badge style={{ marginLeft: 10 }} status={
-                  changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "default" : 'warning'
-                } text={changeSteps?.[selectedResource]?.action} />
+                <div className={styles.status}>
+                  <div className={styles.pulse}>
+                    <Badge style={{ marginLeft: 10 }} status={
+                      changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "default" : 'warning'
+                    } />
+                  </div>
+                  {changeSteps?.[selectedResource]?.action}
+                </div>
               </div>
               <CodeDiffView oldContent={changeSteps?.[selectedResource]?.from ? JSON.stringify(changeSteps?.[selectedResource]?.from, null, 2) : ''} newContent={changeSteps?.[selectedResource]?.to ? JSON.stringify(changeSteps?.[selectedResource]?.to, null, 2) : ''} />
             </>

@@ -460,7 +460,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         statusShape.animate({
           x: 190,
           y: 10,
-          r: 3,
+          r: 4,
           opacity: 0.3,
         }, {
           duration: 1000,
