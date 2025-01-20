@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import queryString from 'query-string'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Popconfirm, Space, Table, Select } from 'antd'
+import { Button, Form, Input, message, Popconfirm, Space, Table } from 'antd'
 import type { TableColumnsType } from 'antd';
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
 import { SourceService } from '@kusionstack/kusion-api-client-sdk'
@@ -72,6 +72,7 @@ const SourcesPage = () => {
 
   useEffect(() => {
     getResourceList(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleReset() {
