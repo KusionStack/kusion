@@ -17,7 +17,12 @@ const RunsForm = ({ open, handleClose, handleSubmit, runsTypes }: any) => {
 
   async function getWorkspaceList() {
     try {
-      const response: any = await WorkspaceService.listWorkspace();
+      const response: any = await WorkspaceService.listWorkspace({
+        query: {
+          page: 1,
+          pageSize: 10000
+        }
+      });
       if (response?.data?.success) {
         setWorkspaceList(response?.data?.data?.workspaces);
       } else {

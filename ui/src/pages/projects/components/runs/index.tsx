@@ -5,7 +5,6 @@ import { CloseOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import queryString from 'query-string'
 import moment from "moment"
-import { StackService } from '@kusionstack/kusion-api-client-sdk'
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -13,6 +12,7 @@ import { RUNS_STATUS_MAP, RUNS_TYPES } from '@/utils/constants'
 import GenerateDetail from './generateDetail'
 import PreviewDetail from './previewDetail'
 import RunsForm from './runsForm'
+import { createApply, createDestroy, createGenerate, createPreview, queryListRun } from './service'
 
 import styles from "./styles.module.less"
 
@@ -31,157 +31,103 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
   const [form] = Form.useForm();
   const navigate = useNavigate()
   const location = useLocation();
-  const { pageSize = 10, page = 1, total = 0, projectName, type, status, startTime, endTime, stackId } = queryString.parse(location?.search);
-  const [dataSource, setDataSource] = useState([])
+  const { projectName, stackId } = queryString.parse(location?.search);
+  const [dataSource, setDataSource] = useState(null)
   const [open, setOpen] = useState<boolean>(false);
-  const [searchParams, setSearchParams] = useState({
-    pageSize,
-    page,
-    query: {
-      type,
-      status,
-      startTime,
-      endTime,
-    },
-    total,
-  })
+  const [searchParams, setSearchParams] = useState<any>({})
   const [generateOpen, setGenerateOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [currentRecord, setCurrentRecord] = useState()
-  const searchParamsRef = useRef<any>({
-    pageSize,
-    page,
-    query: {
-      type,
-      status,
-      startTime,
-      endTime,
-    },
-    total,
-  });
-
-  function replacePage(page?: number, newStackId?: number) {
-    const paramObj = {
-      projectName,
-      type: searchParamsRef.current?.query?.type,
-      status: searchParamsRef.current?.query?.status,
-      startTime: searchParamsRef.current?.query?.startTime,
-      endTime: searchParamsRef.current?.query?.endTime,
-      stackId: newStackId || stackId,
-      page: page || searchParamsRef.current?.page,
-      pageSize: searchParamsRef.current?.pageSize,
-      panelKey: panelActiveKey
-    }
-    const newParams = queryString.stringify(paramObj)
-    navigate(`?${newParams}`, { replace: true })
-  }
-
-  useImperativeHandle(funcRef, () => ({
-    replacePage,
-  }))
-
-  // useEffect(() => {
-  //   replacePage()
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [searchParams, navigate])
+  const searchParamsRef = useRef<any>();
 
   useEffect(() => {
-    const startTime = searchParams?.query?.startTime;
-    const endTime = searchParams?.query?.endTime;
+    const params: any = new URLSearchParams(location.search);
+    const search: any = {
+      page: 1,
+      pageSize: 10,
+    };
+    for (const [key, value] of params.entries()) {
+      search[key] = value;
+    }
+    setSearchParams(search)
+    searchParamsRef.current = search;
+    const startTime = search.startTime;
+    const endTime = search?.endTime;
     const timeObj = (startTime && endTime ? {
       createTime: [moment(startTime), moment(endTime as any),]
     } : {})
     form.setFieldsValue({
-      type: searchParams?.query?.type,
-      status: searchParams?.query?.status,
+      type: search?.type,
+      status: search?.status,
       ...timeObj,
     })
-  }, [searchParams?.query, form])
+  }, [location.search, form]);
 
-  async function createApply(values) {
-    const response: any = await StackService.applyStackAsync({
-      body: {
-        ...values,
-        stackID: Number(stackId),
-        workspace: values?.workspace,
-      },
-      query: {
-        workspace: values?.workspace,
-        noCache: true,
-      },
-      path: {
-        stackID: Number(stackId),
-      }
-    })
-    return response
+
+
+  function updateURL(paramsData) {
+    const paramObj = {
+      projectName,
+      type: paramsData?.type,
+      status: paramsData?.status,
+      startTime: paramsData?.startTime,
+      endTime: paramsData?.endTime,
+      stackId: paramsData?.stackId || stackId,
+      page: paramsData?.page,
+      pageSize: paramsData?.pageSize,
+      panelKey: panelActiveKey,
+      sortBy: paramsData?.sortBy,
+      ascending: paramsData?.ascending,
+    }
+    getListRun(paramObj)
+    const newParams = queryString.stringify(paramObj)
+    navigate({ search: newParams.toString() });
   }
 
-  async function createGenerate(values) {
-    const response: any = await StackService.generateStackAsync({
-      body: {
-        ...values,
-        stackID: Number(stackId),
-        workspace: values?.workspace,
-      },
-      query: {
-        workspace: values?.workspace,
-        noCache: true,
-      },
-      path: {
-        stackID: Number(stackId),
-      }
-    })
-    return response
-  }
+  useImperativeHandle(funcRef, () => ({
+    updateRunsURL: (data) => {
+      updateURL({
+        ...searchParamsRef.current,
+        ...data,
+      })
+    },
+  }))
 
-  async function createDestroy(values) {
-    const response: any = await StackService.destroyStackAsync({
-      body: {
-        ...values,
-        stackID: Number(stackId),
-        workspace: values?.workspace,
-      },
-      query: {
-        workspace: values?.workspace,
-        noCache: true,
-      },
-      path: {
-        stackID: Number(stackId),
-      }
-    })
-    return response
-  }
 
-  async function createPreview(values) {
-    const response: any = await StackService.previewStackAsync({
-      body: {
-        ...values,
-        stackID: Number(stackId),
-        workspace: values?.workspace,
-      },
-      query: {
-        workspace: values?.workspace,
-        output: 'json',
-        noCache: true,
-      },
-      path: {
-        stackID: Number(stackId),
-      }
-    })
-    return response
-  }
+  useEffect(() => {
+    let timer;
+    if (searchParamsRef.current) {
+      timer = setInterval(() => {
+        getListRun(searchParamsRef.current)
+      }, 7000)
+    }
+    return () => {
+      if (timer) clearInterval(timer)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (stackId) {
+      updateURL({
+        ...searchParamsRef.current,
+        stackId: Number(stackId),
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
 
   async function handleSubmit(values, callback) {
     const type = values?.type;
     let response = undefined;
     if (type === 'Apply') {
-      response = await createApply(values)
+      response = await createApply(values, stackId)
     } else if (type === 'Generate') {
-      response = await createGenerate(values)
+      response = await createGenerate(values, stackId)
     } else if (type === 'Destroy') {
-      response = await createDestroy(values)
+      response = await createDestroy(values, stackId)
     } else {
-      response = await createPreview(values)
+      response = await createPreview(values, stackId)
     }
     if (response?.data?.success) {
       message.success('Create Successful')
@@ -192,38 +138,36 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
       message.error(response?.data?.message)
     }
   }
+
   function handleClose() {
     setOpen(false)
   }
 
-  function handleReset() {
-    form.resetFields();
-    const newParams = {
-      ...searchParams,
-      query: undefined,
+  function handleSearch() {
+    const values = form.getFieldsValue()
+    let startTime, endTime
+    if (values?.createTime) {
+      const [startDate, endDate] = values?.createTime;
+      startTime = dayjs(startDate).utc().format(timeFormatter)
+      endTime = dayjs(endDate).utc().format(timeFormatter)
     }
-    setSearchParams(newParams)
-    searchParamsRef.current = newParams
-    getListRun({
-      page: 1,
-      pageSize: 10,
-      query: undefined,
+    setSearchParams((prev) => {
+      const updatedParams = {
+        ...prev,
+        type: values?.type,
+        status: values?.status,
+        startTime,
+        endTime,
+      };
+      updateURL(updatedParams)
+      searchParamsRef.current = updatedParams
+      return updatedParams;
     })
   }
 
-  function handleSearch() {
-    const values = form.getFieldsValue()
-    const newParams = {
-      ...searchParams,
-      query: values,
-    }
-    setSearchParams(newParams)
-    searchParamsRef.current = newParams
-    getListRun({
-      page: 1,
-      pageSize: 10,
-      query: values
-    })
+  function handleReset() {
+    form.resetFields();
+    handleSearch()
   }
 
   function handleClear(key) {
@@ -233,37 +177,19 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
 
   async function getListRun(params) {
     try {
-      let startTime, endTime
-      if (params?.query?.createTime) {
-        const [startDate, endDate] = params?.query?.createTime;
-        startTime = params.query.startTime = dayjs(startDate).utc().format(timeFormatter)
-        endTime = params.query.endTime = dayjs(endDate).utc().format(timeFormatter)
-      }
-      if (params?.query?.startTime && params?.query?.endTime) {
-        startTime = params?.query?.startTime
-        endTime = params?.query?.endTime
-      }
-      const response: any = await StackService.listRun({
-        query: {
-          type: params?.query?.type,
-          status: params?.query?.status,
-          startTime,
-          endTime,
-          pageSize: params?.pageSize || 10,
-          page: params?.page,
-          stackID: Number(stackId),
-        }
-      });
+      const response: any = await queryListRun({
+        type: params?.type,
+        status: params?.status,
+        startTime: params?.startTime,
+        endTime: params?.endTime,
+        pageSize: params?.pageSize,
+        page: params?.page,
+        stackID: params?.stackId,
+        sortBy: params?.sortBy,
+        ascending: params?.ascending,
+      })
       if (response?.data?.success) {
-        setDataSource(response?.data?.data?.runs);
-        const newParams = {
-          query: params?.query,
-          pageSize: response?.data?.data?.pageSize,
-          page: response?.data?.data?.currentPage,
-          total: response?.data?.data?.total,
-        }
-        setSearchParams(newParams)
-        searchParamsRef.current = newParams
+        setDataSource(response?.data?.data);
       } else {
         message.error(response?.data?.messaage)
       }
@@ -271,25 +197,19 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
     }
   }
 
-  useEffect(() => {
-    let timer;
-    if (stackId) {
-      getListRun(searchParamsRef.current)
-      timer = setInterval(() => {
-        getListRun(searchParamsRef.current)
-      }, 7000)
-    }
-    return () => {
-      if (timer) clearInterval(timer)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stackId])
 
-  function handleChangePage(page: number, pageSize: number) {
-    getListRun({
-      ...searchParams,
-      page,
-      pageSize,
+
+  function handleChangePage({ current, pageSize }, filters, { field, order }) {
+    setSearchParams((prev) => {
+      const updatedParams = {
+        ...prev,
+        page: current,
+        pageSize,
+        sortBy: field === 'creationTimestamp' ? 'createTimestamp' : field,
+        ascending: order === "ascend",
+      };
+      updateURL(updatedParams)
+      return updatedParams;
     })
   }
 
@@ -300,7 +220,6 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
     } else {
       setPreviewOpen(true)
     }
-
   }
 
 
@@ -317,6 +236,8 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
     {
       title: 'Create Time',
       dataIndex: 'creationTimestamp',
+      sorter: true,
+      sortDirections: ['ascend', 'descend', 'ascend'],
     },
     {
       title: 'Status',
@@ -345,79 +266,73 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
     setPreviewOpen(false)
   }
 
-  function refresh() {
-    getListRun(searchParams)
-  }
-
-
-
   function renderTableTitle() {
     const queryParams = {
-      type: searchParams?.query?.type,
-      status: searchParams?.query?.status,
-      createTime: searchParams?.query?.startTime && searchParams?.query?.endTime ? [searchParams?.query?.startTime, searchParams?.query?.endTime] : undefined,
+      type: searchParams?.type,
+      status: searchParams?.status,
+      createTime: searchParams?.startTime && searchParams?.endTime ? [searchParams?.startTime, searchParams?.endTime] : undefined,
     }
-    return <div className={styles.project_runs_toolbar}>
-      <div className={styles.project_runs_toolbar_left}>
-        {
-          (searchParams?.total !== null || searchParams?.total !== undefined)
-            ? <div className={styles.project_runs_result}>Total<Button style={{ padding: 4 }} type='link'>{searchParams?.total}</Button>results</div>
-            : null
-        }
-        <div className={styles.projects_content_toolbar_list}>
+    return (
+      <div className={styles.project_runs_toolbar}>
+        <div className={styles.project_runs_toolbar_left}>
           {
-            searchParams?.query && Object.entries(queryParams)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
-              if (key === 'createTime') {
-                const [startDate, endDate] = __value;
-                // const startTime = dayjs(startDate).utc().format(timeFormatter)
-                // const endTime = dayjs(endDate).utc().format(timeFormatter)
+            (dataSource?.total !== null || dataSource?.total !== undefined)
+              ? <div className={styles.project_runs_result}>Total<Button style={{ padding: 4 }} type='link'>{dataSource?.total}</Button>results</div>
+              : null
+          }
+          <div className={styles.projects_content_toolbar_list}>
+            {
+              queryParams && Object.entries(queryParams)?.filter(([key, _value]) => _value)?.map(([key, __value]: any) => {
+                if (key === 'createTime') {
+                  const [startDate, endDate] = __value;
+                  // const startTime = dayjs(startDate).utc().format(timeFormatter)
+                  // const endTime = dayjs(endDate).utc().format(timeFormatter)
+                  return (
+                    <div key={key} className={styles.projects_content_toolbar_item}>
+                      {key}: {`${startDate} ~ ${endDate}`}
+                      <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
+                    </div>
+                  )
+                }
                 return (
                   <div key={key} className={styles.projects_content_toolbar_item}>
-                    {key}: {`${startDate} ~ ${endDate}`}
+                    {key}: {__value}
                     <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
                   </div>
                 )
-              }
-              return (
-                <div key={key} className={styles.projects_content_toolbar_item}>
-                  {key}: {__value}
-                  <CloseOutlined style={{ marginLeft: 10, color: '#140e3540' }} onClick={() => handleClear(key)} />
-                </div>
-              )
-            })
+              })
+            }
+          </div>
+          {
+            Object.entries(queryParams || {})?.filter(([key, val]) => val)?.length > 0 && (
+              <div className={styles.projects_content_toolbar_clear}>
+                <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
+              </div>
+            )
           }
         </div>
-        {
-          Object.entries(searchParams?.query || {})?.filter(([key, val]) => val)?.length > 0 && (
-            <div className={styles.projects_content_toolbar_clear}>
-              <Button type='link' onClick={handleReset} style={{ paddingLeft: 0 }}>Clear</Button>
-            </div>
-          )
-        }
+        <div className={styles.projects_content_toolbar_create}>
+          <Space>
+            <Tooltip title={'Refresh'}>
+              <Button
+                style={{ color: '#646566', fontSize: 18 }}
+                icon={<RedoOutlined />}
+                onClick={() => getListRun(searchParams)}
+                type="text"
+              />
+            </Tooltip>
+            <Button type="primary" onClick={handleCreateRuns}>
+              <PlusOutlined /> New Runs
+            </Button>
+          </Space>
+        </div>
       </div>
-      <div className={styles.projects_content_toolbar_create}>
-        <Space>
-          <Tooltip title={'Refresh'}>
-            <Button
-              style={{ color: '#646566', fontSize: 18 }}
-              icon={<RedoOutlined />}
-              onClick={refresh}
-              type="text"
-            />
-          </Tooltip>
-          <Button type="primary" onClick={handleCreateRuns}>
-            <PlusOutlined /> New Runs
-          </Button>
-        </Space>
-      </div>
-    </div>
+    )
   }
-
 
 
   return (
     <div className={styles.project_runs}>
-      {/* Search Form block*/}
       <div className={styles.project_runs_search}>
         <Form form={form} style={{ marginBottom: 0 }}>
           <Space>
@@ -447,54 +362,47 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
           </Space>
         </Form>
       </div>
-      {/* Content block */}
       <div className={styles.project_runs_content}>
         {renderTableTitle()}
         <Table
           rowKey="id"
           columns={columns}
-          dataSource={dataSource}
+          dataSource={dataSource?.runs || []}
           scroll={{ x: 1300 }}
+          onChange={handleChangePage}
           pagination={{
-            total: Number(searchParams?.total),
+            total: dataSource?.total,
             current: Number(searchParams?.page),
             pageSize: Number(searchParams?.pageSize),
-            showTotal: (total, range) => (
-              <div style={{
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end'
-              }}>
-                show{' '}
-                <Select
-                  value={searchParams?.pageSize}
-                  size="small"
-                  style={{
-                    width: 60,
-                    margin: '0 4px',
-                    fontSize: '12px'
-                  }}
-                  onChange={(value) => handleChangePage(1, value as number)}
-                  options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
-                />
-                items, {range[0]}-{range[1]} of {total} items
-              </div>
-            ),
+            showSizeChanger: true,
+            pageSizeOptions: [10, 15, 20, 30, 40, 50, 75, 100],
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
             size: "default",
             style: {
-              marginTop: '16px',
+              marginRight: 16,
               textAlign: 'right'
-            },
-            onChange: (page, size) => {
-              handleChangePage(page, size);
             },
           }}
         />
-        <RunsForm open={open} handleSubmit={handleSubmit} handleClose={handleClose} runsTypes={RUNS_TYPES} />
-        <GenerateDetail currentRecord={currentRecord} open={generateOpen} handleClose={handlGenerateColse} />
+        <RunsForm
+          open={open}
+          handleSubmit={handleSubmit}
+          handleClose={handleClose}
+          runsTypes={RUNS_TYPES}
+        />
+        <GenerateDetail
+          currentRecord={currentRecord}
+          open={generateOpen}
+          handleClose={handlGenerateColse}
+        />
         {
-          previewOpen && <PreviewDetail currentRecord={currentRecord} open={previewOpen} handleClose={handlePreviewClose} />
+          previewOpen && (
+            <PreviewDetail
+              currentRecord={currentRecord}
+              open={previewOpen}
+              handleClose={handlePreviewClose}
+            />
+          )
         }
       </div>
     </div>
@@ -502,4 +410,5 @@ const Runs = forwardRef(({ panelActiveKey }: IProps, funcRef) => {
 })
 
 export default Runs
+
 

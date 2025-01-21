@@ -50,11 +50,11 @@ export const KusionTabs = ({
             )
           })}
         </div>
-        <div className={styles.add_box} onClick={handleAdd}>
-          <PlusOutlined
-            style={{ fontSize: 14, color: '#fff', marginRight: 10 }}
-          />New Stack
-        </div>
+        <Tooltip title="New Stack">
+          <div className={styles.add_box} onClick={handleAdd}>
+            <PlusOutlined style={{ fontSize: 14, color: '#fff' }} />
+          </div>
+        </Tooltip>
       </div>
     </div>
   )

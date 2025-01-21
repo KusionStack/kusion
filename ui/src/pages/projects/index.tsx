@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Button, Form, Input, message, Space, Table, Popconfirm, Select } from 'antd'
+import { Button, Form, Input, message, Space, Table, Popconfirm } from 'antd'
 import type { TableColumnsType } from 'antd'
 import queryString from 'query-string'
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons'
@@ -19,7 +19,7 @@ const Projects = () => {
   const [actionType, setActionType] = useState('ADD')
   const [formData, setFormData] = useState()
   const { pageSize = 10, page = 1, total = 0, fuzzyName } = queryString.parse(location?.search);
-  const [searchParams, setSearchParams] = useState({
+  const [searchParams, setSearchParams] = useState<any>({
     pageSize,
     page,
     query: {
@@ -123,6 +123,7 @@ const Projects = () => {
     const newParams = {
       ...searchParams,
       query: {
+        ...searchParams?.query,
         fuzzyName: undefined
       }
     }
@@ -131,21 +132,28 @@ const Projects = () => {
     getProjectList({
       page: 1,
       pageSize: 10,
-      query: undefined
+      query: {
+        ...searchParams?.query,
+        fuzzyName: undefined
+      }
     })
   }
   function handleSearch() {
     const values = form.getFieldsValue()
+    const newQuery = {
+      ...searchParams?.query,
+      ...values
+    }
     const newParams = {
       ...searchParams,
-      query: values
+      query: newQuery
     }
     setSearchParams(newParams)
     searchParamsRef.current = newParams;
     getProjectList({
       page: 1,
       pageSize: 10,
-      query: values,
+      query: newQuery
     })
   }
 
@@ -165,11 +173,15 @@ const Projects = () => {
     setFormData(record)
   }
 
-  function handleChangePage(page, pageSize) {
+  function handleChangePage({ current, pageSize }, filters, { field, order }) {
     getProjectList({
-      page,
+      page: current,
       pageSize,
-      query: searchParams?.query
+      query: {
+        ...searchParams?.query,
+        sortBy: field === 'creationTimestamp' ? 'createTimestamp' : field,
+        ascending: order === "ascend",
+      }
     })
   }
 
@@ -245,6 +257,8 @@ const Projects = () => {
       title: 'Name',
       dataIndex: 'name',
       fixed: 'left',
+      sorter: true,
+      sortDirections: ['ascend', 'descend', 'ascend'],
       render: (text, record) => {
         return <Button type='link' onClick={() => navigate(`/projects/detail/${record?.id}?projectName=${record?.name}`)}>{text}</Button>
       }
@@ -271,6 +285,8 @@ const Projects = () => {
     {
       title: 'Create Time',
       dataIndex: 'creationTimestamp',
+      sorter: true,
+      sortDirections: ['ascend', 'descend', 'ascend'],
     },
     {
       title: 'Action',
@@ -307,8 +323,14 @@ const Projects = () => {
     organizationList,
   }
 
-  function renderTableTitle(currentPageData) {
-    const queryList = searchParams && Object.entries(searchParams?.query || {})?.filter(([key, value]) => value)
+  function renderTableTitle() {
+    const newQuery = {
+      fuzzyName: searchParams?.query?.fuzzyName,
+    }
+    // if (searchParams?.query?.sortBy) {
+    //   newQuery[searchParams?.query?.sortBy] = searchParams?.query?.ascending ? 'ascend' : 'descend'
+    // }
+    const queryList = newQuery && Object.entries(newQuery || {})?.filter(([key, value]) => value !== undefined && value !== null)
     return <div className={styles.projects_content_toolbar}>
       <h4>Project List</h4>
       <div className={styles.projects_content_toolbar_list}>
@@ -362,39 +384,18 @@ const Projects = () => {
           columns={columns}
           dataSource={dataSource}
           scroll={{ x: 1300 }}
+          onChange={handleChangePage}
           pagination={{
             total: Number(searchParams?.total),
             current: Number(searchParams?.page),
             pageSize: Number(searchParams?.pageSize),
-            showTotal: (total, range) => (
-              <div style={{
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end'
-              }}>
-                show{' '}
-                <Select
-                  value={searchParams?.pageSize}
-                  size="small"
-                  style={{
-                    width: 60,
-                    margin: '0 4px',
-                    fontSize: '12px'
-                  }}
-                  onChange={(value) => handleChangePage(1, value)}
-                  options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
-                />
-                items, {range[0]}-{range[1]} of {total} items
-              </div>
-            ),
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 15, 20, 30, 40, 50, 75, 100],
             size: "default",
             style: {
-              marginTop: '16px',
+              marginRight: 16,
               textAlign: 'right'
-            },
-            onChange: (page, size) => {
-              handleChangePage(page, size);
             },
           }}
         />

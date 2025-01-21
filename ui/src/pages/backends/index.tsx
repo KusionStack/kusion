@@ -49,6 +49,7 @@ const BackendsPage = () => {
 
   useEffect(() => {
     getBackendList(searchParams)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleAdd() {

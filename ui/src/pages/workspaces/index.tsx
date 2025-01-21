@@ -181,7 +181,7 @@ const Workspaces = () => {
       callback && callback()
       setOpen(false)
       if (actionType === 'ADD') {
-        navigate(`/workspaces/detail/${response?.data?.data?.id}`)
+        navigate(`/workspaces/detail/${response?.data?.data?.id}?workspaceName=${response?.data?.data?.name}`)
       }
     } else {
       message.error(response?.data?.message)
@@ -221,28 +221,9 @@ const Workspaces = () => {
     total: searchParams?.total,
     current: searchParams?.page,
     pageSize: searchParams?.pageSize,
-    showTotal: (total, range) => (
-      <div style={{
-        fontSize: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end'
-      }}>
-        show{' '}
-        <Select
-          value={searchParams?.pageSize}
-          size="small"
-          style={{
-            width: 60,
-            margin: '0 4px',
-            fontSize: '12px'
-          }}
-          onChange={(value) => handleChangePage(1, value)}
-          options={['10', '15', '20', '30', '40', '50', '75', '100'].map((value) => ({ value, label: value }))}
-        />
-        items, {range[0]}-{range[1]} of {total} items
-      </div>
-    ),
+    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+    showSizeChanger: true,
+    pageSizeOptions: [10, 15, 20, 30, 40, 50, 75, 100],
     size: "default",
     style: {
       marginTop: '16px',

@@ -1,8 +1,6 @@
-import React, { memo, useEffect, useState } from 'react'
-import { Menu } from 'antd'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import React, { memo } from 'react'
 import type { MenuProps } from 'antd'
+
 import styles from "./style.module.less"
 
 type MenuItem = Required<MenuProps>['items'][number]
@@ -27,9 +25,7 @@ function getItem(
   } as MenuItem
 }
 
-
-const KusionMenu = ({selectedKey, onClick}) => {
- 
+const KusionMenu = ({ selectedKey, onClick }) => {
 
   const menuItems = [
     getItem('Projects', '/projects', null),
