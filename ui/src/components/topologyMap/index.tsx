@@ -326,8 +326,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       draw(cfg: NodeConfig, group: IGroup) {
         const displayName = getNodeName(cfg, type as string)
         const count = cfg.data?.count
-        const nodeWidth = 240
-        const nodeHeight = 60
+        const nodeWidth = 235
+        const nodeHeight = 55
 
         // Create main container
         const rect = group.addShape('rect', {
@@ -621,8 +621,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         type: 'dagre',
         rankdir: 'LR',
         align: 'UL',
-        nodesep: 10,
-        ranksep: 20,
+        nodesep: 25,
+        ranksep: 30,
         nodesepFunc: () => 1,
         ranksepFunc: () => 1,
         controlPoints: true,
@@ -641,7 +641,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       },
       defaultNode: {
         type: 'card-node',
-        size: [240, 72],
+        size: [235, 55],
         style: {
           fill: '#fff',
           stroke: '#e5e6e8',
