@@ -47,7 +47,7 @@ const SourcesPage = () => {
     try {
       const response: any = await SourceService.listSource({
         query: {
-          sourceName: params?.query?.sourceName,
+          ...params?.query,
           page: params?.page || searchParams?.page,
           pageSize: params?.pageSize || searchParams?.pageSize,
         }

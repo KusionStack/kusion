@@ -46,7 +46,7 @@ const ModulePage = () => {
     try {
       const response: any = await ModuleService.listModule({
         query: {
-          moduleName: params?.query?.moduleName,
+          ...params?.query,
           page: params?.page || searchParams?.page,
           pageSize: params?.pageSize || searchParams?.pageSize,
         }

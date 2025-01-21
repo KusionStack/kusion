@@ -326,7 +326,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       draw(cfg: NodeConfig, group: IGroup) {
         const displayName = getNodeName(cfg, type as string)
         const count = cfg.data?.count
-        const nodeWidth = 200
+        const nodeWidth = 240
+        const nodeHeight = 60
 
         // Create main container
         const rect = group.addShape('rect', {
@@ -334,7 +335,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             x: 0,
             y: 0,
             width: nodeWidth,
-            height: 48,
+            height: nodeHeight,
             radius: 6,
             fill: '#ffffff',
             stroke: '#e6f4ff',
@@ -355,7 +356,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             x: 0,
             y: 0,
             width: 3,
-            height: 48,
+            height: nodeHeight,
             radius: [3, 0, 0, 3],
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             opacity: 0.4,
@@ -372,7 +373,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         group.addShape('image', {
           attrs: {
             x: 5,
-            y: (48 - iconHeight) / 2,
+            y: (nodeHeight - iconHeight) / 2,
             width: iconSize,
             height: iconHeight,
             img: ICON_MAP?.[nodeType as keyof typeof ICON_MAP] || ICON_MAP.Kubernetes,
@@ -384,8 +385,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         group.addShape('text', {
           attrs: {
             x: 52,
-            y: 20,
-            text: fittingString(displayName || '', 100, 14),
+            y: 25,
+            text: fittingString(displayName || '', 140, 14),
             fontSize: 14,
             fontWeight: 500,
             fill: '#1677ff',
@@ -435,9 +436,9 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         const statusShape0 = group.addShape('circle', {
           attrs: {
             zIndex: -4,
-            x: 185,
-            y: 15,
-            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            x: 220,
+            y: 20,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             lineWidth: 1,
             r: 3,
             opacity: 0.4,
@@ -448,9 +449,9 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         const statusShape1 = group.addShape('circle', {
           attrs: {
             zIndex: -3,
-            x: 185,
-            y: 15,
-            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            x: 220,
+            y: 20,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
             opacity: 0.4,
             lineWidth: 1,
@@ -460,9 +461,9 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         const statusShape2 = group.addShape('circle', {
           attrs: {
             zIndex: -2,
-            x: 185,
-            y: 15,
-            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            x: 220,
+            y: 20,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
             opacity: 0.4,
             lineWidth: 1,
@@ -472,9 +473,9 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         const statusShape3 = group.addShape('circle', {
           attrs: {
             zIndex: -1,
-            x: 185,
-            y: 15,
-            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            x: 220,
+            y: 20,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
             opacity: 0.4,
             lineWidth: 1,
@@ -487,8 +488,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 6000,
-          easing: 'easeCubic',
+          duration: 4000,
+          easing: 'easeLinear',
           delay: 0,
           repeat: true,
         },)
@@ -496,8 +497,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 6000,
-          easing: 'easeCubic',
+          duration: 4000,
+          easing: 'easeLinear',
           delay: 1000,
           repeat: true,
         },)
@@ -505,8 +506,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 6000,
-          easing: 'easeCubic',
+          duration: 4000,
+          easing: 'easeLinear',
           delay: 2000,
           repeat: true,
         },)
@@ -514,8 +515,8 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 6000,
-          easing: 'easeCubic',
+          duration: 4000,
+          easing: 'easeLinear',
           delay: 3000,
           repeat: true,
         },)
@@ -523,7 +524,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         group.addShape('text', {
           attrs: {
             x: 52,
-            y: 34,
+            y: 40,
             text: capitalized(nodeType),
             fontSize: 10,
             fontWeight: 400,
@@ -630,7 +631,6 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         nodeSize: [200, 60],
         workerEnabled: true,
         clustering: false,
-        clusterNodeSize: [200, 60],
         // Optimize edge layout
         edgeFeedbackStyle: {
           stroke: '#c2c8d1',
@@ -641,7 +641,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
       },
       defaultNode: {
         type: 'card-node',
-        size: [200, 60],
+        size: [240, 72],
         style: {
           fill: '#fff',
           stroke: '#e5e6e8',
