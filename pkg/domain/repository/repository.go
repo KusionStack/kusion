@@ -20,7 +20,7 @@ type OrganizationRepository interface {
 	// GetByName retrieves a organization by its name.
 	GetByName(ctx context.Context, name string) (*entity.Organization, error)
 	// List retrieves all existing organizations.
-	List(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error)
+	List(ctx context.Context, filter *entity.OrganizationFilter, sortOptions *entity.SortOptions) (*entity.OrganizationListResult, error)
 }
 
 // ProjectRepository is an interface that defines the repository operations
@@ -52,7 +52,7 @@ type StackRepository interface {
 	// Get retrieves a stack by its ID.
 	Get(ctx context.Context, id uint) (*entity.Stack, error)
 	// List retrieves all existing stacks.
-	List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error)
+	List(ctx context.Context, filter *entity.StackFilter, sortOptions *entity.SortOptions) (*entity.StackListResult, error)
 }
 
 // SourceRepository is an interface that defines the repository operations
@@ -63,13 +63,13 @@ type SourceRepository interface {
 	// GetByRemote retrieves a source by its remote.
 	GetByRemote(ctx context.Context, remote string) (*entity.Source, error)
 	// List retrieves all existing sources.
-	List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error)
+	List(ctx context.Context, filter *entity.SourceFilter, sortOptions *entity.SortOptions) (*entity.SourceListResult, error)
 	// Create creates a new source.
 	Create(ctx context.Context, source *entity.Source) error
-	// Delete deletes a stack by its ID.
+	// Delete deletes a source by its ID.
 	Delete(ctx context.Context, id uint) error
 	// Update updates an existing stack.
-	Update(ctx context.Context, stack *entity.Source) error
+	Update(ctx context.Context, source *entity.Source) error
 }
 
 // WorkspaceRepository is an interface that defines the repository operations
@@ -86,7 +86,7 @@ type WorkspaceRepository interface {
 	// GetByName retrieves a workspace by its name.
 	GetByName(ctx context.Context, name string) (*entity.Workspace, error)
 	// List retrieves all existing workspace.
-	List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error)
+	List(ctx context.Context, filter *entity.WorkspaceFilter, sortOptions *entity.SortOptions) (*entity.WorkspaceListResult, error)
 }
 
 // BackendRepository is an interface that defines the repository operations
@@ -101,7 +101,7 @@ type BackendRepository interface {
 	// Get retrieves a backend by its ID.
 	Get(ctx context.Context, id uint) (*entity.Backend, error)
 	// List retrieves all existing backend.
-	List(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error)
+	List(ctx context.Context, filter *entity.BackendFilter, sortOptions *entity.SortOptions) (*entity.BackendListResult, error)
 }
 
 // ResourceRepository is an interface that defines the repository operations
@@ -120,7 +120,7 @@ type ResourceRepository interface {
 	// GetByKusionResourceURN retrieves a resource by its Kusion resource URN.
 	GetByKusionResourceURN(ctx context.Context, urn string) (*entity.Resource, error)
 	// List retrieves all existing resource.
-	List(ctx context.Context, filter *entity.ResourceFilter) (*entity.ResourceListResult, error)
+	List(ctx context.Context, filter *entity.ResourceFilter, sortOptions *entity.SortOptions) (*entity.ResourceListResult, error)
 }
 
 // ModuleRepository is an interface that defines the repository operations
@@ -135,7 +135,7 @@ type ModuleRepository interface {
 	// Get retrieves a module by its name.
 	Get(ctx context.Context, name string) (*entity.Module, error)
 	// List retrives all the existing modules.
-	List(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error)
+	List(ctx context.Context, filter *entity.ModuleFilter, sortOptions *entity.SortOptions) (*entity.ModuleListResult, error)
 }
 
 // RunRepository is an interface that defines the repository operations

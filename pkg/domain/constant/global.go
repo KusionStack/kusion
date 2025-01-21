@@ -31,6 +31,8 @@ const (
 	SortByModifiedTimestamp = "modifiedTimestamp"
 	SortByName              = "name"
 	SortByID                = "id"
+	SortByResourceName      = "resourceName"
+	SortByResourceURN       = "resourceURN"
 )
 
 var (

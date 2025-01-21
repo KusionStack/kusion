@@ -14,8 +14,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *SourceManager) ListSources(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
-	sourceEntities, err := m.sourceRepo.List(ctx, filter)
+func (m *SourceManager) ListSources(ctx context.Context, filter *entity.SourceFilter, sortOptions *entity.SortOptions) (*entity.SourceListResult, error) {
+	sourceEntities, err := m.sourceRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingSource
@@ -110,7 +110,7 @@ func (m *SourceManager) CreateSource(ctx context.Context, requestPayload request
 	return &createdEntity, nil
 }
 
-func (m *SourceManager) BuildSourceFilter(ctx context.Context, query *url.Values) (*entity.SourceFilter, error) {
+func (m *SourceManager) BuildSourceFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.SourceFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building source filter...")
 
@@ -135,5 +135,17 @@ func (m *SourceManager) BuildSourceFilter(ctx context.Context, query *url.Values
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateSourceSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	sourceSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, sourceSortOptions, nil
 }

@@ -160,6 +160,8 @@ func (h *Handler) GetBackend() http.HandlerFunc {
 // @Produce		json
 // @Param			page		query		uint														false	"The current page to fetch. Default to 1"
 // @Param			pageSize	query		uint														false	"The size of the page. Default to 10"
+// @Param			sortBy		query		string														false	"Which field to sort the list by. Default to id"
+// @Param			ascending	query		bool														false	"Whether to sort the list in ascending order. Default to false"
 // @Success		200			{object}	handler.Response{data=response.PaginatedBackendResponse}	"Success"
 // @Failure		400			{object}	error														"Bad Request"
 // @Failure		401			{object}	error														"Unauthorized"
@@ -175,14 +177,14 @@ func (h *Handler) ListBackends() http.HandlerFunc {
 		logger.Info("Listing backend...")
 
 		query := r.URL.Query()
-		filter, err := h.backendManager.BuildBackendFilter(ctx, &query)
+		filter, backendSortOptions, err := h.backendManager.BuildBackendFilterAndSortOptions(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// List paginated backends.
-		backendEntities, err := h.backendManager.ListBackends(ctx, filter)
+		backendEntities, err := h.backendManager.ListBackends(ctx, filter, backendSortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

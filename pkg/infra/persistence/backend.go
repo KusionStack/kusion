@@ -96,9 +96,14 @@ func (r *backendRepository) Get(ctx context.Context, id uint) (*entity.Backend, 
 }
 
 // List retrieves all backends.
-func (r *backendRepository) List(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error) {
+func (r *backendRepository) List(ctx context.Context, filter *entity.BackendFilter, sortOptions *entity.SortOptions) (*entity.BackendListResult, error) {
 	var dataModel []BackendModel
 	backendEntityList := make([]*entity.Backend, 0)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
 
 	// Get total rows.
 	var totalRows int64
@@ -106,7 +111,7 @@ func (r *backendRepository) List(ctx context.Context, filter *entity.BackendFilt
 
 	// Fetch paginated data with offset and limit.
 	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
-	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
+	result := r.db.WithContext(ctx).Order(sortArgs).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}

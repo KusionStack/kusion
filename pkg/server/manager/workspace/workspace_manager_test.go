@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	backend "kusionstack.io/kusion/pkg/backend"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	entity "kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 )
@@ -49,8 +50,8 @@ func (m *mockWorkspaceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
-	args := m.Called(ctx, filter)
+func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter, sortOptions *entity.SortOptions) (*entity.WorkspaceListResult, error) {
+	args := m.Called(ctx, filter, sortOptions)
 	return &entity.WorkspaceListResult{
 		Workspaces: args.Get(0).([]*entity.Workspace),
 		Total:      len(args.Get(0).([]*entity.Workspace)),
@@ -97,8 +98,8 @@ func (m *mockBackendRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockBackendRepository) List(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error) {
-	args := m.Called(ctx, filter)
+func (m *mockBackendRepository) List(ctx context.Context, filter *entity.BackendFilter, sortOptions *entity.SortOptions) (*entity.BackendListResult, error) {
+	args := m.Called(ctx, filter, sortOptions)
 	return &entity.BackendListResult{
 		Backends: args.Get(0).([]*entity.Backend),
 		Total:    len(args.Get(0).([]*entity.Backend)),
@@ -148,6 +149,9 @@ func TestWorkspaceManager_ListWorkspaces(t *testing.T) {
 	filter := &entity.WorkspaceFilter{
 		// Set your desired filter parameters here
 	}
+	sortOptions := &entity.SortOptions{
+		Field: constant.SortByID,
+	}
 
 	// Create a mock workspace repository
 	mockRepo := &mockWorkspaceRepository{}
@@ -155,7 +159,7 @@ func TestWorkspaceManager_ListWorkspaces(t *testing.T) {
 	expectedWorkspaces := []*entity.Workspace{
 		// Set your expected workspace entities here
 	}
-	mockRepo.On("List", ctx, filter).Return(expectedWorkspaces, nil)
+	mockRepo.On("List", ctx, filter, sortOptions).Return(expectedWorkspaces, nil)
 
 	// Create a new WorkspaceManager instance with the mock repository
 	manager := &WorkspaceManager{
@@ -163,11 +167,11 @@ func TestWorkspaceManager_ListWorkspaces(t *testing.T) {
 	}
 
 	// Call the ListWorkspaces method
-	stacks, err := manager.ListWorkspaces(ctx, filter)
+	workspaces, err := manager.ListWorkspaces(ctx, filter, sortOptions)
 
 	// Assert that the returned stacks match the expected stacks
-	if !reflect.DeepEqual(stacks.Workspaces, expectedWorkspaces) {
-		t.Errorf("ListWorkspaces() returned unexpected stacks.\nExpected: %v\nGot: %v", expectedWorkspaces, stacks)
+	if !reflect.DeepEqual(workspaces.Workspaces, expectedWorkspaces) {
+		t.Errorf("ListWorkspaces() returned unexpected workspaces.\nExpected: %v\nGot: %v", expectedWorkspaces, workspaces)
 	}
 
 	// Assert that no error occurred
@@ -176,7 +180,7 @@ func TestWorkspaceManager_ListWorkspaces(t *testing.T) {
 	}
 
 	// Assert that the List method of the mock repository was called with the correct parameters
-	mockRepo.AssertCalled(t, "List", ctx, filter)
+	mockRepo.AssertCalled(t, "List", ctx, filter, sortOptions)
 }
 
 func TestWorkspaceManager_GetWorkspaceByID(t *testing.T) {

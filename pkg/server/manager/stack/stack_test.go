@@ -144,8 +144,8 @@ func (m *mockWorkspaceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
-	args := m.Called(ctx, filter)
+func (m *mockWorkspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter, sortOptions *entity.SortOptions) (*entity.WorkspaceListResult, error) {
+	args := m.Called(ctx, filter, sortOptions)
 	return &entity.WorkspaceListResult{
 		Workspaces: args.Get(0).([]*entity.Workspace),
 		Total:      len(args.Get(0).([]*entity.Workspace)),
@@ -242,7 +242,7 @@ func TestBuildValidStackPath(t *testing.T) {
 	}
 }
 
-func TestBuildStackFilter(t *testing.T) {
+func TestBuildStackFilterAndSortOptions(t *testing.T) {
 	m := &StackManager{
 		projectRepo: &mockProjectRepository{},
 	}
@@ -254,10 +254,11 @@ func TestBuildStackFilter(t *testing.T) {
 		query.Add("projectID", "456")
 		query.Add("projectName", "")
 		query.Add("env", "")
-		filter, err := m.BuildStackFilter(ctx, query)
+		filter, sortOptions, err := m.BuildStackFilterAndSortOptions(ctx, query)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(123), filter.OrgID)
 		assert.Equal(t, uint(456), filter.ProjectID)
+		assert.Equal(t, constant.SortByID, sortOptions.Field)
 	})
 
 	// Test case 1: Valid organization ID and project ID
@@ -267,7 +268,7 @@ func TestBuildStackFilter(t *testing.T) {
 		query.Add("projectID", "456")
 		query.Add("projectName", "")
 		query.Add("env", "")
-		_, err := m.BuildStackFilter(ctx, query)
+		_, _, err := m.BuildStackFilterAndSortOptions(ctx, query)
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidOrganizationID, err)
 	})
@@ -278,7 +279,7 @@ func TestBuildStackFilter(t *testing.T) {
 		query.Add("projectID", "def")
 		query.Add("projectName", "")
 		query.Add("env", "")
-		_, err := m.BuildStackFilter(ctx, query)
+		_, _, err := m.BuildStackFilterAndSortOptions(ctx, query)
 		assert.Error(t, err)
 		assert.Equal(t, constant.ErrInvalidProjectID, err)
 	})
@@ -295,9 +296,13 @@ func TestBuildStackFilter(t *testing.T) {
 		query.Add("orgID", "")
 		query.Add("env", "")
 		query.Add("projectName", projectName)
-		filter, err := m.BuildStackFilter(ctx, query)
+		query.Add("sortBy", constant.SortByCreateTimestamp)
+		query.Add("ascending", "true")
+		filter, sortOptions, err := m.BuildStackFilterAndSortOptions(ctx, query)
 		assert.NoError(t, err)
 		assert.Equal(t, uint(1), filter.ProjectID)
+		assert.Equal(t, "created_at", sortOptions.Field)
+		assert.Equal(t, true, sortOptions.Ascending)
 	})
 }
 

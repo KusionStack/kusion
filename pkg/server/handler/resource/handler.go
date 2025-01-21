@@ -27,6 +27,8 @@ import (
 // @Param			resourcePlane	query		string														false	"The resource plane"
 // @Param			page			query		uint														false	"The current page to fetch. Default to 1"
 // @Param			pageSize		query		uint														false	"The size of the page. Default to 10"
+// @Param			sortBy		    query		string														false	"Which field to sort the list by. Default to id"
+// @Param			ascending	    query		bool														false	"Whether to sort the list in ascending order. Default to false"
 // @Success		200				{object}	handler.Response{data=[]response.PaginatedResourceResponse}	"Success"
 // @Failure		400				{object}	error														"Bad Request"
 // @Failure		401				{object}	error														"Unauthorized"
@@ -42,14 +44,14 @@ func (h *Handler) ListResources() http.HandlerFunc {
 		logger.Info("Listing resource...")
 
 		query := r.URL.Query()
-		filter, err := h.resourceManager.BuildResourceFilter(ctx, &query)
+		filter, resourceSortOptions, err := h.resourceManager.BuildResourceFilterAndSortOptions(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// List resources
-		resourceEntities, err := h.resourceManager.ListResources(ctx, filter)
+		resourceEntities, err := h.resourceManager.ListResources(ctx, filter, resourceSortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
@@ -114,13 +116,17 @@ func (h *Handler) GetResourceGraph() http.HandlerFunc {
 		logger.Info("Getting resource graph...")
 		query := r.URL.Query()
 		filter, err := h.resourceManager.BuildResourceGraphFilter(ctx, &query)
+		sortOptions := &entity.SortOptions{
+			Field:     "id",
+			Ascending: true,
+		}
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
 		// List resources
-		resourceEntities, err := h.resourceManager.ListResources(ctx, filter)
+		resourceEntities, err := h.resourceManager.ListResources(ctx, filter, sortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

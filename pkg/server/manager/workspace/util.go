@@ -6,6 +6,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/backend/storages"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
@@ -50,4 +51,20 @@ func NewBackendFromEntity(backendEntity entity.Backend) (backend.Backend, error)
 		return nil, fmt.Errorf("invalid type %s of backend %s", backendEntity.BackendConfig.Type, backendEntity.Name)
 	}
 	return storage, nil
+}
+
+func validateWorkspaceSortOptions(sortBy string) (string, error) {
+	if sortBy == "" {
+		return constant.SortByID, nil
+	}
+	if sortBy != constant.SortByID && sortBy != constant.SortByName && sortBy != constant.SortByCreateTimestamp {
+		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id, name or create timestamp", sortBy)
+	}
+	switch sortBy {
+	case constant.SortByCreateTimestamp:
+		return "created_at", nil
+	case constant.SortByModifiedTimestamp:
+		return "updated_at", nil
+	}
+	return sortBy, nil
 }

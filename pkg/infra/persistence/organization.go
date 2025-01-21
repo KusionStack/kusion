@@ -106,9 +106,14 @@ func (r *organizationRepository) GetByName(ctx context.Context, name string) (*e
 }
 
 // List retrieves all organizations.
-func (r *organizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
+func (r *organizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter, sortOptions *entity.SortOptions) (*entity.OrganizationListResult, error) {
 	var dataModel []OrganizationModel
 	organizationEntityList := make([]*entity.Organization, 0)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
 
 	// Get total rows.
 	var totalRows int64
@@ -116,7 +121,7 @@ func (r *organizationRepository) List(ctx context.Context, filter *entity.Organi
 
 	// Fetch paginated data with offset and limit.
 	offset := (filter.Pagination.Page - 1) * filter.Pagination.PageSize
-	result := r.db.WithContext(ctx).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
+	result := r.db.WithContext(ctx).Order(sortArgs).Offset(offset).Limit(filter.Pagination.PageSize).Find(&dataModel)
 	if result.Error != nil {
 		return nil, result.Error
 	}

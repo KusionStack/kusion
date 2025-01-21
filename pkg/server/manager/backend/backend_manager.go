@@ -14,8 +14,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *BackendManager) ListBackends(ctx context.Context, filter *entity.BackendFilter) (*entity.BackendListResult, error) {
-	backendEntities, err := m.backendRepo.List(ctx, filter)
+func (m *BackendManager) ListBackends(ctx context.Context, filter *entity.BackendFilter, sortOptions *entity.SortOptions) (*entity.BackendListResult, error) {
+	backendEntities, err := m.backendRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingBackend
@@ -115,7 +115,7 @@ func (m *BackendManager) CreateBackend(ctx context.Context, requestPayload reque
 	return maskedEntity, nil
 }
 
-func (m *BackendManager) BuildBackendFilter(ctx context.Context, query *url.Values) (*entity.BackendFilter, error) {
+func (m *BackendManager) BuildBackendFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.BackendFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building backend filter...")
 
@@ -135,5 +135,17 @@ func (m *BackendManager) BuildBackendFilter(ctx context.Context, query *url.Valu
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateBackendSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	backendSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, backendSortOptions, nil
 }

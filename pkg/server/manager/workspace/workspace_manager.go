@@ -16,8 +16,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *WorkspaceManager) ListWorkspaces(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
-	workspaceEntities, err := m.workspaceRepo.List(ctx, filter)
+func (m *WorkspaceManager) ListWorkspaces(ctx context.Context, filter *entity.WorkspaceFilter, sortOptions *entity.SortOptions) (*entity.WorkspaceListResult, error) {
+	workspaceEntities, err := m.workspaceRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingWorkspace
@@ -201,7 +201,7 @@ func (m *WorkspaceManager) CreateWorkspace(ctx context.Context, requestPayload r
 	return &createdEntity, nil
 }
 
-func (m *WorkspaceManager) BuildWorkspaceFilter(ctx context.Context, query *url.Values) (*entity.WorkspaceFilter, error) {
+func (m *WorkspaceManager) BuildWorkspaceFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.WorkspaceFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building workspace filter...")
 
@@ -211,7 +211,7 @@ func (m *WorkspaceManager) BuildWorkspaceFilter(ctx context.Context, query *url.
 	if backendIDParam != "" {
 		backendID, err := strconv.Atoi(backendIDParam)
 		if err != nil {
-			return nil, backendmanager.ErrInvalidBackendID
+			return nil, nil, backendmanager.ErrInvalidBackendID
 		}
 		filter.BackendID = uint(backendID)
 	}
@@ -234,5 +234,17 @@ func (m *WorkspaceManager) BuildWorkspaceFilter(ctx context.Context, query *url.
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateWorkspaceSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	workspaceSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, workspaceSortOptions, nil
 }

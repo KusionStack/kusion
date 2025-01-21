@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"kusionstack.io/kusion/pkg/domain/constant"
 	"kusionstack.io/kusion/pkg/domain/entity"
 	"kusionstack.io/kusion/pkg/domain/request"
 )
@@ -46,8 +47,8 @@ func (m *mockStackRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
-	args := m.Called(ctx, filter)
+func (m *mockStackRepository) List(ctx context.Context, filter *entity.StackFilter, sortOptions *entity.SortOptions) (*entity.StackListResult, error) {
+	args := m.Called(ctx, filter, sortOptions)
 	return &entity.StackListResult{
 		Stacks: args.Get(0).([]*entity.Stack),
 		Total:  len(args.Get(0).([]*entity.Stack)),
@@ -64,6 +65,9 @@ func TestStackManager_ListStacks(t *testing.T) {
 	filter := &entity.StackFilter{
 		// Set your desired filter parameters here
 	}
+	sortOptions := &entity.SortOptions{
+		Field: constant.SortByID,
+	}
 
 	// Create a mock stack repository
 	mockRepo := &mockStackRepository{}
@@ -71,7 +75,7 @@ func TestStackManager_ListStacks(t *testing.T) {
 	expectedStacks := []*entity.Stack{
 		// Set your expected stack entities here
 	}
-	mockRepo.On("List", ctx, filter).Return(expectedStacks, nil)
+	mockRepo.On("List", ctx, filter, sortOptions).Return(expectedStacks, nil)
 
 	// Create a new StackManager instance with the mock repository
 	manager := &StackManager{
@@ -79,7 +83,7 @@ func TestStackManager_ListStacks(t *testing.T) {
 	}
 
 	// Call the ListStacks method
-	stacks, err := manager.ListStacks(ctx, filter)
+	stacks, err := manager.ListStacks(ctx, filter, sortOptions)
 
 	// Assert that the returned stacks match the expected stacks
 	if !reflect.DeepEqual(stacks.Stacks, expectedStacks) {
@@ -92,7 +96,7 @@ func TestStackManager_ListStacks(t *testing.T) {
 	}
 
 	// Assert that the List method of the mock repository was called with the correct parameters
-	mockRepo.AssertCalled(t, "List", ctx, filter)
+	mockRepo.AssertCalled(t, "List", ctx, filter, sortOptions)
 }
 
 func TestStackManager_GetStackByID(t *testing.T) {

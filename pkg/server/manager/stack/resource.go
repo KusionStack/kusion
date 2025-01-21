@@ -65,7 +65,12 @@ func (m *StackManager) ReconcileResources(ctx context.Context, stackID uint, rel
 	filter := &entity.ResourceFilter{
 		StackID: stackID,
 	}
-	currentResources, err := m.resourceRepo.List(ctx, filter)
+	sortOptions := &entity.SortOptions{
+		Field:     constant.SortByID,
+		Ascending: true,
+	}
+
+	currentResources, err := m.resourceRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		return err
 	}

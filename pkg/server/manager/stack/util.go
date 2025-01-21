@@ -242,7 +242,7 @@ func tempPath(path string) string {
 	return fmt.Sprintf("%s/%s", constant.TmpDirPrefix, path)
 }
 
-func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) (*entity.StackFilter, error) {
+func (m *StackManager) BuildStackFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.StackFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building stack filter...")
 
@@ -256,7 +256,7 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 	if orgIDParam != "" {
 		orgID, err := strconv.Atoi(orgIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidOrganizationID
+			return nil, nil, constant.ErrInvalidOrganizationID
 		}
 		filter.OrgID = uint(orgID)
 	}
@@ -264,14 +264,14 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 	if projectIDParam != "" {
 		projectID, err := strconv.Atoi(projectIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidProjectID
+			return nil, nil, constant.ErrInvalidProjectID
 		}
 		filter.ProjectID = uint(projectID)
 	} else if projectNameParam != "" {
 		// Otherwise, use project name.
 		projectEntity, err := m.projectRepo.GetByName(ctx, projectNameParam)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		filter.ProjectID = projectEntity.ID
 		if pathParam != "" {
@@ -294,7 +294,18 @@ func (m *StackManager) BuildStackFilter(ctx context.Context, query *url.Values) 
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	stackSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+	return &filter, stackSortOptions, nil
 }
 
 func (m *StackManager) BuildRunFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.RunFilter, *entity.SortOptions, error) {
@@ -375,7 +386,7 @@ func (m *StackManager) BuildRunFilterAndSortOptions(ctx context.Context, query *
 
 	// Build sort options
 	sortBy := query.Get("sortBy")
-	sortBy, err := validateRunSortOptions(sortBy)
+	sortBy, err := validateSortOptions(sortBy)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -545,12 +556,12 @@ func validateExecuteRequestParams(params *StackRequestParams) error {
 	return nil
 }
 
-func validateRunSortOptions(sortBy string) (string, error) {
+func validateSortOptions(sortBy string) (string, error) {
 	if sortBy == "" {
 		return constant.SortByID, nil
 	}
-	if sortBy != constant.SortByID && sortBy != constant.SortByCreateTimestamp {
-		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id or create timestamp", sortBy)
+	if sortBy != constant.SortByID && sortBy != constant.SortByName && sortBy != constant.SortByCreateTimestamp {
+		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id, name or create timestamp", sortBy)
 	}
 	switch sortBy {
 	case constant.SortByCreateTimestamp:

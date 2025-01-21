@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -11,7 +12,7 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Values) (*entity.ResourceFilter, error) {
+func (m *ResourceManager) BuildResourceFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.ResourceFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building resource filter...")
 
@@ -26,7 +27,7 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Va
 	if orgIDParam != "" {
 		orgID, err := strconv.Atoi(orgIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidOrganizationID
+			return nil, nil, constant.ErrInvalidOrganizationID
 		}
 		filter.OrgID = uint(orgID)
 	}
@@ -34,7 +35,7 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Va
 		// if project id is present, use project id
 		projectID, err := strconv.Atoi(projectIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidProjectID
+			return nil, nil, constant.ErrInvalidProjectID
 		}
 		filter.ProjectID = uint(projectID)
 	}
@@ -42,7 +43,7 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Va
 		// if stack id is present, use stack id
 		stackID, err := strconv.Atoi(stackIDParam)
 		if err != nil {
-			return nil, constant.ErrInvalidStackID
+			return nil, nil, constant.ErrInvalidStackID
 		}
 		filter.StackID = uint(stackID)
 	}
@@ -69,7 +70,19 @@ func (m *ResourceManager) BuildResourceFilter(ctx context.Context, query *url.Va
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateResourceSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	projectSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, projectSortOptions, nil
 }
 
 func (m *ResourceManager) BuildResourceGraphFilter(ctx context.Context, query *url.Values) (*entity.ResourceFilter, error) {
@@ -92,4 +105,24 @@ func (m *ResourceManager) BuildResourceGraphFilter(ctx context.Context, query *u
 	}
 
 	return &filter, nil
+}
+
+func validateResourceSortOptions(sortBy string) (string, error) {
+	if sortBy == "" {
+		return constant.SortByID, nil
+	}
+	if sortBy != constant.SortByID && sortBy != constant.SortByResourceName && sortBy != constant.SortByResourceURN && sortBy != constant.SortByCreateTimestamp {
+		return "", fmt.Errorf("invalid sort option: %s. Can only sort by id, resource name, resource urn or create timestamp", sortBy)
+	}
+	switch sortBy {
+	case constant.SortByCreateTimestamp:
+		return "created_at", nil
+	case constant.SortByModifiedTimestamp:
+		return "updated_at", nil
+	case constant.SortByResourceName:
+		return "resource_name", nil
+	case constant.SortByResourceURN:
+		return "resource_urn", nil
+	}
+	return sortBy, nil
 }

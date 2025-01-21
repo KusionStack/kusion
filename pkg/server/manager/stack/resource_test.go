@@ -81,6 +81,8 @@ func TestStackManager_WriteResources(t *testing.T) {
 				Page:     constant.CommonPageDefault,
 				PageSize: constant.CommonPageSizeDefault,
 			},
+		}, &entity.SortOptions{
+			Field: constant.SortByID,
 		})
 		require.NoError(t, err)
 		require.Len(t, actual.Resources, 2)

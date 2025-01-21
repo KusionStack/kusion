@@ -75,7 +75,7 @@ func TestResourceRepository(t *testing.T) {
 				sqlmock.NewRows([]string{"count"}).
 					AddRow(2))
 
-		sqlMock.ExpectQuery("SELECT .* FROM `resource` .* IS NULL LIMIT").
+		sqlMock.ExpectQuery("SELECT .* FROM `resource`").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "resource_type"}).
 					AddRow(expectedIDFirst, expectedTypeFirst).
@@ -86,6 +86,8 @@ func TestResourceRepository(t *testing.T) {
 				Page:     constant.CommonPageDefault,
 				PageSize: constant.CommonPageSizeDefault,
 			},
+		}, &entity.SortOptions{
+			Field: constant.SortByID,
 		})
 		require.NoError(t, err)
 		require.Len(t, actual.Resources, 2)
