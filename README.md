@@ -22,10 +22,16 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/KusionStack/kusion)](https://goreportcard.com/report/github.com/KusionStack/kusion)
 [![Go Reference](https://pkg.go.dev/badge/github.com/KusionStack/kusion.svg)](https://pkg.go.dev/github.com/KusionStack/kusion)
 [![license](https://img.shields.io/github/license/KusionStack/kusion.svg)](https://github.com/KusionStack/kusion/blob/main/LICENSE)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kusion)](https://artifacthub.io/packages/helm/kusionstack/kusion)
+[![CNCF](https://shields.io/badge/CNCF-Sandbox%20project-blue?logo=linux-foundation&style=flat)](https://landscape.cncf.io/?item=provisioning--automation-configuration--kusionstack)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKusionStack%2Fkusion.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FKusionStack%2Fkusion?ref=badge_shield&issueType=license)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/KusionStack/kusion)
+[![Twitter Follow](https://img.shields.io/twitter/follow/KusionStack?style=social)](https://twitter.com/KusionStack)
+[![Medium](https://img.shields.io/badge/@kusionstack-black?style=flat&logo=medium&logoColor=white&link=https://medium.com/@kusionstack)](https://medium.com/@kusionstack)
+[![Slack](https://img.shields.io/badge/slack-kusion-blueviolet?logo=slack)](https://cloud-native.slack.com/archives/C07U0395UG0)
+
 
 <a href="https://www.producthunt.com/posts/kusion?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kusion" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=800331&theme=dark&t=1737444520838" alt="Kusion - Application&#0032;delivery&#0032;made&#0032;simple | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-
-<iframe style="border: none;" src="https://cards.producthunt.com/cards/products/906494" width="500" height="405" frameborder="0" scrolling="no" allowfullscreen></iframe>
 
 </div>
 
