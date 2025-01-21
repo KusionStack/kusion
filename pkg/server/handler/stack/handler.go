@@ -1,3 +1,4 @@
+//nolint:dupl
 package stack
 
 import (
@@ -177,6 +178,8 @@ func (h *Handler) GetStack() http.HandlerFunc {
 // @Param			path		query		string													false	"Path to filter stacks by. Default to all"
 // @Param			page		query		uint													false	"The current page to fetch. Default to 1"
 // @Param			pageSize	query		uint													false	"The size of the page. Default to 10"
+// @Param			sortBy		query		string													false	"Which field to sort the list by. Default to id"
+// @Param			ascending	query		bool													false	"Whether to sort the list in ascending order. Default to false"
 // @Success		200			{object}	handler.Response{data=response.PaginatedStackResponse}	"Success"
 // @Failure		400			{object}	error													"Bad Request"
 // @Failure		401			{object}	error													"Unauthorized"
@@ -193,13 +196,13 @@ func (h *Handler) ListStacks() http.HandlerFunc {
 
 		query := r.URL.Query()
 
-		filter, err := h.stackManager.BuildStackFilter(ctx, &query)
+		filter, stackSortOptions, err := h.stackManager.BuildStackFilterAndSortOptions(ctx, &query)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
 		}
 
-		stackEntities, err := h.stackManager.ListStacks(ctx, filter)
+		stackEntities, err := h.stackManager.ListStacks(ctx, filter, stackSortOptions)
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return

@@ -98,13 +98,20 @@ func (r *stackRepository) Get(ctx context.Context, id uint) (*entity.Stack, erro
 }
 
 // List retrieves all stacks.
-func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter) (*entity.StackListResult, error) {
+func (r *stackRepository) List(ctx context.Context, filter *entity.StackFilter, sortOptions *entity.SortOptions) (*entity.StackListResult, error) {
 	var dataModel []StackModel
 	stackEntityList := make([]*entity.Stack, 0)
 	pattern, args := GetStackQuery(filter)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
 	searchResult := r.db.WithContext(ctx).
 		Preload("Project").Preload("Project.Organization").Preload("Project.Source").
 		Joins("JOIN project ON project.id = stack.project_id").
+		Order(sortArgs).
 		Where(pattern, args...)
 
 	// Get total rows

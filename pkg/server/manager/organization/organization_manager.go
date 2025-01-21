@@ -15,8 +15,8 @@ import (
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
-func (m *OrganizationManager) ListOrganizations(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
-	organizationEntities, err := m.organizationRepo.List(ctx, filter)
+func (m *OrganizationManager) ListOrganizations(ctx context.Context, filter *entity.OrganizationFilter, sortOptions *entity.SortOptions) (*entity.OrganizationListResult, error) {
+	organizationEntities, err := m.organizationRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingOrganization
@@ -94,7 +94,7 @@ func (m *OrganizationManager) CreateOrganization(ctx context.Context, requestPay
 	return &createdEntity, nil
 }
 
-func (m *OrganizationManager) BuildOrganizationFilter(ctx context.Context, query *url.Values) (*entity.OrganizationFilter, error) {
+func (m *OrganizationManager) BuildOrganizationFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.OrganizationFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building organization filter...")
 
@@ -113,5 +113,17 @@ func (m *OrganizationManager) BuildOrganizationFilter(ctx context.Context, query
 		PageSize: pageSize,
 	}
 
-	return &filter, nil
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateOrganizationSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	organizationSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, organizationSortOptions, nil
 }

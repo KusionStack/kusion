@@ -151,14 +151,21 @@ func (r *resourceRepository) GetByKusionResourceURN(ctx context.Context, id stri
 }
 
 // List retrieves all resources.
-func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter) (*entity.ResourceListResult, error) {
+func (r *resourceRepository) List(ctx context.Context, filter *entity.ResourceFilter, sortOptions *entity.SortOptions) (*entity.ResourceListResult, error) {
 	var dataModel []ResourceModel
 	resourceEntityList := make([]*entity.Resource, 0)
 	pattern, args := GetResourceQuery(filter)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
 	searchResult := r.db.WithContext(ctx).
 		Preload("Stack").Preload("Stack.Project").Preload("Stack.Project.Organization").Preload("Stack.Project.Source").
 		Joins("JOIN stack ON stack.id = resource.stack_id").
 		Joins("JOIN project ON project.id = stack.project_id").
+		Order(sortArgs).
 		Where(pattern, args...)
 
 	// Get total rows

@@ -38,6 +38,18 @@ const docTemplate = `{
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -376,6 +388,18 @@ const docTemplate = `{
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -701,6 +725,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
                         "in": "query"
                     }
                 ],
@@ -1417,6 +1453,18 @@ const docTemplate = `{
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1870,6 +1918,18 @@ const docTemplate = `{
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2219,6 +2279,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
                         "in": "query"
                     }
                 ],
@@ -3303,6 +3375,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "The size of the page. Default to 10",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
                         "in": "query"
                     }
                 ],

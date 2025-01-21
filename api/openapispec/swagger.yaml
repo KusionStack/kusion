@@ -1435,6 +1435,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1654,6 +1662,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1865,6 +1881,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2330,6 +2354,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2624,6 +2656,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2851,6 +2891,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:
@@ -3571,6 +3619,14 @@ paths:
         in: query
         name: pageSize
         type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
       produces:
       - application/json
       responses:

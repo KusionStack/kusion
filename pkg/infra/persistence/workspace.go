@@ -109,12 +109,19 @@ func (r *workspaceRepository) GetByName(ctx context.Context, name string) (*enti
 }
 
 // List retrieves all workspaces.
-func (r *workspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter) (*entity.WorkspaceListResult, error) {
+func (r *workspaceRepository) List(ctx context.Context, filter *entity.WorkspaceFilter, sortOptions *entity.SortOptions) (*entity.WorkspaceListResult, error) {
 	var dataModel []WorkspaceModel
 	workspaceEntityList := make([]*entity.Workspace, 0)
 	pattern, args := GetWorkspaceQuery(filter)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
 	searchResult := r.db.WithContext(ctx).
 		Preload("Backend").
+		Order(sortArgs).
 		Where(pattern, args...)
 
 	// Get total rows

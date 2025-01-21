@@ -95,7 +95,7 @@ func (m *mockOrganizationRepository) Delete(ctx context.Context, id uint) error 
 	return args.Error(0)
 }
 
-func (m *mockOrganizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter) (*entity.OrganizationListResult, error) {
+func (m *mockOrganizationRepository) List(ctx context.Context, filter *entity.OrganizationFilter, sortOptions *entity.SortOptions) (*entity.OrganizationListResult, error) {
 	args := m.Called(ctx)
 	return &entity.OrganizationListResult{
 		Organizations: args.Get(0).([]*entity.Organization),
@@ -143,7 +143,7 @@ func (m *mockSourceRepository) Delete(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-func (m *mockSourceRepository) List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
+func (m *mockSourceRepository) List(ctx context.Context, filter *entity.SourceFilter, sortOptions *entity.SortOptions) (*entity.SourceListResult, error) {
 	args := m.Called(ctx)
 	return &entity.SourceListResult{
 		Sources: args.Get(0).([]*entity.Source),

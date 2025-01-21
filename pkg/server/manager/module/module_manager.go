@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -125,8 +126,8 @@ func (m *ModuleManager) GetModuleByName(ctx context.Context, name string) (*enti
 	return existingEntity, nil
 }
 
-func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
-	moduleEntities, err := m.moduleRepo.List(ctx, filter)
+func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFilter, sortOptions *entity.SortOptions) (*entity.ModuleListResult, error) {
+	moduleEntities, err := m.moduleRepo.List(ctx, filter, sortOptions)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrGettingNonExistingModule
@@ -138,7 +139,7 @@ func (m *ModuleManager) ListModules(ctx context.Context, filter *entity.ModuleFi
 	return moduleEntities, nil
 }
 
-func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
+func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceID uint, filter *entity.ModuleFilter, sortOptions *entity.SortOptions) (*entity.ModuleListResult, error) {
 	// Get workspace entity by ID.
 	existingEntity, err := m.workspaceRepo.Get(ctx, workspaceID)
 	if err != nil {
@@ -205,13 +206,23 @@ func (m *ModuleManager) ListModulesByWorkspaceID(ctx context.Context, workspaceI
 		end = len(moduleEntities)
 	}
 
+	// Sort moduleEntities based on sort options
+	if sortOptions != nil && len(moduleEntities) > 0 && sortOptions.Field == "name" {
+		sort.Slice(moduleEntities, func(i, j int) bool {
+			if sortOptions.Ascending {
+				return strings.ToLower(moduleEntities[i].Name) < strings.ToLower(moduleEntities[j].Name)
+			}
+			return strings.ToLower(moduleEntities[i].Name) > strings.ToLower(moduleEntities[j].Name)
+		})
+	}
+
 	return &entity.ModuleListResult{
 		ModulesWithVersion: moduleEntities[start:end],
 		Total:              len(moduleEntities),
 	}, nil
 }
 
-func (m *ModuleManager) BuildModuleFilter(ctx context.Context, query *url.Values) (*entity.ModuleFilter, error) {
+func (m *ModuleManager) BuildModuleFilterAndSortOptions(ctx context.Context, query *url.Values) (*entity.ModuleFilter, *entity.SortOptions, error) {
 	logger := logutil.GetLogger(ctx)
 	logger.Info("Building module filter...")
 
@@ -235,5 +246,18 @@ func (m *ModuleManager) BuildModuleFilter(ctx context.Context, query *url.Values
 		Page:     page,
 		PageSize: pageSize,
 	}
-	return &filter, nil
+
+	// Build sort options
+	sortBy := query.Get("sortBy")
+	sortBy, err := validateModuleSortOptions(sortBy)
+	if err != nil {
+		return nil, nil, err
+	}
+	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
+	projectSortOptions := &entity.SortOptions{
+		Field:     sortBy,
+		Ascending: SortOrderAscending,
+	}
+
+	return &filter, projectSortOptions, nil
 }

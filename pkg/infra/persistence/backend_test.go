@@ -147,7 +147,7 @@ func TestBackendRepository(t *testing.T) {
 				sqlmock.NewRows([]string{"count"}).
 					AddRow(2))
 
-		sqlMock.ExpectQuery("SELECT .* FROM `backend` .* IS NULL LIMIT").
+		sqlMock.ExpectQuery("SELECT .* FROM `backend`").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "name"}).
 					AddRow(expectedIDFirst, expectedNameFirst).
@@ -158,6 +158,8 @@ func TestBackendRepository(t *testing.T) {
 				Page:     constant.CommonPageDefault,
 				PageSize: constant.CommonPageSizeDefault,
 			},
+		}, &entity.SortOptions{
+			Field: constant.SortByID,
 		})
 		require.NoError(t, err)
 		require.Len(t, actual.Backends, 2)

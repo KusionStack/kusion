@@ -175,7 +175,7 @@ func TestSourceRepository(t *testing.T) {
 				sqlmock.NewRows([]string{"count"}).
 					AddRow(2))
 
-		sqlMock.ExpectQuery("SELECT .* FROM `source` .* IS NULL LIMIT").
+		sqlMock.ExpectQuery("SELECT .* FROM `source`").
 			WillReturnRows(
 				sqlmock.NewRows([]string{"id", "remote", "source_provider"}).
 					AddRow(expectedIDFirst, expectedRemoteFirst, expectedSourceProviderFirst).
@@ -186,6 +186,8 @@ func TestSourceRepository(t *testing.T) {
 				Page:     constant.CommonPageDefault,
 				PageSize: constant.CommonPageSizeDefault,
 			},
+		}, &entity.SortOptions{
+			Field: constant.SortByID,
 		})
 		require.NoError(t, err)
 		require.Len(t, actual.Sources, 2)

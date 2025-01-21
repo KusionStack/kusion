@@ -94,11 +94,19 @@ func (r *moduleRepository) Get(ctx context.Context, name string) (*entity.Module
 }
 
 // List retrieves all the modules.
-func (r *moduleRepository) List(ctx context.Context, filter *entity.ModuleFilter) (*entity.ModuleListResult, error) {
+func (r *moduleRepository) List(ctx context.Context, filter *entity.ModuleFilter, sortOptions *entity.SortOptions) (*entity.ModuleListResult, error) {
 	var dataModel []ModuleModel
 	moduleEntityList := make([]*entity.Module, 0)
 	pattern, args := GetModuleQuery(filter)
-	searchResult := r.db.WithContext(ctx).Where(pattern, args...)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
+	searchResult := r.db.WithContext(ctx).
+		Order(sortArgs).
+		Where(pattern, args...)
 
 	// Get total rows
 	var totalRows int64

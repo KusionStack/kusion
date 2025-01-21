@@ -109,11 +109,19 @@ func (r *sourceRepository) GetByRemote(ctx context.Context, remote string) (*ent
 }
 
 // List retrieves all sources.
-func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter) (*entity.SourceListResult, error) {
+func (r *sourceRepository) List(ctx context.Context, filter *entity.SourceFilter, sortOptions *entity.SortOptions) (*entity.SourceListResult, error) {
 	var dataModel []SourceModel
 	sourceEntityList := make([]*entity.Source, 0)
 	pattern, args := GetSourceQuery(filter)
-	searchResult := r.db.WithContext(ctx).Where(pattern, args...)
+
+	sortArgs := sortOptions.Field
+	if !sortOptions.Ascending {
+		sortArgs += " DESC"
+	}
+
+	searchResult := r.db.WithContext(ctx).
+		Order(sortArgs).
+		Where(pattern, args...)
 
 	// Get total rows
 	var totalRows int64
