@@ -24,9 +24,12 @@ const GenerateDetail = ({ open, currentRecord, handleClose }) => {
     }
   }, [ansi_up, currentRecord?.logs, logRef]);
 
+  const isExtra = yamlStr?.data?.startsWith('|') || yamlStr?.data?.startsWith('>');
+  const yamlData = isExtra ? yamlStr?.data?.substr(1) : yamlStr?.data
+
   return (
     <Drawer
-      title={'Detail'}
+      title={`${currentRecord?.type} Detail`}
       width="80%"
       open={open}
       onClose={handleClose}
@@ -37,7 +40,7 @@ const GenerateDetail = ({ open, currentRecord, handleClose }) => {
         </div>
         {
           activeKey === 'Exec Result' && <div style={{ height: '100%', overflowY: 'scroll' }}>
-            <YamlEditor value={yamlStr?.data} readOnly={true} themeMode='DARK' />
+            <YamlEditor value={yamlData?.trim()} readOnly={true} themeMode='DARK' />
           </div>
         }
         {

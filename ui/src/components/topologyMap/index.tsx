@@ -437,9 +437,10 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             zIndex: -4,
             x: 185,
             y: 15,
-            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            lineWidth: 1,
             r: 3,
-            opacity: 0.6,
+            opacity: 0.4,
           },
           name: 'status-circle1',
         })
@@ -449,9 +450,10 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             zIndex: -3,
             x: 185,
             y: 15,
-            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
-            opacity: 0.6,
+            opacity: 0.4,
+            lineWidth: 1,
           },
           name: 'status-circle1',
         })
@@ -460,9 +462,10 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             zIndex: -2,
             x: 185,
             y: 15,
-            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
-            opacity: 0.6,
+            opacity: 0.4,
+            lineWidth: 1,
           },
           name: 'status-circle2',
         })
@@ -471,18 +474,20 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             zIndex: -1,
             x: 185,
             y: 15,
-            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            stroke: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 3,
-            opacity: 0.6,
+            opacity: 0.4,
+            lineWidth: 1,
           },
           name: 'status-circle3',
         })
         group.sort(); // Sort according to the zIndex
+
         statusShape0.animate({
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 4000,
+          duration: 6000,
           easing: 'easeCubic',
           delay: 0,
           repeat: true,
@@ -491,7 +496,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 4000,
+          duration: 6000,
           easing: 'easeCubic',
           delay: 1000,
           repeat: true,
@@ -500,7 +505,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 4000,
+          duration: 6000,
           easing: 'easeCubic',
           delay: 2000,
           repeat: true,
@@ -509,7 +514,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           r: 8,
           opacity: 0.1,
         }, {
-          duration: 4000,
+          duration: 6000,
           easing: 'easeCubic',
           delay: 3000,
           repeat: true,
