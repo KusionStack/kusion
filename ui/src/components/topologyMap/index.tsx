@@ -432,40 +432,65 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           })
         }
 
-
-
-
-        const statusShape = group.addShape('circle', {
+        const statusShape1 = group.addShape('circle', {
           attrs: {
-            x: 190,
-            y: 10,
+            zIndex: -3,
+            x: 185,
+            y: 15,
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
             r: 4,
-            opacity: 0.8,
+            opacity: 0.6,
           },
-          name: 'status-circle',
+          name: 'status-circle1',
         })
-
-        statusShape.animate({
-          x: 190,
-          y: 10,
-          r: 5,
-          opacity: 0.5,
+        const statusShape2 = group.addShape('circle', {
+          attrs: {
+            zIndex: -2,
+            x: 185,
+            y: 15,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            r: 4,
+            opacity: 0.6,
+          },
+          name: 'status-circle2',
+        })
+        const statusShape3 = group.addShape('circle', {
+          attrs: {
+            zIndex: -1,
+            x: 185,
+            y: 15,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            r: 4,
+            opacity: 0.6,
+          },
+          name: 'status-circle3',
+        })
+        group.sort(); // Sort according to the zIndex
+        statusShape1.animate({
+          r: 10,
+          opacity: 0.1,
         }, {
-          duration: 1000,
+          duration: 3000,
           easing: 'easeCubic',
           delay: 0,
           repeat: true,
         },)
-        statusShape.animate({
-          x: 190,
-          y: 10,
-          r: 4,
-          opacity: 0.3,
+        statusShape2.animate({
+          r: 10,
+          opacity: 0.1,
         }, {
-          duration: 1000,
+          duration: 3000,
           easing: 'easeCubic',
-          delay: 0,
+          delay: 1000,
+          repeat: true,
+        },)
+        statusShape3.animate({
+          r: 10,
+          opacity: 0.1,
+        }, {
+          duration: 3000,
+          easing: 'easeCubic',
+          delay: 2000,
           repeat: true,
         },)
 

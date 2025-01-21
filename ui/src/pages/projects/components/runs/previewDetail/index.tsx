@@ -31,6 +31,10 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
     }
   }, [ansi_up, currentRecord?.logs, logRef]);
 
+  const dotStyle = {
+    background: changeSteps?.[selectedResource]?.action === 'Undefined' ? '#ff4d4f' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "rgba(0,0,0,0.25)" : '#faad14'
+  }
+
   return (
     <Drawer
       title={'Preview Detail'}
@@ -64,14 +68,25 @@ const PreviewDetail = ({ open, currentRecord, handleClose }) => {
                     })
                   }
                 </Select>
-                <div className={styles.status}>
-                  <div className={styles.pulse}>
-                    <Badge style={{ marginLeft: 10 }} status={
-                      changeSteps?.[selectedResource]?.action === 'Undefined' ? 'error' : changeSteps?.[selectedResource]?.action === 'UnChanged' ? "default" : 'warning'
-                    } />
+                {
+                  selectedResource && <div className={styles.status}>
+                    <div className={styles.animate_wave}>
+                      <div
+                        style={dotStyle}
+                        className={`${styles.animate_circle} ${styles.animate_inner}`}>
+                      </div>
+                      <div
+                        style={dotStyle}
+                        className={`${styles.animate_circle} ${styles.animate_middle}`}>
+                      </div>
+                      <div
+                        style={dotStyle}
+                        className={`${styles.animate_circle} ${styles.animate_outer}`}>
+                      </div>
+                    </div>
+                    {changeSteps?.[selectedResource]?.action}
                   </div>
-                  {changeSteps?.[selectedResource]?.action}
-                </div>
+                }
               </div>
               <CodeDiffView oldContent={changeSteps?.[selectedResource]?.from ? JSON.stringify(changeSteps?.[selectedResource]?.from, null, 2) : ''} newContent={changeSteps?.[selectedResource]?.to ? JSON.stringify(changeSteps?.[selectedResource]?.to, null, 2) : ''} />
             </>

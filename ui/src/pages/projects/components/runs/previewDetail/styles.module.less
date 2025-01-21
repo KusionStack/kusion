@@ -7,25 +7,68 @@
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    margin-left: 10px;
 
-    .pulse {
-      margin-right: 7px;
-      animation: fade-animation 1.5s infinite;
+    .animate_wave {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+    }
+
+    .animate_circle {
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .animate_inner {
+      width: 6px;
+      height: 6px;
+      z-index: 3;
+    }
+
+    .animate_middle {
+      width: 8px;
+      height: 8px;
+      opacity: 0.6;
+      z-index: 2;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .animate_outer {
+      width: 10px;
+      height: 10px;
+      opacity: 0.1;
+      z-index: 1;
+      animation: pulse 2s ease-in-out infinite;
     }
   }
 }
 
-
-@keyframes fade-animation {
+@keyframes pulse {
   0% {
-    opacity: 0;
+    transform: scale(1);
   }
 
   50% {
-    opacity: 1;
+    transform: scale(1.8);
   }
 
   100% {
-    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+
+@keyframes flash {
+  0% {
+    opacity: .6;
+    transform: scale(.8)
+  }
+
+  to {
+    opacity: 0.1;
+    transform: scale(2.4)
   }
 }
