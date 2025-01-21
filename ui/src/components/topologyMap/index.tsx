@@ -432,13 +432,25 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
           })
         }
 
+        const statusShape0 = group.addShape('circle', {
+          attrs: {
+            zIndex: -4,
+            x: 185,
+            y: 15,
+            fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
+            r: 3,
+            opacity: 0.6,
+          },
+          name: 'status-circle1',
+        })
+
         const statusShape1 = group.addShape('circle', {
           attrs: {
             zIndex: -3,
             x: 185,
             y: 15,
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
-            r: 4,
+            r: 3,
             opacity: 0.6,
           },
           name: 'status-circle1',
@@ -449,7 +461,7 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             x: 185,
             y: 15,
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
-            r: 4,
+            r: 3,
             opacity: 0.6,
           },
           name: 'status-circle2',
@@ -460,37 +472,46 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
             x: 185,
             y: 15,
             fill: statusColorMap?.[(cfg?.nodeData as any)?.status],
-            r: 4,
+            r: 3,
             opacity: 0.6,
           },
           name: 'status-circle3',
         })
         group.sort(); // Sort according to the zIndex
-        statusShape1.animate({
-          r: 10,
+        statusShape0.animate({
+          r: 8,
           opacity: 0.1,
         }, {
-          duration: 3000,
+          duration: 4000,
           easing: 'easeCubic',
           delay: 0,
           repeat: true,
         },)
-        statusShape2.animate({
-          r: 10,
+        statusShape1.animate({
+          r: 8,
           opacity: 0.1,
         }, {
-          duration: 3000,
+          duration: 4000,
           easing: 'easeCubic',
           delay: 1000,
           repeat: true,
         },)
-        statusShape3.animate({
-          r: 10,
+        statusShape2.animate({
+          r: 8,
           opacity: 0.1,
         }, {
-          duration: 3000,
+          duration: 4000,
           easing: 'easeCubic',
           delay: 2000,
+          repeat: true,
+        },)
+        statusShape3.animate({
+          r: 8,
+          opacity: 0.1,
+        }, {
+          duration: 4000,
+          easing: 'easeCubic',
+          delay: 3000,
           repeat: true,
         },)
 
