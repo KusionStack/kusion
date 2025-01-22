@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import G6 from '@antv/g6'
 import type {
   IG6GraphEvent,
@@ -100,17 +100,6 @@ type IProps = {
   onTopologyNodeClick?: (node: any) => void
 }
 
-interface OverviewTooltipProps {
-  type: string
-  itemWidth: number
-  hiddenButtonInfo: {
-    x: number
-    y: number
-    e?: IG6GraphEvent
-  }
-  open: boolean
-}
-
 const statusColorMap = {
   destroyed: '#8a8a8a',
   applied: '#1778ff',
@@ -118,98 +107,8 @@ const statusColorMap = {
   unknown: '#F5222D',
 }
 
-const OverviewTooltip: React.FC<OverviewTooltipProps> = ({
-  type,
-  hiddenButtonInfo,
-}) => {
-  const model = hiddenButtonInfo?.e?.item?.get('model') as NodeModel
-  const { nodeData } = model
-
-  const boxStyle: any = {
-    background: '#fff',
-    border: '1px solid #f5f5f5',
-    position: 'absolute',
-    top: hiddenButtonInfo?.y || -500,
-    left: hiddenButtonInfo?.x + 14 || -500,
-    transform: 'translate(-50%, -100%)',
-    zIndex: 5,
-    padding: '6px 12px',
-    borderRadius: 8,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-    borderTop: '2px solid #1677ff',
-  }
-
-  const itemStyle = {
-    color: '#333',
-    fontSize: 14,
-    whiteSpace: 'nowrap',
-  }
-
-  const labelStyle = {
-    color: '#999',
-    fontSize: 14,
-    marginRight: 5,
-  }
-
-  const statusStyleMap = {
-    destroyed: {
-      padding: '2px 5px',
-      borderRadius: 6,
-      color: 'rgba(0,0,0,0.88)',
-      background: '#fafafa',
-      border: '1px solid #d9d9d9'
-    },
-    applied: {
-      border: '1px solid #91caff',
-      padding: '2px 5px',
-      borderRadius: 6,
-      color: '#1778ff',
-      background: '#e6f4ff',
-    },
-    failed: {
-      padding: '2px 5px',
-      borderRadius: 6,
-      color: '#ff4d4f',
-      background: '#fff2f0',
-      border: '1px solid #ffccc7'
-    }
-  }
-
-  return (
-    <div style={boxStyle}>
-      <div style={itemStyle}>
-        {model?.label}
-      </div>
-      <div style={itemStyle}>
-        <span style={labelStyle}>Type: </span>
-        {nodeData?.resourceType}
-      </div>
-      <div style={itemStyle}>
-        <span style={labelStyle}>Status: </span>
-        <span style={statusStyleMap?.[nodeData?.status]}>
-          {nodeData?.status}
-        </span>
-      </div>
-      <div style={itemStyle}>
-        <span style={labelStyle}>cloudResourceID: </span>
-        {nodeData?.cloudResourceID}
-      </div>
-      <div style={itemStyle}>
-        <span style={labelStyle}>iamResourceID: </span>
-        {nodeData?.iamResourceID}
-      </div>
-      <div style={itemStyle}>
-        <span style={labelStyle}>resourceURN: </span>
-        {nodeData?.resourceURN}
-      </div>
-    </div>
-  )
-}
-
 insertCss(`
   .g6-component-tooltip {
-    // border-top: 2px solid #1677ff;
-    // background-color: rgba(255, 255, 255, 0.8);
     background: #fff;
     box-shadow: rgb(174, 174, 174) 0px 0px 10px;
   }
@@ -295,29 +194,13 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
   const graphRef = useRef<IAbstractGraph | null>(null)
   const location = useLocation()
   const { type } = queryString.parse(location?.search)
-  const [tooltipopen, setTooltipopen] = useState(false)
-  const [itemWidth, setItemWidth] = useState<number>(100)
-  const [hiddenButtontooltip, setHiddenButtontooltip] = useState<{
-    x: number
-    y: number
-    e?: IG6GraphEvent
-  }>({ x: -500, y: -500, e: undefined })
-
 
   function handleMouseEnter(evt) {
     graphRef.current?.setItemState(evt.item, 'hoverState', true)
-    const bbox = evt.item.getBBox()
-    const point = graphRef.current?.getCanvasByPoint(bbox.centerX, bbox.minY)
-    if (bbox) {
-      setItemWidth(bbox.width)
-    }
-    setHiddenButtontooltip({ x: point.x, y: point.y - 5, e: evt })
-    setTooltipopen(true)
   }
 
   const handleMouseLeave = (evt: IG6GraphEvent) => {
     graphRef.current?.setItemState(evt.item, 'hoverState', false)
-    setTooltipopen(false)
   }
 
   G6.registerNode(
@@ -795,14 +678,6 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         >
           <Loading />
         </div>
-        {/* {tooltipopen ? (
-          <OverviewTooltip
-            type={type as string}
-            itemWidth={itemWidth}
-            hiddenButtonInfo={hiddenButtontooltip}
-            open={tooltipopen}
-          />
-        ) : null} */}
       </div>
     </div>
   )
