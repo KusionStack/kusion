@@ -114,7 +114,7 @@ build-local-darwin-arm64: show-portal-status $(BUILD_PORTAL) ## Build kusion too
 	mkdir -p ./_build/bundles/kusion-darwin-arm64/kclvm/bin
 
 	# Update version
-	go generate ./pkg/version
+	#go generate ./pkg/version
 
 	# Build kusion
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
