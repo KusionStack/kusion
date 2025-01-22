@@ -4,6 +4,31 @@
   background-color: #f7faff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+
+  .g6_node_status {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: flex;
+
+
+    .status_item {
+      margin-left: 10px;
+      color: #8a8a8a;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+
+      .status_dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 3px;
+        margin-left: 5px;
+      }
+    }
+  }
 
   .g6_overview {
     position: relative;
