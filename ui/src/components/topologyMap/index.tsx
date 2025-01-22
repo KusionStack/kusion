@@ -604,7 +604,6 @@ const TopologyMap = forwardRef((props: IProps, drawRef) => {
         graphRef.current?.on('node:click', evt => {
           const node = evt.item
           const model = node.getModel()
-          setTooltipopen(false)
           graphRef.current?.getNodes().forEach(n => {
             graphRef.current?.setItemState(n, 'selected', false)
           })
