@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>🌐 官网</b></a> •
-  <a href="https://www.kusionstack.io/docs/getting-started/deliver-quickstart" target="_blank"><b>⚡️ 快速开始</b></a> •
+  <a href="https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart" target="_blank"><b>⚡️ 快速开始</b></a> •
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>📚 文档</b></a> •
   <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 讨论</b></a><br>
   <a href="https://github.com/KusionStack/kusion/blob/main/README.md" target="_blank">[English]</a>
@@ -25,7 +25,7 @@
 
 </div>
 
-Kusion 是一个意图驱动的[平台编排器](https://internaldeveloperplatform.org/platform-orchestrators/)，它位于[内部开发者平台 (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/)的核心。通过 Kusion，你可以启用以应用为中心的开发，你的开发者只需要编写单一的应用配置 - [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration)，无需提供特定于环境的值，即可定义工作负载和所有资源依赖，Kusion 确保为应用运行提供一切所需。
+Kusion 是一个意图驱动的[平台编排器](https://internaldeveloperplatform.org/platform-orchestrators/)，它位于[内部开发者平台 (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/)的核心。通过 Kusion，你可以启用以应用为中心的开发，你的开发者只需要编写单一的应用配置 - [AppConfiguration](https://www.kusionstack.io/docs/concepts/appconfigurations)，无需提供特定于环境的值，即可定义工作负载和所有资源依赖，Kusion 确保为应用运行提供一切所需。
 
 Kusion 帮助负责创建应用的应用开发者以及负责维护应用运行的基础设施的平台工程师。这些角色在你的组织中可能重叠或不同，但 Kusion 旨在为任何负责这些任务的从业者减轻工作负担。
 
@@ -64,12 +64,12 @@ brew install KusionStack/tap/kusion
 powershell -Command "iwr -useb https://www.kusionstack.io/scripts/install.ps1 | iex"
 ```
 
-> 有关安装的更多信息，请参考[安装指南](https://www.kusionstack.io/docs/getting-started/install-kusion)以获取更多选项。
+> 有关安装的更多信息，请参考[安装指南](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/install-kusion)以获取更多选项。
 
 ### 部署
 
 要部署应用程序，您可以运行 `kusion apply` 命令。
-> 要快速启动并运行 Kusion，请参阅[快速开始指南](https://www.kusionstack.io/docs/getting-started/deliver-quickstart)。
+> 要快速启动并运行 Kusion，请参阅[快速开始指南](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart)。
 >
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)

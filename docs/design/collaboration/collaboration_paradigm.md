@@ -124,7 +124,7 @@ Based on our extensive practical experiences and in-depth conversations with oth
 
 We aim to minimize application developers' cognitive load and enable self-service so we do not let application developers care about low-level infrastructure details. They only need to declare what feature they want in a developer-friendly way, such as declaring one application needs a MySQL database and public Internet access with Kusion modules provided by platform engineers. Then Kusion will provision a MySQL database and a LoadBalancer that complies with platform standardization.
 
-We introduce a set of Kusion modules to standardize deployment and the root module is AppConfiguration. AppConfiguration is a declarative application configuration model maintained by application developers to configure all operation intentions during SDLC and more details can be found on our [website](https://www.kusionstack.io/docs/concepts/app-configuration). Each Kusion module in the AppConfiguration represents a building block built by platform engineers to standardize the application's behavior and hide infrastructure complexity, such as database, networking, and monitoring.
+We introduce a set of Kusion modules to standardize deployment and the root module is AppConfiguration. AppConfiguration is a declarative application configuration model maintained by application developers to configure all operation intentions during SDLC and more details can be found on our [website](https://www.kusionstack.io/docs/concepts/appconfigurations). Each Kusion module in the AppConfiguration represents a building block built by platform engineers to standardize the application's behavior and hide infrastructure complexity, such as database, networking, and monitoring.
 
 ## Terms
 
