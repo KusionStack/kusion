@@ -35,7 +35,7 @@ Kusion is application-centric. Next, we start from the perspective of applicatio
 
 ### Step 1: Write
  
-In order to reduce the complexity of configuration writing, Kusion uses code to describe the configuration, and provides a concise and universal application configuration model. The model's name is [`AppConfiguration`](https://www.kusionstack.io/docs/concepts/app-configuration). AppConfiguration simplifies and abstracts underlying resources, shielding configuration items that application developers don't need to pay attention to. Besides, application developers can leverage advantages of code, to avoid repeated and error-prone traditional configuration writing work.
+In order to reduce the complexity of configuration writing, Kusion uses code to describe the configuration, and provides a concise and universal application configuration model. The model's name is [`AppConfiguration`](https://www.kusionstack.io/docs/concepts/appconfigurations). AppConfiguration simplifies and abstracts underlying resources, shielding configuration items that application developers don't need to pay attention to. Besides, application developers can leverage advantages of code, to avoid repeated and error-prone traditional configuration writing work.
 
 The output of the step *Write* is a piece of application configuration code. The code can fully indicate the application delivery result that the developer focuses on.
 

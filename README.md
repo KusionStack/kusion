@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>🌐 Website</b></a> •
-  <a href="https://www.kusionstack.io/docs/getting-started/deliver-quickstart" target="_blank"><b>⚡️ Quick Start</b></a> •
+  <a href="https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart" target="_blank"><b>⚡️ Quick Start</b></a> •
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>📚 Docs</b></a> •
   <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 Discussions</b></a><br>
   [English] 
@@ -30,13 +30,13 @@
 [![Slack](https://img.shields.io/badge/slack-kusion-blueviolet?logo=slack)](https://cloud-native.slack.com/archives/C07U0395UG0)
 
 
-<a href="https://www.producthunt.com/posts/kusion?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kusion" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=800331&theme=dark&t=1737444520838" alt="Kusion - Application&#0032;delivery&#0032;made&#0032;simple | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<a href="https://www.producthunt.com/posts/kusion?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kusion" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=800331&theme=dark" alt="Kusion - Application&#0032;delivery&#0032;made&#0032;simple | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 </div>
 
 ## What is Kusion?
 
-Kusion is an intent-driven [Platform Orchestrator](https://internaldeveloperplatform.org/platform-orchestrators/), which sits at the core of an [Internal Developer Platform (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/). With Kusion you can enable app-centric development, your developers only need to write a single application specification - [AppConfiguration](https://www.kusionstack.io/docs/concepts/app-configuration). AppConfiguration defines the workload and all resource dependencies without needing to supply environment-specific values, Kusion ensures it provides everything needed for the application to run.
+Kusion is an intent-driven [Platform Orchestrator](https://internaldeveloperplatform.org/platform-orchestrators/), which sits at the core of an [Internal Developer Platform (IDP)](https://internaldeveloperplatform.org/what-is-an-internal-developer-platform/). With Kusion you can enable app-centric development, your developers only need to write a single application specification - [AppConfiguration](https://www.kusionstack.io/docs/concepts/appconfigurations). AppConfiguration defines the workload and all resource dependencies without needing to supply environment-specific values, Kusion ensures it provides everything needed for the application to run.
 
 Kusion helps app developers who are responsible for creating applications and the platform engineers responsible for maintaining the infrastructure the applications run on. These roles may overlap or align differently in your organization, but Kusion is intended to ease the workload for any practitioner responsible for either set of tasks.
 
@@ -93,13 +93,13 @@ brew install KusionStack/tap/kusion
 powershell -Command "iwr -useb https://www.kusionstack.io/scripts/install.ps1 | iex"
 ```
 
-> For more information about installation, please refer to the [Installation Guide](https://www.kusionstack.io/docs/getting-started/install-kusion) for more options.
+> For more information about installation, please refer to the [Installation Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/install-kusion) for more options.
 
 ### Deploy
 
 To deploy an application, you can run the `kusion apply` command.
 
-> To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/deliver-quickstart).
+> To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart).
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
 

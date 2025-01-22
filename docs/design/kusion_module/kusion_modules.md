@@ -96,7 +96,7 @@ During executing the command `kusion generate`, Kusion will download modules des
 
 #### Build the Spec
 
-All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final [Spec](https://www.kusionstack.io/docs/concepts/spec).
+All KCL codes written by app devs will be compiled by KPM and output an intermediate YAML. Kusion combines this YAML and corresponding workspace configurations as inputs of Kusion module generators and invokes these generators to get the final [Spec](https://www.kusionstack.io/docs/concepts/specs).
 
 ##### Generator Interface
 
