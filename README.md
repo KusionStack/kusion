@@ -32,6 +32,7 @@
 
 
 <a href="https://www.producthunt.com/posts/kusion?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kusion" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=800331&theme=dark" alt="Kusion - Application&#0032;delivery&#0032;made&#0032;simple | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<a href="https://www.producthunt.com/posts/kusion?embed=true&utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-kusion" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=800331&theme=neutral&period=daily" alt="Kusion - Application&#0032;delivery&#0032;made&#0032;simple | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 </div>
 
