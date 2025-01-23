@@ -12,6 +12,7 @@
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>🌐 Website</b></a> •
   <a href="https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart" target="_blank"><b>⚡️ Quick Start</b></a> •
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>📚 Docs</b></a> •
+  <a href="https://kusion.kusionstack.io/" target="_blank"><b>📚 Landing Page</b></a> •
   <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 Discussions</b></a><br>
   [English] 
   <a href="https://github.com/KusionStack/kusion/blob/main/README-zh.md" target="_blank">[中文]</a>
@@ -67,7 +68,20 @@ There are two key workflows for Kusion:
 	![workflow](docs/app_workflow.jpg)
 	</div>
 
-## Quick Start
+
+## Introducing Kusion Server with a Developer Portal
+
+Starting With Kusion v0.14.0, we are officially introducing Kusion Server with a Developer Portal.
+
+Kusion Server runs as a long-running service, providing the same set of functionalities as the Kusion CLI, with additional capabilities to manage application metadata and visualized application resource graphs. 
+
+Kusion Server manages instances of Projects, Stacks, Workspaces, Runs, etc. centrally via a Developer Portal and a set of RESTful APIs for other systems to integrate with.
+
+## Quick Start With Kusion Server with a Developer Portal
+
+To start with a Kusion Server, please follow the [QuickStart Guide for Kusion Server](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-server/install-kusion).
+
+## Quick Start With Kusion CLI
 
 This guide will cover:
 
@@ -93,7 +107,7 @@ brew install KusionStack/tap/kusion
 powershell -Command "iwr -useb https://www.kusionstack.io/scripts/install.ps1 | iex"
 ```
 
-> For more information about installation, please refer to the [Installation Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/install-kusion) for more options.
+> For more information about CLI installation, please refer to the [CLI Installation Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/install-kusion) for more options.
 
 ### Deploy
 
@@ -102,6 +116,13 @@ To deploy an application, you can run the `kusion apply` command.
 > To rapidly get Kusion up and running, please refer to the [Quick Start Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart).
 
 ![apply](https://raw.githubusercontent.com/KusionStack/kusionstack.io/main/static/img/docs/user_docs/getting-started/kusion_apply_quickstart.gif)
+
+## Case Studies
+
+Check out these case studies on how Kusion can be useful in production:
+
+- Jan 2025: [Configuration Management at Ant Group: Generated Manifest & Immutable Desired State](https://blog.kusionstack.io/configuration-management-at-ant-group-generated-manifest-immutable-desired-state-3c50e363a3fb)
+- Jan 2024: [Modeling application delivery using AppConfiguration](https://blog.kusionstack.io/modeling-application-delivery-using-appconfiguration-d291830de8f1)
 
 ## Contact
 
