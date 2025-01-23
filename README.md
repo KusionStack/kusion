@@ -78,6 +78,8 @@ Kusion Server runs as a long-running service, providing the same set of function
 
 Kusion Server manages instances of Projects, Stacks, Workspaces, Runs, etc. centrally via a Developer Portal and a set of RESTful APIs for other systems to integrate with.
 
+https://github.com/user-attachments/assets/94a9588b-1eb9-4c41-a3a3-c4dce12d0330
+
 ## Quick Start With Kusion Server with a Developer Portal
 
 To start with a Kusion Server, please follow the [QuickStart Guide for Kusion Server](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-server/install-kusion).
