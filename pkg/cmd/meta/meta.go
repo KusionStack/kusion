@@ -16,7 +16,6 @@ package meta
 
 import (
 	"github.com/spf13/cobra"
-
 	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/backend"
 	"kusionstack.io/kusion/pkg/project"
@@ -33,21 +32,6 @@ type MetaFlags struct {
 	Backend *string
 
 	WorkDir *string
-}
-
-// MetaOptions are the meta-options that are available on all or most commands.
-type MetaOptions struct {
-	// RefProject references the project for this CLI invocation.
-	RefProject *v1.Project
-
-	// RefStack referenced the stack for this CLI invocation.
-	RefStack *v1.Stack
-
-	// RefWorkspace referenced the workspace for this CLI invocation.
-	RefWorkspace *v1.Workspace
-
-	// Backend referenced the target storage backend for this CLI invocation.
-	Backend backend.Backend
 }
 
 // NewMetaFlags provides default flags and values for use in other commands.

@@ -79,6 +79,51 @@ func NewApplyRelease(storage Storage, project, stack, workspace string) (*v1.Rel
 	return rel, nil
 }
 
+// NewRollbackRelease news a release object for rollback operation, but no creation in the storage.
+func NewRollbackRelease(storage Storage, project, stack, workspace string, revision uint64) (*v1.Release, error) {
+	if storage == nil {
+		return nil, fmt.Errorf("storage cannot be nil")
+	}
+
+	latestRevision := storage.GetLatestRevision()
+	if latestRevision <= 0 {
+		return nil, fmt.Errorf("invalid latest revision: %d", latestRevision)
+	}
+
+	lastRelease, err := storage.Get(latestRevision)
+	if err != nil {
+		return nil, err
+	}
+	if lastRelease == nil {
+		return nil, fmt.Errorf("last release not found for revision: %d", latestRevision)
+	}
+
+	if lastRelease.Phase != v1.ReleasePhaseSucceeded && lastRelease.Phase != v1.ReleasePhaseFailed {
+		return nil, fmt.Errorf("cannot create a new release of project: %s, workspace: %s. There is a release:%v in progress",
+			project, workspace, lastRelease.Revision)
+	}
+
+	if revision <= 0 {
+		revision = latestRevision - 1
+	}
+
+	rollbackRelease, err := storage.Get(revision)
+	if err != nil {
+		return nil, err
+	}
+	if rollbackRelease == nil {
+		return nil, fmt.Errorf("rollback release not found for revision: %d", revision)
+	}
+
+	if rollbackRelease.Phase != v1.ReleasePhaseSucceeded {
+		return nil, fmt.Errorf("cannot create a new rollback release of project: %s, workspace: %s. There is a release:%v not succeeded",
+			project, workspace, rollbackRelease.Revision)
+	}
+
+	rollbackRelease.Revision = latestRevision + 1
+	return rollbackRelease, nil
+}
+
 // UpdateApplyRelease updates the release in the storage if dryRun is false. If release phase is failed,
 // only logging with no error return.
 func UpdateApplyRelease(storage Storage, rel *v1.Release, dryRun bool, relLock *sync.Mutex) error {

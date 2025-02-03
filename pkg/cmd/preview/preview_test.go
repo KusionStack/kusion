@@ -18,6 +18,8 @@ import (
 	"context"
 	"testing"
 
+	"kusionstack.io/kusion/pkg/engine/apply"
+
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 
@@ -188,7 +190,7 @@ func TestPreview(t *testing.T) {
 		mockReleaseStorageOperation()
 
 		o := &PreviewOptions{}
-		_, err := Preview(o, &releasestorages.LocalStorage{}, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, &apiv1.State{}, proj, stack)
+		_, err := apply.Preview(o, &releasestorages.LocalStorage{}, &apiv1.Spec{Resources: []apiv1.Resource{sa1, sa2, sa3}}, &apiv1.State{}, proj, stack)
 		assert.Nil(t, err)
 	})
 }

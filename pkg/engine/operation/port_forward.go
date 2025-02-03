@@ -42,10 +42,8 @@ type PortForwardRequest struct {
 	Port int
 }
 
-func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
+func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest, stopChan chan struct{}, readyChan chan struct{}) error {
+	ctx := context.Background()
 	if err := validatePortForwardRequest(req); err != nil {
 		return err
 	}
@@ -130,11 +128,10 @@ func (bpo *PortForwardOperation) PortForward(req *PortForwardRequest) error {
 		}
 
 		go func() {
-			err = ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort)
+			err = ForwardPort(ctx, cfg, clientset, namespace, serviceName, servicePort, servicePort, stopChan, readyChan)
 			failed <- err
 		}()
 	}
-
 	err := <-failed
 	return err
 }
@@ -145,6 +142,7 @@ func ForwardPort(
 	clientset *kubernetes.Clientset,
 	namespace, serviceName string,
 	servicePort, localPort int,
+	stopChan chan struct{}, readyChan chan struct{},
 ) error {
 	svc, err := clientset.CoreV1().Services(namespace).Get(ctx, serviceName, metav1.GetOptions{})
 	if err != nil {
@@ -187,11 +185,9 @@ func ForwardPort(
 
 	ports := []string{fmt.Sprintf("%d:%d", localPort, servicePort)}
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, "POST", url)
-
-	stop, ready := make(chan struct{}, 1), make(chan struct{})
 	out, errOut := os.Stdout, os.Stderr
 
-	fw, err := portforward.NewOnAddresses(dialer, []string{"localhost"}, ports, stop, ready, out, errOut)
+	fw, err := portforward.NewOnAddresses(dialer, []string{"localhost"}, ports, stopChan, readyChan, out, errOut)
 	if err != nil {
 		return err
 	}

@@ -85,7 +85,8 @@ func TestPortForwardOperation_PortForward(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			bpo := &PortForwardOperation{}
-			err := bpo.PortForward(tc.req)
+			stopCh, readyCh := make(chan struct{}), make(chan struct{})
+			err := bpo.PortForward(tc.req, stopCh, readyCh)
 
 			if tc.expectedErr {
 				assert.Error(t, err)

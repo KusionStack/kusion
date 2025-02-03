@@ -742,6 +742,9 @@ const (
 	// ReleasePhaseApplying indicates the stage of applying.
 	ReleasePhaseApplying ReleasePhase = "applying"
 
+	// ReleasePhaseRollbacking indicates the stage of rollbacking.
+	ReleasePhaseRollbacking ReleasePhase = "rollbacking"
+
 	// ReleasePhaseDestroying indicates the stage of destroying.
 	ReleasePhaseDestroying ReleasePhase = "destroying"
 
