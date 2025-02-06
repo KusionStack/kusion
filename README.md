@@ -82,7 +82,13 @@ https://github.com/user-attachments/assets/d4edac23-cc01-417f-b08d-de137253c9eb
 
 ## Quick Start With Kusion Server with a Developer Portal
 
-To start with a Kusion Server, please follow the [QuickStart Guide for Kusion Server](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-server/install-kusion).
+To get started with Kusion Server:
+
+1. First, follow the [Installation Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-server/install-kusion) to install Kusion Server.
+
+>**Note** that  you need to configure your kubeconfig properly according to the guide, as Kusion Server requires access to a Kubernetes cluster to function properly.
+
+2. Then, follow the [QuickStart Guide](https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-server/deliver-quickstart) to learn how to use Kusion Server to deploy your first application.
 
 ## Quick Start With Kusion CLI
 
