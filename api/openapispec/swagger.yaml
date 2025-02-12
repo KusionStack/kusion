@@ -30,17 +30,17 @@ definitions:
   constant.SourceProviderType:
     enum:
     - git
+    - git
     - github
     - oci
     - local
-    - git
     type: string
     x-enum-varnames:
+    - DefaultSourceType
     - SourceProviderTypeGit
     - SourceProviderTypeGithub
     - SourceProviderTypeOCI
     - SourceProviderTypeLocal
-    - DefaultSourceType
   constant.StackState:
     enum:
     - UnSynced
@@ -475,6 +475,41 @@ definitions:
         description: UpdateTimestamp is the timestamp of the updated for the stack.
         type: string
     type: object
+  entity.Variable:
+    properties:
+      name:
+        description: Name is the name of the variable.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.VariableType'
+        description: Type is the text type of the variable.
+      value:
+        description: Value is the value of the variable.
+        type: string
+      variableSet:
+        description: VariableSet is the variable set to which the variable belongs.
+        type: string
+    type: object
+  entity.VariableSet:
+    properties:
+      labels:
+        additionalProperties:
+          type: string
+        description: Labels clarifies the scope of the variable set.
+        type: object
+      name:
+        description: Name is the name of the variable set.
+        type: string
+    type: object
+  entity.VariableType:
+    enum:
+    - PlainText
+    - CipherText
+    type: string
+    x-enum-varnames:
+    - PlainTextType
+    - CipherTextType
   entity.Workspace:
     properties:
       backend:
@@ -1015,6 +1050,39 @@ definitions:
     required:
     - name
     type: object
+  request.CreateVariableRequest:
+    properties:
+      name:
+        description: Name is the name of the variable.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.VariableType'
+        description: Type is the type of the variable.
+      value:
+        description: Value is the value of the variable.
+        type: string
+      variableSet:
+        description: VariableSet is the variable set to which the variable belongs.
+        type: string
+    required:
+    - name
+    - variableSet
+    type: object
+  request.CreateVariableSetRequest:
+    properties:
+      labels:
+        additionalProperties:
+          type: string
+        description: Labels clarifies the scope of the variable set.
+        type: object
+      name:
+        description: Name is the name of the variable set.
+        type: string
+    required:
+    - labels
+    - name
+    type: object
   request.CreateWorkspaceRequest:
     properties:
       backendID:
@@ -1219,6 +1287,39 @@ definitions:
     required:
     - id
     type: object
+  request.UpdateVariableRequest:
+    properties:
+      name:
+        description: Name is the name of the variable.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.VariableType'
+        description: Type is the type of the variable.
+      value:
+        description: Value is the value of the variable.
+        type: string
+      variableSet:
+        description: VariableSet is the variable set to which the variable belongs.
+        type: string
+    required:
+    - name
+    - variableSet
+    type: object
+  request.UpdateVariableSetRequest:
+    properties:
+      labels:
+        additionalProperties:
+          type: string
+        description: Labels clarifies the scope of the variable set.
+        type: object
+      name:
+        description: Name is the name of the variable set.
+        type: string
+    required:
+    - labels
+    - name
+    type: object
   request.UpdateWorkspaceRequest:
     properties:
       description:
@@ -1367,6 +1468,32 @@ definitions:
         type: array
       total:
         type: integer
+    type: object
+  response.PaginatedVariableResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      variable:
+        items:
+          $ref: '#/definitions/entity.Variable'
+        type: array
+    type: object
+  response.PaginatedVariableSetResponse:
+    properties:
+      currentPage:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      variableSets:
+        items:
+          $ref: '#/definitions/entity.VariableSet'
+        type: array
     type: object
   response.PaginatedWorkspaceResponse:
     properties:
@@ -3602,6 +3729,522 @@ paths:
       summary: Asynchronously preview stack
       tags:
       - stack
+  /api/v1/variables:
+    get:
+      description: List variable information
+      operationId: listVariables
+      parameters:
+      - description: Variable Name
+        in: query
+        name: variableName
+        type: string
+      - description: Variable Set Name
+        in: query
+        name: variableSetName
+        type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
+      - description: Whether to list all the variables
+        in: query
+        name: fetchAll
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedVariableResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List variables
+      tags:
+      - variable
+    post:
+      consumes:
+      - application/json
+      description: Create a new variable
+      operationId: createVariable
+      parameters:
+      - description: Created variable
+        in: body
+        name: variable
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateVariableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Variable'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create variable
+      tags:
+      - variable
+  /api/v1/variables/{variableSetName}/{variableName}:
+    delete:
+      description: Delete the specified variable by name and the variable set it belongs
+        to
+      operationId: deleteVariable
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      - description: Variable Name
+        in: path
+        name: variableName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete variable
+      tags:
+      - variable
+    get:
+      description: Get variable information by variable name and the variable set
+        it belongs
+      operationId: getVariable
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      - description: Variable Name
+        in: path
+        name: variableName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Variable'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get variable
+      tags:
+      - variable
+    put:
+      consumes:
+      - application/json
+      description: Update the specified variable with name and the variable set it
+        belongs to
+      operationId: updateVariable
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      - description: Variable Name
+        in: path
+        name: variableName
+        required: true
+        type: string
+      - description: Updated variable
+        in: body
+        name: variable
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateVariableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Variable'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update variable
+      tags:
+      - variable
+  /api/v1/variablesets:
+    get:
+      description: List variable set information
+      operationId: listVariableSets
+      parameters:
+      - description: Variable Set Name
+        in: query
+        name: variableSetName
+        type: string
+      - description: The current page to fetch. Default to 1
+        in: query
+        name: page
+        type: integer
+      - description: The size of the page. Default to 10
+        in: query
+        name: pageSize
+        type: integer
+      - description: Which field to sort the list by. Default to id
+        in: query
+        name: sortBy
+        type: string
+      - description: Whether to sort the list in ascending order. Default to false
+        in: query
+        name: ascending
+        type: boolean
+      - description: Whether to list all the variable sets
+        in: query
+        name: fetchAll
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedVariableSetResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List variable sets
+      tags:
+      - variable_set
+    post:
+      consumes:
+      - application/json
+      description: Create a new variable set
+      operationId: createVariableSet
+      parameters:
+      - description: Created variable set
+        in: body
+        name: variableSet
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateVariableSetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.VariableSet'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create variable set
+      tags:
+      - variable_set
+  /api/v1/variablesets/{variableSetName}:
+    delete:
+      description: Delete the specified variable set by name
+      operationId: deleteVariableSet
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete variable set
+      tags:
+      - variable_set
+    get:
+      description: Get variable set information by variable set name
+      operationId: getVariableSet
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.VariableSet'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get variable set
+      tags:
+      - variable_set
+    put:
+      consumes:
+      - application/json
+      description: Update the specified variable set with name
+      operationId: updateVariableSet
+      parameters:
+      - description: Variable Set Name
+        in: path
+        name: variableSetName
+        required: true
+        type: string
+      - description: Updated variable set
+        in: body
+        name: variableSet
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateVariableSetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.VariableSet'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update variable set
+      tags:
+      - variable_set
+  /api/v1/variablesets/matched:
+    get:
+      description: List variable set information by label selectors
+      operationId: listVariableSetsByLabels
+      parameters:
+      - description: Label selectors to match variable sets
+        in: query
+        name: selector
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedVariableSetResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List variable sets by labels
+      tags:
+      - variable_set
   /api/v1/workspaces:
     get:
       description: List all workspaces

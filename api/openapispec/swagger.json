@@ -3336,6 +3336,795 @@
                 }
             }
         },
+        "/api/v1/variables": {
+            "get": {
+                "description": "List variable information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "List variables",
+                "operationId": "listVariables",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Name",
+                        "name": "variableName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to list all the variables",
+                        "name": "fetchAll",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedVariableResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new variable",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Create variable",
+                "operationId": "createVariable",
+                "parameters": [
+                    {
+                        "description": "Created variable",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateVariableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Variable"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variables/{variableSetName}/{variableName}": {
+            "get": {
+                "description": "Get variable information by variable name and the variable set it belongs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Get variable",
+                "operationId": "getVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Variable Name",
+                        "name": "variableName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Variable"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the specified variable with name and the variable set it belongs to",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Update variable",
+                "operationId": "updateVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Variable Name",
+                        "name": "variableName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated variable",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateVariableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.Variable"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete the specified variable by name and the variable set it belongs to",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable"
+                ],
+                "summary": "Delete variable",
+                "operationId": "deleteVariable",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Variable Name",
+                        "name": "variableName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variablesets": {
+            "get": {
+                "description": "List variable set information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "List variable sets",
+                "operationId": "listVariableSets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The current page to fetch. Default to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The size of the page. Default to 10",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Which field to sort the list by. Default to id",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to sort the list in ascending order. Default to false",
+                        "name": "ascending",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to list all the variable sets",
+                        "name": "fetchAll",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedVariableSetResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new variable set",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "Create variable set",
+                "operationId": "createVariableSet",
+                "parameters": [
+                    {
+                        "description": "Created variable set",
+                        "name": "variableSet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateVariableSetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.VariableSet"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variablesets/matched": {
+            "get": {
+                "description": "List variable set information by label selectors",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "List variable sets by labels",
+                "operationId": "listVariableSetsByLabels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Label selectors to match variable sets",
+                        "name": "selector",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PaginatedVariableSetResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/v1/variablesets/{variableSetName}": {
+            "get": {
+                "description": "Get variable set information by variable set name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "Get variable set",
+                "operationId": "getVariableSet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.VariableSet"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the specified variable set with name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "Update variable set",
+                "operationId": "updateVariableSet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated variable set",
+                        "name": "variableSet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateVariableSetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.VariableSet"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete the specified variable set by name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "variable_set"
+                ],
+                "summary": "Delete variable set",
+                "operationId": "deleteVariableSet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Variable Set Name",
+                        "name": "variableSetName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/v1/workspaces": {
             "get": {
                 "description": "List all workspaces",
@@ -3964,17 +4753,17 @@
             "type": "string",
             "enum": [
                 "git",
+                "git",
                 "github",
                 "oci",
-                "local",
-                "git"
+                "local"
             ],
             "x-enum-varnames": [
+                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal",
-                "DefaultSourceType"
+                "SourceProviderTypeLocal"
             ]
         },
         "constant.StackState": {
@@ -4593,6 +5382,58 @@
                     "type": "string"
                 }
             }
+        },
+        "entity.Variable": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Name is the name of the variable.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type is the text type of the variable.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.VariableType"
+                        }
+                    ]
+                },
+                "value": {
+                    "description": "Value is the value of the variable.",
+                    "type": "string"
+                },
+                "variableSet": {
+                    "description": "VariableSet is the variable set to which the variable belongs.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.VariableSet": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "description": "Labels clarifies the scope of the variable set.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "Name is the name of the variable set.",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.VariableType": {
+            "type": "string",
+            "enum": [
+                "PlainText",
+                "CipherText"
+            ],
+            "x-enum-varnames": [
+                "PlainTextType",
+                "CipherTextType"
+            ]
         },
         "entity.Workspace": {
             "type": "object",
@@ -5355,6 +6196,55 @@
                 }
             }
         },
+        "request.CreateVariableRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "variableSet"
+            ],
+            "properties": {
+                "name": {
+                    "description": "Name is the name of the variable.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type is the type of the variable.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.VariableType"
+                        }
+                    ]
+                },
+                "value": {
+                    "description": "Value is the value of the variable.",
+                    "type": "string"
+                },
+                "variableSet": {
+                    "description": "VariableSet is the variable set to which the variable belongs.",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateVariableSetRequest": {
+            "type": "object",
+            "required": [
+                "labels",
+                "name"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels clarifies the scope of the variable set.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "Name is the name of the variable set.",
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateWorkspaceRequest": {
             "type": "object",
             "required": [
@@ -5641,6 +6531,55 @@
                 }
             }
         },
+        "request.UpdateVariableRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "variableSet"
+            ],
+            "properties": {
+                "name": {
+                    "description": "Name is the name of the variable.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type is the type of the variable.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.VariableType"
+                        }
+                    ]
+                },
+                "value": {
+                    "description": "Value is the value of the variable.",
+                    "type": "string"
+                },
+                "variableSet": {
+                    "description": "VariableSet is the variable set to which the variable belongs.",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateVariableSetRequest": {
+            "type": "object",
+            "required": [
+                "labels",
+                "name"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "Labels clarifies the scope of the variable set.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "Name is the name of the variable set.",
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateWorkspaceRequest": {
             "type": "object",
             "required": [
@@ -5867,6 +6806,46 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.PaginatedVariableResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "variable": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Variable"
+                    }
+                }
+            }
+        },
+        "response.PaginatedVariableSetResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "variableSets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.VariableSet"
+                    }
                 }
             }
         },

@@ -152,3 +152,33 @@ type RunRepository interface {
 	// List retrieves all existing run.
 	List(ctx context.Context, filter *entity.RunFilter, sortOptions *entity.SortOptions) (*entity.RunListResult, error)
 }
+
+// VariableSetRepository is an interface that defines the repository operations
+// for variable sets. It follows the principles of domain-driven design (DDD).
+type VariableSetRepository interface {
+	// Create creates a new variable set.
+	Create(ctx context.Context, vs *entity.VariableSet) error
+	// Delete deletes a variable set by its name.
+	Delete(ctx context.Context, name string) error
+	// Update updates an existing variable set.
+	Update(ctx context.Context, vs *entity.VariableSet) error
+	// Get retrieves a variable set by its name.
+	Get(ctx context.Context, name string) (*entity.VariableSet, error)
+	// List retrieves existing variable sets with filter and sort options.
+	List(ctx context.Context, filter *entity.VariableSetFilter, sortOptions *entity.SortOptions) (*entity.VariableSetListResult, error)
+}
+
+// VariableRepository is an interface that defines the repository operations
+// for variables. It follows the principles of domain-driven design (DDD).
+type VariableRepository interface {
+	// Create creates a new variable.
+	Create(ctx context.Context, v *entity.Variable) error
+	// Delete deletes a variable by its name and the variable set it belongs to.
+	Delete(ctx context.Context, name, variableSet string) error
+	// Update updates an existing variable.
+	Update(ctx context.Context, v *entity.Variable) error
+	// Get retrieves a variable by its name and the variable set it belogs to.
+	Get(ctx context.Context, name, variableSet string) (*entity.Variable, error)
+	// List retrieves existing variable with filter and sort options.
+	List(ctx context.Context, filter *entity.VariableFilter, sortOptions *entity.SortOptions) (*entity.VariableListResult, error)
+}

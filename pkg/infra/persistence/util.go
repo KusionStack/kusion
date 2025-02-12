@@ -231,6 +231,30 @@ func GetModuleQuery(filter *entity.ModuleFilter) (string, []interface{}) {
 	return CombineQueryParts(pattern), args
 }
 
+func GetVariableSetQuery(filter *entity.VariableSetFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.Name != "" {
+		pattern = append(pattern, "variable_set.name = ?")
+		args = append(args, filter.Name)
+	}
+	return CombineQueryParts(pattern), args
+}
+
+func GetVariableQuery(filter *entity.VariableFilter) (string, []interface{}) {
+	pattern := make([]string, 0)
+	args := make([]interface{}, 0)
+	if filter.Name != "" {
+		pattern = append(pattern, "variable.name = ?")
+		args = append(args, filter.Name)
+	}
+	if filter.VariableSet != "" {
+		pattern = append(pattern, "variable.variable_set LIKE ?")
+		args = append(args, filter.VariableSet)
+	}
+	return CombineQueryParts(pattern), args
+}
+
 func CombineQueryParts(queryParts []string) string {
 	queryString := ""
 	if len(queryParts) > 0 {

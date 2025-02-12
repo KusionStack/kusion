@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"kusionstack.io/kusion/pkg/domain/constant"
-	"kusionstack.io/kusion/pkg/domain/entity"
 )
 
 // CreateStackRequest represents the create request structure for
@@ -28,19 +27,6 @@ type CreateStackRequest struct {
 	Labels []string `json:"labels"`
 	// Owners is a list of owners for the stack.
 	Owners []string `json:"owners"`
-}
-
-type UpdateVariableRequest struct {
-	// Project is the project related to stack
-	Project string `json:"project,omitempty"`
-	// Path is the relative path of the stack within the source.
-	Path     string `json:"path,omitempty"`
-	IsSecret bool   `json:"isSecret,omitempty"`
-	// key is the unique index to use value in specific stack
-	Key string `json:"key,omitempty"`
-	// value is the plain value of no sensitive data
-	Value       string              `json:"value,omitempty"`
-	SecretValue *entity.SecretValue `json:"secretValue,omitempty"`
 }
 
 // UpdateStackRequest represents the update request structure for
@@ -73,10 +59,6 @@ func (payload *CreateStackRequest) Decode(r *http.Request) error {
 }
 
 func (payload *UpdateStackRequest) Decode(r *http.Request) error {
-	return decode(r, payload)
-}
-
-func (payload *UpdateVariableRequest) Decode(r *http.Request) error {
 	return decode(r, payload)
 }
 
