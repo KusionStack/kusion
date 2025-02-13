@@ -27,7 +27,7 @@ const (
 	ResourcePageSizeLarge   = 1000
 	CommonPageDefault       = 1
 	CommonPageSizeDefault   = 10
-	CommonMaxResultLimit    = 1000
+	CommonMaxResultLimit    = 10000
 	SortByCreateTimestamp   = "createTimestamp"
 	SortByModifiedTimestamp = "modifiedTimestamp"
 	SortByName              = "name"

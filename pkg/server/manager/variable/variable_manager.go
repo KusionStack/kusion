@@ -143,11 +143,11 @@ func (v *VariableManager) BuildVariableFilterAndSortOptions(ctx context.Context,
 	if err != nil {
 		return nil, nil, err
 	}
-	SortOrderAscending, _ := strconv.ParseBool(query.Get("ascending"))
-	variableSetSortOptions := &entity.SortOptions{
-		Field:     sortBy,
-		Ascending: SortOrderAscending,
+	sortOrderDescending, _ := strconv.ParseBool(query.Get("descending"))
+	variableSortOptions := &entity.SortOptions{
+		Field:      sortBy,
+		Descending: sortOrderDescending,
 	}
 
-	return &filter, variableSetSortOptions, nil
+	return &filter, variableSortOptions, nil
 }

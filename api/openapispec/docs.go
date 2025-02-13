@@ -3391,8 +3391,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "Whether to sort the list in ascending order. Default to false",
-                        "name": "ascending",
+                        "description": "Whether to sort the list in descending order. Default to false",
+                        "name": "descending",
                         "in": "query"
                     },
                     {
@@ -3762,8 +3762,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "Whether to sort the list in ascending order. Default to false",
-                        "name": "ascending",
+                        "description": "Whether to sort the list in descending order. Default to false",
+                        "name": "descending",
                         "in": "query"
                     },
                     {
@@ -4764,17 +4764,17 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "git",
-                "git",
                 "github",
                 "oci",
-                "local"
+                "local",
+                "git"
             ],
             "x-enum-varnames": [
-                "DefaultSourceType",
                 "SourceProviderTypeGit",
                 "SourceProviderTypeGithub",
                 "SourceProviderTypeOCI",
-                "SourceProviderTypeLocal"
+                "SourceProviderTypeLocal",
+                "DefaultSourceType"
             ]
         },
         "constant.StackState": {

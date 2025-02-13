@@ -105,7 +105,7 @@ func (v *variableRepository) List(ctx context.Context,
 	pattern, args := GetVariableQuery(filter)
 
 	sortArgs := sortOptions.Field
-	if !sortOptions.Ascending {
+	if sortOptions.Descending {
 		sortArgs += " DESC"
 	}
 

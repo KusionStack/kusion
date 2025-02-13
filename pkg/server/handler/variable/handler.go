@@ -13,6 +13,7 @@ import (
 	"kusionstack.io/kusion/pkg/server/handler"
 	"kusionstack.io/kusion/pkg/server/manager/variable"
 	"kusionstack.io/kusion/pkg/server/manager/variableset"
+	"kusionstack.io/kusion/pkg/server/middleware"
 	logutil "kusionstack.io/kusion/pkg/server/util/logging"
 )
 
@@ -100,7 +101,7 @@ func (h *Handler) DeleteVariable() http.HandlerFunc {
 // @Failure		429													{object}	error									"Too Many Requests"
 // @Failure		404													{object}	error									"Not Found"
 // @Failure		500													{object}	error									"Internal Server Error"
-// @Router			/api/v1/variables/{variableSetName}/{variableName} 																																																																																																																																																																																																																																														[put]
+// @Router			/api/v1/variables/{variableSetName}/{variableName} 																																																																																																																																																																																																																																																									[put]
 func (h *Handler) UpdateVariable() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -154,7 +155,7 @@ func (h *Handler) UpdateVariable() http.HandlerFunc {
 // @Failure		429													{object}	error									"Too Many Requests"
 // @Failure		404													{object}	error									"Not Found"
 // @Failure		500													{object}	error									"Internal Server Error"
-// @Router			/api/v1/variables/{variableSetName}/{variableName} 																																																																																																																																																																																																																												[get]
+// @Router			/api/v1/variables/{variableSetName}/{variableName} 																																																																																																																																																																																																																																							[get]
 func (h *Handler) GetVariable() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Getting stuff from context.
@@ -181,7 +182,7 @@ func (h *Handler) GetVariable() http.HandlerFunc {
 // @Param			page			query		uint														false	"The current page to fetch. Default to 1"
 // @Param			pageSize		query		uint														false	"The size of the page. Default to 10"
 // @Param			sortBy			query		string														false	"Which field to sort the list by. Default to id"
-// @Param			ascending		query		bool														false	"Whether to sort the list in ascending order. Default to false"
+// @Param			descending		query		bool														false	"Whether to sort the list in descending order. Default to false"
 // @Param			fetchAll		query		bool														false	"Whether to list all the variables"
 // @Success		200				{object}	handler.Response{data=response.PaginatedVariableResponse}	"Success"
 // @Failure		400				{object}	error														"Bad Request"
@@ -211,6 +212,12 @@ func (h *Handler) ListVariables() http.HandlerFunc {
 		if err != nil {
 			render.Render(w, r, handler.FailureResponse(ctx, err))
 			return
+		}
+
+		// If the amount of variable sets exceeds the maximum result limit,
+		// then indicate in the response message.
+		if len(variableEntities.Variables) < variableEntities.Total {
+			ctx = context.WithValue(ctx, middleware.ResponseMessageKey, "the result exceeds the maximum amount limit")
 		}
 
 		paginatedResponse := response.PaginatedVariableResponse{

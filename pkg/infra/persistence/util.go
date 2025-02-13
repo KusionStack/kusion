@@ -249,7 +249,7 @@ func GetVariableQuery(filter *entity.VariableFilter) (string, []interface{}) {
 		args = append(args, filter.Name)
 	}
 	if filter.VariableSet != "" {
-		pattern = append(pattern, "variable.variable_set LIKE ?")
+		pattern = append(pattern, "variable.variable_set = ?")
 		args = append(args, filter.VariableSet)
 	}
 	return CombineQueryParts(pattern), args
