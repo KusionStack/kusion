@@ -16,7 +16,7 @@
   <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 Discussions</b></a><br>
   [English] 
   <a href="https://github.com/KusionStack/kusion/blob/main/README-zh.md" target="_blank">[中文]</a>
-  <a href="https://github.com/KusionStack/kusion/blob/main/README-hi.md" target="_blank">[中文]</a>
+  <a href="https://github.com/KusionStack/kusion/blob/main/README-hi.md" target="_blank">[हिंदी]</a>
 </p>
 
 [![Kusion](https://github.com/KusionStack/kusion/actions/workflows/release.yaml/badge.svg)](https://github.com/KusionStack/kusion/actions/workflows/release.yaml)
