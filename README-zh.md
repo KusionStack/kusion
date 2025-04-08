@@ -13,8 +13,9 @@
   <a href="https://www.kusionstack.io/docs/getting-started/getting-started-with-kusion-cli/deliver-quickstart" target="_blank"><b>⚡️ 快速开始</b></a> •
   <a href="https://www.kusionstack.io/docs/" target="_blank"><b>📚 文档</b></a> •
   <a href="https://github.com/orgs/KusionStack/discussions" target="_blank"><b>💬 讨论</b></a><br>
-  <a href="https://github.com/KusionStack/kusion/blob/main/README.md" target="_blank">[English]</a>
   [中文]
+  <a href="https://github.com/KusionStack/kusion/blob/main/README.md" target="_blank">[English]</a>
+  <a href="https://github.com/KusionStack/kusion/blob/main/README-hi.md" target="_blank">[हिंदी]</a>
 </p>
 
 [![Kusion](https://github.com/KusionStack/kusion/actions/workflows/release.yaml/badge.svg)](https://github.com/KusionStack/kusion/actions/workflows/release.yaml)
