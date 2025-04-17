@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -87,8 +88,11 @@ var (
 		# Apply with the specified timeout duration for kusion apply command, measured in second(s)
 		kusion apply --timeout=120
 
-		# Apply with localhost port forwarding
-		kusion apply --port-forward=8080`)
+		# Apply with localhost port forwarding (local port number by default equals to k8s pod or service)
+		kusion apply --port-forward=8080
+		
+		# Apply with specified localhost port forwarding (12345 at local to 8080 of k8s pod or service)
+		kusion apply --port-forward=12345:8080)`)
 )
 
 // To handle the release phase update when panic occurs.
@@ -116,7 +120,7 @@ type ApplyFlags struct {
 	DryRun      bool
 	Watch       bool
 	Timeout     int
-	PortForward int
+	PortForward string
 
 	genericiooptions.IOStreams
 }
@@ -125,12 +129,13 @@ type ApplyFlags struct {
 type ApplyOptions struct {
 	*preview.PreviewOptions
 
-	SpecFile    string
-	Yes         bool
-	DryRun      bool
-	Watch       bool
-	Timeout     int
-	PortForward int
+	SpecFile  string
+	Yes       bool
+	DryRun    bool
+	Watch     bool
+	Timeout   int
+	LocalPort int
+	K8sPort   int
 
 	genericiooptions.IOStreams
 }
@@ -176,7 +181,7 @@ func (f *ApplyFlags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&f.DryRun, "dry-run", "", false, i18n.T("Preview the execution effect (always successful) without actually applying the changes"))
 	cmd.Flags().BoolVarP(&f.Watch, "watch", "", true, i18n.T("After creating/updating/deleting the requested object, watch for changes"))
 	cmd.Flags().IntVarP(&f.Timeout, "timeout", "", 0, i18n.T("The timeout duration for kusion apply command, measured in second(s)"))
-	cmd.Flags().IntVarP(&f.PortForward, "port-forward", "", 0, i18n.T("Forward the specified port from local to service"))
+	cmd.Flags().StringVarP(&f.PortForward, "port-forward", "", "", i18n.T("Forward the specified port from local machine to k8s pod or service"))
 }
 
 // ToOptions converts from CLI inputs to runtime inputs.
@@ -187,6 +192,28 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 		return nil, err
 	}
 
+	// Convert local and K8s Pod or Service port number to be forwarded.
+	localPort, k8sPort := 0, 0
+	if f.PortForward != "" {
+		ports := strings.Split(f.PortForward, ":")
+
+		if len(ports) > 2 {
+			return nil, fmt.Errorf("invalid format of the port number to forward: %s, no more than 2 ports", f.PortForward)
+		}
+
+		if localPort, err = strconv.Atoi(ports[0]); err != nil {
+			return nil, fmt.Errorf("invalid format of the port number to forward, %s cannot be changed into integer", ports[0])
+		}
+
+		if len(ports) == 1 {
+			k8sPort, _ = strconv.Atoi(ports[0])
+		} else {
+			if k8sPort, err = strconv.Atoi(ports[1]); err != nil {
+				return nil, fmt.Errorf("invalid format of the port number to forward, %s cannot be changed into integer", ports[1])
+			}
+		}
+	}
+
 	o := &ApplyOptions{
 		PreviewOptions: previewOptions,
 		SpecFile:       f.SpecFile,
@@ -194,8 +221,9 @@ func (f *ApplyFlags) ToOptions() (*ApplyOptions, error) {
 		DryRun:         f.DryRun,
 		Watch:          f.Watch,
 		Timeout:        f.Timeout,
-		PortForward:    f.PortForward,
 		IOStreams:      f.IOStreams,
+		LocalPort:      localPort,
+		K8sPort:        k8sPort,
 	}
 
 	return o, nil
@@ -207,8 +235,12 @@ func (o *ApplyOptions) Validate(cmd *cobra.Command, args []string) error {
 		return cmdutil.UsageErrorf(cmd, "Unexpected args: %v", args)
 	}
 
-	if o.PortForward < 0 || o.PortForward > 65535 {
-		return cmdutil.UsageErrorf(cmd, "Invalid port number to forward: %d, must be between 1 and 65535", o.PortForward)
+	if o.LocalPort < 0 || o.LocalPort > 65535 {
+		return cmdutil.UsageErrorf(cmd, "Invalid port number to forward: %d, must be between 1 and 65535", o.LocalPort)
+	}
+
+	if o.K8sPort < 0 || o.K8sPort > 65535 {
+		return cmdutil.UsageErrorf(cmd, "Invalid port number to forward: %d, must be between 1 and 65535", o.K8sPort)
 	}
 
 	if o.SpecFile != "" {
@@ -465,7 +497,7 @@ func (o *ApplyOptions) run(rel *apiv1.Release, releaseStorage release.Storage) (
 		return nil
 	}
 
-	if o.PortForward > 0 {
+	if o.LocalPort > 0 && o.K8sPort > 0 {
 		fmt.Printf("\nStart port-forwarding ...\n")
 		portForwarded = true
 		if err = PortForward(o, rel.Spec); err != nil {
@@ -938,8 +970,9 @@ func PortForward(
 	// portforward operation
 	wo := &operation.PortForwardOperation{}
 	if err := wo.PortForward(&operation.PortForwardRequest{
-		Spec: spec,
-		Port: o.PortForward,
+		Spec:      spec,
+		LocalPort: o.LocalPort,
+		K8sPort:   o.K8sPort,
 	}); err != nil {
 		return err
 	}
