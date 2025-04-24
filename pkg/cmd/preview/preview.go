@@ -240,12 +240,17 @@ func (o *PreviewOptions) Run() error {
 		return err
 	}
 
-	// return immediately if no resource found in stack
-	if spec == nil || len(spec.Resources) == 0 {
+	if spec == nil {
 		if o.Output != jsonOutput {
-			fmt.Println(pretty.GreenBold("\nNo resource found in this stack."))
+			fmt.Println(pretty.YellowBold("\nSpec is nil. Treating as empty spec."))
 		}
-		return nil
+		spec = &apiv1.Spec{}
+	}
+
+	if len(spec.Resources) == 0 {
+		if o.Output != jsonOutput {
+			fmt.Println(pretty.YellowBold("\nNo resources found in the spec."))
+		}
 	}
 
 	// compute state
