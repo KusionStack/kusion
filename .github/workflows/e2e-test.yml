@@ -9,7 +9,7 @@ on:
 jobs:
   e2e-linux:
     name: e2e test on linux
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: checkout code
         uses: actions/checkout@v2
