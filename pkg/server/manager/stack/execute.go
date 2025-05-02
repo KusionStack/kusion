@@ -198,11 +198,13 @@ func (m *StackManager) PreviewStack(ctx context.Context, params *StackRequestPar
 		return nil, err
 	}
 
-	// return immediately if no resource found in stack
-	// todo: if there is no resource, should still do diff job; for now, if output is json format, there is no hint
-	if sp == nil || len(sp.Resources) == 0 {
-		logutil.LogToAll(logger, runLogger, "Info", "No resource change found in this stack...")
-		return nil, nil
+	// Treat nil spec as empty and continue with diff
+	if sp == nil {
+		logutil.LogToAll(logger, runLogger, "Warn", "Generated spec is nil, treating as empty spec...")
+		sp = &apiv1.Spec{}
+	}
+	if len(sp.Resources) == 0 {
+		logutil.LogToAll(logger, runLogger, "Info", "No resources found in spec. Proceeding with full diff.")
 	}
 
 	// Preview
