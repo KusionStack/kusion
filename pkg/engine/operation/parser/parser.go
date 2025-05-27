@@ -8,6 +8,7 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/status/v1"
 	"kusionstack.io/kusion/pkg/engine/operation/graph"
 	"kusionstack.io/kusion/pkg/engine/operation/models"
+	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/third_party/terraform/dag"
 )
 
@@ -73,6 +74,10 @@ func LinkRefNodes(
 				if ag.HasVertex(parentNode) {
 					parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
 					ag.Connect(dag.BasicEdge(rn, parentNode))
+					if cycles := ag.Cycles(); len(cycles) > 0 {
+						ag.RemoveEdge(dag.BasicEdge(rn, parentNode))
+						log.Debug("Found cycle in graph when merging, removing edge")
+					}
 				} else {
 					ag.Add(parentNode)
 					ag.Connect(dag.BasicEdge(rn, parentNode))
@@ -80,6 +85,10 @@ func LinkRefNodes(
 			} else {
 				parentNode = GetVertex(ag, baseNode).(*graph.ResourceNode)
 				ag.Connect(dag.BasicEdge(parentNode, rn))
+				if cycles := ag.Cycles(); len(cycles) > 0 {
+					ag.RemoveEdge(dag.BasicEdge(parentNode, rn))
+					log.Debug("Found cycle in graph when merging, removing edge")
+				}
 			}
 		default:
 			hasParent := ag.HasVertex(parentNode)
