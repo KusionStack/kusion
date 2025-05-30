@@ -25,6 +25,8 @@ import (
 	"kusionstack.io/kusion/pkg/server/handler/resource"
 	"kusionstack.io/kusion/pkg/server/handler/source"
 	"kusionstack.io/kusion/pkg/server/handler/stack"
+	"kusionstack.io/kusion/pkg/server/handler/variable"
+	"kusionstack.io/kusion/pkg/server/handler/variableset"
 	"kusionstack.io/kusion/pkg/server/handler/workspace"
 	backendmanager "kusionstack.io/kusion/pkg/server/manager/backend"
 	modulemanager "kusionstack.io/kusion/pkg/server/manager/module"
@@ -33,6 +35,8 @@ import (
 	resourcemanager "kusionstack.io/kusion/pkg/server/manager/resource"
 	sourcemanager "kusionstack.io/kusion/pkg/server/manager/source"
 	stackmanager "kusionstack.io/kusion/pkg/server/manager/stack"
+	variablemanager "kusionstack.io/kusion/pkg/server/manager/variable"
+	variablesetmanager "kusionstack.io/kusion/pkg/server/manager/variableset"
 	workspacemanager "kusionstack.io/kusion/pkg/server/manager/workspace"
 	appmiddleware "kusionstack.io/kusion/pkg/server/middleware"
 	authutil "kusionstack.io/kusion/pkg/server/util/auth"
@@ -172,6 +176,8 @@ func setupRestAPIV1(
 	resourceRepo := persistence.NewResourceRepository(config.DB)
 	moduleRepo := persistence.NewModuleRepository(config.DB)
 	runRepo := persistence.NewRunRepository(config.DB)
+	variablesetRepo := persistence.NewVariableSetRepository(config.DB)
+	variableRepo := persistence.NewVariableRepository(config.DB)
 
 	stackManager := stackmanager.NewStackManager(stackRepo, projectRepo, workspaceRepo, resourceRepo, runRepo, config.DefaultBackend, config.MaxConcurrent)
 	sourceManager := sourcemanager.NewSourceManager(sourceRepo)
@@ -181,6 +187,8 @@ func setupRestAPIV1(
 	projectManager := projectmanager.NewProjectManager(projectRepo, organizationRepo, sourceRepo, config.DefaultSource)
 	resourceManager := resourcemanager.NewResourceManager(resourceRepo)
 	moduleManager := modulemanager.NewModuleManager(moduleRepo, workspaceRepo, backendRepo)
+	variableSetManager := variablesetmanager.NewVariableSetManager(variablesetRepo)
+	variableManager := variablemanager.NewVariableManager(variableRepo)
 
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceManager)
@@ -221,6 +229,16 @@ func setupRestAPIV1(
 	moduleHandler, err := module.NewHandler(moduleManager)
 	if err != nil {
 		logger.Error(err.Error(), "Error creating module handler", "error", err)
+		return
+	}
+	variableSetHandler, err := variableset.NewHandler(variableSetManager)
+	if err != nil {
+		logger.Error(err.Error(), "Error creating variable set handler", "error", err)
+		return
+	}
+	variableHandler, err := variable.NewHandler(variableManager)
+	if err != nil {
+		logger.Error(err.Error(), "Error creating variable handler", "error", err)
 		return
 	}
 
@@ -328,6 +346,27 @@ func setupRestAPIV1(
 			r.Delete("/", moduleHandler.DeleteModule())
 			r.Put("/", moduleHandler.UpdateModule())
 			r.Get("/", moduleHandler.GetModule())
+		})
+	})
+	r.Route("/variablesets", func(r chi.Router) {
+		r.Post("/", variableSetHandler.CreateVariableSet())
+		r.Get("/", variableSetHandler.ListVariableSets())
+		r.Get("/matched", variableSetHandler.ListVariableSetsByLabels())
+		r.Route("/{variableSetName}", func(r chi.Router) {
+			r.Delete("/", variableSetHandler.DeleteVariableSet())
+			r.Put("/", variableSetHandler.UpdateVariableSet())
+			r.Get("/", variableSetHandler.GetVariableSet())
+		})
+	})
+	r.Route("/variables", func(r chi.Router) {
+		r.Post("/", variableHandler.CreateVariable())
+		r.Get("/", variableHandler.ListVariables())
+		r.Route("/{variableSetName}", func(r chi.Router) {
+			r.Route("/{variableName}", func(r chi.Router) {
+				r.Delete("/", variableHandler.DeleteVariable())
+				r.Put("/", variableHandler.UpdateVariable())
+				r.Get("/", variableHandler.GetVariable())
+			})
 		})
 	})
 }

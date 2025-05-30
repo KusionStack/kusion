@@ -18,11 +18,21 @@ func GenerateResponse(ctx context.Context, data any, err error) render.Renderer 
 	// Set the Success and Message fields based on the error parameter.
 	if err == nil {
 		resp.Success = true
-		resp.Message = SuccessMessage
+		// Get the response message from the context.
+		if rspMsg := appmiddleware.GetResponseMessage(ctx); rspMsg != "" {
+			resp.Message = rspMsg
+		} else {
+			resp.Message = SuccessMessage
+		}
 		resp.Data = data
 	} else {
 		resp.Success = false
-		resp.Message = err.Error()
+		// Get the response message from the context.
+		if rspMsg := appmiddleware.GetResponseMessage(ctx); rspMsg != "" {
+			resp.Message = rspMsg
+		} else {
+			resp.Message = err.Error()
+		}
 	}
 
 	// Include the request trace ID if available.

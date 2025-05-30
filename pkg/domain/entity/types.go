@@ -6,6 +6,7 @@ type Pagination struct {
 }
 
 type SortOptions struct {
-	Field     string
-	Ascending bool
+	Field      string
+	Ascending  bool
+	Descending bool
 }
