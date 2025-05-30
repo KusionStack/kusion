@@ -1,0 +1,29 @@
+# Reference from:
+# https://goreleaser.com/ci/actions/
+name: Release
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  Publish: # Pack and publish image to Docker Hub and GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install npm packages and build UI
+        working-directory: ./ui
+        run: |
+          npm install
+          # Using 'CI=false' prevents build errors due to warnings.
+          # It bypasses the 'process.env.CI = true' setting in CI environments
+          # that treats warnings as errors, ensuring a successful build.
+          ls node_modules/*/package.json | xargs -I {} bash -c 'echo $(basename $(dirname {})) $(jq -r .version {})'
+          CI=false npm run build
+          touch build/.gitkeep
