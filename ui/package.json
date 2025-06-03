@@ -28,7 +28,7 @@
     "@uiw/codemirror-themes-all": "^4.23.6",
     "@uiw/react-codemirror": "^4.23.6",
     "ansi_up": "^5.2.1",
-    "antd": "^5.22.4",
+    "antd": "~5.24.0",
     "axios": "^1.3.5",
     "bignumber.js": "^9.1.2",
     "bizcharts": "^4.1.22",
