@@ -25,7 +25,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.0
 	github.com/fluxcd/pkg/sourceignore v0.5.0
 	github.com/fluxcd/pkg/tar v0.4.0
-	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/go-chi/jwtauth/v5 v5.3.1
