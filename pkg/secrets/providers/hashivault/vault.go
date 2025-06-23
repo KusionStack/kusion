@@ -13,7 +13,7 @@ import (
 	vault "github.com/hashicorp/vault/api"
 	"github.com/tidwall/gjson"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 )
 
@@ -26,6 +26,7 @@ const (
 	errDataPropertyFormat      = "unexpected data format %s for property field: %s"
 	errSecretFormat            = "cannot find property %s in secret data"
 	errBuildVaultClient        = "failed to new Vault client: %w"
+	errMethodNotImplemented    = "method not implemented. secret provider: %s, method: %s"
 )
 
 // DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface
@@ -118,6 +119,11 @@ func (v *vaultSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretR
 		return nil, fmt.Errorf(errSecretFormat, ref.Property)
 	}
 	return []byte(val.String()), nil
+}
+
+// SetSecret sets ref secret value to Vault server.
+func (v *vaultSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, value []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "vault", "SetSecret")
 }
 
 func (v *vaultSecretStore) readSecret(ctx context.Context, path, version string) (map[string]interface{}, error) {

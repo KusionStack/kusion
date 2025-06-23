@@ -10,6 +10,8 @@ import (
 type SecretStore interface {
 	// GetSecret retrieves ref secret from various cloud secret manager.
 	GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error)
+	// SetSecret sets ref secret to various cloud secret manager.
+	SetSecret(ctx context.Context, ref v1.ExternalSecretRef, data []byte) error
 }
 
 // SecretStoreProvider is a factory type for secret store.

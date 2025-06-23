@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 
 	"github.com/aliyun/aliyun-secretsmanager-client-go/sdk"
@@ -19,6 +19,7 @@ const (
 	errMissingProviderSpec     = "store spec is missing provider"
 	errMissingAlicloudProvider = "invalid provider spec. Missing Alicloud field in store provider spec"
 	errFailedToCreateClient    = "failed to create Alicloud Secrets Manager client: %w"
+	errMethodNotImplemented    = "method not implemented. secret provider: %s, method: %s"
 )
 
 var (
@@ -89,6 +90,11 @@ func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef)
 		return nil, fmt.Errorf("key %s does not exist in secret %s", ref.Property, ref.Name)
 	}
 	return []byte(val.String()), nil
+}
+
+// SetSecret stores ref secret value to Alicloud Secrets Manager.
+func (s *smSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, secretValue []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "Alicloud Secrets Manager", "SetSecret")
 }
 
 func (s *smSecretStore) convertSecretToGjson(secretInfo *models.SecretInfo, refProperty string) gjson.Result {
