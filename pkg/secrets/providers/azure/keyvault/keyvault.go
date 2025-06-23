@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/tidwall/gjson"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 )
 
@@ -27,6 +27,7 @@ const (
 	errMissingClientIDSecret = "cannot read clientID/clientSecret from environment variables"
 	errPropertyNotExist      = "property %s does not exist in key %s"
 	errUnknownObjectType     = "unknown Azure KeyVault object Type for %s"
+	errMethodNotImplemented  = "method not implemented. secret provider: %s, method: %s"
 )
 
 // DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface
@@ -153,6 +154,11 @@ func (k *kvSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef)
 	}
 
 	return nil, fmt.Errorf(errUnknownObjectType, secretName)
+}
+
+// SetSecret sets ref secret value to Azure KeyVault.
+func (k *kvSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, secretValue []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "Azure KeyVault", "SetSecret")
 }
 
 // Retrieves a property value if specified and the secret value if not.

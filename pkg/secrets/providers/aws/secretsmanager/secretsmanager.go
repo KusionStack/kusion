@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/tidwall/gjson"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/secrets"
 	"kusionstack.io/kusion/pkg/secrets/providers/aws/auth"
 )
@@ -19,6 +19,7 @@ const (
 	errMissingProviderSpec   = "store spec is missing provider"
 	errMissingAWSProvider    = "invalid provider spec. Missing AWS field in store provider spec"
 	errFailedToCreateSession = "failed to create usable AWS session: %w"
+	errMethodNotImplemented  = "method not implemented. secret provider: %s, method: %s"
 )
 
 // DefaultSecretStoreProvider should implement the secrets.SecretStoreProvider interface
@@ -78,6 +79,11 @@ func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef)
 		return nil, fmt.Errorf("key %s does not exist in secret %s", ref.Property, ref.Name)
 	}
 	return []byte(val.String()), nil
+}
+
+// SetSecret sets ref secret value to AWS Secrets Manager.
+func (s *smSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, secretValue []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "AWS Secret Manager", "SetSecret")
 }
 
 // buildGetSecretValueInput constructs target GetSecretValueInput request with specific external secret ref.

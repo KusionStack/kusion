@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	errMissingProviderSpec = "secret store spec is missing provider"
-	errMissingFakeProvider = "invalid provider spec. Missing Fake field in secret store provider spec"
+	errMissingProviderSpec  = "secret store spec is missing provider"
+	errMissingFakeProvider  = "invalid provider spec. Missing Fake field in secret store provider spec"
+	errMethodNotImplemented = "method not implemented. secret provider: %s, method: %s"
 )
 
 type SecretData struct {
@@ -75,6 +76,11 @@ func (f *fakeSecretStore) GetSecret(_ context.Context, ref v1.ExternalSecretRef)
 	}
 
 	return []byte(data.Value), nil
+}
+
+// SetSecret sets ref secret value to backend data map.
+func (f *fakeSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, secretValue []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "fake", "SetSecret")
 }
 
 func mapKey(key, version string) string {

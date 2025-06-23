@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // FakeSecretStore is the fake implementation of SecretStore.
@@ -15,6 +15,11 @@ type FakeSecretStore struct{}
 // Fake implementation of SecretStore.GetSecret.
 func (fss *FakeSecretStore) GetSecret(_ context.Context, _ v1.ExternalSecretRef) ([]byte, error) {
 	return []byte("NOOP"), nil
+}
+
+// Fake implementation of SecretStore.SetSecret.
+func (fss *FakeSecretStore) SetSecret(_ context.Context, _ v1.ExternalSecretRef, _ []byte) error {
+	return nil
 }
 
 // FakeSecretStoreProvider is the fake implementation of SecretStoreProvider.

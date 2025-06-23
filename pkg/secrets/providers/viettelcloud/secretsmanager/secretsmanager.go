@@ -22,6 +22,7 @@ const (
 	errMissingProviderSpec         = "store spec is missing provider"
 	errMissingViettelCloudProvider = "invalid provider spec. Missing ViettelCloud field in store provider spec"
 	errFailedToCreateClient        = "failed to create ViettelCloud Secrets Manager client: %w"
+	errMethodNotImplemented        = "method not implemented. secret provider: %s, method: %s"
 )
 
 var (
@@ -86,6 +87,7 @@ func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secre
 	}, nil
 }
 
+// GetSecret retrieves a secret from the ViettelCloud secret store.
 func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef) ([]byte, error) {
 	secretResponse, err := s.client.SecretManagerSecretsRetrieveWithResponse(ctx, ref.Name, &vclient.SecretManagerSecretsRetrieveParams{
 		ProjectID: s.projectID,
@@ -113,6 +115,11 @@ func (s *smSecretStore) GetSecret(ctx context.Context, ref v1.ExternalSecretRef)
 		return nil, fmt.Errorf("key %s does not exist in secret %s", ref.Property, ref.Name)
 	}
 	return []byte(val.String()), nil
+}
+
+// SetSecret sets a secret to the ViettelCloud secret store.
+func (s *smSecretStore) SetSecret(ctx context.Context, ref v1.ExternalSecretRef, secretValue []byte) error {
+	return fmt.Errorf(errMethodNotImplemented, "ViettelCloud", "SetSecret")
 }
 
 func (s *smSecretStore) convertSecretToGjson(secretInfo *vclient.SecretRetrieve, refProperty string) gjson.Result {
