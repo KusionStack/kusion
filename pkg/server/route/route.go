@@ -128,8 +128,13 @@ func NewCoreRoute(config *server.Config) (*chi.Mux, error) {
 		})
 	}
 
+	err := http.ListenAndServe(fmt.Sprintf(":%d", config.Port), router)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error starting server: %s", err))
+		return router, err
+	}
+
 	logger.Info(fmt.Sprintf("Listening on :%d", config.Port))
-	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), router)
 	logger.Info("Server Started...")
 
 	return router, nil
