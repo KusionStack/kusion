@@ -52,8 +52,6 @@ func (o *ServerOptions) Run() error {
 	if err != nil {
 		return err
 	}
-	if _, err := route.NewCoreRoute(config); err == nil {
-		return nil
-	}
-	return nil
+	_, err = route.NewCoreRoute(config)
+	return err
 }
