@@ -81,7 +81,7 @@ Humanitec is a well-known project in the field of platform engineering. It is al
 
 ### Platform developer's view
 
-Humanitec provides many [built-in drivers](https://developer.humanitec.com/integration-and-extensions/drivers/overview/#built-in-drivers), if existing drivers can not meet your requirements, you can build your own custom drivers. In general, Humanitec Drivers are similar to Terraform providers which is an API service fulfilling the Humanitec Driver Interface. According to the official website, they are working on a new API spec, so you can only contact their staff to build your driver now, but you can leverage Terraform providers with its [generic Terraform drivers](https://developer.humanitec.com/integration-and-extensions/drivers/generic-drivers/terraform/).
+Humanitec provides many [built-in drivers](https://developer.humanitec.com/platform-orchestrator/docs/integration-and-extensions/drivers/overview/#what-are-built-in-drivers), if existing drivers can not meet your requirements, you can build your own custom drivers. In general, Humanitec Drivers are similar to Terraform providers which is an API service fulfilling the Humanitec Driver Interface. According to the official website, they are working on a new API spec, so you can only contact their staff to build your driver now, but you can leverage Terraform providers with its [generic Terraform drivers](https://developer.humanitec.com/integration-and-extensions/drivers/generic-drivers/terraform/).
 Platform engineers build the driver and they decide the driver's inputs. They also are responsible for configuring matching criteria to provide a resource in a given resource context.
 
 ### Application developer's view
