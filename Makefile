@@ -64,11 +64,11 @@ format:  ## Format source code
 
 lint:  ## Lint, will not fix but sets exit code on error
 	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
-	$(GOLINTER) run --deadline=10m $(SOURCE_PATHS)
+	$(GOLINTER) run --timeout=10m $(SOURCE_PATHS)
 
 lint-fix:  ## Lint, will try to fix errors and modify code
 	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
-	$(GOLINTER) run --deadline=10m $(SOURCE_PATHS) --fix
+	$(GOLINTER) run --timeout=10m $(SOURCE_PATHS) --fix
 
 doc:  ## Start the documentation server with godoc
 	@which godoc > /dev/null || (echo "Installing godoc@latest ..."; go install golang.org/x/tools/cmd/godoc@latest && echo -e "Installation complete!\n")
@@ -99,7 +99,7 @@ build-local-darwin: show-portal-status $(BUILD_PORTAL) ## Build kusion tool chai
 build-local-darwin-all: build-local-darwin ## Build kusion for macOS
 	# Copy docs
 	cp -r ./docs ./_build/bundles/kusion-darwin/docs
-	
+
 	# README.md
 	cp ./README.md ./_build/bundles/kusion-darwin
 	# Build tgz
@@ -168,7 +168,7 @@ build-local-windows: show-portal-status $(BUILD_PORTAL) ## Build kusion tool cha
 	-rm -rf ./_build/bundles/kusion-windows
 	mkdir -p ./_build/bundles/kusion-windows/bin
 	mkdir -p ./_build/bundles/kusion-windows/kclvm/bin
-	
+
 	# Update version
 	go generate ./pkg/version
 
