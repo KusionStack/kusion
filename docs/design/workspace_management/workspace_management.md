@@ -30,7 +30,7 @@ Workspace is a logical concept representing a target that a stack will be deploy
 
 At the product level, Kusion does not support multiple clouds or multiple regions in a workspace. Although users can define an artful module which builds a schema into multiple resources in multiple clouds or regions. Kusion cannot forbid such modules, but doesn't recommend it and will not provide supportive technical means of multiple clouds or region in a workspace. If a platform team needs to manage multiple clouds or regions, just create multiple workspaces.
 
-For clarity, the workspace data is seperated into two types: configuration and secret, where the former is non-sensitive data, and the latter is sensitive data. Workspace configuration is kept by yaml file when stored locally, and includes a set of module inputs, runtime configs, and backend configs for now. Workspace secret is kept by workspace variables. For example, using AWS must set correct workspace variables of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+For clarity, the workspace data is separated into two types: configuration and secret, where the former is non-sensitive data, and the latter is sensitive data. Workspace configuration is kept by yaml file when stored locally, and includes a set of module inputs, runtime configs, and backend configs for now. Workspace secret is kept by workspace variables. For example, using AWS must set correct workspace variables of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
 For the set of data items that serves the same target, if one or more than one of them is sensitive data, then the whole set of data items should be kept by environment variables. Ding so is to provide a continuous, smooth experience.
 
