@@ -2,6 +2,12 @@
   "ignorePatterns": [
     {
       "pattern": "^https://x.com"
+    },
+    {
+      "pattern": "^https://[^/]+\\.slack\\.com"
+    },
+    {
+      "pattern": "^https://join\\.slack\\.com"
     }
   ],
   "timeout": "20s",
