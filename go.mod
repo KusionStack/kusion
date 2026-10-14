@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.25.8
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.24.2
 	github.com/blang/semver/v4 v4.0.0
-	github.com/bytedance/mockey v1.2.10
+	github.com/bytedance/mockey v1.4.6
 	github.com/chai2010/gettext-go v1.0.2
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/djherbis/times v1.5.0
@@ -239,7 +239,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
+	github.com/gopherjs/gopherjs v1.12.80 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gosuri/uilive v0.0.4 // indirect
@@ -307,8 +307,8 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.3
 	github.com/skeema/knownhosts v1.3.0 // indirect
-	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
-	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/smartystreets/assertions v1.2.0 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/thoas/go-funk v0.9.3 // indirect
