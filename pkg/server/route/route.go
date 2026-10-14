@@ -198,52 +198,52 @@ func setupRestAPIV1(
 	// Set up the handlers for the resources.
 	sourceHandler, err := source.NewHandler(sourceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating source handler...", "error", err)
+		logger.Error("Error creating source handler...", "error", err)
 		return
 	}
 	orgHandler, err := organization.NewHandler(organizationManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating org handler...", "error", err)
+		logger.Error("Error creating org handler...", "error", err)
 		return
 	}
 	projectHandler, err := project.NewHandler(projectManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating project handler...", "error", err)
+		logger.Error("Error creating project handler...", "error", err)
 		return
 	}
 	stackHandler, err := stack.NewHandler(stackManager, config.MaxAsyncConcurrent, config.MaxAsyncBuffer)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating stack handler...", "error", err)
+		logger.Error("Error creating stack handler...", "error", err)
 		return
 	}
 	workspaceHandler, err := workspace.NewHandler(workspaceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating workspace handler...", "error", err)
+		logger.Error("Error creating workspace handler...", "error", err)
 		return
 	}
 	backendHandler, err := backend.NewHandler(backendManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating backend handler...", "error", err)
+		logger.Error("Error creating backend handler...", "error", err)
 		return
 	}
 	resourceHandler, err := resource.NewHandler(resourceManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating resource handler...", "error", err)
+		logger.Error("Error creating resource handler...", "error", err)
 		return
 	}
 	moduleHandler, err := module.NewHandler(moduleManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating module handler", "error", err)
+		logger.Error("Error creating module handler", "error", err)
 		return
 	}
 	variableSetHandler, err := variableset.NewHandler(variableSetManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating variable set handler", "error", err)
+		logger.Error("Error creating variable set handler", "error", err)
 		return
 	}
 	variableHandler, err := variable.NewHandler(variableManager)
 	if err != nil {
-		logger.Error(err.Error(), "Error creating variable handler", "error", err)
+		logger.Error("Error creating variable handler", "error", err)
 		return
 	}
 

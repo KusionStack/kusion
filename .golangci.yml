@@ -1,40 +1,32 @@
-# This file contains all available configuration options
-# with their default values.
-# For complete .golangci.yml configuration, reference: https://golangci-lint.run/usage/configuration/#config-file
+# golangci-lint v2 configuration.
+# For the full reference, see: https://golangci-lint.run/usage/configuration/
+version: "2"
 
-# options for analysis running
 run:
   timeout: 10m
 
 linters:
-  disable-all: true
+  default: none
   enable: # please keep this alphabetized
-  # Don't use soon to deprecated[1] linters that lead to false
-  # https://github.com/golangci/golangci-lint/issues/1841
-  # - deadcode
-  # - structcheck
-  # - varcheck
-    - ineffassign
-    - staticcheck
-    - unused
-    - gosimple
-    - govet
-    - gofumpt
+    # gosimple and stylecheck are part of staticcheck since golangci-lint v2.
+    # exportloopref was removed: Go 1.22 loop variable semantics make it obsolete.
+    # typecheck is always on and can no longer be listed.
     - bodyclose
-  # - depguard
     - dogsled
     - dupl
-    - exportloopref
     - gocritic
-#    - misspell
+    - govet
+    - ineffassign
+    # - misspell
     - nolintlint
     - prealloc
     - predeclared
-    - stylecheck
+    - staticcheck
     - tparallel
-    - typecheck
     - unconvert
+    - unused
     - whitespace
+    # - depguard
     # - wsl
     # - revive
     # - unparam
@@ -44,20 +36,59 @@ linters:
     # - thelper
     # - goconst
     # - errcheck
+  settings:
+    govet:
+      disable:
+        # New in recent Go releases; not enabled under golangci-lint v1.
+        - inline
+    staticcheck:
+      # Default checks, minus the QF* quick fixes that staticcheck gained when
+      # gosimple and stylecheck were merged into it in golangci-lint v2.
+      checks:
+        - all
+        - -ST1000
+        - -ST1003
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        - -QF*
+  exclusions:
+    generated: lax
+    # Keep the exclusions that golangci-lint v1 applied by default.
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: (.+)\.go$
+        text: "G306: Expect WriteFile permissions to be 0600 or less"
+      - path: (.+)\.go$
+        text: "ST1018: string literal contains Unicode control characters, consider using escape sequences instead"
+      - path: (.+)\.go$
+        text: "ifElseChain: rewrite if-else to switch statement"
+      - path: (.+)\.go$
+        text: "S1000: should use for range instead of for { select {} }"
+      - path: (.+)\.go$
+        text: "SA4004: the surrounding loop is unconditionally terminated"
+      - path: (.+)\.go$
+        text: "copylocks: call of c\\.Post copies lock value: kcl-lang\\.io/kcl-go/pkg/spec/gpyrpc\\.Ping_Args contains google\\.golang\\.org/protobuf/internal/impl\\.MessageState contains sync\\.Mutex"
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 
-linters-settings:
-  gofumpt:
-    # Select the Go version to target. The default is `1.15`.
-    lang-version: "1.22"
-    # Choose whether or not to use the extra rules that are disabled
-    # by default
-    extra-rules: false
-
-issues:
-  exclude:
-    - "G306: Expect WriteFile permissions to be 0600 or less"
-    - "ST1018: string literal contains Unicode control characters, consider using escape sequences instead"
-    - "ifElseChain: rewrite if-else to switch statement"
-    - "S1000: should use for range instead of for { select {} }"
-    - "SA4004: the surrounding loop is unconditionally terminated"
-    - "copylocks: call of c\\.Post copies lock value: kcl-lang\\.io/kcl-go/pkg/spec/gpyrpc\\.Ping_Args contains google\\.golang\\.org/protobuf/internal/impl\\.MessageState contains sync\\.Mutex"
+formatters:
+  enable:
+    - gofumpt
+  settings:
+    gofumpt:
+      # The target Go version is read from go.mod.
+      extra-rules: false
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

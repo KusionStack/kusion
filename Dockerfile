@@ -5,7 +5,7 @@ WORKDIR /src/ui
 RUN npm install
 RUN npm run build
 
-FROM golang:1.22 AS build
+FROM golang:1.26 AS build
 COPY / /src
 COPY --from=portal-builder /src/ui/build /src/ui/build
 WORKDIR /src

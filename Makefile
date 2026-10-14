@@ -13,7 +13,7 @@ RUN_IN_DOCKER+=-w /root/kusion ${KCLVM_BUILDER}
 GOFORMATER			?= gofumpt
 GOFORMATER_VERSION	?= v0.2.0
 GOLINTER			?= golangci-lint
-GOLINTER_VERSION	?= v1.56.2
+GOLINTER_VERSION	?= v2.14.0
 COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 
@@ -63,11 +63,11 @@ format:  ## Format source code
 	@for path in $(SOURCE_PATHS); do ${GOFORMATER} -l -w -e `echo $${path} | cut -b 3- | rev | cut -b 5- | rev`; done;
 
 lint:  ## Lint, will not fix but sets exit code on error
-	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
+	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
 	$(GOLINTER) run --timeout=10m $(SOURCE_PATHS)
 
 lint-fix:  ## Lint, will try to fix errors and modify code
-	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
+	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
 	$(GOLINTER) run --timeout=10m $(SOURCE_PATHS) --fix
 
 doc:  ## Start the documentation server with godoc

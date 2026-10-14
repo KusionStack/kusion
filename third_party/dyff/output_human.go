@@ -243,8 +243,8 @@ func (report *HumanReport) generateHumanDetailOutputModification(detail Detail) 
 		if fromType != toType {
 			output.WriteString(yellow("%c type change from %s to %s\n",
 				MODIFICATION,
-				italic(fromType),
-				italic(toType),
+				italic("%s", fromType),
+				italic("%s", toType),
 			))
 		} else {
 			output.WriteString(yellow("%c value change\n",
@@ -272,7 +272,7 @@ func (report *HumanReport) generateHumanDetailOutputModification(detail Detail) 
 func (report *HumanReport) generateHumanDetailOutputOrderchange(detail Detail) (string, error) {
 	var output bytes.Buffer
 
-	output.WriteString(yellow(fmt.Sprintf("%c order changed\n", ORDERCHANGE)))
+	output.WriteString(yellow("%c order changed\n", ORDERCHANGE))
 	switch detail.From.Kind {
 	case yamlv3.SequenceNode:
 		asStringList := func(sequenceNode *yamlv3.Node) []string {
@@ -297,8 +297,8 @@ func (report *HumanReport) generateHumanDetailOutputOrderchange(detail Detail) (
 
 		} else {
 			output.WriteString(CreateTableStyleString(" ", 2,
-				red(strings.Join(from, "\n")),
-				green(strings.Join(to, "\n"))))
+				red("%s", strings.Join(from, "\n")),
+				green("%s", strings.Join(to, "\n"))))
 		}
 	}
 
@@ -344,12 +344,12 @@ func (report *HumanReport) highlightByLine(from, to string) string {
 	if len(fromLines) == len(toLines) {
 		for i := range fromLines {
 			if fromLines[i] != toLines[i] {
-				fromLines[i] = red(fromLines[i])
-				toLines[i] = green(toLines[i])
+				fromLines[i] = red("%s", fromLines[i])
+				toLines[i] = green("%s", toLines[i])
 
 			} else {
-				fromLines[i] = lightred(fromLines[i])
-				toLines[i] = lightgreen(toLines[i])
+				fromLines[i] = lightred("%s", fromLines[i])
+				toLines[i] = lightgreen("%s", toLines[i])
 			}
 		}
 
@@ -359,8 +359,8 @@ func (report *HumanReport) highlightByLine(from, to string) string {
 
 	} else {
 		report.writeTextBlocks(&buf, 0,
-			red(createStringWithPrefix("  - ", from)),
-			green(createStringWithPrefix("  + ", to)),
+			red("%s", createStringWithPrefix("  - ", from)),
+			green("%s", createStringWithPrefix("  + ", to)),
 		)
 	}
 

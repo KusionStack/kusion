@@ -68,7 +68,7 @@ func (wo *WatchOperation) Watch(req *WatchRequest) error {
 			continue
 		}
 		if v1.IsErr(resp.Status) {
-			return fmt.Errorf(resp.Status.String())
+			return errors.New(resp.Status.String())
 		}
 
 		// Save watchers

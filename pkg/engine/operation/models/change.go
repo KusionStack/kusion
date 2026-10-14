@@ -267,7 +267,7 @@ func (o *ChangeOrder) PromptDetails(ui *terminal.UI) (string, error) {
 		WithOnInterruptFunc(func() {
 			hint := `Interruption during 'apply' or 'destroy' may result in a locked release file.
 Please use 'kusion release unlock' before executing the next operation.`
-			fmt.Printf("\n" + hint + "\n")
+			fmt.Print("\n" + hint + "\n")
 			os.Exit(1)
 		}).
 		Show()
