@@ -55,13 +55,19 @@ linters:
         - -QF*
   exclusions:
     generated: lax
-    # Keep the exclusions that golangci-lint v1 applied by default.
+    # Keep the exclusions and skipped directories that golangci-lint v1
+    # applied by default.
     presets:
       - comments
       - common-false-positives
       - legacy
       - std-error-handling
     rules:
+      # Newer prealloc versions also flag slices that start from a literal.
+      # Allocation hints are not worth the churn in table-driven tests.
+      - path: _test\.go$
+        linters:
+          - prealloc
       - path: (.+)\.go$
         text: "G306: Expect WriteFile permissions to be 0600 or less"
       - path: (.+)\.go$
@@ -75,9 +81,9 @@ linters:
       - path: (.+)\.go$
         text: "copylocks: call of c\\.Post copies lock value: kcl-lang\\.io/kcl-go/pkg/spec/gpyrpc\\.Ping_Args contains google\\.golang\\.org/protobuf/internal/impl\\.MessageState contains sync\\.Mutex"
     paths:
-      - third_party$
-      - builtin$
-      - examples$
+      - (^|/)third_party($|/)
+      - (^|/)builtin($|/)
+      - (^|/)examples($|/)
 
 formatters:
   enable:
@@ -89,6 +95,6 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - third_party$
-      - builtin$
-      - examples$
+      - (^|/)third_party($|/)
+      - (^|/)builtin($|/)
+      - (^|/)examples($|/)

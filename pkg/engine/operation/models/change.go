@@ -223,7 +223,8 @@ func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 	// Create a fork of the default table, fill it with data and print it.
 	// Data can also be generated and inserted later.
 	tableHeader := []string{fmt.Sprintf("Stack: %s\nID", p.stack.Name), "\nAction"}
-	tableData := pterm.TableData{tableHeader}
+	tableData := make(pterm.TableData, 0, 1+len(p.Values()))
+	tableData = append(tableData, tableHeader)
 
 	if noStyle {
 		pterm.DisableStyling()
@@ -246,7 +247,8 @@ func (p *Changes) Summary(writer io.Writer, noStyle bool) {
 
 func (o *ChangeOrder) PromptDetails(ui *terminal.UI) (string, error) {
 	// Prepare the selects
-	options := []string{"all"}
+	options := make([]string, 0, len(o.StepKeys)+2)
+	options = append(options, "all")
 	optionMaps := map[string]string{"all": "all"}
 
 	for _, key := range o.StepKeys {

@@ -34,10 +34,10 @@ type DefaultSecretStoreProvider struct{}
 func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
-		return nil, fmt.Errorf(errMissingProviderSpec)
+		return nil, errors.New(errMissingProviderSpec)
 	}
 	if providerSpec.AWS == nil {
-		return nil, fmt.Errorf(errMissingAWSProvider)
+		return nil, errors.New(errMissingAWSProvider)
 	}
 
 	config, err := auth.NewV2Config(context.TODO(), providerSpec.AWS.Region, providerSpec.AWS.Profile)

@@ -189,7 +189,8 @@ func (v *vaultSecretStore) buildPath(path string) string {
 	}
 	if !strings.Contains(out, "/data/") && v.provider.Version == v1.VaultKVStoreV2 {
 		buildPath := strings.Split(out, "/")
-		buildMount := []string{buildPath[0], "data"}
+		buildMount := make([]string, 0, len(buildPath)+1)
+		buildMount = append(buildMount, buildPath[0], "data")
 		buildMount = append(buildMount, buildPath[1:]...)
 		out = strings.Join(buildMount, "/")
 		return out

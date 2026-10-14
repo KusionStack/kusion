@@ -2,6 +2,7 @@ package fake
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/tidwall/gjson"
@@ -34,10 +35,10 @@ type DefaultSecretStoreProvider struct{}
 func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
-		return nil, fmt.Errorf(errMissingProviderSpec)
+		return nil, errors.New(errMissingProviderSpec)
 	}
 	if providerSpec.Fake == nil {
-		return nil, fmt.Errorf(errMissingFakeProvider)
+		return nil, errors.New(errMissingFakeProvider)
 	}
 
 	dataMap := make(map[string]*SecretData)
