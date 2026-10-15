@@ -3,6 +3,7 @@ package secretsmanager
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -49,10 +50,10 @@ type smSecretStore struct {
 func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
-		return nil, fmt.Errorf(errMissingProviderSpec)
+		return nil, errors.New(errMissingProviderSpec)
 	}
 	if providerSpec.ViettelCloud == nil {
-		return nil, fmt.Errorf(errMissingViettelCloudProvider)
+		return nil, errors.New(errMissingViettelCloudProvider)
 	}
 	var project string
 	if providerSpec.ViettelCloud.ProjectID != "" {

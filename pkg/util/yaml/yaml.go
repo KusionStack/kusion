@@ -141,7 +141,7 @@ func MergeToOneYAML(yamlList ...interface{}) string {
 // Merge multiple yaml string into a single string,
 // separate yaml documents with '---'
 func MergeStringsToOneYAML(yamlList []string) string {
-	documents := []interface{}{}
+	documents := make([]interface{}, 0, len(yamlList))
 	for _, y := range yamlList {
 		document := map[string]interface{}{}
 		yamlv3.Unmarshal([]byte(y), document)

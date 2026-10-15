@@ -189,7 +189,7 @@ func formatEndpoints(endpoints *corev1.Endpoints, ports sets.Set[string]) string
 		return "<none>"
 	}
 	list := []string{}
-	max := 3
+	maxItems := 3
 	more := false
 	count := 0
 	for i := range endpoints.Subsets {
@@ -197,7 +197,7 @@ func formatEndpoints(endpoints *corev1.Endpoints, ports sets.Set[string]) string
 		if len(ss.Ports) == 0 {
 			// It's possible to have headless services with no ports.
 			for i := range ss.Addresses {
-				if len(list) == max {
+				if len(list) == maxItems {
 					more = true
 				}
 				if !more {
@@ -211,7 +211,7 @@ func formatEndpoints(endpoints *corev1.Endpoints, ports sets.Set[string]) string
 				port := &ss.Ports[i]
 				if ports == nil || ports.Has(port.Name) {
 					for i := range ss.Addresses {
-						if len(list) == max {
+						if len(list) == maxItems {
 							more = true
 						}
 						addr := &ss.Addresses[i]
@@ -227,7 +227,7 @@ func formatEndpoints(endpoints *corev1.Endpoints, ports sets.Set[string]) string
 	}
 	ret := strings.Join(list, ",")
 	if more {
-		return fmt.Sprintf("%s + %d more...", ret, count-max)
+		return fmt.Sprintf("%s + %d more...", ret, count-maxItems)
 	}
 	return ret
 }
@@ -687,7 +687,7 @@ func printServiceAccount(obj *corev1.ServiceAccount) (string, bool) {
 }
 
 func printDeployment(obj *appsv1.Deployment) (string, bool) {
-	desiredReplicas := *(obj.Spec.Replicas)
+	desiredReplicas := *obj.Spec.Replicas
 	updatedReplicas := obj.Status.UpdatedReplicas
 	readyReplicas := obj.Status.ReadyReplicas
 	availableReplicas := obj.Status.AvailableReplicas
@@ -706,11 +706,11 @@ func printEndpointSlice(obj *discoveryv1.EndpointSlice) (string, bool) {
 
 func formatDiscoveryPorts(ports []discoveryv1.EndpointPort) string {
 	list := []string{}
-	max := 3
+	maxItems := 3
 	more := false
 	count := 0
 	for _, port := range ports {
-		if len(list) < max {
+		if len(list) < maxItems {
 			portNum := "*"
 			if port.Port != nil {
 				portNum = strconv.Itoa(int(*port.Port))
@@ -718,36 +718,36 @@ func formatDiscoveryPorts(ports []discoveryv1.EndpointPort) string {
 				portNum = *port.Name
 			}
 			list = append(list, portNum)
-		} else if len(list) == max {
+		} else if len(list) == maxItems {
 			more = true
 		}
 		count++
 	}
-	return listWithMoreString(list, more, count, max)
+	return listWithMoreString(list, more, count, maxItems)
 }
 
 func formatDiscoveryEndpoints(endpoints []discoveryv1.Endpoint) string {
 	list := []string{}
-	max := 3
+	maxItems := 3
 	more := false
 	count := 0
 	for _, endpoint := range endpoints {
 		for _, address := range endpoint.Addresses {
-			if len(list) < max {
+			if len(list) < maxItems {
 				list = append(list, address)
-			} else if len(list) == max {
+			} else if len(list) == maxItems {
 				more = true
 			}
 			count++
 		}
 	}
-	return listWithMoreString(list, more, count, max)
+	return listWithMoreString(list, more, count, maxItems)
 }
 
-func listWithMoreString(list []string, more bool, count, max int) string {
+func listWithMoreString(list []string, more bool, count, maxItems int) string {
 	ret := strings.Join(list, ",")
 	if more {
-		return fmt.Sprintf("%s + %d more...", ret, count-max)
+		return fmt.Sprintf("%s + %d more...", ret, count-maxItems)
 	}
 	if ret == "" {
 		ret = "<unset>"
@@ -756,7 +756,7 @@ func listWithMoreString(list []string, more bool, count, max int) string {
 }
 
 func printReplicaSet(obj *appsv1.ReplicaSet) (string, bool) {
-	desiredReplicas := *(obj.Spec.Replicas)
+	desiredReplicas := *obj.Spec.Replicas
 	currentReplicas := obj.Status.Replicas
 	readyReplicas := obj.Status.ReadyReplicas
 	return fmt.Sprintf("Desired: %d, Current: %d, Ready: %d",
@@ -776,7 +776,7 @@ func printDaemonSet(obj *appsv1.DaemonSet) (string, bool) {
 }
 
 func printStatefulSet(obj *appsv1.StatefulSet) (string, bool) {
-	desiredReplicas := *(obj.Spec.Replicas)
+	desiredReplicas := *obj.Spec.Replicas
 	readyReplicas := obj.Status.ReadyReplicas
 	createTime := translateTimestampSince(obj.CreationTimestamp)
 	return fmt.Sprintf("Ready: %d/%d, Age: %s", desiredReplicas, readyReplicas, createTime),
@@ -880,7 +880,7 @@ func printIngress(obj *networkingv1.Ingress) (string, bool) {
 }
 
 func getIngressHosts(obj *networkingv1.Ingress) string {
-	results := []string{}
+	results := make([]string, 0, len(obj.Spec.Rules))
 	for _, rule := range obj.Spec.Rules {
 		host := "*"
 		if rule.Host != "" {

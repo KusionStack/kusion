@@ -2,6 +2,7 @@ package secretsmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -45,10 +46,10 @@ type smSecretStore struct {
 func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
-		return nil, fmt.Errorf(errMissingProviderSpec)
+		return nil, errors.New(errMissingProviderSpec)
 	}
 	if providerSpec.Alicloud == nil {
-		return nil, fmt.Errorf(errMissingAlicloudProvider)
+		return nil, errors.New(errMissingAlicloudProvider)
 	}
 
 	client, err := getAlicloudClient(providerSpec.Alicloud.Region)

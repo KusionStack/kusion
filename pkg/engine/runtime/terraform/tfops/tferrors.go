@@ -84,7 +84,7 @@ func parseTerraformInfo(infos []byte) ([]*TerraformInfo, error) {
 		err := json.Unmarshal([]byte(v), terraformInfo)
 		if err != nil {
 			log.Debug("unmarshall TF output to TerraformInfo failed. Return the output directly.")
-			return nil, fmt.Errorf(string(infos))
+			return nil, errors.New(string(infos))
 		}
 		tfInfos = append(tfInfos, terraformInfo)
 	}
