@@ -30,7 +30,10 @@ jobs:
 
   e2e-windows: 
     name: e2e test on windows
-    runs-on: windows-latest
+    # Pinned to Windows Server 2022. windows-latest moved to Windows Server
+    # 2025 in September 2025, which no longer ships wmic, so the kubelet in
+    # k3s from knicknic/temp-kubernetes-ci cannot start there (see #1237).
+    runs-on: windows-2022
     steps: 
       - name: checkout code
         uses: actions/checkout@v2
@@ -49,6 +52,15 @@ jobs:
 
           # Install K3d. 
           scoop install k3d
+      - name: allow the Docker API version used by k3s
+        shell: powershell
+        run: |
+          # The k3s build used by knicknic/temp-kubernetes-ci talks to Docker
+          # with API version 1.38. Docker 29 on the runner rejects anything
+          # older than 1.40 unless DOCKER_MIN_API_VERSION is set for the daemon.
+          New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\docker -Name Environment -PropertyType MultiString -Value @("DOCKER_MIN_API_VERSION=1.38") -Force | Out-Null
+          Restart-Service docker
+          docker version
       - name: setup K3s
         uses: knicknic/temp-kubernetes-ci@v1
       - name: run e2e
