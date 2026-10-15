@@ -93,8 +93,7 @@ func NewClient(options ...ClientOption) *Client {
 
 // optionsWithContext returns the crane options for the given context.
 func (c *Client) optionsWithContext(ctx context.Context) []crane.Option {
-	options := []crane.Option{
-		crane.WithContext(ctx),
-	}
+	options := make([]crane.Option, 0, 1+len(c.opts.craneOptions))
+	options = append(options, crane.WithContext(ctx))
 	return append(options, c.opts.craneOptions...)
 }

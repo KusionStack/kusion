@@ -3,6 +3,7 @@ package keyvault
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -42,10 +43,10 @@ type DefaultSecretStoreProvider struct{}
 func (p *DefaultSecretStoreProvider) NewSecretStore(spec *v1.SecretStore) (secrets.SecretStore, error) {
 	providerSpec := spec.Provider
 	if providerSpec == nil {
-		return nil, fmt.Errorf(errMissingProviderSpec)
+		return nil, errors.New(errMissingProviderSpec)
 	}
 	if providerSpec.Azure == nil {
-		return nil, fmt.Errorf(errMissingAzureProvider)
+		return nil, errors.New(errMissingAzureProvider)
 	}
 
 	secretClient, err := getSecretClient(providerSpec.Azure)
@@ -70,13 +71,13 @@ func getSecretClient(spec *v1.AzureKVProvider) (SecretClient, error) {
 // See https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization#use-environment-based-authentication.
 func authorizerForServicePrincipal(spec *v1.AzureKVProvider) (autorest.Authorizer, error) {
 	if spec.TenantID == nil {
-		return nil, fmt.Errorf(errMissingTenant)
+		return nil, errors.New(errMissingTenant)
 	}
 
 	clientID := os.Getenv("AZURE_CLIENT_ID")
 	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
 	if clientID == "" || clientSecret == "" {
-		return nil, fmt.Errorf(errMissingClientIDSecret)
+		return nil, errors.New(errMissingClientIDSecret)
 	}
 
 	clientCredentialsConfig := auth.NewClientCredentialsConfig(clientID, clientSecret, *spec.TenantID)
