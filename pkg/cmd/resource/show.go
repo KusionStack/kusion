@@ -201,7 +201,7 @@ func (o *ShowOptions) Run() (err error) {
 		return fmt.Errorf("no release found for project: %s, workspace: %s", *o.Project, *o.Workspace)
 	}
 
-	if rel.Spec.Resources == nil || len(rel.Spec.Resources) == 0 {
+	if len(rel.Spec.Resources) == 0 {
 		return fmt.Errorf("no resources found for project: %s, workspace: %s", *o.Project, *o.Workspace)
 	}
 	resourceMap := make(map[string]apiv1.Resource)

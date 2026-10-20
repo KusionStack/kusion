@@ -49,7 +49,7 @@ func listEndpoints(ctx context.Context, r chi.Router) []string {
 
 	// Populate the list of endpoints by walking through the router
 	if err := chi.Walk(r, walkFunc); err != nil {
-		logger.Error(err.Error(), "Walking routes error", "error", err)
+		logger.Error("Walking routes error", "error", err)
 	}
 
 	// Sort the collected endpoints alphabetically

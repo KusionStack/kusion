@@ -132,7 +132,7 @@ func (o *Options) Validate(cmd *cobra.Command, args []string) error {
 
 // Run executes the `list` command.
 func (o *Options) Run() error {
-	if o.Workspace == nil || len(o.Workspace) == 0 {
+	if len(o.Workspace) == 0 {
 		return fmt.Errorf("workspace is empty")
 	}
 
